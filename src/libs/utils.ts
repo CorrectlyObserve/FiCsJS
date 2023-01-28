@@ -12,3 +12,13 @@ export const toKebabCase = (str: string): string => {
 
 export const convertToElements = (props: string): HTMLElement =>
   new DOMParser().parseFromString(props, 'text/html').body
+
+export const manageError = (error: Error | string | unknown): void => {
+  if (error instanceof Error) {
+    throw Error(error.message)
+  } else if (typeof error === 'string') {
+    throw Error(error)
+  } else {
+    throw Error('unexpected error...')
+  }
+}
