@@ -1,4 +1,4 @@
-export type Branch = string | (() => void)
+export type Branch<T> = T | string | (() => void)
 
 export interface WelyArgs {
   name: string
