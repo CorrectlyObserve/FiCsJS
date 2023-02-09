@@ -1,7 +1,11 @@
 {
   "name": "wely-components",
+  "author": "Masami Ogasawara",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "Web components library without compilers.",
+  "keywords": [],
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
