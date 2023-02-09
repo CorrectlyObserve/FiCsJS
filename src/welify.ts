@@ -1,5 +1,5 @@
 import { WelyArgs } from './libs/types'
-import { toKebabCase } from './libs/utils'
+import { keysInObj, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyClass'
 
 /*
@@ -14,18 +14,61 @@ import { WelyElement } from './libs/welyClass'
 6. 各コンポーネントにはユニークなidを振る -> 完了
 7. eventsの中が変化したら自動でイベントハンドラの変更削除を行う
 8. slot -> myChip.slot('username', `<h2>John</h2>`).render()と書きたい(slot="username"は不要) -> できたが、良いコードか要検証
-9. 多言語翻訳
+9. 多言語翻訳isKeysInObj
 10. styleでcssを指定する
 11. Renderメソッドは最後の一回ものが表示される
 */
 
-const welify = ({ name, parent, html, css, events }: WelyArgs): WelyElement => {
+const welify = ({
+  name,
+  parent,
+  html,
+  css,
+  events = {},
+}: WelyArgs): WelyElement => {
   const welyName: string = `w-${toKebabCase(name)}`
 
   customElements.get(welyName) || customElements.define(welyName, WelyElement)
 
-  return document.createElement(welyName) as WelyElement
+  const welified = document.createElement(welyName) as WelyElement
+
+  welified.name = name
+  welified.parent = parent
+  welified.html = html
+  welified.css = css
+
+  if (keysInObj(events).is) {
+    keysInObj(events).toArray.forEach(
+      (handler: string) => (welified.events[handler] = events[handler])
+    )
+  }
+
+  return welified
 }
+
+// Hello worldの実装
+// welify({
+//   name: 'helloWorld',
+//   parent: 'app',
+//   html: `<p>Hello world</p>`,
+//   css: `p { color: green; }`,
+// }).render()
+
+// Counterの実装
+// welify({
+//   name: 'counter',
+//   parent: 'app',
+//   data: {
+//     values: {
+//       count: 0,
+//     },
+//     props: {},
+//   },
+//   html: `<p>${data.values.count}</p>`,
+//   events: {
+//     click: () => data.values.count++,
+//   },
+// }).render()
 
 const myChip = welify({
   name: 'TextText',
