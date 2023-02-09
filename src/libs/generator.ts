@@ -9,4 +9,5 @@ const generate = function* (): Generator<number> {
 
 const generated: Generator<number> = generate()
 
-export const createUniqueId = (): string => `wely-${generated.next().value}`
+export const createUniqueId = (): string =>
+  `welified-unique-id${generated.next().value}`
