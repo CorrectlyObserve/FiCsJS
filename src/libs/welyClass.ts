@@ -1,11 +1,20 @@
 import { createUniqueId } from './generator'
-import { Branch, WelyArgs } from './types'
-import { convertToElements, extractFirstChild, manageError } from './utils'
+import { Branch } from './types'
+import {
+  convertToElements,
+  extractFirstChild,
+  keysInObj,
+  manageError,
+} from './utils'
 
 export class WelyElement extends HTMLElement {
   welyId!: string
   private readonly shadow!: ShadowRoot
-
+  name!: string
+  parent!: string
+  html!: string
+  css?: string
+  events: { [key: string]: () => void } = {}
   private branchArg?: string
   private loopArg?: string
   private embedArg?: HTMLElement
@@ -13,14 +22,6 @@ export class WelyElement extends HTMLElement {
   constructor() {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
-
-    const children: ChildNode[] = Array.from(
-      convertToElements(this.html || '').childNodes
-    )
-
-    for (const child of children) {
-      this.shadow.appendChild(child.cloneNode(true))
-    }
   }
 
   branch(
@@ -60,30 +61,38 @@ export class WelyElement extends HTMLElement {
     return this
   }
 
-  private mount() {
+  connectedCallback() {
+    const children: ChildNode[] = Array.from(
+      convertToElements(this.html).childNodes
+    )
+
+    for (const child of children) {
+      this.shadow.appendChild(child.cloneNode(true))
+    }
+
+    if (this.css) {
+      const style = document.createElement('style')
+      style.textContent = this.css
+
+      this.shadow.appendChild(style)
+    }
+  }
+
+  render() {
     document.getElementById(this.parent)!.appendChild(this)
 
     this.welyId = createUniqueId()
     this.setAttribute('id', this.welyId)
 
-    const welyComponent: HTMLElement = document.getElementById(this.welyId)!
+    if (keysInObj(this.events).is) {
+      keysInObj(this.events).toArray.forEach((handler: string): void =>
+        document
+          .getElementById(this.welyId)!
+          .addEventListener(handler, this.events[handler])
+      )
+    }
 
-    Object.keys(this.events).forEach((handler: string): void =>
-      welyComponent.addEventListener(handler, this.events[handler])
-    )
-
-    this.setAttribute('class', this.welyName)
-  }
-
-  connectedCallback() {
-    const style = document.createElement('style')
-    style.textContent = this.css
-
-    this.shadow.appendChild(style)
-  }
-
-  render() {
-    this.mount()
+    this.setAttribute('class', this.name)
 
     if (
       this.branchArg === undefined &&
