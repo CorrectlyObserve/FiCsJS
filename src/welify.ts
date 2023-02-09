@@ -1,5 +1,5 @@
 import { Args } from './libs/types'
-import { toKebabCase } from './libs/utils'
+import { keysInObj, toKebabCase } from './libs/utils'
 import { Element } from './libs/Class'
 
 /*
@@ -14,18 +14,61 @@ import { Element } from './libs/Class'
 6. 各コンポーネントにはユニークなidを振る -> 完了
 7. eventsの中が変化したら自動でイベントハンドラの変更削除を行う
 8. slot -> myChip.slot('username', `<h2>John</h2>`).render()と書きたい(slot="username"は不要) -> できたが、良いコードか要検証
-9. 多言語翻訳
+9. 多言語翻訳isKeysInObj
 10. styleでcssを指定する
 11. Renderメソッドは最後の一回ものが表示される
 */
 
-const  = ({ name, parent, html, css, events }: Args): Element => {
+const  = ({
+  name,
+  parent,
+  html,
+  css,
+  events = {},
+}: Args): Element => {
   const Name: string = `w-${toKebabCase(name)}`
 
   customElements.get(Name) || customElements.define(Name, Element)
 
-  return document.createElement(Name) as Element
+  const welified = document.createElement(Name) as Element
+
+  welified.name = name
+  welified.parent = parent
+  welified.html = html
+  welified.css = css
+
+  if (keysInObj(events).is) {
+    keysInObj(events).toArray.forEach(
+      (handler: string) => (welified.events[handler] = events[handler])
+    )
+  }
+
+  return welified
 }
+
+// Hello worldの実装
+// ({
+//   name: 'helloWorld',
+//   parent: 'app',
+//   html: `<p>Hello world</p>`,
+//   css: `p { color: green; }`,
+// }).render()
+
+// Counterの実装
+// ({
+//   name: 'counter',
+//   parent: 'app',
+//   data: {
+//     values: {
+//       count: 0,
+//     },
+//     props: {},
+//   },
+//   html: `<p>${data.values.count}</p>`,
+//   events: {
+//     click: () => data.values.count++,
+//   },
+// }).render()
 
 const myChip = ({
   name: 'TextText',
