@@ -4,6 +4,20 @@ export const convertToElements = (prop: string): HTMLElement =>
 export const extractFirstChild = (prop: string): HTMLElement =>
   convertToElements(prop).firstChild as HTMLElement
 
+export const keysInObj = <T>(
+  obj: {
+    [key: string]: T
+  } = {}
+): {
+  is: boolean
+  toArray: string[]
+} => {
+  return {
+    is: Object.keys(obj).length > 0,
+    toArray: Object.keys(obj),
+  }
+}
+
 export const manageError = (error: Error | string | unknown): void => {
   if (error instanceof Error) {
     throw Error(error.message)
