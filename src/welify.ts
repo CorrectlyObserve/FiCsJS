@@ -22,30 +22,7 @@ import { WelyElement } from './libs/welyClass'
 const welify = ({ name, parent, html, css, events }: WelyArgs): WelyElement => {
   const welyName: string = `w-${toKebabCase(name)}`
 
-  class WelifiedElement extends WelyElement {
-    welyName() {
-      return welyName
-    }
-
-    parent() {
-      return parent
-    }
-
-    html() {
-      return html
-    }
-
-    css() {
-      return css
-    }
-
-    events() {
-      return events
-    }
-  }
-
-  customElements.get(welyName) ||
-    customElements.define(welyName, WelifiedElement)
+  customElements.get(welyName) || customElements.define(welyName, WelyElement)
 
   return document.createElement(welyName) as WelyElement
 }
@@ -69,10 +46,12 @@ myChip
   )
   .render()
 
+const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
+
 const aaa = welify({
   name: 'TextText2',
   parent: myChip.welyId,
-  html: `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`,
+  html: html,
   css: `p { color: blue; }`,
   events: {
     click: () => console.log('worked2!'),
