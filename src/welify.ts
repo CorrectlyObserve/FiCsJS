@@ -22,30 +22,7 @@ import { Element } from './libs/Class'
 const  = ({ name, parent, html, css, events }: Args): Element => {
   const Name: string = `w-${toKebabCase(name)}`
 
-  class WelifiedElement extends Element {
-    Name() {
-      return Name
-    }
-
-    parent() {
-      return parent
-    }
-
-    html() {
-      return html
-    }
-
-    css() {
-      return css
-    }
-
-    events() {
-      return events
-    }
-  }
-
-  customElements.get(Name) ||
-    customElements.define(Name, WelifiedElement)
+  customElements.get(Name) || customElements.define(Name, Element)
 
   return document.createElement(Name) as Element
 }
@@ -69,10 +46,12 @@ myChip
   )
   .render()
 
+const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
+
 const aaa = ({
   name: 'TextText2',
   parent: myChip.Id,
-  html: `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`,
+  html: html,
   css: `p { color: blue; }`,
   events: {
     click: () => console.log('worked2!'),
