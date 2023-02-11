@@ -105,9 +105,7 @@ export class WelyElement extends HTMLElement {
         manageError(error)
       }
     } else if (this.branchArg) {
-      this.shadow.appendChild(
-        extractFirstChild(this.branchArg).firstChild!.cloneNode(true)
-      )
+      this.shadow.appendChild(extractFirstChild(this.branchArg).cloneNode(true))
     } else if (this.loopArg) {
       this.shadow.appendChild(extractFirstChild(this.loopArg).cloneNode(true))
     }
