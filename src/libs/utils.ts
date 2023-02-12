@@ -1,6 +1,16 @@
 export const convertToElements = (prop: string): HTMLElement =>
   new DOMParser().parseFromString(prop, 'text/html').body
 
+export const copyElements = (shadow: ShadowRoot, element: string): void => {
+  const children: ChildNode[] = Array.from(
+    convertToElements(element).childNodes
+  )
+
+  for (const child of children) {
+    shadow.appendChild(child.cloneNode(true))
+  }
+}
+
 export const extractFirstChild = (prop: string): HTMLElement =>
   convertToElements(prop).firstChild as HTMLElement
 
