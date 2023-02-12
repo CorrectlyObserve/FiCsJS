@@ -5,6 +5,7 @@ import {
   extractFirstChild,
   keysInObj,
   manageError,
+  toKebabCase,
 } from './utils'
 
 export class WelyElement extends HTMLElement {
@@ -93,7 +94,7 @@ export class WelyElement extends HTMLElement {
       )
     }
 
-    this.setAttribute('class', this.name)
+    this.setAttribute('class', toKebabCase(this.name))
 
     if (
       this.branchArg === undefined &&
