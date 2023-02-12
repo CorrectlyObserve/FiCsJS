@@ -1,6 +1,6 @@
 import { Args } from './libs/types'
 import { keysInObj, toKebabCase } from './libs/utils'
-import { Element } from './libs/Class'
+import { Element } from './libs/'
 
 /*
 技術仕様
