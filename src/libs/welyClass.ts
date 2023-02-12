@@ -1,7 +1,7 @@
 import { createUniqueId } from './generator'
 import { Branch } from './types'
 import {
-  convertToElements,
+  copyElements,
   extractFirstChild,
   keysInObj,
   manageError,
@@ -14,6 +14,7 @@ export class WelyElement extends HTMLElement {
   parent!: string
   html!: string
   css?: string
+  private isInitialized: boolean = false
   events: { [key: string]: () => void } = {}
   private branchArg?: string
   private loopArg?: string
@@ -30,13 +31,15 @@ export class WelyElement extends HTMLElement {
     falsity?: Branch<WelyElement> | null
   ) {
     try {
-      const convertByType = (value: Branch<WelyElement> | null) => {
+      const convertByType = <T>(value: T) => {
         if (typeof value === 'function') return Function(`return ${value}`)()()
 
         return value
       }
 
-      this.branchArg = convertByType(condition ? truth : falsity || null)
+      this.branchArg = `${this.branchArg || ''}${convertByType(
+        convertByType(condition) ? truth : falsity
+      )}`
 
       return this
     } catch {
@@ -62,19 +65,17 @@ export class WelyElement extends HTMLElement {
   }
 
   connectedCallback() {
-    const children: ChildNode[] = Array.from(
-      convertToElements(this.html).childNodes
-    )
+    if (!this.isInitialized) {
+      copyElements(this.shadow, this.html)
 
-    for (const child of children) {
-      this.shadow.appendChild(child.cloneNode(true))
-    }
+      if (this.css) {
+        const style = document.createElement('style')
+        style.textContent = this.css
 
-    if (this.css) {
-      const style = document.createElement('style')
-      style.textContent = this.css
+        this.shadow.appendChild(style)
+      }
 
-      this.shadow.appendChild(style)
+      this.isInitialized = true
     }
   }
 
@@ -104,10 +105,12 @@ export class WelyElement extends HTMLElement {
       } catch (error: Error | string | unknown) {
         manageError(error)
       }
+    } else if (this.branchArg && this.loopArg) {
+      copyElements(this.shadow, this.branchArg)
     } else if (this.branchArg) {
       this.shadow.appendChild(extractFirstChild(this.branchArg).cloneNode(true))
     } else if (this.loopArg) {
-      this.shadow.appendChild(extractFirstChild(this.loopArg).cloneNode(true))
+      copyElements(this.shadow, this.loopArg)
     }
   }
 }
