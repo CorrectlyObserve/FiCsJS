@@ -1,6 +1,6 @@
 import { WelyArgs } from './libs/types'
 import { keysInObj, toKebabCase } from './libs/utils'
-import { WelyElement } from './libs/welyClass'
+import { WelyElement } from './libs/wely'
 
 /*
 技術仕様
