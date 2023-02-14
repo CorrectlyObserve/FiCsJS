@@ -24,7 +24,6 @@ import { Element } from './libs/'
 16. emitとpropsの血縁関係に依存した状態管理
 17. Vueでいうwatch的な機能（今後の話）
 */
-
 const  = ({
   name,
   parent,
@@ -34,10 +33,9 @@ const  = ({
 }: Args): Element => {
   const Name: string = `w-${toKebabCase(name)}`
 
-  customElements.get(Name) || customElements.define(Name, Element)
+  customElements.define(Name, class extends Element {})
 
   const welified = <Element>document.createElement(Name)
-
   welified.name = name
   welified.parent = parent
   welified.html = html
@@ -53,15 +51,15 @@ const  = ({
 }
 
 // Hello worldの実装
-// ({
-//   name: 'helloWorld',
-//   parent: 'app',
-//   html: `<p>Hello world</p>`,
-//   css: `p { color: green; }`,
-//   events: {
-//     click: () => console.log('worked!'),
-//   },
-// }).render()
+({
+  name: 'HelloWorld',
+  parent: 'app',
+  html: `<p>Hello world</p>`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+}).render()
 
 // Counterの実装
 // ({
@@ -94,36 +92,45 @@ const myChip = ({
   },
 })
 
-myChip.embed(`<h2>John2</h2>`).render()
 myChip.branch(() => false, '<h2>John</h2>', 'John').render()
 
 myChip
   .loop([1, 2, 3], (arg) =>
-    myChip.branch(false, `${arg}`, `<h2>${arg}</h2>`)
+    myChip.branch(false, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
   )
   .render()
 
-// myChip.loop([1, 2, 3], (arg: number) => `<h2>${arg}</h2>`).render()
+myChip.branch(() => true, '<h2>John3</h2>', 'John').render()
 
-// myChip
-//   .branch(
-//     () => true,
-//     myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
-//     myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-//   )
-//   .render()
+myChip
+  .loop([1, 2, 3], (arg: number) =>
+    myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
+  )
+  .render()
 
-// const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
+myChip.embed(`<h2>John2</h2>`).render()
 
-// const aaa = ({
-//   name: 'TextText2',
-//   parent: myChip.Id,
-//   html: html,
-//   css: `p { color: blue; }`,
-//   events: {
-//     click: () => console.log('worked2!'),
-//   },
-// })
+myChip
+  .branch(
+    () => false,
+    myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
+    myChip.loop([1, 2, 3], (arg: number) => `<h1>${arg}</h1>`)
+  )
+  .render()
+
+const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
+
+const aaa = ({
+  name: 'TextText2',
+  parent: 'app',
+  html: html,
+  css: `p { color: blue; }`,
+  events: {
+    click: () => console.log('worked2!'),
+  },
+})
+
+aaa.render()
 
 // aaa.embed('name', `<h2>John3</h2>`).render()
 
