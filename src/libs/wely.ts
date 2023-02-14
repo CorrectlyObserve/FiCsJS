@@ -1,8 +1,8 @@
 import { createUniqueId } from './generator'
 import { Branch } from './types'
 import {
-  copyElements,
-  extractFirstChild,
+  cloneNode,
+  getChildNodes,
   keysInObj,
   manageError,
   toKebabCase,
@@ -11,11 +11,12 @@ import {
 export class WelyElement extends HTMLElement {
   welyId!: string
   private readonly shadow!: ShadowRoot
+  private isInitialized: boolean = false
+  private isInitialRendered: boolean = false
   name!: string
   parent!: string
   html!: string
   css?: string
-  private isInitialized: boolean = false
   events: { [key: string]: () => void } = {}
   private branchArg?: string
   private loopArg?: string
@@ -38,9 +39,12 @@ export class WelyElement extends HTMLElement {
         return value
       }
 
-      this.branchArg = `${this.branchArg || ''}${convertByType(
-        convertByType(condition) ? truth : falsity
-      )}`
+      if (this.loopArg) this.branchArg = this.loopArg
+      else {
+        this.branchArg = `${this.branchArg || ''}${convertByType(
+          convertByType(condition) ? truth : falsity
+        )}`
+      }
 
       return this
     } catch {
@@ -58,16 +62,18 @@ export class WelyElement extends HTMLElement {
   }
 
   embed(slotId: string, content?: string) {
-    this.embedArg = extractFirstChild(content || slotId)
+    if (getChildNodes(content || slotId).length > 0) {
+      this.embedArg = <HTMLElement>getChildNodes(content || slotId)[0]
 
-    if (content) this.embedArg.setAttribute('slot', slotId)
+      if (content) this.embedArg.setAttribute('slot', slotId)
+    }
 
     return this
   }
 
   connectedCallback() {
     if (!this.isInitialized) {
-      copyElements(this.shadow, this.html)
+      cloneNode(this.shadow, this.html)
 
       if (this.css) {
         const style = document.createElement('style')
@@ -81,20 +87,23 @@ export class WelyElement extends HTMLElement {
   }
 
   render() {
-    document.getElementById(this.parent)!.appendChild(this)
+    if (!this.isInitialRendered) {
+      document.getElementById(this.parent)!.appendChild(this)
 
-    this.welyId = createUniqueId()
-    this.setAttribute('id', this.welyId)
+      this.welyId = createUniqueId()
+      this.setAttribute('id', this.welyId)
 
-    if (keysInObj(this.events).is) {
-      keysInObj(this.events).toArray.forEach((handler: string): void =>
-        document
-          .getElementById(this.welyId)!
-          .addEventListener(handler, this.events[handler])
-      )
+      if (keysInObj(this.events).is) {
+        keysInObj(this.events).toArray.forEach((handler: string): void =>
+          document
+            .getElementById(this.welyId)!
+            .addEventListener(handler, this.events[handler])
+        )
+      }
+      this.setAttribute('class', toKebabCase(this.name))
+
+      this.isInitialRendered = true
     }
-
-    this.setAttribute('class', toKebabCase(this.name))
 
     if (
       this.branchArg === undefined &&
@@ -106,12 +115,12 @@ export class WelyElement extends HTMLElement {
       } catch (error: Error | string | unknown) {
         manageError(error)
       }
-    } else if (this.branchArg && this.loopArg) {
-      copyElements(this.shadow, this.branchArg)
     } else if (this.branchArg) {
-      this.shadow.appendChild(extractFirstChild(this.branchArg).cloneNode(true))
+      cloneNode(this.shadow, this.branchArg)
+      this.loopArg = undefined
+      this.branchArg = undefined
     } else if (this.loopArg) {
-      copyElements(this.shadow, this.loopArg)
+      cloneNode(this.shadow, this.loopArg)
     }
   }
 }
