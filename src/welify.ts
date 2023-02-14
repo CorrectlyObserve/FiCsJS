@@ -72,7 +72,7 @@ welify({
 //     },
 //     props: {},
 //   },
-//   html: `<p>${data.values.count}</p>`,
+//   html: (data) => `<p>${data.values.count}</p>`,
 //   css: {
 //     selector: 'p',
 //     style: `color: ${data.values.color}`,
@@ -82,55 +82,77 @@ welify({
 //   },
 // }).render()
 
-const myChip = welify({
-  name: 'TextText',
-  parent: 'app',
-  html: `<p>aaa</p><slot />`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+// const myChip = welify({
+//   name: 'TextText',
+//   parent: 'app',
+//   html: `<p>aaa</p><slot />`,
+//   css: `p { color: green; }`,
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
+// })
 
-myChip.branch(() => false, '<h2>John</h2>', 'John').render()
+// Branchの引数に1つの関数
+// 関数は3つの引数を返すような感じ
+// .branch(
+//   (self) => {
+//     return {
+//       condition: () => false,
+//         truthy: '<h2>John</h2>',
+//           falsy: self.child().branch(1 > 0, (child) => child.child().branch(1 > 0, 'yes2', 'no2'), 'no')
+//     }
+//   )
+//   .render()
 
-myChip
-  .loop([1, 2, 3], (arg) =>
-    myChip.branch(false, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
-  )
-  .render()
+// myChip
+//   .branch(
+//     () => false,
+//     '<h2>John</h2>',
+//     myChip.branch(1 > 0, myChip.branch(1 > 0, 'yes2', 'no2'), 'no')
+//   )
+//   .render()
 
-myChip.branch(() => true, '<h2>John3</h2>', 'John').render()
+// myChip
+//   .loop([1, 2, 3], (arg) =>
+//     myChip.branch(
+//       false,
+//       `<p>${arg}</p>`,
+//       myChip.branch(() => arg > 1, `<h2>yes2</h2>`, `<h2>${arg}</h2>`)
+//     )
+//   )
+//   .render()
 
-myChip
-  .loop([1, 2, 3], (arg: number) =>
-    myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
-  )
-  .render()
+// myChip.branch(() => true, '<h2>John3</h2>', 'John').render()
 
-myChip.embed(`<h2>John2</h2>`).render()
+// myChip
+//   .loop([1, 2, 3], (arg: number) =>
+//     myChip.branch(() => arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
+//   )
+//   .render()
 
-myChip
-  .branch(
-    () => false,
-    myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
-    myChip.loop([1, 2, 3], (arg: number) => `<h1>${arg}</h1>`)
-  )
-  .render()
+// myChip.embed(`<h2>John2</h2>`).render()
 
-const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
+// myChip
+//   .branch(
+//     () => false,
+//     myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
+//     myChip.loop([1, 2, 3], (arg: number) => `<h1>${arg}</h1>`)
+//   )
+//   .render()
 
-const aaa = welify({
-  name: 'TextText2',
-  parent: 'app',
-  html: html,
-  css: `p { color: blue; }`,
-  events: {
-    click: () => console.log('worked2!'),
-  },
-})
+// const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
 
-aaa.render()
+// const aaa = welify({
+//   name: 'TextText2',
+//   parent: 'app',
+//   html: html,
+//   css: `p { color: blue; }`,
+//   events: {
+//     click: () => console.log('worked2!'),
+//   },
+// })
+
+// aaa.render()
 
 // aaa.embed('name', `<h2>John3</h2>`).render()
 
