@@ -29,27 +29,20 @@ export class WelyElement extends HTMLElement {
 
   branch(
     condition: boolean | (() => boolean),
-    truth: Branch<WelyElement>,
+    truthy: Branch<WelyElement>,
     falsity?: Branch<WelyElement> | null
   ) {
-    try {
-      const convertByType = <T>(value: T) => {
-        if (typeof value === 'function') return Function(`return ${value}`)()()
+    const convertByType = <T>(value: T) => {
+      if (typeof value === 'function') return Function(`return ${value}`)()()
 
-        return value
-      }
-
-      if (this.loopArg) this.branchArg = this.loopArg
-      else {
-        this.branchArg = `${this.branchArg || ''}${convertByType(
-          convertByType(condition) ? truth : falsity
-        )}`
-      }
-
-      return this
-    } catch {
-      throw Error('The third argument does not exist...')
+      return value
     }
+
+    this.branchArg = `${convertByType(
+      convertByType(condition) ? truthy : falsity
+    )}`
+
+    return this
   }
 
   loop<T>(contents: T[], apply: (arg: T) => WelyElement | string) {
@@ -105,22 +98,30 @@ export class WelyElement extends HTMLElement {
       this.isInitialRendered = true
     }
 
-    if (
-      this.branchArg === undefined &&
-      this.loopArg === undefined &&
-      this.embedArg
-    ) {
+    if (this.embedArg) {
       try {
         this.append(this.embedArg)
-      } catch (error: Error | string | unknown) {
+      } catch (error) {
         manageError(error)
       }
-    } else if (this.branchArg) {
-      cloneNode(this.shadow, this.branchArg)
-      this.loopArg = undefined
-      this.branchArg = undefined
-    } else if (this.loopArg) {
-      cloneNode(this.shadow, this.loopArg)
+    }
+
+    try {
+      if (this.branchArg && this.loopArg) {
+        cloneNode(this.shadow, this.branchArg)
+
+        if (!this.loopArg.includes('[object HTMLElement]')) {
+          cloneNode(this.shadow, this.loopArg)
+        }
+
+        console.log(this.branchArg, this.loopArg)
+      } else if (this.loopArg) {
+        cloneNode(this.shadow, this.loopArg)
+      } else if (this.branchArg) {
+        cloneNode(this.shadow, this.branchArg)
+      }
+    } catch (error) {
+      manageError(error)
     }
   }
 }
