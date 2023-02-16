@@ -16,6 +16,7 @@ export class WelyElement extends HTMLElement {
   name!: string
   parent!: string
   html!: string
+  class?: string
   css?: string
   events: { [key: string]: () => void } = {}
   private branchArg?: string
@@ -93,7 +94,11 @@ export class WelyElement extends HTMLElement {
             .addEventListener(handler, this.events[handler])
         )
       }
-      this.setAttribute('class', toKebabCase(this.name))
+
+      this.setAttribute(
+        'class',
+        toKebabCase(this.name + (this.class ? ` ${this.class}` : ''))
+      )
 
       this.isInitialRendered = true
     }
