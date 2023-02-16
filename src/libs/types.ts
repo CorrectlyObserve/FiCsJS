@@ -1,6 +1,6 @@
 export type Branch<T> = T | string | (() => void)
 
-export interface Args {
+export interface Arg {
   name: string
   parent: string
   html: string
