@@ -4,6 +4,7 @@ export interface Args {
   name: string
   parent: string
   html: string
+  className?: string
   css?: string
   events?: { [key: string]: () => void }
 }
