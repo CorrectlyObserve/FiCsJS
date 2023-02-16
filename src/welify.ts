@@ -1,4 +1,4 @@
-import { Args } from './libs/types'
+import { Arg } from './libs/types'
 import { keysInObj, toKebabCase } from './libs/utils'
 import { Element } from './libs/'
 
@@ -31,7 +31,7 @@ const  = ({
   className,
   css,
   events = {},
-}: Args): Element => {
+}: Arg): Element => {
   const Name: string = `w-${toKebabCase(name)}`
 
   customElements.define(Name, class extends Element {})
