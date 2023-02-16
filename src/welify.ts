@@ -1,4 +1,4 @@
-import { WelyArgs } from './libs/types'
+import { WelifyArg } from './libs/types'
 import { keysInObj, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/wely'
 
@@ -31,7 +31,7 @@ const welify = ({
   className,
   css,
   events = {},
-}: WelyArgs): WelyElement => {
+}: WelifyArg): WelyElement => {
   const welyName: string = `w-${toKebabCase(name)}`
 
   customElements.define(welyName, class extends WelyElement {})
