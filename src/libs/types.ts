@@ -1,6 +1,6 @@
 export type Branch<T> = T | string | (() => void)
 
-export interface WelyArgs {
+export interface WelifyArg {
   name: string
   parent: string
   html: string
