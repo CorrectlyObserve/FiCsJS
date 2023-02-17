@@ -24,7 +24,7 @@ import { WelyElement } from './libs/wely'
 16. emitとpropsの血縁関係に依存した状態管理
 17. Vueでいうwatch的な機能（今後の話）
 */
-const welify = ({
+export const welify = ({
   name,
   parent,
   html,
@@ -32,36 +32,57 @@ const welify = ({
   css,
   events = {},
 }: WelifyArg): WelyElement => {
-  const welyName: string = `w-${toKebabCase(name)}`
+  if (['if', 'each', 'slot'].includes(name)) {
+    throw new Error('The name is already reserved. Please rename...')
+  } else {
+    const welyName: string = `w-${toKebabCase(name)}`
 
-  customElements.define(welyName, class extends WelyElement {})
+    customElements.define(welyName, class extends WelyElement {})
 
-  const welified = <WelyElement>document.createElement(welyName)
-  welified.name = name
-  welified.parent = parent
-  welified.html = html
-  welified.class = className
-  welified.css = css
+    const welified = <WelyElement>document.createElement(welyName)
+    welified.name = name
+    welified.parent = parent
+    welified.html.push(html)
+    welified.class = className
+    welified.css = css
 
-  if (keysInObj(events).is) {
-    keysInObj(events).toArray.forEach(
-      (handler: string) => (welified.events[handler] = events[handler])
-    )
+    if (keysInObj(events).is) {
+      keysInObj(events).toArray.forEach(
+        (handler: string) => (welified.events[handler] = events[handler])
+      )
+    }
+
+    return welified
   }
-
-  return welified
 }
 
 // Hello worldの実装
-// welify({
-//   name: 'HelloWorld',
-//   parent: 'app',
-//   html: `<p>Hello world</p>`,
-//   css: `p { color: green; }`,
-//   events: {
-//     click: () => console.log('worked!'),
-//   },
-// }).render()
+welify({
+  name: 'branch1',
+  parent: 'app',
+  html: `<p></p><w-branch />`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+}).render()
+
+const myChip = welify({
+  name: 'TextText',
+  parent: 'app',
+  html: `<p>aaa</p>`,
+  className: 'text',
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+})
+
+myChip
+  .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+  .embed('yahoo', `<h2>John2</h2>`)
+  .branch(false, () => '<h2>John3</h2>', 'John')
+  .render()
 
 // Counterの実装
 // welify({
@@ -84,17 +105,6 @@ const welify = ({
 //   },
 // }).render()
 
-const myChip = welify({
-  name: 'TextText',
-  parent: 'app',
-  html: `<p>aaa</p><slot />`,
-  className: 'text',
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
-
 // Branchの引数に1つの関数
 // 関数は3つの引数を返すような感じ
 // .branch(
@@ -107,21 +117,17 @@ const myChip = welify({
 //   )
 //   .render()
 
-myChip
-  .loop([1, 2, 3], (arg: number) =>
-    myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
-  )
-  .render()
+// myChip.embed(`<h1 style="color:red">yeah!</h1>`).render()
 
-myChip
-  .branch(() => true, '<h2>John3</h2>', 'John')
-  .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-  .render()
+// myChip
+//   .branch(() => true, '<h2>John3</h2>', 'John')
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .render()
 
-myChip
-  .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-  .branch(() => true, '<h2>John3</h2>', 'John')
-  .render()
+// myChip
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .branch(() => true, '<h2>John3</h2>', 'John')
+//   .render()
 
 //   myChip
 //     .loop([1, 2, 3], (arg: number) =>
@@ -145,8 +151,6 @@ myChip
 //   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
 //   .render()
 
-// myChip.embed(`<h1 style="color:red">yeah!</h1>`).render()
-
 // myChip
 //   .branch(
 //     () => false,
@@ -164,8 +168,6 @@ myChip
 //     )
 //   )
 //   .render()
-
-// myChip.branch(() => true, '<h2>John3</h2>', 'John').render()
 
 // myChip.embed(`<h2>John2</h2>`).render()
 
