@@ -26,7 +26,6 @@ import { WelyElement } from './libs/wely'
 */
 export const welify = ({
   name,
-  parent,
   html,
   className,
   css,
@@ -41,7 +40,6 @@ export const welify = ({
 
     const welified = <WelyElement>document.createElement(welyName)
     welified.name = name
-    welified.parent = parent
     welified.html.push(html)
     welified.class = className
     welified.css = css
@@ -56,11 +54,25 @@ export const welify = ({
   }
 }
 
+export const mountWely = (parent: string, element: WelyElement) =>
+  document.getElementById(parent)!.appendChild(element)
+
+mountWely(
+  'app',
+  welify({
+    name: 'branch',
+    html: `<p>aaa</p>`,
+    css: `p { color: green; }`,
+    events: {
+      click: () => console.log('worked!'),
+    },
+  })
+)
+
 // Hello worldの実装
 welify({
   name: 'branch1',
-  parent: 'app',
-  html: `<p></p><w-branch />`,
+  html: `<p>Hello world</p><w-branch />`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
@@ -69,7 +81,6 @@ welify({
 
 const myChip = welify({
   name: 'TextText',
-  parent: 'app',
   html: `<p>aaa</p>`,
   className: 'text',
   css: `p { color: green; }`,
