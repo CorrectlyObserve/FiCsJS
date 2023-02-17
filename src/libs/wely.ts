@@ -11,17 +11,16 @@ import {
 export class WelyElement extends HTMLElement {
   welyId!: string
   private readonly shadow!: ShadowRoot
-  private isInitialized: boolean = false
-  private isInitialRendered: boolean = false
+  private isInitial: boolean = false
   name!: string
   parent!: string
-  html!: string
+  html: string[] = []
   class?: string
   css?: string
   events: { [key: string]: () => void } = {}
-  private branchArg?: string
-  private loopArg?: string
-  private embedArg?: HTMLElement
+  // private branchArg?: string
+  // private loopArg?: string
+  // private embedArg?: HTMLElement
 
   constructor() {
     super()
@@ -39,17 +38,19 @@ export class WelyElement extends HTMLElement {
       return value
     }
 
-    this.branchArg = `${convertByType(
-      convertByType(condition) ? truthy : falsity
-    )}`
+    this.html.push(
+      `${convertByType(convertByType(condition) ? truthy : falsity)}`
+    )
 
     return this
   }
 
   loop<T>(contents: T[], apply: (arg: T) => WelyElement | string) {
-    this.loopArg = contents.reduce(
-      (prev: string, self: T): string => `${prev}${apply(self)}`,
-      ''
+    this.html.push(
+      contents.reduce(
+        (prev: string, self: T): string => `${prev}${apply(self)}`,
+        ''
+      )
     )
 
     return this
@@ -57,35 +58,28 @@ export class WelyElement extends HTMLElement {
 
   embed(slotId: string, content?: string) {
     if (getChildNodes(content || slotId).length > 0) {
-      this.embedArg = <HTMLElement>getChildNodes(content || slotId)[0]
+      const slotTag = `<slot ${content ? `name="${slotId}"` : ''}></slot>`
+      const slot = <HTMLElement>getChildNodes(content || slotId)[0]
 
-      if (content) this.embedArg.setAttribute('slot', slotId)
+      if (content) slot.setAttribute('slot', slotId)
+
+      this.html.push(`${slotTag}`)
+      this.appendChild(slot)
     }
 
     return this
   }
 
   connectedCallback() {
-    if (!this.isInitialized) {
-      cloneNode(this.shadow, this.html)
+    if (!this.isInitial) {
+      this.welyId = createUniqueId()
+      this.setAttribute('id', this.welyId)
 
       if (this.css) {
         const style = document.createElement('style')
         style.textContent = this.css
-
         this.shadow.appendChild(style)
       }
-
-      this.isInitialized = true
-    }
-  }
-
-  render() {
-    if (!this.isInitialRendered) {
-      document.getElementById(this.parent)!.appendChild(this)
-
-      this.welyId = createUniqueId()
-      this.setAttribute('id', this.welyId)
 
       if (keysInObj(this.events).is) {
         keysInObj(this.events).toArray.forEach((handler: string): void =>
@@ -100,33 +94,30 @@ export class WelyElement extends HTMLElement {
         toKebabCase(this.name + (this.class ? ` ${this.class}` : ''))
       )
 
-      this.isInitialRendered = true
+      this.isInitial = true
     }
+  }
 
-    if (this.embedArg) {
-      try {
-        this.append(this.embedArg)
-      } catch (error) {
-        manageError(error)
-      }
-    }
+  render() {
+    document.getElementById(this.parent)!.appendChild(this)
+    cloneNode(this.shadow, this.html.join(''))
 
-    try {
-      if (this.branchArg && this.loopArg) {
-        cloneNode(this.shadow, this.branchArg)
+    // try {
+    //   if (this.branchArg && this.loopArg) {
+    //     cloneNode(this.shadow, this.branchArg)
 
-        if (!this.loopArg.includes('[object HTMLElement]')) {
-          cloneNode(this.shadow, this.loopArg)
-        }
+    //     if (!this.loopArg.includes('[object HTMLElement]')) {
+    //       cloneNode(this.shadow, this.loopArg)
+    //     }
 
-        console.log(this.branchArg, this.loopArg)
-      } else if (this.loopArg) {
-        cloneNode(this.shadow, this.loopArg)
-      } else if (this.branchArg) {
-        cloneNode(this.shadow, this.branchArg)
-      }
-    } catch (error) {
-      manageError(error)
-    }
+    //     console.log(this.branchArg, this.loopArg)
+    //   } else if (this.loopArg) {
+    //     cloneNode(this.shadow, this.loopArg)
+    //   } else if (this.branchArg) {
+    //     cloneNode(this.shadow, this.branchArg)
+    //   }
+    // } catch (error) {
+    //   manageError(error)
+    // }
   }
 }
