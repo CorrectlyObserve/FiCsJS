@@ -18,9 +18,6 @@ export class WelyElement extends HTMLElement {
   class?: string
   css?: string
   events: { [key: string]: () => void } = {}
-  // private branchArg?: string
-  // private loopArg?: string
-  // private embedArg?: HTMLElement
 
   constructor() {
     super()
