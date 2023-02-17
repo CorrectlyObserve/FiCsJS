@@ -13,7 +13,6 @@ export class WelyElement extends HTMLElement {
   private readonly shadow!: ShadowRoot
   private isInitial: boolean = false
   name!: string
-  parent!: string
   html: string[] = []
   class?: string
   css?: string
@@ -93,11 +92,12 @@ export class WelyElement extends HTMLElement {
 
       this.isInitial = true
     }
+
+    cloneNode(this.shadow, this.html.join(''))
   }
 
   render() {
-    document.getElementById(this.parent)!.appendChild(this)
-    cloneNode(this.shadow, this.html.join(''))
+    // cloneNode(this.shadow, this.html.join(''))
 
     // try {
     //   if (this.branchArg && this.loopArg) {
