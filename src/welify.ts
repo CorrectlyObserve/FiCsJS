@@ -26,7 +26,6 @@ import { Element } from './libs/'
 */
 export const  = ({
   name,
-  parent,
   html,
   className,
   css,
@@ -41,7 +40,6 @@ export const  = ({
 
     const welified = <Element>document.createElement(Name)
     welified.name = name
-    welified.parent = parent
     welified.html.push(html)
     welified.class = className
     welified.css = css
@@ -56,11 +54,25 @@ export const  = ({
   }
 }
 
+export const mount = (parent: string, element: Element) =>
+  document.getElementById(parent)!.appendChild(element)
+
+mount(
+  'app',
+  ({
+    name: 'branch',
+    html: `<p>aaa</p>`,
+    css: `p { color: green; }`,
+    events: {
+      click: () => console.log('worked!'),
+    },
+  })
+)
+
 // Hello worldの実装
 ({
   name: 'branch1',
-  parent: 'app',
-  html: `<p></p><w-branch />`,
+  html: `<p>Hello world</p><w-branch />`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
@@ -69,7 +81,6 @@ export const  = ({
 
 const myChip = ({
   name: 'TextText',
-  parent: 'app',
   html: `<p>aaa</p>`,
   className: 'text',
   css: `p { color: green; }`,
