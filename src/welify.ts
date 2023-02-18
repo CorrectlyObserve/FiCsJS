@@ -1,5 +1,5 @@
+import { create } from './libs/create'
 import { Arg } from './libs/types'
-import { keysInObj, toKebabCase } from './libs/utils'
 import { Element } from './libs/'
 
 /*
@@ -25,75 +25,63 @@ import { Element } from './libs/'
 17. Vueでいうwatch的な機能（今後の話）
 */
 export const  = ({
-  name,
+  name = '',
   html,
   className,
   css,
   events = {},
-}: Arg): Element => {
-  if (['if', 'each', 'slot'].includes(name)) {
-    throw new Error('The name is already reserved. Please rename...')
-  } else {
-    const Name: string = `w-${toKebabCase(name)}`
-
-    customElements.define(Name, class extends Element {})
-
-    const welified = <Element>document.createElement(Name)
-    welified.name = name
-    welified.html.push(html)
-    welified.class = className
-    welified.css = css
-
-    if (keysInObj(events).is) {
-      keysInObj(events).toArray.forEach(
-        (handler: string) => (welified.events[handler] = events[handler])
-      )
+}: Arg): Element | void => {
+  if (name !== '') {
+    if (['if', 'each', 'slot'].includes(name)) {
+      throw new Error('The name is already reserved. Please rename...')
+    } else {
+      return <Element>create({ name, html, className, css, events })
     }
-
-    return welified
+  } else {
+    throw new Error('The name argument is not defined...')
   }
 }
 
-export const mount = (parent: string, element: Element) =>
-  document.getElementById(parent)!.appendChild(element)
+export const mount = <T>(parent: string, element: T) =>
+  document.getElementById(parent)!.appendChild(<Element>element)
 
-mount(
-  'app',
-  ({
-    name: 'branch',
-    html: `<p>aaa</p>`,
-    css: `p { color: green; }`,
-    events: {
-      click: () => console.log('worked!'),
-    },
-  })
-)
-
-// Hello worldの実装
-({
-  name: 'branch1',
-  html: `<p>Hello world</p><w-branch />`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-}).render()
-
-const myChip = ({
-  name: 'TextText',
-  html: `<p>aaa</p>`,
-  className: 'text',
+const bbb = create({
+  name: 'if',
+  html: `<p>aaa2</p>`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
   },
 })
 
-myChip
-  .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-  .embed('yahoo', `<h2>John2</h2>`)
-  .branch(false, () => '<h2>John3</h2>', 'John')
-  .render()
+// Hello worldの実装
+const aaa = ({
+  name: 'branch1',
+  html: `<p>Hello world</p><w-if />`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+})
+
+mount('app', aaa)
+mount(aaa!.Id, bbb)
+
+// const myChip = ({
+//   name: 'TextText',
+//   html: `<p>aaa</p>`,
+//   className: 'text',
+//   css: `p { color: green; }`,
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
+// })
+
+// myChip
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .embed('yahoo', `<h2>John2</h2>`)
+//   .branch(false, () => '<h2>John3</h2>', 'John')
+//   .render()
 
 // Counterの実装
 // ({
