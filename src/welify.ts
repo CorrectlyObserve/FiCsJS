@@ -31,21 +31,21 @@ export const  = ({
   css,
   events = {},
 }: Arg): Element | void => {
-  if (name !== '') {
+  if (name === '') {
+    throw new Error('The name argument is not defined...')
+  } else {
     if (['if', 'each', 'slot'].includes(name)) {
       throw new Error('The name is already reserved. Please rename...')
     } else {
       return <Element>create({ name, html, className, css, events })
     }
-  } else {
-    throw new Error('The name argument is not defined...')
   }
 }
 
 export const mount = <T>(parent: string, element: T) =>
   document.getElementById(parent)!.appendChild(<Element>element)
 
-const bbb = create({
+create({
   name: 'if',
   html: `<p>aaa2</p>`,
   css: `p { color: green; }`,
@@ -65,7 +65,6 @@ const aaa = ({
 })
 
 mount('app', aaa)
-mount(aaa!.Id, bbb)
 
 // const myChip = ({
 //   name: 'TextText',
