@@ -1,8 +1,8 @@
 import { createUniqueId } from './generator'
-import { Branch } from './types'
+// import { Branch } from './types'
 import {
   cloneNode,
-  getChildNodes,
+  // getChildNodes,
   keysInObj,
   // manageError,
   toKebabCase,
@@ -23,48 +23,48 @@ export class WelyElement extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
   }
 
-  branch(
-    condition: boolean | (() => boolean),
-    truthy: Branch<WelyElement>,
-    falsity?: Branch<WelyElement> | null
-  ) {
-    const convertByType = <T>(value: T) => {
-      if (typeof value === 'function') return Function(`return ${value}`)()()
+  // branch(
+  //   condition: boolean | (() => boolean),
+  //   truthy: Branch<WelyElement>,
+  //   falsity?: Branch<WelyElement> | null
+  // ) {
+  //   const convertByType = <T>(value: T) => {
+  //     if (typeof value === 'function') return Function(`return ${value}`)()()
 
-      return value
-    }
+  //     return value
+  //   }
 
-    this.html.push(
-      `${convertByType(convertByType(condition) ? truthy : falsity)}`
-    )
+  //   this.html.push(
+  //     `${convertByType(convertByType(condition) ? truthy : falsity)}`
+  //   )
 
-    return this
-  }
+  //   return this
+  // }
 
-  loop<T>(contents: T[], apply: (arg: T) => WelyElement | string) {
-    this.html.push(
-      contents.reduce(
-        (prev: string, self: T): string => `${prev}${apply(self)}`,
-        ''
-      )
-    )
+  // loop<T>(contents: T[], apply: (arg: T) => WelyElement | string) {
+  //   this.html.push(
+  //     contents.reduce(
+  //       (prev: string, self: T): string => `${prev}${apply(self)}`,
+  //       ''
+  //     )
+  //   )
 
-    return this
-  }
+  //   return this
+  // }
 
-  embed(slotId: string, content?: string) {
-    if (getChildNodes(content || slotId).length > 0) {
-      const slotTag = `<slot ${content ? `name="${slotId}"` : ''}></slot>`
-      const slot = <HTMLElement>getChildNodes(content || slotId)[0]
+  // embed(slotId: string, content?: string) {
+  //   if (getChildNodes(content || slotId).length > 0) {
+  //     const slotTag = `<slot ${content ? `name="${slotId}"` : ''}></slot>`
+  //     const slot = <HTMLElement>getChildNodes(content || slotId)[0]
 
-      if (content) slot.setAttribute('slot', slotId)
+  //     if (content) slot.setAttribute('slot', slotId)
 
-      this.html.push(`${slotTag}`)
-      this.appendChild(slot)
-    }
+  //     this.html.push(`${slotTag}`)
+  //     this.appendChild(slot)
+  //   }
 
-    return this
-  }
+  //   return this
+  // }
 
   connectedCallback() {
     if (!this.isInitial) {
@@ -85,16 +85,9 @@ export class WelyElement extends HTMLElement {
         )
       }
 
-      console.log(this.class)
-
       this.setAttribute(
         'class',
-        toKebabCase(
-          this.name +
-            (this.class && !['if', 'each', 'slot'].includes(this.class)
-              ? ` ${this.class}`
-              : '')
-        )
+        toKebabCase(this.class ? `${this.name} ${this.class}` : `${this.name}`)
       )
 
       this.isInitial = true
