@@ -31,21 +31,21 @@ export const welify = ({
   css,
   events = {},
 }: WelifyArg): WelyElement | void => {
-  if (name !== '') {
+  if (name === '') {
+    throw new Error('The name argument is not defined...')
+  } else {
     if (['if', 'each', 'slot'].includes(name)) {
       throw new Error('The name is already reserved. Please rename...')
     } else {
       return <WelyElement>createWely({ name, html, className, css, events })
     }
-  } else {
-    throw new Error('The name argument is not defined...')
   }
 }
 
 export const mountWely = <T>(parent: string, element: T) =>
   document.getElementById(parent)!.appendChild(<WelyElement>element)
 
-const bbb = createWely({
+createWely({
   name: 'if',
   html: `<p>aaa2</p>`,
   css: `p { color: green; }`,
@@ -65,7 +65,6 @@ const aaa = welify({
 })
 
 mountWely('app', aaa)
-mountWely(aaa!.welyId, bbb)
 
 // const myChip = welify({
 //   name: 'TextText',
