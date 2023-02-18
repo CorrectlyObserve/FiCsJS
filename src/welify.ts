@@ -1,5 +1,5 @@
+import { createWely } from './libs/createWely'
 import { WelifyArg } from './libs/types'
-import { keysInObj, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/wely'
 
 /*
@@ -25,75 +25,63 @@ import { WelyElement } from './libs/wely'
 17. Vueでいうwatch的な機能（今後の話）
 */
 export const welify = ({
-  name,
+  name = '',
   html,
   className,
   css,
   events = {},
-}: WelifyArg): WelyElement => {
-  if (['if', 'each', 'slot'].includes(name)) {
-    throw new Error('The name is already reserved. Please rename...')
-  } else {
-    const welyName: string = `w-${toKebabCase(name)}`
-
-    customElements.define(welyName, class extends WelyElement {})
-
-    const welified = <WelyElement>document.createElement(welyName)
-    welified.name = name
-    welified.html.push(html)
-    welified.class = className
-    welified.css = css
-
-    if (keysInObj(events).is) {
-      keysInObj(events).toArray.forEach(
-        (handler: string) => (welified.events[handler] = events[handler])
-      )
+}: WelifyArg): WelyElement | void => {
+  if (name !== '') {
+    if (['if', 'each', 'slot'].includes(name)) {
+      throw new Error('The name is already reserved. Please rename...')
+    } else {
+      return <WelyElement>createWely({ name, html, className, css, events })
     }
-
-    return welified
+  } else {
+    throw new Error('The name argument is not defined...')
   }
 }
 
-export const mountWely = (parent: string, element: WelyElement) =>
-  document.getElementById(parent)!.appendChild(element)
+export const mountWely = <T>(parent: string, element: T) =>
+  document.getElementById(parent)!.appendChild(<WelyElement>element)
 
-mountWely(
-  'app',
-  welify({
-    name: 'branch',
-    html: `<p>aaa</p>`,
-    css: `p { color: green; }`,
-    events: {
-      click: () => console.log('worked!'),
-    },
-  })
-)
-
-// Hello worldの実装
-welify({
-  name: 'branch1',
-  html: `<p>Hello world</p><w-branch />`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-}).render()
-
-const myChip = welify({
-  name: 'TextText',
-  html: `<p>aaa</p>`,
-  className: 'text',
+const bbb = createWely({
+  name: 'if',
+  html: `<p>aaa2</p>`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
   },
 })
 
-myChip
-  .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-  .embed('yahoo', `<h2>John2</h2>`)
-  .branch(false, () => '<h2>John3</h2>', 'John')
-  .render()
+// Hello worldの実装
+const aaa = welify({
+  name: 'branch1',
+  html: `<p>Hello world</p><w-if />`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+})
+
+mountWely('app', aaa)
+mountWely(aaa!.welyId, bbb)
+
+// const myChip = welify({
+//   name: 'TextText',
+//   html: `<p>aaa</p>`,
+//   className: 'text',
+//   css: `p { color: green; }`,
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
+// })
+
+// myChip
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .embed('yahoo', `<h2>John2</h2>`)
+//   .branch(false, () => '<h2>John3</h2>', 'John')
+//   .render()
 
 // Counterの実装
 // welify({
