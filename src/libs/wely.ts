@@ -4,7 +4,7 @@ import {
   cloneNode,
   getChildNodes,
   keysInObj,
-  manageError,
+  // manageError,
   toKebabCase,
 } from './utils'
 
@@ -68,7 +68,7 @@ export class WelyElement extends HTMLElement {
 
   connectedCallback() {
     if (!this.isInitial) {
-      this.welyId = createUniqueId()
+      this.welyId = <string>createUniqueId()
       this.setAttribute('id', this.welyId)
 
       if (this.css) {
@@ -85,9 +85,16 @@ export class WelyElement extends HTMLElement {
         )
       }
 
+      console.log(this.class)
+
       this.setAttribute(
         'class',
-        toKebabCase(this.name + (this.class ? ` ${this.class}` : ''))
+        toKebabCase(
+          this.name +
+            (this.class && !['if', 'each', 'slot'].includes(this.class)
+              ? ` ${this.class}`
+              : '')
+        )
       )
 
       this.isInitial = true
@@ -98,15 +105,12 @@ export class WelyElement extends HTMLElement {
 
   render() {
     // cloneNode(this.shadow, this.html.join(''))
-
     // try {
     //   if (this.branchArg && this.loopArg) {
     //     cloneNode(this.shadow, this.branchArg)
-
     //     if (!this.loopArg.includes('[object HTMLElement]')) {
     //       cloneNode(this.shadow, this.loopArg)
     //     }
-
     //     console.log(this.branchArg, this.loopArg)
     //   } else if (this.loopArg) {
     //     cloneNode(this.shadow, this.loopArg)
