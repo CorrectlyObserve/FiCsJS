@@ -19,7 +19,7 @@ Welify仕様
 */
 
 export class WelyElement extends HTMLElement {
-  welyId!: string
+  welyId: string = ''
   private readonly shadow!: ShadowRoot
   private isInitial: boolean = false
   name: string = 'element'
@@ -78,7 +78,7 @@ export class WelyElement extends HTMLElement {
 
   connectedCallback() {
     if (!this.isInitial) {
-      this.welyId = <string>createUniqueId()
+      this.welyId = createUniqueId()
       this.setAttribute('id', this.welyId)
 
       if (this.css) {
@@ -87,12 +87,14 @@ export class WelyElement extends HTMLElement {
         this.shadow.appendChild(style)
       }
 
-      if (keysInObj(this.events).is) {
-        keysInObj(this.events).toArray.forEach((handler: string): void =>
-          document
-            .getElementById(this.welyId)!
-            .addEventListener(handler, this.events[handler])
-        )
+      const element = document.getElementById(this.welyId)
+
+      if (element) {
+        if (keysInObj(this.events).is) {
+          keysInObj(this.events).toArray.forEach((handler: string): void =>
+            element.addEventListener(handler, this.events[handler])
+          )
+        }
       }
 
       this.setAttribute(
