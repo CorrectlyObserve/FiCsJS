@@ -3,7 +3,7 @@ import { createUniqueId } from './generator'
 import {
   cloneNode,
   // getChildNodes,
-  keysInObj,
+  eachKeys,
   // manageError,
   toKebabCase,
 } from './utils'
@@ -90,16 +90,14 @@ export class WelyElement extends HTMLElement {
       const element = document.getElementById(this.welyId)
 
       if (element) {
-        if (keysInObj(this.events).is) {
-          keysInObj(this.events).toArray.forEach((handler: string): void =>
-            element.addEventListener(handler, this.events[handler])
-          )
-        }
+        eachKeys(this.events, (handler) =>
+          element.addEventListener(handler, this.events[handler])
+        )
       }
 
       this.setAttribute(
         'class',
-        toKebabCase(this.class ? `${this.name} ${this.class}` : `${this.name}`)
+        toKebabCase(this.class ? `${this.name} ${this.class}` : this.name)
       )
 
       this.isInitial = true
