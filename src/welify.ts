@@ -1,5 +1,6 @@
 import { createWely } from './libs/createWely'
 import { WelifyArg } from './libs/types'
+import { getChildNodes } from './libs/utils'
 import { WelyElement } from './libs/wely'
 
 /*
@@ -30,7 +31,7 @@ export const welify = ({
   className,
   css,
   events = {},
-}: WelifyArg): WelyElement | void => {
+}: WelifyArg): WelyElement => {
   if (name === '') {
     throw new Error('The name argument is not defined...')
   } else {
@@ -42,8 +43,11 @@ export const welify = ({
   }
 }
 
-export const mountWely = <T>(parent: string, element: T) =>
-  document.getElementById(parent)!.appendChild(<WelyElement>element)
+export const mountWely = (element: string, parent: string): void => {
+  for (const child of getChildNodes(element)) {
+    document.getElementById(parent)?.appendChild(child.cloneNode(true))
+  }
+}
 
 createWely({
   name: 'if',
@@ -64,7 +68,7 @@ const aaa = welify({
   },
 })
 
-mountWely('app', aaa)
+mountWely(aaa.html, 'app')
 
 // const myChip = welify({
 //   name: 'TextText',
