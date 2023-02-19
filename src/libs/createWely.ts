@@ -15,7 +15,7 @@ export const createWely = ({
 
     const welified = <WelyElement>document.createElement(welyName)
     welified.name = name
-    welified.html.push(html)
+    welified.html = html
     welified.class = className
     welified.css = css
 
