@@ -26,7 +26,7 @@ import { Element } from './libs/'
 17. Vueでいうwatch的な機能（今後の話）
 */
 export const  = ({
-  name = '',
+  name,
   html,
   className,
   css,
@@ -51,7 +51,7 @@ export const mount = (element: string, parent: string): void => {
 
 create({
   name: 'if',
-  html: `<p>aaa2</p>`,
+  html: () => `<p>aaa2</p>`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
@@ -61,14 +61,14 @@ create({
 // Hello worldの実装
 const aaa = ({
   name: 'branch1',
-  html: `<p>Hello world</p><w-if />`,
+  html: () => `<p>Hello world</p><w-if />`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
   },
 })
 
-mount(aaa.html, 'app')
+mount(aaa.html(), 'app')
 
 // const myChip = ({
 //   name: 'TextText',
