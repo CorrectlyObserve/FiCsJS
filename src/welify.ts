@@ -1,5 +1,6 @@
 import { create } from './libs/create'
 import { Arg } from './libs/types'
+import { getChildNodes } from './libs/utils'
 import { Element } from './libs/'
 
 /*
@@ -30,7 +31,7 @@ export const  = ({
   className,
   css,
   events = {},
-}: Arg): Element | void => {
+}: Arg): Element => {
   if (name === '') {
     throw new Error('The name argument is not defined...')
   } else {
@@ -42,8 +43,11 @@ export const  = ({
   }
 }
 
-export const mount = <T>(parent: string, element: T) =>
-  document.getElementById(parent)!.appendChild(<Element>element)
+export const mount = (element: string, parent: string): void => {
+  for (const child of getChildNodes(element)) {
+    document.getElementById(parent)?.appendChild(child.cloneNode(true))
+  }
+}
 
 create({
   name: 'if',
@@ -64,7 +68,7 @@ const aaa = ({
   },
 })
 
-mount('app', aaa)
+mount(aaa.html, 'app')
 
 // const myChip = ({
 //   name: 'TextText',
