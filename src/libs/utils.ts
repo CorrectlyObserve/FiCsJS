@@ -9,17 +9,14 @@ export const cloneNode = (shadow: ShadowRoot, element: string): void => {
   }
 }
 
-export const keysInObj = <T>(
+export const eachKeys = <T>(
   obj: {
     [key: string]: T
-  } = {}
-): {
-  is: boolean
-  toArray: string[]
-} => {
-  return {
-    is: Object.keys(obj).length > 0,
-    toArray: Object.keys(obj),
+  } = {},
+  func: (key: string) => void
+): void => {
+  if (Object.keys(obj).length > 0) {
+    Object.keys(obj).forEach((key: string) => func(key))
   }
 }
 
