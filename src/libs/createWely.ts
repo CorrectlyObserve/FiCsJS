@@ -1,5 +1,5 @@
 import { WelifyArg } from './types'
-import { keysInObj, toKebabCase } from './utils'
+import { eachKeys, toKebabCase } from './utils'
 import { WelyElement } from './wely'
 
 export const createWely = ({
@@ -19,11 +19,13 @@ export const createWely = ({
     welified.class = className
     welified.css = css
 
-    if (keysInObj(events).is) {
-      keysInObj(events).toArray.forEach(
-        (handler: string) => (welified.events[handler] = events[handler])
-      )
-    }
+    eachKeys(events, (handler) => (welified.events[handler] = events[handler]))
+
+    // if (Object.keys(events).length > 0) {
+    //   Object.keys(events).forEach(
+    //     (handler: string) => (welified.events[handler] = events[handler])
+    //   )
+    // }
 
     return welified
   }
