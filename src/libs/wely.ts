@@ -12,8 +12,8 @@ export class WelyElement extends HTMLElement {
   welyId!: string
   private readonly shadow!: ShadowRoot
   private isInitial: boolean = false
-  name!: string
-  html: string[] = []
+  name: string = 'element'
+  html: string = ''
   class?: string
   css?: string
   events: { [key: string]: () => void } = {}
@@ -93,7 +93,7 @@ export class WelyElement extends HTMLElement {
       this.isInitial = true
     }
 
-    cloneNode(this.shadow, this.html.join(''))
+    cloneNode(this.shadow, this.html)
   }
 
   render() {
