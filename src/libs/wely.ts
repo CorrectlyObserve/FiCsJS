@@ -8,12 +8,22 @@ import {
   toKebabCase,
 } from './utils'
 
+/*
+仕様
+
+- Stringをマウント
+- デフォルトでifコンポーネント、eachコンポーネント、slotコンポーネントを用意
+- HTMLを関数に
+- の段階でコンポーネントを登録できるようにする
+
+*/
+
 export class Element extends HTMLElement {
   Id!: string
   private readonly shadow!: ShadowRoot
   private isInitial: boolean = false
   name: string = 'element'
-  html: string = ''
+  html: () => string = () => ''
   class?: string
   css?: string
   events: { [key: string]: () => void } = {}
@@ -93,7 +103,7 @@ export class Element extends HTMLElement {
       this.isInitial = true
     }
 
-    cloneNode(this.shadow, this.html)
+    cloneNode(this.shadow, this.html())
   }
 
   render() {
