@@ -26,7 +26,7 @@ import { WelyElement } from './libs/wely'
 17. Vueでいうwatch的な機能（今後の話）
 */
 export const welify = ({
-  name = '',
+  name,
   html,
   className,
   css,
@@ -51,7 +51,7 @@ export const mountWely = (element: string, parent: string): void => {
 
 createWely({
   name: 'if',
-  html: `<p>aaa2</p>`,
+  html: () => `<p>aaa2</p>`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
@@ -61,14 +61,14 @@ createWely({
 // Hello worldの実装
 const aaa = welify({
   name: 'branch1',
-  html: `<p>Hello world</p><w-if />`,
+  html: () => `<p>Hello world</p><w-if />`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
   },
 })
 
-mountWely(aaa.html, 'app')
+mountWely(aaa.html(), 'app')
 
 // const myChip = welify({
 //   name: 'TextText',
