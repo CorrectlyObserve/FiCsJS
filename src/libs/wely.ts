@@ -19,7 +19,7 @@ import {
 */
 
 export class Element extends HTMLElement {
-  Id!: string
+  Id: string = ''
   private readonly shadow!: ShadowRoot
   private isInitial: boolean = false
   name: string = 'element'
@@ -78,7 +78,7 @@ export class Element extends HTMLElement {
 
   connectedCallback() {
     if (!this.isInitial) {
-      this.Id = <string>createUniqueId()
+      this.Id = createUniqueId()
       this.setAttribute('id', this.Id)
 
       if (this.css) {
@@ -87,12 +87,14 @@ export class Element extends HTMLElement {
         this.shadow.appendChild(style)
       }
 
-      if (keysInObj(this.events).is) {
-        keysInObj(this.events).toArray.forEach((handler: string): void =>
-          document
-            .getElementById(this.Id)!
-            .addEventListener(handler, this.events[handler])
-        )
+      const element = document.getElementById(this.Id)
+
+      if (element) {
+        if (keysInObj(this.events).is) {
+          keysInObj(this.events).toArray.forEach((handler: string): void =>
+            element.addEventListener(handler, this.events[handler])
+          )
+        }
       }
 
       this.setAttribute(
