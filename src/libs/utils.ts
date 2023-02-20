@@ -3,9 +3,9 @@ export const getChildNodes = (element: string): ChildNode[] =>
     new DOMParser().parseFromString(element, 'text/html').body.childNodes
   )
 
-export const cloneNode = (shadow: ShadowRoot, element: string): void => {
+export const cloneNode = (shadowRoot: ShadowRoot, element: string): void => {
   for (const child of getChildNodes(element)) {
-    shadow.appendChild(child.cloneNode(true))
+    shadowRoot.appendChild(child.cloneNode(true))
   }
 }
 
