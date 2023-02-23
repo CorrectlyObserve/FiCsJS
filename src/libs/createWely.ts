@@ -1,5 +1,5 @@
 import { WelifyArg } from './types'
-import { eachKeys, toKebabCase } from './utils'
+import { toKebabCase } from './utils'
 import { WelyElement } from './wely'
 
 export const createWely = ({
@@ -8,25 +8,22 @@ export const createWely = ({
   className,
   css,
   events = {},
-}: WelifyArg): WelyElement | void => {
+}: WelifyArg): void => {
   if (name !== '') {
     const welyName: string = `w-${toKebabCase(name)}`
-    customElements.define(welyName, class extends WelyElement {})
 
-    const welified = <WelyElement>document.createElement(welyName)
-    welified.name = name
-    welified.html = html
-    welified.class = className
-    welified.css = css
-
-    eachKeys(events, (handler) => (welified.events[handler] = events[handler]))
-
-    // if (Object.keys(events).length > 0) {
-    //   Object.keys(events).forEach(
-    //     (handler: string) => (welified.events[handler] = events[handler])
-    //   )
-    // }
-
-    return welified
+    customElements.define(
+      welyName,
+      class extends WelyElement {
+        constructor() {
+          super()
+          this.name = name
+          this.html = html
+          this.class = className
+          this.css = css
+          this.events = { ...events }
+        }
+      }
+    )
   }
 }
