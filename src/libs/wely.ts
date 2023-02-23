@@ -1,17 +1,5 @@
 import { createUniqueId } from './generator'
-// import { Branch } from './types'
 import { cloneNode, toKebabCase } from './utils'
-
-/*
-仕様
-
-- Stringをマウント
-- デフォルトでifコンポーネント、eachコンポーネント、slotコンポーネントを用意
-- デフォルトのコンポーネントにも引数を用意してデザインを整えたりイベントハンドラを実行できるようにする
-- HTMLを関数に
-- の段階でコンポーネントを登録できるようにする
-
-*/
 
 export class Element extends HTMLElement {
   Id: string = ''
@@ -26,6 +14,9 @@ export class Element extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
+
+    this.Id = createUniqueId()
+    this.setAttribute('id', this.Id)
   }
 
   // branch(
@@ -73,9 +64,6 @@ export class Element extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.isInitial) {
-      this.Id = createUniqueId()
-      this.setAttribute('id', this.Id)
-
       if (this.css) {
         const style = document.createElement('style')
         style.textContent = this.css
