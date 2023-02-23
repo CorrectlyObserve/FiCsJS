@@ -1,18 +1,13 @@
 import { createUniqueId } from './generator'
 // import { Branch } from './types'
-import {
-  cloneNode,
-  // getChildNodes,
-  eachKeys,
-  // manageError,
-  toKebabCase,
-} from './utils'
+import { cloneNode, toKebabCase } from './utils'
 
 /*
 Welify仕様
 
 - Stringをマウント
 - デフォルトでifコンポーネント、eachコンポーネント、slotコンポーネントを用意
+- デフォルトのコンポーネントにも引数を用意してデザインを整えたりイベントハンドラを実行できるようにする
 - HTMLを関数に
 - Welifyの段階でコンポーネントを登録できるようにする
 
@@ -20,9 +15,9 @@ Welify仕様
 
 export class WelyElement extends HTMLElement {
   welyId: string = ''
-  private readonly shadow!: ShadowRoot
+  readonly shadowRoot!: ShadowRoot
   private isInitial: boolean = false
-  name: string = 'element'
+  name: string = 'wely'
   html: () => string = () => ''
   class?: string
   css?: string
@@ -30,7 +25,7 @@ export class WelyElement extends HTMLElement {
 
   constructor() {
     super()
-    this.shadow = this.attachShadow({ mode: 'open' })
+    this.shadowRoot = this.attachShadow({ mode: 'open' })
   }
 
   // branch(
@@ -84,14 +79,14 @@ export class WelyElement extends HTMLElement {
       if (this.css) {
         const style = document.createElement('style')
         style.textContent = this.css
-        this.shadow.appendChild(style)
+        this.shadowRoot.appendChild(style)
       }
 
-      const element = document.getElementById(this.welyId)
+      const wely = document.getElementById(this.welyId)
 
-      if (element) {
-        eachKeys(this.events, (handler) =>
-          element.addEventListener(handler, this.events[handler])
+      if (wely && Object.keys(this.events).length > 0) {
+        Object.keys(this.events).forEach((handler: string) =>
+          wely.addEventListener(handler, this.events[handler])
         )
       }
 
@@ -103,25 +98,6 @@ export class WelyElement extends HTMLElement {
       this.isInitial = true
     }
 
-    cloneNode(this.shadow, this.html())
-  }
-
-  render() {
-    // cloneNode(this.shadow, this.html.join(''))
-    // try {
-    //   if (this.branchArg && this.loopArg) {
-    //     cloneNode(this.shadow, this.branchArg)
-    //     if (!this.loopArg.includes('[object HTMLElement]')) {
-    //       cloneNode(this.shadow, this.loopArg)
-    //     }
-    //     console.log(this.branchArg, this.loopArg)
-    //   } else if (this.loopArg) {
-    //     cloneNode(this.shadow, this.loopArg)
-    //   } else if (this.branchArg) {
-    //     cloneNode(this.shadow, this.branchArg)
-    //   }
-    // } catch (error) {
-    //   manageError(error)
-    // }
+    cloneNode(this.shadowRoot, this.html())
   }
 }
