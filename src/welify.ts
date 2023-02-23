@@ -1,6 +1,6 @@
-import { create } from './libs/create'
 import { Arg } from './libs/types'
-import { getChildNodes } from './libs/utils'
+import { toKebabCase, getChildNodes } from './libs/utils'
+import { Element } from './libs/'
 
 /*
 技術仕様
@@ -43,7 +43,21 @@ export const  = ({
       break
 
     default:
-      create({ name, html, className, css, events })
+      const Name: string = `w-${toKebabCase(name)}`
+
+      customElements.define(
+        Name,
+        class extends Element {
+          constructor() {
+            super()
+            this.name = name
+            this.html = () => html()
+            this.class = className
+            this.css = css
+            this.events = { ...events }
+          }
+        }
+      )
   }
 }
 
@@ -53,25 +67,29 @@ export const mount = (parent: string, element: string): void => {
   }
 }
 
-// create({
-//   name: 'if',
-//   html: () => `<p>aaa2</p>`,
+// Hello worldの実装
+// ({
+//   name: 'branch',
+//   className: 'aaa',
+//   html: () => `<p>Hello world</p><slot />`,
 //   css: `p { color: green; }`,
-//   // events: {
-//   //   click: () => console.log('worked!'),
-//   // },
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
 // })
 
-// Hello worldの実装
-({
-  name: 'branch',
-  className: 'aaa',
-  html: () => `<p>Hello world</p><slot />`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+const Slot = () =>
+  ({
+    name: 'branch',
+    className: 'aaa',
+    html: () => `<p>Hello world</p><slot />`,
+    css: `p { color: green; }`,
+    events: {
+      click: () => console.log('worked!'),
+    },
+  })
+
+Slot()
 
 mount('app', '<p>qqq</p>')
 mount('app', '<w-branch></w-branch>')
