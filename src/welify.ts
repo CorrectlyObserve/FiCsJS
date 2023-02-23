@@ -1,7 +1,6 @@
 import { createWely } from './libs/createWely'
 import { WelifyArg } from './libs/types'
 import { getChildNodes } from './libs/utils'
-import { WelyElement } from './libs/wely'
 
 /*
 技術仕様
@@ -30,45 +29,52 @@ export const welify = ({
   html,
   className,
   css,
-  events = {},
-}: WelifyArg): WelyElement => {
-  if (name === '') {
-    throw new Error('The name argument is not defined...')
-  } else {
-    if (['if', 'each', 'slot'].includes(name)) {
+  events,
+}: WelifyArg): void => {
+  switch (name) {
+    case '':
+      throw new Error('The name argument is not defined...')
+      break
+
+    case 'if':
+    case 'each':
+    case 'slot':
       throw new Error('The name is already reserved. Please rename...')
-    } else {
-      return <WelyElement>createWely({ name, html, className, css, events })
-    }
+      break
+
+    default:
+      createWely({ name, html, className, css, events })
   }
 }
 
-export const mountWely = (element: string, parent: string): void => {
+export const mountWely = (parent: string, element: string): void => {
   for (const child of getChildNodes(element)) {
     document.getElementById(parent)?.appendChild(child.cloneNode(true))
   }
 }
 
-createWely({
-  name: 'if',
-  html: () => `<p>aaa2</p>`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+// createWely({
+//   name: 'if',
+//   html: () => `<p>aaa2</p>`,
+//   css: `p { color: green; }`,
+//   // events: {
+//   //   click: () => console.log('worked!'),
+//   // },
+// })
 
 // Hello worldの実装
-const aaa = welify({
-  name: 'branch1',
-  html: () => `<p>Hello world</p><w-if />`,
+welify({
+  name: 'branch',
+  className: 'aaa',
+  html: () => `<p>Hello world</p><slot />`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
   },
 })
 
-mountWely(aaa.html(), 'app')
+mountWely('app', '<p>qqq</p>')
+mountWely('app', '<w-branch></w-branch>')
 
 // const myChip = welify({
 //   name: 'TextText',
