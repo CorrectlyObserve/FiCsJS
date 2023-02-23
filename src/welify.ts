@@ -1,4 +1,4 @@
-import { Arg } from './libs/types'
+import { Args } from './libs/types'
 import { toKebabCase, getChildNodes } from './libs/utils'
 import { Element } from './libs/'
 
@@ -23,14 +23,16 @@ import { Element } from './libs/'
 15. svgによるグラフ作成（今後の話）
 16. emitとpropsの血縁関係に依存した状態管理
 17. Vueでいうwatch的な機能（今後の話）
+18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
+
 export const  = ({
   name,
   html,
   className,
   css,
   events,
-}: Arg): void => {
+}: Args): void => {
   switch (name) {
     case '':
       throw new Error('The name argument is not defined...')
@@ -43,10 +45,8 @@ export const  = ({
       break
 
     default:
-      const Name: string = `w-${toKebabCase(name)}`
-
       customElements.define(
-        Name,
+        `w-${toKebabCase(name)}`,
         class extends Element {
           constructor() {
             super()
@@ -81,8 +81,7 @@ export const mount = (parent: string, element: string): void => {
 const Slot = () =>
   ({
     name: 'branch',
-    className: 'aaa',
-    html: () => `<p>Hello world</p><slot />`,
+    html: () => `<p>Hello world</p>`,
     css: `p { color: green; }`,
     events: {
       click: () => console.log('worked!'),
