@@ -1,20 +1,11 @@
-export const convertToElements = (prop: string): HTMLElement =>
-  new DOMParser().parseFromString(prop, 'text/html').body
+export const getChildNodes = (element: string): ChildNode[] =>
+  Array.from(
+    new DOMParser().parseFromString(element, 'text/html').body.childNodes
+  )
 
-export const extractFirstChild = (prop: string): HTMLElement =>
-  convertToElements(prop).firstChild as HTMLElement
-
-export const keysInObj = <T>(
-  obj: {
-    [key: string]: T
-  } = {}
-): {
-  is: boolean
-  toArray: string[]
-} => {
-  return {
-    is: Object.keys(obj).length > 0,
-    toArray: Object.keys(obj),
+export const cloneNode = (shadowRoot: ShadowRoot, element: string): void => {
+  for (const child of getChildNodes(element)) {
+    shadowRoot.appendChild(child.cloneNode(true))
   }
 }
 
