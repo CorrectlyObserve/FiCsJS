@@ -1,7 +1,6 @@
 import { create } from './libs/create'
 import { Arg } from './libs/types'
 import { getChildNodes } from './libs/utils'
-import { Element } from './libs/'
 
 /*
 技術仕様
@@ -30,45 +29,52 @@ export const  = ({
   html,
   className,
   css,
-  events = {},
-}: Arg): Element => {
-  if (name === '') {
-    throw new Error('The name argument is not defined...')
-  } else {
-    if (['if', 'each', 'slot'].includes(name)) {
+  events,
+}: Arg): void => {
+  switch (name) {
+    case '':
+      throw new Error('The name argument is not defined...')
+      break
+
+    case 'if':
+    case 'each':
+    case 'slot':
       throw new Error('The name is already reserved. Please rename...')
-    } else {
-      return <Element>create({ name, html, className, css, events })
-    }
+      break
+
+    default:
+      create({ name, html, className, css, events })
   }
 }
 
-export const mount = (element: string, parent: string): void => {
+export const mount = (parent: string, element: string): void => {
   for (const child of getChildNodes(element)) {
     document.getElementById(parent)?.appendChild(child.cloneNode(true))
   }
 }
 
-create({
-  name: 'if',
-  html: () => `<p>aaa2</p>`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+// create({
+//   name: 'if',
+//   html: () => `<p>aaa2</p>`,
+//   css: `p { color: green; }`,
+//   // events: {
+//   //   click: () => console.log('worked!'),
+//   // },
+// })
 
 // Hello worldの実装
-const aaa = ({
-  name: 'branch1',
-  html: () => `<p>Hello world</p><w-if />`,
+({
+  name: 'branch',
+  className: 'aaa',
+  html: () => `<p>Hello world</p><slot />`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
   },
 })
 
-mount(aaa.html(), 'app')
+mount('app', '<p>qqq</p>')
+mount('app', '<w-branch></w-branch>')
 
 // const myChip = ({
 //   name: 'TextText',
