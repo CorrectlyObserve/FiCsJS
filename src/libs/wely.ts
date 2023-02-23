@@ -71,7 +71,7 @@ export class Element extends HTMLElement {
   //   return this
   // }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (!this.isInitial) {
       this.Id = createUniqueId()
       this.setAttribute('id', this.Id)
