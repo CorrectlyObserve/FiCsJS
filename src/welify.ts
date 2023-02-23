@@ -1,4 +1,4 @@
-import { WelifyArg } from './libs/types'
+import { WelifyArgs } from './libs/types'
 import { toKebabCase, getChildNodes } from './libs/utils'
 import { WelyElement } from './libs/wely'
 
@@ -23,14 +23,16 @@ import { WelyElement } from './libs/wely'
 15. svgによるグラフ作成（今後の話）
 16. emitとpropsの血縁関係に依存した状態管理
 17. Vueでいうwatch的な機能（今後の話）
+18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
+
 export const welify = ({
   name,
   html,
   className,
   css,
   events,
-}: WelifyArg): void => {
+}: WelifyArgs): void => {
   switch (name) {
     case '':
       throw new Error('The name argument is not defined...')
@@ -43,10 +45,8 @@ export const welify = ({
       break
 
     default:
-      const welyName: string = `w-${toKebabCase(name)}`
-
       customElements.define(
-        welyName,
+        `w-${toKebabCase(name)}`,
         class extends WelyElement {
           constructor() {
             super()
@@ -81,8 +81,7 @@ export const mountWely = (parent: string, element: string): void => {
 const welySlot = () =>
   welify({
     name: 'branch',
-    className: 'aaa',
-    html: () => `<p>Hello world</p><slot />`,
+    html: () => `<p>Hello world</p>`,
     css: `p { color: green; }`,
     events: {
       click: () => console.log('worked!'),
