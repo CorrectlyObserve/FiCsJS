@@ -1,17 +1,5 @@
 import { createUniqueId } from './generator'
-// import { Branch } from './types'
 import { cloneNode, toKebabCase } from './utils'
-
-/*
-Welify仕様
-
-- Stringをマウント
-- デフォルトでifコンポーネント、eachコンポーネント、slotコンポーネントを用意
-- デフォルトのコンポーネントにも引数を用意してデザインを整えたりイベントハンドラを実行できるようにする
-- HTMLを関数に
-- Welifyの段階でコンポーネントを登録できるようにする
-
-*/
 
 export class WelyElement extends HTMLElement {
   welyId: string = ''
@@ -26,6 +14,9 @@ export class WelyElement extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
+
+    this.welyId = createUniqueId()
+    this.setAttribute('id', this.welyId)
   }
 
   // branch(
@@ -73,9 +64,6 @@ export class WelyElement extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.isInitial) {
-      this.welyId = createUniqueId()
-      this.setAttribute('id', this.welyId)
-
       if (this.css) {
         const style = document.createElement('style')
         style.textContent = this.css
