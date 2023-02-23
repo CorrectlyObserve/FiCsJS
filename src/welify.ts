@@ -1,6 +1,6 @@
-import { createWely } from './libs/createWely'
 import { WelifyArg } from './libs/types'
-import { getChildNodes } from './libs/utils'
+import { toKebabCase, getChildNodes } from './libs/utils'
+import { WelyElement } from './libs/wely'
 
 /*
 技術仕様
@@ -43,7 +43,21 @@ export const welify = ({
       break
 
     default:
-      createWely({ name, html, className, css, events })
+      const welyName: string = `w-${toKebabCase(name)}`
+
+      customElements.define(
+        welyName,
+        class extends WelyElement {
+          constructor() {
+            super()
+            this.name = name
+            this.html = () => html()
+            this.class = className
+            this.css = css
+            this.events = { ...events }
+          }
+        }
+      )
   }
 }
 
@@ -53,25 +67,29 @@ export const mountWely = (parent: string, element: string): void => {
   }
 }
 
-// createWely({
-//   name: 'if',
-//   html: () => `<p>aaa2</p>`,
+// Hello worldの実装
+// welify({
+//   name: 'branch',
+//   className: 'aaa',
+//   html: () => `<p>Hello world</p><slot />`,
 //   css: `p { color: green; }`,
-//   // events: {
-//   //   click: () => console.log('worked!'),
-//   // },
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
 // })
 
-// Hello worldの実装
-welify({
-  name: 'branch',
-  className: 'aaa',
-  html: () => `<p>Hello world</p><slot />`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+const welySlot = () =>
+  welify({
+    name: 'branch',
+    className: 'aaa',
+    html: () => `<p>Hello world</p><slot />`,
+    css: `p { color: green; }`,
+    events: {
+      click: () => console.log('worked!'),
+    },
+  })
+
+welySlot()
 
 mountWely('app', '<p>qqq</p>')
 mountWely('app', '<w-branch></w-branch>')
