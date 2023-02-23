@@ -9,17 +9,6 @@ export const cloneNode = (shadowRoot: ShadowRoot, element: string): void => {
   }
 }
 
-export const eachKeys = <T>(
-  obj: {
-    [key: string]: T
-  } = {},
-  func: (key: string) => void
-): void => {
-  if (Object.keys(obj).length > 0) {
-    Object.keys(obj).forEach((key: string) => func(key))
-  }
-}
-
 export const manageError = (error: Error | string | unknown): void => {
   if (error instanceof Error) {
     throw Error(error.message)
