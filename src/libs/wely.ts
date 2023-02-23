@@ -71,7 +71,7 @@ export class WelyElement extends HTMLElement {
   //   return this
   // }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (!this.isInitial) {
       this.welyId = createUniqueId()
       this.setAttribute('id', this.welyId)
