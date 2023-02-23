@@ -1,6 +1,6 @@
-import { Args } from './libs/types'
-import { keysInObj, toKebabCase } from './libs/utils'
-import { Element } from './libs/Class'
+import { create } from './libs/create'
+import { Arg } from './libs/types'
+import { getChildNodes } from './libs/utils'
 
 /*
 技術仕様
@@ -10,49 +10,87 @@ import { Element } from './libs/Class'
 4. data: {
   value: $value
 } とやるとpropsになる
-5. eventsの中で関数を定義する -> できたが、良いコードか要検証
+5. eventsの中で関数を定義する -> 完了
 6. 各コンポーネントにはユニークなidを振る -> 完了
-7. eventsの中が変化したら自動でイベントハンドラの変更削除を行う
-8. slot -> myChip.slot('username', `<h2>John</h2>`).render()と書きたい(slot="username"は不要) -> できたが、良いコードか要検証
-9. 多言語翻訳isKeysInObj
-10. styleでcssを指定する
-11. Renderメソッドは最後の一回ものが表示される
+7. slot -> myChip.slot('username', `<h2>John</h2>`).render()と書きたい(slot="username"は不要) -> 完了
+8. 多言語翻訳（今後の話）
+9. styleでcssを指定する -> 完了
+10. Renderメソッドは最後の一回ものが表示される
+11. 状態管理（今後の話）
+12. ルーティング（今後の話）
+13. PWA（今後の話）
+14. CSS in JSを実現（https://vanilla-extract.style/）
+15. svgによるグラフ作成（今後の話）
+16. emitとpropsの血縁関係に依存した状態管理
+17. Vueでいうwatch的な機能（今後の話）
 */
-
-const  = ({
+export const  = ({
   name,
-  parent,
   html,
+  className,
   css,
-  events = {},
-}: Args): Element => {
-  const Name: string = `w-${toKebabCase(name)}`
+  events,
+}: Arg): void => {
+  switch (name) {
+    case '':
+      throw new Error('The name argument is not defined...')
+      break
 
-  customElements.get(Name) || customElements.define(Name, Element)
+    case 'if':
+    case 'each':
+    case 'slot':
+      throw new Error('The name is already reserved. Please rename...')
+      break
 
-  const welified = document.createElement(Name) as Element
-
-  welified.name = name
-  welified.parent = parent
-  welified.html = html
-  welified.css = css
-
-  if (keysInObj(events).is) {
-    keysInObj(events).toArray.forEach(
-      (handler: string) => (welified.events[handler] = events[handler])
-    )
+    default:
+      create({ name, html, className, css, events })
   }
-
-  return welified
 }
 
-// Hello worldの実装
-// ({
-//   name: 'helloWorld',
-//   parent: 'app',
-//   html: `<p>Hello world</p>`,
+export const mount = (parent: string, element: string): void => {
+  for (const child of getChildNodes(element)) {
+    document.getElementById(parent)?.appendChild(child.cloneNode(true))
+  }
+}
+
+// create({
+//   name: 'if',
+//   html: () => `<p>aaa2</p>`,
 //   css: `p { color: green; }`,
-// }).render()
+//   // events: {
+//   //   click: () => console.log('worked!'),
+//   // },
+// })
+
+// Hello worldの実装
+({
+  name: 'branch',
+  className: 'aaa',
+  html: () => `<p>Hello world</p><slot />`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+})
+
+mount('app', '<p>qqq</p>')
+mount('app', '<w-branch></w-branch>')
+
+// const myChip = ({
+//   name: 'TextText',
+//   html: `<p>aaa</p>`,
+//   className: 'text',
+//   css: `p { color: green; }`,
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
+// })
+
+// myChip
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .embed('yahoo', `<h2>John2</h2>`)
+//   .branch(false, () => '<h2>John3</h2>', 'John')
+//   .render()
 
 // Counterの実装
 // ({
@@ -61,59 +99,90 @@ const  = ({
 //   data: {
 //     values: {
 //       count: 0,
+//       color: 'green',
 //     },
 //     props: {},
 //   },
-//   html: `<p>${data.values.count}</p>`,
+//   html: (data) => `<p>${data.values.count}</p>`,
+//   css: {
+//     selector: 'p',
+//     style: `color: ${data.values.color}`,
+//   },
 //   events: {
 //     click: () => data.values.count++,
 //   },
 // }).render()
 
-const myChip = ({
-  name: 'TextText',
-  parent: 'app',
-  html: `<p>aaa</p><slot />`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+// Branchの引数に1つの関数
+// 関数は3つの引数を返すような感じ
+// .branch(
+//   (self) => {
+//     return {
+//       condition: () => false,
+//         truthy: '<h2>John</h2>',
+//           falsy: self.child().branch(1 > 0, (child) => child.child().branch(1 > 0, 'yes2', 'no2'), 'no')
+//     }
+//   )
+//   .render()
 
-myChip.embed(`<h2>John2</h2>`).render()
-myChip.branch(() => true, '<h2>John</h2>').render()
+// myChip.embed(`<h1 style="color:red">yeah!</h1>`).render()
 
-myChip
-  .loop([1, 2, 3], (arg) =>
-    myChip.branch(() => true, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
-  )
-  .render()
+// myChip
+//   .branch(() => true, '<h2>John3</h2>', 'John')
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .render()
 
-const html = `<p>aaa!</p><slot name="name"></slot><style>h2 { color: blue; }</style>`
+// myChip
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .branch(() => true, '<h2>John3</h2>', 'John')
+//   .render()
 
-const aaa = ({
-  name: 'TextText2',
-  parent: myChip.Id,
-  html: html,
-  css: `p { color: blue; }`,
-  events: {
-    click: () => console.log('worked2!'),
-  },
-})
+//   myChip
+//     .loop([1, 2, 3], (arg: number) =>
+//       myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
+//     )
+//     .render()
 
-aaa.embed('name', `<h2>John3</h2>`).render()
+// myChip
+//   .loop([1, 2, 3], (arg: number) =>
+//     myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
+//   )
+//   .render()
 
-myChip
-  .branch(
-    () => true,
-    myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
-    myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-  )
-  .render()
+// myChip
+//   .branch(false, '<h2>John3</h2>', 'John')
+//   .branch(() => true, '<h2>John3</h2>', 'John')
+//   .render()
 
-myChip.branch(() => true, '<h2>John</h2>').render()
-myChip
-  .loop([1, 2, 3], (arg: number) =>
-    myChip.branch(() => true, `<h2>${arg}</h2>`, `<h1>${arg}</h1>`)
-  )
-  .render()
+// myChip
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
+//   .render()
+
+// myChip
+//   .branch(
+//     () => false,
+//     '<h2>John</h2>',
+//     myChip.branch(1 > 0, myChip.branch(1 > 0, 'yes2', 'no2'), 'no')
+//   )
+//   .render()
+
+// myChip
+//   .loop([1, 2, 3], (arg) =>
+//     myChip.branch(
+//       false,
+//       `<p>${arg}</p>`,
+//       myChip.branch(arg > 1, `<h2>yes2</h2>`, `<h2>${arg}</h2>`)
+//     )
+//   )
+//   .render()
+
+// myChip.embed(`<h2>John2</h2>`).render()
+
+// myChip
+//   .branch(
+//     () => false,
+//     myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
+//     myChip.loop([1, 2, 3], (arg: number) => `<h1>${arg}</h1>`)
+//   )
+//   .render()
