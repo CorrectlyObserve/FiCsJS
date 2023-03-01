@@ -78,14 +78,7 @@ export class WelyElement extends HTMLElement {
         )
       }
 
-      this.classes.forEach((className) =>
-        this.setAttribute('class', toKebabCase(className))
-      )
-
-      // this.setAttribute(
-      //   'class',
-      //   toKebabCase(this.class ? `${this.name} ${this.class}` : this.name)
-      // )
+      this.setAttribute('class', toKebabCase(this.classes.join(' ')))
 
       this.isInitial = true
     }
