@@ -1,5 +1,6 @@
 import { Args } from './libs/types'
 import { toKebabCase, getChildNodes } from './libs/utils'
+import { Slot } from './libs/Slot'
 import { Element } from './libs/'
 
 /*
@@ -26,7 +27,11 @@ import { Element } from './libs/'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-// Slot({})
+Slot({
+  slotId: 'hello',
+  content: '<h2>aaa</h2>',
+  css: '.w-branch::slotted(h2) {color: red}',
+})
 
 export const  = ({
   name,
@@ -80,7 +85,7 @@ export const mount = (parent: string, element: string): void => {
 ({
   name: 'branch',
   className: 'aaa',
-  html: () => `<p>Hello world</p><slot />`,
+  html: () => `<p>Hello world</p><w-slot></w-slot>`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
@@ -88,10 +93,7 @@ export const mount = (parent: string, element: string): void => {
 })
 
 mount('app', '<p>qqq</p>')
-mount(
-  'app',
-  '<w-branch></w-branch><w-slot slotId="sss" content="sss"></w-slot>'
-)
+mount('app', '<w-branch></w-branch>')
 
 // const myChip = ({
 //   name: 'TextText',
