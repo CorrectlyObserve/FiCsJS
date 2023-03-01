@@ -1,5 +1,6 @@
 import { WelifyArgs } from './libs/types'
 import { toKebabCase, getChildNodes } from './libs/utils'
+import { welySlot } from './libs/welifySlot'
 import { WelyElement } from './libs/wely'
 
 /*
@@ -26,7 +27,11 @@ import { WelyElement } from './libs/wely'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-// welifySlot({})
+welySlot({
+  slotId: 'hello',
+  content: '<h2>aaa</h2>',
+  css: '.w-branch::slotted(h2) {color: red}',
+})
 
 export const welify = ({
   name,
@@ -80,7 +85,7 @@ export const mountWely = (parent: string, element: string): void => {
 welify({
   name: 'branch',
   className: 'aaa',
-  html: () => `<p>Hello world</p><slot />`,
+  html: () => `<p>Hello world</p><w-slot></w-slot>`,
   css: `p { color: green; }`,
   events: {
     click: () => console.log('worked!'),
@@ -88,10 +93,7 @@ welify({
 })
 
 mountWely('app', '<p>qqq</p>')
-mountWely(
-  'app',
-  '<w-branch></w-branch><w-slot slotId="sss" content="sss"></w-slot>'
-)
+mountWely('app', '<w-branch></w-branch>')
 
 // const myChip = welify({
 //   name: 'TextText',
