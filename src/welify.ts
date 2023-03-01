@@ -26,6 +26,8 @@ import { WelyElement } from './libs/wely'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
+// welifySlot({})
+
 export const welify = ({
   name,
   html,
@@ -45,14 +47,21 @@ export const welify = ({
       break
 
     default:
+      const welyName = `w-${toKebabCase(name)}`
+
       customElements.define(
-        `w-${toKebabCase(name)}`,
+        welyName,
         class extends WelyElement {
           constructor() {
             super()
             this.name = name
             this.html = () => html()
-            this.class = className
+
+            this.classes.push(welyName)
+            if (className) {
+              this.classes.push(toKebabCase(className))
+            }
+
             this.css = css
             this.events = { ...events }
           }
@@ -68,30 +77,21 @@ export const mountWely = (parent: string, element: string): void => {
 }
 
 // Hello worldの実装
-// welify({
-//   name: 'branch',
-//   className: 'aaa',
-//   html: () => `<p>Hello world</p><slot />`,
-//   css: `p { color: green; }`,
-//   events: {
-//     click: () => console.log('worked!'),
-//   },
-// })
-
-const welySlot = () =>
-  welify({
-    name: 'branch',
-    html: () => `<p>Hello world</p>`,
-    css: `p { color: green; }`,
-    events: {
-      click: () => console.log('worked!'),
-    },
-  })
-
-welySlot()
+welify({
+  name: 'branch',
+  className: 'aaa',
+  html: () => `<p>Hello world</p><slot />`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+})
 
 mountWely('app', '<p>qqq</p>')
-mountWely('app', '<w-branch></w-branch>')
+mountWely(
+  'app',
+  '<w-branch></w-branch><w-slot slotId="sss" content="sss"></w-slot>'
+)
 
 // const myChip = welify({
 //   name: 'TextText',
