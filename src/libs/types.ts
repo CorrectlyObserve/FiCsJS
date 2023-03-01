@@ -14,6 +14,6 @@ export interface EachArgs {}
 
 export interface SlotArgs {
   slotId?: string
-  html: () => string
+  content: string
   css?: string
 }
