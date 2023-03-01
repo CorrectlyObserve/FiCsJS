@@ -26,6 +26,8 @@ import { Element } from './libs/'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
+// Slot({})
+
 export const  = ({
   name,
   html,
@@ -45,14 +47,21 @@ export const  = ({
       break
 
     default:
+      const Name = `w-${toKebabCase(name)}`
+
       customElements.define(
-        `w-${toKebabCase(name)}`,
+        Name,
         class extends Element {
           constructor() {
             super()
             this.name = name
             this.html = () => html()
-            this.class = className
+
+            this.classes.push(Name)
+            if (className) {
+              this.classes.push(toKebabCase(className))
+            }
+
             this.css = css
             this.events = { ...events }
           }
@@ -68,30 +77,21 @@ export const mount = (parent: string, element: string): void => {
 }
 
 // Hello worldの実装
-// ({
-//   name: 'branch',
-//   className: 'aaa',
-//   html: () => `<p>Hello world</p><slot />`,
-//   css: `p { color: green; }`,
-//   events: {
-//     click: () => console.log('worked!'),
-//   },
-// })
-
-const Slot = () =>
-  ({
-    name: 'branch',
-    html: () => `<p>Hello world</p>`,
-    css: `p { color: green; }`,
-    events: {
-      click: () => console.log('worked!'),
-    },
-  })
-
-Slot()
+({
+  name: 'branch',
+  className: 'aaa',
+  html: () => `<p>Hello world</p><slot />`,
+  css: `p { color: green; }`,
+  events: {
+    click: () => console.log('worked!'),
+  },
+})
 
 mount('app', '<p>qqq</p>')
-mount('app', '<w-branch></w-branch>')
+mount(
+  'app',
+  '<w-branch></w-branch><w-slot slotId="sss" content="sss"></w-slot>'
+)
 
 // const myChip = ({
 //   name: 'TextText',
