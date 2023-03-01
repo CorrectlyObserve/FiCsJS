@@ -7,7 +7,7 @@ export class Element extends HTMLElement {
   private isInitial: boolean = false
   name: string = ''
   html: () => string = () => ''
-  class?: string
+  classes: string[] = []
   css?: string
   events: { [key: string]: () => void } = {}
 
@@ -78,10 +78,14 @@ export class Element extends HTMLElement {
         )
       }
 
-      this.setAttribute(
-        'class',
-        toKebabCase(this.class ? `${this.name} ${this.class}` : this.name)
+      this.classes.forEach((className) =>
+        this.setAttribute('class', toKebabCase(className))
       )
+
+      // this.setAttribute(
+      //   'class',
+      //   toKebabCase(this.class ? `${this.name} ${this.class}` : this.name)
+      // )
 
       this.isInitial = true
     }
