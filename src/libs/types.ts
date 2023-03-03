@@ -12,9 +12,3 @@ export interface Args {
 export interface IfArgs {}
 
 export interface EachArgs {}
-
-export interface SlotArgs {
-  slotId?: string
-  content: string
-  css?: string
-}
