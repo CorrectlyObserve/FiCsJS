@@ -1,9 +1,20 @@
 export type Branch<T> = T | string | (() => void)
 
-export interface WelifyArg {
+export interface WelifyArgs {
   name: string
   html: () => string
   className?: string
   css?: string
+  slot?: string
   events?: { [key: string]: () => void }
+}
+
+export interface welifyIfArgs {}
+
+export interface welifyEachArgs {}
+
+export interface welySlotArgs {
+  slotId?: string
+  content: string
+  css?: string
 }
