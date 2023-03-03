@@ -1,6 +1,5 @@
 import { Args } from './libs/types'
 import { toKebabCase, getChildNodes } from './libs/utils'
-import { Slot } from './libs/Slot'
 import { Element } from './libs/'
 
 /*
@@ -27,17 +26,12 @@ import { Element } from './libs/'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-Slot({
-  slotId: 'hello',
-  content: '<h2>aaa</h2>',
-  css: '.w-branch::slotted(h2) {color: red}',
-})
-
 export const  = ({
   name,
   html,
   className,
   css,
+  slot,
   events,
 }: Args): void => {
   switch (name) {
@@ -47,7 +41,6 @@ export const  = ({
 
     case 'if':
     case 'each':
-    case 'slot':
       throw new Error('The name is already reserved. Please rename...')
       break
 
@@ -68,6 +61,7 @@ export const  = ({
             }
 
             this.css = css
+            this.slotContent = slot
             this.events = { ...events }
           }
         }
@@ -81,12 +75,19 @@ export const mount = (parent: string, element: string): void => {
   }
 }
 
+({
+  name: '',
+  html: () => `<p>Hello!</p>`,
+})
+
 // Hello worldの実装
 ({
   name: 'branch',
   className: 'aaa',
-  html: () => `<p>Hello world</p><w-slot></w-slot>`,
+  html: () =>
+    `<p>Hello world</p><slot name="sss"></slot><slot name="username"></slot>`,
   css: `p { color: green; }`,
+  slot: '<p slot="sss">AAA</p><w- slot="username"></w->',
   events: {
     click: () => console.log('worked!'),
   },
