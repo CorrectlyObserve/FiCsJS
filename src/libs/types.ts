@@ -5,6 +5,7 @@ export interface WelifyArgs {
   html: () => string
   className?: string
   css?: string
+  slot?: string
   events?: { [key: string]: () => void }
 }
 
