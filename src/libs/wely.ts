@@ -9,6 +9,7 @@ export class WelyElement extends HTMLElement {
   html: () => string = () => ''
   classes: string[] = []
   css?: string
+  slotContent?: string
   events: { [key: string]: () => void } = {}
 
   constructor() {
@@ -48,26 +49,18 @@ export class WelyElement extends HTMLElement {
   //   return this
   // }
 
-  // embed(slotId: string, content?: string) {
-  //   if (getChildNodes(content || slotId).length > 0) {
-  //     const slotTag = `<slot ${content ? `name="${slotId}"` : ''}></slot>`
-  //     const slot = <HTMLElement>getChildNodes(content || slotId)[0]
-
-  //     if (content) slot.setAttribute('slot', slotId)
-
-  //     this.html.push(`${slotTag}`)
-  //     this.appendChild(slot)
-  //   }
-
-  //   return this
-  // }
-
   connectedCallback(): void {
     if (!this.isInitial) {
+      this.setAttribute('class', toKebabCase(this.classes.join(' ')))
+
       if (this.css) {
         const style = document.createElement('style')
         style.textContent = this.css
         this.shadowRoot.appendChild(style)
+      }
+
+      if (this.slotContent) {
+        this.insertAdjacentHTML('beforeend', this.slotContent)
       }
 
       const wely = document.getElementById(this.welyId)
@@ -77,8 +70,6 @@ export class WelyElement extends HTMLElement {
           wely.addEventListener(handler, this.events[handler])
         )
       }
-
-      this.setAttribute('class', toKebabCase(this.classes.join(' ')))
 
       this.isInitial = true
     }
