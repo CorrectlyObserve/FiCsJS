@@ -12,9 +12,3 @@ export interface WelifyArgs {
 export interface welifyIfArgs {}
 
 export interface welifyEachArgs {}
-
-export interface welySlotArgs {
-  slotId?: string
-  content: string
-  css?: string
-}
