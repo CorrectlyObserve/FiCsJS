@@ -1,6 +1,6 @@
-import { createWely } from './libs/createWely'
-import { WelifyArg } from './libs/types'
-import { getChildNodes } from './libs/utils'
+import { WelifyArgs } from './libs/types'
+import { toKebabCase, getChildNodes } from './libs/utils'
+import { WelyElement } from './libs/wely'
 
 /*
 技術仕様
@@ -23,14 +23,17 @@ import { getChildNodes } from './libs/utils'
 15. svgによるグラフ作成（今後の話）
 16. emitとpropsの血縁関係に依存した状態管理
 17. Vueでいうwatch的な機能（今後の話）
+18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
+
 export const welify = ({
   name,
   html,
   className,
   css,
+  slot,
   events,
-}: WelifyArg): void => {
+}: WelifyArgs): void => {
   switch (name) {
     case '':
       throw new Error('The name argument is not defined...')
@@ -38,12 +41,31 @@ export const welify = ({
 
     case 'if':
     case 'each':
-    case 'slot':
       throw new Error('The name is already reserved. Please rename...')
       break
 
     default:
-      createWely({ name, html, className, css, events })
+      const welyName = `w-${toKebabCase(name)}`
+
+      customElements.define(
+        welyName,
+        class extends WelyElement {
+          constructor() {
+            super()
+            this.name = name
+            this.html = () => html()
+
+            this.classes.push(welyName)
+            if (className) {
+              this.classes.push(toKebabCase(className))
+            }
+
+            this.css = css
+            this.slotContent = slot
+            this.events = { ...events }
+          }
+        }
+      )
   }
 }
 
@@ -53,21 +75,19 @@ export const mountWely = (parent: string, element: string): void => {
   }
 }
 
-// createWely({
-//   name: 'if',
-//   html: () => `<p>aaa2</p>`,
-//   css: `p { color: green; }`,
-//   // events: {
-//   //   click: () => console.log('worked!'),
-//   // },
-// })
+welify({
+  name: 'wely',
+  html: () => `<p>Hello!</p>`,
+})
 
 // Hello worldの実装
 welify({
   name: 'branch',
   className: 'aaa',
-  html: () => `<p>Hello world</p><slot />`,
+  html: () =>
+    `<p>Hello world</p><slot name="sss"></slot><slot name="username"></slot>`,
   css: `p { color: green; }`,
+  slot: '<p slot="sss">AAA</p><w-wely slot="username"></w-wely>',
   events: {
     click: () => console.log('worked!'),
   },
