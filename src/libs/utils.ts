@@ -1,4 +1,4 @@
-export const getChildNodes = (element: string): ChildNode[] =>
+export const getChildNodes = (element: string): Array<ChildNode> =>
   Array.from(
     new DOMParser().parseFromString(element, 'text/html').body.childNodes
   )
