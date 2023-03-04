@@ -7,7 +7,7 @@ export class WelyElement extends HTMLElement {
   private isInitial: boolean = false
   name: string = 'wely'
   html: () => string = () => ''
-  classes: string[] = []
+  classes: Array<string> = []
   css?: string
   slotContent?: string
   events: { [key: string]: () => void } = {}
