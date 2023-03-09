@@ -1,14 +1,27 @@
 export type Branch<T> = T | string | (() => void)
 
-export interface Args {
+interface commonArgs {
   name: string
-  html: () => string
   className?: string
   css?: string
   slot?: string
   events?: { [key: string]: () => void }
 }
 
-export interface IfArgs {}
+interface normalArgs extends commonArgs {
+  html: () => string
+  syntax?: undefined
+}
 
-export interface EachArgs {}
+interface ifArgs extends commonArgs {
+  html: () => string
+  syntax: 'if'
+}
+
+interface eachArgs<T> extends commonArgs {
+  html: Array<T>
+  display: (arg: T) => string
+  syntax: 'each'
+}
+
+export type Args<T> = normalArgs | ifArgs | eachArgs<T>
