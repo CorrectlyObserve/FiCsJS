@@ -1,6 +1,6 @@
 import { Args } from './libs/Types'
 import { toKebabCase, getChildNodes } from './libs/utils'
-import { Element } from './libs/'
+import { Element } from './libs/Element'
 
 /*
 技術仕様
