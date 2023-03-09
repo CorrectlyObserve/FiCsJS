@@ -41,15 +41,29 @@ export const welify = <T>(arg: WelifyArgs<T>): void => {
 
           switch (arg.syntax) {
             case 'if':
+              this.html = () => {
+                const condition = () => {
+                  if (typeof arg.if === 'function')
+                    return Function(`return ${arg.if}`)()()
+
+                  return arg.if
+                }
+
+                if (condition()) return arg.html()
+
+                return arg.else ? arg.else() : ''
+              }
               break
 
             case 'each':
               this.html = () =>
-                arg.html.reduce(
-                  (prev: string, self: T): string =>
-                    `${prev}${arg.display(self)}`,
-                  ''
-                )
+                arg
+                  .html()
+                  .reduce(
+                    (prev: string, self: T): string =>
+                      `${prev}${arg.display(self)}`,
+                    ''
+                  )
               break
 
             default:
@@ -60,8 +74,7 @@ export const welify = <T>(arg: WelifyArgs<T>): void => {
           if (arg.className) this.classes.push(toKebabCase(arg.className))
 
           this.css = arg.css
-          if (!arg.syntax && arg.slot) this.slotContent = arg.slot
-
+          this.slotContent = arg.slot
           this.events = { ...arg.events }
         }
       }
@@ -78,8 +91,24 @@ export const mountWely = (parent: string, element: string): void => {
 welify({
   name: 'wely',
   syntax: 'each',
-  html: [1, 2, 3],
+  html: () => [1, 2, 3],
   display: (arg: number) => `<p>${arg * 2}</p><slot name="${arg}"></slot>`,
+})
+
+welify({
+  name: 'wely2',
+  syntax: 'if',
+  if: () => true,
+  html: () => `<p>aaa</p>`,
+  else: () => `<h2>bbbb</h2>`,
+})
+
+welify({
+  name: 'wely3',
+  syntax: 'if',
+  if: true,
+  html: () => `<p>aaa!</p>`,
+  else: () => `<w-wely2></w-wely2>`,
 })
 
 // Hello worldの実装
@@ -93,23 +122,7 @@ welify({
 //   },
 // })
 
-mountWely('app', '<w-wely></w-wely>')
-
-// const myChip = welify({
-//   name: 'TextText',
-//   html: `<p>aaa</p>`,
-//   className: 'text',
-//   css: `p { color: green; }`,
-//   events: {
-//     click: () => console.log('worked!'),
-//   },
-// })
-
-// myChip
-//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-//   .embed('yahoo', `<h2>John2</h2>`)
-//   .branch(false, () => '<h2>John3</h2>', 'John')
-//   .render()
+mountWely('app', '<w-wely></w-wely><w-wely3></w-wely3>')
 
 // Counterの実装
 // welify({
@@ -141,67 +154,5 @@ mountWely('app', '<w-wely></w-wely>')
 //         truthy: '<h2>John</h2>',
 //           falsy: self.child().branch(1 > 0, (child) => child.child().branch(1 > 0, 'yes2', 'no2'), 'no')
 //     }
-//   )
-//   .render()
-
-// myChip.embed(`<h1 style="color:red">yeah!</h1>`).render()
-
-// myChip
-//   .branch(() => true, '<h2>John3</h2>', 'John')
-//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-//   .render()
-
-// myChip
-//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-//   .branch(() => true, '<h2>John3</h2>', 'John')
-//   .render()
-
-//   myChip
-//     .loop([1, 2, 3], (arg: number) =>
-//       myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
-//     )
-//     .render()
-
-// myChip
-//   .loop([1, 2, 3], (arg: number) =>
-//     myChip.branch(arg > 1, `<p>${arg}</p>`, `<h2>${arg}</h2>`)
-//   )
-//   .render()
-
-// myChip
-//   .branch(false, '<h2>John3</h2>', 'John')
-//   .branch(() => true, '<h2>John3</h2>', 'John')
-//   .render()
-
-// myChip
-//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-//   .loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`)
-//   .render()
-
-// myChip
-//   .branch(
-//     () => false,
-//     '<h2>John</h2>',
-//     myChip.branch(1 > 0, myChip.branch(1 > 0, 'yes2', 'no2'), 'no')
-//   )
-//   .render()
-
-// myChip
-//   .loop([1, 2, 3], (arg) =>
-//     myChip.branch(
-//       false,
-//       `<p>${arg}</p>`,
-//       myChip.branch(arg > 1, `<h2>yes2</h2>`, `<h2>${arg}</h2>`)
-//     )
-//   )
-//   .render()
-
-// myChip.embed(`<h2>John2</h2>`).render()
-
-// myChip
-//   .branch(
-//     () => false,
-//     myChip.loop([1, 2, 3], (arg: number) => `<p>${arg}</p>`),
-//     myChip.loop([1, 2, 3], (arg: number) => `<h1>${arg}</h1>`)
 //   )
 //   .render()
