@@ -38,17 +38,6 @@ export class WelyElement extends HTMLElement {
   //   return this
   // }
 
-  // loop<T>(contents: T[], apply: (arg: T) => WelyElement | string) {
-  //   this.html.push(
-  //     contents.reduce(
-  //       (prev: string, self: T): string => `${prev}${apply(self)}`,
-  //       ''
-  //     )
-  //   )
-
-  //   return this
-  // }
-
   connectedCallback(): void {
     if (!this.isInitial) {
       this.setAttribute('class', toKebabCase(this.classes.join(' ')))
@@ -59,17 +48,15 @@ export class WelyElement extends HTMLElement {
         this.shadowRoot.appendChild(style)
       }
 
-      if (this.slotContent) {
+      if (this.slotContent)
         this.insertAdjacentHTML('beforeend', this.slotContent)
-      }
 
       const wely = document.getElementById(this.welyId)
 
-      if (wely && Object.keys(this.events).length > 0) {
+      if (wely && Object.keys(this.events).length > 0)
         Object.keys(this.events).forEach((handler: string) =>
           wely.addEventListener(handler, this.events[handler])
         )
-      }
 
       this.isInitial = true
     }
