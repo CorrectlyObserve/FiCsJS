@@ -1,6 +1,6 @@
-import { WelifyArgs } from './libs/types'
+import { WelifyArgs } from './libs/welifyTypes'
 import { toKebabCase, getChildNodes } from './libs/utils'
-import { WelyElement } from './libs/wely'
+import { WelyElement } from './libs/welyElement'
 
 /*
 技術仕様
@@ -26,46 +26,46 @@ import { WelyElement } from './libs/wely'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-export const welify = ({
-  name,
-  html,
-  className,
-  css,
-  slot,
-  events,
-}: WelifyArgs): void => {
-  switch (name) {
-    case '':
-      throw new Error('The name argument is not defined...')
-      break
+export const welify = <T>(arg: WelifyArgs<T>): void => {
+  if (arg.name === '' || arg.name === undefined) {
+    throw new Error('The name argument is not defined...')
+  } else {
+    const welyName = `w-${toKebabCase(arg.name)}`
 
-    case 'if':
-    case 'each':
-      throw new Error('The name is already reserved. Please rename...')
-      break
+    customElements.define(
+      welyName,
+      class extends WelyElement {
+        constructor() {
+          super()
+          this.name = arg.name
 
-    default:
-      const welyName = `w-${toKebabCase(name)}`
+          switch (arg.syntax) {
+            case 'if':
+              break
 
-      customElements.define(
-        welyName,
-        class extends WelyElement {
-          constructor() {
-            super()
-            this.name = name
-            this.html = () => html()
+            case 'each':
+              this.html = () =>
+                arg.html.reduce(
+                  (prev: string, self: T): string =>
+                    `${prev}${arg.display(self)}`,
+                  ''
+                )
+              break
 
-            this.classes.push(welyName)
-            if (className) {
-              this.classes.push(toKebabCase(className))
-            }
-
-            this.css = css
-            this.slotContent = slot
-            this.events = { ...events }
+            default:
+              this.html = () => arg.html()
           }
+
+          this.classes.push(welyName)
+          if (arg.className) this.classes.push(toKebabCase(arg.className))
+
+          this.css = arg.css
+          if (!arg.syntax && arg.slot) this.slotContent = arg.slot
+
+          this.events = { ...arg.events }
         }
-      )
+      }
+    )
   }
 }
 
@@ -77,24 +77,23 @@ export const mountWely = (parent: string, element: string): void => {
 
 welify({
   name: 'wely',
-  html: () => `<p>Hello!</p>`,
+  syntax: 'each',
+  html: [1, 2, 3],
+  display: (arg: number) => `<p>${arg * 2}</p><slot name="${arg}"></slot>`,
 })
 
 // Hello worldの実装
-welify({
-  name: 'branch',
-  className: 'aaa',
-  html: () =>
-    `<p>Hello world</p><slot name="sss"></slot><slot name="username"></slot>`,
-  css: `p { color: green; }`,
-  slot: '<p slot="sss">AAA</p><w-wely slot="username"></w-wely>',
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+// welify({
+//   name: 'branch',
+//   className: 'aaa',
+//   html: () => `<p>Hello world</p><w-aaa></w-aaa>`,
+//   css: `p { color: green; }`,
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
+// })
 
-mountWely('app', '<p>qqq</p>')
-mountWely('app', '<w-branch></w-branch>')
+mountWely('app', '<w-wely></w-wely>')
 
 // const myChip = welify({
 //   name: 'TextText',
