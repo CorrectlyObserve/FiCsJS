@@ -1,4 +1,4 @@
-export const getChildNodes = (element: string): ChildNode[] =>
+export const getChildNodes = (element: string): Array<ChildNode> =>
   Array.from(
     new DOMParser().parseFromString(element, 'text/html').body.childNodes
   )
@@ -20,13 +20,12 @@ export const manageError = (error: Error | string | unknown): void => {
 }
 
 export const toKebabCase = (str: string): string => {
-  const initial = str.slice(0, 1).toLowerCase()
-  const body = str.slice(1)
+  const newStr = str.slice(1)
   const upperCase = new RegExp(/[A-Z]/g)
 
-  return `${initial}${
-    upperCase.test(body)
-      ? body.replace(upperCase, (targets) => `-${targets.toLowerCase()}`)
-      : body
+  return `${str[0].toLowerCase()}${
+    upperCase.test(newStr)
+      ? newStr.replace(upperCase, (val) => `-${val.toLowerCase()}`)
+      : newStr
   }`
 }
