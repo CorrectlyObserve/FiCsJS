@@ -1,4 +1,4 @@
-import { WelifyArgs } from './libs/types'
+import { WelifyArgs } from './libs/welifyTypes'
 import { toKebabCase, getChildNodes } from './libs/utils'
 import { WelyElement } from './libs/wely'
 
@@ -60,7 +60,8 @@ export const welify = <T>(arg: WelifyArgs<T>): void => {
           if (arg.className) this.classes.push(toKebabCase(arg.className))
 
           this.css = arg.css
-          this.slotContent = arg.slot
+          if (!arg.syntax && arg.slot) this.slotContent = arg.slot
+
           this.events = { ...arg.events }
         }
       }
@@ -76,22 +77,23 @@ export const mountWely = (parent: string, element: string): void => {
 
 welify({
   name: 'wely',
-  html: () => `<p>Hello!</p>`,
+  syntax: 'each',
+  html: [1, 2, 3],
+  display: (arg: number) => `<p>${arg * 2}</p><slot name="${arg}"></slot>`,
 })
 
 // Hello worldの実装
-welify({
-  name: 'branch',
-  className: 'aaa',
-  html: () => `<p>Hello world</p><w-aaa></w-aaa>`,
-  css: `p { color: green; }`,
-  events: {
-    click: () => console.log('worked!'),
-  },
-})
+// welify({
+//   name: 'branch',
+//   className: 'aaa',
+//   html: () => `<p>Hello world</p><w-aaa></w-aaa>`,
+//   css: `p { color: green; }`,
+//   events: {
+//     click: () => console.log('worked!'),
+//   },
+// })
 
-mountWely('app', '<p>qqq</p>')
-mountWely('app', '<w-branch></w-branch>')
+mountWely('app', '<w-wely></w-wely>')
 
 // const myChip = welify({
 //   name: 'TextText',
