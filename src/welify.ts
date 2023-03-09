@@ -1,6 +1,6 @@
 import { WelifyArgs } from './libs/welifyTypes'
 import { toKebabCase, getChildNodes } from './libs/utils'
-import { WelyElement } from './libs/wely'
+import { WelyElement } from './libs/welyElement'
 
 /*
 技術仕様
