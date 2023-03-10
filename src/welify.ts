@@ -1,4 +1,4 @@
-import { Args } from './libs/Types'
+import {  } from './libs/Types'
 import { getChildNodes, returnValue, toKebabCase } from './libs/utils'
 import { Element } from './libs/Element'
 
@@ -26,7 +26,7 @@ import { Element } from './libs/Element'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-export const  = <T>(arg: Args<T>): void => {
+export const  = <T>(arg: <T>): void => {
   if (arg.name === '' || arg.name === undefined) {
     throw new Error('The name argument is not defined...')
   } else {
