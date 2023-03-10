@@ -8,20 +8,22 @@ interface commonArgs {
 
 interface normalArgs extends commonArgs {
   syntax?: undefined
-  html: () => string
+  html: string | (() => string)
 }
 
 interface ifArgs extends commonArgs {
   syntax: 'if'
-  if: boolean | (() => boolean)
-  html: () => string
-  else?: () => string
+  branches: () => Array<{
+    condition: boolean | (() => boolean) | unknown
+    html: string | (() => string)
+  }>
+  fallback?: string | (() => string)
 }
 
 interface eachArgs<T> extends commonArgs {
   syntax: 'each'
-  html: () => Array<T>
-  display: (arg: T) => string
+  html: Array<T> | (() => Array<T>)
+  mount: (arg: T) => string
 }
 
 export type WelifyArgs<T> = normalArgs | ifArgs | eachArgs<T>
