@@ -19,6 +19,9 @@ export const manageError = (error: Error | string | unknown): void => {
   }
 }
 
+export const returnValue = <T>(arg: T | (() => T)): T =>
+  typeof arg === 'function' ? (arg as () => T)() : arg
+
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
   const upperCase = new RegExp(/[A-Z]/g)
