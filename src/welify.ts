@@ -1,5 +1,5 @@
 import { WelifyArgs } from './libs/welifyTypes'
-import { toKebabCase, getChildNodes } from './libs/utils'
+import { getChildNodes, returnValue, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyElement'
 
 /*
@@ -41,33 +41,32 @@ export const welify = <T>(arg: WelifyArgs<T>): void => {
 
           switch (arg.syntax) {
             case 'if':
-              this.html = () => {
-                const condition = () => {
-                  if (typeof arg.if === 'function')
-                    return Function(`return ${arg.if}`)()()
+              let html: string = ''
 
-                  return arg.if
+              for (const branch of arg.branches()) {
+                if (returnValue(branch.condition)) {
+                  html = returnValue(branch.html)
+                  break
                 }
-
-                if (condition()) return arg.html()
-
-                return arg.else ? arg.else() : ''
               }
+
+              if (html === '' && arg.fallback) html = returnValue(arg.fallback)
+
+              this.html = () => html
               break
 
             case 'each':
               this.html = () =>
-                arg
-                  .html()
+                returnValue(arg.html)
                   .reduce(
                     (prev: string, self: T): string =>
-                      `${prev}${arg.display(self)}`,
+                      `${prev}${arg.mount(self)}`,
                     ''
                   )
               break
 
             default:
-              this.html = () => arg.html()
+              this.html = () => returnValue(arg.html)
           }
 
           this.classes.push(welyName)
@@ -76,6 +75,13 @@ export const welify = <T>(arg: WelifyArgs<T>): void => {
           this.css = arg.css
           this.slotContent = arg.slot
           this.events = { ...arg.events }
+        }
+
+        connectedCallback(): void {
+          super.connectedCallback()
+
+          if (arg.syntax === 'if' && this.html() === '')
+            this.setAttribute('style', 'display:none')
         }
       }
     )
@@ -91,24 +97,33 @@ export const mountWely = (parent: string, element: string): void => {
 welify({
   name: 'wely',
   syntax: 'each',
-  html: () => [1, 2, 3],
-  display: (arg: number) => `<p>${arg * 2}</p><slot name="${arg}"></slot>`,
+  html: [1, 2, 3],
+  mount: (arg: number) => `<p>${arg * 2}</p>`,
+})
+
+welify({
+  name: 'wely3',
+  html: `<p>aaa</p>`,
 })
 
 welify({
   name: 'wely2',
   syntax: 'if',
-  if: () => true,
-  html: () => `<p>aaa</p>`,
-  else: () => `<h2>bbbb</h2>`,
-})
-
-welify({
-  name: 'wely3',
-  syntax: 'if',
-  if: true,
-  html: () => `<p>aaa!</p>`,
-  else: () => `<w-wely2></w-wely2>`,
+  branches: () => [
+    {
+      condition: false,
+      html: () => `<p>aaa</p>`,
+    },
+    {
+      condition: () => 444,
+      html: `<p>bbb</p>`,
+    },
+    {
+      condition: 333,
+      html: () => `<p>CCC</p>`,
+    },
+  ],
+  fallback: `<p>DDD</p>`,
 })
 
 // Hello worldの実装
@@ -122,7 +137,7 @@ welify({
 //   },
 // })
 
-mountWely('app', '<w-wely></w-wely><w-wely3></w-wely3>')
+mountWely('app', '<w-wely3></w-wely3>')
 
 // Counterの実装
 // welify({
