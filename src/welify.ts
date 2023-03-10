@@ -1,4 +1,4 @@
-import { WelifyArgs } from './libs/welifyTypes'
+import { Welify } from './libs/welifyTypes'
 import { getChildNodes, returnValue, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyElement'
 
@@ -26,7 +26,7 @@ import { WelyElement } from './libs/welyElement'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-export const welify = <T>(arg: WelifyArgs<T>): void => {
+export const welify = <T>(arg: Welify<T>): void => {
   if (arg.name === '' || arg.name === undefined) {
     throw new Error('The name argument is not defined...')
   } else {
