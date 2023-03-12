@@ -1,5 +1,5 @@
 import {  } from './libs/Types'
-import { getChildNodes, returnValue, toKebabCase } from './libs/utils'
+import { convert, getChildNodes, toKebabCase } from './libs/utils'
 import { Element } from './libs/Element'
 
 /*
@@ -44,29 +44,28 @@ export const  = <T>(arg: <T>): void => {
               let html: string = ''
 
               for (const branch of arg.branches()) {
-                if (returnValue(branch.condition)) {
-                  html = returnValue(branch.html)
+                if (convert(branch.condition)) {
+                  html = convert(branch.html)
                   break
                 }
               }
 
-              if (html === '' && arg.fallback) html = returnValue(arg.fallback)
+              if (html === '' && arg.fallback) html = convert(arg.fallback)
 
               this.html = () => html
               break
 
             case 'each':
               this.html = () =>
-                returnValue(arg.html)
-                  .reduce(
-                    (prev: string, self: T): string =>
-                      `${prev}${arg.mount(self)}`,
-                    ''
-                  )
+                convert(arg.html).reduce((prev: string, self: T): string => {
+                  if (arg.mount(self) === undefined) return prev
+
+                  return `${prev}${arg.mount(self)}`
+                }, '')
               break
 
             default:
-              this.html = () => returnValue(arg.html)
+              this.html = () => convert(arg.html)
           }
 
           this.classes.push(Name)
@@ -98,7 +97,15 @@ export const mount = (parent: string, element: string): void => {
   name: '',
   syntax: 'each',
   html: [1, 2, 3],
-  mount: (arg: number) => `<p>${arg * 2}</p>`,
+  mount: (arg: number) => {
+    if (arg % 2 !== 0) {
+      return `<p>${arg * 2}</p>`
+    }
+
+    return
+
+    // return `<p>${arg}</p>`
+  },
 })
 
 ({
@@ -116,14 +123,17 @@ export const mount = (parent: string, element: string): void => {
     },
     {
       condition: () => 444,
-      html: `<p>bbb</p>`,
+      html: `<slot />`,
     },
     {
       condition: 333,
       html: () => `<p>CCC</p>`,
     },
   ],
-  fallback: `<p>DDD</p>`,
+  slot: `<p>DDD</p>`,
+  events: {
+    click: () => console.log('worked!'),
+  },
 })
 
 // Hello worldの実装
@@ -137,7 +147,7 @@ export const mount = (parent: string, element: string): void => {
 //   },
 // })
 
-mount('app', '<w-3></w-3>')
+mount('app', '<w-></w->')
 
 // Counterの実装
 // ({
