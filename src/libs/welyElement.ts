@@ -1,5 +1,5 @@
 import { createUniqueId } from './generator'
-import { cloneNode, toKebabCase } from './utils'
+import { getChildNodes, toKebabCase } from './utils'
 
 export class WelyElement extends HTMLElement {
   welyId: string = ''
@@ -43,6 +43,7 @@ export class WelyElement extends HTMLElement {
       this.isInitial = true
     }
 
-    cloneNode(this.shadowRoot, this.html())
+    for (const child of getChildNodes(this.html()))
+      this.shadowRoot.appendChild(child.cloneNode(true))
   }
 }
