@@ -15,7 +15,7 @@ import { WelyElement } from './libs/welyElement'
 7. slot -> myChip.slot('username', `<h2>John</h2>`).render()と書きたい(slot="username"は不要) -> 完了
 8. 多言語翻訳（今後の話）
 9. styleでcssを指定する -> 完了
-10. Renderメソッドは最後の一回ものが表示される
+10. Renderメソッドは最後の一回ものが表示される -> 完了
 11. 状態管理（今後の話）
 12. ルーティング（今後の話）
 13. PWA（今後の話）
