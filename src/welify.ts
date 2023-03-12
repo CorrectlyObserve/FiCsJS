@@ -4,26 +4,17 @@ import { WelyElement } from './libs/welyElement'
 
 /*
 技術仕様
-1. 関数welyによってコンポーネントを生成する -> 完了
-2. 生成したコンポーネントをページのidか親コンポーネントの中で呼び出す -> 完了
-3. 引数のオブジェクトのDataの中をデータバインディング
-4. data: {
-  value: $value
-} とやるとpropsになる
-5. eventsの中で関数を定義する -> 完了
-6. 各コンポーネントにはユニークなidを振る -> 完了
-7. slot -> myChip.slot('username', `<h2>John</h2>`).render()と書きたい(slot="username"は不要) -> 完了
-8. 多言語翻訳（今後の話）
-9. styleでcssを指定する -> 完了
-10. Renderメソッドは最後の一回ものが表示される -> 完了
-11. 状態管理（今後の話）
-12. ルーティング（今後の話）
-13. PWA（今後の話）
-14. CSS in JSを実現（https://vanilla-extract.style/）
-15. svgによるグラフ作成（今後の話）
-16. emitとpropsの血縁関係に依存した状態管理
-17. Vueでいうwatch的な機能（今後の話）
-18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
+1. 引数のオブジェクトのDataの中をデータバインディング
+2. data: { value: $value } とやるとpropsになる
+3. 多言語翻訳（今後の話）
+4. 状態管理（今後の話）
+5. ルーティング（今後の話）
+6. PWA（今後の話）
+7. CSS in JSを実現（https://vanilla-extract.style/）
+8. svgによるグラフ作成（今後の話）
+9. emitとpropsの血縁関係に依存した状態管理
+10. Vueでいうwatch的な機能（今後の話）
+11. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
 export const welify = <T>(arg: Welify<T>): void => {
@@ -69,7 +60,9 @@ export const welify = <T>(arg: Welify<T>): void => {
           }
 
           this.classes.push(welyName)
-          if (arg.className) this.classes.push(toKebabCase(arg.className))
+          if (arg.className)
+            for (const className of arg.className.split(' '))
+              this.classes.push(toKebabCase(className))
 
           this.css = arg.css
           this.slotContent = arg.slot
@@ -94,7 +87,7 @@ export const mountWely = (parent: string, element: string): void => {
 }
 
 welify({
-  name: 'wely',
+  name: 'Wely',
   syntax: 'each',
   html: [1, 2, 3],
   mount: (arg: number) => {
@@ -106,6 +99,7 @@ welify({
 
     // return `<p>${arg}</p>`
   },
+  className: 'WWWW EEEE',
 })
 
 welify({
