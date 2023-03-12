@@ -23,7 +23,7 @@ interface If extends Common {
 interface Each<T> extends Common {
   syntax: 'each'
   html: Array<T> | (() => Array<T>)
-  mount: (arg: T) => string
+  mount: (arg: T) => string | undefined
 }
 
 export type Welify<T> = Normal | If | Each<T>
