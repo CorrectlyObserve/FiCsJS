@@ -5,7 +5,7 @@ export class WelyElement extends HTMLElement {
   welyId: string = ''
   readonly shadowRoot!: ShadowRoot
   private isInitial: boolean = false
-  name: string = 'wely'
+  name: string = ''
   html: () => string = () => ''
   classes: Array<string> = []
   css?: string
