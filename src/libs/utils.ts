@@ -7,12 +7,16 @@ export const getChildNodes = (element: string): Array<ChildNode> =>
   )
 
 export const toKebabCase = (str: string): string => {
+  const head = str[0].toLowerCase()
   const newStr = str.slice(1)
   const upperCase = new RegExp(/[A-Z]/g)
 
-  return `${str[0].toLowerCase()}${
-    upperCase.test(newStr)
-      ? newStr.replace(upperCase, (val) => `-${val.toLowerCase()}`)
-      : newStr
-  }`
+  return (
+    head +
+    `${
+      upperCase.test(newStr)
+        ? newStr.replace(upperCase, (val) => `-${val.toLowerCase()}`)
+        : newStr
+    }`
+  )
 }
