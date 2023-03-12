@@ -1,5 +1,5 @@
 import { createUniqueId } from './generator'
-import { getChildNodes, toKebabCase } from './utils'
+import { getChildNodes } from './utils'
 
 export class Element extends HTMLElement {
   Id: string = ''
@@ -22,7 +22,7 @@ export class Element extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.isInitial) {
-      this.setAttribute('class', toKebabCase(this.classes.join(' ')))
+      this.setAttribute('class', this.classes.join(' '))
 
       if (this.css) {
         const css = document.createElement('style')
