@@ -20,32 +20,14 @@ export class WelyElement extends HTMLElement {
     this.setAttribute('id', this.welyId)
   }
 
-  // branch(
-  //   condition: boolean | (() => boolean),
-  //   truthy: Branch<WelyElement>,
-  //   falsity?: Branch<WelyElement> | null
-  // ) {
-  //   const convertByType = <T>(value: T) => {
-  //     if (typeof value === 'function') return Function(`return ${value}`)()()
-
-  //     return value
-  //   }
-
-  //   this.html.push(
-  //     `${convertByType(convertByType(condition) ? truthy : falsity)}`
-  //   )
-
-  //   return this
-  // }
-
   connectedCallback(): void {
     if (!this.isInitial) {
       this.setAttribute('class', toKebabCase(this.classes.join(' ')))
 
       if (this.css) {
-        const style = document.createElement('style')
-        style.textContent = this.css
-        this.shadowRoot.appendChild(style)
+        const css = document.createElement('style')
+        css.textContent = this.css
+        this.shadowRoot.appendChild(css)
       }
 
       if (this.slotContent)
