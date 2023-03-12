@@ -1,5 +1,5 @@
-import { Args } from './libs/Types'
-import { toKebabCase, getChildNodes } from './libs/utils'
+import {  } from './libs/Types'
+import { convert, getChildNodes, toKebabCase } from './libs/utils'
 import { Element } from './libs/Element'
 
 /*
@@ -26,7 +26,7 @@ import { Element } from './libs/Element'
 18. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
 */
 
-export const  = <T>(arg: Args<T>): void => {
+export const  = <T>(arg: <T>): void => {
   if (arg.name === '' || arg.name === undefined) {
     throw new Error('The name argument is not defined...')
   } else {
@@ -41,33 +41,31 @@ export const  = <T>(arg: Args<T>): void => {
 
           switch (arg.syntax) {
             case 'if':
-              this.html = () => {
-                const condition = () => {
-                  if (typeof arg.if === 'function')
-                    return Function(`return ${arg.if}`)()()
+              let html: string = ''
 
-                  return arg.if
+              for (const branch of arg.branches()) {
+                if (convert(branch.condition)) {
+                  html = convert(branch.html)
+                  break
                 }
-
-                if (condition()) return arg.html()
-
-                return arg.else ? arg.else() : ''
               }
+
+              if (html === '' && arg.fallback) html = convert(arg.fallback)
+
+              this.html = () => html
               break
 
             case 'each':
               this.html = () =>
-                arg
-                  .html()
-                  .reduce(
-                    (prev: string, self: T): string =>
-                      `${prev}${arg.display(self)}`,
-                    ''
-                  )
+                convert(arg.html).reduce((prev: string, self: T): string => {
+                  if (arg.mount(self) === undefined) return prev
+
+                  return `${prev}${arg.mount(self)}`
+                }, '')
               break
 
             default:
-              this.html = () => arg.html()
+              this.html = () => convert(arg.html)
           }
 
           this.classes.push(Name)
@@ -76,6 +74,13 @@ export const  = <T>(arg: Args<T>): void => {
           this.css = arg.css
           this.slotContent = arg.slot
           this.events = { ...arg.events }
+        }
+
+        connectedCallback(): void {
+          super.connectedCallback()
+
+          if (arg.syntax === 'if' && this.html() === '')
+            this.setAttribute('style', 'display:none')
         }
       }
     )
@@ -91,24 +96,44 @@ export const mount = (parent: string, element: string): void => {
 ({
   name: '',
   syntax: 'each',
-  html: () => [1, 2, 3],
-  display: (arg: number) => `<p>${arg * 2}</p><slot name="${arg}"></slot>`,
+  html: [1, 2, 3],
+  mount: (arg: number) => {
+    if (arg % 2 !== 0) {
+      return `<p>${arg * 2}</p>`
+    }
+
+    return
+
+    // return `<p>${arg}</p>`
+  },
+})
+
+({
+  name: '3',
+  html: `<p>aaa</p>`,
 })
 
 ({
   name: '2',
   syntax: 'if',
-  if: () => true,
-  html: () => `<p>aaa</p>`,
-  else: () => `<h2>bbbb</h2>`,
-})
-
-({
-  name: '3',
-  syntax: 'if',
-  if: true,
-  html: () => `<p>aaa!</p>`,
-  else: () => `<w-2></w-2>`,
+  branches: () => [
+    {
+      condition: false,
+      html: () => `<p>aaa</p>`,
+    },
+    {
+      condition: () => 444,
+      html: `<slot />`,
+    },
+    {
+      condition: 333,
+      html: () => `<p>CCC</p>`,
+    },
+  ],
+  slot: `<p>DDD</p>`,
+  events: {
+    click: () => console.log('worked!'),
+  },
 })
 
 // Hello worldの実装
@@ -122,7 +147,7 @@ export const mount = (parent: string, element: string): void => {
 //   },
 // })
 
-mount('app', '<w-></w-><w-3></w-3>')
+mount('app', '<w-></w->')
 
 // Counterの実装
 // ({
