@@ -1,4 +1,4 @@
-interface commonArgs {
+interface Common {
   name: string
   className?: string
   css?: string
@@ -6,22 +6,24 @@ interface commonArgs {
   events?: { [key: string]: () => void }
 }
 
-interface normalArgs extends commonArgs {
+interface Normal extends Common {
   syntax?: undefined
-  html: () => string
+  html: string | (() => string)
 }
 
-interface ifArgs extends commonArgs {
+interface If extends Common {
   syntax: 'if'
-  if: boolean | (() => boolean)
-  html: () => string
-  else?: () => string
+  branches: () => Array<{
+    condition: boolean | (() => boolean) | unknown
+    html: string | (() => string)
+  }>
+  fallback?: string | (() => string)
 }
 
-interface eachArgs<T> extends commonArgs {
+interface Each<T> extends Common {
   syntax: 'each'
-  html: () => Array<T>
-  display: (arg: T) => string
+  html: Array<T> | (() => Array<T>)
+  mount: (arg: T) => string | undefined
 }
 
-export type WelifyArgs<T> = normalArgs | ifArgs | eachArgs<T>
+export type Welify<T> = Normal | If | Each<T>
