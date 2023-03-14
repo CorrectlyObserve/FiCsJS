@@ -8,8 +8,8 @@ export interface IfHtml {
 export interface Welify<T> {
   name: string
   className?: string
-  html: Type<string> | Type<Array<T>> | Type<Array<IfHtml>>
-  render?: Type<Array<IfHtml>> | ((arg: T) => string | undefined)
+  html: Type<string> | Type<T[]> | Type<IfHtml[]>
+  render?: Type<IfHtml[]> | ((arg: T) => string | undefined)
   fallback?: Type<string>
   css?: string
   slot?: string
