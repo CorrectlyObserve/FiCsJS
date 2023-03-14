@@ -1,29 +1,17 @@
-interface Common {
+export type Type<T> = T | (() => T)
+
+export interface IfHtml {
+  condition: Type<boolean> | unknown
+  render: Type<string>
+}
+
+export interface Welify<T> {
   name: string
   className?: string
+  html: Type<string> | Type<Array<T>> | Type<Array<IfHtml>>
+  render?: Type<Array<IfHtml>> | ((arg: T) => string | undefined)
+  fallback?: Type<string>
   css?: string
   slot?: string
   events?: { [key: string]: () => void }
 }
-
-interface Normal extends Common {
-  syntax?: undefined
-  html: string | (() => string)
-}
-
-interface If extends Common {
-  syntax: 'if'
-  branches: () => Array<{
-    condition: boolean | (() => boolean) | unknown
-    html: string | (() => string)
-  }>
-  fallback?: string | (() => string)
-}
-
-interface Each<T> extends Common {
-  syntax: 'each'
-  html: Array<T> | (() => Array<T>)
-  mount: (arg: T) => string | undefined
-}
-
-export type Welify<T> = Normal | If | Each<T>
