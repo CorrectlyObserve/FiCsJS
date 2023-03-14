@@ -43,7 +43,8 @@ export class WelyElement extends HTMLElement {
       this.isInitial = true
     }
 
-    for (const child of getChildNodes(this.html()))
-      this.shadowRoot.appendChild(child.cloneNode(true))
+    if (this.html() !== '')
+      for (const child of getChildNodes(this.html()))
+        this.shadowRoot.appendChild(child.cloneNode(true))
   }
 }
