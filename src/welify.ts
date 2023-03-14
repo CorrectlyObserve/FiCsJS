@@ -6,15 +6,15 @@ import { WelyElement } from './libs/welyElement'
 技術仕様
 1. 引数のオブジェクトのDataの中をデータバインディング
 2. data: { value: $value } とやるとpropsになる
-3. 多言語翻訳（今後の話）
-4. 状態管理（今後の話）
-5. ルーティング（今後の話）
-6. PWA（今後の話）
-7. CSS in JSを実現（https://vanilla-extract.style/）
-8. svgによるグラフ作成（今後の話）
-9. emitとpropsの血縁関係に依存した状態管理
-10. Vueでいうwatch的な機能（今後の話）
-11. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
+3. CSS in JSを実現（https://vanilla-extract.style/）
+4. emitとpropsの血縁関係に依存した状態管理
+5. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
+6. 多言語翻訳（今後の話）
+7. 状態管理（今後の話）
+8. ルーティング（今後の話）
+9. PWA（今後の話）
+10. svgによるグラフ作成（今後の話）
+11. Vueでいうwatch的な機能（今後の話）
 */
 
 export const welify = <T>(arg: Welify<T>): void => {
@@ -34,12 +34,11 @@ export const welify = <T>(arg: Welify<T>): void => {
             case 'if':
               let html: string = ''
 
-              for (const branch of arg.branches()) {
+              for (const branch of arg.branches())
                 if (convert(branch.condition)) {
                   html = convert(branch.html)
                   break
                 }
-              }
 
               if (html === '' && arg.fallback) html = convert(arg.fallback)
 
@@ -81,9 +80,8 @@ export const welify = <T>(arg: Welify<T>): void => {
 }
 
 export const mountWely = (parent: string, element: string): void => {
-  for (const child of getChildNodes(element)) {
+  for (const child of getChildNodes(element))
     document.getElementById(parent)?.appendChild(child.cloneNode(true))
-  }
 }
 
 welify({
