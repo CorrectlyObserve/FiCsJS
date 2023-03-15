@@ -29,7 +29,7 @@ export type Type<T> = T | (() => T)
 export interface Welify<T> {
   name: string
   className?: string
-  html: Type<string> | Type<Each<T>> | Type<EachIf<T>> | Type<If>
+  html: Type<string | Each<T> | EachIf<T> | If>
   css?: string
   slot?: string
   events?: { [key: string]: () => void }
