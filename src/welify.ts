@@ -30,32 +30,31 @@ export const welify = <T>(arg: Welify<T>): void => {
           super()
           this.name = arg.name
 
-          const html = convert(arg.html)
           const eachHtml = <Each<T>>convert(arg.html)
           const eachIfHtml = <EachIf<T>>convert(arg.html)
           const ifHtml = <If>convert(arg.html)
 
-          if (typeof html === 'string') {
-            this.html = () => <string>html
+          if (typeof convert(arg.html) === 'string') {
+            this.html = () => <string>convert(arg.html)
           } else if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
-            let returnedValue: string = ''
+            let html: string = ''
 
             convert(eachIfHtml.contents).forEach((content) => {
-              let localValue: string = ''
+              let value: string = ''
 
               for (const branch of convert(eachIfHtml.branches))
                 if (convert(branch.judge(content))) {
-                  localValue = convert(branch.render(content))
+                  value = convert(branch.render(content))
                   break
                 }
 
-              if (localValue === '' && eachIfHtml.fallback)
-                localValue = convert(eachIfHtml.fallback(content))
+              if (value === '' && eachIfHtml.fallback)
+                value = convert(eachIfHtml.fallback(content))
 
-              returnedValue += localValue
+              html += value
             })
 
-            this.html = () => returnedValue
+            this.html = () => html
           } else if ('contents' in eachHtml) {
             this.html = () =>
               convert(eachHtml.contents).reduce(
@@ -64,18 +63,17 @@ export const welify = <T>(arg: Welify<T>): void => {
                 ''
               )
           } else if ('branches' in ifHtml) {
-            let returnedValue: string = ''
+            let html: string = ''
 
             for (const branch of convert(ifHtml.branches))
               if (convert(branch.judge)) {
-                returnedValue = convert(branch.render)
+                html = convert(branch.render)
                 break
               }
 
-            if (returnedValue === '' && ifHtml.fallback)
-              returnedValue = convert(ifHtml.fallback)
+            if (html === '' && ifHtml.fallback) html = convert(ifHtml.fallback)
 
-            this.html = () => returnedValue
+            this.html = () => html
           }
 
           this.classes.push(welyName)
