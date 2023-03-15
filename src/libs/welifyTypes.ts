@@ -1,7 +1,7 @@
 export type Type<T> = T | (() => T)
 
 export interface IfHtml {
-  condition: Type<boolean> | unknown
+  judge: Type<boolean> | unknown
   render: Type<string>
 }
 
