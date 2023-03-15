@@ -1,4 +1,4 @@
-import {  } from './libs/Types'
+import { Each, EachIf, If,  } from './libs/Types'
 import { convert, getChildNodes, toKebabCase } from './libs/utils'
 import { Element } from './libs/Element'
 
@@ -18,9 +18,9 @@ import { Element } from './libs/Element'
 */
 
 export const  = <T>(arg: <T>): void => {
-  if (arg.name === '' || arg.name === undefined) {
+  if (arg.name === '' || arg.name === undefined)
     throw new Error('The name argument is not defined...')
-  } else {
+  else {
     const Name = `w-${toKebabCase(arg.name)}`
 
     customElements.define(
@@ -30,35 +30,56 @@ export const  = <T>(arg: <T>): void => {
           super()
           this.name = arg.name
 
-          switch (arg.syntax) {
-            case 'if':
-              let html: string = ''
+          const html = convert(arg.html)
+          const eachHtml = <Each<T>>convert(arg.html)
+          const eachIfHtml = <EachIf<T>>convert(arg.html)
+          const ifHtml = <If>convert(arg.html)
 
-              for (const branch of arg.branches())
-                if (convert(branch.condition)) {
-                  html = convert(branch.html)
+          if (typeof html === 'string') {
+            this.html = () => <string>html
+          } else if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
+            let returnedValue: string = ''
+
+            convert(eachIfHtml.contents).forEach((content) => {
+              let localValue: string = ''
+
+              for (const branch of convert(eachIfHtml.branches))
+                if (convert(branch.judge(content))) {
+                  localValue = convert(branch.render(content))
                   break
                 }
 
-              if (html === '' && arg.fallback) html = convert(arg.fallback)
+              if (localValue === '' && eachIfHtml.fallback)
+                localValue = convert(eachIfHtml.fallback(content))
 
-              this.html = () => html
-              break
+              returnedValue += localValue
+            })
 
-            case 'each':
-              this.html = () =>
-                convert(arg.html).reduce((prev: string, self: T): string => {
-                  if (arg.mount(self) === undefined) return prev
+            this.html = () => returnedValue
+          } else if ('contents' in eachHtml) {
+            this.html = () =>
+              convert(eachHtml.contents).reduce(
+                (prev: string, self: T): string =>
+                  prev + (eachHtml.render(self) || ''),
+                ''
+              )
+          } else if ('branches' in ifHtml) {
+            let returnedValue: string = ''
 
-                  return `${prev}${arg.mount(self)}`
-                }, '')
-              break
+            for (const branch of convert(ifHtml.branches))
+              if (convert(branch.judge)) {
+                returnedValue = convert(branch.render)
+                break
+              }
 
-            default:
-              this.html = () => convert(arg.html)
+            if (returnedValue === '' && ifHtml.fallback)
+              returnedValue = convert(ifHtml.fallback)
+
+            this.html = () => returnedValue
           }
 
           this.classes.push(Name)
+
           if (arg.className)
             for (const className of arg.className.split(' '))
               this.classes.push(toKebabCase(className))
@@ -66,13 +87,6 @@ export const  = <T>(arg: <T>): void => {
           this.css = arg.css
           this.slotContent = arg.slot
           this.events = { ...arg.events }
-        }
-
-        connectedCallback(): void {
-          super.connectedCallback()
-
-          if (arg.syntax === 'if' && this.html() === '')
-            this.setAttribute('style', 'display:none')
         }
       }
     )
@@ -86,45 +100,61 @@ export const mount = (parent: string, element: string): void => {
 
 ({
   name: '',
-  syntax: 'each',
-  html: [1, 2, 3],
-  mount: (arg: number) => {
-    if (arg % 2 !== 0) {
-      return `<p>${arg * 2}</p>`
+  html: `<p>aaa</p>`,
+})
+
+({
+  name: '2',
+  html: () => {
+    return {
+      contents: [1, 2, 3],
+      render: (arg: number) => `<p>${arg * 2}</p>`,
     }
-
-    return
-
-    // return `<p>${arg}</p>`
   },
   className: 'WWWW EEEE',
 })
 
 ({
   name: '3',
-  html: `<p>aaa</p>`,
-})
-
-({
-  name: '2',
-  syntax: 'if',
-  branches: () => [
-    {
-      condition: false,
-      html: () => `<p>aaa</p>`,
-    },
-    {
-      condition: () => 444,
-      html: `<slot />`,
-    },
-    {
-      condition: 333,
-      html: () => `<p>CCC</p>`,
-    },
-  ],
+  html: () => {
+    return {
+      branches: () => [
+        {
+          judge: false,
+          render: () => `<p>aaa</p>`,
+        },
+        {
+          judge: () => 444 > 0,
+          render: `<slot />`,
+        },
+        {
+          judge: 333,
+          render: () => `<p>CCC</p>`,
+        },
+      ],
+    }
+  },
   slot: `<p>DDD</p>`,
   events: {
     click: () => console.log('worked!'),
+  },
+})
+
+({
+  name: '4',
+  html: {
+    contents: () => [1, 2, 3],
+    branches: () => [
+      {
+        judge: (arg: number) => arg % 2 !== 0,
+        render: (arg: number) => `<p>${arg * 2}</p>`,
+      },
+      {
+        judge: (arg: number) => typeof arg === 'number',
+        render: (arg: number) => `<p>${arg}</p>`,
+      },
+    ],
+    fallback: (arg: number) => `<p>${arg * 10}</p>`,
   },
 })
 
@@ -139,7 +169,7 @@ export const mount = (parent: string, element: string): void => {
 //   },
 // })
 
-mount('app', '<w-></w->')
+mount('app', '<w-2></w-2><w-3></w-3><w-4></w-4>')
 
 // Counterの実装
 // ({
@@ -167,7 +197,7 @@ mount('app', '<w-></w->')
 // .branch(
 //   (self) => {
 //     return {
-//       condition: () => false,
+//       judge: () => false,
 //         truthy: '<h2>John</h2>',
 //           falsy: self.child().branch(1 > 0, (child) => child.child().branch(1 > 0, 'yes2', 'no2'), 'no')
 //     }
