@@ -1,4 +1,4 @@
-type Converted<T, U> = T | ((data: Data<U>) => T)
+type Convert<T, U> = T | ((data: Data<U>) => T)
 
 export interface Data<T> {
   [key: string]: T
@@ -30,7 +30,7 @@ export interface Welify<T, U> {
   name: string
   className?: string
   data?: Data<U>
-  html: Converted<string | Each<T> | EachIf<T> | If, U>
+  html: Convert<string | Each<T> | EachIf<T> | If, U>
   css?: string
   slot?: string
   events?: {
