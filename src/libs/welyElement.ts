@@ -1,16 +1,20 @@
 import { createUniqueId } from './generator'
 import { getChildNodes } from './utils'
+import { Data } from './welifyTypes'
 
-export class WelyElement extends HTMLElement {
+export class WelyElement<T> extends HTMLElement {
   welyId: string = ''
   readonly shadowRoot!: ShadowRoot
   private isInitial: boolean = false
   name: string = ''
-  html: () => string = () => ''
+  data: Data<T> = {}
+  html: string = ''
   classes: string[] = []
   css?: string
   slotContent?: string
-  events: { [key: string]: () => void } = {}
+  events: {
+    [key: string]: (data: Data<T>) => void
+  } = {}
 
   constructor() {
     super()
@@ -34,17 +38,18 @@ export class WelyElement extends HTMLElement {
         this.insertAdjacentHTML('beforeend', this.slotContent)
 
       const wely = document.getElementById(this.welyId)
+      const keys = Object.keys(this.events)
 
-      if (wely && Object.keys(this.events).length > 0)
-        Object.keys(this.events).forEach((handler: string) =>
-          wely.addEventListener(handler, this.events[handler])
+      if (wely && keys.length > 0)
+        keys.forEach((handler: string) =>
+          wely.addEventListener(handler, this.events[handler](this.data))
         )
 
       this.isInitial = true
     }
 
-    if (this.html() !== '')
-      for (const child of getChildNodes(this.html()))
+    if (this.html !== '')
+      for (const child of getChildNodes(this.html))
         this.shadowRoot.appendChild(child.cloneNode(true))
   }
 }
