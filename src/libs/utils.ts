@@ -1,8 +1,3 @@
-import { Type } from './welifyTypes'
-
-export const convert = <T>(arg: Type<T>): T =>
-  typeof arg === 'function' ? (arg as () => T)() : arg
-
 export const getChildNodes = (element: string): ChildNode[] =>
   Array.from(
     new DOMParser().parseFromString(element, 'text/html').body.childNodes
