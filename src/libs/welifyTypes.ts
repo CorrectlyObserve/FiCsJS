@@ -1,36 +1,39 @@
+type Converted<T, U> = T | ((data: Data<U>) => T)
+
+export interface Data<T> {
+  [key: string]: T
+}
+
 export interface Each<T> {
-  contents: Type<T[]>
+  contents: T[]
   render: (arg: T) => string | undefined
 }
 
 export interface EachIf<T> {
-  contents: Type<T[]>
-  branches: Type<
-    {
-      judge: (arg: T) => boolean
-      render: (arg: T) => string
-    }[]
-  >
+  contents: T[]
+  branches: {
+    judge: (arg: T) => boolean
+    render: (arg: T) => string
+  }[]
   fallback?: (arg: T) => string
 }
 
 export interface If {
-  branches: Type<
-    {
-      judge: Type<boolean> | unknown
-      render: Type<string>
-    }[]
-  >
-  fallback?: Type<string>
+  branches: {
+    judge: boolean | unknown
+    render: string
+  }[]
+  fallback?: string
 }
 
-export type Type<T> = T | (() => T)
-
-export interface Welify<T> {
+export interface Welify<T, U> {
   name: string
   className?: string
-  html: Type<string | Each<T> | EachIf<T> | If>
+  data?: Data<U>
+  html: Converted<string | Each<T> | EachIf<T> | If, U>
   css?: string
   slot?: string
-  events?: { [key: string]: () => void }
+  events?: {
+    [key: string]: (data: Data<U>) => void
+  }
 }
