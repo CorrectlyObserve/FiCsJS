@@ -42,7 +42,7 @@ export class Element<T> extends HTMLElement {
 
       if ( && keys.length > 0)
         keys.forEach((handler: string) =>
-          .addEventListener(handler, this.events[handler](this.data))
+          .addEventListener(handler, () => this.events[handler](this.data))
         )
 
       this.isInitial = true
