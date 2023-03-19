@@ -110,9 +110,7 @@ export const mount = (parent: string, element: string): void => {
   },
   html: `<p>Hello</p>`,
   events: {
-    click: (data) => {
-      console.log(data.numbers)
-    },
+    click: (data) => console.log(data.message),
   },
 })
 
@@ -124,6 +122,9 @@ export const mount = (parent: string, element: string): void => {
   html: {
     contents: [1, 2, 3],
     render: (arg: number) => `<p>${arg * 2}</p>`,
+  },
+  events: {
+    click: (data) => console.log(data.numbers),
   },
 })
 
