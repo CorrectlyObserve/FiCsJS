@@ -1,5 +1,5 @@
 import { Each, EachIf, If, Welify } from './libs/welifyTypes'
-import { convert, getChildNodes, toKebabCase } from './libs/utils'
+import { getChildNodes, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyElement'
 
 /*
@@ -17,7 +17,7 @@ import { WelyElement } from './libs/welyElement'
 11. Vueでいうwatch的な機能（今後の話）
 */
 
-export const welify = <T>(arg: Welify<T>): void => {
+export const welify = <T, U>(arg: Welify<T, U>): void => {
   if (arg.name === '' || arg.name === undefined)
     throw new Error('The name argument is not defined...')
   else {
@@ -25,55 +25,62 @@ export const welify = <T>(arg: Welify<T>): void => {
 
     customElements.define(
       welyName,
-      class extends WelyElement {
+      class extends WelyElement<U> {
         constructor() {
           super()
           this.name = arg.name
+          this.data = { ...arg.data }
 
-          const eachHtml = <Each<T>>convert(arg.html)
-          const eachIfHtml = <EachIf<T>>convert(arg.html)
-          const ifHtml = <If>convert(arg.html)
+          const convert = <T>() =>
+            typeof arg.html === 'function'
+              ? <T>arg.html(this.data)
+              : <T>arg.html
 
-          if (typeof convert(arg.html) === 'string') {
-            this.html = () => <string>convert(arg.html)
-          } else if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
-            let html: string = ''
+          if (typeof (<string>convert()) === 'string') {
+            this.html = <string>convert()
+          } else {
+            const ifHtml = <If>convert()
+            const eachHtml = <Each<T>>convert()
+            const eachIfHtml = <EachIf<T>>convert()
 
-            convert(eachIfHtml.contents).forEach((content) => {
-              let value: string = ''
+            if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
+              let html: string = ''
 
-              for (const branch of convert(eachIfHtml.branches))
-                if (convert(branch.judge(content))) {
-                  value = convert(branch.render(content))
-                  break
-                }
+              eachIfHtml.contents.forEach((content) => {
+                let value: string = ''
 
-              if (value === '' && eachIfHtml.fallback)
-                value = convert(eachIfHtml.fallback(content))
+                for (const branch of eachIfHtml.branches)
+                  if (branch.judge(content)) {
+                    value = branch.render(content)
+                    break
+                  }
 
-              html += value
-            })
+                if (value === '' && eachIfHtml.fallback)
+                  value = eachIfHtml.fallback(content)
 
-            this.html = () => html
-          } else if ('contents' in eachHtml) {
-            this.html = () =>
-              convert(eachHtml.contents).reduce(
+                html += value
+              })
+
+              this.html = html
+            } else if ('contents' in eachHtml) {
+              this.html = eachHtml.contents.reduce(
                 (prev: string, self: T): string =>
                   prev + (eachHtml.render(self) || ''),
                 ''
               )
-          } else if ('branches' in ifHtml) {
-            let html: string = ''
+            } else if ('branches' in ifHtml) {
+              let html: string = ''
 
-            for (const branch of convert(ifHtml.branches))
-              if (convert(branch.judge)) {
-                html = convert(branch.render)
-                break
-              }
+              for (const branch of ifHtml.branches)
+                if (branch.judge) {
+                  html = branch.render
+                  break
+                }
 
-            if (html === '' && ifHtml.fallback) html = convert(ifHtml.fallback)
+              if (html === '' && ifHtml.fallback) html = ifHtml.fallback
 
-            this.html = () => html
+              this.html = html
+            }
           }
 
           this.classes.push(welyName)
@@ -98,106 +105,73 @@ export const mountWely = (parent: string, element: string): void => {
 
 welify({
   name: 'wely',
-  html: `<p>aaa</p>`,
+  data: {
+    message: 'Hello',
+  },
+  html: `<p>Hello</p>`,
+  events: {
+    click: (data) => console.log(data.message),
+  },
 })
 
 welify({
   name: 'Wely2',
-  html: () => {
-    return {
-      contents: [1, 2, 3],
-      render: (arg: number) => `<p>${arg * 2}</p>`,
-    }
+  data: {
+    numbers: [1, 2, 3],
   },
-  className: 'WWWW EEEE',
+  html: {
+    contents: [1, 2, 3],
+    render: (arg: number) => `<p>${arg * 2}</p>`,
+  },
+  events: {
+    click: (data) => console.log(data.numbers),
+  },
 })
 
 welify({
   name: 'wely3',
-  html: () => {
+  data: {
+    number: 100,
+  },
+  html: (data) => {
     return {
-      branches: () => [
+      branches: [
         {
-          judge: false,
-          render: () => `<p>aaa</p>`,
+          judge: data.number > 100,
+          render: `<p>aaa</p>`,
         },
         {
-          judge: () => 444 > 0,
-          render: `<slot />`,
-        },
-        {
-          judge: 333,
-          render: () => `<p>CCC</p>`,
+          judge: data.number < 100,
+          render: `<p>bbb</p>`,
         },
       ],
+      fallback: `<slot></slot><p>${data.number}</p>`,
     }
   },
   slot: `<p>DDD</p>`,
-  events: {
-    click: () => console.log('worked!'),
-  },
 })
 
 welify({
   name: 'Wely4',
-  html: {
-    contents: () => [1, 2, 3],
-    branches: () => [
-      {
-        judge: (arg: number) => arg % 2 !== 0,
-        render: (arg: number) => `<p>${arg * 2}</p>`,
-      },
-      {
-        judge: (arg: number) => typeof arg === 'number',
-        render: (arg: number) => `<p>${arg}</p>`,
-      },
-    ],
-    fallback: (arg: number) => `<p>${arg * 10}</p>`,
+  data: {
+    numbers: [1, 2, 3],
+  },
+  html: (data) => {
+    return {
+      contents: data.numbers,
+      branches: [
+        {
+          judge: (arg: number) => arg % 2 !== 0,
+          render: (arg: number) => `<p>${arg * 2}</p>`,
+        },
+        {
+          judge: (arg: number) => typeof arg === 'number',
+          render: (arg: number) => `<p>${arg}</p>`,
+        },
+      ],
+      fallback: (arg: number) => `<p>${arg * 10}</p>`,
+    }
   },
 })
 
-// Hello worldの実装
-// welify({
-//   name: 'branch',
-//   className: 'aaa',
-//   html: () => `<p>Hello world</p><w-aaa></w-aaa>`,
-//   css: `p { color: green; }`,
-//   events: {
-//     click: () => console.log('worked!'),
-//   },
-// })
-
-mountWely('app', '<w-wely2></w-wely2><w-wely3></w-wely3><w-wely4></w-wely4>')
-
-// Counterの実装
-// welify({
-//   name: 'counter',
-//   parent: 'app',
-//   data: {
-//     values: {
-//       count: 0,
-//       color: 'green',
-//     },
-//     props: {},
-//   },
-//   html: (data) => `<p>${data.values.count}</p>`,
-//   css: {
-//     selector: 'p',
-//     style: `color: ${data.values.color}`,
-//   },
-//   events: {
-//     click: () => data.values.count++,
-//   },
-// }).render()
-
-// Branchの引数に1つの関数
-// 関数は3つの引数を返すような感じ
-// .branch(
-//   (self) => {
-//     return {
-//       judge: () => false,
-//         truthy: '<h2>John</h2>',
-//           falsy: self.child().branch(1 > 0, (child) => child.child().branch(1 > 0, 'yes2', 'no2'), 'no')
-//     }
-//   )
-//   .render()
+mountWely('app', '<w-wely></w-wely><w-wely2></w-wely2>')
