@@ -1,3 +1,6 @@
+export const convert = <T, U>(html: any, data: { [key: string]: U }) =>
+  typeof html === 'function' ? <T>html(data) : <T>html
+
 export const getChildNodes = (element: string): ChildNode[] =>
   Array.from(
     new DOMParser().parseFromString(element, 'text/html').body.childNodes
