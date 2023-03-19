@@ -1,7 +1,7 @@
 type Convert<T, U> = T | ((data: Data<U>) => T)
 
-export interface Data<T> {
-  [key: string]: T
+export interface Data<U> {
+  [key: string]: U
 }
 
 export interface Each<T> {
