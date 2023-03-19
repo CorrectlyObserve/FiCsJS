@@ -2,18 +2,18 @@ import { createUniqueId } from './generator'
 import { getChildNodes } from './utils'
 import { Data } from './welifyTypes'
 
-export class WelyElement<T> extends HTMLElement {
+export class WelyElement<U> extends HTMLElement {
   welyId: string = ''
   readonly shadowRoot!: ShadowRoot
   private isInitial: boolean = false
   name: string = ''
-  data: Data<T> = {}
+  data: Data<U> = {}
   html: string = ''
   classes: string[] = []
   css?: string
   slotContent?: string
   events: {
-    [key: string]: (data: Data<T>) => void
+    [key: string]: (data: Data<U>) => void
   } = {}
 
   constructor() {
