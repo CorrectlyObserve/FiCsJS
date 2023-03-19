@@ -42,7 +42,7 @@ export class WelyElement<T> extends HTMLElement {
 
       if (wely && keys.length > 0)
         keys.forEach((handler: string) =>
-          wely.addEventListener(handler, this.events[handler](this.data))
+          wely.addEventListener(handler, () => this.events[handler](this.data))
         )
 
       this.isInitial = true
