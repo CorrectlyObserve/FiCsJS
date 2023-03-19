@@ -1,5 +1,5 @@
 import { Each, EachIf, If, Welify } from './libs/welifyTypes'
-import { getChildNodes, toKebabCase } from './libs/utils'
+import { convert, getChildNodes, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyElement'
 
 /*
@@ -31,17 +31,14 @@ export const welify = <T, U>(arg: Welify<T, U>): void => {
           this.name = arg.name
           this.data = { ...arg.data }
 
-          const convert = <T>() =>
-            typeof arg.html === 'function'
-              ? <T>arg.html(this.data)
-              : <T>arg.html
+          const converter = <T>convert(arg.html, this.data)
 
-          if (typeof (<string>convert()) === 'string') {
-            this.html = <string>convert()
+          if (typeof (<string>converter) === 'string') {
+            this.html = <string>converter
           } else {
-            const ifHtml = <If>convert()
-            const eachHtml = <Each<T>>convert()
-            const eachIfHtml = <EachIf<T>>convert()
+            const ifHtml = <If>converter
+            const eachHtml = <Each<T>>converter
+            const eachIfHtml = <EachIf<T>>converter
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               let html: string = ''
@@ -174,4 +171,7 @@ welify({
   },
 })
 
-mountWely('app', '<w-wely></w-wely><w-wely2></w-wely2>')
+mountWely(
+  'app',
+  '<w-wely></w-wely><w-wely2></w-wely2><w-wely3></w-wely3><w-wely4></w-wely4>'
+)
