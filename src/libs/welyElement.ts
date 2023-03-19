@@ -1,13 +1,13 @@
 import { createUniqueId } from './generator'
-import { cloneNode, toKebabCase } from './utils'
+import { getChildNodes } from './utils'
 
 export class WelyElement extends HTMLElement {
   welyId: string = ''
   readonly shadowRoot!: ShadowRoot
   private isInitial: boolean = false
-  name: string = 'wely'
+  name: string = ''
   html: () => string = () => ''
-  classes: Array<string> = []
+  classes: string[] = []
   css?: string
   slotContent?: string
   events: { [key: string]: () => void } = {}
@@ -22,7 +22,7 @@ export class WelyElement extends HTMLElement {
 
   connectedCallback(): void {
     if (!this.isInitial) {
-      this.setAttribute('class', toKebabCase(this.classes.join(' ')))
+      this.setAttribute('class', this.classes.join(' '))
 
       if (this.css) {
         const css = document.createElement('style')
@@ -43,6 +43,8 @@ export class WelyElement extends HTMLElement {
       this.isInitial = true
     }
 
-    cloneNode(this.shadowRoot, this.html())
+    if (this.html() !== '')
+      for (const child of getChildNodes(this.html()))
+        this.shadowRoot.appendChild(child.cloneNode(true))
   }
 }
