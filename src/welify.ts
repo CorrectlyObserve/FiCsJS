@@ -110,9 +110,7 @@ welify({
   },
   html: `<p>Hello</p>`,
   events: {
-    click: (data) => {
-      console.log(data.numbers)
-    },
+    click: (data) => console.log(data.message),
   },
 })
 
@@ -124,6 +122,9 @@ welify({
   html: {
     contents: [1, 2, 3],
     render: (arg: number) => `<p>${arg * 2}</p>`,
+  },
+  events: {
+    click: (data) => console.log(data.numbers),
   },
 })
 
