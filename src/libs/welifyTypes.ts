@@ -18,6 +18,18 @@ export interface EachIf<T> {
   fallback?: (arg: T) => string
 }
 
+export interface Event<U> {
+  [key: string]: (data: Data<U>) => void
+}
+
+type EventArray<U> = {
+  selector: string
+  listener: string
+  function: (data: Data<U>) => void
+}[]
+
+export type Events<U> = Event<U> | EventArray<U>
+
 export interface If {
   branches: {
     judge: boolean | unknown
@@ -33,7 +45,5 @@ export interface Welify<T, U> {
   html: Convert<string | Each<T> | EachIf<T> | If, U>
   css?: string
   slot?: string
-  events?: {
-    [key: string]: (data: Data<U>) => void
-  }
+  events?: Events<U>
 }
