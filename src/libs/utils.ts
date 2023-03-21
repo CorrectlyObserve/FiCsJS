@@ -1,5 +1,5 @@
-export const convert = <T, U>(html: any, data: { [key: string]: U }) =>
-  typeof html === 'function' ? <T>html(data) : <T>html
+export const convert = <T, U>(html: any, data: { [key: string]: T }) =>
+  typeof html === 'function' ? <U>html(data) : <U>html
 
 export const getChildNodes = (element: string): ChildNode[] =>
   Array.from(
