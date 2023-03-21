@@ -17,28 +17,36 @@ import { Element } from './libs/Element'
 11. Vueでいうwatch的な機能（今後の話）
 */
 
-export const  = <T, U>(arg: <T, U>): void => {
-  if (arg.name === '' || arg.name === undefined)
+export const  = <T, U>({
+  name,
+  className,
+  data,
+  html,
+  css,
+  slot,
+  events,
+}: <T, U>): void => {
+  if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
-    const Name = `w-${toKebabCase(arg.name)}`
+    const Name = `w-${toKebabCase(name)}`
 
     customElements.define(
       Name,
       class extends Element<U> {
         constructor() {
           super()
-          this.name = arg.name
-          this.data = { ...arg.data }
+          this.name = name
+          this.data = { ...data }
 
-          const converter = <T>convert(arg.html, this.data)
+          const converter = convert(html, this.data)
 
           if (typeof (<string>converter) === 'string') {
             this.html = <string>converter
           } else {
             const ifHtml = <If>converter
-            const eachHtml = <Each<T>>converter
-            const eachIfHtml = <EachIf<T>>converter
+            const eachHtml = <Each<U>>converter
+            const eachIfHtml = <EachIf<U>>converter
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               let html: string = ''
@@ -61,7 +69,7 @@ export const  = <T, U>(arg: <T, U>): void => {
               this.html = html
             } else if ('contents' in eachHtml) {
               this.html = eachHtml.contents.reduce(
-                (prev: string, self: T): string =>
+                (prev: string, self: U): string =>
                   prev + (eachHtml.render(self) || ''),
                 ''
               )
@@ -82,13 +90,13 @@ export const  = <T, U>(arg: <T, U>): void => {
 
           this.classes.push(Name)
 
-          if (arg.className)
-            for (const className of arg.className.split(' '))
-              this.classes.push(toKebabCase(className))
+          if (className)
+            for (const name of className.split(' '))
+              this.classes.push(toKebabCase(name))
 
-          this.css = arg.css
-          this.slotContent = arg.slot
-          this.events = { ...arg.events }
+          this.css = css
+          this.slotContent = slot
+          this.events = Array.isArray(events) ? [...events] : { ...events }
         }
       }
     )
@@ -107,7 +115,7 @@ export const mount = (parent: string, element: string): void => {
   },
   html: `<p>Hello</p>`,
   events: {
-    click: (data) => console.log(data.message),
+    click: ({ message }) => console.log(message),
   },
 })
 
