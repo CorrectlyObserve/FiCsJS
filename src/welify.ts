@@ -68,13 +68,13 @@ export const  = <T, U>({
               })
 
               this.html = html
-            } else if ('contents' in eachHtml) {
+            } else if ('contents' in eachHtml)
               this.html = eachHtml.contents.reduce(
                 (prev: string, self: T, index: number): string =>
                   prev + eachHtml.render(self, index),
                 ''
               )
-            } else if ('branches' in ifHtml) {
+            else if ('branches' in ifHtml) {
               let html: string = ''
 
               for (const branch of ifHtml.branches)
@@ -135,9 +135,7 @@ export const mount = (parent: string, element: string): void => {
       contents: numbers,
       render: (arg: number, index) =>
         `<p class="class-${index}">${arg * 2}</p>`,
-      events: {
-        click: (arg: number) => console.log(arg),
-      },
+      click: (arg: number) => console.log(arg),
     }
   },
   events: {
