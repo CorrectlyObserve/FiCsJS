@@ -4,6 +4,11 @@ export interface Data<U> {
   [key: string]: U
 }
 
+export type DelegatedEvents<U> = {
+  selector: string
+  [key: string]: string | EventListener<U>
+}[]
+
 export interface Each<T> {
   contents: T[]
   render: (arg: T) => string | undefined
@@ -18,17 +23,11 @@ export interface EachIf<T> {
   fallback?: (arg: T) => string
 }
 
-export interface Event<U> {
-  [key: string]: (data: Data<U>) => void
+export type EventListener<T> = (data: Data<T>) => void
+
+export interface Events<U> {
+  [key: string]: EventListener<U>
 }
-
-type EventArray<U> = {
-  selector: string
-  listener: string
-  function: (data: Data<U>) => void
-}[]
-
-export type Events<U> = Event<U> | EventArray<U>
 
 export interface If {
   branches: {
@@ -46,4 +45,5 @@ export interface Welify<T, U> {
   css?: string
   slot?: string
   events?: Events<U>
+  delegatedEvents?: DelegatedEvents<U>
 }
