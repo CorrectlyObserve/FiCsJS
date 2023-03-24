@@ -1,5 +1,5 @@
 import { Each, EachIf, If, Welify } from './libs/welifyTypes'
-import { convert, getChildNodes, toKebabCase } from './libs/utils'
+import { convertType, getChildNodes, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyElement'
 
 /*
@@ -25,6 +25,7 @@ export const welify = <T, U>({
   css,
   slot,
   events,
+  delegatedEvents,
 }: Welify<T, U>): void => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
@@ -39,14 +40,14 @@ export const welify = <T, U>({
           this.name = name
           this.data = { ...data }
 
-          const converter = convert(html, this.data)
+          const converter = convertType(html, this.data)
 
-          if (typeof (<string>converter) === 'string') {
+          if (typeof (<string>converter) === 'string')
             this.html = <string>converter
-          } else {
+          else {
             const ifHtml = <If>converter
-            const eachHtml = <Each<U>>converter
-            const eachIfHtml = <EachIf<U>>converter
+            const eachHtml = <Each<T>>converter
+            const eachIfHtml = <EachIf<T>>converter
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               let html: string = ''
@@ -69,8 +70,7 @@ export const welify = <T, U>({
               this.html = html
             } else if ('contents' in eachHtml) {
               this.html = eachHtml.contents.reduce(
-                (prev: string, self: U): string =>
-                  prev + (eachHtml.render(self) || ''),
+                (prev: string, self: T): string => prev + eachHtml.render(self),
                 ''
               )
             } else if ('branches' in ifHtml) {
@@ -96,7 +96,10 @@ export const welify = <T, U>({
 
           this.css = css
           this.slotContent = slot
-          this.events = Array.isArray(events) ? [...events] : { ...events }
+          this.events = { ...events }
+
+          if (delegatedEvents && delegatedEvents.length > 0)
+            this.delegatedEvents = [...delegatedEvents]
         }
       }
     )
@@ -110,34 +113,42 @@ export const mountWely = (parent: string, element: string): void => {
 
 welify({
   name: 'wely',
-  data: {
-    message: 'Hello',
-  },
-  html: `<p>Hello</p>`,
+  data: { message: 'Hello' },
+  html: `<p class="hello">Hello</p><div><p class="hello">Child hello</p></div>`,
   events: {
-    click: ({ message }) => console.log(message),
+    click: ({ message }) => console.log('Parent ' + message),
   },
+  delegatedEvents: [
+    {
+      selector: '.hello',
+      click: ({ message }) => console.log(message),
+    },
+  ],
 })
 
 welify({
   name: 'Wely2',
-  data: {
-    numbers: [1, 2, 3],
-  },
-  html: {
-    contents: [1, 2, 3],
-    render: (arg: number) => `<p>${arg * 2}</p>`,
+  data: { numbers: [1, 2, 3] },
+  html: ({ numbers }) => {
+    return {
+      contents: numbers,
+      render: (arg: number) => `<p class="class-${arg}">${arg * 2}</p>`,
+    }
   },
   events: {
     click: (data) => console.log(data.numbers),
   },
+  delegatedEvents: [
+    {
+      selector: '.class-2',
+      click: ({ numbers }) => console.log(numbers),
+    },
+  ],
 })
 
 welify({
   name: 'wely3',
-  data: {
-    number: 100,
-  },
+  data: { number: 100 },
   html: (data) => {
     return {
       branches: [
@@ -158,9 +169,7 @@ welify({
 
 welify({
   name: 'Wely4',
-  data: {
-    numbers: [1, 2, 3],
-  },
+  data: { numbers: [1, 2, 3] },
   html: (data) => {
     return {
       contents: data.numbers,
