@@ -52,17 +52,17 @@ export const welify = <T, U>({
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               let html: string = ''
 
-              eachIfHtml.contents.forEach((content) => {
+              eachIfHtml.contents.forEach((content, index) => {
                 let value: string = ''
 
                 for (const branch of eachIfHtml.branches)
                   if (branch.judge(content)) {
-                    value = branch.render(content)
+                    value = branch.render(content, index)
                     break
                   }
 
                 if (value === '' && eachIfHtml.fallback)
-                  value = eachIfHtml.fallback(content)
+                  value = eachIfHtml.fallback(content, index)
 
                 html += value
               })
@@ -70,7 +70,8 @@ export const welify = <T, U>({
               this.html = html
             } else if ('contents' in eachHtml) {
               this.html = eachHtml.contents.reduce(
-                (prev: string, self: T): string => prev + eachHtml.render(self),
+                (prev: string, self: T, index: number): string =>
+                  prev + eachHtml.render(self, index),
                 ''
               )
             } else if ('branches' in ifHtml) {
@@ -132,7 +133,11 @@ welify({
   html: ({ numbers }) => {
     return {
       contents: numbers,
-      render: (arg: number) => `<p class="class-${arg}">${arg * 2}</p>`,
+      render: (arg: number, index) =>
+        `<p class="class-${index}">${arg * 2}</p>`,
+      events: {
+        click: (arg: number) => console.log(arg),
+      },
     }
   },
   events: {
@@ -165,6 +170,12 @@ welify({
     }
   },
   slot: `<p>DDD</p>`,
+  delegatedEvents: [
+    {
+      selector: 'slot',
+      click: ({ number }) => console.log(number),
+    },
+  ],
 })
 
 welify({
@@ -176,16 +187,25 @@ welify({
       branches: [
         {
           judge: (arg: number) => arg % 2 !== 0,
-          render: (arg: number) => `<p>${arg * 2}</p>`,
+          render: (arg: number, index) =>
+            `<p class="class-${index}">${arg * 2}</p>`,
         },
         {
           judge: (arg: number) => typeof arg === 'number',
-          render: (arg: number) => `<p>${arg}</p>`,
+          render: (arg: number, index) =>
+            `<p class="class-${index}">${arg}</p>`,
         },
       ],
-      fallback: (arg: number) => `<p>${arg * 10}</p>`,
+      fallback: (arg: number, index) =>
+        `<p class="class-${index}">${arg * 10}</p>`,
     }
   },
+  delegatedEvents: [
+    {
+      selector: '.class-2',
+      click: ({ numbers }) => console.log(numbers),
+    },
+  ],
 })
 
 mountWely(
