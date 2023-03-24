@@ -11,16 +11,19 @@ export type DelegatedEvents<U> = {
 
 export interface Each<T> {
   contents: T[]
-  render: (arg: T) => string | undefined
+  render: (arg: T, index: number) => string | undefined
+  events?: {
+    [key: string]: (arg: T) => void
+  }
 }
 
 export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T) => string
+    render: (arg: T, index: number) => string
   }[]
-  fallback?: (arg: T) => string
+  fallback?: (arg: T, index: number) => string
 }
 
 export type EventListener<T> = (data: Data<T>) => void
