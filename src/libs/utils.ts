@@ -1,4 +1,4 @@
-export const convert = <T, U>(html: any, data: { [key: string]: T }) =>
+export const convertType = <T, U>(html: any, data: { [key: string]: T }) =>
   typeof html === 'function' ? <U>html(data) : <U>html
 
 export const delay = async (
