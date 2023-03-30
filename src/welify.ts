@@ -50,6 +50,8 @@ export const  = <T, U>({
             const eachIfHtml = <EachIf<T>>converter
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
+              this.isEach = true
+
               let html: string = ''
 
               eachIfHtml.contents.forEach((content, index) => {
@@ -68,13 +70,15 @@ export const  = <T, U>({
               })
 
               this.html = html
-            } else if ('contents' in eachHtml)
+            } else if ('contents' in eachHtml) {
+              this.isEach = true
+
               this.html = eachHtml.contents.reduce(
                 (prev: string, self: T, index: number): string =>
                   prev + eachHtml.render(self, index),
                 ''
               )
-            else if ('branches' in ifHtml) {
+            } else if ('branches' in ifHtml) {
               let html: string = ''
 
               for (const branch of ifHtml.branches)
@@ -114,14 +118,17 @@ export const mount = (parent: string, element: string): void => {
 
 ({
   name: '',
-  data: { message: 'Hello' },
+  data: {
+    message: 'Hello',
+    number: 111,
+  },
   html: `<p class="hello">Hello</p><div><p class="hello">Child hello</p></div>`,
   events: {
     click: ({ message }) => console.log('Parent ' + message),
   },
   delegatedEvents: [
     {
-      selector: '.hello',
+      selector: 'div .hello',
       click: ({ message }) => console.log(message),
     },
   ],
@@ -129,13 +136,15 @@ export const mount = (parent: string, element: string): void => {
 
 ({
   name: '2',
-  data: { numbers: [1, 2, 3] },
+  data: {
+    numbers: [1, 2, 3],
+    color: 'green',
+  },
   html: ({ numbers }) => {
     return {
-      contents: numbers,
+      contents: numbers as number[],
       render: (arg: number, index) =>
         `<p class="class-${index}">${arg * 2}</p>`,
-      click: (arg: number) => console.log(arg),
     }
   },
   events: {
@@ -143,70 +152,72 @@ export const mount = (parent: string, element: string): void => {
   },
   delegatedEvents: [
     {
-      selector: '.class-2',
-      click: ({ numbers }) => console.log(numbers),
+      selector: 'p',
+      click: ({ numbers }, _, index) => console.log(numbers[index]),
     },
   ],
 })
 
 ({
   name: '3',
-  data: { number: 100 },
-  html: (data) => {
+  data: {
+    number: 100,
+    text: 'AA',
+  },
+  html: ({ number }) => {
     return {
       branches: [
         {
-          judge: data.number > 100,
+          judge: <number>number > 100,
           render: `<p>aaa</p>`,
         },
         {
-          judge: data.number < 100,
+          judge: <number>number < 100,
           render: `<p>bbb</p>`,
         },
       ],
-      fallback: `<slot></slot><p>${data.number}</p>`,
+      fallback: `<slot></slot><p>${number}</p>`,
     }
   },
   slot: `<p>DDD</p>`,
   delegatedEvents: [
     {
       selector: 'slot',
-      click: ({ number }) => console.log(number),
+      click: ({ number, text }, e, index) =>
+        console.log(number, text, e, index),
     },
   ],
 })
 
 ({
   name: '4',
-  data: { numbers: [1, 2, 3] },
+  data: {
+    numbers: [1, 2, 3],
+  },
   html: (data) => {
     return {
-      contents: data.numbers,
+      contents: data.numbers as number[],
       branches: [
         {
-          judge: (arg: number) => arg % 2 !== 0,
+          judge: (arg: number) => arg === 100,
           render: (arg: number, index) =>
             `<p class="class-${index}">${arg * 2}</p>`,
         },
         {
-          judge: (arg: number) => typeof arg === 'number',
+          judge: (arg: number) => typeof arg !== 'number',
           render: (arg: number, index) =>
             `<p class="class-${index}">${arg}</p>`,
         },
       ],
-      fallback: (arg: number, index) =>
-        `<p class="class-${index}">${arg * 10}</p>`,
+      fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`,
     }
   },
   delegatedEvents: [
     {
-      selector: '.class-2',
-      click: ({ numbers }) => console.log(numbers),
+      selector: '.class-z',
+      click: ({ numbers }, e, index) => console.log(numbers[index], e),
     },
   ],
 })
 
-mount(
-  'app',
-  '<w-></w-><w-2></w-2><w-3></w-3><w-4></w-4>'
-)
+mount('app', '<w-4></w-4>')
