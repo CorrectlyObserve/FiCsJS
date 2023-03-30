@@ -1,13 +1,11 @@
 import { createUniqueId } from './generator'
 import { getChildNodes } from './utils'
-import { Data, DelegatedEvents, EventListener, Events } from './welifyTypes'
+import { Data, DelegatedEvents, Events } from './welifyTypes'
 
 export class WelyElement<T> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   private welyId: string = ''
   private isInitial: boolean = false
-  private templateId: string
-  private template: HTMLTemplateElement = document.createElement('template')
   name: string = ''
   data: Data<T> = {}
   html: string = ''
@@ -23,65 +21,70 @@ export class WelyElement<T> extends HTMLElement {
 
     this.welyId = createUniqueId()
     this.setAttribute('id', this.welyId)
-
-    this.templateId = `${this.welyId}-template`
-    this.template.setAttribute('id', this.templateId)
-    this.template.setAttribute('style', 'display:block')
   }
 
   connectedCallback(): void {
     if (this.html !== '')
       for (const child of getChildNodes(this.html))
-        this.template.appendChild(child.cloneNode(true))
+        this.shadowRoot.appendChild(child.cloneNode(true))
 
     if (!this.isInitial) {
-      this.setAttribute('class', this.classes.join(' '))
+      let startTime, endTime
 
-      if (this.css) {
-        const css = document.createElement('style')
-        css.textContent = this.css
-        this.shadowRoot.appendChild(css)
-      }
+      startTime = performance.now()
+      for (let i = 0; i < 1000; i++) {
+        this.setAttribute('class', this.classes.join(' '))
 
-      if (this.slotContent)
-        this.insertAdjacentHTML('beforeend', this.slotContent)
+        if (this.css) {
+          const css = document.createElement('style')
+          css.textContent = this.css
+          this.shadowRoot.appendChild(css)
+        }
 
-      const wely = document.getElementById(this.welyId)
+        if (this.slotContent)
+          this.insertAdjacentHTML('beforeend', this.slotContent)
 
-      if (wely) {
-        if (Object.keys(this.events).length > 0)
-          Object.keys(this.events).forEach((listener: string) =>
-            wely.addEventListener(listener, () =>
-              this.events[listener](this.data)
-            )
-          )
+        const wely = document.getElementById(this.welyId)
 
-        if (this.delegatedEvents.length > 0)
-          for (const event of this.delegatedEvents) {
-            if (event.selector === '') break
+        if (wely) {
+          const keys = Object.keys(this.events)
 
-            const keys = new Set(Object.keys(event))
-            keys.delete('selector')
-            const key = Array.from(keys)[0]
-
-            const targets = Array.from(
-              this.template.querySelectorAll(
-                `#${this.templateId} > ${event.selector}`
+          if (keys.length > 0)
+            keys.forEach((listener: string) =>
+              wely.addEventListener(listener, (event: Event) =>
+                this.events[listener]({ ...this.data, _event: event })
               )
             )
 
-            const listener = <EventListener<T>>event[key]
+          if (this.delegatedEvents.length > 0)
+            for (const event of this.delegatedEvents) {
+              if (event.selector === '') break
 
-            if (targets.length > 0)
-              targets.forEach((target) =>
-                target.addEventListener(key, () => listener(this.data))
+              const keySet = new Set(Object.keys(event))
+              keySet.delete('selector')
+              const key = Array.from(keySet)[0]
+
+              const targets = Array.from(
+                this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
               )
-          }
+              const listener = <(data: Data<T>, index: number) => void>(
+                event[key]
+              )
+
+              if (targets.length > 0)
+                targets.forEach((target, index) =>
+                  target.addEventListener(key, (event: Event) =>
+                    listener({ ...this.data, _event: event }, index)
+                  )
+                )
+            }
+        }
       }
+
+      endTime = performance.now()
+      console.log('Aの処理時間:', endTime - startTime)
 
       this.isInitial = true
     }
-
-    this.shadowRoot.appendChild(this.template)
   }
 }
