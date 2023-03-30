@@ -1,21 +1,33 @@
 type Convert<T, U> = T | ((data: Data<U>) => T)
 
-export interface Data<T> {
-  [key: string]: T
+export interface Data<U> {
+  [key: string]: U
 }
+
+export type DelegatedEvents<U> = {
+  selector: string
+  [key: string]: string | ((data: Data<U>, event: Event, index: number) => void)
+}[]
 
 export interface Each<T> {
   contents: T[]
-  render: (arg: T) => string | undefined
+  render: (arg: T, index: number) => string | undefined
+  events?: {
+    [key: string]: (arg: T) => void
+  }
 }
 
 export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T) => string
+    render: (arg: T, index: number) => string
   }[]
-  fallback?: (arg: T) => string
+  fallback?: (arg: T, index: number) => string
+}
+
+export interface Events<U> {
+  [key: string]: (data: Data<U>, event: Event) => void
 }
 
 export interface If {
@@ -33,7 +45,6 @@ export interface Welify<T, U> {
   html: Convert<string | Each<T> | EachIf<T> | If, U>
   css?: string
   slot?: string
-  events?: {
-    [key: string]: (data: Data<U>) => void
-  }
+  events?: Events<U>
+  delegatedEvents?: DelegatedEvents<U>
 }

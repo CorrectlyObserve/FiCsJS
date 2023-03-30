@@ -1,3 +1,14 @@
+export const convertType = <T, U>(html: any, data: { [key: string]: T }) =>
+  typeof html === 'function' ? <U>html(data) : <U>html
+
+export const delay = async (
+  time: number,
+  callback: () => void
+): Promise<void> => {
+  await new Promise<void>((resolve) => setTimeout(resolve, time))
+  callback()
+}
+
 export const getChildNodes = (element: string): ChildNode[] =>
   Array.from(
     new DOMParser().parseFromString(element, 'text/html').body.childNodes
