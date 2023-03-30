@@ -1,12 +1,12 @@
 type Convert<T, U> = T | ((data: Data<U>) => T)
 
 export interface Data<U> {
-  [key: string]: U
+  [key: string]: U | Event
 }
 
 export type DelegatedEvents<U> = {
   selector: string
-  [key: string]: string | EventListener<U>
+  [key: string]: string | ((data: Data<U>) => void)
 }[]
 
 export interface Each<T> {
@@ -26,10 +26,8 @@ export interface EachIf<T> {
   fallback?: (arg: T, index: number) => string
 }
 
-export type EventListener<T> = (data: Data<T>) => void
-
 export interface Events<U> {
-  [key: string]: EventListener<U>
+  [key: string]: (data: Data<U>) => void
 }
 
 export interface If {
