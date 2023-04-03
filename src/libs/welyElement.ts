@@ -1,6 +1,6 @@
 import { createUniqueId } from './generator'
-import { getChildNodes } from './utils'
-import { Data, DelegatedEvents, Events } from './welifyTypes'
+import { getChildNodes, toKebabCase } from './utils'
+import { Css, Data, DelegatedEvents, Events } from './welifyTypes'
 
 export class WelyElement<T> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -10,7 +10,7 @@ export class WelyElement<T> extends HTMLElement {
   data: Data<T> = {}
   html: string = ''
   classes: string[] = []
-  css?: string
+  css?: string | Css<T>
   slotContent?: string
   events: Events<T> = {}
   delegatedEvents: DelegatedEvents<T> = []
@@ -35,8 +35,42 @@ export class WelyElement<T> extends HTMLElement {
 
     if (this.css) {
       const css = document.createElement('style')
-      css.textContent = this.css
+
+      if (typeof this.css === 'string') css.textContent = this.css
+      else
+        css.textContent = this.css
+          .map(obj => {
+            const style = Object.keys(obj.style(this.data))
+              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+              .join('\n')
+
+            return `${obj.selector} {${style}}`
+          })
+          .join('\n')
+
       this.shadowRoot.appendChild(css)
+
+      let startTime, endTime
+
+      startTime = performance.now()
+      if (typeof this.css !== 'string') {
+        for (let i = 0; i < 10000; i++) {
+          css.textContent = this.css
+            .map(obj => {
+              const style = Object.keys(obj.style(this.data))
+                .map(
+                  key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`
+                )
+                .join('\n')
+
+              return `${obj.selector} {${style}}`
+            })
+            .join('\n')
+        }
+      }
+
+      endTime = performance.now()
+      console.log('css-in-jsの処理時間:', endTime - startTime)
     }
 
     if (this.slotContent) this.insertAdjacentHTML('beforeend', this.slotContent)
@@ -69,7 +103,7 @@ export class WelyElement<T> extends HTMLElement {
             )
           }
           endTime = performance.now()
-          console.log('Aの処理時間:', endTime - startTime, this._isInitialized)
+          console.log('delegatedEventsの処理時間:', endTime - startTime)
 
           const targets = Array.from(
             this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
