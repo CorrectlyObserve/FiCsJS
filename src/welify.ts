@@ -99,7 +99,9 @@ export const welify = <T, U>({
             for (const name of className.split(' '))
               this.classes.push(toKebabCase(name))
 
-          this.css = css
+          if (css !== undefined)
+            this.css = typeof css === 'string' ? css : [...css]
+
           this.slotContent = slot
           this.events = { ...events }
 
@@ -120,9 +122,29 @@ welify({
   name: 'wely',
   data: {
     message: 'Hello',
-    number: 111
+    color: 'red',
+    back: 'blue'
   },
   html: `<p class="hello">Hello</p><div><p class="hello">Child hello</p></div>`,
+  css: [
+    {
+      selector: 'p',
+      style: ({ color }) => {
+        return {
+          color: color,
+          fontSize: '14px'
+        }
+      }
+    },
+    {
+      selector: 'div',
+      style: ({ back }) => {
+        return {
+          background: back
+        }
+      }
+    }
+  ],
   events: {
     click: ({ message }) => console.log('Parent ' + message)
   },
@@ -217,4 +239,4 @@ welify({
   ]
 })
 
-mountWely('app', '<w-wely4></w-wely4>')
+mountWely('app', '<p>Sample</p><w-wely></w-wely>')
