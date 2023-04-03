@@ -1,4 +1,3 @@
-# Logs
 logs
 *.log
 npm-debug.log*
@@ -9,9 +8,8 @@ npm-debug.log*
 /storybook-static
 *.local
 tsconfig.json
-prettierrc.yml
+.prettierrc.yml
+.github/*
 vite-env.d.ts
-
-# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
