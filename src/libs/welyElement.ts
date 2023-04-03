@@ -37,16 +37,21 @@ export class WelyElement<T> extends HTMLElement {
       const css = document.createElement('style')
 
       if (typeof this.css === 'string') css.textContent = this.css
-      else
-        css.textContent = this.css
-          .map(obj => {
-            const style = Object.keys(obj.style(this.data))
-              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
-              .join('\n')
+      else {
+        let styles: string[] = []
 
-            return `${obj.selector} {${style}}`
-          })
-          .join('\n')
+        for (const obj of this.css) {
+          if (obj.selector === '') break
+
+          const style = Object.keys(obj.style(this.data))
+            .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+            .join('\n')
+
+          styles.push(`${obj.selector} {${style}}`)
+        }
+
+        css.textContent = styles.join('\n')
+      }
 
       this.shadowRoot.appendChild(css)
 
@@ -55,17 +60,19 @@ export class WelyElement<T> extends HTMLElement {
       startTime = performance.now()
       if (typeof this.css !== 'string') {
         for (let i = 0; i < 10000; i++) {
-          css.textContent = this.css
-            .map(obj => {
-              const style = Object.keys(obj.style(this.data))
-                .map(
-                  key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`
-                )
-                .join('\n')
+          let styles: string[] = []
 
-              return `${obj.selector} {${style}}`
-            })
-            .join('\n')
+          for (const obj of this.css) {
+            if (obj.selector === '') break
+
+            const style = Object.keys(obj.style(this.data))
+              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+              .join('\n')
+
+            styles.push(`${obj.selector} {${style}}`)
+          }
+
+          css.textContent = styles.join('\n')
         }
       }
 
@@ -91,7 +98,7 @@ export class WelyElement<T> extends HTMLElement {
           if (event.selector === '') break
 
           const keySet = new Set(Object.keys(event))
-          new Set(Object.keys(event)).delete('selector')
+          keySet.delete('selector')
           const key = Array.from(keySet)[0]
 
           let startTime, endTime
