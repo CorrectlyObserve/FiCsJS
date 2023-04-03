@@ -37,18 +37,16 @@ export class WelyElement<T> extends HTMLElement {
       const css = document.createElement('style')
 
       if (typeof this.css === 'string') css.textContent = this.css
-      else {
-        const styles: string[] = []
-        this.css.forEach(obj => {
-          const style = Object.keys(obj.style(this.data))
-            .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
-            .join('\n')
+      else
+        css.textContent = this.css
+          .map(obj => {
+            const style = Object.keys(obj.style(this.data))
+              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+              .join('\n')
 
-          styles.push(`${obj.selector} {${style}}`)
-        })
-
-        css.textContent = styles.join('\n')
-      }
+            return `${obj.selector} {${style}}`
+          })
+          .join('\n')
 
       this.shadowRoot.appendChild(css)
 
@@ -57,17 +55,17 @@ export class WelyElement<T> extends HTMLElement {
       startTime = performance.now()
       if (typeof this.css !== 'string') {
         for (let i = 0; i < 10000; i++) {
-          const rules: string[] = []
+          css.textContent = this.css
+            .map(obj => {
+              const style = Object.keys(obj.style(this.data))
+                .map(
+                  key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`
+                )
+                .join('\n')
 
-          this.css.forEach(obj => {
-            const style = Object.keys(obj.style(this.data))
-              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
-              .join('\n')
-
-            rules.push(`${obj.selector} {${style}}`)
-          })
-
-          css.textContent = rules.join('\n')
+              return `${obj.selector} {${style}}`
+            })
+            .join('\n')
         }
       }
 
