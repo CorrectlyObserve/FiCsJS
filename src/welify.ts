@@ -25,7 +25,7 @@ export const welify = <T, U>({
   css,
   slot,
   events,
-  delegatedEvents,
+  delegatedEvents
 }: Welify<T, U>): void => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
@@ -120,104 +120,101 @@ welify({
   name: 'wely',
   data: {
     message: 'Hello',
-    number: 111,
+    number: 111
   },
   html: `<p class="hello">Hello</p><div><p class="hello">Child hello</p></div>`,
   events: {
-    click: ({ message }) => console.log('Parent ' + message),
+    click: ({ message }) => console.log('Parent ' + message)
   },
   delegatedEvents: [
     {
       selector: 'div .hello',
-      click: ({ message }) => console.log(message),
-    },
-  ],
+      click: ({ message }) => console.log(message)
+    }
+  ]
 })
 
 welify({
   name: 'Wely2',
   data: {
     numbers: [1, 2, 3],
-    color: 'green',
+    color: 'green'
   },
   html: ({ numbers }) => {
     return {
       contents: numbers as number[],
-      render: (arg: number, index) =>
-        `<p class="class-${index}">${arg * 2}</p>`,
+      render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
     }
   },
   events: {
-    click: (data) => console.log(data.numbers),
+    click: data => console.log(data.numbers)
   },
   delegatedEvents: [
     {
       selector: 'p',
-      click: ({ numbers }, _, index) => console.log(numbers[index]),
-    },
-  ],
+      click: ({ numbers }, _, index) => console.log(numbers[index])
+    }
+  ]
 })
 
 welify({
   name: 'wely3',
   data: {
     number: 100,
-    text: 'AA',
+    text: 'AA'
   },
   html: ({ number }) => {
     return {
       branches: [
         {
           judge: <number>number > 100,
-          render: `<p>aaa</p>`,
+          render: `<p>aaa</p>`
         },
         {
           judge: <number>number < 100,
-          render: `<p>bbb</p>`,
-        },
+          render: `<p>bbb</p>`
+        }
       ],
-      fallback: `<slot></slot><p>${number}</p>`,
+      fallback: `<slot></slot><p>${number}</p>`
     }
   },
   slot: `<p>DDD</p>`,
   delegatedEvents: [
     {
       selector: 'slot',
-      click: ({ number, text }, e, index) =>
-        console.log(number, text, e, index),
-    },
-  ],
+      click: ({ number, text }, e, index) => console.log(number, text, e, index)
+    }
+  ]
 })
 
 welify({
   name: 'Wely4',
   data: {
-    numbers: [1, 2, 3],
+    numbers: [1, 2, 3]
   },
-  html: (data) => {
+  html: data => {
     return {
       contents: data.numbers as number[],
       branches: [
         {
           judge: (arg: number) => arg === 100,
           render: (arg: number, index) =>
-            `<p class="class-${index}">${arg * 2}</p>`,
+            `<p class="class-${index}">${arg * 2}</p>`
         },
         {
           judge: (arg: number) => typeof arg !== 'number',
-          render: (arg: number, index) =>
-            `<p class="class-${index}">${arg}</p>`,
-        },
+          render: (arg: number, index) => `<p class="class-${index}">${arg}</p>`
+        }
       ],
-      fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`,
+      fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
     }
   },
   delegatedEvents: [
     {
       selector: '.class-z',
-      click: ({ numbers }, e, index) => console.log(numbers[index], e),
-    },
-  ],
+      click: ({ numbers }, e, index) => console.log(numbers[index], e)
+    }
+  ]
 })
 
 mountWely('app', '<w-wely4></w-wely4>')
