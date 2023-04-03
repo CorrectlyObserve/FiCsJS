@@ -1,5 +1,12 @@
 type Convert<T, U> = T | ((data: Data<U>) => T)
 
+export type Css<U> = {
+  selector: string
+  style: (data: Data<U>) => {
+    [key: string]: string | number
+  }
+}[]
+
 export interface Data<U> {
   [key: string]: U
 }
@@ -43,7 +50,7 @@ export interface Welify<T, U> {
   className?: string
   data?: Data<U>
   html: Convert<string | Each<T> | EachIf<T> | If, U>
-  css?: string
+  css?: string | Css<U>
   slot?: string
   events?: Events<U>
   delegatedEvents?: DelegatedEvents<U>
