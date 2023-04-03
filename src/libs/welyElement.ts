@@ -49,6 +49,26 @@ export class WelyElement<T> extends HTMLElement {
         })
 
       this.shadowRoot.appendChild(css)
+
+      let startTime, endTime
+
+      startTime = performance.now()
+      if (typeof this.css !== 'string') {
+        for (let i = 0; i < 1000; i++) {
+          this.css.forEach(obj => {
+            const style = Object.keys(obj.style(this.data))
+              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+              .join('\n')
+
+            css.textContent +=
+              `${css.textContent !== '' ? '\n' : ''}` +
+              `${obj.selector} {${style}}`
+          })
+        }
+      }
+
+      endTime = performance.now()
+      console.log('css-in-jsの処理時間:', endTime - startTime)
     }
 
     if (this.slotContent) this.insertAdjacentHTML('beforeend', this.slotContent)
@@ -81,7 +101,7 @@ export class WelyElement<T> extends HTMLElement {
             )
           }
           endTime = performance.now()
-          console.log('Aの処理時間:', endTime - startTime)
+          console.log('delegatedEventsの処理時間:', endTime - startTime)
 
           const targets = Array.from(
             this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
