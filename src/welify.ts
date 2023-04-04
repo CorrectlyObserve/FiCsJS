@@ -6,15 +6,13 @@ import { WelyElement } from './libs/welyElement'
 技術仕様
 1. 引数のオブジェクトのDataの中をデータバインディング
 2. data: { value: $value } とやるとpropsになる
-3. CSS in JSを実現（https://vanilla-extract.style/）
-4. emitとpropsの血縁関係に依存した状態管理
-5. Eventsをコンポーネントの全体ではなく、一部に適用できるようにする
-6. 多言語翻訳（今後の話）
-7. 状態管理（今後の話）
-8. ルーティング（今後の話）
-9. PWA（今後の話）
-10. svgによるグラフ作成（今後の話）
-11. Vueでいうwatch的な機能（今後の話）
+3. emitとpropsの血縁関係に依存した状態管理
+4. 多言語翻訳（今後の話）
+5. 状態管理（今後の話）
+6. ルーティング（今後の話）
+7. PWA（今後の話）
+8. svgによるグラフ作成（今後の話）
+9. Vueでいうwatch的な機能（今後の話）
 */
 
 export const welify = <T, U>({
@@ -39,7 +37,6 @@ export const welify = <T, U>({
           super()
           this.name = name
           this.data = { ...data }
-
           const converter = convertType(html, this.data)
 
           if (typeof (<string>converter) === 'string')
