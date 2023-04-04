@@ -1,10 +1,14 @@
 ---
 name: New Features
 about: About a new feature for this project
-title: ''
+title: feature/
 labels: feature
 assignees: MasamiOgasawara
 
 ---
 
+## Summary
 
+## Details
+
+## Note (if any)
