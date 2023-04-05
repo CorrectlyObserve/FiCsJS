@@ -1,5 +1,5 @@
 ---
-name: New Features
+name: New feature
 about: About a new feature for this project
 title: feature/
 labels: feature
