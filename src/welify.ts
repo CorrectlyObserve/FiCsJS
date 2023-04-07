@@ -24,7 +24,7 @@ export const welify = <T, U>({
   slot,
   events,
   delegatedEvents
-}: Welify<T, U>): void => {
+}: Welify<T, U>): string => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
@@ -90,11 +90,11 @@ export const welify = <T, U>({
             }
           }
 
-          this.classes.push(welyName)
+          this.classes.push(toKebabCase(name))
 
           if (className)
-            for (const name of className.split(' '))
-              this.classes.push(toKebabCase(name))
+            for (const localName of className.split(' '))
+              this.classes.push(toKebabCase(localName))
 
           if (css !== undefined)
             this.css = typeof css === 'string' ? css : [...css]
@@ -107,6 +107,8 @@ export const welify = <T, U>({
         }
       }
     )
+
+    return `<${welyName}></${welyName}>`
   }
 }
 
@@ -115,35 +117,35 @@ export const mountWely = (parent: string, element: string): void => {
     document.getElementById(parent)?.appendChild(child.cloneNode(true))
 }
 
-welify({
+const wely1 = welify({
   name: 'wely',
   data: {
+    count: 1,
     message: 'Hello',
     color: 'red',
-    back: 'blue'
+    back: 'black'
   },
   html: `<p class="hello">Hello</p><div><p class="hello">Child hello</p></div>`,
   css: [
     {
       selector: 'p',
-      style: ({ color }) => {
-        return {
-          color: color,
-          fontSize: '14px'
-        }
-      }
+      style: ({ color }) => ({
+        color: color,
+        fontSize: '14px'
+      })
     },
     {
       selector: 'div',
-      style: ({ back }) => {
-        return {
-          background: back
-        }
-      }
+      style: ({ back }) => ({
+        background: back
+      })
     }
   ],
   events: {
-    click: ({ message }) => console.log('Parent ' + message)
+    click: ({ count }: { count: number }) => {
+      count++
+      console.log(count)
+    }
   },
   delegatedEvents: [
     {
@@ -153,18 +155,16 @@ welify({
   ]
 })
 
-welify({
+const wely2 = welify({
   name: 'Wely2',
   data: {
     numbers: [1, 2, 3],
     color: 'green'
   },
-  html: ({ numbers }) => {
-    return {
-      contents: numbers as number[],
-      render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
-    }
-  },
+  html: ({ numbers }) => ({
+    contents: numbers as number[],
+    render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
+  }),
   events: {
     click: data => console.log(data.numbers)
   },
@@ -176,28 +176,26 @@ welify({
   ]
 })
 
-welify({
+const wely3 = welify({
   name: 'wely3',
   data: {
     number: 100,
     text: 'AA'
   },
-  html: ({ number }) => {
-    return {
-      branches: [
-        {
-          judge: <number>number > 100,
-          render: `<p>aaa</p>`
-        },
-        {
-          judge: <number>number < 100,
-          render: `<p>bbb</p>`
-        }
-      ],
-      fallback: `<slot></slot><p>${number}</p>`
-    }
-  },
-  slot: `<p>DDD</p>`,
+  html: ({ number }) => ({
+    branches: [
+      {
+        judge: <number>number > 100,
+        render: `<p>aaa</p>`
+      },
+      {
+        judge: <number>number < 100,
+        render: `<p>bbb</p>`
+      }
+    ],
+    fallback: `<slot></slot><p>${number}</p>`
+  }),
+  slot: `${wely1}`,
   delegatedEvents: [
     {
       selector: 'slot',
@@ -206,28 +204,26 @@ welify({
   ]
 })
 
-welify({
+const wely4 = welify({
   name: 'Wely4',
   data: {
     numbers: [1, 2, 3]
   },
-  html: data => {
-    return {
-      contents: data.numbers as number[],
-      branches: [
-        {
-          judge: (arg: number) => arg === 100,
-          render: (arg: number, index) =>
-            `<p class="class-${index}">${arg * 2}</p>`
-        },
-        {
-          judge: (arg: number) => typeof arg !== 'number',
-          render: (arg: number, index) => `<p class="class-${index}">${arg}</p>`
-        }
-      ],
-      fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
-    }
-  },
+  html: data => ({
+    contents: data.numbers as number[],
+    branches: [
+      {
+        judge: (arg: number) => arg === 100,
+        render: (arg: number, index) =>
+          `<p class="class-${index}">${arg * 2}</p>`
+      },
+      {
+        judge: (arg: number) => typeof arg !== 'number',
+        render: (arg: number, index) => `<p class="class-${index}">${arg}</p>`
+      }
+    ],
+    fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
+  }),
   delegatedEvents: [
     {
       selector: '.class-z',
@@ -236,4 +232,4 @@ welify({
   ]
 })
 
-mountWely('app', '<p>Sample</p><w-wely></w-wely>')
+mountWely('app', `${wely2}${wely3}${wely4}`)
