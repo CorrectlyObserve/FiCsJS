@@ -5,14 +5,13 @@ import { WelyElement } from './libs/welyElement'
 /*
 技術仕様
 1. 引数のオブジェクトのDataの中をデータバインディング
-2. data: { value: $value } とやるとpropsになる
-3. emitとpropsの血縁関係に依存した状態管理
-4. 多言語翻訳（今後の話）
-5. 状態管理（今後の話）
-6. ルーティング（今後の話）
-7. PWA（今後の話）
-8. svgによるグラフ作成（今後の話）
-9. Vueでいうwatch的な機能（今後の話）
+2. emitとpropsの血縁関係に依存した状態管理
+3. 多言語翻訳（今後の話）
+4. 状態管理（今後の話）
+5. ルーティング（今後の話）
+6. PWA（今後の話）
+7. svgによるグラフ作成（今後の話）
+8. Vueでいうwatch的な機能（今後の話）
 */
 
 export const welify = <T, U>({
@@ -142,10 +141,7 @@ const wely1 = welify({
     }
   ],
   events: {
-    click: ({ count }: { count: number }) => {
-      count++
-      console.log(count)
-    }
+    click: ({ count }: { count: number }) => count++
   },
   delegatedEvents: [
     {
