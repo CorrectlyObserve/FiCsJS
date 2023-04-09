@@ -84,6 +84,7 @@ export class WelyElement<T> extends HTMLElement {
         for (const listener of keys) {
           const eventListener = (event: Event) =>
             this.events[listener]({ ...this.data }, event)
+
           wely.addEventListener(listener, eventListener)
         }
 
