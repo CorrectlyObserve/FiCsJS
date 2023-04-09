@@ -84,6 +84,7 @@ export class Element<T> extends HTMLElement {
         for (const listener of keys) {
           const eventListener = (event: Event) =>
             this.events[listener]({ ...this.data }, event)
+
           .addEventListener(listener, eventListener)
         }
 
