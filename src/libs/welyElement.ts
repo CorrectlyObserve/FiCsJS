@@ -1,5 +1,5 @@
 import { createUniqueId } from './generator'
-import { getChildNodes, toKebabCase } from './utils'
+import { appendChild, toKebabCase } from './utils'
 import { Css, Data, DelegatedEvents, Events } from './welifyTypes'
 
 export class WelyElement<T> extends HTMLElement {
@@ -25,9 +25,7 @@ export class WelyElement<T> extends HTMLElement {
   }
 
   connectedCallback(): void {
-    if (this.html !== '')
-      for (const child of getChildNodes(this.html))
-        this.shadowRoot.appendChild(child.cloneNode(true))
+    if (this.html !== '') appendChild(this.shadowRoot, this.html)
 
     if (this._isInitialized) return
 
@@ -38,19 +36,17 @@ export class WelyElement<T> extends HTMLElement {
 
       if (typeof this.css === 'string') css.textContent = this.css
       else {
-        let styles: string[] = []
+        const styles = this.css.map(obj => {
+          if (obj.selector === '') return ''
 
-        for (const obj of this.css) {
-          if (obj.selector === '') break
-
-          const style = Object.keys(obj.style(this.data))
-            .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+          const style = Object.entries(obj.style(this.data))
+            .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
             .join('\n')
 
-          styles.push(`${obj.selector} {${style}}`)
-        }
+          return `${obj.selector} {${style}}`
+        })
 
-        css.textContent = styles.join('\n')
+        css.textContent = styles.join('')
       }
 
       this.shadowRoot.appendChild(css)
@@ -60,19 +56,17 @@ export class WelyElement<T> extends HTMLElement {
       startTime = performance.now()
       if (typeof this.css !== 'string') {
         for (let i = 0; i < 10000; i++) {
-          let styles: string[] = []
+          const styles = this.css.map(obj => {
+            if (obj.selector === '') return ''
 
-          for (const obj of this.css) {
-            if (obj.selector === '') break
-
-            const style = Object.keys(obj.style(this.data))
-              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
+            const style = Object.entries(obj.style(this.data))
+              .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
-            styles.push(`${obj.selector} {${style}}`)
-          }
+            return `${obj.selector} {${style}}`
+          })
 
-          css.textContent = styles.join('\n')
+          css.textContent = styles.join('')
         }
       }
 
@@ -87,33 +81,30 @@ export class WelyElement<T> extends HTMLElement {
       const keys = Object.keys(this.events)
 
       if (keys.length > 0)
-        keys.forEach((listener: string) =>
-          wely.addEventListener(listener, (event: Event) =>
+        for (const listener of keys) {
+          const eventListener = (event: Event) =>
             this.events[listener]({ ...this.data }, event)
-          )
-        )
+          wely.addEventListener(listener, eventListener)
+        }
 
       if (this.delegatedEvents.length > 0)
-        for (const event of this.delegatedEvents) {
-          if (event.selector === '') break
+        for (const delegatedEvent of this.delegatedEvents) {
+          if (delegatedEvent.selector === '') break
 
-          const keySet = new Set(Object.keys(event))
-          keySet.delete('selector')
-          const key = Array.from(keySet)[0]
+          const { selector, ...event } = delegatedEvent
+          const key = Object.keys(event)[0]
 
           let startTime, endTime
 
           startTime = performance.now()
           for (let i = 0; i < 10000; i++) {
-            Array.from(
-              this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
-            )
+            Array.from(this.shadowRoot.querySelectorAll(`:host > ${selector}`))
           }
           endTime = performance.now()
           console.log('delegatedEventsの処理時間:', endTime - startTime)
 
           const targets = Array.from(
-            this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
+            this.shadowRoot.querySelectorAll(`:host > ${selector}`)
           )
           const listener = event[key] as (
             data: Data<T>,
@@ -122,15 +113,14 @@ export class WelyElement<T> extends HTMLElement {
           ) => void
 
           if (targets.length > 0)
-            targets.forEach((target, index) =>
-              target.addEventListener(key, (event: Event) =>
+            for (let i = 0; i < targets.length; i++)
+              targets[i].addEventListener(key, (localEvent: Event) =>
                 listener(
                   { ...this.data },
-                  event,
-                  this.isEach ? index : undefined
+                  localEvent,
+                  this.isEach ? i : undefined
                 )
               )
-            )
         }
     }
 
