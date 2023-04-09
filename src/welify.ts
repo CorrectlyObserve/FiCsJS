@@ -1,5 +1,5 @@
+import { appendChild, convertType, toKebabCase } from './libs/utils'
 import { Each, EachIf, If,  } from './libs/Types'
-import { convertType, getChildNodes, toKebabCase } from './libs/utils'
 import { Element } from './libs/Element'
 
 /*
@@ -47,23 +47,19 @@ export const  = <T, U>({
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               this.isEach = true
-
               let html: string = ''
+              html += eachIfHtml.contents
+                .map((content, index) => {
+                  for (const branch of eachIfHtml.branches)
+                    if (branch.judge(content))
+                      return branch.render(content, index)
 
-              eachIfHtml.contents.forEach((content, index) => {
-                let value: string = ''
+                  if (eachIfHtml.fallback)
+                    return eachIfHtml.fallback(content, index)
 
-                for (const branch of eachIfHtml.branches)
-                  if (branch.judge(content)) {
-                    value = branch.render(content, index)
-                    break
-                  }
-
-                if (value === '' && eachIfHtml.fallback)
-                  value = eachIfHtml.fallback(content, index)
-
-                html += value
-              })
+                  return ''
+                })
+                .join('')
 
               this.html = html
             } else if ('contents' in eachHtml) {
@@ -111,10 +107,8 @@ export const  = <T, U>({
   }
 }
 
-export const mount = (parent: string, element: string): void => {
-  for (const child of getChildNodes(element))
-    document.getElementById(parent)?.appendChild(child.cloneNode(true))
-}
+export const mount = (parent: string, element: string): void =>
+  appendChild(<HTMLElement>document.getElementById(parent), element)
 
 const 1 = ({
   name: '',
@@ -141,7 +135,7 @@ const 1 = ({
     }
   ],
   events: {
-    click: ({ count }: { count: number }) => count++
+    click: ({ count }: { count: number }) => console.log(count)
   },
   delegatedEvents: [
     {
@@ -228,4 +222,4 @@ const 4 = ({
   ]
 })
 
-mount('app', `${2}${3}${4}`)
+mount('app', `${1}${2}${3}${4}`)
