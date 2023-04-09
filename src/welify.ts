@@ -1,5 +1,5 @@
+import { appendChild, convertType, toKebabCase } from './libs/utils'
 import { Each, EachIf, If, Welify } from './libs/welifyTypes'
-import { convertType, getChildNodes, toKebabCase } from './libs/utils'
 import { WelyElement } from './libs/welyElement'
 
 /*
@@ -47,23 +47,19 @@ export const welify = <T, U>({
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               this.isEach = true
-
               let html: string = ''
+              html += eachIfHtml.contents
+                .map((content, index) => {
+                  for (const branch of eachIfHtml.branches)
+                    if (branch.judge(content))
+                      return branch.render(content, index)
 
-              eachIfHtml.contents.forEach((content, index) => {
-                let value: string = ''
+                  if (eachIfHtml.fallback)
+                    return eachIfHtml.fallback(content, index)
 
-                for (const branch of eachIfHtml.branches)
-                  if (branch.judge(content)) {
-                    value = branch.render(content, index)
-                    break
-                  }
-
-                if (value === '' && eachIfHtml.fallback)
-                  value = eachIfHtml.fallback(content, index)
-
-                html += value
-              })
+                  return ''
+                })
+                .join('')
 
               this.html = html
             } else if ('contents' in eachHtml) {
@@ -111,10 +107,8 @@ export const welify = <T, U>({
   }
 }
 
-export const mountWely = (parent: string, element: string): void => {
-  for (const child of getChildNodes(element))
-    document.getElementById(parent)?.appendChild(child.cloneNode(true))
-}
+export const mountWely = (parent: string, element: string): void =>
+  appendChild(<HTMLElement>document.getElementById(parent), element)
 
 const wely1 = welify({
   name: 'wely',
@@ -141,7 +135,7 @@ const wely1 = welify({
     }
   ],
   events: {
-    click: ({ count }: { count: number }) => count++
+    click: ({ count }: { count: number }) => console.log(count)
   },
   delegatedEvents: [
     {
@@ -228,4 +222,4 @@ const wely4 = welify({
   ]
 })
 
-mountWely('app', `${wely2}${wely3}${wely4}`)
+mountWely('app', `${wely1}${wely2}${wely3}${wely4}`)
