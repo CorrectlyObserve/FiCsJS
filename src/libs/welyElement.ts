@@ -1,13 +1,13 @@
 import { createUniqueId } from './generator'
 import { appendChild, toKebabCase } from './utils'
-import { Css, Data, DelegatedEvents, Events } from './welifyTypes'
+import { Css, DelegatedEvents, Events } from './welifyTypes'
 
 export class WelyElement<T> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   private _id: string = ''
   private _isInitialized: boolean = false
   name: string = ''
-  data: Data<T> = {}
+  data: T = <T>{}
   html: string = ''
   classes: string[] = []
   css?: string | Css<T>
@@ -108,7 +108,7 @@ export class WelyElement<T> extends HTMLElement {
             this.shadowRoot.querySelectorAll(`:host > ${selector}`)
           )
           const listener = event[key] as (
-            data: Data<T>,
+            data: T,
             event: Event,
             index?: number
           ) => void
