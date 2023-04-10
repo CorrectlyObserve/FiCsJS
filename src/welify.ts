@@ -35,8 +35,10 @@ export const welify = <T, U>({
         constructor() {
           super()
           this.name = name
-          this.data = { ...data }
-          const converter = convertType(html, this.data)
+
+          if (data) this.data = { ...data }
+
+          const converter = convertType(html, this.data || {})
 
           if (typeof (<string>converter) === 'string')
             this.html = <string>converter
@@ -135,7 +137,7 @@ const wely1 = welify({
     }
   ],
   events: {
-    click: ({ count }: { count: number }) => console.log(count)
+    click: ({ count }: { count: number }) => console.log(count++)
   },
   delegatedEvents: [
     {
@@ -175,11 +177,11 @@ const wely3 = welify({
   html: ({ number }) => ({
     branches: [
       {
-        judge: <number>number > 100,
+        judge: number > 100,
         render: `<p>aaa</p>`
       },
       {
-        judge: <number>number < 100,
+        judge: number < 100,
         render: `<p>bbb</p>`
       }
     ],
