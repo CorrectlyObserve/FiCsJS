@@ -1,13 +1,18 @@
 export const appendChild = (
   parent: HTMLElement | ShadowRoot,
-  children: string
+  children: string | HTMLElement[]
 ): void => {
   const fragment = document.createDocumentFragment()
-  const childNodes: ChildNode[] = Array.from(
-    new DOMParser().parseFromString(children, 'text/html').body.childNodes
-  )
 
-  for (const child of childNodes) fragment.appendChild(child.cloneNode(true))
+  if (Array.isArray(children))
+    for (const child of children) fragment.appendChild(child.cloneNode(true))
+  else {
+    const childNodes: ChildNode[] = Array.from(
+      new DOMParser().parseFromString(children, 'text/html').body.childNodes
+    )
+
+    for (const child of childNodes) fragment.appendChild(child.cloneNode(true))
+  }
 
   parent?.appendChild(fragment)
 }
