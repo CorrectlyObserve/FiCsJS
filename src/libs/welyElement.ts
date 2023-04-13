@@ -1,17 +1,20 @@
 import { createUniqueId } from './generator'
 import { appendChild, toKebabCase } from './utils'
-import { Css, DelegatedEvents, Events } from './welifyTypes'
+import { Css, DelegatedEvents, Events, PropsStack } from './welifyTypes'
+
+let propsStack: PropsStack<unknown> = []
 
 export class WelyElement<T> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   private _id: string = ''
   private _isInitialized: boolean = false
   name: string = ''
+  parents: string[] = []
   data: T = <T>{}
   html: string = ''
   classes: string[] = []
   css?: string | Css<T>
-  slotContent?: string
+  slotContent?: string | HTMLElement[]
   events: Events<T> = {}
   delegatedEvents: DelegatedEvents<T> = []
   isEach: boolean = false
@@ -26,6 +29,30 @@ export class WelyElement<T> extends HTMLElement {
 
   connectedCallback(): void {
     if (this.html !== '') appendChild(this.shadowRoot, this.html)
+
+    for (let i = propsStack.length - 1; i >= 0; i--) {
+      if (
+        !this.parents.includes(propsStack[i].name) ||
+        this.closest(`#${propsStack[i].id}`) === null
+      )
+        break
+
+      console.log({ id: this._id, name: this.name, props: {} })
+    }
+
+    propsStack.push({ id: this._id, name: this.name, props: {} })
+
+    // 名前で
+    // const localParents = this.parents.filter(parent => this.closest()
+
+    // for (let i = propsStack.length - 1; i >= 0; i--) {
+    //   if (this.closest(`#${propsStack[i].id}`)) break
+
+    //   propsStack.pop()
+    // }
+
+    // console.log(this._id, propsStack)
+    // propsStack[this.name] = { id: this._id, data: this.data }
 
     if (this._isInitialized) return
 
@@ -74,7 +101,7 @@ export class WelyElement<T> extends HTMLElement {
       console.log('css-in-jsの処理時間:', endTime - startTime)
     }
 
-    if (this.slotContent) this.insertAdjacentHTML('beforeend', this.slotContent)
+    if (this.slotContent) appendChild(this, this.slotContent)
 
     const wely = document.getElementById(this._id)
     if (wely) {
