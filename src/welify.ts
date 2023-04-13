@@ -16,6 +16,7 @@ import { Element } from './libs/Element'
 
 export const  = <T, U>({
   name,
+  parents,
   className,
   data,
   html,
@@ -23,18 +24,21 @@ export const  = <T, U>({
   slot,
   events,
   delegatedEvents
-}: <T, U>): string => {
+}: <T, U>): HTMLElement => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
-    const Name = `w-${toKebabCase(name)}`
+    const kebabName = toKebabCase(name)
+    const Name = `w-${kebabName}`
 
     customElements.define(
       Name,
       class extends Element<U> {
         constructor() {
           super()
-          this.name = name
+          this.name = kebabName
+
+          if (parents) this.parents = [...parents]
 
           if (data) this.data = { ...data }
 
@@ -49,7 +53,9 @@ export const  = <T, U>({
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               this.isEach = true
+
               let html: string = ''
+
               html += eachIfHtml.contents
                 .map((content, index) => {
                   for (const branch of eachIfHtml.branches)
@@ -87,7 +93,7 @@ export const  = <T, U>({
             }
           }
 
-          this.classes.push(toKebabCase(name))
+          this.classes.push(kebabName)
 
           if (className)
             for (const localName of className.split(' '))
@@ -96,7 +102,8 @@ export const  = <T, U>({
           if (css !== undefined)
             this.css = typeof css === 'string' ? css : [...css]
 
-          this.slotContent = slot
+          if (slot) this.slotContent = Array.isArray(slot) ? [...slot] : slot
+
           this.events = { ...events }
 
           if (delegatedEvents && delegatedEvents.length > 0)
@@ -105,12 +112,12 @@ export const  = <T, U>({
       }
     )
 
-    return `<${Name}></${Name}>`
+    return new (customElements.get(Name) as { new (): HTMLElement })()
   }
 }
 
-export const mount = (parent: string, element: string): void =>
-  appendChild(<HTMLElement>document.getElementById(parent), element)
+export const mount = (parent: string, elements: string | HTMLElement[]) =>
+  appendChild(<HTMLElement>document.getElementById(parent), elements)
 
 const 1 = ({
   name: '',
@@ -187,7 +194,7 @@ const 3 = ({
     ],
     fallback: `<slot></slot><p>${number}</p>`
   }),
-  slot: `${1}`,
+  slot: [1, 2],
   delegatedEvents: [
     {
       selector: 'slot',
@@ -224,4 +231,4 @@ const 4 = ({
   ]
 })
 
-mount('app', `${1}${2}${3}${4}`)
+mount('app', [3, 4])
