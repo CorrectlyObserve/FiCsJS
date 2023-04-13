@@ -16,7 +16,6 @@ import { WelyElement } from './libs/welyElement'
 
 export const welify = <T, U>({
   name,
-  parents,
   className,
   data,
   html,
@@ -37,8 +36,6 @@ export const welify = <T, U>({
         constructor() {
           super()
           this.name = kebabName
-
-          if (parents) this.parents = [...parents]
 
           if (data) this.data = { ...data }
 
