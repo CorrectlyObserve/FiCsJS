@@ -41,13 +41,16 @@ export interface If {
   fallback?: string
 }
 
+export type PropsStack<T> = { id: string; name: string; props: T }[]
+
 export interface Welify<T, U> {
   name: string
+  parents?: string[]
   className?: string
   data?: U
   html: Convert<string | Each<T> | EachIf<T> | If, U>
   css?: string | Css<U>
-  slot?: string
+  slot?: string | HTMLElement[]
   events?: Events<U>
   delegatedEvents?: DelegatedEvents<U>
 }
