@@ -16,6 +16,7 @@ import { WelyElement } from './libs/welyElement'
 
 export const welify = <T, U>({
   name,
+  parents,
   className,
   data,
   html,
@@ -23,18 +24,21 @@ export const welify = <T, U>({
   slot,
   events,
   delegatedEvents
-}: Welify<T, U>): string => {
+}: Welify<T, U>): HTMLElement => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
-    const welyName = `w-${toKebabCase(name)}`
+    const kebabName = toKebabCase(name)
+    const welyName = `w-${kebabName}`
 
     customElements.define(
       welyName,
       class extends WelyElement<U> {
         constructor() {
           super()
-          this.name = name
+          this.name = kebabName
+
+          if (parents) this.parents = [...parents]
 
           if (data) this.data = { ...data }
 
@@ -49,7 +53,9 @@ export const welify = <T, U>({
 
             if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
               this.isEach = true
+
               let html: string = ''
+
               html += eachIfHtml.contents
                 .map((content, index) => {
                   for (const branch of eachIfHtml.branches)
@@ -87,7 +93,7 @@ export const welify = <T, U>({
             }
           }
 
-          this.classes.push(toKebabCase(name))
+          this.classes.push(kebabName)
 
           if (className)
             for (const localName of className.split(' '))
@@ -96,7 +102,8 @@ export const welify = <T, U>({
           if (css !== undefined)
             this.css = typeof css === 'string' ? css : [...css]
 
-          this.slotContent = slot
+          if (slot) this.slotContent = Array.isArray(slot) ? [...slot] : slot
+
           this.events = { ...events }
 
           if (delegatedEvents && delegatedEvents.length > 0)
@@ -105,12 +112,12 @@ export const welify = <T, U>({
       }
     )
 
-    return `<${welyName}></${welyName}>`
+    return new (customElements.get(welyName) as { new (): HTMLElement })()
   }
 }
 
-export const mountWely = (parent: string, element: string): void =>
-  appendChild(<HTMLElement>document.getElementById(parent), element)
+export const mountWely = (parent: string, elements: string | HTMLElement[]) =>
+  appendChild(<HTMLElement>document.getElementById(parent), elements)
 
 const wely1 = welify({
   name: 'wely',
@@ -187,7 +194,7 @@ const wely3 = welify({
     ],
     fallback: `<slot></slot><p>${number}</p>`
   }),
-  slot: `${wely1}`,
+  slot: [wely1, wely2],
   delegatedEvents: [
     {
       selector: 'slot',
@@ -224,4 +231,4 @@ const wely4 = welify({
   ]
 })
 
-mountWely('app', `${wely1}${wely2}${wely3}${wely4}`)
+mountWely('app', [wely3, wely4])
