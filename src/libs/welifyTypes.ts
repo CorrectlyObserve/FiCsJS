@@ -45,7 +45,6 @@ export type PropsStack<T> = { id: string; name: string; props: T }[]
 
 export interface Welify<T, U> {
   name: string
-  parents?: string[]
   className?: string
   data?: U
   html: Convert<string | Each<T> | EachIf<T> | If, U>
