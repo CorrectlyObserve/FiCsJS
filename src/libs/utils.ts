@@ -1,3 +1,5 @@
+import { Values } from './welifyTypes'
+
 export const appendChild = (
   parent: HTMLElement | ShadowRoot,
   children: string | HTMLElement[]
@@ -17,8 +19,8 @@ export const appendChild = (
   parent?.appendChild(fragment)
 }
 
-export const convertType = <T, U>(html: any, data: { [key: string]: T }) =>
-  typeof html === 'function' ? <U>html(data) : <U>html
+export const convertType = <T, U>(html: any, values: Values<T>) =>
+  typeof html === 'function' ? <U>html(values) : <U>html
 
 export const delay = async (
   time: number,
