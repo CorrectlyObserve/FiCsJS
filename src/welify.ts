@@ -16,6 +16,7 @@ import { WelyElement } from './libs/welyElement'
 
 export const welify = <T, U>({
   name,
+  descendants,
   className,
   data,
   html,
@@ -23,7 +24,7 @@ export const welify = <T, U>({
   slot,
   events,
   delegatedEvents
-}: Welify<T, U>): HTMLElement => {
+}: Welify<T, U>): WelyElement<U> => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
@@ -37,9 +38,10 @@ export const welify = <T, U>({
           super()
           this.name = kebabName
 
+          if (descendants) this.descendants = [...descendants]
           if (data) this.data = { ...data }
 
-          const converter = convertType(html, this.data || {})
+          const converter = convertType(html, { data: { ...this.data } } || {})
 
           if (typeof (<string>converter) === 'string')
             this.html = <string>converter
@@ -109,12 +111,9 @@ export const welify = <T, U>({
       }
     )
 
-    return new (customElements.get(welyName) as { new (): HTMLElement })()
+    return new (customElements.get(welyName) as { new (): WelyElement<U> })()
   }
 }
-
-export const mountWely = (parent: string, elements: string | HTMLElement[]) =>
-  appendChild(<HTMLElement>document.getElementById(parent), elements)
 
 const wely1 = welify({
   name: 'wely',
@@ -122,31 +121,33 @@ const wely1 = welify({
     count: 1,
     message: 'Hello',
     color: 'red',
-    back: 'black'
+    back: 'black',
+    _childMessage: 'Child hello'
   },
-  html: `<p class="hello">Hello</p><div><p class="hello">Child hello</p></div>`,
+  html: ({ data }) =>
+    `<p class="hello">${data.message}</p><div><p class="hello">${data._childMessage}</p></div>`,
   css: [
     {
       selector: 'p',
-      style: ({ color }) => ({
+      style: ({ data: { color } }) => ({
         color: color,
         fontSize: '14px'
       })
     },
     {
       selector: 'div',
-      style: ({ back }) => ({
+      style: ({ data: { back } }) => ({
         background: back
       })
     }
   ],
   events: {
-    click: ({ count }: { count: number }) => console.log(count++)
+    click: ({ data: { count } }) => console.log(count++)
   },
   delegatedEvents: [
     {
       selector: 'div .hello',
-      click: ({ message }) => console.log(message)
+      click: ({ data: { message } }) => console.log(message)
     }
   ]
 })
@@ -157,17 +158,17 @@ const wely2 = welify({
     numbers: [1, 2, 3],
     color: 'green'
   },
-  html: ({ numbers }) => ({
+  html: ({ data: { numbers } }) => ({
     contents: numbers as number[],
     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
   }),
   events: {
-    click: data => console.log(data.numbers)
+    click: ({ data: { numbers } }) => console.log(numbers)
   },
   delegatedEvents: [
     {
       selector: 'p',
-      click: ({ numbers }, _, index) => console.log(numbers[index])
+      click: ({ data: { numbers } }, _, index) => console.log(numbers[index])
     }
   ]
 })
@@ -176,13 +177,18 @@ const wely3 = welify({
   name: 'wely3',
   data: {
     number: 100,
-    text: 'AA'
+    text: 'AA',
+    count: 1,
+    message: 'Hello',
+    color: 'red',
+    back: 'black',
+    _childMessage: 'Child hello'
   },
-  html: ({ number }) => ({
+  html: ({ data: { number } }) => ({
     branches: [
       {
-        judge: number > 100,
-        render: `<p>aaa</p>`
+        judge: number >= 100,
+        render: wely1.outerHTML
       },
       {
         judge: number < 100,
@@ -195,7 +201,8 @@ const wely3 = welify({
   delegatedEvents: [
     {
       selector: 'slot',
-      click: ({ number, text }, e, index) => console.log(number, text, e, index)
+      click: ({ data: { number, text } }, e, index) =>
+        console.log(number, text, e, index)
     }
   ]
 })
@@ -205,8 +212,8 @@ const wely4 = welify({
   data: {
     numbers: [1, 2, 3]
   },
-  html: data => ({
-    contents: data.numbers as number[],
+  html: ({ data: { numbers } }) => ({
+    contents: numbers as number[],
     branches: [
       {
         judge: (arg: number) => arg === 100,
@@ -223,9 +230,15 @@ const wely4 = welify({
   delegatedEvents: [
     {
       selector: '.class-z',
-      click: ({ numbers }, e, index) => console.log(numbers[index], e)
+      click: ({ data: { numbers } }, e, index) => console.log(numbers[index], e)
     }
   ]
 })
+
+export const mountWely = (parent: string, elements: string | HTMLElement[]) => {
+  appendChild(<HTMLElement>document.getElementById(parent), elements)
+
+  console.log(wely1.closest(`#${wely3.welyId}`), 'aaa')
+}
 
 mountWely('app', [wely3, wely4])
