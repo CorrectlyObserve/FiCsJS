@@ -1,19 +1,24 @@
 import { WelyElement } from './welyElement'
 
-type Convert<T, U> = T | (({ data, props, state }: Values<U>) => T)
+export interface Args<D, P> {
+  data: D
+  props?: P
+}
 
-export type Css<U> = {
+type Convert<T, D, P> = T | (({ data, props }: Args<D, P>) => T)
+
+export type Css<D, P> = {
   selector: string
-  style: ({ data, props, state }: Values<U>) => {
+  style: ({ data, props }: Args<D, P>) => {
     [key: string]: string | number
   }
 }[]
 
-export type DelegatedEvents<U> = {
+export type DelegatedEvents<D, P> = {
   selector: string
   [key: string]:
     | string
-    | (({ data, props, state }: Values<U>, event: Event, index: number) => void)
+    | (({ data, props }: Args<D, P>, event: Event, index: number) => void)
 }[]
 
 export interface Each<T> {
@@ -33,8 +38,8 @@ export interface EachIf<T> {
   fallback?: (arg: T, index: number) => string
 }
 
-export interface Events<U> {
-  [key: string]: ({ data, props, state }: Values<U>, event: Event) => void
+export interface Events<D, P> {
+  [key: string]: ({ data, props }: Args<D, P>, event: Event) => void
 }
 
 export interface If {
@@ -45,23 +50,20 @@ export interface If {
   fallback?: string
 }
 
-export type PropsStack<T> = { id: string; name: string; props: T }[]
+export type Inheritances<D, P> = {
+  elements: WelyElement<D, P> | WelyElement<D, P>[]
+  props?: P
+}[]
 
-export interface Values<U> {
-  data: U
-  props?: U
-  state?: U
-}
-
-export interface Welify<T, U> {
+export interface Welify<T, D, P> {
   name: string
-  descendants?: WelyElement<U>[]
+  data?: D
+  props?: P
+  inheritances?: (data: D) => Inheritances<D, P>
   className?: string
-  data?: U
-  props?: U
-  html: Convert<string | Each<T> | EachIf<T> | If, U>
-  css?: string | Css<U>
+  html: Convert<string | Each<T> | EachIf<T> | If, D, P>
+  css?: string | Css<D, P>
   slot?: string | HTMLElement[]
-  events?: Events<U>
-  delegatedEvents?: DelegatedEvents<U>
+  events?: Events<D, P>
+  delegatedEvents?: DelegatedEvents<D, P>
 }
