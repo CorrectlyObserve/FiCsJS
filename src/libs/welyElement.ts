@@ -1,35 +1,60 @@
-import { createUniqueId } from './generator'
 import { appendChild, toKebabCase } from './utils'
-import { Css, DelegatedEvents, Events, Values } from './Types'
+import { Args, Css, DelegatedEvents, Events, Inheritances } from './Types'
 
-export class Element<T> extends HTMLElement {
+export class Element<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
-  readonly Id: string = ''
   private _isInitialized: boolean = false
+  private _inheritedSet: Set<string> = new Set()
+
   name: string = ''
-  descendants: Element<T>[] = []
-  data: T = <T>{}
-  props: T = <T>{}
-  html: string = ''
+  data: D = <D>{}
+  props: P = <P>{}
+  inheritances: Inheritances<D, P> = []
   classes: string[] = []
-  css?: string | Css<T>
+  html: string = ''
+  css?: string | Css<D, P>
   slotContent?: string | HTMLElement[]
-  events: Events<T> = {}
-  delegatedEvents: DelegatedEvents<T> = []
+  events: Events<D, P> = {}
+  delegatedEvents: DelegatedEvents<D, P> = []
   isEach: boolean = false
 
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
-
-    this.Id = createUniqueId()
-    this.setAttribute('id', this.Id)
   }
 
   connectedCallback(): void {
     if (this.html !== '') appendChild(this.shadowRoot, this.html)
 
     if (this._isInitialized) return
+
+    this.setAttribute('id', this.name)
+
+    if (this.inheritances.length > 0)
+      this.inheritances.forEach(inheritance => {
+        if (Array.isArray(inheritance.elements)) {
+          inheritance.elements.forEach(element => {
+            const name = element.name
+
+            const Child = this.shadowRoot.querySelector(
+              `#${name}`
+            ) as Element<D, P>
+
+            if (Child) {
+              Child.props = { ...inheritance.props } as P
+              console.log(Child.props)
+            }
+
+            if (this.shadowRoot.querySelector(`#${name}`))
+              this._inheritedSet.add(name)
+          })
+        } else {
+          const name = inheritance.elements.name
+
+          if (this.shadowRoot.querySelector(`#${name}`))
+            this._inheritedSet.add(name)
+        }
+      })
 
     this.setAttribute('class', this.classes.join(' '))
 
@@ -41,7 +66,9 @@ export class Element<T> extends HTMLElement {
         const styles = this.css.map(obj => {
           if (obj.selector === '') return ''
 
-          const style = Object.entries(obj.style({ data: { ...this.data } }))
+          const style = Object.entries(
+            obj.style({ data: { ...this.data }, props: { ...this.props } })
+          )
             .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
             .join('\n')
 
@@ -77,7 +104,7 @@ export class Element<T> extends HTMLElement {
             this.shadowRoot.querySelectorAll(`:host > ${selector}`)
           )
           const listener = event[key] as (
-            values: Values<T>,
+            values: Args<D, P>,
             event: Event,
             index?: number
           ) => void
@@ -86,7 +113,7 @@ export class Element<T> extends HTMLElement {
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(key, (localEvent: Event) =>
                 listener(
-                  { data: { ...this.data } },
+                  { data: { ...this.data }, props: { ...this.props } },
                   localEvent,
                   this.isEach ? i : undefined
                 )
