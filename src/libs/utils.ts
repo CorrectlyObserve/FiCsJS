@@ -1,4 +1,4 @@
-import { Values } from './welifyTypes'
+import { Args } from './welifyTypes'
 
 export const appendChild = (
   parent: HTMLElement | ShadowRoot,
@@ -19,16 +19,8 @@ export const appendChild = (
   parent?.appendChild(fragment)
 }
 
-export const convertType = <T, U>(html: any, values: Values<T>) =>
-  typeof html === 'function' ? <U>html(values) : <U>html
-
-export const delay = async (
-  time: number,
-  callback: () => void
-): Promise<void> => {
-  await new Promise<void>(resolve => setTimeout(resolve, time))
-  callback()
-}
+export const convertType = <T, D, P>(html: any, args: Args<D, P>) =>
+  typeof html === 'function' ? <T>html(args) : <T>html
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
