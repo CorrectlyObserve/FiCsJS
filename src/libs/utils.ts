@@ -2,19 +2,15 @@ import { Args } from './welifyTypes'
 
 export const appendChild = (
   parent: HTMLElement | ShadowRoot,
-  children: string | HTMLElement[]
+  children: string
 ): void => {
   const fragment = document.createDocumentFragment()
 
-  if (Array.isArray(children))
-    for (const child of children) fragment.appendChild(child.cloneNode(true))
-  else {
-    const childNodes: ChildNode[] = Array.from(
-      new DOMParser().parseFromString(children, 'text/html').body.childNodes
-    )
+  const childNodes: ChildNode[] = Array.from(
+    new DOMParser().parseFromString(children, 'text/html').body.childNodes
+  )
 
-    for (const child of childNodes) fragment.appendChild(child.cloneNode(true))
-  }
+  for (const child of childNodes) fragment.appendChild(child.cloneNode(true))
 
   parent?.appendChild(fragment)
 }
