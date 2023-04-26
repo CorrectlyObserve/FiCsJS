@@ -1,8 +1,6 @@
-import { WelyElement } from './welyElement'
-
 export interface Args<D, P> {
   data: D
-  props?: P
+  props: P
 }
 
 type Convert<T, D, P> = T | (({ data, props }: Args<D, P>) => T)
@@ -51,19 +49,19 @@ export interface If {
 }
 
 export type Inheritances<D, P> = {
-  elements: WelyElement<D, P> | WelyElement<D, P>[]
-  props?: P
+  elements: HTMLElement[]
+  props?: (data: D) => P
 }[]
 
 export interface Welify<T, D, P> {
   name: string
   data?: D
   props?: P
-  inheritances?: (data: D) => Inheritances<D, P>
+  inheritances?: Inheritances<D, P>
   className?: string
   html: Convert<string | Each<T> | EachIf<T> | If, D, P>
   css?: string | Css<D, P>
-  slot?: string | HTMLElement[]
+  slot?: string
   events?: Events<D, P>
   delegatedEvents?: DelegatedEvents<D, P>
 }
