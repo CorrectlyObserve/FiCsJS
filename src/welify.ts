@@ -167,9 +167,7 @@ const parent = welify({
   inheritances: [
     {
       elements: [child],
-      props: (data: { color: string }) => ({
-        color: data.color
-      })
+      props: ({ color }) => ({ color: color })
     }
   ],
   html: () => child.outerHTML
