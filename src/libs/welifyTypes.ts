@@ -50,7 +50,7 @@ export interface If {
 
 export type Inheritances<D, P> = {
   elements: HTMLElement[]
-  props?: (data: D) => P
+  props: (data: D) => P
 }[]
 
 export interface Welify<T, D, P> {
