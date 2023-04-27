@@ -13,7 +13,7 @@ export class Element<D, P> extends HTMLElement {
   classes: string[] = []
   html: string = ''
   css?: string | Css<D, P>
-  slotContent?: string | HTMLElement[]
+  slotContent?: string
   events: Events<D, P> = {}
   delegatedEvents: DelegatedEvents<D, P> = []
   isEach: boolean = false
@@ -28,31 +28,19 @@ export class Element<D, P> extends HTMLElement {
 
     if (this._isInitialized) return
 
-    this.setAttribute('id', this.name)
-
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        if (Array.isArray(inheritance.elements)) {
-          inheritance.elements.forEach(element => {
-            const name = element.name
+        for (const element of inheritance.elements) {
+          const  = this.shadowRoot.querySelector(
+            `#${element.id}`
+          ) as Element<D, P>
 
-            const Child = this.shadowRoot.querySelector(
-              `#${name}`
-            ) as Element<D, P>
+          if (this._inheritedSet.has(element.id) || ) {
+            .props = { ...inheritance.props(this.data) }
 
-            if (Child) {
-              Child.props = { ...inheritance.props } as P
-              console.log(Child.props)
-            }
-
-            if (this.shadowRoot.querySelector(`#${name}`))
-              this._inheritedSet.add(name)
-          })
-        } else {
-          const name = inheritance.elements.name
-
-          if (this.shadowRoot.querySelector(`#${name}`))
-            this._inheritedSet.add(name)
+            if (!this._inheritedSet.has(element.id))
+              this._inheritedSet.add(element.id)
+          } else this._inheritedSet.delete(element.id)
         }
       })
 
@@ -89,7 +77,10 @@ export class Element<D, P> extends HTMLElement {
       if (keys.length > 0)
         for (const listener of keys) {
           const eventListener = (event: Event) =>
-            this.events[listener]({ data: { ...this.data } }, event)
+            this.events[listener](
+              { data: { ...this.data }, props: { ...this.props } },
+              event
+            )
 
           this.addEventListener(listener, eventListener)
         }
