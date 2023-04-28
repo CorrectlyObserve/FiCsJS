@@ -1,35 +1,48 @@
-import { createUniqueId } from './generator'
-import { getChildNodes, toKebabCase } from './utils'
-import { Css, Data, DelegatedEvents, Events } from './welifyTypes'
+import { appendChild, toKebabCase } from './utils'
+import { Args, Css, DelegatedEvents, Events, Inheritances } from './welifyTypes'
 
-export class WelyElement<T> extends HTMLElement {
+export class WelyElement<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
-  private _id: string = ''
   private _isInitialized: boolean = false
+  private _inheritedSet: Set<string> = new Set()
+
   name: string = ''
-  data: Data<T> = {}
-  html: string = ''
+  data: D = <D>{}
+  props: P = <P>{}
+  inheritances: Inheritances<D, P> = []
   classes: string[] = []
-  css?: string | Css<T>
+  html: string = ''
+  css?: string | Css<D, P>
   slotContent?: string
-  events: Events<T> = {}
-  delegatedEvents: DelegatedEvents<T> = []
+  events: Events<D, P> = {}
+  delegatedEvents: DelegatedEvents<D, P> = []
   isEach: boolean = false
 
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
-
-    this._id = createUniqueId()
-    this.setAttribute('id', this._id)
   }
 
   connectedCallback(): void {
-    if (this.html !== '')
-      for (const child of getChildNodes(this.html))
-        this.shadowRoot.appendChild(child.cloneNode(true))
+    if (this.html !== '') appendChild(this.shadowRoot, this.html)
 
     if (this._isInitialized) return
+
+    if (this.inheritances.length > 0)
+      this.inheritances.forEach(inheritance => {
+        for (const element of inheritance.elements) {
+          const wely = this.shadowRoot.querySelector(
+            `#${element.id}`
+          ) as WelyElement<D, P>
+
+          if (this._inheritedSet.has(element.id) || wely) {
+            wely.props = { ...inheritance.props(this.data) }
+
+            if (!this._inheritedSet.has(element.id))
+              this._inheritedSet.add(element.id)
+          } else this._inheritedSet.delete(element.id)
+        }
+      })
 
     this.setAttribute('class', this.classes.join(' '))
 
@@ -37,93 +50,65 @@ export class WelyElement<T> extends HTMLElement {
       const css = document.createElement('style')
 
       if (typeof this.css === 'string') css.textContent = this.css
-      else
-        css.textContent = this.css
-          .map(obj => {
-            const style = Object.keys(obj.style(this.data))
-              .map(key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`)
-              .join('\n')
+      else {
+        const styles = this.css.map(obj => {
+          if (obj.selector === '') return ''
 
-            return `${obj.selector} {${style}}`
-          })
-          .join('\n')
-
-      this.shadowRoot.appendChild(css)
-
-      let startTime, endTime
-
-      startTime = performance.now()
-      if (typeof this.css !== 'string') {
-        for (let i = 0; i < 10000; i++) {
-          css.textContent = this.css
-            .map(obj => {
-              const style = Object.keys(obj.style(this.data))
-                .map(
-                  key => `${toKebabCase(key)}: ${obj.style(this.data)[key]};`
-                )
-                .join('\n')
-
-              return `${obj.selector} {${style}}`
-            })
+          const style = Object.entries(
+            obj.style({ data: { ...this.data }, props: { ...this.props } })
+          )
+            .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
             .join('\n')
-        }
+
+          return `${obj.selector} {${style}}`
+        })
+
+        css.textContent = styles.join('')
       }
 
-      endTime = performance.now()
-      console.log('css-in-jsの処理時間:', endTime - startTime)
+      this.shadowRoot.appendChild(css)
     }
 
-    if (this.slotContent) this.insertAdjacentHTML('beforeend', this.slotContent)
+    if (this.slotContent) appendChild(this, this.slotContent)
 
-    const wely = document.getElementById(this._id)
-    if (wely) {
+    if (this) {
       const keys = Object.keys(this.events)
 
       if (keys.length > 0)
-        keys.forEach((listener: string) =>
-          wely.addEventListener(listener, (event: Event) =>
-            this.events[listener]({ ...this.data }, event)
-          )
-        )
+        for (const listener of keys) {
+          const eventListener = (event: Event) =>
+            this.events[listener](
+              { data: { ...this.data }, props: { ...this.props } },
+              event
+            )
+
+          this.addEventListener(listener, eventListener)
+        }
 
       if (this.delegatedEvents.length > 0)
-        for (const event of this.delegatedEvents) {
-          if (event.selector === '') break
+        for (const delegatedEvent of this.delegatedEvents) {
+          if (delegatedEvent.selector === '') break
 
-          const keySet = new Set(Object.keys(event))
-          new Set(Object.keys(event)).delete('selector')
-          const key = Array.from(keySet)[0]
-
-          let startTime, endTime
-
-          startTime = performance.now()
-          for (let i = 0; i < 10000; i++) {
-            Array.from(
-              this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
-            )
-          }
-          endTime = performance.now()
-          console.log('delegatedEventsの処理時間:', endTime - startTime)
-
+          const { selector, ...event } = delegatedEvent
+          const key = Object.keys(event)[0]
           const targets = Array.from(
-            this.shadowRoot.querySelectorAll(`:host > ${event.selector}`)
+            this.shadowRoot.querySelectorAll(`:host > ${selector}`)
           )
           const listener = event[key] as (
-            data: Data<T>,
+            values: Args<D, P>,
             event: Event,
             index?: number
           ) => void
 
           if (targets.length > 0)
-            targets.forEach((target, index) =>
-              target.addEventListener(key, (event: Event) =>
+            for (let i = 0; i < targets.length; i++)
+              targets[i].addEventListener(key, (localEvent: Event) =>
                 listener(
-                  { ...this.data },
-                  event,
-                  this.isEach ? index : undefined
+                  { data: { ...this.data }, props: { ...this.props } },
+                  localEvent,
+                  this.isEach ? i : undefined
                 )
               )
-            )
         }
     }
 
