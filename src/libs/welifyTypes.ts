@@ -1,19 +1,22 @@
-type Convert<T, U> = T | ((data: Data<U>) => T)
+export interface Args<D, P> {
+  data: D
+  props: P
+}
 
-export type Css<U> = {
+type Convert<T, D, P> = T | (({ data, props }: Args<D, P>) => T)
+
+export type Css<D, P> = {
   selector: string
-  style: (data: Data<U>) => {
+  style: ({ data, props }: Args<D, P>) => {
     [key: string]: string | number
   }
 }[]
 
-export interface Data<U> {
-  [key: string]: U
-}
-
-export type DelegatedEvents<U> = {
+export type DelegatedEvents<D, P> = {
   selector: string
-  [key: string]: string | ((data: Data<U>, event: Event, index: number) => void)
+  [key: string]:
+    | string
+    | (({ data, props }: Args<D, P>, event: Event, index: number) => void)
 }[]
 
 export interface Each<T> {
@@ -33,8 +36,8 @@ export interface EachIf<T> {
   fallback?: (arg: T, index: number) => string
 }
 
-export interface Events<U> {
-  [key: string]: (data: Data<U>, event: Event) => void
+export interface Events<D, P> {
+  [key: string]: ({ data, props }: Args<D, P>, event: Event) => void
 }
 
 export interface If {
@@ -45,13 +48,20 @@ export interface If {
   fallback?: string
 }
 
-export interface Welify<T, U> {
+export type Inheritances<D, P> = {
+  elements: HTMLElement[]
+  props: (data: D) => P
+}[]
+
+export interface Welify<T, D, P> {
   name: string
+  data?: D
+  props?: P
+  inheritances?: Inheritances<D, P>
   className?: string
-  data?: Data<U>
-  html: Convert<string | Each<T> | EachIf<T> | If, U>
-  css?: string | Css<U>
+  html: Convert<string | Each<T> | EachIf<T> | If, D, P>
+  css?: string | Css<D, P>
   slot?: string
-  events?: Events<U>
-  delegatedEvents?: DelegatedEvents<U>
+  events?: Events<D, P>
+  delegatedEvents?: DelegatedEvents<D, P>
 }
