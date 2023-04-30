@@ -1,6 +1,6 @@
-import { appendChild, convertType, toKebabCase } from './libs/utils'
-import { Each, EachIf, If, Welify } from './libs/welifyTypes'
-import { WelyElement } from './libs/welyElement'
+import { appendChild, convertType, toKebabCase } from '@/libs/utils'
+import { Css, Each, EachIf, If, Welify } from '@/libs/welifyTypes'
+import { WelyElement } from '@/libs/welyElement'
 
 /*
 技術仕様
@@ -105,7 +105,7 @@ export const welify = <T, D, P>({
           }
 
           if (css !== undefined)
-            this.css = typeof css === 'string' ? css : [...css]
+            this.css = typeof css === 'string' ? css : ([...css] as Css<D, P>)
 
           if (slot) this.slotContent = slot
 
@@ -133,21 +133,22 @@ const child = welify({
   props: { color: '' },
   html: ({ data, props: { color } }) =>
     `<p class="hello">${color}</p><div><p class="hello">${data.childMessage}</p></div>`,
-  css: [
-    {
-      selector: 'p',
-      style: ({ data: { color } }) => ({
-        color: color,
-        fontSize: '14px'
-      })
-    },
-    {
-      selector: 'div',
-      style: ({ data: { back } }: { data: { back: string } }) => ({
-        background: back
-      })
-    }
-  ],
+  // css: [
+  //   {
+  //     selector: 'p',
+  //     style: ({ data: { color } }) => ({
+  //       color: color,
+  //       fontSize: '14px'
+  //     })
+  //   },
+  //   {
+  //     selector: 'div',
+  //     style: ({ data: { back } }: { data: { back: string } }) => ({
+  //       background: back
+  //     })
+  //   }
+  // ],
+  css: ['@/style.css'],
   events: {
     click: ({ data: { count } }) => console.log(count++)
   },
