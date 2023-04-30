@@ -5,12 +5,14 @@ export interface Args<D, P> {
 
 type Convert<T, D, P> = T | (({ data, props }: Args<D, P>) => T)
 
-export type Css<D, P> = {
-  selector: string
-  style: ({ data, props }: Args<D, P>) => {
-    [key: string]: string | number
-  }
-}[]
+export type Css<D, P> =
+  | {
+      selector: string
+      style: ({ data, props }: Args<D, P>) => {
+        [key: string]: string | number
+      }
+    }[]
+  | string[]
 
 export type DelegatedEvents<D, P> = {
   selector: string
