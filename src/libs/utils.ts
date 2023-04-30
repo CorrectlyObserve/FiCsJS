@@ -1,4 +1,4 @@
-import { Args } from './welifyTypes'
+import { Args } from '@/libs/welifyTypes'
 
 export const appendChild = (
   parent: HTMLElement | ShadowRoot,
@@ -17,6 +17,20 @@ export const appendChild = (
 
 export const convertType = <T, D, P>(html: any, args: Args<D, P>) =>
   typeof html === 'function' ? <T>html(args) : <T>html
+
+export const fetchCssFile = async (cssFile: string): Promise<string> => {
+  if (cssFile.endsWith('css'))
+    try {
+      const res = await fetch(cssFile)
+
+      if (res.ok) return await res.text()
+
+      throw Error(`${res.status} ${res.statusText}`)
+    } catch (error) {
+      throw Error(<string>error)
+    }
+  else throw Error('The file does not appear to be css file.')
+}
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
