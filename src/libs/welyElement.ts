@@ -1,5 +1,11 @@
-import { appendChild, toKebabCase } from './utils'
-import { Args, Css, DelegatedEvents, Events, Inheritances } from './welifyTypes'
+import { appendChild, fetchCssFile, toKebabCase } from '@/libs/utils'
+import {
+  Args,
+  Css,
+  DelegatedEvents,
+  Events,
+  Inheritances
+} from '@/libs/welifyTypes'
 
 export class WelyElement<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -49,22 +55,28 @@ export class WelyElement<D, P> extends HTMLElement {
     if (this.css) {
       const css = document.createElement('style')
 
-      if (typeof this.css === 'string') css.textContent = this.css
-      else {
-        const styles = this.css.map(obj => {
-          if (obj.selector === '') return ''
+      if (Array.isArray(this.css) && this.css.length > 0) {
+        if (typeof this.css[0] === 'string') {
+          console.log(this.css[0], fetchCssFile(this.css[0]))
+        } else {
+          const styles = this.css.map(obj => {
+            if (typeof obj === 'string' || obj.selector === '') return ''
 
-          const style = Object.entries(
-            obj.style({ data: { ...this.data }, props: { ...this.props } })
-          )
-            .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
-            .join('\n')
+            const style = Object.entries(
+              obj.style({
+                data: { ...this.data },
+                props: { ...this.props }
+              })
+            )
+              .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
+              .join('\n')
 
-          return `${obj.selector} {${style}}`
-        })
+            return `${obj.selector} {${style}}`
+          })
 
-        css.textContent = styles.join('')
-      }
+          css.textContent = styles.join('')
+        }
+      } else if (typeof this.css === 'string') css.textContent = this.css
 
       this.shadowRoot.appendChild(css)
     }
