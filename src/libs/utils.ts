@@ -19,11 +19,14 @@ export const convertType = <T, D, P>(html: any, args: Args<D, P>) =>
   typeof html === 'function' ? <T>html(args) : <T>html
 
 export const fetchCssFile = async (cssFile: string): Promise<string> => {
-  if (cssFile.endsWith('css'))
+  if (cssFile.endsWith('.css'))
     try {
-      const res = await fetch(cssFile)
+      const res = await fetch(cssFile, { method: 'GET' })
 
-      if (res.ok) return await res.text()
+      if (res.ok) {
+        console.log(res)
+        return await res.text()
+      }
 
       throw Error(`${res.status} ${res.statusText}`)
     } catch (error) {
