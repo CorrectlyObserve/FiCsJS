@@ -38,7 +38,6 @@ export const  = <T, D, P>({
         constructor() {
           super()
           this.name = kebabName
-          this.id = this.name
 
           if (data) this.data = { ...data }
           if (props) this.props = { ...props }
@@ -122,7 +121,7 @@ export const  = <T, D, P>({
 }
 
 const child = ({
-  name: '-1',
+  name: 'child',
   data: {
     count: 1,
     message: 'Hello',
@@ -148,7 +147,7 @@ const child = ({
   //     })
   //   }
   // ],
-  css: ['@/style.css'],
+  css: ['src/style.css'],
   events: {
     click: ({ data: { count } }) => console.log(count++)
   },
@@ -161,7 +160,7 @@ const child = ({
 })
 
 const parent = ({
-  name: '1',
+  name: 'parent',
   data: {
     color: 'green'
   },
@@ -171,7 +170,7 @@ const parent = ({
       props: ({ color }) => ({ color: color })
     }
   ],
-  html: () => child.outerHTML
+  html: () => `${child.outerHTML}${child.outerHTML}`
 })
 
 // const 2 = ({
