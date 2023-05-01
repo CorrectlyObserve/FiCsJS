@@ -1,3 +1,4 @@
+import { createUniqueId } from '@/libs/generator'
 import { appendChild, fetchCssFile, toKebabCase } from '@/libs/utils'
 import {
   Args,
@@ -27,6 +28,7 @@ export class WelyElement<D, P> extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
+    this.id = createUniqueId()
   }
 
   connectedCallback(): void {
@@ -36,13 +38,16 @@ export class WelyElement<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        for (const element of inheritance.elements) {
-          const wely = this.shadowRoot.querySelector(
-            `#${element.id}`
-          ) as WelyElement<D, P>
+        for (let element of inheritance.elements as WelyElement<D, P>[]) {
+          if (
+            this._inheritedSet.has(element.id) ||
+            this.shadowRoot.querySelector(`#${element.id}`)
+          ) {
+            const child = this.shadowRoot.querySelector(
+              `#${element.id}`
+            ) as WelyElement<D, P>
 
-          if (this._inheritedSet.has(element.id) || wely) {
-            wely.props = { ...inheritance.props(this.data) }
+            child.props = { ...inheritance.props(this.data) }
 
             if (!this._inheritedSet.has(element.id))
               this._inheritedSet.add(element.id)
@@ -57,7 +62,7 @@ export class WelyElement<D, P> extends HTMLElement {
 
       if (Array.isArray(this.css) && this.css.length > 0) {
         if (typeof this.css[0] === 'string') {
-          console.log(this.css[0], fetchCssFile(this.css[0]))
+          console.log(fetchCssFile(this.css[0]))
         } else {
           const styles = this.css.map(obj => {
             if (typeof obj === 'string' || obj.selector === '') return ''
