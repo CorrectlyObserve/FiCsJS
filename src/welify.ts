@@ -1,5 +1,5 @@
-import { appendChild, convertType, toKebabCase } from '@/libs/utils'
-import { Css, Each, EachIf, If, Welify } from '@/libs/welifyTypes'
+import { appendChild, toKebabCase } from '@/libs/utils'
+import { Css, Welify } from '@/libs/welifyTypes'
 import { WelyElement } from '@/libs/welyElement'
 
 /*
@@ -49,58 +49,51 @@ export const welify = <T, D, P>({
             for (const localName of className.split(' '))
               this.classes.push(toKebabCase(localName))
 
-          const converter = convertType(
-            html,
-            { data: { ...this.data }, props: { ...this.props } } || {}
-          )
+          const converter =
+            typeof html === 'function'
+              ? html({ ...this.data }, { ...this.props })
+              : html
 
-          if (typeof (<string>converter) === 'string')
-            this.html = <string>converter
-          else {
-            const ifHtml = <If>converter
-            const eachHtml = <Each<T>>converter
-            const eachIfHtml = <EachIf<T>>converter
+          if (typeof converter === 'string') this.html = converter
+          else if ('contents' in converter && 'branches' in converter) {
+            this.isEach = true
 
-            if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
-              this.isEach = true
+            let html: string = ''
 
-              let html: string = ''
+            html += converter.contents
+              .map((content, index) => {
+                for (const branch of converter.branches)
+                  if (branch.judge(content))
+                    return branch.render(content, index)
 
-              html += eachIfHtml.contents
-                .map((content, index) => {
-                  for (const branch of eachIfHtml.branches)
-                    if (branch.judge(content))
-                      return branch.render(content, index)
+                if (converter.fallback)
+                  return converter.fallback(content, index)
 
-                  if (eachIfHtml.fallback)
-                    return eachIfHtml.fallback(content, index)
+                return ''
+              })
+              .join('')
 
-                  return ''
-                })
-                .join('')
+            this.html = html
+          } else if ('contents' in converter) {
+            this.isEach = true
 
-              this.html = html
-            } else if ('contents' in eachHtml) {
-              this.isEach = true
+            this.html = converter.contents.reduce(
+              (prev: string, self: T, index: number): string =>
+                prev + converter.render(self, index),
+              ''
+            )
+          } else if ('branches' in converter) {
+            let html: string = ''
 
-              this.html = eachHtml.contents.reduce(
-                (prev: string, self: T, index: number): string =>
-                  prev + eachHtml.render(self, index),
-                ''
-              )
-            } else if ('branches' in ifHtml) {
-              let html: string = ''
+            for (const branch of converter.branches)
+              if (branch.judge) {
+                html = branch.render
+                break
+              }
 
-              for (const branch of ifHtml.branches)
-                if (branch.judge) {
-                  html = branch.render
-                  break
-                }
+            if (html === '' && converter.fallback) html = converter.fallback
 
-              if (html === '' && ifHtml.fallback) html = ifHtml.fallback
-
-              this.html = html
-            }
+            this.html = html
           }
 
           if (css !== undefined)
@@ -125,12 +118,10 @@ const child = welify({
   data: {
     count: 1,
     message: 'Hello',
-    color: 'red',
     back: 'black',
     childMessage: 'Child hello'
   },
-  props: { color: '' },
-  html: ({ data, props: { color } }) =>
+  html: (data, { color }: { color: string }) =>
     `<p class="hello">${color}</p><div><p class="hello">${data.childMessage}</p></div>`,
   // css: [
   //   {
