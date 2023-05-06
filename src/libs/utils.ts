@@ -1,5 +1,3 @@
-import { Args } from '@/libs/welifyTypes'
-
 export const appendChild = (
   parent: HTMLElement | ShadowRoot,
   children: string
@@ -15,24 +13,19 @@ export const appendChild = (
   parent?.appendChild(fragment)
 }
 
-export const convertType = <T, D, P>(html: any, args: Args<D, P>) =>
-  typeof html === 'function' ? <T>html(args) : <T>html
-
 export const fetchCssFile = async (cssFile: string): Promise<string> => {
-  if (cssFile.endsWith('.css'))
-    try {
-      const res = await fetch(cssFile, { method: 'GET' })
+  if (!cssFile.endsWith('.css'))
+    throw new Error('The file does not appear to be a CSS file.')
 
-      if (res.ok) {
-        console.log(res)
-        return await res.text()
-      }
+  try {
+    const res = await fetch(cssFile)
 
-      throw Error(`${res.status} ${res.statusText}`)
-    } catch (error) {
-      throw Error(<string>error)
-    }
-  else throw Error('The file does not appear to be css file.')
+    if (res.ok) return await res.text()
+
+    throw new Error(`${res.status} ${res.statusText}`)
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : error?.toString())
+  }
 }
 
 export const toKebabCase = (str: string): string => {
