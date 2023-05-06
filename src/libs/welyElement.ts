@@ -31,7 +31,7 @@ export class WelyElement<D, P> extends HTMLElement {
     this.id = createUniqueId()
   }
 
-  connectedCallback(): void {
+  async connectedCallback(): Promise<void> {
     if (this.html !== '') appendChild(this.shadowRoot, this.html)
 
     if (this._isInitialized) return
@@ -62,7 +62,8 @@ export class WelyElement<D, P> extends HTMLElement {
 
       if (Array.isArray(this.css) && this.css.length > 0) {
         if (typeof this.css[0] === 'string') {
-          console.log(fetchCssFile(this.css[0]))
+          const aaa = await fetchCssFile(this.css[0])
+          console.log(aaa)
         } else {
           const styles = this.css.map(obj => {
             if (typeof obj === 'string' || obj.selector === '') return ''
