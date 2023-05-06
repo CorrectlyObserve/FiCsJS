@@ -3,7 +3,7 @@ export interface Args<D, P> {
   props: P
 }
 
-type Convert<T, D, P> = T | (({ data, props }: Args<D, P>) => T)
+type Convert<T, D, P> = T | ((data: D, props: P) => T)
 
 export type Css<D, P> =
   | {
@@ -21,7 +21,7 @@ export type DelegatedEvents<D, P> = {
     | (({ data, props }: Args<D, P>, event: Event, index: number) => void)
 }[]
 
-export interface Each<T> {
+interface Each<T> {
   contents: T[]
   render: (arg: T, index: number) => string | undefined
   events?: {
@@ -29,7 +29,7 @@ export interface Each<T> {
   }
 }
 
-export interface EachIf<T> {
+interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
@@ -42,7 +42,7 @@ export interface Events<D, P> {
   [key: string]: ({ data, props }: Args<D, P>, event: Event) => void
 }
 
-export interface If {
+interface If {
   branches: {
     judge: boolean | unknown
     render: string
