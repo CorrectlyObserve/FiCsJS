@@ -13,14 +13,14 @@ export const appendChild = (
   parent?.appendChild(fragment)
 }
 
-export const fetchCssFile = async (cssFile: string): Promise<string> => {
-  if (!cssFile.endsWith('.css'))
+export const fetchCss = async (css: string) => {
+  if (!css.endsWith('.css'))
     throw new Error('The file does not appear to be a CSS file.')
 
   try {
-    const res = await fetch(cssFile)
+    const res = await fetch(css)
 
-    if (res.ok) return await res.text()
+    if (res.status === 200) return await res.text()
 
     throw new Error(`${res.status} ${res.statusText}`)
   } catch (error) {
