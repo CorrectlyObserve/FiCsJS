@@ -61,7 +61,7 @@ export interface Welify<T, D, P> {
   props?: P
   inheritances?: Inheritances<D, P>
   className?: string
-  html: Convert<string | Each<T> | EachIf<T> | If, D, P>
+  html: Convert<(string | HTMLElement)[] | Each<T> | EachIf<T> | If, D, P>
   css?: string | Css<D, P>
   slot?: string
   events?: Events<D, P>
