@@ -20,7 +20,7 @@ export class WelyElement<D, P> extends HTMLElement {
   inheritances: Inheritances<D, P> = []
   classes: string[] = []
   html: Html = []
-  css?: string | Css<D, P>
+  css?: Css<D, P>
   slotContent?: string | HTMLElement
   events: Events<D, P> = {}
   delegatedEvents: DelegatedEvents<D, P> = []
@@ -88,29 +88,9 @@ export class WelyElement<D, P> extends HTMLElement {
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
-            css.textContent += `${localCss.selector}${style}`
+            css.textContent += `${localCss.selector} {${style}}`
           }
         })
-
-        //   } else {
-        //     const styles = this.css.map(obj => {
-        //       if (typeof obj === 'string' || obj.selector === '') return ''
-
-        //   const style = Object.entries(
-        //     obj.style({
-        //       data: { ...this.data },
-        //       props: { ...this.props }
-        //     })
-        //   )
-        //     .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
-        //     .join('\n')
-
-        //   return `${obj.selector} {${style}}`
-        // })
-
-        //     css.textContent = styles.join('')
-        //   }
-        // }
       }
 
       this.shadowRoot.appendChild(css)
