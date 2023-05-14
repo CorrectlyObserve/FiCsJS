@@ -42,6 +42,8 @@ export interface Events<D, P> {
   [key: string]: ({ data, props }: Args<D, P>, event: Event) => void
 }
 
+export type Html = (string | HTMLElement)[]
+
 interface If {
   branches: {
     judge: boolean | unknown
@@ -61,7 +63,7 @@ export interface Welify<T, D, P> {
   props?: P
   inheritances?: Inheritances<D, P>
   className?: string
-  html: Convert<(string | HTMLElement)[] | Each<T> | EachIf<T> | If, D, P>
+  html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
   css?: string | Css<D, P>
   slot?: string
   events?: Events<D, P>
