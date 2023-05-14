@@ -1,16 +1,21 @@
 export const appendChild = (
-  parent: HTMLElement | ShadowRoot,
-  children: string
+  parent: string | ShadowRoot,
+  children: (string | HTMLElement)[]
 ): void => {
-  const fragment = document.createDocumentFragment()
+  const localParent =
+    typeof parent === 'string'
+      ? document.getElementById(<string>parent)
+      : parent
 
-  const childNodes: ChildNode[] = Array.from(
-    new DOMParser().parseFromString(children, 'text/html').body.childNodes
-  )
-
-  for (const child of childNodes) fragment.appendChild(child.cloneNode(true))
-
-  parent?.appendChild(fragment)
+  if (localParent)
+    for (const child of children) {
+      if (typeof child === 'string') {
+        const childNode: ChildNode = Array.from(
+          new DOMParser().parseFromString(child, 'text/html').body.childNodes
+        )[0]
+        localParent.appendChild(childNode.cloneNode(true))
+      } else localParent.appendChild(child)
+    }
 }
 
 export const fetchCss = async (css: string) => {
