@@ -10,13 +10,16 @@ export const appendChild = (
       : parent
 
   if (localParent)
-    for (const child of children)
+    for (let child of children) {
       if (typeof child === 'string') {
-        const childNodes: ChildNode[] = Array.from(
+        const childNode: ChildNode = Array.from(
           new DOMParser().parseFromString(child, 'text/html').body.childNodes
-        )
-        localParent.appendChild(childNodes[0].cloneNode(true))
-      } else localParent.appendChild(child)
+        )[0]
+        child = childNode.cloneNode(true) as HTMLElement
+      }
+
+      localParent.appendChild(child)
+    }
 }
 
 export const toKebabCase = (str: string): string => {
