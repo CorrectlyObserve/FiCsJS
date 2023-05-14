@@ -19,21 +19,6 @@ export const appendChild = (
       } else localParent.appendChild(child)
 }
 
-export const fetchCss = async (css: string) => {
-  if (!css.endsWith('.css'))
-    throw new Error('The file does not appear to be a CSS file.')
-
-  try {
-    const res = await fetch(css)
-
-    if (res.status === 200) return await res.text()
-
-    throw new Error(`${res.status} ${res.statusText}`)
-  } catch (error) {
-    throw new Error(error instanceof Error ? error.message : error?.toString())
-  }
-}
-
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
   const upperCase = new RegExp(/[A-Z]/g)
