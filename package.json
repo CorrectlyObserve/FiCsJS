@@ -3,7 +3,7 @@
   "author": "Masami Ogasawara",
   "private": true,
   "version": "0.0.1",
-  "description": "The framework-independent component framework",
+  "description": "The framework-independent component library",
   "keywords": [],
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "prettier": "^2.8.7",
     "typescript": "^4.9.3",
-    "vite": "^4.1.4"
+    "vite": "^4.1.4",
+    "vite-tsconfig-paths": "^4.2.0"
   }
 }

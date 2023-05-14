@@ -1,5 +1,13 @@
-import { appendChild, toKebabCase } from './utils'
-import { Args, Css, DelegatedEvents, Events, Inheritances } from './welifyTypes'
+import { createUniqueId } from '@/libs/generator'
+import { appendChild, toKebabCase } from '@/libs/utils'
+import {
+  Args,
+  Css,
+  DelegatedEvents,
+  Events,
+  Html,
+  Inheritances
+} from '@/libs/welifyTypes'
 
 export class WelyElement<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -11,9 +19,9 @@ export class WelyElement<D, P> extends HTMLElement {
   props: P = <P>{}
   inheritances: Inheritances<D, P> = []
   classes: string[] = []
-  html: string = ''
-  css?: string | Css<D, P>
-  slotContent?: string
+  html: Html = []
+  css?: Css<D, P>
+  slotContent?: string | HTMLElement
   events: Events<D, P> = {}
   delegatedEvents: DelegatedEvents<D, P> = []
   isEach: boolean = false
@@ -21,22 +29,26 @@ export class WelyElement<D, P> extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
+    this.id = createUniqueId()
   }
 
   connectedCallback(): void {
-    if (this.html !== '') appendChild(this.shadowRoot, this.html)
+    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
 
     if (this._isInitialized) return
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        for (const element of inheritance.elements) {
-          const wely = this.shadowRoot.querySelector(
-            `#${element.id}`
-          ) as WelyElement<D, P>
+        for (let element of inheritance.elements as WelyElement<D, P>[]) {
+          if (
+            this._inheritedSet.has(element.id) ||
+            this.shadowRoot.querySelector(`#${element.id}`)
+          ) {
+            const child = this.shadowRoot.querySelector(
+              `#${element.id}`
+            ) as WelyElement<D, P>
 
-          if (this._inheritedSet.has(element.id) || wely) {
-            wely.props = { ...inheritance.props(this.data) }
+            child.props = { ...inheritance.props(this.data) }
 
             if (!this._inheritedSet.has(element.id))
               this._inheritedSet.add(element.id)
@@ -50,26 +62,41 @@ export class WelyElement<D, P> extends HTMLElement {
       const css = document.createElement('style')
 
       if (typeof this.css === 'string') css.textContent = this.css
-      else {
-        const styles = this.css.map(obj => {
-          if (obj.selector === '') return ''
+      else if (Array.isArray(this.css) && this.css.length > 0) {
+        this.css.forEach(async localCss => {
+          if (typeof localCss === 'string') {
+            if (!(localCss as string).endsWith('.css'))
+              throw new Error('The file does not appear to be a CSS file.')
 
-          const style = Object.entries(
-            obj.style({ data: { ...this.data }, props: { ...this.props } })
-          )
-            .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
-            .join('\n')
+            try {
+              const res = await fetch(localCss)
 
-          return `${obj.selector} {${style}}`
+              if (res.status === 200) css.textContent += await res.text()
+              else throw new Error(`${res.status} ${res.statusText}`)
+            } catch (error) {
+              throw new Error(
+                error instanceof Error ? error.message : error?.toString()
+              )
+            }
+          } else if (localCss.selector && 'style' in localCss) {
+            const style = Object.entries(
+              localCss.style({
+                data: { ...this.data },
+                props: { ...this.props }
+              })
+            )
+              .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
+              .join('\n')
+
+            css.textContent += `${localCss.selector} {${style}}`
+          }
         })
-
-        css.textContent = styles.join('')
       }
 
       this.shadowRoot.appendChild(css)
     }
 
-    if (this.slotContent) appendChild(this, this.slotContent)
+    if (this.slotContent) appendChild(this, [this.slotContent])
 
     if (this) {
       const keys = Object.keys(this.events)
