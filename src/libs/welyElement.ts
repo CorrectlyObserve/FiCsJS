@@ -1,10 +1,11 @@
 import { createUniqueId } from '@/libs/generator'
-import { appendChild, fetchCssFile, toKebabCase } from '@/libs/utils'
+import { appendChild, toKebabCase } from '@/libs/utils'
 import {
   Args,
   Css,
   DelegatedEvents,
   Events,
+  Html,
   Inheritances
 } from '@/libs/welifyTypes'
 
@@ -18,9 +19,9 @@ export class WelyElement<D, P> extends HTMLElement {
   props: P = <P>{}
   inheritances: Inheritances<D, P> = []
   classes: string[] = []
-  html: string = ''
+  html: Html = []
   css?: string | Css<D, P>
-  slotContent?: string
+  slotContent?: string | HTMLElement
   events: Events<D, P> = {}
   delegatedEvents: DelegatedEvents<D, P> = []
   isEach: boolean = false
@@ -31,8 +32,8 @@ export class WelyElement<D, P> extends HTMLElement {
     this.id = createUniqueId()
   }
 
-  async connectedCallback(): Promise<void> {
-    if (this.html !== '') appendChild(this.shadowRoot, this.html)
+  connectedCallback(): void {
+    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
 
     if (this._isInitialized) return
 
@@ -60,16 +61,26 @@ export class WelyElement<D, P> extends HTMLElement {
     if (this.css) {
       const css = document.createElement('style')
 
-      if (Array.isArray(this.css) && this.css.length > 0) {
-        if (typeof this.css[0] === 'string') {
-          const aaa = await fetchCssFile(this.css[0])
-          console.log(aaa)
-        } else {
-          const styles = this.css.map(obj => {
-            if (typeof obj === 'string' || obj.selector === '') return ''
+      if (typeof this.css === 'string') css.textContent = this.css
+      else if (Array.isArray(this.css) && this.css.length > 0) {
+        this.css.forEach(async localCss => {
+          if (typeof localCss === 'string') {
+            if (!(localCss as string).endsWith('.css'))
+              throw new Error('The file does not appear to be a CSS file.')
 
+            try {
+              const res = await fetch(localCss)
+
+              if (res.status === 200) css.textContent += await res.text()
+              else throw new Error(`${res.status} ${res.statusText}`)
+            } catch (error) {
+              throw new Error(
+                error instanceof Error ? error.message : error?.toString()
+              )
+            }
+          } else if (localCss.selector && 'style' in localCss) {
             const style = Object.entries(
-              obj.style({
+              localCss.style({
                 data: { ...this.data },
                 props: { ...this.props }
               })
@@ -77,17 +88,35 @@ export class WelyElement<D, P> extends HTMLElement {
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
-            return `${obj.selector} {${style}}`
-          })
+            css.textContent += `${localCss.selector}${style}`
+          }
+        })
 
-          css.textContent = styles.join('')
-        }
-      } else if (typeof this.css === 'string') css.textContent = this.css
+        //   } else {
+        //     const styles = this.css.map(obj => {
+        //       if (typeof obj === 'string' || obj.selector === '') return ''
+
+        //   const style = Object.entries(
+        //     obj.style({
+        //       data: { ...this.data },
+        //       props: { ...this.props }
+        //     })
+        //   )
+        //     .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
+        //     .join('\n')
+
+        //   return `${obj.selector} {${style}}`
+        // })
+
+        //     css.textContent = styles.join('')
+        //   }
+        // }
+      }
 
       this.shadowRoot.appendChild(css)
     }
 
-    if (this.slotContent) appendChild(this, this.slotContent)
+    if (this.slotContent) appendChild(this, [this.slotContent])
 
     if (this) {
       const keys = Object.keys(this.events)
