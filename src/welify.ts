@@ -1,6 +1,7 @@
 import { appendChild, toKebabCase } from '@/libs/utils'
-import { Css, Welify } from '@/libs/welifyTypes'
+import { Css, Html, Welify } from '@/libs/welifyTypes'
 import { WelyElement } from '@/libs/welyElement'
+import cssUrl from '@/style.css?url'
 
 /*
 技術仕様
@@ -25,7 +26,7 @@ export const welify = <T, D, P>({
   slot,
   events,
   delegatedEvents
-}: Welify<T, D, P>): WelyElement<D, P> => {
+}: Welify<T, D, P>): HTMLElement => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
@@ -49,52 +50,54 @@ export const welify = <T, D, P>({
             for (const localName of className.split(' '))
               this.classes.push(toKebabCase(localName))
 
-          const converter =
-            typeof html === 'function'
-              ? html({ ...this.data }, { ...this.props })
-              : html
+          this.html = [...(html as Html)]
 
-          if (typeof converter === 'string') this.html = converter
-          else if ('contents' in converter && 'branches' in converter) {
-            this.isEach = true
+          // const converter =
+          //   typeof html === 'function'
+          //     ? html({ ...this.data }, { ...this.props })
+          //     : html
 
-            let html: string = ''
+          // if (typeof converter === 'string') this.html = converter
+          // else if ('contents' in converter && 'branches' in converter) {
+          //   this.isEach = true
 
-            html += converter.contents
-              .map((content, index) => {
-                for (const branch of converter.branches)
-                  if (branch.judge(content))
-                    return branch.render(content, index)
+          //   let html: string = ''
 
-                if (converter.fallback)
-                  return converter.fallback(content, index)
+          //   html += converter.contents
+          //     .map((content, index) => {
+          //       for (const branch of converter.branches)
+          //         if (branch.judge(content))
+          //           return branch.render(content, index)
 
-                return ''
-              })
-              .join('')
+          //       if (converter.fallback)
+          //         return converter.fallback(content, index)
 
-            this.html = html
-          } else if ('contents' in converter) {
-            this.isEach = true
+          //       return ''
+          //     })
+          //     .join('')
 
-            this.html = converter.contents.reduce(
-              (prev: string, self: T, index: number): string =>
-                prev + converter.render(self, index),
-              ''
-            )
-          } else if ('branches' in converter) {
-            let html: string = ''
+          //   this.html = html
+          // } else if ('contents' in converter) {
+          //   this.isEach = true
 
-            for (const branch of converter.branches)
-              if (branch.judge) {
-                html = branch.render
-                break
-              }
+          //   this.html = converter.contents.reduce(
+          //     (prev: string, self: T, index: number): string =>
+          //       prev + converter.render(self, index),
+          //     ''
+          //   )
+          // } else if ('branches' in converter) {
+          //   let html: string = ''
 
-            if (html === '' && converter.fallback) html = converter.fallback
+          //   for (const branch of converter.branches)
+          //     if (branch.judge) {
+          //       html = branch.render
+          //       break
+          //     }
 
-            this.html = html
-          }
+          //   if (html === '' && converter.fallback) html = converter.fallback
+
+          //   this.html = html
+          // }
 
           if (css !== undefined)
             this.css = typeof css === 'string' ? css : ([...css] as Css<D, P>)
@@ -118,27 +121,27 @@ const child = welify({
   data: {
     count: 1,
     message: 'Hello',
+    color: 'red',
     back: 'black',
     childMessage: 'Child hello'
   },
-  html: (data, { color }: { color: string }) =>
-    `<p class="hello">${color}</p><div><p class="hello">${data.childMessage}</p></div>`,
-  // css: [
-  //   {
-  //     selector: 'p',
-  //     style: ({ data: { color } }) => ({
-  //       color: color,
-  //       fontSize: '14px'
-  //     })
-  //   },
-  //   {
-  //     selector: 'div',
-  //     style: ({ data: { back } }: { data: { back: string } }) => ({
-  //       background: back
-  //     })
-  //   }
-  // ],
-  css: ['src/style.css'],
+  html: ['<div><p>aaa</p></div>'],
+  css: [
+    cssUrl,
+    {
+      selector: 'p',
+      style: ({ data: { color } }) => ({
+        color: color,
+        fontSize: '14px'
+      })
+    },
+    {
+      selector: 'div',
+      style: ({ data: { back } }: { data: { back: string } }) => ({
+        background: back
+      })
+    }
+  ],
   events: {
     click: ({ data: { count } }) => console.log(count++)
   },
@@ -161,7 +164,7 @@ const parent = welify({
       props: ({ color }) => ({ color: color })
     }
   ],
-  html: () => `${child.outerHTML}${child.outerHTML}`
+  html: [child, '<p>Sample</p>']
 })
 
 // const wely2 = welify({
@@ -246,7 +249,7 @@ const parent = welify({
 //   ]
 // })
 
-export const mountWely = (parent: string, elements: string) =>
-  appendChild(<HTMLElement>document.getElementById(parent), elements)
+export const mountWely = (parent: string, children: Html) =>
+  appendChild(parent, children)
 
-mountWely('app', parent.outerHTML)
+mountWely('app', [parent])
