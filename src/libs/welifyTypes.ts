@@ -6,13 +6,16 @@ export interface Args<D, P> {
 type Convert<T, D, P> = T | ((data: D, props: P) => T)
 
 export type Css<D, P> =
-  | {
-      selector: string
-      style: ({ data, props }: Args<D, P>) => {
-        [key: string]: string | number
-      }
-    }[]
-  | string[]
+  | (
+      | string
+      | {
+          selector: string
+          style: ({ data, props }: Args<D, P>) => {
+            [key: string]: string | number
+          }
+        }
+    )[]
+  | string
 
 export type DelegatedEvents<D, P> = {
   selector: string
@@ -64,7 +67,7 @@ export interface Welify<T, D, P> {
   inheritances?: Inheritances<D, P>
   className?: string
   html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
-  css?: string | Css<D, P>
+  css?: Css<D, P>
   slot?: string
   events?: Events<D, P>
   delegatedEvents?: DelegatedEvents<D, P>
