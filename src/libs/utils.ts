@@ -1,7 +1,7 @@
 import { Html } from '@/libs/Types'
 
 export const appendChild = (
-  parent: string | ShadowRoot,
+  parent: string | ShadowRoot | HTMLElement,
   children: Html
 ): void => {
   const localParent =
