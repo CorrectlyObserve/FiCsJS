@@ -1,6 +1,8 @@
+import { Html } from '@/libs/welifyTypes'
+
 export const appendChild = (
   parent: string | ShadowRoot,
-  children: (string | HTMLElement)[]
+  children: Html
 ): void => {
   const localParent =
     typeof parent === 'string'
@@ -8,14 +10,13 @@ export const appendChild = (
       : parent
 
   if (localParent)
-    for (const child of children) {
+    for (const child of children)
       if (typeof child === 'string') {
-        const childNode: ChildNode = Array.from(
+        const childNodes: ChildNode[] = Array.from(
           new DOMParser().parseFromString(child, 'text/html').body.childNodes
-        )[0]
-        localParent.appendChild(childNode.cloneNode(true))
+        )
+        localParent.appendChild(childNodes[0].cloneNode(true))
       } else localParent.appendChild(child)
-    }
 }
 
 export const fetchCss = async (css: string) => {
