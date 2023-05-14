@@ -3,14 +3,19 @@ export interface Args<D, P> {
   props: P
 }
 
-type Convert<T, D, P> = T | (({ data, props }: Args<D, P>) => T)
+type Convert<T, D, P> = T | ((data: D, props: P) => T)
 
-export type Css<D, P> = {
-  selector: string
-  style: ({ data, props }: Args<D, P>) => {
-    [key: string]: string | number
-  }
-}[]
+export type Css<D, P> =
+  | (
+      | string
+      | {
+          selector: string
+          style: ({ data, props }: Args<D, P>) => {
+            [key: string]: string | number
+          }
+        }
+    )[]
+  | string
 
 export type DelegatedEvents<D, P> = {
   selector: string
@@ -19,7 +24,7 @@ export type DelegatedEvents<D, P> = {
     | (({ data, props }: Args<D, P>, event: Event, index: number) => void)
 }[]
 
-export interface Each<T> {
+interface Each<T> {
   contents: T[]
   render: (arg: T, index: number) => string | undefined
   events?: {
@@ -27,7 +32,7 @@ export interface Each<T> {
   }
 }
 
-export interface EachIf<T> {
+interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
@@ -40,7 +45,9 @@ export interface Events<D, P> {
   [key: string]: ({ data, props }: Args<D, P>, event: Event) => void
 }
 
-export interface If {
+export type Html = (string | HTMLElement)[]
+
+interface If {
   branches: {
     judge: boolean | unknown
     render: string
@@ -59,8 +66,8 @@ export interface Welify<T, D, P> {
   props?: P
   inheritances?: Inheritances<D, P>
   className?: string
-  html: Convert<string | Each<T> | EachIf<T> | If, D, P>
-  css?: string | Css<D, P>
+  html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
+  css?: Css<D, P>
   slot?: string
   events?: Events<D, P>
   delegatedEvents?: DelegatedEvents<D, P>

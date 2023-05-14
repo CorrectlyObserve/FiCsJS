@@ -1,6 +1,7 @@
-import { appendChild, convertType, toKebabCase } from './libs/utils'
-import { Each, EachIf, If, Welify } from './libs/welifyTypes'
-import { WelyElement } from './libs/welyElement'
+import { appendChild, toKebabCase } from '@/libs/utils'
+import { Css, Html, Welify } from '@/libs/welifyTypes'
+import { WelyElement } from '@/libs/welyElement'
+import cssUrl from '@/style.css?url'
 
 /*
 技術仕様
@@ -25,7 +26,7 @@ export const welify = <T, D, P>({
   slot,
   events,
   delegatedEvents
-}: Welify<T, D, P>): WelyElement<D, P> => {
+}: Welify<T, D, P>): HTMLElement => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
   else {
@@ -38,7 +39,6 @@ export const welify = <T, D, P>({
         constructor() {
           super()
           this.name = kebabName
-          this.id = this.name
 
           if (data) this.data = { ...data }
           if (props) this.props = { ...props }
@@ -50,62 +50,57 @@ export const welify = <T, D, P>({
             for (const localName of className.split(' '))
               this.classes.push(toKebabCase(localName))
 
-          const converter = convertType(
-            html,
-            { data: { ...this.data }, props: { ...this.props } } || {}
-          )
+          this.html = [...(html as Html)]
 
-          if (typeof (<string>converter) === 'string')
-            this.html = <string>converter
-          else {
-            const ifHtml = <If>converter
-            const eachHtml = <Each<T>>converter
-            const eachIfHtml = <EachIf<T>>converter
+          // const converter =
+          //   typeof html === 'function'
+          //     ? html({ ...this.data }, { ...this.props })
+          //     : html
 
-            if ('contents' in eachIfHtml && 'branches' in eachIfHtml) {
-              this.isEach = true
+          // if (typeof converter === 'string') this.html = converter
+          // else if ('contents' in converter && 'branches' in converter) {
+          //   this.isEach = true
 
-              let html: string = ''
+          //   let html: string = ''
 
-              html += eachIfHtml.contents
-                .map((content, index) => {
-                  for (const branch of eachIfHtml.branches)
-                    if (branch.judge(content))
-                      return branch.render(content, index)
+          //   html += converter.contents
+          //     .map((content, index) => {
+          //       for (const branch of converter.branches)
+          //         if (branch.judge(content))
+          //           return branch.render(content, index)
 
-                  if (eachIfHtml.fallback)
-                    return eachIfHtml.fallback(content, index)
+          //       if (converter.fallback)
+          //         return converter.fallback(content, index)
 
-                  return ''
-                })
-                .join('')
+          //       return ''
+          //     })
+          //     .join('')
 
-              this.html = html
-            } else if ('contents' in eachHtml) {
-              this.isEach = true
+          //   this.html = html
+          // } else if ('contents' in converter) {
+          //   this.isEach = true
 
-              this.html = eachHtml.contents.reduce(
-                (prev: string, self: T, index: number): string =>
-                  prev + eachHtml.render(self, index),
-                ''
-              )
-            } else if ('branches' in ifHtml) {
-              let html: string = ''
+          //   this.html = converter.contents.reduce(
+          //     (prev: string, self: T, index: number): string =>
+          //       prev + converter.render(self, index),
+          //     ''
+          //   )
+          // } else if ('branches' in converter) {
+          //   let html: string = ''
 
-              for (const branch of ifHtml.branches)
-                if (branch.judge) {
-                  html = branch.render
-                  break
-                }
+          //   for (const branch of converter.branches)
+          //     if (branch.judge) {
+          //       html = branch.render
+          //       break
+          //     }
 
-              if (html === '' && ifHtml.fallback) html = ifHtml.fallback
+          //   if (html === '' && converter.fallback) html = converter.fallback
 
-              this.html = html
-            }
-          }
+          //   this.html = html
+          // }
 
           if (css !== undefined)
-            this.css = typeof css === 'string' ? css : [...css]
+            this.css = typeof css === 'string' ? css : ([...css] as Css<D, P>)
 
           if (slot) this.slotContent = slot
 
@@ -122,7 +117,7 @@ export const welify = <T, D, P>({
 }
 
 const child = welify({
-  name: 'wely-1',
+  name: 'child',
   data: {
     count: 1,
     message: 'Hello',
@@ -130,10 +125,9 @@ const child = welify({
     back: 'black',
     childMessage: 'Child hello'
   },
-  props: { color: '' },
-  html: ({ data, props: { color } }) =>
-    `<p class="hello">${color}</p><div><p class="hello">${data.childMessage}</p></div>`,
+  html: ['<div><p>aaa</p></div>'],
   css: [
+    cssUrl,
     {
       selector: 'p',
       style: ({ data: { color } }) => ({
@@ -160,7 +154,7 @@ const child = welify({
 })
 
 const parent = welify({
-  name: 'wely1',
+  name: 'parent',
   data: {
     color: 'green'
   },
@@ -170,7 +164,7 @@ const parent = welify({
       props: ({ color }) => ({ color: color })
     }
   ],
-  html: () => child.outerHTML
+  html: [child, '<p>Sample</p>']
 })
 
 // const wely2 = welify({
@@ -255,7 +249,7 @@ const parent = welify({
 //   ]
 // })
 
-export const mountWely = (parent: string, elements: string) =>
-  appendChild(<HTMLElement>document.getElementById(parent), elements)
+export const mountWely = (parent: string, children: Html) =>
+  appendChild(parent, children)
 
-mountWely('app', parent.outerHTML)
+mountWely('app', [parent])

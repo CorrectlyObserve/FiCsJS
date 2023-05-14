@@ -1,22 +1,26 @@
-import { Args } from './welifyTypes'
+import { Html } from '@/libs/welifyTypes'
 
 export const appendChild = (
-  parent: HTMLElement | ShadowRoot,
-  children: string
+  parent: string | ShadowRoot | HTMLElement,
+  children: Html
 ): void => {
-  const fragment = document.createDocumentFragment()
+  const localParent =
+    typeof parent === 'string'
+      ? document.getElementById(<string>parent)
+      : parent
 
-  const childNodes: ChildNode[] = Array.from(
-    new DOMParser().parseFromString(children, 'text/html').body.childNodes
-  )
+  if (localParent)
+    for (let child of children) {
+      if (typeof child === 'string') {
+        const childNode: ChildNode = Array.from(
+          new DOMParser().parseFromString(child, 'text/html').body.childNodes
+        )[0]
+        child = childNode.cloneNode(true) as HTMLElement
+      }
 
-  for (const child of childNodes) fragment.appendChild(child.cloneNode(true))
-
-  parent?.appendChild(fragment)
+      localParent.appendChild(child)
+    }
 }
-
-export const convertType = <T, D, P>(html: any, args: Args<D, P>) =>
-  typeof html === 'function' ? <T>html(args) : <T>html
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
