@@ -50,54 +50,37 @@ export const welify = <T, D, P>({
             for (const localName of className.split(' '))
               this.classes.push(toKebabCase(localName))
 
-          this.html = [...(html as Html)]
+          const converter =
+            typeof html === 'function'
+              ? html({ ...this.data }, { ...this.props })
+              : html
 
-          // const converter =
-          //   typeof html === 'function'
-          //     ? html({ ...this.data }, { ...this.props })
-          //     : html
+          if ('contents' in converter) {
+            this.isEach = true
 
-          // if (typeof converter === 'string') this.html = converter
-          // else if ('contents' in converter && 'branches' in converter) {
-          //   this.isEach = true
+            if ('branches' in converter)
+              converter.contents.forEach((content, index) => {
+                for (const branch of converter.branches)
+                  if (branch.judge(content))
+                    this.html.push(branch.render(content, index))
 
-          //   let html: string = ''
+                if (converter.fallback)
+                  this.html.push(converter.fallback(content, index))
+              })
+            else
+              converter.contents.forEach((content, index) =>
+                this.html.push(converter.render(content, index) ?? '')
+              )
+          } else if ('branches' in converter) {
+            for (const branch of converter.branches)
+              if (branch.judge) {
+                this.html.push(branch.render)
+                break
+              }
 
-          //   html += converter.contents
-          //     .map((content, index) => {
-          //       for (const branch of converter.branches)
-          //         if (branch.judge(content))
-          //           return branch.render(content, index)
-
-          //       if (converter.fallback)
-          //         return converter.fallback(content, index)
-
-          //       return ''
-          //     })
-          //     .join('')
-
-          //   this.html = html
-          // } else if ('contents' in converter) {
-          //   this.isEach = true
-
-          //   this.html = converter.contents.reduce(
-          //     (prev: string, self: T, index: number): string =>
-          //       prev + converter.render(self, index),
-          //     ''
-          //   )
-          // } else if ('branches' in converter) {
-          //   let html: string = ''
-
-          //   for (const branch of converter.branches)
-          //     if (branch.judge) {
-          //       html = branch.render
-          //       break
-          //     }
-
-          //   if (html === '' && converter.fallback) html = converter.fallback
-
-          //   this.html = html
-          // }
+            if (this.html.length === 0 && converter.fallback)
+              this.html.push(converter.fallback)
+          } else this.html = [...converter]
 
           if (css !== undefined)
             this.css = typeof css === 'string' ? css : ([...css] as Css<D, P>)
@@ -125,7 +108,7 @@ const child = welify({
     back: 'black',
     childMessage: 'Child hello'
   },
-  html: ['<div><p>aaa</p></div>'],
+  html: (_, props: { color: string }) => [`<div><p>${props.color}</p></div>`],
   css: [
     cssUrl,
     {
@@ -167,89 +150,89 @@ const parent = welify({
   html: [child, '<p>Sample</p>']
 })
 
-// const wely2 = welify({
-//   name: 'Wely2',
-//   data: {
-//     numbers: [1, 2, 3],
-//     color: 'green'
-//   },
-//   html: ({ data: { numbers } }) => ({
-//     contents: numbers as number[],
-//     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
-//   }),
-//   events: {
-//     click: ({ data: { numbers } }) => console.log(numbers)
-//   },
-//   delegatedEvents: [
-//     {
-//       selector: 'p',
-//       click: ({ data: { numbers } }, _, index) => console.log(numbers[index])
-//     }
-//   ]
-// })
+const wely2 = welify({
+  name: 'Wely2',
+  data: {
+    numbers: [1, 2, 3],
+    color: 'green'
+  },
+  html: ({ numbers }) => ({
+    contents: numbers as number[],
+    render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
+  }),
+  events: {
+    click: ({ data: { numbers } }) => console.log(numbers)
+  },
+  delegatedEvents: [
+    {
+      selector: 'p',
+      click: ({ data: { numbers } }, _, index) => console.log(numbers[index])
+    }
+  ]
+})
 
-// const wely3 = welify({
-//   name: 'wely3',
-//   data: {
-//     number: 100,
-//     text: 'AA',
-//     count: 1,
-//     message: 'Hello',
-//     color: 'red',
-//     back: 'black',
-//     _childMessage: 'Child hello'
-//   },
-//   html: ({ data: { number } }) => ({
-//     branches: [
-//       {
-//         judge: number >= 100,
-//         render: child.outerHTML
-//       },
-//       {
-//         judge: number < 100,
-//         render: `<p>bbb</p>`
-//       }
-//     ],
-//     fallback: `<p>${number}</p>`
-//   }),
-//   delegatedEvents: [
-//     {
-//       selector: 'slot',
-//       click: ({ data: { number, text } }, e, index) =>
-//         console.log(number, text, e, index)
-//     }
-//   ]
-// })
+const wely3 = welify({
+  name: 'wely3',
+  data: {
+    number: 100,
+    text: 'AA',
+    count: 1,
+    message: 'Hello',
+    color: 'red',
+    back: 'black',
+    _childMessage: 'Child hello'
+  },
+  html: ({ number }) => ({
+    branches: [
+      {
+        judge: number >= 100,
+        render: child.outerHTML
+      },
+      {
+        judge: number < 100,
+        render: `<p>bbb</p>`
+      }
+    ],
+    fallback: `<p>${number}</p>`
+  }),
+  delegatedEvents: [
+    {
+      selector: 'slot',
+      click: ({ data: { number, text } }, e, index) =>
+        console.log(number, text, e, index)
+    }
+  ]
+})
 
-// const wely4 = welify({
-//   name: 'Wely4',
-//   data: {
-//     numbers: [1, 2, 3]
-//   },
-//   html: ({ data: { numbers } }) => ({
-//     contents: numbers as number[],
-//     branches: [
-//       {
-//         judge: (arg: number) => arg === 100,
-//         render: (arg: number, index) =>
-//           `<p class="class-${index}">${arg * 2}</p>`
-//       },
-//       {
-//         judge: (arg: number) => typeof arg !== 'number',
-//         render: (arg: number, index) => `<p class="class-${index}">${arg}</p>`
-//       }
-//     ],
-//     fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
-//   }),
-//   delegatedEvents: [
-//     {
-//       selector: '.class-z',
-//       click: ({ data: { numbers } }, e, index) => console.log(numbers[index], e)
-//     }
-//   ]
-// })
+const wely4 = welify({
+  name: 'Wely4',
+  data: {
+    numbers: [1, 2, 3]
+  },
+  html: ({ numbers }) => ({
+    contents: numbers as number[],
+    branches: [
+      {
+        judge: (arg: number) => arg === 100,
+        render: (arg: number, index) =>
+          `<p class="class-${index}">${arg * 2}</p>`
+      },
+      {
+        judge: (arg: number) => typeof arg !== 'number',
+        render: (arg: number, index) => `<p class="class-${index}">${arg}</p>`
+      }
+    ],
+    fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
+  }),
+  delegatedEvents: [
+    {
+      selector: '.class-z',
+      click: ({ data: { numbers } }, e, index) => console.log(numbers[index], e)
+    }
+  ]
+})
 
-export const mountWely = (parent: string, children: Html) =>
+export const mountWely = (parent: string, children: Html[]) =>
   appendChild(parent, children)
 
-mountWely('app', [parent])
+mountWely('app', [parent, wely2, wely3, wely4])
