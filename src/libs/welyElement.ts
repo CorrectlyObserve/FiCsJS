@@ -19,9 +19,9 @@ export class WelyElement<D, P> extends HTMLElement {
   props: P = <P>{}
   inheritances: Inheritances<D, P> = []
   classes: string[] = []
-  html: Html = []
+  html: Html[] = []
   css?: Css<D, P>
-  slotContent?: string | HTMLElement
+  slotContent?: Html
   events: Events<D, P> = {}
   delegatedEvents: DelegatedEvents<D, P> = []
   isEach: boolean = false
@@ -39,7 +39,7 @@ export class WelyElement<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        for (let element of inheritance.elements as WelyElement<D, P>[]) {
+        for (let element of inheritance.elements as WelyElement<D, P>[])
           if (
             this._inheritedSet.has(element.id) ||
             this.shadowRoot.querySelector(`#${element.id}`)
@@ -53,7 +53,6 @@ export class WelyElement<D, P> extends HTMLElement {
             if (!this._inheritedSet.has(element.id))
               this._inheritedSet.add(element.id)
           } else this._inheritedSet.delete(element.id)
-        }
       })
 
     this.setAttribute('class', this.classes.join(' '))
@@ -70,6 +69,7 @@ export class WelyElement<D, P> extends HTMLElement {
 
             try {
               const res = await fetch(localCss)
+              console.log(await res.text())
 
               if (res.status === 200) css.textContent += await res.text()
               else throw new Error(`${res.status} ${res.statusText}`)
