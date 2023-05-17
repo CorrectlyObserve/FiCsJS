@@ -26,7 +26,7 @@ export type DelegatedEvents<D, P> = {
 
 interface Each<T> {
   contents: T[]
-  render: (arg: T, index: number) => string | undefined
+  render: (arg: T, index: number) => Html | undefined
   events?: {
     [key: string]: (arg: T) => void
   }
@@ -36,9 +36,9 @@ interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => string
+    render: (arg: T, index: number) => Html
   }[]
-  fallback?: (arg: T, index: number) => string
+  fallback?: (arg: T, index: number) => Html
 }
 
 export interface Events<D, P> {
@@ -50,9 +50,9 @@ export type Html = (string | HTMLElement)[]
 interface If {
   branches: {
     judge: boolean | unknown
-    render: string
+    render: Html
   }[]
-  fallback?: string
+  fallback?: Html
 }
 
 export type Inheritances<D, P> = {
