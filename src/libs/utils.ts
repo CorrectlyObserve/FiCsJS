@@ -2,7 +2,7 @@ import { Html } from '@/libs/welifyTypes'
 
 export const appendChild = (
   parent: string | ShadowRoot | HTMLElement,
-  children: Html
+  children: Html[]
 ): void => {
   const localParent =
     typeof parent === 'string'
