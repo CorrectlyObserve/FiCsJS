@@ -1,6 +1,6 @@
 import { appendChild, toKebabCase } from '@/libs/utils'
-import { Css, Html, Welify } from '@/libs/welifyTypes'
-import { WelyElement } from '@/libs/welyElement'
+import { Css, Html, Welify } from '@/libs/types'
+import { Wely } from '@/libs/class'
 import cssUrl from '@/style.css?url'
 
 /*
@@ -35,7 +35,7 @@ export const welify = <T, D, P>({
 
     customElements.define(
       welyName,
-      class extends WelyElement<D, P> {
+      class extends Wely<D, P> {
         constructor() {
           super()
           this.name = kebabName
@@ -95,7 +95,7 @@ export const welify = <T, D, P>({
       }
     )
 
-    return new (customElements.get(welyName) as { new (): WelyElement<D, P> })()
+    return new (customElements.get(welyName) as { new (): Wely<D, P> })()
   }
 }
 
