@@ -108,7 +108,10 @@ const child = welify({
     back: 'black',
     childMessage: 'Child hello'
   },
-  html: (_, props: { color: string }) => [`<div><p>${props.color}</p></div>`],
+  html: (_, props: { color: string }) => [
+    `<div><p class="hello" style="display: inline">${props.color}</p></div>`,
+    `<div><p>${props.color}</p></div>`
+  ],
   css: [
     cssUrl,
     {
@@ -130,7 +133,7 @@ const child = welify({
   },
   delegatedEvents: [
     {
-      selector: 'div .hello',
+      selector: 'p.hello',
       click: ({ data: { message } }) => console.log(message)
     }
   ]
@@ -185,7 +188,7 @@ const wely3 = welify({
   html: ({ number }) => ({
     branches: [
       {
-        judge: number >= 100,
+        judge: number > 100,
         render: child.outerHTML
       },
       {
@@ -193,8 +196,9 @@ const wely3 = welify({
         render: `<p>bbb</p>`
       }
     ],
-    fallback: `<p>${number}</p>`
+    fallback: `<slot />`
   }),
+  slot: `<p>AAA</p>`,
   delegatedEvents: [
     {
       selector: 'slot',
