@@ -7,9 +7,9 @@ import {
   Events,
   Html,
   Inheritances
-} from '@/libs/welifyTypes'
+} from '@/libs/types'
 
-export class WelyElement<D, P> extends HTMLElement {
+export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
@@ -39,14 +39,14 @@ export class WelyElement<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        for (let element of inheritance.elements as WelyElement<D, P>[])
+        for (let element of inheritance.elements as Wely<D, P>[])
           if (
             this._inheritedSet.has(element.id) ||
             this.shadowRoot.querySelector(`#${element.id}`)
           ) {
             const child = this.shadowRoot.querySelector(
               `#${element.id}`
-            ) as WelyElement<D, P>
+            ) as Wely<D, P>
 
             child.props = { ...inheritance.props(this.data) }
 
