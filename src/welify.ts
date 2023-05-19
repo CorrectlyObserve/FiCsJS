@@ -1,6 +1,6 @@
 import { appendChild, toKebabCase } from '@/libs/utils'
-import { Css, Html,  } from '@/libs/Types'
-import { Element } from '@/libs/Element'
+import { Css, Html,  } from '@/libs/types'
+import {  } from '@/libs/class'
 import cssUrl from '@/style.css?url'
 
 /*
@@ -35,7 +35,7 @@ export const  = <T, D, P>({
 
     customElements.define(
       Name,
-      class extends Element<D, P> {
+      class extends <D, P> {
         constructor() {
           super()
           this.name = kebabName
@@ -95,7 +95,7 @@ export const  = <T, D, P>({
       }
     )
 
-    return new (customElements.get(Name) as { new (): Element<D, P> })()
+    return new (customElements.get(Name) as { new (): <D, P> })()
   }
 }
 
