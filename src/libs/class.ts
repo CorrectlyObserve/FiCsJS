@@ -7,9 +7,9 @@ import {
   Events,
   Html,
   Inheritances
-} from '@/libs/Types'
+} from '@/libs/types'
 
-export class Element<D, P> extends HTMLElement {
+export class <D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
@@ -39,14 +39,14 @@ export class Element<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        for (let element of inheritance.elements as Element<D, P>[])
+        for (let element of inheritance.elements as <D, P>[])
           if (
             this._inheritedSet.has(element.id) ||
             this.shadowRoot.querySelector(`#${element.id}`)
           ) {
             const child = this.shadowRoot.querySelector(
               `#${element.id}`
-            ) as Element<D, P>
+            ) as <D, P>
 
             child.props = { ...inheritance.props(this.data) }
 
