@@ -11,6 +11,7 @@ import {
 
 export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
+  private _welyId: string = ''
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
 
@@ -29,7 +30,7 @@ export class Wely<D, P> extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
-    this.id = createUniqueId()
+    this._welyId = createUniqueId()
   }
 
   connectedCallback(): void {
@@ -39,7 +40,11 @@ export class Wely<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        for (let element of inheritance.elements as Wely<D, P>[])
+        const { elements, props } = inheritance
+
+        for (let element of elements as Wely<D, P>[]) {
+          element.setAttribute('id', this._welyId)
+
           if (
             this._inheritedSet.has(element.id) ||
             this.shadowRoot.querySelector(`#${element.id}`)
@@ -48,11 +53,14 @@ export class Wely<D, P> extends HTMLElement {
               `#${element.id}`
             ) as Wely<D, P>
 
-            child.props = { ...inheritance.props(this.data) }
+            child.props = { ...props(this.data) }
 
             if (!this._inheritedSet.has(element.id))
               this._inheritedSet.add(element.id)
           } else this._inheritedSet.delete(element.id)
+
+          element.removeAttribute('id')
+        }
       })
 
     this.setAttribute('class', this.classes.join(' '))
@@ -61,7 +69,7 @@ export class Wely<D, P> extends HTMLElement {
       const css = document.createElement('style')
 
       if (typeof this.css === 'string') css.textContent = this.css
-      else if (Array.isArray(this.css) && this.css.length > 0) {
+      else if (Array.isArray(this.css) && this.css.length > 0)
         this.css.forEach(async localCss => {
           if (typeof localCss === 'string') {
             if (!(localCss as string).endsWith('.css'))
@@ -91,7 +99,6 @@ export class Wely<D, P> extends HTMLElement {
             css.textContent += `${localCss.selector} {${style}}`
           }
         })
-      }
 
       this.shadowRoot.appendChild(css)
     }
@@ -102,15 +109,13 @@ export class Wely<D, P> extends HTMLElement {
       const keys = Object.keys(this.events)
 
       if (keys.length > 0)
-        for (const listener of keys) {
-          const eventListener = (event: Event) =>
+        for (const listener of keys)
+          this.addEventListener(listener, (event: Event) =>
             this.events[listener](
               { data: { ...this.data }, props: { ...this.props } },
               event
             )
-
-          this.addEventListener(listener, eventListener)
-        }
+          )
 
       if (this.delegatedEvents.length > 0)
         for (const delegatedEvent of this.delegatedEvents) {
