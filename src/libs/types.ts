@@ -1,4 +1,4 @@
-export interface Args<D, P> {
+interface Args<D, P> {
   data: D
   props: P
 }
@@ -17,19 +17,9 @@ export type Css<D, P> =
     )[]
   | string
 
-export type DelegatedEvents<D, P> = {
-  selector: string
-  [key: string]:
-    | string
-    | (({ data, props }: Args<D, P>, event: Event, index: number) => void)
-}[]
-
 interface Each<T> {
   contents: T[]
   render: (arg: T, index: number) => Html | undefined
-  events?: {
-    [key: string]: (arg: T) => void
-  }
 }
 
 interface EachIf<T> {
@@ -41,9 +31,11 @@ interface EachIf<T> {
   fallback?: (arg: T, index: number) => Html
 }
 
-export interface Events<D, P> {
-  [key: string]: ({ data, props }: Args<D, P>, event: Event) => void
-}
+export type Events<D, P> = {
+  handler: string
+  selector?: string
+  method: ({ data, props }: Args<D, P>, event: Event, index?: number) => void
+}[]
 
 export type Html = string | HTMLElement
 
@@ -70,5 +62,4 @@ export interface Welify<T, D, P> {
   css?: Css<D, P>
   slot?: string
   events?: Events<D, P>
-  delegatedEvents?: DelegatedEvents<D, P>
 }

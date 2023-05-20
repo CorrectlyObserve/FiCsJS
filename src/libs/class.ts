@@ -1,11 +1,4 @@
-import {
-  Args,
-  Css,
-  DelegatedEvents,
-  Events,
-  Html,
-  Inheritances
-} from '@/libs/types'
+import { Css, Events, Html, Inheritances } from '@/libs/types'
 import { appendChild, toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
@@ -32,8 +25,7 @@ export class Wely<D, P> extends HTMLElement {
   html: Html[] = []
   css?: Css<D, P>
   slotContent?: Html
-  events: Events<D, P> = {}
-  delegatedEvents: DelegatedEvents<D, P> = []
+  events: Events<D, P> = []
   isEach: boolean = false
 
   constructor() {
@@ -109,43 +101,44 @@ export class Wely<D, P> extends HTMLElement {
 
     if (this.slotContent) appendChild(this, [this.slotContent])
 
-    if (this) {
-      const keys = Object.keys(this.events)
+    if (this && this.events.length > 0) {
+      for (const obj of this.events) {
+        const { handler, selector, method } = obj
 
-      if (keys.length > 0)
-        for (const listener of keys)
-          this.addEventListener(listener, (event: Event) =>
-            this.events[listener](
-              { data: { ...this.data }, props: { ...this.props } },
-              event
-            )
-          )
+        if (selector) {
+          const targets: Element[] = (() => {
+            const createArr = (selector: string) =>
+              Array.from(this.shadowRoot.querySelectorAll(`:host ${selector}`))
 
-      if (this.delegatedEvents.length > 0)
-        for (const delegatedEvent of this.delegatedEvents) {
-          if (delegatedEvent.selector === '') break
+            if (/^.+(.|#).+$/.test(selector)) {
+              const symbol = selector.includes('.') ? '.' : '#'
+              const [tag, attr] = selector.split(symbol)
 
-          const { selector, ...event } = delegatedEvent
-          const key = Object.keys(event)[0]
-          const targets = Array.from(
-            this.shadowRoot.querySelectorAll(`:host > ${selector}`)
-          )
-          const listener = event[key] as (
-            values: Args<D, P>,
-            event: Event,
-            index?: number
-          ) => void
+              return createArr(tag).filter(
+                element =>
+                  element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
+              )
+            }
 
-          if (targets.length > 0)
+            return createArr(selector)
+          })()
+
+          if (targets.length === 0)
+            throw Error(`The element does not exist or is not applicable...`)
+          else
             for (let i = 0; i < targets.length; i++)
-              targets[i].addEventListener(key, (localEvent: Event) =>
-                listener(
+              targets[i].addEventListener(handler, (event: Event) =>
+                method(
                   { data: { ...this.data }, props: { ...this.props } },
-                  localEvent,
+                  event,
                   this.isEach ? i : undefined
                 )
               )
-        }
+        } else
+          this.addEventListener(handler, (event: Event) =>
+            method({ data: { ...this.data }, props: { ...this.props } }, event)
+          )
+      }
     }
 
     this._isInitialized = true
