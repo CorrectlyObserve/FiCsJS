@@ -25,8 +25,7 @@ export const welify = <T, D, P>({
   html,
   css,
   slot,
-  events,
-  delegatedEvents
+  events
 }: Welify<T, D, P>): HTMLElement => {
   if (name === '' || name === undefined)
     throw new Error('The name argument is not defined...')
@@ -88,10 +87,7 @@ export const welify = <T, D, P>({
 
           if (slot) this.slotContent = slot
 
-          this.events = { ...events }
-
-          if (delegatedEvents && delegatedEvents.length > 0)
-            this.delegatedEvents = [...delegatedEvents]
+          this.events = [...(events ?? [])]
         }
       }
     )
@@ -133,13 +129,15 @@ const child = welify({
       })
     }
   ],
-  events: {
-    click: ({ data: { count } }) => console.log(count++)
-  },
-  delegatedEvents: [
+  events: [
     {
-      selector: 'p.hello',
-      click: ({ data: { message } }) => console.log(message)
+      handler: 'click',
+      method: ({ data: { count } }) => console.log(count++)
+    },
+    {
+      handler: 'click',
+      selector: 'p',
+      method: ({ data: { message } }) => console.log(message)
     }
   ]
 })
