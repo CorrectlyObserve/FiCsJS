@@ -136,7 +136,7 @@ const child = ({
     },
     {
       handler: 'click',
-      selector: 'p',
+      selector: 'p.hello',
       method: ({ data: { message } }) => console.log(message)
     }
   ]
