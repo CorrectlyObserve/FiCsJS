@@ -96,6 +96,11 @@ export const welify = <T, D, P>({
   }
 }
 
+interface Props {
+  color: string
+  click: (message: string) => void
+}
+
 const child = welify({
   name: 'child',
   data: {
@@ -105,9 +110,9 @@ const child = welify({
     back: 'black',
     childMessage: 'Child hello'
   },
-  html: (_, props: { color: string }) => [
-    `<div><p class="hello" style="display: inline">${props.color}</p></div>`,
-    `<p>${props.color}</p>`
+  html: (_, { color }: Props) => [
+    `<div><p class="hello" style="display: inline">${color}</p></div>`,
+    `<p>${color}</p>`
   ],
   css: [
     // cssUrl,
@@ -132,23 +137,26 @@ const child = welify({
   events: [
     {
       handler: 'click',
-      method: ({ data: { count } }) => console.log(count++)
+      method: ({ count }: { count: number }) => console.log(count++)
     },
     {
       handler: 'click',
-      selector: 'p.hello',
-      method: ({ data: { message } }) => console.log(message)
+      selector: 'div',
+      method: ({ message }, { click }: Props) => click(message)
     }
   ]
 })
 
 const parent = welify({
   name: 'parent',
-  data: { color: 'green' },
+  data: {
+    color: 'green',
+    click: (message: string) => console.log(message)
+  },
   inheritances: [
     {
       elements: [child],
-      props: ({ color }) => ({ color: color })
+      props: ({ color, click }) => ({ color, click })
     }
   ],
   html: [child, '<p>Sample</p>']
