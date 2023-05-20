@@ -1,5 +1,3 @@
-import { createUniqueId } from '@/libs/generator'
-import { appendChild, toKebabCase } from '@/libs/utils'
 import {
   Args,
   Css,
@@ -8,10 +6,21 @@ import {
   Html,
   Inheritances
 } from '@/libs/types'
+import { appendChild, toKebabCase } from '@/libs/utils'
+
+const generate = function* (): Generator<number> {
+  let i = 1
+
+  while (true) {
+    yield i
+    i++
+  }
+}
+
+const generated: Generator<number> = generate()
 
 export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
-  private _welyId: string = ''
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
 
@@ -30,7 +39,7 @@ export class Wely<D, P> extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
-    this._welyId = createUniqueId()
+    this.setAttribute('id', `welified-id${generated.next().value}`)
   }
 
   connectedCallback(): void {
@@ -42,9 +51,7 @@ export class Wely<D, P> extends HTMLElement {
       this.inheritances.forEach(inheritance => {
         const { elements, props } = inheritance
 
-        for (let element of elements as Wely<D, P>[]) {
-          element.setAttribute('id', this._welyId)
-
+        for (let element of elements as Wely<D, P>[])
           if (
             this._inheritedSet.has(element.id) ||
             this.shadowRoot.querySelector(`#${element.id}`)
@@ -58,9 +65,6 @@ export class Wely<D, P> extends HTMLElement {
             if (!this._inheritedSet.has(element.id))
               this._inheritedSet.add(element.id)
           } else this._inheritedSet.delete(element.id)
-
-          element.removeAttribute('id')
-        }
       })
 
     this.setAttribute('class', this.classes.join(' '))
