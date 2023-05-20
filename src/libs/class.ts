@@ -14,6 +14,7 @@ const generated: Generator<number> = generate()
 
 export class <D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
+  readonly Id: string = ''
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
 
@@ -31,7 +32,7 @@ export class <D, P> extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
-    this.setAttribute('id', `welified-id${generated.next().value}`)
+    this.Id = `welified-id${generated.next().value}`
   }
 
   connectedCallback(): void {
@@ -43,20 +44,20 @@ export class <D, P> extends HTMLElement {
       this.inheritances.forEach(inheritance => {
         const { elements, props } = inheritance
 
-        for (let element of elements as <D, P>[])
-          if (
-            this._inheritedSet.has(element.id) ||
-            this.shadowRoot.querySelector(`#${element.id}`)
-          ) {
-            const child = this.shadowRoot.querySelector(
-              `#${element.id}`
-            ) as <D, P>
+        for (let element of elements as <D, P>[]) {
+          const { Id } = element
+          element.setAttribute('id', Id)
+          const child = this.shadowRoot.querySelector(`#${Id}`)
 
-            child.props = { ...props(this.data) }
+          if (this._inheritedSet.has(Id) || child) {
+            const Child = child as <D, P>
+            Child.props = { ...props(this.data) }
 
-            if (!this._inheritedSet.has(element.id))
-              this._inheritedSet.add(element.id)
-          } else this._inheritedSet.delete(element.id)
+            if (!this._inheritedSet.has(Id)) this._inheritedSet.add(Id)
+          } else this._inheritedSet.delete(Id)
+
+          element.removeAttribute('id')
+        }
       })
 
     this.setAttribute('class', this.classes.join(' '))
@@ -110,7 +111,7 @@ export class <D, P> extends HTMLElement {
             const createArr = (selector: string) =>
               Array.from(this.shadowRoot.querySelectorAll(`:host ${selector}`))
 
-            if (/^.+(.|#).+$/.test(selector)) {
+            if (/^.+(\.|#).+$/.test(selector)) {
               const symbol = selector.includes('.') ? '.' : '#'
               const [tag, attr] = selector.split(symbol)
 
@@ -129,14 +130,15 @@ export class <D, P> extends HTMLElement {
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(handler, (event: Event) =>
                 method(
-                  { data: { ...this.data }, props: { ...this.props } },
+                  { ...this.data },
+                  { ...this.props },
                   event,
                   this.isEach ? i : undefined
                 )
               )
         } else
           this.addEventListener(handler, (event: Event) =>
-            method({ data: { ...this.data }, props: { ...this.props } }, event)
+            method({ ...this.data }, { ...this.props }, event)
           )
       }
     }
