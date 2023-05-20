@@ -29,17 +29,7 @@ interface EachIf<T> {
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: (
-    {
-      data,
-      props
-    }: {
-      data: D
-      props: P
-    },
-    event: Event,
-    index?: number
-  ) => void
+  method: (data: D, props: P, event: Event, index?: number) => void
 }[]
 
 export type Html = string | HTMLElement
