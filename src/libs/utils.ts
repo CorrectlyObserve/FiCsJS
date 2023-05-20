@@ -1,4 +1,4 @@
-import { Html } from '@/libs/welifyTypes'
+import { Html } from '@/libs/types'
 
 export const appendChild = (
   parent: string | ShadowRoot | HTMLElement,
