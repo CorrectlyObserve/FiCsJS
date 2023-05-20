@@ -136,7 +136,7 @@ const child = welify({
     },
     {
       handler: 'click',
-      selector: 'p',
+      selector: 'p.hello',
       method: ({ data: { message } }) => console.log(message)
     }
   ]
