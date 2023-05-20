@@ -106,20 +106,34 @@ export class Wely<D, P> extends HTMLElement {
         const { handler, selector, method } = obj
 
         if (selector) {
-          const targets = Array.from(
-            this.shadowRoot.querySelectorAll(`:host > ${selector}`)
-          )
+          const targets: Element[] = (() => {
+            const createArr = (selector: string) =>
+              Array.from(this.shadowRoot.querySelectorAll(`:host ${selector}`))
 
-          if (targets.length === 0) break
+            if (/^.+(.|#).+$/.test(selector)) {
+              const symbol = selector.includes('.') ? '.' : '#'
+              const [tag, attr] = selector.split(symbol)
 
-          for (let i = 0; i < targets.length; i++)
-            targets[i].addEventListener(handler, (event: Event) =>
-              method(
-                { data: { ...this.data }, props: { ...this.props } },
-                event,
-                this.isEach ? i : undefined
+              return createArr(tag).filter(
+                element =>
+                  element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
               )
-            )
+            }
+
+            return createArr(selector)
+          })()
+
+          if (targets.length === 0)
+            throw Error(`The element does not exist or is not applicable...`)
+          else
+            for (let i = 0; i < targets.length; i++)
+              targets[i].addEventListener(handler, (event: Event) =>
+                method(
+                  { data: { ...this.data }, props: { ...this.props } },
+                  event,
+                  this.isEach ? i : undefined
+                )
+              )
         } else
           this.addEventListener(handler, (event: Event) =>
             method({ data: { ...this.data }, props: { ...this.props } }, event)
