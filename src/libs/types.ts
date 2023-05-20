@@ -1,8 +1,3 @@
-interface Args<D, P> {
-  data: D
-  props: P
-}
-
 type Convert<T, D, P> = T | ((data: D, props: P) => T)
 
 export type Css<D, P> =
@@ -10,7 +5,7 @@ export type Css<D, P> =
       | string
       | {
           selector: string
-          style: ({ data, props }: Args<D, P>) => {
+          style: ({ data, props }: { data: D; props: P }) => {
             [key: string]: string | number
           }
         }
@@ -34,7 +29,17 @@ interface EachIf<T> {
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: ({ data, props }: Args<D, P>, event: Event, index?: number) => void
+  method: (
+    {
+      data,
+      props
+    }: {
+      data: D
+      props: P
+    },
+    event: Event,
+    index?: number
+  ) => void
 }[]
 
 export type Html = string | HTMLElement
