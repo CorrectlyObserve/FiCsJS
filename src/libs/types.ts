@@ -1,19 +1,12 @@
 type Convert<T, D, P> = T | ((data: D, props: P) => T)
 
-export type Css<D, P> =
-  | (
-      | string
-      | {
-          selector: string
-          style: (
-            data: D,
-            props: P
-          ) => {
-            [key: string]: string | number
-          }
-        }
-    )[]
+export type Css<D, P> = (
   | string
+  | {
+      selector: string
+      style: (data: D, props: P) => { [key: string]: string | number }
+    }
+)[]
 
 interface Each<T> {
   contents: T[]
