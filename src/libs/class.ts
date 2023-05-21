@@ -85,10 +85,7 @@ export class Wely<D, P> extends HTMLElement {
             }
           } else if (localCss.selector && 'style' in localCss) {
             const style = Object.entries(
-              localCss.style({
-                data: { ...this.data },
-                props: { ...this.props }
-              })
+              localCss.style({ ...this.data }, { ...this.props })
             )
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
