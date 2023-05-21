@@ -5,7 +5,10 @@ export type Css<D, P> =
       | string
       | {
           selector: string
-          style: ({ data, props }: { data: D; props: P }) => {
+          style: (
+            data: D,
+            props: P
+          ) => {
             [key: string]: string | number
           }
         }
