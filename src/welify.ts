@@ -1,5 +1,5 @@
 import {  } from '@/libs/class'
-import { Css, Html,  } from '@/libs/types'
+import { Html,  } from '@/libs/types'
 import { appendChild, toKebabCase } from '@/libs/utils'
 // import cssUrl from '@/style.css?url'
 
@@ -82,11 +82,8 @@ export const  = <T, D, P>({
               this.html.push(converter.fallback)
           } else this.html = [...converter]
 
-          if (css !== undefined)
-            this.css = typeof css === 'string' ? css : ([...css] as Css<D, P>)
-
+          this.css = [...(css ?? [])]
           if (slot) this.slotContent = slot
-
           this.events = [...(events ?? [])]
         }
       }
@@ -159,7 +156,8 @@ const parent = ({
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: [child, '<p>Sample</p>']
+  html: [child, '<p>Sample</p>'],
+  css: [`p {color: green;}`]
 })
 
 // const 2 = ({
