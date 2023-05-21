@@ -122,14 +122,14 @@ const child = ({
     },
     {
       selector: 'p.hello',
-      style: ({ data: { color } }) => ({
+      style: ({ color }) => ({
         color: color,
         fontSize: '14px'
       })
     },
     {
       selector: 'div',
-      style: ({ data: { back } }: { data: { back: string } }) => ({
+      style: ({ back }) => ({
         background: back
       })
     }
