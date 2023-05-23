@@ -2,11 +2,11 @@ import { Css, Events, Html, Inheritances } from '@/libs/types'
 import { appendChild, toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
-  let i = 1
+  let n = 1
 
   while (true) {
-    yield i
-    i++
+    yield n
+    n++
   }
 }
 
