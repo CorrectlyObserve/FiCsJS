@@ -42,10 +42,11 @@ export class <D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        let { elements, props } = inheritance
-        elements = Array.isArray(elements) ? elements : [elements]
+        const { elements } = inheritance
 
-        for (let element of <<D, P>[]>elements) {
+        for (let element of <<D, P>[]>(
+          (Array.isArray(elements) ? elements : [elements])
+        )) {
           const { Id } = element
           element.setAttribute('id', Id)
           const has = this._inheritedSet.has(Id)
@@ -54,7 +55,7 @@ export class <D, P> extends HTMLElement {
             const child = <<D, P>>(
               this.shadowRoot.querySelector(`#${Id}`)
             )
-            child.props = { ...props(this.data) }
+            child.props = { ...inheritance.props(this.data) }
 
             if (!has) this._inheritedSet.add(Id)
           } else this._inheritedSet.delete(Id)
