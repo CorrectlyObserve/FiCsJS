@@ -1,23 +1,26 @@
-type Convert<T, D, P> = T | ((data: D, props: P) => T)
+interface Arg<D, P> {
+  data: D
+  props: P
+}
 
-export type Css<D, P> =
-  | (
-      | string
-      | {
-          selector: string
-          style: ({ data, props }: { data: D; props: P }) => {
-            [key: string]: string | number
-          }
-        }
-    )[]
+type Convert<T, D, P> = T | (({ data, props }: Arg<D, P>) => T)
+
+export type Css<D, P> = (
   | string
+  | {
+      selector: string
+      style: ({ data, props }: Arg<D, P>) => {
+        [key: string]: string | number
+      }
+    }
+)[]
 
-interface Each<T> {
+export interface Each<T> {
   contents: T[]
   render: (arg: T, index: number) => Html | undefined
 }
 
-interface EachIf<T> {
+export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
@@ -29,12 +32,12 @@ interface EachIf<T> {
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: (data: D, props: P, event: Event, index?: number) => void
+  method: ({ data, props }: Arg<D, P>, event: Event, index?: number) => void
 }[]
 
 export type Html = string | HTMLElement
 
-interface If {
+export interface If {
   branches: {
     judge: boolean | unknown
     render: Html
@@ -43,7 +46,7 @@ interface If {
 }
 
 export type Inheritances<D, P> = {
-  elements: HTMLElement[]
+  elements: HTMLElement | HTMLElement[]
   props: (data: D) => P
 }[]
 
@@ -53,7 +56,7 @@ export interface Welify<T, D, P> {
   props?: P
   inheritances?: Inheritances<D, P>
   className?: string
-  html: Convert<Html[] | Each<T> | EachIf<T> | If, D, P>
+  html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
   css?: Css<D, P>
   slot?: string
   events?: Events<D, P>
