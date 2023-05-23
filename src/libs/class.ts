@@ -42,10 +42,11 @@ export class Wely<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        let { elements, props } = inheritance
-        elements = Array.isArray(elements) ? elements : [elements]
+        const { elements } = inheritance
 
-        for (let element of <Wely<D, P>[]>elements) {
+        for (let element of <Wely<D, P>[]>(
+          (Array.isArray(elements) ? elements : [elements])
+        )) {
           const { welyId } = element
           element.setAttribute('id', welyId)
           const hasWely = this._inheritedSet.has(welyId)
@@ -54,7 +55,7 @@ export class Wely<D, P> extends HTMLElement {
             const child = <Wely<D, P>>(
               this.shadowRoot.querySelector(`#${welyId}`)
             )
-            child.props = { ...props(this.data) }
+            child.props = { ...inheritance.props(this.data) }
 
             if (!hasWely) this._inheritedSet.add(welyId)
           } else this._inheritedSet.delete(welyId)
