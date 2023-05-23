@@ -42,18 +42,21 @@ export class <D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        const { elements, props } = inheritance
+        let { elements, props } = inheritance
+        elements = Array.isArray(elements) ? elements : [elements]
 
-        for (let element of elements as <D, P>[]) {
+        for (let element of <<D, P>[]>elements) {
           const { Id } = element
           element.setAttribute('id', Id)
-          const child = this.shadowRoot.querySelector(`#${Id}`)
+          const has = this._inheritedSet.has(Id)
 
-          if (this._inheritedSet.has(Id) || child) {
-            const Child = child as <D, P>
-            Child.props = { ...props(this.data) }
+          if (has || this.shadowRoot.querySelector(`#${Id}`)) {
+            const child = <<D, P>>(
+              this.shadowRoot.querySelector(`#${Id}`)
+            )
+            child.props = { ...props(this.data) }
 
-            if (!this._inheritedSet.has(Id)) this._inheritedSet.add(Id)
+            if (!has) this._inheritedSet.add(Id)
           } else this._inheritedSet.delete(Id)
 
           element.removeAttribute('id')
@@ -62,34 +65,32 @@ export class <D, P> extends HTMLElement {
 
     this.setAttribute('class', this.classes.join(' '))
 
+    const arg = {
+      data: { ...this.data },
+      props: { ...this.props }
+    }
+
     if (this.css) {
       const css = document.createElement('style')
 
-      if (typeof this.css === 'string') css.textContent = this.css
-      else if (Array.isArray(this.css) && this.css.length > 0)
+      if (this.css.length > 0)
         this.css.forEach(async localCss => {
           if (typeof localCss === 'string') {
-            if (!(localCss as string).endsWith('.css'))
-              throw new Error('The file does not appear to be a CSS file.')
+            if (/^\S*\.css$/.test(localCss)) {
+              try {
+                const res = await fetch(localCss)
+                console.log(await res.text())
 
-            try {
-              const res = await fetch(localCss)
-              console.log(await res.text())
-
-              if (res.status === 200) css.textContent += await res.text()
-              else throw new Error(`${res.status} ${res.statusText}`)
-            } catch (error) {
-              throw new Error(
-                error instanceof Error ? error.message : error?.toString()
-              )
-            }
+                if (res.status === 200) css.textContent += await res.text()
+                else throw new Error(`${res.status} ${res.statusText}`)
+              } catch (error) {
+                throw new Error(
+                  error instanceof Error ? error.message : error?.toString()
+                )
+              }
+            } else css.textContent += localCss
           } else if (localCss.selector && 'style' in localCss) {
-            const style = Object.entries(
-              localCss.style({
-                data: { ...this.data },
-                props: { ...this.props }
-              })
-            )
+            const style = Object.entries(localCss.style(arg))
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
@@ -129,17 +130,10 @@ export class <D, P> extends HTMLElement {
           else
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(handler, (event: Event) =>
-                method(
-                  { ...this.data },
-                  { ...this.props },
-                  event,
-                  this.isEach ? i : undefined
-                )
+                method(arg, event, this.isEach ? i : undefined)
               )
         } else
-          this.addEventListener(handler, (event: Event) =>
-            method({ ...this.data }, { ...this.props }, event)
-          )
+          this.addEventListener(handler, (event: Event) => method(arg, event))
       }
     }
 

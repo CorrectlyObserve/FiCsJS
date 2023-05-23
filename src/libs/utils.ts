@@ -2,7 +2,7 @@ import { Html } from '@/libs/types'
 
 export const appendChild = (
   parent: string | ShadowRoot | HTMLElement,
-  children: Html[]
+  children: Html | Html[]
 ): void => {
   const localParent =
     typeof parent === 'string'
@@ -10,12 +10,12 @@ export const appendChild = (
       : parent
 
   if (localParent)
-    for (let child of children) {
+    for (let child of Array.isArray(children) ? children : [children]) {
       if (typeof child === 'string') {
         const childNode: ChildNode = Array.from(
           new DOMParser().parseFromString(child, 'text/html').body.childNodes
         )[0]
-        child = childNode.cloneNode(true) as HTMLElement
+        child = <HTMLElement>childNode.cloneNode(true)
       }
 
       localParent.appendChild(child)
