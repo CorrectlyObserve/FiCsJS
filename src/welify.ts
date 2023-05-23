@@ -1,5 +1,5 @@
 import { Wely } from '@/libs/class'
-import { Css, Html, Welify } from '@/libs/types'
+import { Each, EachIf, Html, If, Welify } from '@/libs/types'
 import { appendChild, toKebabCase } from '@/libs/utils'
 // import cssUrl from '@/style.css?url'
 
@@ -50,28 +50,34 @@ export const welify = <T, D, P>({
             for (const localName of className.split(' '))
               this.classes.push(toKebabCase(localName))
 
-          const converter =
+          let converter =
             typeof html === 'function'
-              ? html({ ...this.data }, { ...this.props })
+              ? html({ data: { ...this.data }, props: { ...this.props } })
               : html
 
-          if ('contents' in converter) {
+          if ('contents' in <Each<T> | EachIf<T>>converter) {
             this.isEach = true
 
-            if ('branches' in converter)
-              converter.contents.forEach((content, index) => {
-                for (const branch of converter.branches)
+            if ('branches' in <EachIf<T>>converter)
+              (<EachIf<T>>converter).contents.forEach((content, index) => {
+                for (const branch of (<EachIf<T>>converter).branches)
                   if (branch.judge(content))
                     this.html.push(branch.render(content, index))
 
-                if (converter.fallback)
-                  this.html.push(converter.fallback(content, index))
+                const fallback = (<EachIf<T>>converter)?.fallback
+
+                if (fallback !== undefined)
+                  this.html.push(fallback(content, index))
               })
             else
-              converter.contents.forEach((content, index) =>
-                this.html.push(converter.render(content, index) ?? '')
+              (<Each<T>>converter).contents.forEach((content, index) =>
+                this.html.push(
+                  (<Each<T>>converter).render(content, index) ?? ''
+                )
               )
-          } else if ('branches' in converter) {
+          } else if ('branches' in <If>converter) {
+            converter = <If>converter
+
             for (const branch of converter.branches)
               if (branch.judge) {
                 this.html.push(branch.render)
@@ -80,13 +86,13 @@ export const welify = <T, D, P>({
 
             if (this.html.length === 0 && converter.fallback)
               this.html.push(converter.fallback)
-          } else this.html = [...converter]
+          } else {
+            converter = <Html | Html[]>converter
+            this.html = Array.isArray(converter) ? [...converter] : [converter]
+          }
 
-          if (css !== undefined)
-            this.css = typeof css === 'string' ? css : ([...css] as Css<D, P>)
-
+          this.css = [...(css ?? [])]
           if (slot) this.slotContent = slot
-
           this.events = [...(events ?? [])]
         }
       }
@@ -110,8 +116,14 @@ const child = welify({
     back: 'black',
     childMessage: 'Child hello'
   },
-  html: (_, { color }: Props) => [
-    `<div><p class="hello" style="display: inline">${color}</p></div>`,
+  html: ({
+    data: { childMessage },
+    props: { color }
+  }: {
+    data: { childMessage: string }
+    props: Props
+  }) => [
+    `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
     `<p>${color}</p>`
   ],
   css: [
@@ -129,7 +141,7 @@ const child = welify({
     },
     {
       selector: 'div',
-      style: ({ data: { back } }: { data: { back: string } }) => ({
+      style: ({ data: { back } }) => ({
         background: back
       })
     }
@@ -137,12 +149,12 @@ const child = welify({
   events: [
     {
       handler: 'click',
-      method: ({ count }: { count: number }) => console.log(count++)
+      method: ({ data: { count } }) => console.log(count++)
     },
     {
       handler: 'click',
       selector: 'div',
-      method: ({ message }, { click }: Props) => click(message)
+      method: ({ data: { message }, props }) => props.click(message)
     }
   ]
 })
@@ -155,11 +167,12 @@ const parent = welify({
   },
   inheritances: [
     {
-      elements: [child],
+      elements: child,
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: [child, '<p>Sample</p>']
+  html: child,
+  css: [`p {color: green;}`]
 })
 
 // const wely2 = welify({
@@ -245,7 +258,7 @@ const parent = welify({
 //   ]
 // })
 
-export const mountWely = (parent: string, children: Html[]) =>
+export const mountWely = (parent: string, children: Html | Html[]) =>
   appendChild(parent, children)
 
-mountWely('app', [parent])
+mountWely('app', parent)
