@@ -10,7 +10,7 @@ export const appendChild = (
       : parent
 
   if (localParent)
-    for (let child of Array.isArray(children) ? children : [children]) {
+    for (let child of convertToArray(children)) {
       if (typeof child === 'string') {
         const childNode: ChildNode = Array.from(
           new DOMParser().parseFromString(child, 'text/html').body.childNodes
@@ -21,6 +21,9 @@ export const appendChild = (
       localParent.appendChild(child)
     }
 }
+
+export const convertToArray = (val: Html | Html[]) =>
+  Array.isArray(val) ? [...val] : [val]
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
