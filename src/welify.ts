@@ -1,6 +1,6 @@
 import {  } from '@/libs/class'
 import { Each, EachIf, Html, If,  } from '@/libs/types'
-import { appendChild, toKebabCase } from '@/libs/utils'
+import { appendChild, convertToArray, toKebabCase } from '@/libs/utils'
 // import cssUrl from '@/style.css?url'
 
 /*
@@ -86,10 +86,7 @@ export const  = <T, D, P>({
 
             if (this.html.length === 0 && converter.fallback)
               this.html.push(converter.fallback)
-          } else {
-            converter = <Html | Html[]>converter
-            this.html = Array.isArray(converter) ? [...converter] : [converter]
-          }
+          } else this.html = convertToArray(<Html | Html[]>converter)
 
           this.css = [...(css ?? [])]
           if (slot) this.slotContent = slot
