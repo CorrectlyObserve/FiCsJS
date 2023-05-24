@@ -1,5 +1,5 @@
 import { Css, Events, Html, Inheritances } from '@/libs/types'
-import { appendChild, toKebabCase } from '@/libs/utils'
+import { appendChild, convertToArray, toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
   let n = 1
@@ -44,9 +44,7 @@ export class Wely<D, P> extends HTMLElement {
       this.inheritances.forEach(inheritance => {
         const { elements } = inheritance
 
-        for (let element of <Wely<D, P>[]>(
-          (Array.isArray(elements) ? elements : [elements])
-        )) {
+        for (let element of <Wely<D, P>[]>convertToArray(elements)) {
           const { welyId } = element
           element.setAttribute('id', welyId)
           const hasWely = this._inheritedSet.has(welyId)
