@@ -16,7 +16,7 @@ import { appendChild, convertToArray, toKebabCase } from '@/libs/utils'
 9. Headless UI的な（今後の話）
 */
 
-export const  = <T, D, P>({
+export const define = <T, D, P>({
   name,
   data,
   props,
@@ -104,7 +104,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const child = ({
+const child = define({
   name: 'child',
   data: {
     count: 1,
@@ -156,7 +156,7 @@ const child = ({
   ]
 })
 
-const parent = ({
+const parent = define({
   name: 'parent',
   data: {
     color: 'green',
@@ -172,7 +172,7 @@ const parent = ({
   css: [`p {color: green;}`]
 })
 
-// const 2 = ({
+// const 2 = define({
 //   name: '2',
 //   data: {
 //     numbers: [1, 2, 3],
@@ -193,7 +193,7 @@ const parent = ({
 //   ]
 // })
 
-// const 3 = ({
+// const 3 = define({
 //   name: '3',
 //   data: {
 //     number: 100,
@@ -227,7 +227,7 @@ const parent = ({
 //   ]
 // })
 
-// const 4 = ({
+// const 4 = define({
 //   name: '4',
 //   data: {
 //     numbers: [1, 2, 3]
