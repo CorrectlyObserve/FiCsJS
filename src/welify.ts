@@ -16,7 +16,7 @@ import { appendChild, convertToArray, toKebabCase } from '@/libs/utils'
 9. Headless UI的な（今後の話）
 */
 
-export const welify = <T, D, P>({
+export const define = <T, D, P>({
   name,
   data,
   props,
@@ -104,7 +104,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const child = welify({
+const child = define({
   name: 'child',
   data: {
     count: 1,
@@ -156,7 +156,7 @@ const child = welify({
   ]
 })
 
-const parent = welify({
+const parent = define({
   name: 'parent',
   data: {
     color: 'green',
@@ -172,7 +172,7 @@ const parent = welify({
   css: [`p {color: green;}`]
 })
 
-// const wely2 = welify({
+// const wely2 = define({
 //   name: 'Wely2',
 //   data: {
 //     numbers: [1, 2, 3],
@@ -193,7 +193,7 @@ const parent = welify({
 //   ]
 // })
 
-// const wely3 = welify({
+// const wely3 = define({
 //   name: 'wely3',
 //   data: {
 //     number: 100,
@@ -227,7 +227,7 @@ const parent = welify({
 //   ]
 // })
 
-// const wely4 = welify({
+// const wely4 = define({
 //   name: 'Wely4',
 //   data: {
 //     numbers: [1, 2, 3]
@@ -255,7 +255,7 @@ const parent = welify({
 //   ]
 // })
 
-export const mountWely = (parent: string, children: Html | Html[]) =>
+export const mount = (parent: string, children: Html | Html[]) =>
   appendChild(parent, children)
 
-mountWely('app', parent)
+mount('app', parent)
