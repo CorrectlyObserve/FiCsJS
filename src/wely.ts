@@ -151,7 +151,7 @@ const child = define({
     {
       handler: 'click',
       selector: 'div',
-      method: ({ data: { message }, props }) => props.click(message)
+      method: ({ data: { message }, props: { click } }) => click(message)
     }
   ]
 })
