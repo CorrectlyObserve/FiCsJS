@@ -3,19 +3,6 @@ import { Each, EachIf, Html, If, Welify } from '@/libs/types'
 import { appendChild, convertToArray, toKebabCase } from '@/libs/utils'
 // import cssUrl from '@/style.css?url'
 
-/*
-技術仕様
-1. 引数のオブジェクトのDataの中をデータバインディング
-2. emitとpropsの血縁関係に依存した状態管理
-3. 多言語翻訳（今後の話）
-4. 状態管理（今後の話）
-5. PWA（今後の話）
-6. svgによるグラフ作成（今後の話）
-7. Vueでいうwatch的な機能（今後の話）
-8. Singletonsを保障する（今後の話）
-9. Headless UI的な（今後の話）
-*/
-
 export const define = <T, D, P>({
   name,
   data,
