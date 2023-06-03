@@ -36,9 +36,9 @@ export class Wely<D, P> extends HTMLElement {
   }
 
   connectedCallback(): void {
-    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
-
     if (this._isInitialized) return
+
+    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
