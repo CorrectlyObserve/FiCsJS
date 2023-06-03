@@ -18,7 +18,6 @@ export class Wely<D, P> extends HTMLElement {
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
 
-  name: string = ''
   data: D = <D>{}
   props: P = <P>{}
   inheritances: Inheritances<D, P> = []
