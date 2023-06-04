@@ -1,12 +1,12 @@
 {
   "name": "wely-components",
   "author": "Masami Ogasawara",
-  "private": true,
   "version": "0.0.1",
   "description": "The framework-independent component library",
   "keywords": [],
   "license": "MIT",
   "type": "module",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
