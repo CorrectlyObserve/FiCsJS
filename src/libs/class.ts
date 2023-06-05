@@ -1,5 +1,5 @@
 import { Css, Events, Html, Inheritances } from '@/libs/types'
-import { appendChild, convertToArray, toKebabCase } from '@/libs/utils'
+import { convertToArray, toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
   let n = 1
@@ -11,6 +11,18 @@ const generate = function* (): Generator<number> {
 }
 
 const generated: Generator<number> = generate()
+const appendChild = (parent: ShadowRoot | HTMLElement, children: Html | Html[]): void => {
+  for (let child of convertToArray(children)) {
+    if (typeof child === 'string') {
+      const childNode: ChildNode = Array.from(
+        new DOMParser().parseFromString(child, 'text/html').body.childNodes
+      )[0]
+      child = <HTMLElement>childNode.cloneNode(true)
+    }
+
+    parent.appendChild(child)
+  }
+}
 
 export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -49,9 +61,7 @@ export class Wely<D, P> extends HTMLElement {
           const hasWely = this._inheritedSet.has(welyId)
 
           if (hasWely || this.shadowRoot.querySelector(`#${welyId}`)) {
-            const child = <Wely<D, P>>(
-              this.shadowRoot.querySelector(`#${welyId}`)
-            )
+            const child = <Wely<D, P>>this.shadowRoot.querySelector(`#${welyId}`)
             child.props = { ...inheritance.props(this.data) }
 
             if (!hasWely) this._inheritedSet.add(welyId)
@@ -77,17 +87,12 @@ export class Wely<D, P> extends HTMLElement {
                 if (res.status === 200) css.textContent += await res.text()
                 else throw new Error(`${res.status} ${res.statusText}`)
               } catch (error) {
-                throw new Error(
-                  error instanceof Error ? error.message : error?.toString()
-                )
+                throw new Error(error instanceof Error ? error.message : error?.toString())
               }
             } else css.textContent += localCss
           } else if (localCss.selector && 'style' in localCss) {
             const style = Object.entries(
-              localCss.style({
-                data: { ...this.data },
-                props: { ...this.props }
-              })
+              localCss.style({ data: { ...this.data }, props: { ...this.props } })
             )
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
@@ -115,8 +120,7 @@ export class Wely<D, P> extends HTMLElement {
               const [tag, attr] = selector.split(symbol)
 
               return createArr(tag).filter(
-                element =>
-                  element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
+                element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
               )
             }
 
