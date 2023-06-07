@@ -9,8 +9,8 @@ const generate = function* (): Generator<number> {
     n++
   }
 }
-
 const generated: Generator<number> = generate()
+
 const appendChild = (parent: ShadowRoot | HTMLElement, children: Html | Html[]): void => {
   for (let child of convertToArray(children)) {
     if (typeof child === 'string')
