@@ -13,57 +13,76 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: Welify<T, D, P>): HTMLElement => {
-  const tagName = `w-${toKebabCase(name)}`
-  const instantiate = (name: string): void =>
-    customElements.define(name, class extends Wely<D, P> {})
+}: Welify<T, D, P>): void => {
+  if (!customElements.get(`w-${toKebabCase(name)}`))
+    customElements.define(
+      name,
+      class extends Wely<D, P> {
+        constructor() {
+          super()
+          if (data) this.data = <D>{ ...data }
+          if (props) this.props = <P>{ ...props }
+          if (inheritances) this.inheritances = [...inheritances]
 
-  if (!customElements.get(tagName)) instantiate(tagName)
+          this.classes.push(toKebabCase(name))
+          if (className)
+            for (const localName of className.split(' ')) this.classes.push(toKebabCase(localName))
 
-  const wely = <Wely<D, P>>document.createElement(tagName)
+          let converter =
+            typeof html === 'function'
+              ? html({ data: { ...this.data }, props: { ...this.props } })
+              : html
 
-  if (data) wely.data = <D>{ ...data }
-  if (props) wely.props = <P>{ ...props }
-  if (inheritances) wely.inheritances = [...inheritances]
+          if ('contents' in <Each<T> | EachIf<T>>converter) {
+            this.isEach = true
 
-  wely.classes.push(toKebabCase(name))
-  if (className)
-    for (const localName of className.split(' ')) wely.classes.push(toKebabCase(localName))
+            if ('branches' in <EachIf<T>>converter)
+              (<EachIf<T>>converter).contents.forEach((content, index) => {
+                for (const branch of (<EachIf<T>>converter).branches)
+                  if (branch.judge(content)) this.html.push(branch.render(content, index))
 
-  let converter =
-    typeof html === 'function' ? html({ data: { ...wely.data }, props: { ...wely.props } }) : html
+                const fallback = (<EachIf<T>>converter)?.fallback
+                if (fallback !== undefined) this.html.push(fallback(content, index))
+              })
+            else
+              (<Each<T>>converter).contents.forEach((content, index) =>
+                this.html.push((<Each<T>>converter).render(content, index) ?? '')
+              )
+          } else if ('branches' in <If>converter) {
+            for (const branch of (<If>converter).branches)
+              if (branch.judge) {
+                this.html.push(branch.render)
+                break
+              }
 
-  if ('contents' in <Each<T> | EachIf<T>>converter) {
-    wely.isEach = true
+            const fallback = (<If>converter)?.fallback
+            if (this.html.length === 0 && fallback) this.html.push(fallback)
+          } else this.html = convertToArray(<Html | Html[]>converter)
 
-    if ('branches' in <EachIf<T>>converter)
-      (<EachIf<T>>converter).contents.forEach((content, index) => {
-        for (const branch of (<EachIf<T>>converter).branches)
-          if (branch.judge(content)) wely.html.push(branch.render(content, index))
-
-        const fallback = (<EachIf<T>>converter)?.fallback
-        if (fallback !== undefined) wely.html.push(fallback(content, index))
-      })
-    else
-      (<Each<T>>converter).contents.forEach((content, index) =>
-        wely.html.push((<Each<T>>converter).render(content, index) ?? '')
-      )
-  } else if ('branches' in <If>converter) {
-    for (const branch of (<If>converter).branches)
-      if (branch.judge) {
-        wely.html.push(branch.render)
-        break
+          if (css) this.css = [...css]
+          if (slot) this.slotContent = slot
+          if (events) this.events = [...events]
+        }
       }
+    )
+}
 
-    const fallback = (<If>converter)?.fallback
-    if (wely.html.length === 0 && fallback) wely.html.push(fallback)
-  } else wely.html = convertToArray(<Html | Html[]>converter)
+const create = <T, D, P>({
+  name,
+  data,
+  props,
+  inheritances,
+  className,
+  html,
+  css,
+  slot,
+  events
+}: Welify<T, D, P>): HTMLElement => {
+  define({ name, data, props, inheritances, className, html, css, slot, events })
 
-  if (css) wely.css = [...css]
-  if (slot) wely.slotContent = slot
-  if (events) wely.events = [...events]
+  console.log(new (customElements.get(`w-${toKebabCase(name)}`) as { new (): Wely<D, P> })().data)
 
-  return wely
+  return new (customElements.get(`w-${toKebabCase(name)}`) as { new (): Wely<D, P> })()
 }
 
 interface Data {
@@ -79,7 +98,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const child = define({
+const child = create({
   name: 'child',
   data: {
     count: 1,
@@ -125,7 +144,7 @@ const child = define({
   ]
 })
 
-const child1 = define({
+const child1 = create({
   name: 'child',
   data: {
     count: 1,
@@ -171,7 +190,7 @@ const child1 = define({
   ]
 })
 
-const parent = define({
+const parent = create({
   name: 'parent',
   data: {
     color: 'green',
@@ -187,13 +206,13 @@ const parent = define({
   css: [`p {color: green;}`]
 })
 
-const parent2 = define({
+const parent2 = create({
   name: 'parent2',
   data: {
     numbers: [1, 2, 3],
     color: 'green'
   },
-  html: child1
+  html: child
 })
 
 // const wely3 = define({
