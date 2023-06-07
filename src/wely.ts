@@ -14,8 +14,7 @@ const define = <T, D, P>({
   slot,
   events
 }: <T, D, P>): HTMLElement => {
-  const kebabName = toKebabCase(name)
-  const tagName = `w-${kebabName}`
+  const tagName = `w-${toKebabCase(name)}`
   const instantiate = (name: string): void =>
     customElements.define(name, class extends <D, P> {})
 
@@ -27,7 +26,7 @@ const define = <T, D, P>({
   if (props) .props = <P>{ ...props }
   if (inheritances) .inheritances = [...inheritances]
 
-  .classes.push(kebabName)
+  .classes.push(toKebabCase(name))
   if (className)
     for (const localName of className.split(' ')) .classes.push(toKebabCase(localName))
 
@@ -43,7 +42,6 @@ const define = <T, D, P>({
           if (branch.judge(content)) .html.push(branch.render(content, index))
 
         const fallback = (<EachIf<T>>converter)?.fallback
-
         if (fallback !== undefined) .html.push(fallback(content, index))
       })
     else
@@ -51,15 +49,14 @@ const define = <T, D, P>({
         .html.push((<Each<T>>converter).render(content, index) ?? '')
       )
   } else if ('branches' in <If>converter) {
-    converter = <If>converter
-
-    for (const branch of converter.branches)
+    for (const branch of (<If>converter).branches)
       if (branch.judge) {
         .html.push(branch.render)
         break
       }
 
-    if (.html.length === 0 && converter.fallback) .html.push(converter.fallback)
+    const fallback = (<If>converter)?.fallback
+    if (.html.length === 0 && fallback) .html.push(fallback)
   } else .html = convertToArray(<Html | Html[]>converter)
 
   if (css) .css = [...css]
