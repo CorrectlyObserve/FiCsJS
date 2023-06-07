@@ -14,8 +14,7 @@ const define = <T, D, P>({
   slot,
   events
 }: Welify<T, D, P>): HTMLElement => {
-  const kebabName = toKebabCase(name)
-  const tagName = `w-${kebabName}`
+  const tagName = `w-${toKebabCase(name)}`
   const instantiate = (name: string): void =>
     customElements.define(name, class extends Wely<D, P> {})
 
@@ -27,7 +26,7 @@ const define = <T, D, P>({
   if (props) wely.props = <P>{ ...props }
   if (inheritances) wely.inheritances = [...inheritances]
 
-  wely.classes.push(kebabName)
+  wely.classes.push(toKebabCase(name))
   if (className)
     for (const localName of className.split(' ')) wely.classes.push(toKebabCase(localName))
 
@@ -43,7 +42,6 @@ const define = <T, D, P>({
           if (branch.judge(content)) wely.html.push(branch.render(content, index))
 
         const fallback = (<EachIf<T>>converter)?.fallback
-
         if (fallback !== undefined) wely.html.push(fallback(content, index))
       })
     else
@@ -51,15 +49,14 @@ const define = <T, D, P>({
         wely.html.push((<Each<T>>converter).render(content, index) ?? '')
       )
   } else if ('branches' in <If>converter) {
-    converter = <If>converter
-
-    for (const branch of converter.branches)
+    for (const branch of (<If>converter).branches)
       if (branch.judge) {
         wely.html.push(branch.render)
         break
       }
 
-    if (wely.html.length === 0 && converter.fallback) wely.html.push(converter.fallback)
+    const fallback = (<If>converter)?.fallback
+    if (wely.html.length === 0 && fallback) wely.html.push(fallback)
   } else wely.html = convertToArray(<Html | Html[]>converter)
 
   if (css) wely.css = [...css]
