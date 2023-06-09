@@ -3,6 +3,7 @@ import { Each, EachIf, Html, If, Welify } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?url'
 
+const welyName = (name: string): string => `w-${toKebabCase(name)}`
 const define = <T, D, P>({
   name,
   data,
@@ -14,9 +15,9 @@ const define = <T, D, P>({
   slot,
   events
 }: Welify<T, D, P>): void => {
-  if (!customElements.get(`w-${toKebabCase(name)}`))
+  if (!customElements.get(welyName(name)))
     customElements.define(
-      name,
+      welyName(name),
       class extends Wely<D, P> {
         constructor() {
           super()
@@ -33,7 +34,8 @@ const define = <T, D, P>({
               ? html({ data: { ...this.data }, props: { ...this.props } })
               : html
 
-          if ('contents' in <Each<T> | EachIf<T>>converter) {
+          if (typeof converter === 'string') this.html = convertToArray(<Html | Html[]>converter)
+          else if ('contents' in <Each<T> | EachIf<T>>converter) {
             this.isEach = true
 
             if ('branches' in <EachIf<T>>converter)
@@ -79,10 +81,7 @@ const create = <T, D, P>({
   events
 }: Welify<T, D, P>): HTMLElement => {
   define({ name, data, props, inheritances, className, html, css, slot, events })
-
-  console.log(new (customElements.get(`w-${toKebabCase(name)}`) as { new (): Wely<D, P> })().data)
-
-  return new (customElements.get(`w-${toKebabCase(name)}`) as { new (): Wely<D, P> })()
+  return document.createElement(welyName(name))
 }
 
 interface Data {
@@ -98,7 +97,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const child = create({
+define({
   name: 'child',
   data: {
     count: 1,
@@ -144,51 +143,7 @@ const child = create({
   ]
 })
 
-const child1 = create({
-  name: 'child',
-  data: {
-    count: 1,
-    message: 'Hello',
-    color: 'red',
-    back: 'black',
-    childMessage: 'Child hello'
-  },
-  html: ({ data: { childMessage }, props: { color } }: { data: Data; props: Props }) => [
-    `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
-    `<p>${color}</p>`
-  ],
-  css: [
-    cssUrl,
-    {
-      selector: 'p',
-      style: () => ({ cursor: 'pointer' })
-    },
-    {
-      selector: 'p.hello',
-      style: ({ data: { color } }) => ({
-        color: color,
-        fontSize: '14px'
-      })
-    },
-    {
-      selector: 'div',
-      style: ({ data: { back } }) => ({
-        background: back
-      })
-    }
-  ],
-  events: [
-    {
-      handler: 'click',
-      method: ({ data: { count } }) => console.log(count++)
-    },
-    {
-      handler: 'click',
-      selector: 'div',
-      method: ({ data: { message }, props: { click } }) => click(message)
-    }
-  ]
-})
+const child = document.createElement(welyName('child'))
 
 const parent = create({
   name: 'parent',
@@ -202,7 +157,7 @@ const parent = create({
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: child,
+  html: '<w-child></w-child>',
   css: [`p {color: green;}`]
 })
 
@@ -212,7 +167,7 @@ const parent2 = create({
     numbers: [1, 2, 3],
     color: 'green'
   },
-  html: child
+  html: () => '<w-child></w-child>'
 })
 
 // const wely3 = define({
