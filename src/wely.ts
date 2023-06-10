@@ -3,7 +3,8 @@ import { Each, EachIf, Html, If, Welify } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?url'
 
-const welyName = (name: string): string => `w-${toKebabCase(name)}`
+const kebabName = (name: string) => toKebabCase(name)
+const welyName = (name: string): string => `w-${kebabName(name)}`
 const define = <T, D, P>({
   name,
   data,
@@ -14,74 +15,63 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: Welify<T, D, P>): void => {
+}: Welify<T, D, P>): CustomElementConstructor | undefined => {
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
       class extends Wely<D, P> {
-        constructor() {
-          super()
-          if (data) this.data = <D>{ ...data }
-          if (props) this.props = <P>{ ...props }
-          if (inheritances) this.inheritances = [...inheritances]
+        static create() {
+          const wely = <Wely<D, P>>document.createElement(welyName(name))
+          if (data) wely.data = <D>{ ...data }
+          if (props) wely.props = <P>{ ...props }
+          if (inheritances) wely.inheritances = [...inheritances]
 
-          this.classes.push(toKebabCase(name))
+          wely.classes.push(kebabName(name))
           if (className)
-            for (const localName of className.split(' ')) this.classes.push(toKebabCase(localName))
+            for (const localName of className.split(' ')) wely.classes.push(kebabName(localName))
 
           let converter =
             typeof html === 'function'
-              ? html({ data: { ...this.data }, props: { ...this.props } })
+              ? html({ data: { ...wely.data }, props: { ...wely.props } })
               : html
 
-          if (typeof converter === 'string') this.html = convertToArray(<Html | Html[]>converter)
+          if (typeof converter === 'string') wely.html = convertToArray(<Html | Html[]>converter)
           else if ('contents' in <Each<T> | EachIf<T>>converter) {
-            this.isEach = true
+            wely.isEach = true
 
             if ('branches' in <EachIf<T>>converter)
               (<EachIf<T>>converter).contents.forEach((content, index) => {
                 for (const branch of (<EachIf<T>>converter).branches)
-                  if (branch.judge(content)) this.html.push(branch.render(content, index))
+                  if (branch.judge(content)) wely.html.push(branch.render(content, index))
 
                 const fallback = (<EachIf<T>>converter)?.fallback
-                if (fallback !== undefined) this.html.push(fallback(content, index))
+                if (fallback !== undefined) wely.html.push(fallback(content, index))
               })
             else
               (<Each<T>>converter).contents.forEach((content, index) =>
-                this.html.push((<Each<T>>converter).render(content, index) ?? '')
+                wely.html.push((<Each<T>>converter).render(content, index) ?? '')
               )
           } else if ('branches' in <If>converter) {
             for (const branch of (<If>converter).branches)
               if (branch.judge) {
-                this.html.push(branch.render)
+                wely.html.push(branch.render)
                 break
               }
 
             const fallback = (<If>converter)?.fallback
-            if (this.html.length === 0 && fallback) this.html.push(fallback)
-          } else this.html = convertToArray(<Html | Html[]>converter)
+            if (wely.html.length === 0 && fallback) wely.html.push(fallback)
+          } else wely.html = convertToArray(<Html | Html[]>converter)
 
-          if (css) this.css = [...css]
-          if (slot) this.slotContent = slot
-          if (events) this.events = [...events]
+          if (css) wely.css = [...css]
+          if (slot) wely.slotContent = slot
+          if (events) wely.events = [...events]
+
+          return wely
         }
       }
     )
-}
 
-const create = <T, D, P>({
-  name,
-  data,
-  props,
-  inheritances,
-  className,
-  html,
-  css,
-  slot,
-  events
-}: Welify<T, D, P>): HTMLElement => {
-  define({ name, data, props, inheritances, className, html, css, slot, events })
-  return document.createElement(welyName(name))
+  return customElements.get(welyName(name))
 }
 
 interface Data {
@@ -97,7 +87,7 @@ interface Props {
   click: (message: string) => void
 }
 
-define({
+const childClass = define({
   name: 'child',
   data: {
     count: 1,
@@ -143,9 +133,10 @@ define({
   ]
 })
 
-const child = document.createElement(welyName('child'))
+const child = childClass?.create() as HTMLElement
+const child2 = childClass?.create() as HTMLElement
 
-const parent = create({
+const parent = define({
   name: 'parent',
   data: {
     color: 'green',
@@ -157,18 +148,18 @@ const parent = create({
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: '<w-child></w-child>',
+  html: child,
   css: [`p {color: green;}`]
-})
+})?.create()
 
-const parent2 = create({
+const parent2 = define({
   name: 'parent2',
   data: {
     numbers: [1, 2, 3],
     color: 'green'
   },
-  html: () => '<w-child></w-child>'
-})
+  html: () => child2
+})?.create()
 
 // const wely3 = define({
 //   name: 'wely3',
