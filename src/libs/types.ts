@@ -50,6 +50,11 @@ export type Inheritances<D, P> = {
   props: (data: D) => P
 }[]
 
+export interface WelyConstructor {
+  new (...params: any[]): HTMLElement
+  create(): HTMLElement
+}
+
 export interface Welify<T, D, P> {
   name: string
   data?: D

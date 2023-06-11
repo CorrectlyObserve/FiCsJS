@@ -8,3 +8,5 @@ npm-debug.log*
 *.local
 .vscode/*
 !.vscode/extensions.json
+.env
+.env.*
