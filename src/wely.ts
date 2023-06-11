@@ -1,5 +1,5 @@
 import {  } from '@/libs/class'
-import { Each, EachIf, Html, If,  } from '@/libs/types'
+import { Each, EachIf, Html, If, Constructor,  } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?url'
 
@@ -15,7 +15,7 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: <T, D, P>): CustomElementConstructor | undefined => {
+}: <T, D, P>): Constructor => {
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
@@ -71,7 +71,7 @@ const define = <T, D, P>({
       }
     )
 
-  return customElements.get(Name(name))
+  return <Constructor>customElements.get(Name(name))
 }
 
 interface Data {
@@ -133,8 +133,10 @@ const childClass = define({
   ]
 })
 
-const child = childClass?.create() as HTMLElement
-const child2 = childClass?.create() as HTMLElement
+console.log(childClass)
+
+const child = childClass.create()
+const child2 = childClass.create()
 
 const parent = define({
   name: 'parent',
@@ -150,7 +152,7 @@ const parent = define({
   ],
   html: child,
   css: [`p {color: green;}`]
-})?.create()
+}).create()
 
 const parent2 = define({
   name: 'parent2',
@@ -159,7 +161,7 @@ const parent2 = define({
     color: 'green'
   },
   html: () => child2
-})?.create()
+}).create()
 
 // const 3 = define({
 //   name: '3',
@@ -233,4 +235,4 @@ export const mount = (parent: string, children: Html | Html[]): void => {
         : localParent.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [parent, parent2])
+mount('app', [parent!, parent2!])
