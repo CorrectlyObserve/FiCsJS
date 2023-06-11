@@ -1,16 +1,28 @@
 import { Css, Events, Html, Inheritances } from '@/libs/types'
-import { appendChild, toKebabCase } from '@/libs/utils'
+import { convertToArray, toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
-  let i = 1
+  let n = 1
 
   while (true) {
-    yield i
-    i++
+    yield n
+    n++
   }
 }
-
 const generated: Generator<number> = generate()
+
+const appendChild = (parent: ShadowRoot | HTMLElement, children: Html | Html[]): void => {
+  for (let child of convertToArray(children)) {
+    if (typeof child === 'string')
+      child = <HTMLElement>(
+        Array.from(
+          new DOMParser().parseFromString(child, 'text/html').body.childNodes
+        )[0].cloneNode(true)
+      )
+
+    parent.appendChild(child)
+  }
+}
 
 export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -18,7 +30,6 @@ export class Wely<D, P> extends HTMLElement {
   private _isInitialized: boolean = false
   private _inheritedSet: Set<string> = new Set()
 
-  name: string = ''
   data: D = <D>{}
   props: P = <P>{}
   inheritances: Inheritances<D, P> = []
@@ -36,25 +47,22 @@ export class Wely<D, P> extends HTMLElement {
   }
 
   connectedCallback(): void {
-    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
-
     if (this._isInitialized) return
+
+    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        let { elements, props } = inheritance
-        elements = Array.isArray(elements) ? elements : [elements]
+        const { elements } = inheritance
 
-        for (let element of <Wely<D, P>[]>elements) {
+        for (let element of <Wely<D, P>[]>convertToArray(elements)) {
           const { welyId } = element
           element.setAttribute('id', welyId)
           const hasWely = this._inheritedSet.has(welyId)
 
           if (hasWely || this.shadowRoot.querySelector(`#${welyId}`)) {
-            const child = <Wely<D, P>>(
-              this.shadowRoot.querySelector(`#${welyId}`)
-            )
-            child.props = { ...props(this.data) }
+            const child = <Wely<D, P>>this.shadowRoot.querySelector(`#${welyId}`)
+            child.props = { ...inheritance.props(this.data) }
 
             if (!hasWely) this._inheritedSet.add(welyId)
           } else this._inheritedSet.delete(welyId)
@@ -64,11 +72,6 @@ export class Wely<D, P> extends HTMLElement {
       })
 
     this.setAttribute('class', this.classes.join(' '))
-
-    const arg = {
-      data: { ...this.data },
-      props: { ...this.props }
-    }
 
     if (this.css) {
       const css = document.createElement('style')
@@ -84,13 +87,13 @@ export class Wely<D, P> extends HTMLElement {
                 if (res.status === 200) css.textContent += await res.text()
                 else throw new Error(`${res.status} ${res.statusText}`)
               } catch (error) {
-                throw new Error(
-                  error instanceof Error ? error.message : error?.toString()
-                )
+                throw new Error(error instanceof Error ? error.message : error?.toString())
               }
             } else css.textContent += localCss
           } else if (localCss.selector && 'style' in localCss) {
-            const style = Object.entries(localCss.style(arg))
+            const style = Object.entries(
+              localCss.style({ data: { ...this.data }, props: { ...this.props } })
+            )
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
@@ -117,8 +120,7 @@ export class Wely<D, P> extends HTMLElement {
               const [tag, attr] = selector.split(symbol)
 
               return createArr(tag).filter(
-                element =>
-                  element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
+                element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
               )
             }
 
@@ -130,10 +132,16 @@ export class Wely<D, P> extends HTMLElement {
           else
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(handler, (event: Event) =>
-                method(arg, event, this.isEach ? i : undefined)
+                method(
+                  { data: { ...this.data }, props: { ...this.props } },
+                  event,
+                  this.isEach ? i : undefined
+                )
               )
         } else
-          this.addEventListener(handler, (event: Event) => method(arg, event))
+          this.addEventListener(handler, (event: Event) =>
+            method({ data: { ...this.data }, props: { ...this.props } }, event)
+          )
       }
     }
 
