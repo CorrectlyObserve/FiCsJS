@@ -50,6 +50,11 @@ export type Inheritances<D, P> = {
   props: (data: D) => P
 }[]
 
+export interface Constructor {
+  new (...params: any[]): HTMLElement
+  create(): HTMLElement
+}
+
 export interface <T, D, P> {
   name: string
   data?: D
