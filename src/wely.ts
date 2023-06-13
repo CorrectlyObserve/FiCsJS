@@ -20,15 +20,12 @@ const define = <T, D, P>({
     customElements.define(
       welyName(name),
       class extends Wely<D, P> {
-        static create({
-          data: individualData,
-          props: individualProps,
-          slot: individualSlot
-        }: {
-          data?: D
-          props?: P
-          slot?: Html
-        }) {
+        static create(
+          { data: individualData, props: individualProps }: { data?: D; props?: P } = {
+            data: undefined,
+            props: undefined
+          }
+        ): Wely<D, P> {
           const wely = <Wely<D, P>>document.createElement(welyName(name))
           if (data) wely.data = <D>individualData ? { ...data, ...individualData } : { ...data }
           if (props)
@@ -72,7 +69,12 @@ const define = <T, D, P>({
           } else wely.html = convertToArray(<Html | Html[]>converter)
 
           if (css) wely.css = [...css]
-          if (slot || individualSlot) wely.slotContent = individualSlot ?? slot
+          if (slot)
+            wely.slotContent =
+              typeof slot === 'function'
+                ? slot({ data: { ...wely.data }, props: { ...wely.props } })
+                : slot
+
           if (events) wely.events = [...events]
 
           return wely
