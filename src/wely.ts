@@ -5,6 +5,7 @@ import cssUrl from './style.css?url'
 
 const kebabName = (name: string) => toKebabCase(name)
 const Name = (name: string): string => `w-${kebabName(name)}`
+
 const define = <T, D, P>({
   name,
   data,
@@ -27,9 +28,11 @@ const define = <T, D, P>({
           }
         ): <D, P> {
           const  = <<D, P>>document.createElement(Name(name))
+
           if (data) .data = <D>individualData ? { ...data, ...individualData } : { ...data }
           if (props)
             .props = <P>individualProps ? { ...props, ...individualProps } : { ...props }
+
           if (inheritances) .inheritances = [...inheritances]
 
           .classes.push(kebabName(name))
@@ -228,13 +231,13 @@ const parent2 = define({
 // })
 
 export const mount = (parent: string, children: Html | Html[]): void => {
-  const localParent = document.getElementById(<string>parent)
+  const parentElement = document.getElementById(<string>parent)
 
-  if (localParent)
-    for (let child of convertToArray(children))
+  if (parentElement)
+    for (const child of convertToArray(children))
       typeof child === 'string'
-        ? localParent.insertAdjacentHTML('beforeend', child)
-        : localParent.insertAdjacentElement('beforeend', child)
+        ? parentElement.insertAdjacentHTML('beforeend', child)
+        : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [parent!, parent2!])
+mount('app', [parent, parent2])
