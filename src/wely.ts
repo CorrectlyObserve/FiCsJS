@@ -20,15 +20,12 @@ const define = <T, D, P>({
     customElements.define(
       Name(name),
       class extends <D, P> {
-        static create({
-          data: individualData,
-          props: individualProps,
-          slot: individualSlot
-        }: {
-          data?: D
-          props?: P
-          slot?: Html
-        }) {
+        static create(
+          { data: individualData, props: individualProps }: { data?: D; props?: P } = {
+            data: undefined,
+            props: undefined
+          }
+        ): <D, P> {
           const  = <<D, P>>document.createElement(Name(name))
           if (data) .data = <D>individualData ? { ...data, ...individualData } : { ...data }
           if (props)
@@ -72,7 +69,12 @@ const define = <T, D, P>({
           } else .html = convertToArray(<Html | Html[]>converter)
 
           if (css) .css = [...css]
-          if (slot || individualSlot) .slotContent = individualSlot ?? slot
+          if (slot)
+            .slotContent =
+              typeof slot === 'function'
+                ? slot({ data: { ....data }, props: { ....props } })
+                : slot
+
           if (events) .events = [...events]
 
           return 
