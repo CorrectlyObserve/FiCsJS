@@ -15,15 +15,24 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: Welify<T, D, P>): WelyConstructor => {
+}: Welify<T, D, P>): WelyConstructor<D, P> => {
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
       class extends Wely<D, P> {
-        static create() {
+        static create({
+          data: individualData,
+          props: individualProps,
+          slot: individualSlot
+        }: {
+          data?: D
+          props?: P
+          slot?: Html
+        }) {
           const wely = <Wely<D, P>>document.createElement(welyName(name))
-          if (data) wely.data = <D>{ ...data }
-          if (props) wely.props = <P>{ ...props }
+          if (data) wely.data = <D>individualData ? { ...data, ...individualData } : { ...data }
+          if (props)
+            wely.props = <P>individualProps ? { ...props, ...individualProps } : { ...props }
           if (inheritances) wely.inheritances = [...inheritances]
 
           wely.classes.push(kebabName(name))
@@ -63,7 +72,7 @@ const define = <T, D, P>({
           } else wely.html = convertToArray(<Html | Html[]>converter)
 
           if (css) wely.css = [...css]
-          if (slot) wely.slotContent = slot
+          if (slot || individualSlot) wely.slotContent = individualSlot ?? slot
           if (events) wely.events = [...events]
 
           return wely
@@ -71,7 +80,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <WelyConstructor>customElements.get(welyName(name))
+  return <WelyConstructor<D, P>>customElements.get(welyName(name))
 }
 
 interface Data {
@@ -89,13 +98,6 @@ interface Props {
 
 const childClass = define({
   name: 'child',
-  data: {
-    count: 1,
-    message: 'Hello',
-    color: 'red',
-    back: 'black',
-    childMessage: 'Child hello'
-  },
   html: ({ data: { childMessage }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
     `<p>${color}</p>`
@@ -133,10 +135,8 @@ const childClass = define({
   ]
 })
 
-console.log(childClass)
-
-const child = childClass.create()
-const child2 = childClass.create()
+const child = childClass.create({})
+const child2 = childClass.create({})
 
 const parent = define({
   name: 'parent',
@@ -152,7 +152,7 @@ const parent = define({
   ],
   html: child,
   css: [`p {color: green;}`]
-}).create()
+}).create({ data: { color: 'red' } })
 
 const parent2 = define({
   name: 'parent2',
@@ -161,7 +161,7 @@ const parent2 = define({
     color: 'green'
   },
   html: () => child2
-}).create()
+}).create({})
 
 // const wely3 = define({
 //   name: 'wely3',
