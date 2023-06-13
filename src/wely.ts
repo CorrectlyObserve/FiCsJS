@@ -15,15 +15,24 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: <T, D, P>): Constructor => {
+}: <T, D, P>): Constructor<D, P> => {
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
       class extends <D, P> {
-        static create() {
+        static create({
+          data: individualData,
+          props: individualProps,
+          slot: individualSlot
+        }: {
+          data?: D
+          props?: P
+          slot?: Html
+        }) {
           const  = <<D, P>>document.createElement(Name(name))
-          if (data) .data = <D>{ ...data }
-          if (props) .props = <P>{ ...props }
+          if (data) .data = <D>individualData ? { ...data, ...individualData } : { ...data }
+          if (props)
+            .props = <P>individualProps ? { ...props, ...individualProps } : { ...props }
           if (inheritances) .inheritances = [...inheritances]
 
           .classes.push(kebabName(name))
@@ -63,7 +72,7 @@ const define = <T, D, P>({
           } else .html = convertToArray(<Html | Html[]>converter)
 
           if (css) .css = [...css]
-          if (slot) .slotContent = slot
+          if (slot || individualSlot) .slotContent = individualSlot ?? slot
           if (events) .events = [...events]
 
           return 
@@ -71,7 +80,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <Constructor>customElements.get(Name(name))
+  return <Constructor<D, P>>customElements.get(Name(name))
 }
 
 interface Data {
@@ -89,13 +98,6 @@ interface Props {
 
 const childClass = define({
   name: 'child',
-  data: {
-    count: 1,
-    message: 'Hello',
-    color: 'red',
-    back: 'black',
-    childMessage: 'Child hello'
-  },
   html: ({ data: { childMessage }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
     `<p>${color}</p>`
@@ -133,10 +135,8 @@ const childClass = define({
   ]
 })
 
-console.log(childClass)
-
-const child = childClass.create()
-const child2 = childClass.create()
+const child = childClass.create({})
+const child2 = childClass.create({})
 
 const parent = define({
   name: 'parent',
@@ -152,7 +152,7 @@ const parent = define({
   ],
   html: child,
   css: [`p {color: green;}`]
-}).create()
+}).create({ data: { color: 'red' } })
 
 const parent2 = define({
   name: 'parent2',
@@ -161,7 +161,7 @@ const parent2 = define({
     color: 'green'
   },
   html: () => child2
-}).create()
+}).create({})
 
 // const 3 = define({
 //   name: '3',
