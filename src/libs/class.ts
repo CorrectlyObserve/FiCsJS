@@ -52,7 +52,7 @@ export class <D, P> extends HTMLElement {
       this.inheritances.forEach(inheritance => {
         const { elements } = inheritance
 
-        for (let element of <<D, P>[]>convertToArray(elements)) {
+        for (const element of <<D, P>[]>convertToArray(elements)) {
           const { Id } = element
           element.setAttribute('id', Id)
           const has = this._inheritedSet.has(Id)
