@@ -52,7 +52,7 @@ export class Wely<D, P> extends HTMLElement {
       this.inheritances.forEach(inheritance => {
         const { elements } = inheritance
 
-        for (let element of <Wely<D, P>[]>convertToArray(elements)) {
+        for (const element of <Wely<D, P>[]>convertToArray(elements)) {
           const { welyId } = element
           element.setAttribute('id', welyId)
           const hasWely = this._inheritedSet.has(welyId)
