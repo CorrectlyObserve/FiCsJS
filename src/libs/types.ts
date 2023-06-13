@@ -52,7 +52,7 @@ export type Inheritances<D, P> = {
 
 export interface WelyConstructor<D, P> {
   new (...params: any[]): HTMLElement
-  create: ({ data, props, slot }: { data?: D; props?: P; slot?: Html }) => HTMLElement
+  create: ({ data, props }: { data?: D; props?: P }) => HTMLElement
 }
 
 export interface Welify<T, D, P> {
@@ -63,6 +63,6 @@ export interface Welify<T, D, P> {
   className?: string
   html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
   css?: Css<D, P>
-  slot?: string
+  slot?: Convert<string, D, P>
   events?: Events<D, P>
 }
