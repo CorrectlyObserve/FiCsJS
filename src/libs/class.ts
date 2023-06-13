@@ -11,19 +11,6 @@ const generate = function* (): Generator<number> {
 }
 const generated: Generator<number> = generate()
 
-const appendChild = (parent: ShadowRoot | HTMLElement, children: Html | Html[]): void => {
-  for (let child of convertToArray(children)) {
-    if (typeof child === 'string')
-      child = <HTMLElement>(
-        Array.from(
-          new DOMParser().parseFromString(child, 'text/html').body.childNodes
-        )[0].cloneNode(true)
-      )
-
-    parent.appendChild(child)
-  }
-}
-
 export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   readonly welyId: string = ''
@@ -49,7 +36,17 @@ export class Wely<D, P> extends HTMLElement {
   connectedCallback(): void {
     if (this._isInitialized) return
 
-    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
+    if (this.html.length > 0)
+      for (let child of convertToArray(this.html)) {
+        if (typeof child === 'string')
+          child = <HTMLElement>(
+            Array.from(
+              new DOMParser().parseFromString(child, 'text/html').body.childNodes
+            )[0].cloneNode(true)
+          )
+
+        this.shadowRoot.appendChild(child)
+      }
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
@@ -104,7 +101,10 @@ export class Wely<D, P> extends HTMLElement {
       this.shadowRoot.appendChild(css)
     }
 
-    if (this.slotContent) appendChild(this, [this.slotContent])
+    if (this.slotContent)
+      typeof this.slotContent === 'string'
+        ? this.insertAdjacentHTML('beforeend', this.slotContent)
+        : this.insertAdjacentElement('beforeend', this.slotContent)
 
     if (this && this.events.length > 0) {
       for (const obj of this.events) {
