@@ -52,7 +52,7 @@ export type Inheritances<D, P> = {
 
 export interface Constructor<D, P> {
   new (...params: any[]): HTMLElement
-  create: ({ data, props }: { data?: D; props?: P }) => HTMLElement
+  create: ({ data, props }: { data?: Partial<D>; props?: Partial<P> }) => HTMLElement
 }
 
 export interface <T, D, P> {
