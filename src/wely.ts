@@ -21,18 +21,14 @@ const define = <T, D, P>({
     customElements.define(
       welyName(name),
       class extends Wely<D, P> {
-        static create(
-          { data: individualData, props: individualProps }: { data?: D; props?: P } = {
-            data: undefined,
-            props: undefined
-          }
-        ): Wely<D, P> {
+        static create({
+          data: partialData,
+          props: partialProps
+        }: { data?: Partial<D>; props?: Partial<P> } = {}): Wely<D, P> {
           const wely = <Wely<D, P>>document.createElement(welyName(name))
 
-          if (data) wely.data = <D>individualData ? { ...data, ...individualData } : { ...data }
-          if (props)
-            wely.props = <P>individualProps ? { ...props, ...individualProps } : { ...props }
-
+          if (data) wely.data = <D>partialData ? { ...data, ...partialData } : { ...data }
+          if (props) wely.props = <P>partialProps ? { ...props, ...partialProps } : { ...props }
           if (inheritances) wely.inheritances = [...inheritances]
 
           wely.classes.push(kebabName(name))
@@ -103,6 +99,13 @@ interface Props {
 
 const childClass = define({
   name: 'child',
+  data: {
+    count: 1,
+    message: 'Hello',
+    color: 'red',
+    back: 'black',
+    childMessage: 'Child hello'
+  },
   html: ({ data: { childMessage }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
     `<p>${color}</p>`
@@ -155,8 +158,7 @@ const parent = define({
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: child,
-  css: [`p {color: green;}`]
+  html: child
 }).create({ data: { color: 'red' } })
 
 const parent2 = define({
