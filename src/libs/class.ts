@@ -53,22 +53,25 @@ export class Wely<D, P> extends HTMLElement {
         const { elements } = inheritance
 
         for (const element of <Wely<D, P>[]>convertToArray(elements)) {
-          const { welyId } = element
-          element.setAttribute('id', welyId)
-          const hasWely = this._inheritedSet.has(welyId)
+          if (this.html.includes(element)) element.props = { ...inheritance.props(this.data) }
+          else {
+            const { welyId } = element
+            element.id = welyId
+            const hasWely = this._inheritedSet.has(welyId)
+            const child = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
 
-          if (hasWely || this.shadowRoot.querySelector(`#${welyId}`)) {
-            const child = <Wely<D, P>>this.shadowRoot.querySelector(`#${welyId}`)
-            child.props = { ...inheritance.props(this.data) }
+            if (hasWely || child) {
+              child.props = { ...inheritance.props(this.data) }
 
-            if (!hasWely) this._inheritedSet.add(welyId)
-          } else this._inheritedSet.delete(welyId)
+              if (!hasWely) this._inheritedSet.add(welyId)
+            } else this._inheritedSet.delete(welyId)
 
-          element.removeAttribute('id')
+            element.removeAttribute('id')
+          }
         }
       })
 
-    this.setAttribute('class', this.classes.join(' '))
+    this.classList.add(this.classes.join(' '))
 
     if (this.css) {
       const css = document.createElement('style')
