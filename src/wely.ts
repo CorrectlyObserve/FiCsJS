@@ -146,12 +146,14 @@ const parent = define({
   html: child
 }).create({ data: { color: 'red' } })
 
+const grandParent = define({
+  name: 'grandParent',
+  html: () => parent
+}).create({})
+
 const parent2 = define({
   name: 'parent2',
-  data: {
-    numbers: [1, 2, 3],
-    color: 'green'
-  },
+  data: { numbers: [1, 2, 3], color: 'green' },
   html: () => child2
 }).create({})
 
@@ -227,4 +229,4 @@ export const mount = (parent: string, children: Html | Html[]): void => {
         : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [parent, parent2])
+mount('app', [grandParent, parent2])
