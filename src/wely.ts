@@ -1,5 +1,5 @@
 import { Wely } from '@/libs/class'
-import { Each, EachIf, Html, If, WelyConstructor, DefineWely } from '@/libs/types'
+import { Constructor, Define, Each, EachIf, Html, If } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
@@ -16,7 +16,7 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: DefineWely<T, D, P>): WelyConstructor<D, P> => {
+}: Define<T, D, P>): Constructor<D, P> => {
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
@@ -81,7 +81,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <WelyConstructor<D, P>>customElements.get(welyName(name))
+  return <Constructor<D, P>>customElements.get(welyName(name))
 }
 
 interface Data {
