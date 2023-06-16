@@ -1,7 +1,7 @@
 import { Wely } from '@/libs/class'
 import { Each, EachIf, Html, If, WelyConstructor, DefineWely } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
-import cssUrl from './style.css?url'
+import cssUrl from './style.css?inline'
 
 const kebabName = (name: string) => toKebabCase(name)
 const welyName = (name: string): string => `w-${kebabName(name)}`
@@ -86,10 +86,9 @@ const define = <T, D, P>({
 
 interface Data {
   count: number
+  fontSize: number
   message: string
-  color: string
   back: string
-  childMessage: string
 }
 
 interface Props {
@@ -101,33 +100,19 @@ const childClass = define({
   name: 'child',
   data: {
     count: 1,
+    fontSize: 16,
     message: 'Hello',
-    color: 'red',
-    back: 'black',
-    childMessage: 'Child hello'
+    back: 'black'
   },
-  html: ({ data: { childMessage }, props: { color } }: { data: Data; props: Props }) => [
-    `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
+  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
+    `<div><p class="hello" style="display: inline">${message}</p></div>`,
     `<p>${color}</p>`
   ],
   css: [
     cssUrl,
     {
       selector: 'p',
-      style: () => ({ cursor: 'pointer' })
-    },
-    {
-      selector: 'p.hello',
-      style: ({ data: { color } }) => ({
-        color: color,
-        fontSize: '14px'
-      })
-    },
-    {
-      selector: 'div',
-      style: ({ data: { back } }) => ({
-        background: back
-      })
+      style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
     }
   ],
   events: [
