@@ -77,19 +77,9 @@ export class Wely<D, P> extends HTMLElement {
       const css = document.createElement('style')
 
       if (this.css.length > 0)
-        this.css.forEach(async localCss => {
-          if (typeof localCss === 'string') {
-            if (/^\S*\.css[$|\?.*]/.test(localCss)) {
-              try {
-                const res = await fetch(localCss)
-
-                if (res.status === 200) css.textContent += await res.text()
-                else throw new Error(`${res.status} ${res.statusText}`)
-              } catch (error) {
-                throw new Error(error instanceof Error ? error.message : error?.toString())
-              }
-            } else css.textContent += localCss
-          } else if (localCss.selector && 'style' in localCss) {
+        this.css.forEach(localCss => {
+          if (typeof localCss === 'string') css.textContent += localCss
+          else if (localCss.selector && 'style' in localCss) {
             const style = Object.entries(
               localCss.style({ data: { ...this.data }, props: { ...this.props } })
             )
