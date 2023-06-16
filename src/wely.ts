@@ -1,5 +1,5 @@
 import {  } from '@/libs/class'
-import { Each, EachIf, Html, If, Constructor, Define } from '@/libs/types'
+import { Constructor, Define, Each, EachIf, Html, If } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
