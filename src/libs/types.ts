@@ -3,6 +3,11 @@ interface Arg<D, P> {
   props: P
 }
 
+export interface Constructor<D, P> {
+  new (...params: any[]): HTMLElement
+  create: ({ data, props }: { data?: Partial<D>; props?: Partial<P> }) => HTMLElement
+}
+
 type Convert<T, D, P> = T | (({ data, props }: Arg<D, P>) => T)
 
 export type Css<D, P> = (
@@ -61,8 +66,3 @@ export type Inheritances<D, P> = {
   elements: HTMLElement | HTMLElement[]
   props: (data: D) => P
 }[]
-
-export interface Constructor<D, P> {
-  new (...params: any[]): HTMLElement
-  create: ({ data, props }: { data?: Partial<D>; props?: Partial<P> }) => HTMLElement
-}
