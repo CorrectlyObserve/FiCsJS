@@ -15,6 +15,18 @@ export type Css<D, P> = (
     }
 )[]
 
+export interface DefineWely<T, D, P> {
+  name: string
+  data?: D
+  props?: P
+  inheritances?: Inheritances<D, P>
+  className?: string
+  html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
+  css?: Css<D, P>
+  slot?: Convert<string, D, P>
+  events?: Events<D, P>
+}
+
 export interface Each<T> {
   contents: T[]
   render: (arg: T, index: number) => Html | undefined
@@ -53,16 +65,4 @@ export type Inheritances<D, P> = {
 export interface WelyConstructor<D, P> {
   new (...params: any[]): HTMLElement
   create: ({ data, props }: { data?: Partial<D>; props?: Partial<P> }) => HTMLElement
-}
-
-export interface Welify<T, D, P> {
-  name: string
-  data?: D
-  props?: P
-  inheritances?: Inheritances<D, P>
-  className?: string
-  html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
-  css?: Css<D, P>
-  slot?: Convert<string, D, P>
-  events?: Events<D, P>
 }
