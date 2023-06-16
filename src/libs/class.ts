@@ -53,22 +53,25 @@ export class <D, P> extends HTMLElement {
         const { elements } = inheritance
 
         for (const element of <<D, P>[]>convertToArray(elements)) {
-          const { Id } = element
-          element.setAttribute('id', Id)
-          const has = this._inheritedSet.has(Id)
+          if (this.html.includes(element)) element.props = { ...inheritance.props(this.data) }
+          else {
+            const { Id } = element
+            element.id = Id
+            const has = this._inheritedSet.has(Id)
+            const child = <<D, P>>this.shadowRoot.getElementById(Id)
 
-          if (has || this.shadowRoot.querySelector(`#${Id}`)) {
-            const child = <<D, P>>this.shadowRoot.querySelector(`#${Id}`)
-            child.props = { ...inheritance.props(this.data) }
+            if (has || child) {
+              child.props = { ...inheritance.props(this.data) }
 
-            if (!has) this._inheritedSet.add(Id)
-          } else this._inheritedSet.delete(Id)
+              if (!has) this._inheritedSet.add(Id)
+            } else this._inheritedSet.delete(Id)
 
-          element.removeAttribute('id')
+            element.removeAttribute('id')
+          }
         }
       })
 
-    this.setAttribute('class', this.classes.join(' '))
+    this.classList.add(this.classes.join(' '))
 
     if (this.css) {
       const css = document.createElement('style')
