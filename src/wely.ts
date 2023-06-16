@@ -1,5 +1,5 @@
 import {  } from '@/libs/class'
-import { Each, EachIf, Html, If, Constructor,  } from '@/libs/types'
+import { Each, EachIf, Html, If, Constructor, Define } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?url'
 
@@ -16,7 +16,7 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: <T, D, P>): Constructor<D, P> => {
+}: Define<T, D, P>): Constructor<D, P> => {
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
