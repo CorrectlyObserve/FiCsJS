@@ -79,10 +79,9 @@ export class Wely<D, P> extends HTMLElement {
       if (this.css.length > 0)
         this.css.forEach(async localCss => {
           if (typeof localCss === 'string') {
-            if (/^\S*\.css$/.test(localCss)) {
+            if (/^\S*\.css[$|\?.*]/.test(localCss)) {
               try {
                 const res = await fetch(localCss)
-                console.log(await res.text())
 
                 if (res.status === 200) css.textContent += await res.text()
                 else throw new Error(`${res.status} ${res.statusText}`)
