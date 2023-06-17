@@ -27,9 +27,17 @@ const define = <T, D, P>({
         }: { data?: Partial<D>; props?: Partial<P> } = {}): Wely<D, P> {
           const wely = <Wely<D, P>>document.createElement(welyName(name))
 
-          if (data) wely.data = <D>partialData ? { ...data, ...partialData } : { ...data }
-          if (props) wely.props = <P>partialProps ? { ...props, ...partialProps } : { ...props }
-          if (inheritances) wely.inheritances = [...inheritances]
+          if (data)
+            wely.data = <D>partialData
+              ? { ...structuredClone(data), ...structuredClone(partialData) }
+              : structuredClone(data)
+
+          if (props)
+            wely.props = <P>partialProps
+              ? { ...structuredClone(props), ...structuredClone(partialProps) }
+              : structuredClone(props)
+
+          if (inheritances) wely.inheritances = structuredClone(inheritances)
 
           wely.classes.push(kebabName(name))
           if (className)
@@ -37,7 +45,7 @@ const define = <T, D, P>({
 
           let converter =
             typeof html === 'function'
-              ? html({ data: { ...wely.data }, props: { ...wely.props } })
+              ? html({ data: structuredClone(wely.data), props: structuredClone(wely.props) })
               : html
 
           if (typeof converter === 'string') wely.html = convertToArray(<Html | Html[]>converter)
@@ -67,14 +75,14 @@ const define = <T, D, P>({
             if (wely.html.length === 0 && fallback) wely.html.push(fallback)
           } else wely.html = convertToArray(<Html | Html[]>converter)
 
-          if (css) wely.css = [...css]
+          if (css) wely.css = structuredClone(css)
           if (slot)
             wely.slotContent =
               typeof slot === 'function'
-                ? slot({ data: { ...wely.data }, props: { ...wely.props } })
+                ? slot({ data: structuredClone(wely.data), props: structuredClone(wely.props) })
                 : slot
 
-          if (events) wely.events = [...events]
+          if (events) wely.events = structuredClone(events)
 
           return wely
         }
@@ -88,6 +96,9 @@ interface Data {
   count: number
   fontSize: number
   message: string
+  obj: {
+    message: string
+  }
   back: string
 }
 
@@ -102,11 +113,14 @@ const childClass = define({
     count: 1,
     fontSize: 16,
     message: 'Hello',
+    obj: {
+      message: 'Hello'
+    },
     back: 'black'
   },
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
+  html: ({ data: { message, obj }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${message}</p></div>`,
-    `<p>${color}</p>`
+    `<p>${obj.message}</p>`
   ],
   css: [
     cssUrl,
@@ -128,11 +142,16 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create({})
+const child = childClass.create({ data: { obj: { message: 'foo' } } })
 const child2 = childClass.create({})
 
 const parent = define({
   name: 'parent',
+  html: child
+}).create({})
+
+const grandParent = define({
+  name: 'grandParent',
   data: {
     color: 'green',
     click: (message: string) => console.log(message)
@@ -143,11 +162,6 @@ const parent = define({
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: child
-}).create({ data: { color: 'red' } })
-
-const grandParent = define({
-  name: 'grandParent',
   html: () => parent
 }).create({})
 
@@ -229,4 +243,4 @@ export const mount = (parent: string, children: Html | Html[]): void => {
         : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [grandParent, parent2])
+mount('app', [parent, parent2])
