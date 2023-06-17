@@ -27,9 +27,17 @@ const define = <T, D, P>({
         }: { data?: Partial<D>; props?: Partial<P> } = {}): <D, P> {
           const  = <<D, P>>document.createElement(Name(name))
 
-          if (data) .data = <D>partialData ? { ...data, ...partialData } : { ...data }
-          if (props) .props = <P>partialProps ? { ...props, ...partialProps } : { ...props }
-          if (inheritances) .inheritances = [...inheritances]
+          if (data)
+            .data = <D>partialData
+              ? { ...structuredClone(data), ...structuredClone(partialData) }
+              : structuredClone(data)
+
+          if (props)
+            .props = <P>partialProps
+              ? { ...structuredClone(props), ...structuredClone(partialProps) }
+              : structuredClone(props)
+
+          if (inheritances) .inheritances = structuredClone(inheritances)
 
           .classes.push(kebabName(name))
           if (className)
@@ -37,7 +45,7 @@ const define = <T, D, P>({
 
           let converter =
             typeof html === 'function'
-              ? html({ data: { ....data }, props: { ....props } })
+              ? html({ data: structuredClone(.data), props: structuredClone(.props) })
               : html
 
           if (typeof converter === 'string') .html = convertToArray(<Html | Html[]>converter)
@@ -67,14 +75,14 @@ const define = <T, D, P>({
             if (.html.length === 0 && fallback) .html.push(fallback)
           } else .html = convertToArray(<Html | Html[]>converter)
 
-          if (css) .css = [...css]
+          if (css) .css = structuredClone(css)
           if (slot)
             .slotContent =
               typeof slot === 'function'
-                ? slot({ data: { ....data }, props: { ....props } })
+                ? slot({ data: structuredClone(.data), props: structuredClone(.props) })
                 : slot
 
-          if (events) .events = [...events]
+          if (events) .events = structuredClone(events)
 
           return 
         }
@@ -88,6 +96,9 @@ interface Data {
   count: number
   fontSize: number
   message: string
+  obj: {
+    message: string
+  }
   back: string
 }
 
@@ -102,11 +113,14 @@ const childClass = define({
     count: 1,
     fontSize: 16,
     message: 'Hello',
+    obj: {
+      message: 'Hello'
+    },
     back: 'black'
   },
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
+  html: ({ data: { message, obj }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${message}</p></div>`,
-    `<p>${color}</p>`
+    `<p>${obj.message}</p>`
   ],
   css: [
     cssUrl,
@@ -128,11 +142,16 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create({})
+const child = childClass.create({ data: { obj: { message: 'foo' } } })
 const child2 = childClass.create({})
 
 const parent = define({
   name: 'parent',
+  html: child
+}).create({})
+
+const grandParent = define({
+  name: 'grandParent',
   data: {
     color: 'green',
     click: (message: string) => console.log(message)
@@ -143,11 +162,6 @@ const parent = define({
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: child
-}).create({ data: { color: 'red' } })
-
-const grandParent = define({
-  name: 'grandParent',
   html: () => parent
 }).create({})
 
@@ -229,4 +243,4 @@ export const mount = (parent: string, children: Html | Html[]): void => {
         : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [grandParent, parent2])
+mount('app', [parent, parent2])
