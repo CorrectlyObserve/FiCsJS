@@ -53,7 +53,8 @@ export class <D, P> extends HTMLElement {
         const { elements } = inheritance
 
         for (const element of <<D, P>[]>convertToArray(elements)) {
-          if (this.html.includes(element)) element.props = { ...inheritance.props(this.data) }
+          if (this.html.includes(element))
+            element.props = structuredClone(inheritance.props(this.data))
           else {
             const { Id } = element
             element.id = Id
@@ -61,7 +62,7 @@ export class <D, P> extends HTMLElement {
             const child = <<D, P>>this.shadowRoot.getElementById(Id)
 
             if (has || child) {
-              child.props = { ...inheritance.props(this.data) }
+              child.props = structuredClone(inheritance.props(this.data))
 
               if (!has) this._inheritedSet.add(Id)
             } else this._inheritedSet.delete(Id)
@@ -81,7 +82,10 @@ export class <D, P> extends HTMLElement {
           if (typeof localCss === 'string') css.textContent += localCss
           else if (localCss.selector && 'style' in localCss) {
             const style = Object.entries(
-              localCss.style({ data: { ...this.data }, props: { ...this.props } })
+              localCss.style({
+                data: structuredClone(this.data),
+                props: structuredClone(this.props)
+              })
             )
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
@@ -125,14 +129,23 @@ export class <D, P> extends HTMLElement {
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(handler, (event: Event) =>
                 method(
-                  { data: { ...this.data }, props: { ...this.props } },
+                  {
+                    data: structuredClone(this.data),
+                    props: structuredClone(this.props)
+                  },
                   event,
                   this.isEach ? i : undefined
                 )
               )
         } else
           this.addEventListener(handler, (event: Event) =>
-            method({ data: { ...this.data }, props: { ...this.props } }, event)
+            method(
+              {
+                data: structuredClone(this.data),
+                props: structuredClone(this.props)
+              },
+              event
+            )
           )
       }
     }
