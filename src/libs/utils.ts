@@ -1,7 +1,6 @@
 import { Html } from '@/libs/types'
 
-export const convertToArray = (html: Html | Html[]) =>
-  Array.isArray(html) ? structuredClone(html) : [html]
+export const convertToArray = (html: Html | Html[]) => (Array.isArray(html) ? [...html] : [html])
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
