@@ -15,7 +15,7 @@ export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   readonly welyId: string = ''
   private _isInitialized: boolean = false
-  private _inheritedSet: Set<string> = new Set()
+  private _inheritedSet: Set<HTMLElement> = new Set()
 
   data: D = <D>{}
   props: P = <P>{}
@@ -53,19 +53,36 @@ export class Wely<D, P> extends HTMLElement {
         const { elements } = inheritance
 
         for (const element of <Wely<D, P>[]>convertToArray(elements)) {
-          if (this.html.includes(element))
-            element.props = structuredClone(inheritance.props(this.data))
+          if (this.html.includes(element) || this._inheritedSet.has(element))
+            element.props = { ...inheritance.props(this.data) }
           else {
             const { welyId } = element
             element.id = welyId
-            const hasWely = this._inheritedSet.has(welyId)
-            const child = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
+            let child: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
 
-            if (hasWely || child) {
-              child.props = structuredClone(inheritance.props(this.data))
+            if (!child) {
+              const getShadowRoot = (shadowRoot: ShadowRoot): Wely<D, P> | undefined => {
+                for (const childElement of Array.from(shadowRoot.querySelectorAll('*'))) {
+                  const childShadowRoot = (<HTMLElement>childElement).shadowRoot
 
-              if (!hasWely) this._inheritedSet.add(welyId)
-            } else this._inheritedSet.delete(welyId)
+                  if (!childShadowRoot) continue
+
+                  const child = <Wely<D, P>>childShadowRoot.getElementById(welyId)
+                  if (child) return child
+
+                  getShadowRoot(childShadowRoot)
+                }
+
+                return undefined
+              }
+
+              child = getShadowRoot(this.shadowRoot)
+            }
+
+            if (child) {
+              child.props = { ...inheritance.props(this.data) }
+              this._inheritedSet.add(child)
+            } else this._inheritedSet.delete(element)
 
             element.removeAttribute('id')
           }
@@ -81,12 +98,7 @@ export class Wely<D, P> extends HTMLElement {
         this.css.forEach(localCss => {
           if (typeof localCss === 'string') css.textContent += localCss
           else if (localCss.selector && 'style' in localCss) {
-            const style = Object.entries(
-              localCss.style({
-                data: structuredClone(this.data),
-                props: structuredClone(this.props)
-              })
-            )
+            const style = Object.entries(localCss.style({ data: this.data, props: this.props }))
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
@@ -128,24 +140,11 @@ export class Wely<D, P> extends HTMLElement {
           else
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(handler, (event: Event) =>
-                method(
-                  {
-                    data: structuredClone(this.data),
-                    props: structuredClone(this.props)
-                  },
-                  event,
-                  this.isEach ? i : undefined
-                )
+                method({ data: this.data, props: this.props }, event, this.isEach ? i : undefined)
               )
         } else
           this.addEventListener(handler, (event: Event) =>
-            method(
-              {
-                data: structuredClone(this.data),
-                props: structuredClone(this.props)
-              },
-              event
-            )
+            method({ data: this.data, props: this.props }, event)
           )
       }
     }
