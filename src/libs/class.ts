@@ -87,7 +87,9 @@ export class Wely<D, P> extends HTMLElement {
         this.css.forEach(localCss => {
           if (typeof localCss === 'string') css.textContent += localCss
           else if (localCss.selector && 'style' in localCss) {
-            const style = Object.entries(localCss.style({ data: this.data, props: this.props }))
+            const style = Object.entries(
+              localCss.style({ data: { ...this.data }, props: { ...this.props } })
+            )
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')
 
@@ -129,11 +131,15 @@ export class Wely<D, P> extends HTMLElement {
           else
             for (let i = 0; i < targets.length; i++)
               targets[i].addEventListener(handler, (event: Event) =>
-                method({ data: this.data, props: this.props }, event, this.isEach ? i : undefined)
+                method(
+                  { data: { ...this.data }, props: { ...this.props } },
+                  event,
+                  this.isEach ? i : undefined
+                )
               )
         } else
           this.addEventListener(handler, (event: Event) =>
-            method({ data: this.data, props: this.props }, event)
+            method({ data: { ...this.data }, props: { ...this.props } }, event)
           )
       }
     }
