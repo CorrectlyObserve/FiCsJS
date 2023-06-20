@@ -3,9 +3,9 @@ interface Arg<D, P> {
   props: P
 }
 
-export interface Constructor<D, P> {
+export interface Constructor<D> {
   new (...params: any[]): HTMLElement
-  create: ({ data, props }: { data?: Partial<D>; props?: Partial<P> }) => HTMLElement
+  create: (data?: () => Partial<D>) => HTMLElement
 }
 
 type Convert<T, D, P> = T | (({ data, props }: Arg<D, P>) => T)
@@ -22,8 +22,7 @@ export type Css<D, P> = (
 
 export interface Define<T, D, P> {
   name: string
-  data?: D
-  props?: P
+  data?: () => D
   inheritances?: Inheritances<D, P>
   className?: string
   html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
