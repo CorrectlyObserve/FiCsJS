@@ -1,29 +1,29 @@
 import {  } from '@/libs/class'
-import { Each, EachIf, Html, If, Constructor,  } from '@/libs/types'
+import { Constructor, Define, Each, EachIf, Html, If } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
-import cssUrl from './style.css?url'
+import cssUrl from './style.css?inline'
 
 const kebabName = (name: string) => toKebabCase(name)
 const Name = (name: string): string => `w-${kebabName(name)}`
+
 const define = <T, D, P>({
   name,
   data,
-  props,
   inheritances,
   className,
   html,
   css,
   slot,
   events
-}: <T, D, P>): Constructor => {
+}: Define<T, D, P>): Constructor<D> => {
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
       class extends <D, P> {
-        static create() {
+        static create(partialData = () => ({})): <D, P> {
           const  = <<D, P>>document.createElement(Name(name))
-          if (data) .data = <D>{ ...data }
-          if (props) .props = <P>{ ...props }
+
+          if (data) .data = { ...data(), ...partialData() }
           if (inheritances) .inheritances = [...inheritances]
 
           .classes.push(kebabName(name))
@@ -63,7 +63,12 @@ const define = <T, D, P>({
           } else .html = convertToArray(<Html | Html[]>converter)
 
           if (css) .css = [...css]
-          if (slot) .slotContent = slot
+          if (slot)
+            .slotContent =
+              typeof slot === 'function'
+                ? slot({ data: { ....data }, props: { ....props } })
+                : slot
+
           if (events) .events = [...events]
 
           return 
@@ -71,15 +76,14 @@ const define = <T, D, P>({
       }
     )
 
-  return <Constructor>customElements.get(Name(name))
+  return <Constructor<D>>customElements.get(Name(name))
 }
 
 interface Data {
   count: number
+  fontSize: number
   message: string
-  color: string
   back: string
-  childMessage: string
 }
 
 interface Props {
@@ -89,35 +93,21 @@ interface Props {
 
 const childClass = define({
   name: 'child',
-  data: {
+  data: () => ({
     count: 1,
+    fontSize: 16,
     message: 'Hello',
-    color: 'red',
-    back: 'black',
-    childMessage: 'Child hello'
-  },
-  html: ({ data: { childMessage }, props: { color } }: { data: Data; props: Props }) => [
-    `<div><p class="hello" style="display: inline">${childMessage}</p></div>`,
+    back: 'black'
+  }),
+  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
+    `<div><p class="hello" style="display: inline">${message}</p></div>`,
     `<p>${color}</p>`
   ],
   css: [
     cssUrl,
     {
       selector: 'p',
-      style: () => ({ cursor: 'pointer' })
-    },
-    {
-      selector: 'p.hello',
-      style: ({ data: { color } }) => ({
-        color: color,
-        fontSize: '14px'
-      })
-    },
-    {
-      selector: 'div',
-      style: ({ data: { back } }) => ({
-        background: back
-      })
+      style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
     }
   ],
   events: [
@@ -133,33 +123,32 @@ const childClass = define({
   ]
 })
 
-console.log(childClass)
-
 const child = childClass.create()
 const child2 = childClass.create()
 
 const parent = define({
   name: 'parent',
-  data: {
+  html: child
+}).create()
+
+const grandParent = define({
+  name: 'grandParent',
+  data: () => ({
     color: 'green',
     click: (message: string) => console.log(message)
-  },
+  }),
   inheritances: [
     {
       elements: child,
       props: ({ color, click }) => ({ color, click })
     }
   ],
-  html: child,
-  css: [`p {color: green;}`]
+  html: () => parent
 }).create()
 
 const parent2 = define({
   name: 'parent2',
-  data: {
-    numbers: [1, 2, 3],
-    color: 'green'
-  },
+  data: () => ({ numbers: [1, 2, 3], color: 'green' }),
   html: () => child2
 }).create()
 
@@ -226,13 +215,13 @@ const parent2 = define({
 // })
 
 export const mount = (parent: string, children: Html | Html[]): void => {
-  const localParent = document.getElementById(<string>parent)
+  const parentElement = document.getElementById(<string>parent)
 
-  if (localParent)
-    for (let child of convertToArray(children))
+  if (parentElement)
+    for (const child of convertToArray(children))
       typeof child === 'string'
-        ? localParent.insertAdjacentHTML('beforeend', child)
-        : localParent.insertAdjacentElement('beforeend', child)
+        ? parentElement.insertAdjacentHTML('beforeend', child)
+        : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [parent!, parent2!])
+mount('app', [grandParent, parent2])
