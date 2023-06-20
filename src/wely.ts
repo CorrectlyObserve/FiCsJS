@@ -9,35 +9,22 @@ const welyName = (name: string): string => `w-${kebabName(name)}`
 const define = <T, D, P>({
   name,
   data,
-  props,
   inheritances,
   className,
   html,
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D, P> => {
+}: Define<T, D, P>): Constructor<D> => {
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
       class extends Wely<D, P> {
-        static create({
-          data: partialData,
-          props: partialProps
-        }: { data?: Partial<D>; props?: Partial<P> } = {}): Wely<D, P> {
+        static create(partialData = () => ({})): Wely<D, P> {
           const wely = <Wely<D, P>>document.createElement(welyName(name))
 
-          if (data)
-            wely.data = <D>partialData
-              ? { ...structuredClone(data), ...structuredClone(partialData) }
-              : structuredClone(data)
-
-          if (props)
-            wely.props = <P>partialProps
-              ? { ...structuredClone(props), ...structuredClone(partialProps) }
-              : structuredClone(props)
-
-          if (inheritances) wely.inheritances = structuredClone(inheritances)
+          if (data) wely.data = { ...data(), ...partialData() }
+          if (inheritances) wely.inheritances = [...inheritances]
 
           wely.classes.push(kebabName(name))
           if (className)
@@ -45,7 +32,7 @@ const define = <T, D, P>({
 
           let converter =
             typeof html === 'function'
-              ? html({ data: structuredClone(wely.data), props: structuredClone(wely.props) })
+              ? html({ data: { ...wely.data }, props: { ...wely.props } })
               : html
 
           if (typeof converter === 'string') wely.html = convertToArray(<Html | Html[]>converter)
@@ -75,30 +62,27 @@ const define = <T, D, P>({
             if (wely.html.length === 0 && fallback) wely.html.push(fallback)
           } else wely.html = convertToArray(<Html | Html[]>converter)
 
-          if (css) wely.css = structuredClone(css)
+          if (css) wely.css = [...css]
           if (slot)
             wely.slotContent =
               typeof slot === 'function'
-                ? slot({ data: structuredClone(wely.data), props: structuredClone(wely.props) })
+                ? slot({ data: { ...wely.data }, props: { ...wely.props } })
                 : slot
 
-          if (events) wely.events = structuredClone(events)
+          if (events) wely.events = [...events]
 
           return wely
         }
       }
     )
 
-  return <Constructor<D, P>>customElements.get(welyName(name))
+  return <Constructor<D>>customElements.get(welyName(name))
 }
 
 interface Data {
   count: number
   fontSize: number
   message: string
-  obj: {
-    message: string
-  }
   back: string
 }
 
@@ -109,18 +93,15 @@ interface Props {
 
 const childClass = define({
   name: 'child',
-  data: {
+  data: () => ({
     count: 1,
     fontSize: 16,
     message: 'Hello',
-    obj: {
-      message: 'Hello'
-    },
     back: 'black'
-  },
-  html: ({ data: { message, obj }, props: { color } }: { data: Data; props: Props }) => [
+  }),
+  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${message}</p></div>`,
-    `<p>${obj.message}</p>`
+    `<p>${color}</p>`
   ],
   css: [
     cssUrl,
@@ -142,20 +123,20 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create({ data: { obj: { message: 'foo' } } })
-const child2 = childClass.create({})
+const child = childClass.create()
+const child2 = childClass.create()
 
 const parent = define({
   name: 'parent',
   html: child
-}).create({})
+}).create()
 
 const grandParent = define({
   name: 'grandParent',
-  data: {
+  data: () => ({
     color: 'green',
     click: (message: string) => console.log(message)
-  },
+  }),
   inheritances: [
     {
       elements: child,
@@ -163,13 +144,13 @@ const grandParent = define({
     }
   ],
   html: () => parent
-}).create({})
+}).create()
 
 const parent2 = define({
   name: 'parent2',
-  data: { numbers: [1, 2, 3], color: 'green' },
+  data: () => ({ numbers: [1, 2, 3], color: 'green' }),
   html: () => child2
-}).create({})
+}).create()
 
 // const wely3 = define({
 //   name: 'wely3',
@@ -243,4 +224,4 @@ export const mount = (parent: string, children: Html | Html[]): void => {
         : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [parent, parent2])
+mount('app', [grandParent, parent2])
