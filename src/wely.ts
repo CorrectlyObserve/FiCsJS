@@ -9,35 +9,22 @@ const Name = (name: string): string => `w-${kebabName(name)}`
 const define = <T, D, P>({
   name,
   data,
-  props,
   inheritances,
   className,
   html,
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D, P> => {
+}: Define<T, D, P>): Constructor<D> => {
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
       class extends <D, P> {
-        static create({
-          data: partialData,
-          props: partialProps
-        }: { data?: Partial<D>; props?: Partial<P> } = {}): <D, P> {
+        static create(partialData = () => ({})): <D, P> {
           const  = <<D, P>>document.createElement(Name(name))
 
-          if (data)
-            .data = <D>partialData
-              ? { ...structuredClone(data), ...structuredClone(partialData) }
-              : structuredClone(data)
-
-          if (props)
-            .props = <P>partialProps
-              ? { ...structuredClone(props), ...structuredClone(partialProps) }
-              : structuredClone(props)
-
-          if (inheritances) .inheritances = structuredClone(inheritances)
+          if (data) .data = { ...data(), ...partialData() }
+          if (inheritances) .inheritances = [...inheritances]
 
           .classes.push(kebabName(name))
           if (className)
@@ -45,7 +32,7 @@ const define = <T, D, P>({
 
           let converter =
             typeof html === 'function'
-              ? html({ data: structuredClone(.data), props: structuredClone(.props) })
+              ? html({ data: { ....data }, props: { ....props } })
               : html
 
           if (typeof converter === 'string') .html = convertToArray(<Html | Html[]>converter)
@@ -75,30 +62,27 @@ const define = <T, D, P>({
             if (.html.length === 0 && fallback) .html.push(fallback)
           } else .html = convertToArray(<Html | Html[]>converter)
 
-          if (css) .css = structuredClone(css)
+          if (css) .css = [...css]
           if (slot)
             .slotContent =
               typeof slot === 'function'
-                ? slot({ data: structuredClone(.data), props: structuredClone(.props) })
+                ? slot({ data: { ....data }, props: { ....props } })
                 : slot
 
-          if (events) .events = structuredClone(events)
+          if (events) .events = [...events]
 
           return 
         }
       }
     )
 
-  return <Constructor<D, P>>customElements.get(Name(name))
+  return <Constructor<D>>customElements.get(Name(name))
 }
 
 interface Data {
   count: number
   fontSize: number
   message: string
-  obj: {
-    message: string
-  }
   back: string
 }
 
@@ -109,18 +93,15 @@ interface Props {
 
 const childClass = define({
   name: 'child',
-  data: {
+  data: () => ({
     count: 1,
     fontSize: 16,
     message: 'Hello',
-    obj: {
-      message: 'Hello'
-    },
     back: 'black'
-  },
-  html: ({ data: { message, obj }, props: { color } }: { data: Data; props: Props }) => [
+  }),
+  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
     `<div><p class="hello" style="display: inline">${message}</p></div>`,
-    `<p>${obj.message}</p>`
+    `<p>${color}</p>`
   ],
   css: [
     cssUrl,
@@ -142,20 +123,20 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create({ data: { obj: { message: 'foo' } } })
-const child2 = childClass.create({})
+const child = childClass.create()
+const child2 = childClass.create()
 
 const parent = define({
   name: 'parent',
   html: child
-}).create({})
+}).create()
 
 const grandParent = define({
   name: 'grandParent',
-  data: {
+  data: () => ({
     color: 'green',
     click: (message: string) => console.log(message)
-  },
+  }),
   inheritances: [
     {
       elements: child,
@@ -163,13 +144,13 @@ const grandParent = define({
     }
   ],
   html: () => parent
-}).create({})
+}).create()
 
 const parent2 = define({
   name: 'parent2',
-  data: { numbers: [1, 2, 3], color: 'green' },
+  data: () => ({ numbers: [1, 2, 3], color: 'green' }),
   html: () => child2
-}).create({})
+}).create()
 
 // const 3 = define({
 //   name: '3',
@@ -243,4 +224,4 @@ export const mount = (parent: string, children: Html | Html[]): void => {
         : parentElement.insertAdjacentElement('beforeend', child)
 }
 
-mount('app', [parent, parent2])
+mount('app', [grandParent, parent2])
