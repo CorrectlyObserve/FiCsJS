@@ -63,15 +63,11 @@ export class <D, P> extends HTMLElement {
 
             if (!target) {
               const getParent = (arg: HTMLElement): void => {
-                const parent = (<ShadowRoot>arg.parentNode).host
-
-                if (parent) {
-                  const grandParent = <<D, P>>(<ShadowRoot>parent.parentNode).host
-                  grandParent.Id === this.Id ? (target = element) : getParent(grandParent)
-                }
+                const parent = <<D, P>>(<ShadowRoot>arg.parentNode).host
+                if (parent) parent.Id === this.Id ? (target = element) : getParent(parent)
               }
 
-              getParent(element)
+              getParent(<<D, P>>(<ShadowRoot>element.parentNode).host)
             }
 
             if (target) {
