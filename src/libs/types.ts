@@ -3,6 +3,11 @@ interface Arg<D, P> {
   props: P
 }
 
+export interface Constructor<D> {
+  new (...params: any[]): HTMLElement
+  create: (data?: () => Partial<D>) => HTMLElement
+}
+
 type Convert<T, D, P> = T | (({ data, props }: Arg<D, P>) => T)
 
 export type Css<D, P> = (
@@ -14,6 +19,17 @@ export type Css<D, P> = (
       }
     }
 )[]
+
+export interface Define<T, D, P> {
+  name: string
+  data?: () => D
+  inheritances?: Inheritances<D, P>
+  className?: string
+  html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
+  css?: Css<D, P>
+  slot?: Convert<string, D, P>
+  events?: Events<D, P>
+}
 
 export interface Each<T> {
   contents: T[]
@@ -49,20 +65,3 @@ export type Inheritances<D, P> = {
   elements: HTMLElement | HTMLElement[]
   props: (data: D) => P
 }[]
-
-export interface WelyConstructor {
-  new (...params: any[]): HTMLElement
-  create(): HTMLElement
-}
-
-export interface Welify<T, D, P> {
-  name: string
-  data?: D
-  props?: P
-  inheritances?: Inheritances<D, P>
-  className?: string
-  html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
-  css?: Css<D, P>
-  slot?: string
-  events?: Events<D, P>
-}

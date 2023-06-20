@@ -1,8 +1,8 @@
-p {
-  font-size: 14px;
-  color: red;
+:host div {
+  background: black;
+  padding-left: 16px;
 }
 
-div {
-  background: black;
+:host div p {
+  color: red;
 }
