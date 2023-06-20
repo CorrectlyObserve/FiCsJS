@@ -11,24 +11,11 @@ const generate = function* (): Generator<number> {
 }
 const generated: Generator<number> = generate()
 
-const appendChild = (parent: ShadowRoot | HTMLElement, children: Html | Html[]): void => {
-  for (let child of convertToArray(children)) {
-    if (typeof child === 'string')
-      child = <HTMLElement>(
-        Array.from(
-          new DOMParser().parseFromString(child, 'text/html').body.childNodes
-        )[0].cloneNode(true)
-      )
-
-    parent.appendChild(child)
-  }
-}
-
 export class Wely<D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   readonly welyId: string = ''
   private _isInitialized: boolean = false
-  private _inheritedSet: Set<string> = new Set()
+  private _inheritedSet: Set<HTMLElement> = new Set()
 
   data: D = <D>{}
   props: P = <P>{}
@@ -49,48 +36,57 @@ export class Wely<D, P> extends HTMLElement {
   connectedCallback(): void {
     if (this._isInitialized) return
 
-    if (this.html.length > 0) appendChild(this.shadowRoot, this.html)
+    if (this.html.length > 0)
+      for (let child of convertToArray(this.html)) {
+        if (typeof child === 'string')
+          child = <HTMLElement>(
+            Array.from(
+              new DOMParser().parseFromString(child, 'text/html').body.childNodes
+            )[0].cloneNode(true)
+          )
+
+        this.shadowRoot.appendChild(child)
+      }
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
         const { elements } = inheritance
 
-        for (let element of <Wely<D, P>[]>convertToArray(elements)) {
-          const { welyId } = element
-          element.setAttribute('id', welyId)
-          const hasWely = this._inheritedSet.has(welyId)
+        for (const element of <Wely<D, P>[]>convertToArray(elements)) {
+          if (this.html.includes(element) || this._inheritedSet.has(element))
+            element.props = { ...inheritance.props(this.data) }
+          else {
+            const { welyId } = element
+            element.id = welyId
+            let target: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
+            element.removeAttribute('id')
 
-          if (hasWely || this.shadowRoot.querySelector(`#${welyId}`)) {
-            const child = <Wely<D, P>>this.shadowRoot.querySelector(`#${welyId}`)
-            child.props = { ...inheritance.props(this.data) }
+            if (!target) {
+              const getParent = (arg: HTMLElement): void => {
+                const parent = <Wely<D, P>>(<ShadowRoot>arg.parentNode).host
+                if (parent) parent.welyId === this.welyId ? (target = element) : getParent(parent)
+              }
 
-            if (!hasWely) this._inheritedSet.add(welyId)
-          } else this._inheritedSet.delete(welyId)
+              getParent(<Wely<D, P>>(<ShadowRoot>element.parentNode).host)
+            }
 
-          element.removeAttribute('id')
+            if (target) {
+              target.props = { ...inheritance.props(this.data) }
+              this._inheritedSet.add(target)
+            } else this._inheritedSet.delete(element)
+          }
         }
       })
 
-    this.setAttribute('class', this.classes.join(' '))
+    this.classList.add(this.classes.join(' '))
 
     if (this.css) {
       const css = document.createElement('style')
 
       if (this.css.length > 0)
-        this.css.forEach(async localCss => {
-          if (typeof localCss === 'string') {
-            if (/^\S*\.css$/.test(localCss)) {
-              try {
-                const res = await fetch(localCss)
-                console.log(await res.text())
-
-                if (res.status === 200) css.textContent += await res.text()
-                else throw new Error(`${res.status} ${res.statusText}`)
-              } catch (error) {
-                throw new Error(error instanceof Error ? error.message : error?.toString())
-              }
-            } else css.textContent += localCss
-          } else if (localCss.selector && 'style' in localCss) {
+        this.css.forEach(localCss => {
+          if (typeof localCss === 'string') css.textContent += localCss
+          else if (localCss.selector && 'style' in localCss) {
             const style = Object.entries(
               localCss.style({ data: { ...this.data }, props: { ...this.props } })
             )
@@ -104,7 +100,10 @@ export class Wely<D, P> extends HTMLElement {
       this.shadowRoot.appendChild(css)
     }
 
-    if (this.slotContent) appendChild(this, [this.slotContent])
+    if (this.slotContent)
+      typeof this.slotContent === 'string'
+        ? this.insertAdjacentHTML('beforeend', this.slotContent)
+        : this.insertAdjacentElement('beforeend', this.slotContent)
 
     if (this && this.events.length > 0) {
       for (const obj of this.events) {
