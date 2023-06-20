@@ -58,33 +58,26 @@ export class Wely<D, P> extends HTMLElement {
           else {
             const { welyId } = element
             element.id = welyId
-            let child: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
+            let target: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
+            element.removeAttribute('id')
 
-            if (!child) {
-              const getShadowRoot = (shadowRoot: ShadowRoot): Wely<D, P> | undefined => {
-                for (const childElement of Array.from(shadowRoot.querySelectorAll('*'))) {
-                  const childShadowRoot = (<HTMLElement>childElement).shadowRoot
+            if (!target) {
+              const getParent = (arg: HTMLElement): void => {
+                const parent = (<ShadowRoot>arg.parentNode).host
 
-                  if (!childShadowRoot) continue
-
-                  const child = <Wely<D, P>>childShadowRoot.getElementById(welyId)
-                  if (child) return child
-
-                  getShadowRoot(childShadowRoot)
+                if (parent) {
+                  const grandParent = <Wely<D, P>>(<ShadowRoot>parent.parentNode).host
+                  grandParent.welyId === this.welyId ? (target = element) : getParent(grandParent)
                 }
-
-                return undefined
               }
 
-              child = getShadowRoot(this.shadowRoot)
+              getParent(element)
             }
 
-            if (child) {
-              child.props = { ...inheritance.props(this.data) }
-              this._inheritedSet.add(child)
+            if (target) {
+              target.props = { ...inheritance.props(this.data) }
+              this._inheritedSet.add(target)
             } else this._inheritedSet.delete(element)
-
-            element.removeAttribute('id')
           }
         }
       })
