@@ -58,33 +58,26 @@ export class <D, P> extends HTMLElement {
           else {
             const { Id } = element
             element.id = Id
-            let child: <D, P> | undefined = <<D, P>>this.shadowRoot.getElementById(Id)
+            let target: <D, P> | undefined = <<D, P>>this.shadowRoot.getElementById(Id)
+            element.removeAttribute('id')
 
-            if (!child) {
-              const getShadowRoot = (shadowRoot: ShadowRoot): <D, P> | undefined => {
-                for (const childElement of Array.from(shadowRoot.querySelectorAll('*'))) {
-                  const childShadowRoot = (<HTMLElement>childElement).shadowRoot
+            if (!target) {
+              const getParent = (arg: HTMLElement): void => {
+                const parent = (<ShadowRoot>arg.parentNode).host
 
-                  if (!childShadowRoot) continue
-
-                  const child = <<D, P>>childShadowRoot.getElementById(Id)
-                  if (child) return child
-
-                  getShadowRoot(childShadowRoot)
+                if (parent) {
+                  const grandParent = <<D, P>>(<ShadowRoot>parent.parentNode).host
+                  grandParent.Id === this.Id ? (target = element) : getParent(grandParent)
                 }
-
-                return undefined
               }
 
-              child = getShadowRoot(this.shadowRoot)
+              getParent(element)
             }
 
-            if (child) {
-              child.props = { ...inheritance.props(this.data) }
-              this._inheritedSet.add(child)
+            if (target) {
+              target.props = { ...inheritance.props(this.data) }
+              this._inheritedSet.add(target)
             } else this._inheritedSet.delete(element)
-
-            element.removeAttribute('id')
           }
         }
       })
