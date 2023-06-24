@@ -62,6 +62,7 @@ export class Wely<D, P> extends HTMLElement {
             element.removeAttribute('id')
 
             if (!target) {
+              // this以降は探索を止めたい, 間にHTMLComponentsがラップされていても動くのか
               const getParent = (arg: HTMLElement): void => {
                 const parent = <Wely<D, P>>(<ShadowRoot>arg.parentNode).host
                 if (parent) parent.welyId === this.welyId ? (target = element) : getParent(parent)
@@ -107,7 +108,7 @@ export class Wely<D, P> extends HTMLElement {
 
     if (this && this.events.length > 0) {
       for (const obj of this.events) {
-        const { handler, selector, method } = obj
+        const { selector, handler, method } = obj
 
         if (selector) {
           const targets: Element[] = (() => {
