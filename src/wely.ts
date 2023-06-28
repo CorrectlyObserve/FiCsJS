@@ -149,7 +149,7 @@ const grandParent = define({
 const parent2 = define({
   name: 'parent2',
   data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => child2
+  html: () => [`<span>${child2}</span>`, `<p><span>Text</span></p>`]
 }).create()
 
 // const wely3 = define({
