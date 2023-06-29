@@ -49,38 +49,48 @@ export class <D, P> extends HTMLElement {
       }
 
     if (this.inheritances.length > 0)
-      this.inheritances.forEach(inheritance => {
-        const { elements } = inheritance
+      requestAnimationFrame(() =>
+        this.inheritances.forEach(inheritance => {
+          const { elements } = inheritance
 
-        for (const element of <<D, P>[]>convertToArray(elements)) {
-          if (this.html.includes(element) || this._inheritedSet.has(element))
-            element.props = { ...inheritance.props(this.data) }
-          else {
-            const { Id } = element
-            element.id = Id
-            let target: <D, P> | undefined = <<D, P>>this.shadowRoot.getElementById(Id)
-            element.removeAttribute('id')
+          for (const element of <<D, P>[]>convertToArray(elements)) {
+            if (this.html.includes(element) || this._inheritedSet.has(element))
+              element.props = { ...inheritance.props(this.data) }
+            else {
+              const { Id } = element
+              element.id = Id
+              let target: <D, P> | undefined = <<D, P>>(
+                this.shadowRoot.getElementById(Id)
+              )
+              element.removeAttribute('id')
 
-            if (!target) {
-              // this以降は探索を止めたい
-              const getParent = (argElement: HTMLElement): void => {
-                if (argElement instanceof ShadowRoot) {
-                  const parent = <<D, P>>(<ShadowRoot>argElement).host
-                  if (parent) parent.Id === this.Id ? (target = element) : getParent(parent)
-                } else if (argElement instanceof HTMLElement)
-                  getParent(<HTMLElement>argElement.parentNode)
+              if (!target) {
+                const brothers: HTMLElement[] = Array.from(this.parentNode?.children ?? []).map(
+                  child => <HTMLElement>child
+                )
+
+                const getParent = (argElement: HTMLElement): void => {
+                  if (!brothers.includes(argElement)) {
+                    if (argElement instanceof ShadowRoot) {
+                      const parent = <<D, P>>(<ShadowRoot>argElement).host
+                      if (parent)
+                        parent.Id === this.Id ? (target = element) : getParent(parent)
+                    } else if (argElement instanceof HTMLElement)
+                      getParent(<HTMLElement>argElement.parentNode)
+                  }
+                }
+
+                getParent(<HTMLElement>element.parentNode)
               }
 
-              getParent(<HTMLElement>element.parentNode)
+              if (target) {
+                target.props = { ...inheritance.props(this.data) }
+                this._inheritedSet.add(target)
+              } else this._inheritedSet.delete(element)
             }
-
-            if (target) {
-              target.props = { ...inheritance.props(this.data) }
-              this._inheritedSet.add(target)
-            } else this._inheritedSet.delete(element)
           }
-        }
-      })
+        })
+      )
 
     this.classList.add(this.classes.join(' '))
 
