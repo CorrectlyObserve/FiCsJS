@@ -64,7 +64,14 @@ export class Wely<D, P> extends HTMLElement {
               )
               element.removeAttribute('id')
 
-              if (!target) {
+              console.log(
+                this.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_CONTAINED_BY
+              )
+
+              if (
+                !target &&
+                (element.compareDocumentPosition(this) & Node.DOCUMENT_POSITION_FOLLOWING) === 4
+              ) {
                 const brothers: HTMLElement[] = Array.from(this.parentNode?.children ?? []).map(
                   child => <HTMLElement>child
                 )
@@ -86,7 +93,10 @@ export class Wely<D, P> extends HTMLElement {
               if (target) {
                 target.props = { ...inheritance.props(this.data) }
                 this._inheritedSet.add(target)
-              } else this._inheritedSet.delete(element)
+              } else {
+                if (this._inheritedSet.has(element)) this._inheritedSet.delete(element)
+                throw Error(`This component is not a descendant...`)
+              }
             }
           }
         })
