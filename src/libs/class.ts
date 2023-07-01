@@ -56,7 +56,10 @@ export class Wely<D, P> extends HTMLElement {
           for (const element of <Wely<D, P>[]>convertToArray(elements)) {
             if (this.html.includes(element) || this._inheritedSet.has(element))
               element.props = { ...inheritance.props(this.data) }
-            else {
+            else if (
+              (element.compareDocumentPosition(this) & Node.DOCUMENT_POSITION_FOLLOWING) ===
+              4
+            ) {
               const { welyId } = element
               element.id = welyId
               let target: Wely<D, P> | undefined = <Wely<D, P>>(
@@ -68,16 +71,29 @@ export class Wely<D, P> extends HTMLElement {
                 this.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_CONTAINED_BY
               )
 
-              if (
-                !target &&
-                (element.compareDocumentPosition(this) & Node.DOCUMENT_POSITION_FOLLOWING) === 4
-              ) {
-                const brothers: HTMLElement[] = Array.from(this.parentNode?.children ?? []).map(
-                  child => <HTMLElement>child
+              if (!target) {
+                let stopLines: Set<HTMLElement> = new Set()
+                const getTrunk = (node?: ParentNode | null): void => {
+                  if (node) {
+                    if (
+                      (<HTMLElement>node?.parentNode).tagName === 'BODY' ||
+                      node?.parentNode?.children.length === 1
+                    )
+                      stopLines.add(<HTMLElement>node)
+                    else getTrunk(node?.parentNode)
+                  }
+                }
+
+                getTrunk(this.parentNode)
+
+                Array.from(this.parentNode?.children ?? []).forEach(child =>
+                  stopLines.add(<HTMLElement>child)
                 )
 
+                console.log(stopLines)
+
                 const getParent = (argElement: HTMLElement): void => {
-                  if (!brothers.includes(argElement)) {
+                  if (!stopLines.has(argElement)) {
                     if (argElement instanceof ShadowRoot) {
                       const parent = <Wely<D, P>>(<ShadowRoot>argElement).host
                       if (parent)
@@ -97,7 +113,7 @@ export class Wely<D, P> extends HTMLElement {
                 if (this._inheritedSet.has(element)) this._inheritedSet.delete(element)
                 throw Error(`This component is not a descendant...`)
               }
-            }
+            } else throw Error(`This component is not a descendant...`)
           }
         })
       )
