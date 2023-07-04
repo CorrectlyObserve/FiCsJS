@@ -49,74 +49,41 @@ export class <D, P> extends HTMLElement {
       }
 
     if (this.inheritances.length > 0)
-      requestAnimationFrame(() =>
-        this.inheritances.forEach(inheritance => {
-          const { elements } = inheritance
+      this.inheritances.forEach(inheritance => {
+        const { descendants } = inheritance
 
-          for (const element of <<D, P>[]>convertToArray(elements)) {
-            if (this.html.includes(element) || this._inheritedSet.has(element))
+        for (const descendant of <<D, P>[]>convertToArray(descendants)) {
+          if (this.html.includes(descendant) || this._inheritedSet.has(descendant))
+            descendant.props = { ...inheritance.props(this.data) }
+          else {
+            const { Id } = descendant
+            descendant.id = Id
+            let element: <D, P> | undefined = <<D, P>>this.shadowRoot.getElementById(Id)
+            descendant.removeAttribute('id')
+
+            if (!element) {
+              const getParent = (argElement: HTMLElement): void => {
+                if (argElement instanceof ShadowRoot) {
+                  const parent = <<D, P>>(<ShadowRoot>argElement).host
+                  if (parent)
+                    parent.Id === this.Id ? (element = descendant) : getParent(parent)
+                } else if (argElement instanceof HTMLElement)
+                  getParent(<HTMLElement>argElement.parentNode)
+              }
+
+              getParent(<HTMLElement>descendant.parentNode)
+            }
+
+            if (element) {
               element.props = { ...inheritance.props(this.data) }
-            else if (
-              (element.compareDocumentPosition(this) & Node.DOCUMENT_POSITION_FOLLOWING) ===
-              4
-            ) {
-              const { Id } = element
-              element.id = Id
-              let target: <D, P> | undefined = <<D, P>>(
-                this.shadowRoot.getElementById(Id)
-              )
-              element.removeAttribute('id')
-
-              console.log(
-                this.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_CONTAINED_BY
-              )
-
-              if (!target) {
-                let stopLines: Set<HTMLElement> = new Set()
-                const getTrunk = (node?: ParentNode | null): void => {
-                  if (node) {
-                    if (
-                      (<HTMLElement>node?.parentNode).tagName === 'BODY' ||
-                      node?.parentNode?.children.length === 1
-                    )
-                      stopLines.add(<HTMLElement>node)
-                    else getTrunk(node?.parentNode)
-                  }
-                }
-
-                getTrunk(this.parentNode)
-
-                Array.from(this.parentNode?.children ?? []).forEach(child =>
-                  stopLines.add(<HTMLElement>child)
-                )
-
-                console.log(stopLines)
-
-                const getParent = (argElement: HTMLElement): void => {
-                  if (!stopLines.has(argElement)) {
-                    if (argElement instanceof ShadowRoot) {
-                      const parent = <<D, P>>(<ShadowRoot>argElement).host
-                      if (parent)
-                        parent.Id === this.Id ? (target = element) : getParent(parent)
-                    } else if (argElement instanceof HTMLElement)
-                      getParent(<HTMLElement>argElement.parentNode)
-                  }
-                }
-
-                getParent(<HTMLElement>element.parentNode)
-              }
-
-              if (target) {
-                target.props = { ...inheritance.props(this.data) }
-                this._inheritedSet.add(target)
-              } else {
-                if (this._inheritedSet.has(element)) this._inheritedSet.delete(element)
-                throw Error(`This component is not a descendant...`)
-              }
-            } else throw Error(`This component is not a descendant...`)
+              this._inheritedSet.add(element)
+            } else {
+              if (this._inheritedSet.has(descendant)) this._inheritedSet.delete(descendant)
+              throw Error(`This component is not a descendant...`)
+            }
           }
-        })
-      )
+        }
+      })
 
     this.classList.add(this.classes.join(' '))
 
