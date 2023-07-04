@@ -73,6 +73,10 @@ const define = <T, D, P>({
 
           return wely
         }
+
+        toString() {
+          return 'aaa'
+        }
       }
     )
 
@@ -139,7 +143,7 @@ const grandParent = define({
   }),
   inheritances: [
     {
-      elements: child,
+      descendants: child,
       props: ({ color, click }) => ({ color, click })
     }
   ],
