@@ -62,6 +62,6 @@ export interface If {
 }
 
 export type Inheritances<D, P> = {
-  elements: HTMLElement | HTMLElement[]
+  descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
 }[]
