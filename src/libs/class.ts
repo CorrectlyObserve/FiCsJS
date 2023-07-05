@@ -50,30 +50,37 @@ export class Wely<D, P> extends HTMLElement {
 
     if (this.inheritances.length > 0)
       this.inheritances.forEach(inheritance => {
-        const { elements } = inheritance
+        const { descendants } = inheritance
 
-        for (const element of <Wely<D, P>[]>convertToArray(elements)) {
-          if (this.html.includes(element) || this._inheritedSet.has(element))
-            element.props = { ...inheritance.props(this.data) }
+        for (const descendant of <Wely<D, P>[]>convertToArray(descendants)) {
+          if (this.html.includes(descendant) || this._inheritedSet.has(descendant))
+            descendant.props = { ...inheritance.props(this.data) }
           else {
-            const { welyId } = element
-            element.id = welyId
-            let target: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
-            element.removeAttribute('id')
+            const { welyId } = descendant
+            descendant.id = welyId
+            let element: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
+            descendant.removeAttribute('id')
 
-            if (!target) {
-              const getParent = (arg: HTMLElement): void => {
-                const parent = <Wely<D, P>>(<ShadowRoot>arg.parentNode).host
-                if (parent) parent.welyId === this.welyId ? (target = element) : getParent(parent)
+            if (!element) {
+              const getParent = (argElement: HTMLElement): void => {
+                if (argElement instanceof ShadowRoot) {
+                  const parent = <Wely<D, P>>(<ShadowRoot>argElement).host
+                  if (parent)
+                    parent.welyId === this.welyId ? (element = descendant) : getParent(parent)
+                } else if (argElement instanceof HTMLElement)
+                  getParent(<HTMLElement>argElement.parentNode)
               }
 
-              getParent(<Wely<D, P>>(<ShadowRoot>element.parentNode).host)
+              getParent(<HTMLElement>descendant.parentNode)
             }
 
-            if (target) {
-              target.props = { ...inheritance.props(this.data) }
-              this._inheritedSet.add(target)
-            } else this._inheritedSet.delete(element)
+            if (element) {
+              element.props = { ...inheritance.props(this.data) }
+              this._inheritedSet.add(element)
+            } else {
+              if (this._inheritedSet.has(descendant)) this._inheritedSet.delete(descendant)
+              throw Error(`This component is not a descendant...`)
+            }
           }
         }
       })
@@ -107,7 +114,7 @@ export class Wely<D, P> extends HTMLElement {
 
     if (this && this.events.length > 0) {
       for (const obj of this.events) {
-        const { handler, selector, method } = obj
+        const { selector, handler, method } = obj
 
         if (selector) {
           const targets: Element[] = (() => {
