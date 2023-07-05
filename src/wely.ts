@@ -73,6 +73,10 @@ const define = <T, D, P>({
 
           return wely
         }
+
+        toString() {
+          return 'aaa'
+        }
       }
     )
 
@@ -116,8 +120,8 @@ const childClass = define({
       method: ({ data: { count } }) => console.log(count++)
     },
     {
-      handler: 'click',
       selector: 'div',
+      handler: 'click',
       method: ({ data: { message }, props: { click } }) => click(message)
     }
   ]
@@ -139,7 +143,7 @@ const grandParent = define({
   }),
   inheritances: [
     {
-      elements: child,
+      descendants: child,
       props: ({ color, click }) => ({ color, click })
     }
   ],
@@ -149,12 +153,12 @@ const grandParent = define({
 const parent2 = define({
   name: 'parent2',
   data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => child2
+  html: () => [`<span>${child2}</span>`, `<p><span>Text</span></p>`]
 }).create()
 
 // const wely3 = define({
 //   name: 'wely3',
-//   data: {
+//   data: () => ({
 //     number: 100,
 //     text: 'AA',
 //     count: 1,
@@ -162,8 +166,8 @@ const parent2 = define({
 //     color: 'red',
 //     back: 'black',
 //     _childMessage: 'Child hello'
-//   },
-//   html: ({ number }) => ({
+//   }),
+//   html: ({ data: { number } }) => ({
 //     branches: [
 //       {
 //         judge: number > 100,
@@ -177,42 +181,42 @@ const parent2 = define({
 //     fallback: `<slot />`
 //   }),
 //   slot: `<p>AAA</p>`,
-//   delegatedEvents: [
+//   events: [
 //     {
+//       handler: 'click',
 //       selector: 'slot',
-//       click: ({ data: { number, text } }, e, index) =>
-//         console.log(number, text, e, index)
+//       method: ({ data: { number, text } }, e, index) => console.log(number, text, e, index)
 //     }
 //   ]
-// })
+// }).create()
 
 // const wely4 = define({
 //   name: 'Wely4',
-//   data: {
+//   data: () => ({
 //     numbers: [1, 2, 3]
-//   },
-//   html: ({ numbers }) => ({
-//     contents: numbers as number[],
+//   }),
+//   html: ({ data: { numbers } }: { data: { numbers: number[] } }) => ({
+//     contents: numbers,
 //     branches: [
 //       {
-//         judge: (arg: number) => arg === 100,
-//         render: (arg: number, index) =>
-//           `<p class="class-${index}">${arg * 2}</p>`
+//         judge: arg => arg === 100,
+//         render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
 //       },
 //       {
-//         judge: (arg: number) => typeof arg !== 'number',
-//         render: (arg: number, index) => `<p class="class-${index}">${arg}</p>`
+//         judge: arg => typeof arg !== 'number',
+//         render: (arg, index) => `<p class="class-${index}">${arg}</p>`
 //       }
 //     ],
 //     fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
 //   }),
-//   delegatedEvents: [
+//   events: [
 //     {
 //       selector: '.class-z',
-//       click: ({ data: { numbers } }, e, index) => console.log(numbers[index], e)
+//       handler: 'click',
+//       method: ({ data: { numbers } }, e, index) => console.log(numbers[index ?? 0], e)
 //     }
 //   ]
-// })
+// }).create()
 
 export const mount = (parent: string, children: Html | Html[]): void => {
   const parentElement = document.getElementById(<string>parent)
