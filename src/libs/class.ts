@@ -62,11 +62,17 @@ export class Wely<D, P> extends HTMLElement {
             descendant.removeAttribute('id')
 
             if (!element) {
+              let { boundary } = inheritance
+              const boundaries: Set<HTMLElement> = new Set([this])
+
+              if (typeof boundary === 'string')
+                boundary = <HTMLElement>document.getElementById(boundary)
+              if (boundary) boundaries.add(boundary)
+
               const getParent = (argElement: HTMLElement): void => {
                 if (argElement instanceof ShadowRoot) {
                   const parent = <Wely<D, P>>(<ShadowRoot>argElement).host
-                  if (parent)
-                    parent.welyId === this.welyId ? (element = descendant) : getParent(parent)
+                  if (parent) boundaries.has(parent) ? (element = descendant) : getParent(parent)
                 } else if (argElement instanceof HTMLElement)
                   getParent(<HTMLElement>argElement.parentNode)
               }
