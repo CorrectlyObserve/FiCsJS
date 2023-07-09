@@ -144,7 +144,8 @@ const grandParent = define({
   inheritances: [
     {
       descendants: child,
-      props: ({ color, click }) => ({ color, click })
+      props: ({ color, click }) => ({ color, click }),
+      boundary: 'app'
     }
   ],
   html: () => parent
