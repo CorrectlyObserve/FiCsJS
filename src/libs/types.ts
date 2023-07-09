@@ -64,4 +64,5 @@ export interface If {
 export type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
+  boundary?: Html
 }[]
