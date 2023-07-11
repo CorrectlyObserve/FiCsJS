@@ -100,6 +100,9 @@ const childClass = define({
 const child = childClass.create()
 const child2 = childClass.create()
 
+child.html = []
+console.log(child, child.html)
+
 const parent = define({
   name: 'parent',
   html: child
