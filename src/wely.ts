@@ -1,10 +1,7 @@
 import {  } from '@/libs/class'
-import { Constructor, Define, Each, EachIf, Html, If } from '@/libs/types'
+import { Constructor, Define, Html } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
-
-const kebabName = (name: string) => toKebabCase(name)
-const Name = (name: string): string => `w-${kebabName(name)}`
 
 const define = <T, D, P>({
   name,
@@ -16,66 +13,28 @@ const define = <T, D, P>({
   slot,
   events
 }: Define<T, D, P>): Constructor<D> => {
+  const Name = (name: string): string => `w-${toKebabCase(name)}`
+
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
-      class extends <D, P> {
-        static create(partialData = () => ({})): <D, P> {
-          const  = <<D, P>>document.createElement(Name(name))
+      class extends <T, D, P> {
+        static create(partialData = () => ({})): <T, D, P> {
+          const  = <<T, D, P>>document.createElement(Name(name))
+          const dataObj = <D>{ ...(data ? data() : {}), ...partialData() }
 
-          if (data) .data = { ...data(), ...partialData() }
-          if (inheritances) .inheritances = [...inheritances]
-
-          .classes.push(kebabName(name))
-          if (className)
-            for (const localName of className.split(' ')) .classes.push(kebabName(localName))
-
-          let converter =
-            typeof html === 'function'
-              ? html({ data: { ....data }, props: { ....props } })
-              : html
-
-          if (typeof converter === 'string') .html = convertToArray(<Html | Html[]>converter)
-          else if ('contents' in <Each<T> | EachIf<T>>converter) {
-            .isEach = true
-
-            if ('branches' in <EachIf<T>>converter)
-              (<EachIf<T>>converter).contents.forEach((content, index) => {
-                for (const branch of (<EachIf<T>>converter).branches)
-                  if (branch.judge(content)) .html.push(branch.render(content, index))
-
-                const fallback = (<EachIf<T>>converter)?.fallback
-                if (fallback !== undefined) .html.push(fallback(content, index))
-              })
-            else
-              (<Each<T>>converter).contents.forEach((content, index) =>
-                .html.push((<Each<T>>converter).render(content, index) ?? '')
-              )
-          } else if ('branches' in <If>converter) {
-            for (const branch of (<If>converter).branches)
-              if (branch.judge) {
-                .html.push(branch.render)
-                break
-              }
-
-            const fallback = (<If>converter)?.fallback
-            if (.html.length === 0 && fallback) .html.push(fallback)
-          } else .html = convertToArray(<Html | Html[]>converter)
-
-          if (css) .css = [...css]
-          if (slot)
-            .slotContent =
-              typeof slot === 'function'
-                ? slot({ data: { ....data }, props: { ....props } })
-                : slot
-
-          if (events) .events = [...events]
+          .initialize({
+            name,
+            dataObj,
+            inheritances,
+            className,
+            html,
+            css,
+            slot,
+            events
+          })
 
           return 
-        }
-
-        toString() {
-          return 'aaa'
         }
       }
     )
