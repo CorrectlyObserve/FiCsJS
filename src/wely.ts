@@ -1,10 +1,7 @@
 import { Wely } from '@/libs/class'
-import { Constructor, Define, Each, EachIf, Html, If } from '@/libs/types'
+import { Constructor, Define, Html } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
-
-const kebabName = (name: string) => toKebabCase(name)
-const welyName = (name: string): string => `w-${kebabName(name)}`
 
 const define = <T, D, P>({
   name,
@@ -16,66 +13,28 @@ const define = <T, D, P>({
   slot,
   events
 }: Define<T, D, P>): Constructor<D> => {
+  const welyName = (name: string): string => `w-${toKebabCase(name)}`
+
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
-      class extends Wely<D, P> {
-        static create(partialData = () => ({})): Wely<D, P> {
-          const wely = <Wely<D, P>>document.createElement(welyName(name))
+      class extends Wely<T, D, P> {
+        static create(partialData = () => ({})): Wely<T, D, P> {
+          const wely = <Wely<T, D, P>>document.createElement(welyName(name))
+          const dataObj = <D>{ ...(data ? data() : {}), ...partialData() }
 
-          if (data) wely.data = { ...data(), ...partialData() }
-          if (inheritances) wely.inheritances = [...inheritances]
-
-          wely.classes.push(kebabName(name))
-          if (className)
-            for (const localName of className.split(' ')) wely.classes.push(kebabName(localName))
-
-          let converter =
-            typeof html === 'function'
-              ? html({ data: { ...wely.data }, props: { ...wely.props } })
-              : html
-
-          if (typeof converter === 'string') wely.html = convertToArray(<Html | Html[]>converter)
-          else if ('contents' in <Each<T> | EachIf<T>>converter) {
-            wely.isEach = true
-
-            if ('branches' in <EachIf<T>>converter)
-              (<EachIf<T>>converter).contents.forEach((content, index) => {
-                for (const branch of (<EachIf<T>>converter).branches)
-                  if (branch.judge(content)) wely.html.push(branch.render(content, index))
-
-                const fallback = (<EachIf<T>>converter)?.fallback
-                if (fallback !== undefined) wely.html.push(fallback(content, index))
-              })
-            else
-              (<Each<T>>converter).contents.forEach((content, index) =>
-                wely.html.push((<Each<T>>converter).render(content, index) ?? '')
-              )
-          } else if ('branches' in <If>converter) {
-            for (const branch of (<If>converter).branches)
-              if (branch.judge) {
-                wely.html.push(branch.render)
-                break
-              }
-
-            const fallback = (<If>converter)?.fallback
-            if (wely.html.length === 0 && fallback) wely.html.push(fallback)
-          } else wely.html = convertToArray(<Html | Html[]>converter)
-
-          if (css) wely.css = [...css]
-          if (slot)
-            wely.slotContent =
-              typeof slot === 'function'
-                ? slot({ data: { ...wely.data }, props: { ...wely.props } })
-                : slot
-
-          if (events) wely.events = [...events]
+          wely.initialize({
+            name,
+            dataObj,
+            inheritances,
+            className,
+            html,
+            css,
+            slot,
+            events
+          })
 
           return wely
-        }
-
-        toString() {
-          return 'aaa'
         }
       }
     )
