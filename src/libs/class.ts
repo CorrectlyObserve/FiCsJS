@@ -1,4 +1,4 @@
-import { Css, Events, Html, Inheritances } from '@/libs/types'
+import { Css, Each, EachIf, Events, Html, If, Inheritances, Initialize } from '@/libs/types'
 import { convertToArray, toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
@@ -11,21 +11,22 @@ const generate = function* (): Generator<number> {
 }
 const generated: Generator<number> = generate()
 
-export class Wely<D, P> extends HTMLElement {
+export class Wely<T, D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   readonly welyId: string = ''
-  private _isInitialized: boolean = false
-  private _inheritedSet: Set<HTMLElement> = new Set()
 
-  data: D = <D>{}
-  props: P = <P>{}
-  inheritances: Inheritances<D, P> = []
-  classes: string[] = []
-  html: Html[] = []
-  css?: Css<D, P>
-  slotContent?: Html
-  events: Events<D, P> = []
-  isEach: boolean = false
+  private data: D = <D>{}
+  private props: P = <P>{}
+  private inheritances: Inheritances<D, P> = []
+  private classes: string[] = []
+  private html: Html[] = []
+  private css?: Css<D, P>
+  private slotContent?: Html
+  private events: Events<D, P> = []
+
+  private isEach: boolean = false
+  private isRendered: boolean = false
+  private inheritedSet: Set<HTMLElement> = new Set()
 
   constructor() {
     super()
@@ -33,8 +34,65 @@ export class Wely<D, P> extends HTMLElement {
     this.welyId = `welified-id${generated.next().value}`
   }
 
+  initialize({
+    name,
+    dataObj,
+    inheritances,
+    className,
+    html,
+    css,
+    slot,
+    events
+  }: Initialize<T, D, P>) {
+    if (dataObj) this.data = { ...dataObj }
+    if (inheritances) this.inheritances = [...inheritances]
+
+    this.classes.push(toKebabCase(name))
+    if (className)
+      for (const localName of className.split(' ')) this.classes.push(toKebabCase(localName).trim())
+
+    let converter =
+      typeof html === 'function' ? html({ data: { ...this.data }, props: { ...this.props } }) : html
+
+    if (typeof converter === 'string') this.html = convertToArray(<Html | Html[]>converter)
+    else if ('contents' in <Each<T> | EachIf<T>>converter) {
+      this.isEach = true
+
+      if ('branches' in <EachIf<T>>converter)
+        (<EachIf<T>>converter).contents.forEach((content, index) => {
+          for (const branch of (<EachIf<T>>converter).branches)
+            if (branch.judge(content)) this.html.push(branch.render(content, index))
+
+          const fallback = (<EachIf<T>>converter)?.fallback
+          if (fallback !== undefined) this.html.push(fallback(content, index))
+        })
+      else
+        (<Each<T>>converter).contents.forEach((content, index) =>
+          this.html.push((<Each<T>>converter).render(content, index) ?? '')
+        )
+    } else if ('branches' in <If>converter) {
+      for (const branch of (<If>converter).branches)
+        if (branch.judge) {
+          this.html.push(branch.render)
+          break
+        }
+
+      const fallback = (<If>converter)?.fallback
+      if (this.html.length === 0 && fallback) this.html.push(fallback)
+    } else this.html = convertToArray(<Html | Html[]>converter)
+
+    if (css) this.css = [...css]
+    if (slot)
+      this.slotContent =
+        typeof slot === 'function'
+          ? slot({ data: { ...this.data }, props: { ...this.props } })
+          : slot
+
+    if (events) this.events = [...events]
+  }
+
   connectedCallback(): void {
-    if (this._isInitialized) return
+    if (this.isRendered) return
 
     if (this.html.length > 0)
       for (let child of convertToArray(this.html)) {
@@ -52,13 +110,15 @@ export class Wely<D, P> extends HTMLElement {
       this.inheritances.forEach(inheritance => {
         const { descendants } = inheritance
 
-        for (const descendant of <Wely<D, P>[]>convertToArray(descendants)) {
-          if (this.html.includes(descendant) || this._inheritedSet.has(descendant))
+        for (const descendant of <Wely<T, D, P>[]>convertToArray(descendants)) {
+          if (this.html.includes(descendant) || this.inheritedSet.has(descendant))
             descendant.props = { ...inheritance.props(this.data) }
           else {
             const { welyId } = descendant
             descendant.id = welyId
-            let element: Wely<D, P> | undefined = <Wely<D, P>>this.shadowRoot.getElementById(welyId)
+            let element: Wely<T, D, P> | undefined = <Wely<T, D, P>>(
+              this.shadowRoot.getElementById(welyId)
+            )
             descendant.removeAttribute('id')
 
             if (!element) {
@@ -71,7 +131,8 @@ export class Wely<D, P> extends HTMLElement {
 
               const getParent = (argElement: HTMLElement): void => {
                 if (argElement instanceof ShadowRoot) {
-                  const parent = <Wely<D, P>>(<ShadowRoot>argElement).host
+                  const parent = <Wely<T, D, P>>(<ShadowRoot>argElement).host
+
                   if (parent) boundaries.has(parent) ? (element = descendant) : getParent(parent)
                 } else if (argElement instanceof HTMLElement)
                   getParent(<HTMLElement>argElement.parentNode)
@@ -82,9 +143,9 @@ export class Wely<D, P> extends HTMLElement {
 
             if (element) {
               element.props = { ...inheritance.props(this.data) }
-              this._inheritedSet.add(element)
+              this.inheritedSet.add(element)
             } else {
-              if (this._inheritedSet.has(descendant)) this._inheritedSet.delete(descendant)
+              if (this.inheritedSet.has(descendant)) this.inheritedSet.delete(descendant)
               throw Error(`This component is not a descendant...`)
             }
           }
@@ -157,6 +218,6 @@ export class Wely<D, P> extends HTMLElement {
       }
     }
 
-    this._isInitialized = true
+    this.isRendered = true
   }
 }
