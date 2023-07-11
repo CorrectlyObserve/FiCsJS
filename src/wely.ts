@@ -42,6 +42,17 @@ const define = <T, D, P>({
   return <Constructor<D>>customElements.get(welyName(name))
 }
 
+const wrap = (templates: TemplateStringsArray, ...elements: HTMLElement[]) => {
+  const html: Html[] = []
+  templates.forEach((template, index) => {
+    html.push(template)
+    if (index !== templates.length - 1) html.push(elements[index])
+  })
+
+  console.log(html)
+  return html
+}
+
 interface Data {
   count: number
   fontSize: number
@@ -113,7 +124,7 @@ const grandParent = define({
 const parent2 = define({
   name: 'parent2',
   data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => [`<span>${child2}</span>`, `<p><span>Text</span></p>`]
+  html: () => [...wrap`<span>${child2}</span>`, `<p><span>Text</span></p>`]
 }).create()
 
 // const wely3 = define({
