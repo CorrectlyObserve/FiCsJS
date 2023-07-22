@@ -1,6 +1,6 @@
 import { Wely } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
-import { convertToArray, toKebabCase } from '@/libs/utils'
+import { toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
@@ -42,15 +42,29 @@ const define = <T, D, P>({
   return <Constructor<D>>customElements.get(welyName(name))
 }
 
-const wrap = (templates: TemplateStringsArray, ...elements: HTMLElement[]) => {
-  const html: Html[] = []
+const html = (
+  templates: TemplateStringsArray,
+  ...elements: (HTMLElement | unknown)[]
+): DocumentFragment => {
+  let html: string = ''
   templates.forEach((template, index) => {
-    html.push(template)
-    if (index !== templates.length - 1) html.push(elements[index])
+    html += template
+
+    if (index !== templates.length - 1)
+      html +=
+        elements[index] instanceof HTMLElement ? `<span id="${index}"></span>` : elements[index]
   })
 
-  console.log(html)
-  return html
+  const dom = new DOMParser().parseFromString(html, 'text/html').body
+  let fragment = new DocumentFragment()
+
+  while (dom.firstChild) fragment.appendChild(dom.firstChild)
+
+  elements.forEach((element, index) => {
+    if (element instanceof HTMLElement) fragment.getElementById(`${index}`)?.replaceWith(element)
+  })
+
+  return fragment
 }
 
 interface Data {
@@ -73,10 +87,8 @@ const childClass = define({
     message: 'Hello',
     back: 'black'
   }),
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
-    `<div><p class="hello" style="display: inline">${message}</p></div>`,
-    `<p>${color}</p>`
-  ],
+  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) =>
+    `<div><p class="hello" style="display: inline">${message}</p></div><p>${color}</p>`,
   css: [
     cssUrl,
     {
@@ -118,13 +130,13 @@ const grandParent = define({
       boundary: 'app'
     }
   ],
-  html: () => parent
+  html: ({ data: { color } }) => html`${parent}${color}`
 }).create()
 
 const parent2 = define({
   name: 'parent2',
   data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => [...wrap`<span>${child2}</span>`, `<p><span>Text</span></p>`]
+  html: () => child2
 }).create()
 
 // const wely3 = define({
@@ -189,14 +201,8 @@ const parent2 = define({
 //   ]
 // }).create()
 
-export const mount = (parent: string, children: Html | Html[]): void => {
-  const parentElement = document.getElementById(<string>parent)
-
-  if (parentElement)
-    for (const child of convertToArray(children))
-      typeof child === 'string'
-        ? parentElement.insertAdjacentHTML('beforeend', child)
-        : parentElement.insertAdjacentElement('beforeend', child)
+export const mount = (parent: string, child: Html): void => {
+  document.getElementById(<string>parent)?.appendChild(<Node>child)
 }
 
-mount('app', [grandParent, parent2])
+mount('app', html`${grandParent}${parent2}`)
