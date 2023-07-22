@@ -2,7 +2,7 @@ interface CommonArgs<T, D, P> {
   name: string
   inheritances?: Inheritances<D, P>
   className?: string
-  html: Convert<Html | Html[] | Each<T> | EachIf<T> | If, D, P>
+  html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
   css?: Css<D, P>
   slot?: Convert<string, D, P>
   events?: Events<D, P>
@@ -31,16 +31,16 @@ export interface Define<T, D, P> extends CommonArgs<T, D, P> {
 
 export interface Each<T> {
   contents: T[]
-  render: (arg: T, index: number) => Html | undefined
+  render: (arg: T, index: number) => string | HTMLElement | undefined
 }
 
 export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => Html
+    render: (arg: T, index: number) => string | HTMLElement
   }[]
-  fallback?: (arg: T, index: number) => Html
+  fallback?: (arg: T, index: number) => string | HTMLElement
 }
 
 export type Events<D, P> = {
@@ -59,20 +59,20 @@ export type Events<D, P> = {
   ) => void
 }[]
 
-export type Html = string | HTMLElement
+export type Html = string | HTMLElement | DocumentFragment
 
 export interface If {
   branches: {
     judge: boolean | unknown
-    render: Html
+    render: string | HTMLElement
   }[]
-  fallback?: Html
+  fallback?: string | HTMLElement
 }
 
 export type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
-  boundary?: Html
+  boundary?: string | HTMLElement
 }[]
 
 export interface Initialize<T, D, P> extends CommonArgs<T, D, P> {
