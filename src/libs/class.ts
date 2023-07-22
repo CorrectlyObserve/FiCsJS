@@ -1,5 +1,5 @@
 import { Css, Each, EachIf, Events, Html, If, Inheritances, Initialize } from '@/libs/types'
-import { convertToArray, toKebabCase } from '@/libs/utils'
+import { toKebabCase } from '@/libs/utils'
 
 const generate = function* (): Generator<number> {
   let n = 1
@@ -21,7 +21,7 @@ export class Wely<T, D, P> extends HTMLElement {
   #classes: string[] = []
   #html: Html[] = []
   #css?: Css<D, P>
-  #slotContent?: Html
+  #slotContent?: string | HTMLElement
   #events: Events<D, P> = []
 
   #isEach: boolean = false
@@ -49,12 +49,20 @@ export class Wely<T, D, P> extends HTMLElement {
 
     this.#classes.push(toKebabCase(name))
     if (className)
-      for (const localName of className.split(' ')) this.#classes.push(toKebabCase(localName).trim())
+      for (const localName of className.split(' '))
+        this.#classes.push(toKebabCase(localName).trim())
 
     let converter =
-      typeof html === 'function' ? html({ data: { ...this.#data }, props: { ...this.#props } }) : html
+      typeof html === 'function'
+        ? html({ data: { ...this.#data }, props: { ...this.#props } })
+        : html
 
-    if (typeof converter === 'string') this.#html = convertToArray(<Html | Html[]>converter)
+    if (
+      typeof converter === 'string' ||
+      converter instanceof HTMLElement ||
+      converter instanceof DocumentFragment
+    )
+      this.#html.push(converter)
     else if ('contents' in <Each<T> | EachIf<T>>converter) {
       this.#isEach = true
 
@@ -79,7 +87,7 @@ export class Wely<T, D, P> extends HTMLElement {
 
       const fallback = (<If>converter)?.fallback
       if (this.#html.length === 0 && fallback) this.#html.push(fallback)
-    } else this.#html = convertToArray(<Html | Html[]>converter)
+    }
 
     if (css) this.#css = [...css]
     if (slot)
@@ -94,23 +102,21 @@ export class Wely<T, D, P> extends HTMLElement {
   connectedCallback(): void {
     if (this.#isRendered) return
 
-    if (this.#html.length > 0)
-      for (let child of convertToArray(this.#html)) {
-        if (typeof child === 'string')
-          child = <HTMLElement>(
-            Array.from(
-              new DOMParser().parseFromString(child, 'text/html').body.childNodes
-            )[0].cloneNode(true)
-          )
-
-        this.shadowRoot.appendChild(child)
-      }
+    if (this.#html.length > 0) {
+      if (typeof this.#html[0] === 'string') {
+        const childNodes = Array.from(
+          new DOMParser().parseFromString(this.#html[0], 'text/html').body.childNodes
+        )
+        childNodes.forEach(childNode => this.shadowRoot.appendChild(childNode))
+      } else this.shadowRoot.appendChild(<Node>this.#html[0])
+    }
 
     if (this.#inheritances.length > 0)
       this.#inheritances.forEach(inheritance => {
-        const { descendants } = inheritance
+        let { descendants } = inheritance
+        if (!Array.isArray(descendants)) descendants = [descendants]
 
-        for (const descendant of <Wely<T, D, P>[]>convertToArray(descendants)) {
+        for (const descendant of <Wely<T, D, P>[]>descendants) {
           if (this.#html.includes(descendant) || this.#inheritedSet.has(descendant))
             descendant.#props = { ...inheritance.props(this.#data) }
           else {
