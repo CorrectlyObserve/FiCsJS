@@ -1,6 +1,6 @@
 import { Wely } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
-import { toKebabCase } from '@/libs/utils'
+import { generator, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
@@ -47,12 +47,18 @@ const html = (
   ...elements: (HTMLElement | unknown)[]
 ): DocumentFragment => {
   let html: string = ''
+  const generatedId = generator.next().value
+
   templates.forEach((template, index) => {
     html += template
 
-    if (index !== templates.length - 1)
+    if (index !== templates.length - 1) {
+      const element = elements[index]
       html +=
-        elements[index] instanceof HTMLElement ? `<span id="${index}"></span>` : elements[index]
+        element instanceof HTMLElement
+          ? `<span id="virtual-id${generatedId}-${index}"></span>`
+          : element
+    }
   })
 
   const dom = new DOMParser().parseFromString(html, 'text/html').body
@@ -61,7 +67,8 @@ const html = (
   while (dom.firstChild) fragment.appendChild(dom.firstChild)
 
   elements.forEach((element, index) => {
-    if (element instanceof HTMLElement) fragment.getElementById(`${index}`)?.replaceWith(element)
+    if (element instanceof HTMLElement)
+      fragment.getElementById(`virtual-id${generatedId}-${index}`)?.replaceWith(element)
   })
 
   return fragment
