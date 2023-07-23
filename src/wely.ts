@@ -1,10 +1,7 @@
 import { Wely } from '@/libs/class'
-import { Constructor, Define, Each, EachIf, Html, If } from '@/libs/types'
-import { convertToArray, toKebabCase } from '@/libs/utils'
+import { Constructor, Define, Html } from '@/libs/types'
+import { generator, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
-
-const kebabName = (name: string) => toKebabCase(name)
-const welyName = (name: string): string => `w-${kebabName(name)}`
 
 const define = <T, D, P>({
   name,
@@ -16,71 +13,65 @@ const define = <T, D, P>({
   slot,
   events
 }: Define<T, D, P>): Constructor<D> => {
+  const welyName = (name: string): string => `w-${toKebabCase(name)}`
+
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
-      class extends Wely<D, P> {
-        static create(partialData = () => ({})): Wely<D, P> {
-          const wely = <Wely<D, P>>document.createElement(welyName(name))
+      class extends Wely<T, D, P> {
+        static create(partialData = () => ({})): Wely<T, D, P> {
+          const wely = <Wely<T, D, P>>document.createElement(welyName(name))
+          const dataObj = <D>{ ...(data ? data() : {}), ...partialData() }
 
-          if (data) wely.data = { ...data(), ...partialData() }
-          if (inheritances) wely.inheritances = [...inheritances]
-
-          wely.classes.push(kebabName(name))
-          if (className)
-            for (const localName of className.split(' ')) wely.classes.push(kebabName(localName))
-
-          let converter =
-            typeof html === 'function'
-              ? html({ data: { ...wely.data }, props: { ...wely.props } })
-              : html
-
-          if (typeof converter === 'string') wely.html = convertToArray(<Html | Html[]>converter)
-          else if ('contents' in <Each<T> | EachIf<T>>converter) {
-            wely.isEach = true
-
-            if ('branches' in <EachIf<T>>converter)
-              (<EachIf<T>>converter).contents.forEach((content, index) => {
-                for (const branch of (<EachIf<T>>converter).branches)
-                  if (branch.judge(content)) wely.html.push(branch.render(content, index))
-
-                const fallback = (<EachIf<T>>converter)?.fallback
-                if (fallback !== undefined) wely.html.push(fallback(content, index))
-              })
-            else
-              (<Each<T>>converter).contents.forEach((content, index) =>
-                wely.html.push((<Each<T>>converter).render(content, index) ?? '')
-              )
-          } else if ('branches' in <If>converter) {
-            for (const branch of (<If>converter).branches)
-              if (branch.judge) {
-                wely.html.push(branch.render)
-                break
-              }
-
-            const fallback = (<If>converter)?.fallback
-            if (wely.html.length === 0 && fallback) wely.html.push(fallback)
-          } else wely.html = convertToArray(<Html | Html[]>converter)
-
-          if (css) wely.css = [...css]
-          if (slot)
-            wely.slotContent =
-              typeof slot === 'function'
-                ? slot({ data: { ...wely.data }, props: { ...wely.props } })
-                : slot
-
-          if (events) wely.events = [...events]
+          wely.initialize({
+            name,
+            dataObj,
+            inheritances,
+            className,
+            html,
+            css,
+            slot,
+            events
+          })
 
           return wely
-        }
-
-        toString() {
-          return 'aaa'
         }
       }
     )
 
   return <Constructor<D>>customElements.get(welyName(name))
+}
+
+const html = (
+  templates: TemplateStringsArray,
+  ...elements: (HTMLElement | unknown)[]
+): DocumentFragment => {
+  let html: string = ''
+  const generatedId = generator.next().value
+
+  templates.forEach((template, index) => {
+    html += template
+
+    if (index !== templates.length - 1) {
+      const element = elements[index]
+      html +=
+        element instanceof HTMLElement
+          ? `<span id="virtual-id${generatedId}-${index}"></span>`
+          : element
+    }
+  })
+
+  const dom = new DOMParser().parseFromString(html, 'text/html').body
+  let fragment = new DocumentFragment()
+
+  while (dom.firstChild) fragment.appendChild(dom.firstChild)
+
+  elements.forEach((element, index) => {
+    if (element instanceof HTMLElement)
+      fragment.getElementById(`virtual-id${generatedId}-${index}`)?.replaceWith(element)
+  })
+
+  return fragment
 }
 
 interface Data {
@@ -103,10 +94,8 @@ const childClass = define({
     message: 'Hello',
     back: 'black'
   }),
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) => [
-    `<div><p class="hello" style="display: inline">${message}</p></div>`,
-    `<p>${color}</p>`
-  ],
+  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) =>
+    `<div><p class="hello" style="display: inline">${message}</p></div><p>${color}</p>`,
   css: [
     cssUrl,
     {
@@ -144,16 +133,17 @@ const grandParent = define({
   inheritances: [
     {
       descendants: child,
-      props: ({ color, click }) => ({ color, click })
+      props: ({ color, click }) => ({ color, click }),
+      boundary: 'app'
     }
   ],
-  html: () => parent
+  html: ({ data: { color } }) => html`${parent}${color}`
 }).create()
 
 const parent2 = define({
   name: 'parent2',
   data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => [`<span>${child2}</span>`, `<p><span>Text</span></p>`]
+  html: () => child2
 }).create()
 
 // const wely3 = define({
@@ -218,14 +208,8 @@ const parent2 = define({
 //   ]
 // }).create()
 
-export const mount = (parent: string, children: Html | Html[]): void => {
-  const parentElement = document.getElementById(<string>parent)
-
-  if (parentElement)
-    for (const child of convertToArray(children))
-      typeof child === 'string'
-        ? parentElement.insertAdjacentHTML('beforeend', child)
-        : parentElement.insertAdjacentElement('beforeend', child)
+export const mount = (parent: string, child: Html): void => {
+  document.getElementById(<string>parent)?.appendChild(<Node>child)
 }
 
-mount('app', [grandParent, parent2])
+mount('app', html`${grandParent}${parent2}`)
