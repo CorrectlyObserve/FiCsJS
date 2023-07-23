@@ -2,7 +2,7 @@
   "name": "wely.js",
   "author": "Masami Ogasawara",
   "version": "0.0.1",
-  "description": "WelyJS: The framework-independent component library",
+  "description": "WelyJS: The framework-independent component framework",
   "keywords": [],
   "license": "MIT",
   "type": "module",
