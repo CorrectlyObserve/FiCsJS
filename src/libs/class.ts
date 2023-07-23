@@ -1,15 +1,5 @@
 import { Css, Each, EachIf, Events, Html, If, Inheritances, Initialize } from '@/libs/types'
-import { toKebabCase } from '@/libs/utils'
-
-const generate = function* (): Generator<number> {
-  let n = 1
-
-  while (true) {
-    yield n
-    n++
-  }
-}
-const generated: Generator<number> = generate()
+import { generator, toKebabCase } from '@/libs/utils'
 
 export class Wely<T, D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -31,7 +21,7 @@ export class Wely<T, D, P> extends HTMLElement {
   constructor() {
     super()
     this.shadowRoot = this.attachShadow({ mode: 'open' })
-    this.welyId = `welified-id${generated.next().value}`
+    this.welyId = `wely-id${generator.next().value}`
   }
 
   initialize({
