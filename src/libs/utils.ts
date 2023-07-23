@@ -1,6 +1,13 @@
-import { Html } from '@/libs/types'
+const generate = function* (): Generator<number> {
+  let n = 1
 
-export const convertToArray = (html: Html | Html[]) => (Array.isArray(html) ? [...html] : [html])
+  while (true) {
+    yield n
+    n++
+  }
+}
+
+export const generator: Generator<number> = generate()
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
