@@ -52,13 +52,11 @@ const html = (
   templates.forEach((template, index) => {
     html += template
 
-    if (index !== templates.length - 1) {
-      const element = elements[index]
+    if (index !== templates.length - 1)
       html +=
-        element instanceof HTMLElement
-          ? `<span id="virtual-id${generatedId}-${index}"></span>`
-          : element
-    }
+        elements[index] instanceof HTMLElement
+          ? `<var id="virtual-id${generatedId}-${index}"></var>`
+          : elements[index]
   })
 
   const dom = new DOMParser().parseFromString(html, 'text/html').body
@@ -67,8 +65,12 @@ const html = (
   while (dom.firstChild) fragment.appendChild(dom.firstChild)
 
   elements.forEach((element, index) => {
-    if (element instanceof HTMLElement)
-      fragment.getElementById(`virtual-id${generatedId}-${index}`)?.replaceWith(element)
+    if (element instanceof HTMLElement) {
+      const virtualElement = fragment.getElementById(`virtual-id${generatedId}-${index}`)
+
+      if (virtualElement) virtualElement.replaceWith(element)
+      else throw Error(`The element with an applicable id is not found...`)
+    }
   })
 
   return fragment
