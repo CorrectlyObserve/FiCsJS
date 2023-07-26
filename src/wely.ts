@@ -55,7 +55,7 @@ const html = (
     if (index !== templates.length - 1)
       html +=
         elements[index] instanceof HTMLElement
-          ? `<var id="virtual-id${generatedId}-${index}"></var>`
+          ? `<var id="placeholder-id${generatedId}-${index}"></var>`
           : elements[index]
   })
 
@@ -66,9 +66,9 @@ const html = (
 
   elements.forEach((element, index) => {
     if (element instanceof HTMLElement) {
-      const virtualElement = fragment.getElementById(`virtual-id${generatedId}-${index}`)
+      const placeholder = fragment.getElementById(`placeholder-id${generatedId}-${index}`)
 
-      if (virtualElement) virtualElement.replaceWith(element)
+      if (placeholder) placeholder.replaceWith(element)
       else throw Error(`The element with an applicable id is not found...`)
     }
   })
