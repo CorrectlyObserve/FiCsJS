@@ -55,7 +55,7 @@ const html = (
     if (index !== templates.length - 1)
       html +=
         elements[index] instanceof HTMLElement
-          ? `<var id="placeholder-id${generatedId}-${index}"></var>`
+          ? `<w-var id="placeholder-id${generatedId}-${index}"></w-var>`
           : elements[index]
   })
 
@@ -119,11 +119,12 @@ const childClass = define({
 })
 
 const child = childClass.create()
-const child2 = childClass.create()
 
 const parent = define({
   name: 'parent',
-  html: child
+  className: 'test',
+  html: `<slot />`,
+  slot: child
 }).create()
 
 const grandParent = define({
@@ -140,12 +141,6 @@ const grandParent = define({
     }
   ],
   html: ({ data: { color } }) => html`${parent}${color}`
-}).create()
-
-const parent2 = define({
-  name: 'parent2',
-  data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => child2
 }).create()
 
 // const wely3 = define({
@@ -214,4 +209,4 @@ export const mount = (parent: string, child: Html): void => {
   document.getElementById(<string>parent)?.appendChild(<Node>child)
 }
 
-mount('app', html`${grandParent}${parent2}`)
+mount('app', html`${grandParent}`)
