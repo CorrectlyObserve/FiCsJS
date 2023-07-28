@@ -4,7 +4,7 @@ interface CommonArgs<T, D, P> {
   className?: string
   html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
   css?: Css<D, P>
-  slot?: Convert<string, D, P>
+  slot?: Convert<StringOrElement, D, P>
   events?: Events<D, P>
 }
 
@@ -15,7 +15,7 @@ export interface Constructor<D> {
 
 type Convert<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
 
-export type Css<D, P> = (
+type Css<D, P> = (
   | string
   | {
       selector: string
@@ -31,19 +31,19 @@ export interface Define<T, D, P> extends CommonArgs<T, D, P> {
 
 export interface Each<T> {
   contents: T[]
-  render: (arg: T, index: number) => string | HTMLElement | undefined
+  render: (arg: T, index: number) => StringOrElement | undefined
 }
 
 export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => string | HTMLElement
+    render: (arg: T, index: number) => StringOrElement
   }[]
-  fallback?: (arg: T, index: number) => string | HTMLElement
+  fallback?: (arg: T, index: number) => StringOrElement
 }
 
-export type Events<D, P> = {
+type Events<D, P> = {
   handler: string
   selector?: string
   method: (
@@ -64,17 +64,19 @@ export type Html = string | HTMLElement | DocumentFragment
 export interface If {
   branches: {
     judge: boolean | unknown
-    render: string | HTMLElement
+    render: StringOrElement
   }[]
-  fallback?: string | HTMLElement
+  fallback?: StringOrElement
 }
 
-export type Inheritances<D, P> = {
+type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
-  boundary?: string | HTMLElement
+  boundary?: StringOrElement
 }[]
 
 export interface Initialize<T, D, P> extends CommonArgs<T, D, P> {
   dataObj?: D
 }
+
+type StringOrElement = string | HTMLElement
