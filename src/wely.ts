@@ -5,29 +5,31 @@ import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
   name,
-  data,
-  inheritances,
   className,
+  data,
   html,
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D> => {
+}: Define<T, D, P>): Constructor<D, P> => {
   const welyName = (name: string): string => `w-${toKebabCase(name)}`
 
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
       class extends Wely<T, D, P> {
-        static create(partialData = () => ({})): Wely<T, D, P> {
+        static create(
+          { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
+        ): Wely<T, D, P> {
+          console.log(partialData, partialData())
           const wely = <Wely<T, D, P>>document.createElement(welyName(name))
-          const dataObj = <D>{ ...(data ? data() : {}), ...partialData() }
+          const integratedData = <D>{ ...(data ? data() : {}) }
 
           wely.initialize({
             name,
-            dataObj,
-            inheritances,
             className,
+            integratedData,
+            inheritances,
             html,
             css,
             slot,
@@ -39,7 +41,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <Constructor<D>>customElements.get(welyName(name))
+  return <Constructor<D, P>>customElements.get(welyName(name))
 }
 
 const html = (
@@ -118,14 +120,14 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create()
+const child = childClass.create({})
 
 const parent = define({
   name: 'parent',
   className: 'test',
   html: `<slot />`,
   slot: child
-}).create()
+}).create({})
 
 const grandParent = define({
   name: 'grandParent',
@@ -133,15 +135,17 @@ const grandParent = define({
     color: 'green',
     click: (message: string) => console.log(message)
   }),
+  html: ({ data: { color } }) => html`${parent}${color}`
+}).create({
+  data: () => ({ color: 'blue' }),
   inheritances: [
     {
       descendants: child,
-      props: ({ color, click }) => ({ color, click }),
+      props: ({ color, click }: Props) => ({ color, click }),
       boundary: 'app'
     }
-  ],
-  html: ({ data: { color } }) => html`${parent}${color}`
-}).create()
+  ]
+})
 
 // const wely3 = define({
 //   name: 'wely3',
