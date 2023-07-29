@@ -5,29 +5,31 @@ import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
   name,
-  data,
-  inheritances,
   className,
+  data,
   html,
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D> => {
+}: Define<T, D, P>): Constructor<D, P> => {
   const Name = (name: string): string => `w-${toKebabCase(name)}`
 
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
       class extends <T, D, P> {
-        static create(partialData = () => ({})): <T, D, P> {
+        static create(
+          { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
+        ): <T, D, P> {
+          console.log(partialData, partialData())
           const  = <<T, D, P>>document.createElement(Name(name))
-          const dataObj = <D>{ ...(data ? data() : {}), ...partialData() }
+          const integratedData = <D>{ ...(data ? data() : {}) }
 
           .initialize({
             name,
-            dataObj,
-            inheritances,
             className,
+            integratedData,
+            inheritances,
             html,
             css,
             slot,
@@ -39,7 +41,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <Constructor<D>>customElements.get(Name(name))
+  return <Constructor<D, P>>customElements.get(Name(name))
 }
 
 const html = (
@@ -118,14 +120,14 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create()
+const child = childClass.create({})
 
 const parent = define({
   name: 'parent',
   className: 'test',
   html: `<slot />`,
   slot: child
-}).create()
+}).create({})
 
 const grandParent = define({
   name: 'grandParent',
@@ -133,15 +135,17 @@ const grandParent = define({
     color: 'green',
     click: (message: string) => console.log(message)
   }),
+  html: ({ data: { color } }) => html`${parent}${color}`
+}).create({
+  data: () => ({ color: 'blue' }),
   inheritances: [
     {
       descendants: child,
-      props: ({ color, click }) => ({ color, click }),
+      props: ({ color, click }: Props) => ({ color, click }),
       boundary: 'app'
     }
-  ],
-  html: ({ data: { color } }) => html`${parent}${color}`
-}).create()
+  ]
+})
 
 // const 3 = define({
 //   name: '3',
