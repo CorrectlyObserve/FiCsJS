@@ -21,9 +21,11 @@ const define = <T, D, P>({
         static create(
           { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
         ): <T, D, P> {
-          console.log(partialData, partialData())
           const  = <<T, D, P>>document.createElement(Name(name))
-          const integratedData = <D>{ ...(data ? data() : {}) }
+          const integratedData = <D>{
+            ...(data ? data() : {}),
+            ...(partialData ? partialData() : {})
+          }
 
           .initialize({
             name,
