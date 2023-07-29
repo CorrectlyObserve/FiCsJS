@@ -21,9 +21,11 @@ const define = <T, D, P>({
         static create(
           { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
         ): Wely<T, D, P> {
-          console.log(partialData, partialData())
           const wely = <Wely<T, D, P>>document.createElement(welyName(name))
-          const integratedData = <D>{ ...(data ? data() : {}) }
+          const integratedData = <D>{
+            ...(data ? data() : {}),
+            ...(partialData ? partialData() : {})
+          }
 
           wely.initialize({
             name,
