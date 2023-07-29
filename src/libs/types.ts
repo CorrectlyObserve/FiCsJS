@@ -1,31 +1,43 @@
-interface CommonArgs<T, D, P> {
+interface Arg<T, D, P> {
   name: string
-  inheritances?: Inheritances<D, P>
   className?: string
   html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
-  css?: Css<D, P>
-  slot?: Convert<StringOrElement, D, P>
-  events?: Events<D, P>
-}
-
-export interface Constructor<D> {
-  new (...params: any[]): HTMLElement
-  create: (data?: () => Partial<D>) => HTMLElement
-}
-
-type Convert<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
-
-type Css<D, P> = (
-  | string
-  | {
-      selector: string
-      style: ({ data, props }: { data: D; props: P }) => {
-        [key: string]: string | number
+  css?: (
+    | string
+    | {
+        selector: string
+        style: ({ data, props }: DataProps<D, P>) => {
+          [key: string]: string | number
+        }
       }
-    }
-)[]
+  )[]
+  slot?: Convert<StringOrElement, D, P>
+  events?: {
+    handler: string
+    selector?: string
+    method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
+  }[]
+}
 
-export interface Define<T, D, P> extends CommonArgs<T, D, P> {
+export interface Constructor<D, P> {
+  new (...params: any[]): HTMLElement
+  create: ({
+    data,
+    inheritances
+  }: {
+    data?: () => Partial<D>
+    inheritances?: Inheritances<D, P>
+  }) => HTMLElement
+}
+
+type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
+
+interface DataProps<D, P> {
+  data: D
+  props: P
+}
+
+export interface Define<T, D, P> extends Arg<T, D, P> {
   data?: () => D
 }
 
@@ -43,22 +55,6 @@ export interface EachIf<T> {
   fallback?: (arg: T, index: number) => StringOrElement
 }
 
-type Events<D, P> = {
-  handler: string
-  selector?: string
-  method: (
-    {
-      data,
-      props
-    }: {
-      data: D
-      props: P
-    },
-    event: Event,
-    index?: number
-  ) => void
-}[]
-
 export type Html = string | HTMLElement | DocumentFragment
 
 export interface If {
@@ -75,8 +71,9 @@ type Inheritances<D, P> = {
   boundary?: StringOrElement
 }[]
 
-export interface Initialize<T, D, P> extends CommonArgs<T, D, P> {
-  dataObj?: D
+export interface Initialize<T, D, P> extends Arg<T, D, P> {
+  integratedData?: D
+  inheritances: Inheritances<D, P>
 }
 
 type StringOrElement = string | HTMLElement
