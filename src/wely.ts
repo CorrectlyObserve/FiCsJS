@@ -52,13 +52,11 @@ const html = (
   templates.forEach((template, index) => {
     html += template
 
-    if (index !== templates.length - 1) {
-      const element = elements[index]
+    if (index !== templates.length - 1)
       html +=
-        element instanceof HTMLElement
-          ? `<span id="virtual-id${generatedId}-${index}"></span>`
-          : element
-    }
+        elements[index] instanceof HTMLElement
+          ? `<w-var id="placeholder-id${generatedId}-${index}"></w-var>`
+          : elements[index]
   })
 
   const dom = new DOMParser().parseFromString(html, 'text/html').body
@@ -67,8 +65,12 @@ const html = (
   while (dom.firstChild) fragment.appendChild(dom.firstChild)
 
   elements.forEach((element, index) => {
-    if (element instanceof HTMLElement)
-      fragment.getElementById(`virtual-id${generatedId}-${index}`)?.replaceWith(element)
+    if (element instanceof HTMLElement) {
+      const placeholder = fragment.getElementById(`placeholder-id${generatedId}-${index}`)
+
+      if (placeholder) placeholder.replaceWith(element)
+      else throw Error(`The element with an applicable id is not found...`)
+    }
   })
 
   return fragment
@@ -117,11 +119,12 @@ const childClass = define({
 })
 
 const child = childClass.create()
-const child2 = childClass.create()
 
 const parent = define({
   name: 'parent',
-  html: child
+  className: 'test',
+  html: `<slot />`,
+  slot: child
 }).create()
 
 const grandParent = define({
@@ -138,12 +141,6 @@ const grandParent = define({
     }
   ],
   html: ({ data: { color } }) => html`${parent}${color}`
-}).create()
-
-const parent2 = define({
-  name: 'parent2',
-  data: () => ({ numbers: [1, 2, 3], color: 'green' }),
-  html: () => child2
 }).create()
 
 // const wely3 = define({
@@ -212,4 +209,4 @@ export const mount = (parent: string, child: Html): void => {
   document.getElementById(<string>parent)?.appendChild(<Node>child)
 }
 
-mount('app', html`${grandParent}${parent2}`)
+mount('app', html`${grandParent}`)
