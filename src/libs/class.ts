@@ -17,7 +17,7 @@ export class Wely<T, D, P> extends HTMLElement {
 
   initialize({
     name,
-    dataObj,
+    integratedData,
     inheritances,
     className,
     html,
@@ -32,7 +32,7 @@ export class Wely<T, D, P> extends HTMLElement {
     this.setAttribute('class', welyClass)
 
     // Data
-    if (dataObj) this.#data = { ...dataObj }
+    if (integratedData) this.#data = { ...integratedData }
 
     // HTML
     let isEach: boolean = false
