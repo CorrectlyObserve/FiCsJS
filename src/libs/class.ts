@@ -89,10 +89,11 @@ export class <T, D, P> extends HTMLElement {
     // Props
     if (inheritances)
       inheritances.forEach(inheritance => {
-        let { descendants } = inheritance
-        if (!Array.isArray(descendants)) descendants = [descendants]
-
-        for (const descendant of <<T, D, P>[]>descendants) {
+        for (const descendant of <<T, D, P>[]>(
+          (Array.isArray(inheritance.descendants)
+            ? inheritance.descendants
+            : [inheritance.descendants])
+        )) {
           if (element === descendant || this.#inheritedSet.has(descendant))
             descendant.#props = { ...inheritance.props(this.#data) }
           else {
