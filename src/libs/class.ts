@@ -78,21 +78,20 @@ export class Wely<T, D, P> extends HTMLElement {
     })()
 
     if (element) {
-      if (typeof element === 'string') {
-        const childNodes = Array.from(
-          new DOMParser().parseFromString(element, 'text/html').body.childNodes
+      if (typeof element === 'string')
+        Array.from(new DOMParser().parseFromString(element, 'text/html').body.childNodes).forEach(
+          childNode => this.shadowRoot.appendChild(childNode)
         )
-        childNodes.forEach(childNode => this.shadowRoot.appendChild(childNode))
-      } else this.shadowRoot.appendChild(<Node>element)
+      else this.shadowRoot.appendChild(<Node>element)
     }
 
     // Props
     if (inheritances)
       inheritances.forEach(inheritance => {
+        const { descendants } = inheritance
+
         for (const descendant of <Wely<T, D, P>[]>(
-          (Array.isArray(inheritance.descendants)
-            ? inheritance.descendants
-            : [inheritance.descendants])
+          (Array.isArray(descendants) ? descendants : [descendants])
         )) {
           if (element === descendant || this.#inheritedSet.has(descendant))
             descendant.#props = { ...inheritance.props(this.#data) }
