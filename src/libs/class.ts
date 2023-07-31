@@ -160,8 +160,8 @@ export class Wely<T, D, P> extends HTMLElement {
 
     // Event handlers
     if (events) {
-      for (const obj of events) {
-        const { selector, handler, method } = obj
+      for (const eventObj of events) {
+        const { selector, handler, method } = eventObj
 
         if (selector) {
           const targets: Element[] = (() => {
