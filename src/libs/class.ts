@@ -134,14 +134,12 @@ export class Wely<T, D, P> extends HTMLElement {
     if (css && css.length > 0) {
       const style = document.createElement('style')
 
-      css.forEach(localCss => {
-        if (typeof localCss === 'string') style.textContent += localCss
-        else if (localCss.selector && 'style' in localCss)
+      css.forEach(cssObj => {
+        if (typeof cssObj === 'string') style.textContent += cssObj
+        else if (cssObj.selector && 'style' in cssObj)
           style.textContent +=
-            localCss.selector +
-            `{${Object.entries(
-              localCss.style({ data: { ...this.#data }, props: { ...this.#props } })
-            )
+            cssObj.selector +
+            `{${Object.entries(cssObj.style({ data: { ...this.#data }, props: { ...this.#props } }))
               .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
               .join('\n')}}`
       })
