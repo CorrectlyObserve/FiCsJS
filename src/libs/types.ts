@@ -11,7 +11,7 @@ interface Arg<T, D, P> {
         }
       }
   )[]
-  slot?: Convert<StringOrElement, D, P>
+  slot?: Convert<Html, D, P>
   events?: {
     handler: string
     selector?: string
@@ -43,16 +43,16 @@ export interface Define<T, D, P> extends Arg<T, D, P> {
 
 export interface Each<T> {
   contents: T[]
-  render: (arg: T, index: number) => StringOrElement | undefined
+  render: (arg: T, index: number) => Html | undefined
 }
 
 export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => StringOrElement
+    render: (arg: T, index: number) => Html
   }[]
-  fallback?: (arg: T, index: number) => StringOrElement
+  fallback?: (arg: T, index: number) => Html
 }
 
 export type Html = string | HTMLElement | DocumentFragment
@@ -60,20 +60,18 @@ export type Html = string | HTMLElement | DocumentFragment
 export interface If {
   branches: {
     judge: boolean | unknown
-    render: StringOrElement
+    render: Html
   }[]
-  fallback?: StringOrElement
+  fallback?: Html
 }
 
 type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
-  boundary?: StringOrElement
+  boundary?: string | HTMLElement
 }[]
 
 export interface Initialize<T, D, P> extends Arg<T, D, P> {
   integratedData?: D
   inheritances: Inheritances<D, P>
 }
-
-type StringOrElement = string | HTMLElement
