@@ -91,20 +91,23 @@ export class <T, D, P> extends HTMLElement {
           if (this.#html.includes(descendant) || this.#inheritedSet.has(descendant))
             descendant.#props = { ...inheritance.props(this.#data) }
           else {
-            const { Id } = descendant
-            descendant.id = Id
+            descendant.id = descendant.Id
+
             let element: <T, D, P> | undefined = <<T, D, P>>(
-              this.shadowRoot.getElementById(Id)
+              this.shadowRoot.getElementById(descendant.id)
             )
             descendant.removeAttribute('id')
 
             if (!element) {
-              let { boundary } = inheritance
+              const { boundary } = inheritance
               const boundaries: Set<HTMLElement> = new Set([this])
 
-              if (typeof boundary === 'string')
-                boundary = <HTMLElement>document.getElementById(boundary)
-              if (boundary) boundaries.add(boundary)
+              if (boundary)
+                boundaries.add(
+                  typeof boundary === 'string'
+                    ? <HTMLElement>document.getElementById(boundary)
+                    : boundary
+                )
 
               const getParent = (argElement: HTMLElement): void => {
                 if (argElement instanceof ShadowRoot) {
