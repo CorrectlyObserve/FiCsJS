@@ -154,16 +154,14 @@ export class Wely<T, D, P> extends HTMLElement {
     }
 
     // Slot
-    if (slot) {
-      const slotContent =
-        typeof slot === 'function'
-          ? slot({ data: { ...this.#data }, props: { ...this.#props } })
-          : slot
-
-      typeof slotContent === 'string'
-        ? this.insertAdjacentHTML('beforeend', slotContent)
-        : this.insertAdjacentElement('beforeend', slotContent)
-    }
+    if (slot)
+      this.appendChild(
+        <Node>(
+          (typeof slot === 'function'
+            ? slot({ data: { ...this.#data }, props: { ...this.#props } })
+            : slot)
+        )
+      )
 
     // Event handlers
     if (events) {
