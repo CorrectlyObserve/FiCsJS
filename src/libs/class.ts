@@ -124,10 +124,8 @@ export class Wely<T, D, P> extends HTMLElement {
             if (element) {
               element.#props = { ...inheritance.props(this.#data) }
               this.#inheritedSet.add(element)
-            } else {
-              if (this.#inheritedSet.has(descendant)) this.#inheritedSet.delete(descendant)
-              throw Error(`This component is not a descendant...`)
-            }
+            } else if (this.#inheritedSet.has(descendant)) this.#inheritedSet.delete(descendant)
+            else throw Error(`This component is not a descendant...`)
           }
         }
       })
