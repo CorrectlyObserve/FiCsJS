@@ -1,6 +1,6 @@
 import { Wely } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
-import { generator, toKebabCase } from '@/libs/utils'
+import { generator, insertAdjacently, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
@@ -149,22 +149,26 @@ const grandParent = define({
   ]
 })
 
+// const wely2 = define({
+//   name: 'Wely2',
+//   html: {
+//     contents: [1, 2, 3],
+//     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
+//   }
+// }).create({})
+
 // const wely3 = define({
 //   name: 'wely3',
 //   data: () => ({
 //     number: 100,
 //     text: 'AA',
-//     count: 1,
-//     message: 'Hello',
-//     color: 'red',
-//     back: 'black',
-//     _childMessage: 'Child hello'
+//     count: 1
 //   }),
 //   html: ({ data: { number } }) => ({
 //     branches: [
 //       {
 //         judge: number > 100,
-//         render: child.outerHTML
+//         render: child
 //       },
 //       {
 //         judge: number < 100,
@@ -181,7 +185,7 @@ const grandParent = define({
 //       method: ({ data: { number, text } }, e, index) => console.log(number, text, e, index)
 //     }
 //   ]
-// }).create()
+// }).create({})
 
 // const wely4 = define({
 //   name: 'Wely4',
@@ -209,10 +213,11 @@ const grandParent = define({
 //       method: ({ data: { numbers } }, e, index) => console.log(numbers[index ?? 0], e)
 //     }
 //   ]
-// }).create()
+// }).create({})
 
 export const mount = (parent: string, child: Html): void => {
-  document.getElementById(<string>parent)?.appendChild(<Node>child)
+  const parentElement = document.getElementById(parent)
+  if (parentElement) insertAdjacently(parentElement, child)
 }
 
-mount('app', html`${grandParent}`)
+mount('app', grandParent)
