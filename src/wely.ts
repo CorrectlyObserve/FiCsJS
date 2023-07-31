@@ -64,8 +64,7 @@ const html = (
   })
 
   const dom = new DOMParser().parseFromString(html, 'text/html').body
-  let fragment = new DocumentFragment()
-
+  const fragment = new DocumentFragment()
   while (dom.firstChild) fragment.appendChild(dom.firstChild)
 
   elements.forEach((element, index) => {
