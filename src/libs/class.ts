@@ -1,5 +1,5 @@
 import { Each, EachIf, Html, If, Initialize } from '@/libs/types'
-import { generator, insertAdjacently, toKebabCase } from '@/libs/utils'
+import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
 export class Wely<T, D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
@@ -143,7 +143,7 @@ export class Wely<T, D, P> extends HTMLElement {
 
     // Slot
     if (slot)
-      insertAdjacently(
+      insertElement(
         this,
         typeof slot === 'function'
           ? slot({ data: { ...this.#data }, props: { ...this.#props } })
