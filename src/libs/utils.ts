@@ -11,10 +11,7 @@ const generate = function* (): Generator<number> {
 
 export const generator: Generator<number> = generate()
 
-export const insertAdjacently = (
-  parent: HTMLElement,
-  child: Html
-): void | Element | Node | null => {
+export const insertElement = (parent: HTMLElement, child: Html): void | Element | Node | null => {
   if (child instanceof DocumentFragment) parent.appendChild(<Node>child)
   else if (typeof child === 'string') parent.insertAdjacentHTML('beforeend', child)
   else parent.insertAdjacentElement('beforeend', <Element>child)
