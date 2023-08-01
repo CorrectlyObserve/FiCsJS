@@ -1,6 +1,6 @@
 import { Wely } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
-import { generator, insertAdjacently, toKebabCase } from '@/libs/utils'
+import { generator, insertElement, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
@@ -216,7 +216,7 @@ const grandParent = define({
 
 export const mount = (parent: string, child: Html): void => {
   const parentElement = document.getElementById(parent)
-  if (parentElement) insertAdjacently(parentElement, child)
+  if (parentElement) insertElement(parentElement, child)
 }
 
 mount('app', grandParent)
