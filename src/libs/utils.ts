@@ -11,10 +11,14 @@ const generate = function* (): Generator<number> {
 
 export const generator: Generator<number> = generate()
 
-export const insertAdjacently = (parent: HTMLElement, child: Html): void | Element | null =>
-  typeof child === 'string'
-    ? parent.insertAdjacentHTML('beforeend', child)
-    : parent.insertAdjacentElement('beforeend', <Element>child)
+export const insertAdjacently = (
+  parent: HTMLElement,
+  child: Html
+): void | Element | Node | null => {
+  if (child instanceof DocumentFragment) parent.appendChild(<Node>child)
+  else if (typeof child === 'string') parent.insertAdjacentHTML('beforeend', child)
+  else parent.insertAdjacentElement('beforeend', <Element>child)
+}
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
