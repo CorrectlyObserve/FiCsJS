@@ -88,44 +88,38 @@ export class Wely<T, D, P> extends HTMLElement {
         for (const descendant of <Wely<T, D, P>[]>(
           (Array.isArray(descendants) ? descendants : [descendants])
         )) {
-          if (this.#html.includes(descendant) || this.#inheritedSet.has(descendant))
-            descendant.#props = { ...inheritance.props(this.#data) }
-          else {
-            descendant.id = descendant.welyId
+          let isDescendant: boolean =
+            this.#html.includes(descendant) || this.#inheritedSet.has(descendant)
 
-            let element: Wely<T, D, P> | undefined = <Wely<T, D, P>>(
-              this.shadowRoot.getElementById(descendant.id)
-            )
-            descendant.removeAttribute('id')
+          if (!isDescendant) {
+            const { boundary } = inheritance
+            const boundaries: Set<HTMLElement> = new Set([this])
 
-            if (!element) {
-              const { boundary } = inheritance
-              const boundaries: Set<HTMLElement> = new Set([this])
+            if (boundary)
+              boundaries.add(
+                typeof boundary === 'string'
+                  ? <HTMLElement>document.getElementById(boundary)
+                  : boundary
+              )
 
-              if (boundary)
-                boundaries.add(
-                  typeof boundary === 'string'
-                    ? <HTMLElement>document.getElementById(boundary)
-                    : boundary
-                )
+            const getParent = (argElement: HTMLElement): void => {
+              if (argElement instanceof ShadowRoot) {
+                const parent = <Wely<T, D, P>>(<ShadowRoot>argElement).host
 
-              const getParent = (argElement: HTMLElement): void => {
-                if (argElement instanceof ShadowRoot) {
-                  const parent = <Wely<T, D, P>>(<ShadowRoot>argElement).host
-
-                  if (parent) boundaries.has(parent) ? (element = descendant) : getParent(parent)
-                } else if (argElement instanceof HTMLElement)
-                  getParent(<HTMLElement>argElement.parentNode)
-              }
-
-              getParent(<HTMLElement>descendant.parentNode)
+                if (parent) boundaries.has(parent) ? (isDescendant = true) : getParent(parent)
+              } else if (argElement instanceof HTMLElement)
+                getParent(<HTMLElement>argElement.parentNode)
             }
 
-            if (element) {
-              element.#props = { ...inheritance.props(this.#data) }
-              this.#inheritedSet.add(element)
-            } else if (this.#inheritedSet.has(descendant)) this.#inheritedSet.delete(descendant)
-            else throw Error(`This component is not a descendant...`)
+            getParent(<HTMLElement>descendant.parentNode)
+          }
+
+          if (isDescendant) {
+            descendant.#props = { ...inheritance.props(this.#data) }
+            this.#inheritedSet.add(descendant)
+          } else {
+            if (this.#inheritedSet.has(descendant)) this.#inheritedSet.delete(descendant)
+            throw Error(`This component is not a descendant...`)
           }
         }
       })
