@@ -1,7 +1,7 @@
 import { Each, EachIf, Html, If, Initialize } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
-export class Wely<T, D, P> extends HTMLElement {
+export class WelyElement<T, D, P> extends HTMLElement {
   readonly shadowRoot!: ShadowRoot
   readonly welyId: string = ''
 
@@ -85,7 +85,7 @@ export class Wely<T, D, P> extends HTMLElement {
       inheritances.forEach(inheritance => {
         const { descendants } = inheritance
 
-        for (const descendant of <Wely<T, D, P>[]>(
+        for (const descendant of <WelyElement<T, D, P>[]>(
           (Array.isArray(descendants) ? descendants : [descendants])
         )) {
           let isDescendant: boolean =
@@ -104,7 +104,7 @@ export class Wely<T, D, P> extends HTMLElement {
 
             const getParent = (argElement: HTMLElement): void => {
               if (argElement instanceof ShadowRoot) {
-                const parent = <Wely<T, D, P>>(<ShadowRoot>argElement).host
+                const parent = <WelyElement<T, D, P>>(<ShadowRoot>argElement).host
 
                 if (parent) boundaries.has(parent) ? (isDescendant = true) : getParent(parent)
               } else if (argElement instanceof HTMLElement)
