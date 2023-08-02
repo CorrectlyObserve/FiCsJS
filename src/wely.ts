@@ -1,4 +1,4 @@
-import {  } from '@/libs/class'
+import { Element } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
@@ -17,11 +17,11 @@ const define = <T, D, P>({
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
-      class extends <T, D, P> {
+      class extends Element<T, D, P> {
         static create(
           { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
-        ): <T, D, P> {
-          const  = <<T, D, P>>document.createElement(Name(name))
+        ): Element<T, D, P> {
+          const  = <Element<T, D, P>>document.createElement(Name(name))
           const integratedData = <D>{
             ...(data ? data() : {}),
             ...(partialData ? partialData() : {})
