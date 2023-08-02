@@ -1,4 +1,4 @@
-import { Wely } from '@/libs/class'
+import { WelyElement } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
@@ -17,11 +17,11 @@ const define = <T, D, P>({
   if (!customElements.get(welyName(name)))
     customElements.define(
       welyName(name),
-      class extends Wely<T, D, P> {
+      class extends WelyElement<T, D, P> {
         static create(
           { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
-        ): Wely<T, D, P> {
-          const wely = <Wely<T, D, P>>document.createElement(welyName(name))
+        ): WelyElement<T, D, P> {
+          const wely = <WelyElement<T, D, P>>document.createElement(welyName(name))
           const integratedData = <D>{
             ...(data ? data() : {}),
             ...(partialData ? partialData() : {})
