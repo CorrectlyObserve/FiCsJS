@@ -214,9 +214,9 @@ const grandParent = define({
 //   ]
 // }).create({})
 
-export const mount = (parent: string, child: Html): void => {
-  const parentElement = document.getElementById(parent)
-  if (parentElement) insertElement(parentElement, child)
+export const mount = (parentId: string, child: Html): void => {
+  const parent = document.getElementById(parentId)
+  if (parent) insertElement(parent, child)
 }
 
 mount('app', grandParent)
