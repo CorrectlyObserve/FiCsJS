@@ -46,7 +46,7 @@ export class WelyElement<T, D, P> extends HTMLElement {
     if (integratedData) this.#data = { ...integratedData }
 
     // HTML
-    let converter =
+    const converter =
       typeof html === 'function'
         ? html({ data: { ...this.#data }, props: { ...this.#props } })
         : html
