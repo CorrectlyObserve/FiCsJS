@@ -16,6 +16,14 @@ export class WelyElement<T, D, P> extends HTMLElement {
     this.welyId = `wely-id${generator.next().value}`
   }
 
+  private manageSet(html: HTMLElement | DocumentFragment): void {
+    const element = <HTMLElement>(html.children.length > 0 ? html.children[0] : html)
+    this.#inheritedSet.add(element)
+
+    for (const childSet of [...(<WelyElement<T, D, P>>element).#inheritedSet])
+      this.#inheritedSet.add(childSet)
+  }
+
   initialize({
     name,
     integratedData,
@@ -73,56 +81,30 @@ export class WelyElement<T, D, P> extends HTMLElement {
     }
 
     if (this.#html.length > 0)
-      for (const element of this.#html)
-        if (typeof element === 'string')
-          Array.from(new DOMParser().parseFromString(element, 'text/html').body.childNodes).forEach(
+      for (const html of this.#html)
+        if (typeof html === 'string')
+          Array.from(new DOMParser().parseFromString(html, 'text/html').body.childNodes).forEach(
             childNode => this.shadowRoot.appendChild(childNode)
           )
-        else this.shadowRoot.appendChild(<Node>element)
+        else {
+          this.manageSet(html)
 
-    // Props
-    if (inheritances)
-      inheritances.forEach(inheritance => {
-        const { descendants } = inheritance
+          // Props
+          if (inheritances)
+            inheritances.forEach(inheritance => {
+              const { descendants } = inheritance
 
-        for (const descendant of <WelyElement<T, D, P>[]>(
-          (Array.isArray(descendants) ? descendants : [descendants])
-        )) {
-          let isDescendant: boolean =
-            this.#html.includes(descendant) || this.#inheritedSet.has(descendant)
+              for (const descendant of <WelyElement<T, D, P>[]>(
+                (Array.isArray(descendants) ? descendants : [descendants])
+              )) {
+                if (this.#inheritedSet.has(descendant))
+                  descendant.#props = { ...inheritance.props(this.#data) }
+                else throw Error(`This component is not a descendant...`)
+              }
+            })
 
-          if (!isDescendant) {
-            const { boundary } = inheritance
-            const boundaries: Set<HTMLElement> = new Set([this])
-
-            if (boundary)
-              boundaries.add(
-                typeof boundary === 'string'
-                  ? <HTMLElement>document.getElementById(boundary)
-                  : boundary
-              )
-
-            const getParent = (argElement: HTMLElement): void => {
-              if (argElement instanceof ShadowRoot) {
-                const parent = <WelyElement<T, D, P>>(<ShadowRoot>argElement).host
-
-                if (parent) boundaries.has(parent) ? (isDescendant = true) : getParent(parent)
-              } else if (argElement instanceof HTMLElement)
-                getParent(<HTMLElement>argElement.parentNode)
-            }
-
-            getParent(<HTMLElement>descendant.parentNode)
-          }
-
-          if (isDescendant) {
-            descendant.#props = { ...inheritance.props(this.#data) }
-            this.#inheritedSet.add(descendant)
-          } else {
-            if (this.#inheritedSet.has(descendant)) this.#inheritedSet.delete(descendant)
-            throw Error(`This component is not a descendant...`)
-          }
+          this.shadowRoot.appendChild(<Node>html)
         }
-      })
 
     // CSS
     if (css && css.length > 0) {
@@ -142,13 +124,17 @@ export class WelyElement<T, D, P> extends HTMLElement {
     }
 
     // Slot
-    if (slot)
-      insertElement(
-        this,
+    if (slot) {
+      const slotContent =
         typeof slot === 'function'
           ? slot({ data: { ...this.#data }, props: { ...this.#props } })
           : slot
-      )
+
+      if (slotContent instanceof HTMLElement || slotContent instanceof DocumentFragment)
+        this.manageSet(slotContent)
+
+      insertElement(this, slotContent)
+    }
 
     // Event handlers
     if (events) {
