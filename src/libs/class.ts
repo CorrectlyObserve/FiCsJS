@@ -35,10 +35,12 @@ export class WelyElement<T, D, P> extends HTMLElement {
     events
   }: Initialize<T, D, P>) {
     // Class name
-    let welyClass: string = toKebabCase(name)
     if (className)
-      for (const localName of className.split(' ')) welyClass += ` ${toKebabCase(localName).trim()}`
-    this.setAttribute('class', welyClass)
+      this.setAttribute(
+        'class',
+        className.split(' ').reduce((prev, current) => `${prev} ${current}`, toKebabCase(name))
+      )
+    else this.classList.add(toKebabCase(name))
 
     // Data
     if (integratedData) this.#data = { ...integratedData }
