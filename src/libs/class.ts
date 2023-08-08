@@ -35,10 +35,12 @@ export class Element<T, D, P> extends HTMLElement {
     events
   }: Initialize<T, D, P>) {
     // Class name
-    let Class: string = toKebabCase(name)
     if (className)
-      for (const localName of className.split(' ')) Class += ` ${toKebabCase(localName).trim()}`
-    this.setAttribute('class', Class)
+      this.setAttribute(
+        'class',
+        className.split(' ').reduce((prev, current) => `${prev} ${current}`, toKebabCase(name))
+      )
+    else this.classList.add(toKebabCase(name))
 
     // Data
     if (integratedData) this.#data = { ...integratedData }
