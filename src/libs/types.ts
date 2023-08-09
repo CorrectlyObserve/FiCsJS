@@ -68,7 +68,6 @@ export interface If {
 type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
-  boundary?: string | HTMLElement
 }[]
 
 export interface Initialize<T, D, P> extends Arg<T, D, P> {
