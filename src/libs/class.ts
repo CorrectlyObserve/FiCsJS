@@ -139,7 +139,7 @@ export class WelyElement<T, D, P> extends HTMLElement {
     }
 
     // Event handlers
-    if (events) {
+    if (events)
       for (const eventObj of events) {
         const { selector, handler, method } = eventObj
 
@@ -176,6 +176,5 @@ export class WelyElement<T, D, P> extends HTMLElement {
             method({ data: { ...this.#data }, props: { ...this.#props } }, event)
           )
       }
-    }
   }
 }
