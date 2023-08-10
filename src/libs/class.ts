@@ -90,23 +90,22 @@ export class WelyElement<T, D, P> extends HTMLElement {
           )
         else {
           this.manageSet(html)
-
-          // Props
-          if (inheritances)
-            inheritances.forEach(inheritance => {
-              const { descendants } = inheritance
-
-              for (const descendant of <WelyElement<T, D, P>[]>(
-                (Array.isArray(descendants) ? descendants : [descendants])
-              )) {
-                if (this.#inheritedSet.has(descendant))
-                  descendant.#props = { ...inheritance.props(this.#data) }
-                else throw Error(`This component is not a descendant...`)
-              }
-            })
-
           this.shadowRoot.appendChild(<Node>html)
         }
+
+    // Props
+    if (inheritances)
+      inheritances.forEach(inheritance => {
+        const { descendants } = inheritance
+
+        for (const descendant of <WelyElement<T, D, P>[]>(
+          (Array.isArray(descendants) ? descendants : [descendants])
+        )) {
+          if (this.#inheritedSet.has(descendant))
+            descendant.#props = { ...inheritance.props(this.#data) }
+          else throw Error(`This component is not a descendant...`)
+        }
+      })
 
     // CSS
     if (css && css.length > 0) {
