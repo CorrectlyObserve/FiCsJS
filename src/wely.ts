@@ -1,33 +1,37 @@
-import {  } from '@/libs/class'
+import { Element } from '@/libs/class'
 import { Constructor, Define, Html } from '@/libs/types'
-import { generator, toKebabCase } from '@/libs/utils'
+import { generator, insertElement, toKebabCase } from '@/libs/utils'
 import cssUrl from './style.css?inline'
 
 const define = <T, D, P>({
   name,
-  data,
-  inheritances,
   className,
+  data,
   html,
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D> => {
+}: Define<T, D, P>): Constructor<D, P> => {
   const Name = (name: string): string => `w-${toKebabCase(name)}`
 
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
-      class extends <T, D, P> {
-        static create(partialData = () => ({})): <T, D, P> {
-          const  = <<T, D, P>>document.createElement(Name(name))
-          const dataObj = <D>{ ...(data ? data() : {}), ...partialData() }
+      class extends Element<T, D, P> {
+        static create(
+          { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
+        ): Element<T, D, P> {
+          const  = <Element<T, D, P>>document.createElement(Name(name))
+          const integratedData = <D>{
+            ...(data ? data() : {}),
+            ...(partialData ? partialData() : {})
+          }
 
           .initialize({
             name,
-            dataObj,
-            inheritances,
             className,
+            integratedData,
+            inheritances,
             html,
             css,
             slot,
@@ -39,7 +43,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <Constructor<D>>customElements.get(Name(name))
+  return <Constructor<D, P>>customElements.get(Name(name))
 }
 
 const html = (
@@ -60,8 +64,7 @@ const html = (
   })
 
   const dom = new DOMParser().parseFromString(html, 'text/html').body
-  let fragment = new DocumentFragment()
-
+  const fragment = new DocumentFragment()
   while (dom.firstChild) fragment.appendChild(dom.firstChild)
 
   elements.forEach((element, index) => {
@@ -118,14 +121,14 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create()
+const child = childClass.create({})
 
 const parent = define({
   name: 'parent',
   className: 'test',
   html: `<slot />`,
   slot: child
-}).create()
+}).create({})
 
 const grandParent = define({
   name: 'grandParent',
@@ -133,32 +136,37 @@ const grandParent = define({
     color: 'green',
     click: (message: string) => console.log(message)
   }),
+  html: ({ data: { color } }) => html`${parent}${color}`
+}).create({
+  data: () => ({ color: 'blue' }),
   inheritances: [
     {
       descendants: child,
-      props: ({ color, click }) => ({ color, click }),
-      boundary: 'app'
+      props: ({ color, click }: Props) => ({ color, click })
     }
-  ],
-  html: ({ data: { color } }) => html`${parent}${color}`
-}).create()
+  ]
+})
+
+// const 2 = define({
+//   name: '2',
+//   html: {
+//     contents: [1, 2, 3],
+//     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
+//   }
+// }).create({})
 
 // const 3 = define({
 //   name: '3',
 //   data: () => ({
 //     number: 100,
 //     text: 'AA',
-//     count: 1,
-//     message: 'Hello',
-//     color: 'red',
-//     back: 'black',
-//     _childMessage: 'Child hello'
+//     count: 1
 //   }),
 //   html: ({ data: { number } }) => ({
 //     branches: [
 //       {
 //         judge: number > 100,
-//         render: child.outerHTML
+//         render: child
 //       },
 //       {
 //         judge: number < 100,
@@ -175,7 +183,7 @@ const grandParent = define({
 //       method: ({ data: { number, text } }, e, index) => console.log(number, text, e, index)
 //     }
 //   ]
-// }).create()
+// }).create({})
 
 // const 4 = define({
 //   name: '4',
@@ -203,10 +211,11 @@ const grandParent = define({
 //       method: ({ data: { numbers } }, e, index) => console.log(numbers[index ?? 0], e)
 //     }
 //   ]
-// }).create()
+// }).create({})
 
-export const mount = (parent: string, child: Html): void => {
-  document.getElementById(<string>parent)?.appendChild(<Node>child)
+export const mount = (parentId: string, child: Html): void => {
+  const parent = document.getElementById(parentId)
+  if (parent) insertElement(parent, child)
 }
 
-mount('app', html`${grandParent}`)
+mount('app', grandParent)
