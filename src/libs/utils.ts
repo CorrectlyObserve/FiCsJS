@@ -1,3 +1,5 @@
+import { Html } from './types'
+
 const generate = function* (): Generator<number> {
   let n = 1
 
@@ -8,6 +10,12 @@ const generate = function* (): Generator<number> {
 }
 
 export const generator: Generator<number> = generate()
+
+export const insertElement = (parent: HTMLElement, child: Html): void | Element | Node | null => {
+  if (child instanceof DocumentFragment) parent.appendChild(<Node>child)
+  else if (typeof child === 'string') parent.insertAdjacentHTML('beforeend', child)
+  else parent.insertAdjacentElement('beforeend', <Element>child)
+}
 
 export const toKebabCase = (str: string): string => {
   const newStr = str.slice(1)
