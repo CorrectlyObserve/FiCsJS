@@ -9,7 +9,8 @@ export const define = <T, D, P>({
   html,
   css,
   slot,
-  events
+  events,
+  inheritances
 }: Define<T, D, P>): Class<D> => {
   const welyName = (name: string): string => `w-${toKebabCase(name)}`
 
@@ -17,9 +18,7 @@ export const define = <T, D, P>({
     customElements.define(
       welyName(name),
       class extends WelyElement<T, D, P> {
-        static create(
-          { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
-        ): WelyElement<T, D, P> {
+        static create({ data: partialData } = { data: () => {} }): WelyElement<T, D, P> {
           const wely = <WelyElement<T, D, P>>document.createElement(welyName(name))
           const integratedData = <D>{
             ...(data ? data() : {}),
