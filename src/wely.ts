@@ -9,7 +9,8 @@ export const define = <T, D, P>({
   html,
   css,
   slot,
-  events
+  events,
+  inheritances
 }: Define<T, D, P>): Class<D> => {
   const Name = (name: string): string => `w-${toKebabCase(name)}`
 
@@ -17,9 +18,7 @@ export const define = <T, D, P>({
     customElements.define(
       Name(name),
       class extends Element<T, D, P> {
-        static create(
-          { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
-        ): Element<T, D, P> {
+        static create({ data: partialData } = { data: () => {} }): Element<T, D, P> {
           const  = <Element<T, D, P>>document.createElement(Name(name))
           const integratedData = <D>{
             ...(data ? data() : {}),
