@@ -1,5 +1,5 @@
 import { WelyElement } from '@/libs/class'
-import { Class, Define, Html } from '@/libs/types'
+import { Wely, Define, Html } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
 export const define = <T, D, P>({
@@ -11,7 +11,7 @@ export const define = <T, D, P>({
   slot,
   events,
   inheritances
-}: Define<T, D, P>): Class<D> => {
+}: Define<T, D, P>): Wely<D> => {
   const welyName = (name: string): string => `w-${toKebabCase(name)}`
 
   if (!customElements.get(welyName(name)))
@@ -41,7 +41,7 @@ export const define = <T, D, P>({
       }
     )
 
-  return <Class<D>>customElements.get(welyName(name))
+  return <Wely<D>>customElements.get(welyName(name))
 }
 
 export const html = (
