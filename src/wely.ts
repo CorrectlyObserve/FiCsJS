@@ -11,7 +11,7 @@ const define = <T, D, P>({
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D, P> => {
+}: Define<T, D, P>): Constructor<D> => {
   const welyName = (name: string): string => `w-${toKebabCase(name)}`
 
   if (!customElements.get(welyName(name)))
@@ -43,7 +43,7 @@ const define = <T, D, P>({
       }
     )
 
-  return <Constructor<D, P>>customElements.get(welyName(name))
+  return <Constructor<D>>customElements.get(welyName(name))
 }
 
 const html = (
@@ -136,15 +136,15 @@ const grandParent = define({
     color: 'green',
     click: (message: string) => console.log(message)
   }),
-  html: ({ data: { color } }) => html`${parent}${color}`
-}).create({
-  data: () => ({ color: 'blue' }),
+  html: ({ data: { color } }) => html`${parent}${color}`,
   inheritances: [
     {
       descendants: child,
       props: ({ color, click }: Props) => ({ color, click })
     }
   ]
+}).create({
+  data: () => ({ color: 'blue' })
 })
 
 // const wely2 = define({
