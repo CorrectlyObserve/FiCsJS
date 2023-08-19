@@ -23,7 +23,7 @@ interface Arg<T, D, P> {
   }[]
 }
 
-export interface Class<D> {
+export interface Wely<D> {
   new (...params: any[]): HTMLElement
   create: ({ data }: { data?: () => Partial<D> }) => HTMLElement
 }
