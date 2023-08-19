@@ -1,5 +1,5 @@
 import { Element } from '@/libs/class'
-import { Constructor, Define, Html } from '@/libs/types'
+import { Class, Define, Html } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
 export const define = <T, D, P>({
@@ -10,7 +10,7 @@ export const define = <T, D, P>({
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D> => {
+}: Define<T, D, P>): Class<D> => {
   const Name = (name: string): string => `w-${toKebabCase(name)}`
 
   if (!customElements.get(Name(name)))
@@ -42,7 +42,7 @@ export const define = <T, D, P>({
       }
     )
 
-  return <Constructor<D>>customElements.get(Name(name))
+  return <Class<D>>customElements.get(Name(name))
 }
 
 export const html = (
