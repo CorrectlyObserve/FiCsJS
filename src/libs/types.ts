@@ -17,17 +17,15 @@ interface Arg<T, D, P> {
     selector?: string
     method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
   }[]
+  inheritances?: {
+    descendants: HTMLElement | HTMLElement[]
+    props: (data: D) => P
+  }[]
 }
 
-export interface Constructor<D, P> {
+export interface Constructor<D> {
   new (...params: any[]): HTMLElement
-  create: ({
-    data,
-    inheritances
-  }: {
-    data?: () => Partial<D>
-    inheritances?: Inheritances<D, P>
-  }) => HTMLElement
+  create: ({ data }: { data?: () => Partial<D> }) => HTMLElement
 }
 
 type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
@@ -65,12 +63,6 @@ export interface If {
   fallback?: Html
 }
 
-type Inheritances<D, P> = {
-  descendants: HTMLElement | HTMLElement[]
-  props: (data: D) => P
-}[]
-
 export interface Initialize<T, D, P> extends Arg<T, D, P> {
   integratedData?: D
-  inheritances: Inheritances<D, P>
 }
