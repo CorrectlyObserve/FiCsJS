@@ -64,6 +64,12 @@ export const define = <T, D, P>({
 
           if (events && events.length > 0) this.eventHandlers = [...events]
         }
+
+        overwrite(data: () => Partial<D>): Wely<D> {
+          this.#data = <D>{ ...this.#data, ...data() }
+
+          return <Wely<D>>getWely(name)
+        }
       }
       // class extends WelyElement<T, D, P> {
       //   static create({ data: partialData } = { data: () => {} }): WelyElement<T, D, P> {
