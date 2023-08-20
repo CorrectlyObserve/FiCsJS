@@ -5,12 +5,13 @@ import { generator, insertElement, toKebabCase } from '@/libs/utils'
 export const define = <T, D, P>({
   name,
   className,
+  dependencies,
+  inheritances,
   data,
   html,
   css,
   slot,
-  events,
-  inheritances
+  events
 }: Define<T, D, P>): Wely<D> => {
   const welyName = (name: string): string => `w-${toKebabCase(name)}`
 
@@ -28,8 +29,9 @@ export const define = <T, D, P>({
           wely.initialize({
             name,
             className,
-            integratedData,
+            dependencies,
             inheritances,
+            integratedData,
             html,
             css,
             slot,
