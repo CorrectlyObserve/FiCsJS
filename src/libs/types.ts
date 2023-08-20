@@ -51,7 +51,7 @@ export interface Define<T, D, P> {
   }[]
   data?: () => D
   html: Html2<T, D, P>
-  css?: Css<D, P>[]
+  css?: Css<D, P>
   slot?: Convert<string | HTMLElement, D, P>
   events?: Events<D, P>
 }
@@ -95,6 +95,7 @@ export interface Initialize<T, D, P> extends Arg<T, D, P> {
 export type Slot<D, P> = Convert<string | HTMLElement, D, P>
 
 export interface Wely<D> {
-  new (...params: any[]): HTMLElement
+  new (...params: unknown[]): HTMLElement
+  overwrite: (data: () => Partial<D>) => Wely<D>
   create: ({ data }: { data?: () => Partial<D> }) => HTMLElement
 }
