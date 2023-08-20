@@ -1,6 +1,11 @@
 interface Arg<T, D, P> {
   name: string
   className?: string
+  dependencies?: Wely<D> | Wely<D>[]
+  inheritances?: {
+    descendants: HTMLElement | HTMLElement[]
+    props: (data: D) => P
+  }[]
   html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
   css?: (
     | string
@@ -17,15 +22,6 @@ interface Arg<T, D, P> {
     selector?: string
     method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
   }[]
-  inheritances?: {
-    descendants: HTMLElement | HTMLElement[]
-    props: (data: D) => P
-  }[]
-}
-
-export interface Wely<D> {
-  new (...params: any[]): HTMLElement
-  create: ({ data }: { data?: () => Partial<D> }) => HTMLElement
 }
 
 type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
@@ -65,4 +61,9 @@ export interface If {
 
 export interface Initialize<T, D, P> extends Arg<T, D, P> {
   integratedData?: D
+}
+
+export interface Wely<D> {
+  new (...params: any[]): HTMLElement
+  create: ({ data }: { data?: () => Partial<D> }) => HTMLElement
 }
