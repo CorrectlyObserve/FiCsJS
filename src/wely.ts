@@ -1,5 +1,5 @@
-import { Element } from '@/libs/class'
-import { , Define, Html } from '@/libs/types'
+// import { Element } from '@/libs/class'
+import { Css, Events, Define, Html, Html2, Slot,  } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
 export const define = <T, D, P>({
@@ -18,29 +18,76 @@ export const define = <T, D, P>({
   if (!customElements.get(Name(name)))
     customElements.define(
       Name(name),
-      class extends Element<T, D, P> {
-        static create({ data: partialData } = { data: () => {} }): Element<T, D, P> {
-          const  = <Element<T, D, P>>document.createElement(Name(name))
-          const integratedData = <D>{
-            ...(data ? data() : {}),
-            ...(partialData ? partialData() : {})
-          }
+      class extends HTMLElement {
+        readonly shadowRoot!: ShadowRoot
+        readonly Id: string = ''
+        readonly dependencies: <D>[] = []
+        readonly inheritances: {
+          descendants: HTMLElement | HTMLElement[]
+          props: (data: D) => P
+        }[] = []
+        readonly slotContent: Slot<D, P>[] = []
+        readonly eventHandlers: Events<D, P> = []
 
-          .initialize({
-            name,
-            className,
-            dependencies,
-            inheritances,
-            integratedData,
-            html,
-            css,
-            slot,
-            events
-          })
+        #data: D = <D>{}
+        #props: P = <P>{}
+        #html: Html2<T, D, P>[] = []
+        #css: Css<D, P>[] = []
+        #inheritedSet: Set<HTMLElement> = new Set()
 
-          return 
+        constructor() {
+          super()
+          this.shadowRoot = this.attachShadow({ mode: 'open' })
+          this.Id = `-id${generator.next().value}`
+
+          if (className)
+            this.setAttribute(
+              'class',
+              className
+                .split(' ')
+                .reduce((prev, current) => `${prev} ${current}`, toKebabCase(name))
+            )
+          else this.classList.add(toKebabCase(name))
+
+          if (dependencies)
+            this.dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
+
+          if (inheritances) this.inheritances = [...inheritances]
+
+          if (data) this.#data = <D>{ ...data }
+
+          this.#html.push(html)
+
+          if (css && css.length > 0) this.#css = [...css]
+
+          if (slot) this.slotContent.push(slot)
+
+          if (events && events.length > 0) this.eventHandlers = [...events]
         }
       }
+      // class extends Element<T, D, P> {
+      //   static create({ data: partialData } = { data: () => {} }): Element<T, D, P> {
+      //     const  = <Element<T, D, P>>document.createElement(Name(name))
+      //     const integratedData = <D>{
+      //       ...(data ? data() : {}),
+      //       ...(partialData ? partialData() : {})
+      //     }
+
+      //     .initialize({
+      //       name,
+      //       className,
+      //       dependencies,
+      //       inheritances,
+      //       integratedData,
+      //       html,
+      //       css,
+      //       slot,
+      //       events
+      //     })
+
+      //     return 
+      //   }
+      // }
     )
 
   return <<D>>customElements.get(Name(name))
