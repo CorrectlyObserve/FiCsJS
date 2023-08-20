@@ -13,11 +13,11 @@ export const define = <T, D, P>({
   slot,
   events
 }: Define<T, D, P>): Wely<D> => {
-  const welyName = (name: string): string => `w-${toKebabCase(name)}`
+  const getWely = (name: string) => customElements.get(`w-${toKebabCase(name)}`)
 
-  if (!customElements.get(welyName(name)))
+  if (!getWely(name))
     customElements.define(
-      welyName(name),
+      `w-${toKebabCase(name)}`,
       class extends HTMLElement {
         readonly shadowRoot!: ShadowRoot
         readonly welyId: string = ''
@@ -32,7 +32,7 @@ export const define = <T, D, P>({
         #data: D = <D>{}
         #props: P = <P>{}
         #html: Html2<T, D, P>[] = []
-        #css: Css<D, P>[] = []
+        #css: Css<D, P> = []
         #inheritedSet: Set<HTMLElement> = new Set()
 
         constructor() {
@@ -54,7 +54,7 @@ export const define = <T, D, P>({
 
           if (inheritances) this.inheritances = [...inheritances]
 
-          if (data) this.#data = <D>{ ...data }
+          if (data) this.#data = { ...data() }
 
           this.#html.push(html)
 
@@ -90,7 +90,7 @@ export const define = <T, D, P>({
       // }
     )
 
-  return <Wely<D>>customElements.get(welyName(name))
+  return <Wely<D>>getWely(name)
 }
 
 export const html = (
