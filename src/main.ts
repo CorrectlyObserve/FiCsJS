@@ -50,10 +50,11 @@ const parent = define({
   className: 'test',
   html: `<slot />`,
   slot: child
-}).create({})
+})
 
 const grandParent = define({
   name: 'grandParent',
+  dependencies: parent,
   data: () => ({
     color: 'green',
     click: (message: string) => console.log(message)
