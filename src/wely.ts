@@ -1,5 +1,5 @@
 // import { WelyElement } from '@/libs/class'
-import { Css, Events, Define, Html, Html2, Slot, Wely } from '@/libs/types'
+import { Css, Events, Define, Html, Html2, Inheritances, Slot, Wely } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
 export const define = <T, D, P>({
@@ -14,6 +14,30 @@ export const define = <T, D, P>({
   events
 }: Define<T, D, P>): Wely<D> => {
   const getWely = (name: string) => customElements.get(`w-${toKebabCase(name)}`)
+
+  interface Args {
+    dependencies: Wely<D>[]
+    inheritances: Inheritances<D, P>
+    data: D
+    props: P
+    html: Html2<T, D, P>[]
+    css: Css<D, P>
+    inheritedSet: Set<Wely<D>>
+    slot: Slot<D, P>[]
+    events: Events<D, P>
+  }
+
+  let args: Args = {
+    dependencies: [],
+    inheritances: [],
+    data: <D>{},
+    props: <P>{},
+    html: [],
+    css: [],
+    inheritedSet: new Set(),
+    slot: [],
+    events: []
+  }
 
   if (!getWely(name))
     customElements.define(
@@ -65,11 +89,14 @@ export const define = <T, D, P>({
           if (events && events.length > 0) this.eventHandlers = [...events]
         }
 
-        overwrite(data: () => Partial<D>): Wely<D> {
-          this.#data = <D>{ ...this.#data, ...data() }
+        // overwrite(data: () => Partial<D>) {
+        //   this.#data = <D>{ ...this.#data, ...data() }
+        //   console.log(this.#data)
 
-          return <Wely<D>>getWely(name)
-        }
+        //   return getWely(name)
+        // }
+
+        // instantiate() {}
       }
       // class extends WelyElement<T, D, P> {
       //   static create({ data: partialData } = { data: () => {} }): WelyElement<T, D, P> {
