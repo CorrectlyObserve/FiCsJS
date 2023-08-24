@@ -80,5 +80,4 @@ type Slot<D, P> = Convert<string | HTMLElement, D, P>
 
 export interface Wely<D> extends CustomElementConstructor {
   overwrite: (data: () => Partial<D>) => Wely<D>
-  instantiate: () => HTMLElement
 }
