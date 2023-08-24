@@ -94,8 +94,7 @@ export interface Initialize<T, D, P> extends Arg<T, D, P> {
 
 export type Slot<D, P> = Convert<string | HTMLElement, D, P>
 
-export interface Wely<D> {
-  new (...params: unknown[]): HTMLElement
+export interface Wely<D> extends CustomElementConstructor {
   overwrite: (data: () => Partial<D>) => Wely<D>
-  create: ({ data }: { data?: () => Partial<D> }) => HTMLElement
+  instantiate: () => HTMLElement
 }
