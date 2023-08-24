@@ -13,7 +13,8 @@ export const define = <T, D, P>({
   slot,
   events
 }: Define<T, D, P>): Wely<D> => {
-  const getWely = (name: string) => customElements.get(`w-${toKebabCase(name)}`)
+  const welyName = `w-${toKebabCase(name)}`
+  const getWely = () => customElements.get(welyName)
 
   const args: DefineArgs<T, D, P> = {
     dependencies: [],
@@ -39,9 +40,9 @@ export const define = <T, D, P>({
   if (slot) args.slot.push(slot)
   if (events && events.length > 0) args.events = [...events]
 
-  if (!getWely(name))
+  if (!getWely())
     customElements.define(
-      `w-${toKebabCase(name)}`,
+      welyName,
       class extends HTMLElement {
         readonly shadowRoot!: ShadowRoot
         readonly welyId: string = ''
@@ -63,11 +64,13 @@ export const define = <T, D, P>({
 
         static overwrite(data: () => Partial<D>) {
           args.data = <D>{ ...args.data, ...data() }
-          return getWely(name)
+          return getWely()
         }
 
-        static instantiate() {
+        static instantiate(): HTMLElement {
           console.log(args.html, args.data)
+          const wely = document.createElement(welyName)
+          return wely
         }
       }
       // class extends WelyElement<T, D, P> {
@@ -95,7 +98,7 @@ export const define = <T, D, P>({
       // }
     )
 
-  return <Wely<D>>getWely(name)
+  return <Wely<D>>getWely()
 }
 
 export const html = (
