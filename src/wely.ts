@@ -1,5 +1,5 @@
 // import { Element } from '@/libs/class'
-import { Css, Events, Define, Html, Html2, Slot,  } from '@/libs/types'
+import { Css, Events, Define, Html, Html2, Inheritances, Slot,  } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
 export const define = <T, D, P>({
@@ -14,6 +14,30 @@ export const define = <T, D, P>({
   events
 }: Define<T, D, P>): <D> => {
   const get = (name: string) => customElements.get(`w-${toKebabCase(name)}`)
+
+  interface Args {
+    dependencies: <D>[]
+    inheritances: Inheritances<D, P>
+    data: D
+    props: P
+    html: Html2<T, D, P>[]
+    css: Css<D, P>
+    inheritedSet: Set<<D>>
+    slot: Slot<D, P>[]
+    events: Events<D, P>
+  }
+
+  let args: Args = {
+    dependencies: [],
+    inheritances: [],
+    data: <D>{},
+    props: <P>{},
+    html: [],
+    css: [],
+    inheritedSet: new Set(),
+    slot: [],
+    events: []
+  }
 
   if (!get(name))
     customElements.define(
@@ -65,11 +89,14 @@ export const define = <T, D, P>({
           if (events && events.length > 0) this.eventHandlers = [...events]
         }
 
-        overwrite(data: () => Partial<D>): <D> {
-          this.#data = <D>{ ...this.#data, ...data() }
+        // overwrite(data: () => Partial<D>) {
+        //   this.#data = <D>{ ...this.#data, ...data() }
+        //   console.log(this.#data)
 
-          return <<D>>get(name)
-        }
+        //   return get(name)
+        // }
+
+        // instantiate() {}
       }
       // class extends Element<T, D, P> {
       //   static create({ data: partialData } = { data: () => {} }): Element<T, D, P> {
