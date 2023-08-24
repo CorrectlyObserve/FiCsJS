@@ -27,7 +27,7 @@ export const define = <T, D, P>({
     events: Events<D, P>
   }
 
-  let args: Args = {
+  const args: Args = {
     dependencies: [],
     inheritances: [],
     data: <D>{},
@@ -39,25 +39,24 @@ export const define = <T, D, P>({
     events: []
   }
 
+  if (dependencies)
+    args.dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
+
+  if (inheritances) args.inheritances = [...inheritances]
+  if (data) args.data = { ...data() }
+
+  args.html.push(html)
+
+  if (css && css.length > 0) args.css = [...css]
+  if (slot) args.slot.push(slot)
+  if (events && events.length > 0) args.events = [...events]
+
   if (!getWely(name))
     customElements.define(
       `w-${toKebabCase(name)}`,
       class extends HTMLElement {
         readonly shadowRoot!: ShadowRoot
         readonly welyId: string = ''
-        readonly dependencies: Wely<D>[] = []
-        readonly inheritances: {
-          descendants: HTMLElement | HTMLElement[]
-          props: (data: D) => P
-        }[] = []
-        readonly slotContent: Slot<D, P>[] = []
-        readonly eventHandlers: Events<D, P> = []
-
-        #data: D = <D>{}
-        #props: P = <P>{}
-        #html: Html2<T, D, P>[] = []
-        #css: Css<D, P> = []
-        #inheritedSet: Set<HTMLElement> = new Set()
 
         constructor() {
           super()
@@ -72,31 +71,16 @@ export const define = <T, D, P>({
                 .reduce((prev, current) => `${prev} ${current}`, toKebabCase(name))
             )
           else this.classList.add(toKebabCase(name))
-
-          if (dependencies)
-            this.dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
-
-          if (inheritances) this.inheritances = [...inheritances]
-
-          if (data) this.#data = { ...data() }
-
-          this.#html.push(html)
-
-          if (css && css.length > 0) this.#css = [...css]
-
-          if (slot) this.slotContent.push(slot)
-
-          if (events && events.length > 0) this.eventHandlers = [...events]
         }
 
-        // overwrite(data: () => Partial<D>) {
-        //   this.#data = <D>{ ...this.#data, ...data() }
-        //   console.log(this.#data)
+        static overwrite(data: () => Partial<D>) {
+          args.data = <D>{ ...args.data, ...data() }
+          return getWely(name)
+        }
 
-        //   return getWely(name)
-        // }
-
-        // instantiate() {}
+        static instantiate() {
+          console.log(args.html, args.data)
+        }
       }
       // class extends WelyElement<T, D, P> {
       //   static create({ data: partialData } = { data: () => {} }): WelyElement<T, D, P> {
