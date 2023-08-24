@@ -1,6 +1,6 @@
 type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
 
-export type Css<D, P> = (
+type Css<D, P> = (
   | string
   | {
       selector: string
@@ -27,6 +27,18 @@ export interface Define<T, D, P> {
   events?: Events<D, P>
 }
 
+export interface DefineArgs<T, D, P> {
+  dependencies: Wely<D>[]
+  inheritances: Inheritances<D, P>
+  data: D
+  props: P
+  html: Html2<T, D, P>[]
+  css: Css<D, P>
+  inheritedSet: Set<Wely<D>>
+  slot: Slot<D, P>[]
+  events: Events<D, P>
+}
+
 export interface Each<T> {
   contents: T[]
   render: (arg: T, index: number) => Html | undefined
@@ -41,7 +53,7 @@ export interface EachIf<T> {
   fallback?: (arg: T, index: number) => Html
 }
 
-export type Events<D, P> = {
+type Events<D, P> = {
   handler: string
   selector?: string
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
@@ -49,7 +61,7 @@ export type Events<D, P> = {
 
 export type Html = string | HTMLElement | DocumentFragment
 
-export type Html2<T, D, P> = Convert<Html | Each<T> | EachIf<T> | If, D, P>
+type Html2<T, D, P> = Convert<Html | Each<T> | EachIf<T> | If, D, P>
 
 export interface If {
   branches: {
@@ -59,12 +71,12 @@ export interface If {
   fallback?: Html
 }
 
-export type Inheritances<D, P> = {
+type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
 }[]
 
-export type Slot<D, P> = Convert<string | HTMLElement, D, P>
+type Slot<D, P> = Convert<string | HTMLElement, D, P>
 
 export interface Wely<D> extends CustomElementConstructor {
   overwrite: (data: () => Partial<D>) => Wely<D>
