@@ -1,29 +1,3 @@
-interface Arg<T, D, P> {
-  name: string
-  className?: string
-  dependencies?: Wely<D> | Wely<D>[]
-  inheritances?: {
-    descendants: HTMLElement | HTMLElement[]
-    props: (data: D) => P
-  }[]
-  html: Convert<Html | Each<T> | EachIf<T> | If, D, P>
-  css?: (
-    | string
-    | {
-        selector: string
-        style: ({ data, props }: DataProps<D, P>) => {
-          [key: string]: string | number
-        }
-      }
-  )[]
-  slot?: Convert<Html, D, P>
-  events?: {
-    handler: string
-    selector?: string
-    method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
-  }[]
-}
-
 type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
 
 export type Css<D, P> = (
@@ -45,10 +19,7 @@ export interface Define<T, D, P> {
   name: string
   className?: string
   dependencies?: Wely<D> | Wely<D>[]
-  inheritances?: {
-    descendants: HTMLElement | HTMLElement[]
-    props: (data: D) => P
-  }[]
+  inheritances?: Inheritances<D, P>
   data?: () => D
   html: Html2<T, D, P>
   css?: Css<D, P>
@@ -88,9 +59,10 @@ export interface If {
   fallback?: Html
 }
 
-export interface Initialize<T, D, P> extends Arg<T, D, P> {
-  integratedData?: D
-}
+export type Inheritances<D, P> = {
+  descendants: HTMLElement | HTMLElement[]
+  props: (data: D) => P
+}[]
 
 export type Slot<D, P> = Convert<string | HTMLElement, D, P>
 
