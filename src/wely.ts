@@ -1,4 +1,3 @@
-// import { Element } from '@/libs/class'
 import { Define, DefineArgs, Html,  } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
@@ -14,31 +13,19 @@ export const define = <T, D, P>({
   events
 }: Define<T, D, P>): <D> => {
   const Name = `w-${toKebabCase(name)}`
-  const get = () => customElements.get(Name)
+  const get = () => <<D>>customElements.get(Name)
 
   const args: DefineArgs<T, D, P> = {
-    dependencies: [],
-    inheritances: [],
-    data: <D>{},
+    dependencies: dependencies ? (Array.isArray(dependencies) ? dependencies : [dependencies]) : [],
+    inheritances: inheritances ? [...inheritances] : [],
+    data: <D>{ ...(data ? data() : {}) },
     props: <P>{},
-    html: [],
-    css: [],
+    html: [html],
+    css: css && css.length > 0 ? [...css] : [],
     inheritedSet: new Set(),
-    slot: [],
-    events: []
+    slot: slot ? [slot] : [],
+    events: events && events.length > 0 ? [...events] : []
   }
-
-  if (dependencies)
-    args.dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
-
-  if (inheritances) args.inheritances = [...inheritances]
-  if (data) args.data = { ...data() }
-
-  args.html.push(html)
-
-  if (css && css.length > 0) args.css = [...css]
-  if (slot) args.slot.push(slot)
-  if (events && events.length > 0) args.events = [...events]
 
   if (!get())
     customElements.define(
@@ -66,39 +53,10 @@ export const define = <T, D, P>({
           args.data = <D>{ ...args.data, ...data() }
           return get()
         }
-
-        static instantiate(): HTMLElement {
-          console.log(args.html, args.data)
-          const  = document.createElement(Name)
-          return 
-        }
       }
-      // class extends Element<T, D, P> {
-      //   static create({ data: partialData } = { data: () => {} }): Element<T, D, P> {
-      //     const  = <Element<T, D, P>>document.createElement(Name(name))
-      //     const integratedData = <D>{
-      //       ...(data ? data() : {}),
-      //       ...(partialData ? partialData() : {})
-      //     }
-
-      //     .initialize({
-      //       name,
-      //       className,
-      //       dependencies,
-      //       inheritances,
-      //       integratedData,
-      //       html,
-      //       css,
-      //       slot,
-      //       events
-      //     })
-
-      //     return 
-      //   }
-      // }
     )
 
-  return <<D>>get()
+  return get()
 }
 
 export const html = (
