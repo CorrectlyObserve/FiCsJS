@@ -1,4 +1,3 @@
-// import { WelyElement } from '@/libs/class'
 import { Define, DefineArgs, Html, Wely } from '@/libs/types'
 import { generator, insertElement, toKebabCase } from '@/libs/utils'
 
@@ -14,31 +13,19 @@ export const define = <T, D, P>({
   events
 }: Define<T, D, P>): Wely<D> => {
   const welyName = `w-${toKebabCase(name)}`
-  const getWely = () => customElements.get(welyName)
+  const getWely = () => <Wely<D>>customElements.get(welyName)
 
   const args: DefineArgs<T, D, P> = {
-    dependencies: [],
-    inheritances: [],
-    data: <D>{},
+    dependencies: dependencies ? (Array.isArray(dependencies) ? dependencies : [dependencies]) : [],
+    inheritances: inheritances ? [...inheritances] : [],
+    data: <D>{ ...(data ? data() : {}) },
     props: <P>{},
-    html: [],
-    css: [],
+    html: [html],
+    css: css && css.length > 0 ? [...css] : [],
     inheritedSet: new Set(),
-    slot: [],
-    events: []
+    slot: slot ? [slot] : [],
+    events: events && events.length > 0 ? [...events] : []
   }
-
-  if (dependencies)
-    args.dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
-
-  if (inheritances) args.inheritances = [...inheritances]
-  if (data) args.data = { ...data() }
-
-  args.html.push(html)
-
-  if (css && css.length > 0) args.css = [...css]
-  if (slot) args.slot.push(slot)
-  if (events && events.length > 0) args.events = [...events]
 
   if (!getWely())
     customElements.define(
@@ -66,39 +53,10 @@ export const define = <T, D, P>({
           args.data = <D>{ ...args.data, ...data() }
           return getWely()
         }
-
-        static instantiate(): HTMLElement {
-          console.log(args.html, args.data)
-          const wely = document.createElement(welyName)
-          return wely
-        }
       }
-      // class extends WelyElement<T, D, P> {
-      //   static create({ data: partialData } = { data: () => {} }): WelyElement<T, D, P> {
-      //     const wely = <WelyElement<T, D, P>>document.createElement(welyName(name))
-      //     const integratedData = <D>{
-      //       ...(data ? data() : {}),
-      //       ...(partialData ? partialData() : {})
-      //     }
-
-      //     wely.initialize({
-      //       name,
-      //       className,
-      //       dependencies,
-      //       inheritances,
-      //       integratedData,
-      //       html,
-      //       css,
-      //       slot,
-      //       events
-      //     })
-
-      //     return wely
-      //   }
-      // }
     )
 
-  return <Wely<D>>getWely()
+  return getWely()
 }
 
 export const html = (
