@@ -1,5 +1,15 @@
-import { Define, DefineArgs, Html, Wely } from '@/libs/types'
-import { generator, insertElement, toKebabCase } from '@/libs/utils'
+import { Define, DefineArgs, Wely } from '@/libs/types'
+import { generator, toKebabCase } from '@/libs/utils'
+
+// const aaa = () =>
+//   class extends HTMLElement {
+//     static hello() {
+//       console.log('hello')
+//     }
+//   }
+
+// const AAA = aaa()
+// AAA.hello()
 
 export const define = <T, D, P>({
   name,
@@ -92,7 +102,5 @@ export const html = (
   return fragment
 }
 
-export const mount = (parentId: string, child: Html): void => {
-  const parent = document.getElementById(parentId)
-  if (parent) insertElement(parent, child)
-}
+export const mount = (parent: string, child: HTMLElement) =>
+  document.getElementById(parent)?.appendChild(child)
