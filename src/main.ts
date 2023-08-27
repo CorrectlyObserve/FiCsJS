@@ -1,4 +1,4 @@
-import { define, html, mount } from './wely'
+import { createWely, html, mount } from './wely'
 import cssUrl from './style.css?inline'
 
 interface Data {
@@ -13,7 +13,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const childClass = define({
+const Child = createWely({
   name: 'child',
   data: () => ({
     count: 1,
@@ -43,32 +43,37 @@ const childClass = define({
   ]
 })
 
-const child = childClass.create({})
+const child = new Child(() => ({ message: 'Good bye!' }))
+const instance = child.define()
 
-const parent = define({
-  name: 'parent',
-  className: 'test',
-  html: `<slot />`,
-  slot: child
-})
+console.log(new instance())
 
-const grandParent = define({
-  name: 'grandParent',
-  dependencies: parent,
-  data: () => ({
-    color: 'green',
-    click: (message: string) => console.log(message)
-  }),
-  html: ({ data: { color } }) => html`${parent}${color}`,
-  inheritances: [
-    {
-      descendants: child,
-      props: ({ color, click }: Props) => ({ color, click })
-    }
-  ]
-}).create({
-  data: () => ({ color: 'blue' })
-})
+// const child = childClass.create({})
+
+// const parent = define({
+//   name: 'parent',
+//   className: 'test',
+//   html: `<slot />`,
+//   slot: child
+// })
+
+// const grandParent = define({
+//   name: 'grandParent',
+//   dependencies: parent,
+//   data: () => ({
+//     color: 'green',
+//     click: (message: string) => console.log(message)
+//   }),
+//   html: ({ data: { color } }) => html`${parent}${color}`,
+//   inheritances: [
+//     {
+//       descendants: child,
+//       props: ({ color, click }: Props) => ({ color, click })
+//     }
+//   ]
+// }).create({
+//   data: () => ({ color: 'blue' })
+// })
 
 // const wely2 = define({
 //   name: 'Wely2',
@@ -136,4 +141,6 @@ const grandParent = define({
 //   ]
 // }).create({})
 
-mount('app', grandParent)
+// mount('app', grandParent)
+
+mount('app', new instance())
