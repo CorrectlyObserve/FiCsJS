@@ -133,5 +133,5 @@ export const html = (
   return fragment
 }
 
-export const mount = (parent: string, child: HTMLElement) =>
-  document.getElementById(parent)?.appendChild(child)
+export const mount = (parent: HTMLElement | string, child: HTMLElement) =>
+  (typeof parent === 'string' ? document.getElementById(parent) : parent)?.appendChild(child)
