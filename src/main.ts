@@ -43,10 +43,11 @@ const Child = createWely({
   ]
 })
 
-const child = new Child(() => ({ message: 'Good bye!' }))
+const child = new Child()
 const instance = child.define()
+const instance2 = child.define(() => ({ message: 'Good bye!' }))
 
-console.log(new instance())
+console.log(new instance(), new instance2())
 
 // const child = childClass.create({})
 
@@ -144,3 +145,4 @@ console.log(new instance())
 // mount('app', grandParent)
 
 mountWely('app', new instance())
+mountWely('app', new instance2())
