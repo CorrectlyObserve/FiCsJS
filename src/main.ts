@@ -1,4 +1,4 @@
-import { createWely, html, mount } from './wely'
+import { createWely, html, mountWely } from './wely'
 import cssUrl from './style.css?inline'
 
 interface Data {
@@ -143,4 +143,4 @@ console.log(new instance())
 
 // mount('app', grandParent)
 
-mount('app', new instance())
+mountWely('app', new instance())
