@@ -173,5 +173,5 @@ export const html = (
   return fragment
 }
 
-export const mount = (parent: string, child: HTMLElement) =>
+export const mountWely = (parent: string, child: HTMLElement) =>
   document.getElementById(parent)?.appendChild(child)
