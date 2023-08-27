@@ -37,14 +37,13 @@ export const createWely = <T, D, P>({
     readonly #className: string = ''
     readonly #dependencies: CustomElementConstructor[] = []
     readonly #inheritances: Inheritances<D, P> = []
-    readonly #data: D = <D>{}
+    readonly #dataArg: D = <D>{}
     readonly #html: Html2<T, D, P>[] = []
     readonly #css: Css<D, P> = []
     readonly #slot: Slot<D, P>[] = []
     readonly #events: Events<D, P> = []
-    readonly #partialData: Partial<D> = {}
 
-    constructor(partialData?: () => Partial<D>) {
+    constructor() {
       this.#name = `w-${toKebabCase(name)}`
 
       if (className) this.#className = className
@@ -54,8 +53,7 @@ export const createWely = <T, D, P>({
 
       if (inheritances) this.#inheritances = [...inheritances]
 
-      if (partialData) this.#partialData = { ...partialData() }
-      if (data) this.#data = { ...data(), ...this.#partialData }
+      if (data) this.#dataArg = { ...data() }
 
       this.#html = [html]
 
@@ -64,7 +62,7 @@ export const createWely = <T, D, P>({
       if (events) this.#events = [...events]
     }
 
-    define() {
+    define(partialData: () => Partial<D> = () => <Partial<D>>{}) {
       const welyClass = this
       const getWely = () => customElements.get(welyClass.#name)
 
@@ -74,6 +72,7 @@ export const createWely = <T, D, P>({
           class extends HTMLElement {
             readonly shadowRoot!: ShadowRoot
             #inheritedSet: Set<CustomElementConstructor> = new Set()
+            #data: D = <D>{}
             #props: P = <P>{}
 
             constructor() {
@@ -88,10 +87,12 @@ export const createWely = <T, D, P>({
                     .reduce((prev, current) => `${prev} ${current}`, welyClass.#name)
                 )
               else this.classList.add(welyClass.#name)
+
+              this.#data = { ...welyClass.#dataArg, ...(partialData ? partialData() : {}) }
             }
 
             connectedCallback() {
-              console.log(welyClass.#data)
+              console.log(this.#data)
             }
           }
         )
