@@ -1,5 +1,3 @@
-type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
-
 export type Css<D, P> = (
   | string
   | {
@@ -23,7 +21,7 @@ export interface Define<T, D, P> {
   data?: () => D
   html: Html2<T, D, P>
   css?: Css<D, P>
-  slot?: Convert<string | HTMLElement, D, P>
+  slot?: Slot<D, P>
   events?: Events<D, P>
 }
 
@@ -47,9 +45,18 @@ export type Events<D, P> = {
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
 }[]
 
-export type Html = string | HTMLElement | DocumentFragment
+export type Html = string | HTMLElement | DocumentFragment | CustomElementConstructor
 
-export type Html2<T, D, P> = Convert<Html | Each<T> | EachIf<T> | If, D, P>
+export type Html2<T, D, P> =
+  | Html
+  | Each<T>
+  | EachIf<T>
+  | If
+  | (({ data, props, dependencies }: HtmlArgs<D, P>) => Html | Each<T> | EachIf<T> | If)
+
+interface HtmlArgs<D, P> extends DataProps<D, P> {
+  dependencies?: CustomElementConstructor[]
+}
 
 export interface If {
   branches: {
@@ -64,4 +71,7 @@ export type Inheritances<D, P> = {
   props: (data: D) => P
 }[]
 
-export type Slot<D, P> = Convert<string | HTMLElement, D, P>
+export type Slot<D, P> =
+  | string
+  | HTMLElement
+  | (({ data, props }: DataProps<D, P>) => string | HTMLElement)
