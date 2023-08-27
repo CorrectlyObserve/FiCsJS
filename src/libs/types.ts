@@ -18,25 +18,13 @@ interface DataProps<D, P> {
 export interface Define<T, D, P> {
   name: string
   className?: string
-  dependencies?: Element<D> | Element<D>[]
+  dependencies?: CustomElementConstructor | CustomElementConstructor[]
   inheritances?: Inheritances<D, P>
   data?: () => D
   html: Html2<T, D, P>
   css?: Css<D, P>
   slot?: Convert<string | HTMLElement, D, P>
   events?: Events<D, P>
-}
-
-export interface DefineArgs<T, D, P> {
-  dependencies: Element<D>[]
-  inheritances: Inheritances<D, P>
-  data: D
-  props: P
-  html: Html2<T, D, P>[]
-  css: Css<D, P>
-  inheritedSet: Set<Element<D>>
-  slot: Slot<D, P>[]
-  events: Events<D, P>
 }
 
 export interface Each<T> {
@@ -77,7 +65,3 @@ export type Inheritances<D, P> = {
 }[]
 
 export type Slot<D, P> = Convert<string | HTMLElement, D, P>
-
-export interface Element<D> extends CustomElementConstructor {
-  overwrite: (data: () => Partial<D>) => Element<D>
-}
