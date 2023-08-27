@@ -1,52 +1,106 @@
-import { WelyElement } from '@/libs/class'
-import { Constructor, Define, Html } from '@/libs/types'
-import { generator, insertElement, toKebabCase } from '@/libs/utils'
-import cssUrl from './style.css?inline'
+import { Css, Define, Events, Html2, Inheritances, Slot } from '@/libs/types'
 
-const define = <T, D, P>({
+const toKebabCase = (str: string): string => {
+  const newStr = str.slice(1)
+  let body = newStr
+  const upperCase = new RegExp(/[A-Z]/g)
+
+  if (upperCase.test(newStr)) body = newStr.replace(upperCase, val => `-${val.toLowerCase()}`)
+
+  return str[0].toLowerCase() + body
+}
+
+const generate = function* (): Generator<number> {
+  let n = 1
+
+  while (true) {
+    yield n
+    n++
+  }
+}
+
+const generator: Generator<number> = generate()
+
+export const createWely = <T, D, P>({
   name,
   className,
+  dependencies,
+  inheritances,
   data,
   html,
   css,
   slot,
   events
-}: Define<T, D, P>): Constructor<D, P> => {
-  const welyName = (name: string): string => `w-${toKebabCase(name)}`
+}: Define<T, D, P>) =>
+  class {
+    readonly #name: string = ''
+    readonly #className: string = ''
+    readonly #dependencies: CustomElementConstructor[] = []
+    readonly #inheritances: Inheritances<D, P> = []
+    readonly #data: D = <D>{}
+    readonly #html: Html2<T, D, P>[] = []
+    readonly #css: Css<D, P> = []
+    readonly #slot: Slot<D, P>[] = []
+    readonly #events: Events<D, P> = []
+    readonly #partialData: Partial<D> = {}
 
-  if (!customElements.get(welyName(name)))
-    customElements.define(
-      welyName(name),
-      class extends WelyElement<T, D, P> {
-        static create(
-          { data: partialData, inheritances: inheritances } = { data: () => {}, inheritances: [] }
-        ): WelyElement<T, D, P> {
-          const wely = <WelyElement<T, D, P>>document.createElement(welyName(name))
-          const integratedData = <D>{
-            ...(data ? data() : {}),
-            ...(partialData ? partialData() : {})
+    constructor(partialData?: () => Partial<D>) {
+      this.#name = `w-${toKebabCase(name)}`
+
+      if (className) this.#className = className
+
+      if (dependencies)
+        this.#dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
+
+      if (inheritances) this.#inheritances = [...inheritances]
+
+      if (partialData) this.#partialData = { ...partialData() }
+      if (data) this.#data = { ...data(), ...this.#partialData }
+
+      this.#html = [html]
+
+      if (css) this.#css = [...css]
+      if (slot) this.#slot = [slot]
+      if (events) this.#events = [...events]
+    }
+
+    define() {
+      const welyClass = this
+      const getWely = () => customElements.get(welyClass.#name)
+
+      if (!getWely())
+        customElements.define(
+          welyClass.#name,
+          class extends HTMLElement {
+            readonly shadowRoot!: ShadowRoot
+            #inheritedSet: Set<CustomElementConstructor> = new Set()
+            #props: P = <P>{}
+
+            constructor() {
+              super()
+              this.shadowRoot = this.attachShadow({ mode: 'open' })
+
+              if (welyClass.#className)
+                this.setAttribute(
+                  'class',
+                  welyClass.#className
+                    .split(' ')
+                    .reduce((prev, current) => `${prev} ${current}`, welyClass.#name)
+                )
+              else this.classList.add(welyClass.#name)
+            }
+
+            connectedCallback() {
+              console.log(welyClass.#data)
+            }
           }
+        )
 
-          wely.initialize({
-            name,
-            className,
-            integratedData,
-            inheritances,
-            html,
-            css,
-            slot,
-            events
-          })
+      return <CustomElementConstructor>getWely()
+    }
+  }
 
-          return wely
-        }
-      }
-    )
-
-  return <Constructor<D, P>>customElements.get(welyName(name))
-}
-
-const html = (
+export const html = (
   templates: TemplateStringsArray,
   ...elements: (HTMLElement | unknown)[]
 ): DocumentFragment => {
@@ -79,143 +133,5 @@ const html = (
   return fragment
 }
 
-interface Data {
-  count: number
-  fontSize: number
-  message: string
-  back: string
-}
-
-interface Props {
-  color: string
-  click: (message: string) => void
-}
-
-const childClass = define({
-  name: 'child',
-  data: () => ({
-    count: 1,
-    fontSize: 16,
-    message: 'Hello',
-    back: 'black'
-  }),
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) =>
-    `<div><p class="hello" style="display: inline">${message}</p></div><p>${color}</p>`,
-  css: [
-    cssUrl,
-    {
-      selector: 'p',
-      style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
-    }
-  ],
-  events: [
-    {
-      handler: 'click',
-      method: ({ data: { count } }) => console.log(count++)
-    },
-    {
-      selector: 'div',
-      handler: 'click',
-      method: ({ data: { message }, props: { click } }) => click(message)
-    }
-  ]
-})
-
-const child = childClass.create({})
-
-const parent = define({
-  name: 'parent',
-  className: 'test',
-  html: `<slot />`,
-  slot: child
-}).create({})
-
-const grandParent = define({
-  name: 'grandParent',
-  data: () => ({
-    color: 'green',
-    click: (message: string) => console.log(message)
-  }),
-  html: ({ data: { color } }) => html`${parent}${color}`
-}).create({
-  data: () => ({ color: 'blue' }),
-  inheritances: [
-    {
-      descendants: child,
-      props: ({ color, click }: Props) => ({ color, click })
-    }
-  ]
-})
-
-// const wely2 = define({
-//   name: 'Wely2',
-//   html: {
-//     contents: [1, 2, 3],
-//     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
-//   }
-// }).create({})
-
-// const wely3 = define({
-//   name: 'wely3',
-//   data: () => ({
-//     number: 100,
-//     text: 'AA',
-//     count: 1
-//   }),
-//   html: ({ data: { number } }) => ({
-//     branches: [
-//       {
-//         judge: number > 100,
-//         render: child
-//       },
-//       {
-//         judge: number < 100,
-//         render: `<p>bbb</p>`
-//       }
-//     ],
-//     fallback: `<slot />`
-//   }),
-//   slot: `<p>AAA</p>`,
-//   events: [
-//     {
-//       handler: 'click',
-//       selector: 'slot',
-//       method: ({ data: { number, text } }, e, index) => console.log(number, text, e, index)
-//     }
-//   ]
-// }).create({})
-
-// const wely4 = define({
-//   name: 'Wely4',
-//   data: () => ({
-//     numbers: [1, 2, 3]
-//   }),
-//   html: ({ data: { numbers } }: { data: { numbers: number[] } }) => ({
-//     contents: numbers,
-//     branches: [
-//       {
-//         judge: arg => arg === 100,
-//         render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
-//       },
-//       {
-//         judge: arg => typeof arg !== 'number',
-//         render: (arg, index) => `<p class="class-${index}">${arg}</p>`
-//       }
-//     ],
-//     fallback: (arg: number) => `<p class="class-z">${arg * 10}</p>`
-//   }),
-//   events: [
-//     {
-//       selector: '.class-z',
-//       handler: 'click',
-//       method: ({ data: { numbers } }, e, index) => console.log(numbers[index ?? 0], e)
-//     }
-//   ]
-// }).create({})
-
-export const mount = (parentId: string, child: Html): void => {
-  const parent = document.getElementById(parentId)
-  if (parent) insertElement(parent, child)
-}
-
-mount('app', grandParent)
+export const mountWely = (parent: HTMLElement | string, child: HTMLElement) =>
+  (typeof parent === 'string' ? document.getElementById(parent) : parent)?.appendChild(child)
