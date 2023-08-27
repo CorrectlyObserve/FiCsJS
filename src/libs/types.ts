@@ -1,6 +1,6 @@
 type Convert<T, D, P> = T | (({ data, props }: DataProps<D, P>) => T)
 
-type Css<D, P> = (
+export type Css<D, P> = (
   | string
   | {
       selector: string
@@ -18,7 +18,7 @@ interface DataProps<D, P> {
 export interface Define<T, D, P> {
   name: string
   className?: string
-  dependencies?: Wely<D> | Wely<D>[]
+  dependencies?: WelyElement<D> | WelyElement<D>[]
   inheritances?: Inheritances<D, P>
   data?: () => D
   html: Html2<T, D, P>
@@ -28,13 +28,13 @@ export interface Define<T, D, P> {
 }
 
 export interface DefineArgs<T, D, P> {
-  dependencies: Wely<D>[]
+  dependencies: WelyElement<D>[]
   inheritances: Inheritances<D, P>
   data: D
   props: P
   html: Html2<T, D, P>[]
   css: Css<D, P>
-  inheritedSet: Set<Wely<D>>
+  inheritedSet: Set<WelyElement<D>>
   slot: Slot<D, P>[]
   events: Events<D, P>
 }
@@ -53,7 +53,7 @@ export interface EachIf<T> {
   fallback?: (arg: T, index: number) => Html
 }
 
-type Events<D, P> = {
+export type Events<D, P> = {
   handler: string
   selector?: string
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
@@ -61,7 +61,7 @@ type Events<D, P> = {
 
 export type Html = string | HTMLElement | DocumentFragment
 
-type Html2<T, D, P> = Convert<Html | Each<T> | EachIf<T> | If, D, P>
+export type Html2<T, D, P> = Convert<Html | Each<T> | EachIf<T> | If, D, P>
 
 export interface If {
   branches: {
@@ -71,13 +71,13 @@ export interface If {
   fallback?: Html
 }
 
-type Inheritances<D, P> = {
+export type Inheritances<D, P> = {
   descendants: HTMLElement | HTMLElement[]
   props: (data: D) => P
 }[]
 
-type Slot<D, P> = Convert<string | HTMLElement, D, P>
+export type Slot<D, P> = Convert<string | HTMLElement, D, P>
 
-export interface Wely<D> extends CustomElementConstructor {
-  overwrite: (data: () => Partial<D>) => Wely<D>
+export interface WelyElement<D> extends CustomElementConstructor {
+  overwrite: (data: () => Partial<D>) => WelyElement<D>
 }
