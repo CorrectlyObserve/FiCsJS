@@ -4,7 +4,7 @@ export interface Create<T, D, P> {
   dependencies?:  | []
   inheritances?: Inheritances<D, P>
   data?: () => D
-  html: Html2<T, D, P>
+  html: Html2<Html | Each<T> | EachIf<T> | If, D, P>
   css?: Css<D, P>
   slot?: Slot<D, P>
   events?: Events<D, P>
@@ -48,17 +48,14 @@ export type Events<D, P> = {
 export type Html = string | HTMLElement | DocumentFragment | 
 
 export type Html2<T, D, P> =
-  | Html
-  | Each<T>
-  | EachIf<T>
-  | If
+  | T
   | (({
       data,
       props,
       dependencies
     }: DataProps<D, P> & {
       dependencies?: []
-    }) => Html | Each<T> | EachIf<T> | If)
+    }) => T)
 
 export interface If {
   branches: {
