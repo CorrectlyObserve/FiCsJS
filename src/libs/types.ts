@@ -1,3 +1,15 @@
+export interface CreateWely<T, D, P> {
+  name: string
+  className?: string
+  dependencies?: Wely | Wely[]
+  inheritances?: Inheritances<D, P>
+  data?: () => D
+  html: Html2<T, D, P>
+  css?: Css<D, P>
+  slot?: Slot<D, P>
+  events?: Events<D, P>
+}
+
 export type Css<D, P> = (
   | string
   | {
@@ -11,18 +23,6 @@ export type Css<D, P> = (
 interface DataProps<D, P> {
   data: D
   props: P
-}
-
-export interface Define<T, D, P> {
-  name: string
-  className?: string
-  dependencies?: Wely | Wely[]
-  inheritances?: Inheritances<D, P>
-  data?: () => D
-  html: Html2<T, D, P>
-  css?: Css<D, P>
-  slot?: Slot<D, P>
-  events?: Events<D, P>
 }
 
 export interface Each<T> {
