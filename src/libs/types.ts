@@ -16,7 +16,7 @@ interface DataProps<D, P> {
 export interface Define<T, D, P> {
   name: string
   className?: string
-  dependencies?: CustomElementConstructor | CustomElementConstructor[]
+  dependencies?: Wely | Wely[]
   inheritances?: Inheritances<D, P>
   data?: () => D
   html: Html2<T, D, P>
@@ -45,18 +45,20 @@ export type Events<D, P> = {
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
 }[]
 
-export type Html = string | HTMLElement | DocumentFragment | CustomElementConstructor
+export type Html = string | HTMLElement | DocumentFragment | Wely
 
 export type Html2<T, D, P> =
   | Html
   | Each<T>
   | EachIf<T>
   | If
-  | (({ data, props, dependencies }: HtmlArgs<D, P>) => Html | Each<T> | EachIf<T> | If)
-
-interface HtmlArgs<D, P> extends DataProps<D, P> {
-  dependencies?: CustomElementConstructor[]
-}
+  | (({
+      data,
+      props,
+      dependencies
+    }: DataProps<D, P> & {
+      dependencies?: Wely[]
+    }) => Html | Each<T> | EachIf<T> | If)
 
 export interface If {
   branches: {
@@ -75,3 +77,7 @@ export type Slot<D, P> =
   | string
   | HTMLElement
   | (({ data, props }: DataProps<D, P>) => string | HTMLElement)
+
+export interface Wely {
+  new (): HTMLElement
+}
