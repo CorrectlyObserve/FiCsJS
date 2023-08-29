@@ -1,4 +1,4 @@
-import { create, html, mount } from './'
+import {  } from './'
 import cssUrl from './style.css?inline'
 
 interface Data {
@@ -13,7 +13,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const Child = create({
+const child = ({
   name: 'child',
   data: () => ({
     count: 1,
@@ -43,20 +43,22 @@ const Child = create({
   ]
 })
 
-const child = new Child()
-const instance = child.define()
-const instance2 = child.define(() => ({ message: 'Good bye!' }))
 
-console.log(new instance(), new instance2())
+const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 
-// const child = childClass.create({})
+const app = document.getElementById('app')!
 
-// const parent = define({
-//   name: 'parent',
-//   className: 'test',
-//   html: `<slot />`,
-//   slot: child
-// })
+// child.mount(app)
+// child2.mount(app)
+
+const parent = ({
+  name: 'parent',
+  className: 'test',
+  dependencies: child,
+  html: `${child}`
+})
+
+parent.mount(app)
 
 // const grandParent = define({
 //   name: 'grandParent',
@@ -143,6 +145,3 @@ console.log(new instance(), new instance2())
 // }).create({})
 
 // mount('app', grandParent)
-
-mount('app', new instance())
-mount('app', new instance2())
