@@ -1,14 +1,4 @@
-export interface CreateWely<T, D, P> {
-  name: string
-  className?: string
-  dependencies?: Wely | Wely[]
-  inheritances?: Inheritances<D, P>
-  data?: () => D
-  html: Html2<Html | Each<T> | EachIf<T> | If, D, P>
-  css?: Css<D, P>
-  slot?: Slot<D, P>
-  events?: Events<D, P>
-}
+import WelyClass from '@/class'
 
 export type Css<D, P> = (
   | string
@@ -27,16 +17,16 @@ interface DataProps<D, P> {
 
 export interface Each<T> {
   contents: T[]
-  render: (arg: T, index: number) => Html | undefined
+  render: (arg: T, index: number) => string | undefined
 }
 
 export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => Html
+    render: (arg: T, index: number) => string
   }[]
-  fallback?: (arg: T, index: number) => Html
+  fallback?: (arg: T, index: number) => string
 }
 
 export type Events<D, P> = {
@@ -45,24 +35,23 @@ export type Events<D, P> = {
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
 }[]
 
-export type Html = string | HTMLElement | DocumentFragment | Wely
 
-export type Html2<T, D, P> =
+export type Html<T, D, P> =
   | T
   | (({
       data,
       props,
       dependencies
     }: DataProps<D, P> & {
-      dependencies?: Wely[]
+      dependencies?: WelyClass<T, D, P>[]
     }) => T)
 
 export interface If {
   branches: {
     judge: boolean | unknown
-    render: Html
+    render: string
   }[]
-  fallback?: Html
+  fallback?: string
 }
 
 export type Inheritances<D, P> = {
@@ -75,6 +64,14 @@ export type Slot<D, P> =
   | HTMLElement
   | (({ data, props }: DataProps<D, P>) => string | HTMLElement)
 
-export interface Wely {
-  new (): HTMLElement
+export interface Wely<T, D, P> {
+  name: string
+  className?: string
+  dependencies?: WelyClass<T, D, P> | WelyClass<T, D, P>[]
+  inheritances?: Inheritances<D, P>
+  data?: () => D
+  html: Html<string | Each<T> | EachIf<T> | If, D, P>
+  css?: Css<D, P>
+  slot?: Slot<D, P>
+  events?: Events<D, P>
 }
