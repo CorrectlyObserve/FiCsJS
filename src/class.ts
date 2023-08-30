@@ -104,7 +104,7 @@ export default class WelyClass<T, D, P> {
               )
             else this.classList.add(name)
 
-            console.log(welyClass.#dependencies)
+            console.log(welyClass.#dependencies[0].#instantiate())
 
             this.shadowRoot.textContent = (<any>welyClass.#data).message
           }
@@ -114,6 +114,11 @@ export default class WelyClass<T, D, P> {
 
   create(): HTMLElement {
     return document.createElement(this.#convertName())
+  }
+
+  #instantiate(): HTMLElement {
+    this.#define()
+    return this.create()
   }
 
   mount(base: HTMLElement): void {
