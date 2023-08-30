@@ -37,6 +37,7 @@ export class WelyClass<T, D, P> {
 
   #inheritedSet: Set<WelyClass<T, D, P>> = new Set()
   #props: P = <P>{}
+  #isEach: boolean = false
 
   constructor({
     name,
@@ -80,15 +81,18 @@ export class WelyClass<T, D, P> {
     return generate()
   }
 
-  #convertName(): string {
+  #convertToKebabCase(str: string): string {
     const upperCase = new RegExp(/[A-Z]/g)
-    const body = this.#name.slice(1)
+    const body = str.slice(1)
 
-    const name =
-      this.#name.slice(0, 1).toLowerCase() +
-      (upperCase.test(body) ? body.replace(upperCase, str => `-${str.toLowerCase()}`) : body)
+    return (
+      str.slice(0, 1).toLowerCase() +
+      (upperCase.test(body) ? body.replace(upperCase, val => `-${val.toLowerCase()}`) : body)
+    )
+  }
 
-    return `w-${name}`
+  #convertName(): string {
+    return `w-${this.#convertToKebabCase(this.#name)}`
   }
 
   #define(): void {
@@ -108,6 +112,73 @@ export class WelyClass<T, D, P> {
       )
   }
 
+  #setClassName(wely: HTMLElement): void {
+    if (this.#class !== '')
+      wely.setAttribute(
+        'class',
+        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
+      )
+    else wely.classList.add(this.#name)
+  }
+
+  #setCss(shadowRoot: ShadowRoot): void {
+    if (this.#css.length > 0) {
+      const style = document.createElement('style')
+
+      this.#css.forEach(cssObj => {
+        if (typeof cssObj === 'string') style.textContent += cssObj
+        else if (cssObj.selector && 'style' in cssObj)
+          style.textContent +=
+            cssObj.selector +
+            `{${Object.entries(cssObj.style({ data: { ...this.#data }, props: { ...this.#props } }))
+              .map(([key, value]) => `${this.#convertToKebabCase(key)}: ${value};`)
+              .join('\n')}}`
+      })
+
+      shadowRoot.appendChild(style)
+    }
+  }
+
+  #setEventHandlers(wely: HTMLElement): void {
+    if (this.#events.length > 0)
+      for (const eventObj of this.#events) {
+        const { selector, handler, method } = eventObj
+
+        if (selector) {
+          const targets: Element[] = (() => {
+            const createArr = (selector: string) =>
+              Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
+
+            if (/^.+(\.|#).+$/.test(selector)) {
+              const symbol = selector.includes('.') ? '.' : '#'
+              const [tag, attr] = selector.split(symbol)
+
+              return createArr(tag).filter(
+                element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
+              )
+            }
+
+            return createArr(selector)
+          })()
+
+          if (targets.length === 0)
+            throw Error(`The element does not exist or is not applicable...`)
+          else
+            for (let i = 0; i < targets.length; i++)
+              targets[i].addEventListener(handler, (event: Event) =>
+                method(
+                  { data: { ...this.#data }, props: { ...this.#props } },
+                  event,
+                  this.#isEach ? i : undefined
+                )
+              )
+        } else
+          wely.addEventListener(handler, (event: Event) =>
+            method({ data: { ...this.#data }, props: { ...this.#props } }, event)
+          )
+      }
+  }
+
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     return new WelyClass<T, D, P>({
       name: `${this.#name}${this.#generate().next().value + 1}`,
@@ -124,16 +195,15 @@ export class WelyClass<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const wely = document.createElement(this.#convertName())
+    const wely: HTMLElement = document.createElement(this.#convertName())
+    const shadowRoot: ShadowRoot = <ShadowRoot>wely.shadowRoot
 
-    if (this.#class !== '')
-      wely.setAttribute(
-        'class',
-        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
-      )
-    else wely.classList.add(this.#name)
+    this.#setClassName(wely)
 
-    wely.shadowRoot!.textContent = (<any>this.#data).message
+    shadowRoot.textContent = (<any>this.#data).message
+
+    this.#setCss(<ShadowRoot>wely.shadowRoot)
+    this.#setEventHandlers(wely)
 
     return wely
   }
