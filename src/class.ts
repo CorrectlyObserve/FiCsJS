@@ -12,6 +12,9 @@ export default class WelyClass<T, D, P> {
   readonly #slot: Slot<D, P>[] = []
   readonly #events: Events<D, P> = []
 
+  #inheritedSet: Set<WelyClass<T, D, P>> = new Set()
+  #props: P = <P>{}
+
   constructor({
     name,
     className,
@@ -56,7 +59,7 @@ export default class WelyClass<T, D, P> {
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     return new WelyClass<T, D, P>({
-      name: `${this.#name}-${this.#generate().next().value + 1}`,
+      name: `${this.#name}${this.#generate().next().value + 1}`,
       className: this.#class,
       dependencies: this.#dependencies,
       inheritances: this.#inheritances,
@@ -80,49 +83,39 @@ export default class WelyClass<T, D, P> {
   }
 
   #define(): void {
-    const welyClass = this
-    const name = welyClass.#convertName()
+    const name = this.#convertName()
 
     if (!customElements.get(name))
       customElements.define(
         name,
         class extends HTMLElement {
-          readonly shadowRoot!: ShadowRoot
-          #inheritedSet: Set<WelyClass<T, D, P>> = new Set()
-          #props: P = <P>{}
+          readonly shadowRoot: ShadowRoot
 
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
-          }
-
-          connectedCallback() {
-            if (welyClass.#class)
-              this.setAttribute(
-                'class',
-                welyClass.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, name)
-              )
-            else this.classList.add(name)
-
-            console.log(welyClass.#dependencies[0].#instantiate())
-
-            this.shadowRoot.textContent = (<any>welyClass.#data).message
           }
         }
       )
   }
 
   create(): HTMLElement {
-    return document.createElement(this.#convertName())
-  }
-
-  #instantiate(): HTMLElement {
     this.#define()
-    return this.create()
+    const wely = document.createElement(this.#convertName())
+
+    if (this.#class !== '')
+      wely.setAttribute(
+        'class',
+        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
+      )
+    else wely.classList.add(this.#name)
+
+    wely.shadowRoot!.textContent = (<any>this.#data).message
+
+    return wely
   }
 
   mount(base: HTMLElement): void {
-    this.#define()
     base.appendChild(this.create())
   }
 }
