@@ -1,4 +1,4 @@
-import { createWely, html, mountWely } from './wely'
+import { wely } from './wely'
 import cssUrl from './style.css?inline'
 
 interface Data {
@@ -13,7 +13,7 @@ interface Props {
   click: (message: string) => void
 }
 
-const Child = createWely({
+const child = wely({
   name: 'child',
   data: () => ({
     count: 1,
@@ -43,19 +43,22 @@ const Child = createWely({
   ]
 })
 
-const child = new Child(() => ({ message: 'Good bye!' }))
-const instance = child.define()
 
-console.log(new instance())
+const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 
-// const child = childClass.create({})
+const app = document.getElementById('app')!
 
-// const parent = define({
-//   name: 'parent',
-//   className: 'test',
-//   html: `<slot />`,
-//   slot: child
-// })
+// child.mount(app)
+child2.mount(app)
+
+const parent = wely({
+  name: 'parent',
+  className: 'test',
+  dependencies: child,
+  html: `${child}`
+})
+
+parent.mount(app)
 
 // const grandParent = define({
 //   name: 'grandParent',
@@ -142,5 +145,3 @@ console.log(new instance())
 // }).create({})
 
 // mount('app', grandParent)
-
-mountWely('app', new instance())
