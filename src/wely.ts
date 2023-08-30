@@ -141,11 +141,11 @@ export class WelyClass<T, D, P> {
 
   #setEventHandlers(wely: HTMLElement): void {
     if (this.#events.length > 0)
-      for (const eventObj of this.#events) {
-        const { selector, handler, method } = eventObj
+      for (const event of this.#events) {
+        const { selector, handler, method } = event
 
         if (selector) {
-          const targets: Element[] = (() => {
+          const elements: Element[] = (() => {
             const createArr = (selector: string) =>
               Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
 
@@ -161,14 +161,14 @@ export class WelyClass<T, D, P> {
             return createArr(selector)
           })()
 
-          if (targets.length === 0)
+          if (elements.length === 0)
             throw Error(`The element does not exist or is not applicable...`)
           else
-            for (let i = 0; i < targets.length; i++)
-              targets[i].addEventListener(handler, (event: Event) =>
+            for (let i = 0; i < elements.length; i++)
+              elements[i].addEventListener(handler, (e: Event) =>
                 method(
                   { data: { ...this.#data }, props: { ...this.#props } },
-                  event,
+                  e,
                   this.#isEach ? i : undefined
                 )
               )
