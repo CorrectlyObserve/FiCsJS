@@ -49,7 +49,7 @@ const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 const app = document.getElementById('app')!
 
 // child.mount(app)
-// child2.mount(app)
+child2.mount(app)
 
 const parent = wely({
   name: 'parent',
