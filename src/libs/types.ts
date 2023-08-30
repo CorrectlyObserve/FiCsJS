@@ -4,9 +4,7 @@ export type Css<D, P> = (
   | string
   | {
       selector: string
-      style: ({ data, props }: DataProps<D, P>) => {
-        [key: string]: string | number
-      }
+      style: ({ data, props }: DataProps<D, P>) => Record<string, string | number>
     }
 )[]
 
@@ -53,8 +51,8 @@ export interface If {
   fallback?: string
 }
 
-export type Inheritances<D, P> = {
-  descendants: HTMLElement | HTMLElement[]
+export type Inheritances<T, D, P> = {
+  descendants: Class<T, D | any, P> | Class<T, D | any, P>[]
   props: (data: D) => P
 }[]
 
@@ -66,8 +64,8 @@ export type Slot<D, P> =
 export interface <T, D, P> {
   name: string
   className?: string
-  dependencies?: Class<T, D, P> | Class<T, D, P>[]
-  inheritances?: Inheritances<D, P>
+  dependencies?: Class<T, D | any, P> | Class<T, D | any, P>[]
+  inheritances?: Inheritances<T, D, P>
   data?: () => D
   html: Html<string | Each<T> | EachIf<T> | If, D, P>
   css?: Css<D, P>
