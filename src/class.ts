@@ -12,6 +12,9 @@ export default class Class<T, D, P> {
   readonly #slot: Slot<D, P>[] = []
   readonly #events: Events<D, P> = []
 
+  #inheritedSet: Set<Class<T, D, P>> = new Set()
+  #props: P = <P>{}
+
   constructor({
     name,
     className,
@@ -56,7 +59,7 @@ export default class Class<T, D, P> {
 
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
     return new Class<T, D, P>({
-      name: `${this.#name}-${this.#generate().next().value + 1}`,
+      name: `${this.#name}${this.#generate().next().value + 1}`,
       className: this.#class,
       dependencies: this.#dependencies,
       inheritances: this.#inheritances,
@@ -80,49 +83,39 @@ export default class Class<T, D, P> {
   }
 
   #define(): void {
-    const Class = this
-    const name = Class.#convertName()
+    const name = this.#convertName()
 
     if (!customElements.get(name))
       customElements.define(
         name,
         class extends HTMLElement {
-          readonly shadowRoot!: ShadowRoot
-          #inheritedSet: Set<Class<T, D, P>> = new Set()
-          #props: P = <P>{}
+          readonly shadowRoot: ShadowRoot
 
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
-          }
-
-          connectedCallback() {
-            if (Class.#class)
-              this.setAttribute(
-                'class',
-                Class.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, name)
-              )
-            else this.classList.add(name)
-
-            console.log(Class.#dependencies[0].#instantiate())
-
-            this.shadowRoot.textContent = (<any>Class.#data).message
           }
         }
       )
   }
 
   create(): HTMLElement {
-    return document.createElement(this.#convertName())
-  }
-
-  #instantiate(): HTMLElement {
     this.#define()
-    return this.create()
+    const  = document.createElement(this.#convertName())
+
+    if (this.#class !== '')
+      .setAttribute(
+        'class',
+        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
+      )
+    else .classList.add(this.#name)
+
+    .shadowRoot!.textContent = (<any>this.#data).message
+
+    return 
   }
 
   mount(base: HTMLElement): void {
-    this.#define()
     base.appendChild(this.create())
   }
 }
