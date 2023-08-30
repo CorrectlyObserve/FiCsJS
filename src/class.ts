@@ -1,9 +1,9 @@
 import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot,  } from '@/libs/types'
-import { convertHtml } from '@/utils'
+// import { convertHtml } from '@/utils'
 
 export default class Class<T, D, P> {
   readonly #name: string = ''
-  readonly #className: string = ''
+  readonly #class: string = ''
   readonly #dependencies: Class<T, D, P>[] = []
   readonly #inheritances: Inheritances<D, P> = []
   readonly #data: D = <D>{}
@@ -25,7 +25,7 @@ export default class Class<T, D, P> {
   }: <T, D, P>) {
     this.#name = name
 
-    if (className) this.#className = className
+    if (className) this.#class = className
 
     if (dependencies)
       this.#dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
@@ -57,7 +57,7 @@ export default class Class<T, D, P> {
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
     return new Class<T, D, P>({
       name: `${this.#name}-${this.#generate().next().value + 1}`,
-      className: this.#className,
+      className: this.#class,
       dependencies: this.#dependencies,
       inheritances: this.#inheritances,
       data: () => <D>{ ...this.#data, ...partialData() },
@@ -97,14 +97,14 @@ export default class Class<T, D, P> {
           }
 
           connectedCallback() {
-            if (Class.#className)
+            if (Class.#class)
               this.setAttribute(
                 'class',
-                Class.#className
-                  .split(' ')
-                  .reduce((prev, current) => `${prev} ${current}`, name)
+                Class.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, name)
               )
             else this.classList.add(name)
+
+            console.log(Class.#dependencies)
 
             this.shadowRoot.textContent = (<any>Class.#data).message
           }
