@@ -104,7 +104,7 @@ export default class Class<T, D, P> {
               )
             else this.classList.add(name)
 
-            console.log(Class.#dependencies)
+            console.log(Class.#dependencies[0].#instantiate())
 
             this.shadowRoot.textContent = (<any>Class.#data).message
           }
@@ -114,6 +114,11 @@ export default class Class<T, D, P> {
 
   create(): HTMLElement {
     return document.createElement(this.#convertName())
+  }
+
+  #instantiate(): HTMLElement {
+    this.#define()
+    return this.create()
   }
 
   mount(base: HTMLElement): void {
