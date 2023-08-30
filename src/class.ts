@@ -99,7 +99,7 @@ export default class WelyClass<T, D, P> {
       )
   }
 
-  create(): HTMLElement {
+  render(): HTMLElement {
     this.#define()
     const wely = document.createElement(this.#convertName())
 
@@ -116,6 +116,6 @@ export default class WelyClass<T, D, P> {
   }
 
   mount(base: HTMLElement): void {
-    base.appendChild(this.create())
+    base.appendChild(this.render())
   }
 }
