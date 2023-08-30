@@ -1,4 +1,4 @@
-import Class from '@/class'
+import { Class } from '@/'
 
 export type Css<D, P> = (
   | string
@@ -34,7 +34,6 @@ export type Events<D, P> = {
   selector?: string
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
 }[]
-
 
 export type Html<T, D, P> =
   | T
