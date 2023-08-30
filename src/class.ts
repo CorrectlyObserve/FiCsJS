@@ -1,9 +1,9 @@
 import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot, Wely } from '@/libs/types'
-import { convertHtml } from '@/utils'
+// import { convertHtml } from '@/utils'
 
 export default class WelyClass<T, D, P> {
   readonly #name: string = ''
-  readonly #className: string = ''
+  readonly #class: string = ''
   readonly #dependencies: WelyClass<T, D, P>[] = []
   readonly #inheritances: Inheritances<D, P> = []
   readonly #data: D = <D>{}
@@ -25,7 +25,7 @@ export default class WelyClass<T, D, P> {
   }: Wely<T, D, P>) {
     this.#name = name
 
-    if (className) this.#className = className
+    if (className) this.#class = className
 
     if (dependencies)
       this.#dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
@@ -57,7 +57,7 @@ export default class WelyClass<T, D, P> {
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     return new WelyClass<T, D, P>({
       name: `${this.#name}-${this.#generate().next().value + 1}`,
-      className: this.#className,
+      className: this.#class,
       dependencies: this.#dependencies,
       inheritances: this.#inheritances,
       data: () => <D>{ ...this.#data, ...partialData() },
@@ -97,14 +97,14 @@ export default class WelyClass<T, D, P> {
           }
 
           connectedCallback() {
-            if (welyClass.#className)
+            if (welyClass.#class)
               this.setAttribute(
                 'class',
-                welyClass.#className
-                  .split(' ')
-                  .reduce((prev, current) => `${prev} ${current}`, name)
+                welyClass.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, name)
               )
             else this.classList.add(name)
+
+            console.log(welyClass.#dependencies)
 
             this.shadowRoot.textContent = (<any>welyClass.#data).message
           }
