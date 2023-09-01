@@ -8,7 +8,7 @@ export class Class<T, D, P> {
   readonly #data: D = <D>{}
   readonly #html: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
-  readonly #slot: Slot<D, P>[] = []
+  readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
 
   #dependencySet: Set<Class<T, D, P>> = new Set()
