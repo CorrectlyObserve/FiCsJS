@@ -15,16 +15,16 @@ interface DataProps<D, P> {
 
 export interface Each<T, D, P> {
   contents: T[]
-  render: (arg: T, index: number) => ReturnValue<T, D, P> | undefined
+  render: (arg: T, index: number) => OrString<T, D, P> | undefined
 }
 
 export interface EachIf<T, D, P> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => ReturnValue<T, D, P>
+    render: (arg: T, index: number) => OrString<T, D, P>
   }[]
-  fallback?: (arg: T, index: number) => ReturnValue<T, D, P>
+  fallback?: (arg: T, index: number) => OrString<T, D, P>
 }
 
 export type Events<D, P> = {
@@ -43,14 +43,14 @@ export type Html<T, D, P> =
       dependencies?: Class<T, D, P>[]
     }) => HtmlArg<T, D, P>)
 
-type HtmlArg<T, D, P> = ReturnValue<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
+type HtmlArg<T, D, P> = OrString<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
 
 export interface If<T, D, P> {
   branches: {
     judge: boolean | unknown
-    render: ReturnValue<T, D, P>
+    render: OrString<T, D, P>
   }[]
-  fallback?: ReturnValue<T, D, P>
+  fallback?: OrString<T, D, P>
 }
 
 export type Inheritances<T, D, P> = {
@@ -58,11 +58,9 @@ export type Inheritances<T, D, P> = {
   props: (data: D) => P
 }[]
 
-type ReturnValue<T, D, P> = string | Class<T, D | any, P> | DocumentFragment
-
 export type Slot<T, D, P> =
-  | ReturnValue<T, D, P>
-  | (({ data, props }: DataProps<D, P>) => ReturnValue<T, D, P>)
+  | OrString<T, D, P>
+  | (({ data, props }: DataProps<D, P>) => OrString<T, D, P>)
 
 export interface <T, D, P> {
   name: string
@@ -75,3 +73,8 @@ export interface <T, D, P> {
   slot?: Slot<T, D, P>
   events?: Events<D, P>
 }
+
+type OrString<T, D, P> =
+  | Class<T, D | any, P>
+  | string
+  | (Class<T, D | any, P> | string)[]
