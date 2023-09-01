@@ -39,7 +39,7 @@ export class WelyClass<T, D, P> {
     this.#html = [html]
 
     if (css && css.length > 0) this.#css = [...css]
-    if (slot) this.#slot = this.#convertToArray(slot)
+    if (slot) this.#slot = [slot]
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -148,7 +148,7 @@ export class WelyClass<T, D, P> {
 
   #setSlot(wely: HTMLElement) {
     if (this.#slot.length > 0)
-      for (const slot of this.#slot) {
+      for (const slot of this.#convertToArray(this.#slot)) {
         const slotContent =
           typeof slot === 'function'
             ? slot({ data: { ...this.#data }, props: { ...this.#props } })
