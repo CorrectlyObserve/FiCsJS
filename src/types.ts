@@ -13,18 +13,18 @@ interface DataProps<D, P> {
   props: P
 }
 
-export interface Each<T> {
+export interface Each<T, D, P> {
   contents: T[]
-  render: (arg: T, index: number) => string | undefined
+  render: (arg: T, index: number) => ReturnValue<T, D, P> | undefined
 }
 
-export interface EachIf<T> {
+export interface EachIf<T, D, P> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => string
+    render: (arg: T, index: number) => ReturnValue<T, D, P>
   }[]
-  fallback?: (arg: T, index: number) => string
+  fallback?: (arg: T, index: number) => ReturnValue<T, D, P>
 }
 
 export type Events<D, P> = {
@@ -34,24 +34,23 @@ export type Events<D, P> = {
 }[]
 
 export type Html<T, D, P> =
-  | ReturnValue<T, D, P>
-  | Each<T>
-  | EachIf<T>
-  | If
+  | HtmlArg<T, D, P>
   | (({
       data,
       props,
       dependencies
     }: DataProps<D, P> & {
       dependencies?: WelyClass<T, D, P>[]
-    }) => ReturnValue<T, D, P> | Each<T> | EachIf<T> | If)
+    }) => HtmlArg<T, D, P>)
 
-export interface If {
+type HtmlArg<T, D, P> = ReturnValue<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
+
+export interface If<T, D, P> {
   branches: {
     judge: boolean | unknown
-    render: string
+    render: ReturnValue<T, D, P>
   }[]
-  fallback?: string
+  fallback?: ReturnValue<T, D, P>
 }
 
 export type Inheritances<T, D, P> = {
