@@ -1,5 +1,4 @@
-import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot, Wely } from '@/libs/types'
-// import { convertHtml } from '@/utils'
+import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot, Wely } from '@/types'
 
 export const wely = <T, D, P>({
   name,
@@ -28,14 +27,14 @@ export class WelyClass<T, D, P> {
   readonly #name: string = ''
   readonly #class: string = ''
   readonly #dependencies: WelyClass<T, D, P>[] = []
-  readonly #inheritances: Inheritances<D, P> = []
+  readonly #inheritances: Inheritances<T, D, P> = []
   readonly #data: D = <D>{}
-  readonly #html: Html<string | Each<T> | EachIf<T> | If, D, P>[] = []
+  readonly #html: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #slot: Slot<D, P>[] = []
   readonly #events: Events<D, P> = []
 
-  #inheritedSet: Set<WelyClass<T, D, P>> = new Set()
+  #dependencySet: Set<WelyClass<T, D, P>> = new Set()
   #props: P = <P>{}
   #isEach: boolean = false
 
@@ -121,6 +120,72 @@ export class WelyClass<T, D, P> {
     else wely.classList.add(this.#name)
   }
 
+  #setProps(): void {
+    if (this.#inheritances.length > 0) {
+      const getDependencies = (dependencies: WelyClass<T, D, P>[]) => {
+        if (dependencies.length > 0)
+          for (const dependency of dependencies) {
+            if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
+            if (dependency.#dependencies) getDependencies(dependency.#dependencies)
+          }
+      }
+      getDependencies(this.#dependencies)
+
+      for (const inheritance of this.#inheritances) {
+        const { descendants, props } = inheritance
+
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
+          if (this.#dependencySet.has(descendant)) descendant.#props = props(this.#data)
+          else throw Error(`This component is not a descendant...`)
+      }
+    }
+  }
+
+  // #convertHtml(
+  //   templates: TemplateStringsArray,
+  //   ...elements: (HTMLElement | unknown)[]
+  // ): DocumentFragment {
+  //   let html: string = ''
+
+  //   const placeholderId = this.#generate().next().value
+
+  //   templates.forEach((template, index) => {
+  //     html += template
+
+  //     if (index !== templates.length - 1)
+  //       html +=
+  //         elements[index] instanceof HTMLElement
+  //           ? `<w-var id="placeholder-id${placeholderId}-${index}"></w-var>`
+  //           : elements[index]
+  //   })
+
+  //   const dom = new DOMParser().parseFromString(html, 'text/html').body
+  //   const fragment = new DocumentFragment()
+
+  //   while (dom.firstChild) fragment.appendChild(dom.firstChild)
+
+  //   elements.forEach((element, index) => {
+  //     console.log(element)
+  //     if (element instanceof HTMLElement) {
+  //       const placeholder = fragment.getElementById(`placeholder-id${placeholderId}-${index}`)
+
+  //       if (placeholder) placeholder.replaceWith(element)
+  //       else throw Error(`The element with an applicable id is not found...`)
+  //     }
+  //   })
+
+  //   return fragment
+  // }
+
+  // #setHtml(shadowRoot: ShadowRoot): void {
+  //   let html: Html<T, D, P> = this.#html[0]
+
+  //   if (typeof html === 'function')
+  //     html = html({ data: { ...this.#data }, props: { ...this.#props } })
+
+  //   // console.log(this.#convertHtml`${html}`)
+  // }
+
   #setCss(shadowRoot: ShadowRoot): void {
     if (this.#css.length > 0) {
       const style = document.createElement('style')
@@ -181,7 +246,7 @@ export class WelyClass<T, D, P> {
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     return new WelyClass<T, D, P>({
-      name: `${this.#name}${this.#generate().next().value + 1}`,
+      name: this.#name,
       className: this.#class,
       dependencies: this.#dependencies,
       inheritances: this.#inheritances,
@@ -196,12 +261,10 @@ export class WelyClass<T, D, P> {
   render(): HTMLElement {
     this.#define()
     const wely: HTMLElement = document.createElement(this.#convertName())
-    const shadowRoot: ShadowRoot = <ShadowRoot>wely.shadowRoot
 
     this.#setClassName(wely)
-
-    shadowRoot.textContent = (<any>this.#data).message
-
+    this.#setProps()
+    this.#setHtml(<ShadowRoot>wely.shadowRoot)
     this.#setCss(<ShadowRoot>wely.shadowRoot)
     this.#setEventHandlers(wely)
 
@@ -211,4 +274,42 @@ export class WelyClass<T, D, P> {
   mount(base: HTMLElement): void {
     base.appendChild(this.render())
   }
+}
+
+export const html = <T, D, P>(
+  aa: TemplateStringsArray,
+  ...elements: (WelyClass<T, D, P> | unknown)[]
+) => {
+  console.log(aa, ...elements)
+  return elements
+  // let html: string = ''
+
+  // const placeholderId = this.#generate().next().value
+
+  // templates.forEach((template, index) => {
+  //   html += template
+
+  //   if (index !== templates.length - 1)
+  //     html +=
+  //       elements[index] instanceof HTMLElement
+  //         ? `<w-var id="placeholder-id${placeholderId}-${index}"></w-var>`
+  //         : elements[index]
+  // })
+
+  // const dom = new DOMParser().parseFromString(html, 'text/html').body
+  // const fragment = new DocumentFragment()
+
+  // while (dom.firstChild) fragment.appendChild(dom.firstChild)
+
+  // elements.forEach((element, index) => {
+  //   console.log(element)
+  //   if (element instanceof HTMLElement) {
+  //     const placeholder = fragment.getElementById(`placeholder-id${placeholderId}-${index}`)
+
+  //     if (placeholder) placeholder.replaceWith(element)
+  //     else throw Error(`The element with an applicable id is not found...`)
+  //   }
+  // })
+
+  // return fragment
 }
