@@ -75,6 +75,6 @@ export interface Wely<T, D, P> {
 }
 
 type WelyOrString<T, D, P> =
-  | WelyClass<T, D | any, P>
+  | WelyClass<T, D | any, P | any>
   | string
-  | (WelyClass<T, D | any, P> | string)[]
+  | (WelyClass<T, D | any, P | any> | string)[]
