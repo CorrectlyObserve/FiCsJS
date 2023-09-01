@@ -34,7 +34,7 @@ export type Events<D, P> = {
 }[]
 
 export type Html<T, D, P> =
-  | string
+  | ReturnValue<T, D, P>
   | Each<T>
   | EachIf<T>
   | If
@@ -44,7 +44,7 @@ export type Html<T, D, P> =
       dependencies
     }: DataProps<D, P> & {
       dependencies?: WelyClass<T, D, P>[]
-    }) => string | Each<T> | EachIf<T> | If)
+    }) => ReturnValue<T, D, P> | Each<T> | EachIf<T> | If)
 
 export interface If {
   branches: {
@@ -59,10 +59,11 @@ export type Inheritances<T, D, P> = {
   props: (data: D) => P
 }[]
 
-export type Slot<D, P> =
-  | string
-  | HTMLElement
-  | (({ data, props }: DataProps<D, P>) => string | HTMLElement)
+type ReturnValue<T, D, P> = string | WelyClass<T, D | any, P> | DocumentFragment
+
+export type Slot<T, D, P> =
+  | ReturnValue<T, D, P>
+  | (({ data, props }: DataProps<D, P>) => ReturnValue<T, D, P>)
 
 export interface Wely<T, D, P> {
   name: string
@@ -72,6 +73,6 @@ export interface Wely<T, D, P> {
   data?: () => D
   html: Html<T, D, P>
   css?: Css<D, P>
-  slot?: Slot<D, P>
+  slot?: Slot<T, D, P>
   events?: Events<D, P>
 }
