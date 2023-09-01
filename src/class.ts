@@ -110,13 +110,12 @@ export class WelyClass<T, D, P> {
   }
 
   #insert(arr: (WelyClass<T, D, P> | string)[], wely: HTMLElement): void {
-    for (const val of arr) {
+    for (const val of arr)
       if (typeof val === 'string') wely.insertAdjacentHTML('beforeend', val)
       else {
         if (this.#dependencies.includes(val)) wely.appendChild(val.render())
         else throw Error(`The dependencies does not have '${val.#name}'.`)
       }
-    }
   }
 
   #setHtml(shadowRoot: ShadowRoot): void {
