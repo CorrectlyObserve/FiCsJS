@@ -109,13 +109,15 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #insert(arr: (WelyClass<T, D, P> | string)[], wely: HTMLElement): void {
-    for (const val of arr)
-      if (typeof val === 'string') wely.insertAdjacentHTML('beforeend', val)
-      else {
+  #insert(
+    arg: WelyClass<T, D, P> | string | (WelyClass<T, D, P> | string)[],
+    wely: HTMLElement | ShadowRoot
+  ): void {
+    for (const val of this.#convertToArray(arg))
+      if (val instanceof WelyClass) {
         if (this.#dependencies.includes(val)) wely.appendChild(val.render())
         else throw Error(`The dependencies does not have '${val.#name}'.`)
-      }
+      } else wely.appendChild(document.createRange().createContextualFragment(val))
   }
 
   #setHtml(shadowRoot: ShadowRoot): void {
@@ -124,7 +126,40 @@ export class WelyClass<T, D, P> {
         ? this.#html[0]({ data: { ...this.#data }, props: { ...this.#props } })
         : this.#html[0]
 
-    // console.log(html)
+    if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
+      this.#insert(html, shadowRoot)
+    else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
+      this.#isEach = true
+
+      if ('branches' in <EachIf<T, D, P>>html) {
+        const { contents, branches, fallback } = <EachIf<T, D, P>>html
+
+        contents.forEach((content, index) => {
+          for (const branch of branches)
+            if (branch.judge(content)) this.#insert(branch.render(content, index), shadowRoot)
+
+          if (fallback) this.#insert(fallback(content, index), shadowRoot)
+        })
+      } else {
+        const { contents, render } = <Each<T, D, P>>html
+
+        contents.forEach((content, index) => {
+          const renderer = render(content, index)
+          if (renderer) this.#insert(renderer, shadowRoot)
+        })
+      }
+    } else if ('branches' in <If<T, D, P>>html) {
+      const { branches, fallback } = <If<T, D, P>>html
+      let isInserted = false
+
+      for (const branch of branches)
+        if (branch.judge) {
+          this.#insert(branch.render, shadowRoot)
+          isInserted = true
+        }
+
+      if (!isInserted && fallback) this.#insert(fallback, shadowRoot)
+    }
   }
 
   #setCss(shadowRoot: ShadowRoot): void {
@@ -147,14 +182,13 @@ export class WelyClass<T, D, P> {
 
   #setSlot(wely: HTMLElement) {
     if (this.#slot.length > 0)
-      for (const slot of this.#convertToArray(this.#slot)) {
-        const slotContent =
+      for (const slot of this.#convertToArray(this.#slot))
+        this.#insert(
           typeof slot === 'function'
             ? slot({ data: { ...this.#data }, props: { ...this.#props } })
-            : slot
-
-        this.#insert(this.#convertToArray(slotContent), wely)
-      }
+            : slot,
+          wely
+        )
   }
 
   #setEventHandlers(wely: HTMLElement): void {
