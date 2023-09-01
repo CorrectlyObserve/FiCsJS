@@ -110,13 +110,12 @@ export class Class<T, D, P> {
   }
 
   #insert(arr: (Class<T, D, P> | string)[], : HTMLElement): void {
-    for (const val of arr) {
+    for (const val of arr)
       if (typeof val === 'string') .insertAdjacentHTML('beforeend', val)
       else {
         if (this.#dependencies.includes(val)) .appendChild(val.render())
         else throw Error(`The dependencies does not have '${val.#name}'.`)
       }
-    }
   }
 
   #setHtml(shadowRoot: ShadowRoot): void {
