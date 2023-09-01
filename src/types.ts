@@ -34,14 +34,17 @@ export type Events<D, P> = {
 }[]
 
 export type Html<T, D, P> =
-  | T
+  | string
+  | Each<T>
+  | EachIf<T>
+  | If
   | (({
       data,
       props,
       dependencies
     }: DataProps<D, P> & {
       dependencies?: WelyClass<T, D, P>[]
-    }) => T)
+    }) => string | Each<T> | EachIf<T> | If)
 
 export interface If {
   branches: {
@@ -67,7 +70,7 @@ export interface Wely<T, D, P> {
   dependencies?: WelyClass<T, D | any, P> | WelyClass<T, D | any, P>[]
   inheritances?: Inheritances<T, D, P>
   data?: () => D
-  html: Html<string | Each<T> | EachIf<T> | If, D, P>
+  html: Html<T, D, P>
   css?: Css<D, P>
   slot?: Slot<D, P>
   events?: Events<D, P>
