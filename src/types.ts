@@ -75,6 +75,6 @@ export interface <T, D, P> {
 }
 
 type OrString<T, D, P> =
-  | Class<T, D | any, P>
+  | Class<T, D | any, P | any>
   | string
-  | (Class<T, D | any, P> | string)[]
+  | (Class<T, D | any, P | any> | string)[]
