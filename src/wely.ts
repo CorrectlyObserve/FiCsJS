@@ -1,5 +1,5 @@
-import {  } from '@/libs/types'
-import Class from '@/class'
+import { Class } from '@/class'
+import {  } from '@/types'
 
 export const  = <T, D, P>({
   name,
@@ -23,3 +23,16 @@ export const  = <T, D, P>({
     slot,
     events
   })
+
+export const html = <T, D, P>(
+  templates: TemplateStringsArray,
+  ...classes: Class<T, D, P>[]
+) =>
+  Array.from({ length: Math.max(templates.length, classes.length) }, (_, index) => {
+    const result = []
+
+    if (index < templates.length) result.push(templates[index])
+    if (index < classes.length) result.push(classes[index])
+
+    return result
+  }).flat()
