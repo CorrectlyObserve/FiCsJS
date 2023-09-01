@@ -30,8 +30,7 @@ export class WelyClass<T, D, P> {
 
     if (className) this.#class = className
 
-    if (dependencies)
-      this.#dependencies = Array.isArray(dependencies) ? [...dependencies] : [dependencies]
+    if (dependencies) this.#dependencies = this.#convertToArray(dependencies)
 
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
 
@@ -40,8 +39,12 @@ export class WelyClass<T, D, P> {
     this.#html = [html]
 
     if (css && css.length > 0) this.#css = [...css]
-    if (slot) this.#slot = [slot]
+    if (slot) this.#slot = this.#convertToArray(slot)
     if (events && events.length > 0) this.#events = [...events]
+  }
+
+  #convertToArray(val: unknown | unknown[]) {
+    return Array.isArray(val) ? [...val] : [val]
   }
 
   #convertToKebabCase(str: string): string {
@@ -99,20 +102,30 @@ export class WelyClass<T, D, P> {
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
-        for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
+        for (const descendant of this.#convertToArray(descendants))
           if (this.#dependencySet.has(descendant)) descendant.#props = props(this.#data)
           else throw Error(`This component is not a descendant...`)
       }
     }
   }
 
+  #insert(arr: (WelyClass<T, D, P> | string)[], wely: HTMLElement): void {
+    for (const val of arr) {
+      if (typeof val === 'string') wely.insertAdjacentHTML('beforeend', val)
+      else {
+        if (this.#dependencies.includes(val)) wely.appendChild(val.render())
+        else throw Error(`The dependencies does not have '${val.#name}'.`)
+      }
+    }
+  }
+
   #setHtml(shadowRoot: ShadowRoot): void {
-    let html: Html<T, D, P> = this.#html[0]
+    const html: Html<T, D, P> =
+      typeof this.#html[0] === 'function'
+        ? this.#html[0]({ data: { ...this.#data }, props: { ...this.#props } })
+        : this.#html[0]
 
-    if (typeof html === 'function')
-      html = html({ data: { ...this.#data }, props: { ...this.#props } })
-
-    console.log(html)
+    // console.log(html)
   }
 
   #setCss(shadowRoot: ShadowRoot): void {
@@ -131,6 +144,18 @@ export class WelyClass<T, D, P> {
 
       shadowRoot.appendChild(style)
     }
+  }
+
+  #setSlot(wely: HTMLElement) {
+    if (this.#slot.length > 0)
+      for (const slot of this.#slot) {
+        const slotContent =
+          typeof slot === 'function'
+            ? slot({ data: { ...this.#data }, props: { ...this.#props } })
+            : slot
+
+        this.#insert(this.#convertToArray(slotContent), wely)
+      }
   }
 
   #setEventHandlers(wely: HTMLElement): void {
@@ -195,6 +220,7 @@ export class WelyClass<T, D, P> {
     this.#setProps()
     this.#setHtml(<ShadowRoot>wely.shadowRoot)
     this.#setCss(<ShadowRoot>wely.shadowRoot)
+    this.#setSlot(wely)
     this.#setEventHandlers(wely)
 
     return wely
