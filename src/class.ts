@@ -48,22 +48,8 @@ export class WelyClass<T, D, P> {
     return Array.isArray(val) ? [...val] : [val]
   }
 
-  #convertToKebabCase(str: string): string {
-    const upperCase = new RegExp(/[A-Z]/g)
-    const body = str.slice(1)
-
-    return (
-      str.slice(0, 1).toLowerCase() +
-      (upperCase.test(body) ? body.replace(upperCase, val => `-${val.toLowerCase()}`) : body)
-    )
-  }
-
-  #convertName(): string {
-    return `w-${this.#convertToKebabCase(this.#name)}`
-  }
-
   #define(): void {
-    const name = this.#convertName()
+    const name = `w-${this.#convertToKebabCase(this.#name)}`
 
     if (!customElements.get(name))
       customElements.define(
@@ -163,6 +149,16 @@ export class WelyClass<T, D, P> {
     }
   }
 
+  #convertToKebabCase(str: string): string {
+    const upperCase = new RegExp(/[A-Z]/g)
+    const body = str.slice(1)
+
+    return (
+      str.slice(0, 1).toLowerCase() +
+      (upperCase.test(body) ? body.replace(upperCase, val => `-${val.toLowerCase()}`) : body)
+    )
+  }
+
   #setCss(shadowRoot: ShadowRoot): void {
     if (this.#css.length > 0) {
       const style = document.createElement('style')
@@ -248,7 +244,8 @@ export class WelyClass<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const wely = this.#component || document.createElement(this.#convertName())
+    const wely =
+      this.#component || document.createElement(`w-${this.#convertToKebabCase(this.#name)}`)
 
     this.#setClassName(wely)
     this.#setProps()
