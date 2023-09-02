@@ -191,7 +191,7 @@ export class Class<T, D, P> {
         )
   }
 
-  #setEventHandlers(: HTMLElement): void {
+  #setEvents(: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
         const { selector, handler, method } = event
@@ -254,7 +254,7 @@ export class Class<T, D, P> {
     this.#setHtml(<ShadowRoot>.shadowRoot)
     this.#setCss(<ShadowRoot>.shadowRoot)
     this.#setSlot()
-    this.#setEventHandlers()
+    this.#setEvents()
 
     return 
   }
