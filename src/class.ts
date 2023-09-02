@@ -191,7 +191,7 @@ export class WelyClass<T, D, P> {
         )
   }
 
-  #setEventHandlers(wely: HTMLElement): void {
+  #setEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
         const { selector, handler, method } = event
@@ -254,7 +254,7 @@ export class WelyClass<T, D, P> {
     this.#setHtml(<ShadowRoot>wely.shadowRoot)
     this.#setCss(<ShadowRoot>wely.shadowRoot)
     this.#setSlot(wely)
-    this.#setEventHandlers(wely)
+    this.#setEvents(wely)
 
     return wely
   }
