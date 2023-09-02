@@ -14,6 +14,7 @@ export class WelyClass<T, D, P> {
   #dependencySet: Set<WelyClass<T, D, P>> = new Set()
   #props: P = <P>{}
   #isEach: boolean = false
+  #component: HTMLElement | undefined = undefined
 
   constructor({
     name,
@@ -247,7 +248,7 @@ export class WelyClass<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const wely: HTMLElement = document.createElement(this.#convertName())
+    const wely = this.#component || document.createElement(this.#convertName())
 
     this.#setClassName(wely)
     this.#setProps()
