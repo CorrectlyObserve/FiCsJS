@@ -66,12 +66,12 @@ export class WelyClass<T, D, P> {
   }
 
   #setClassName(wely: HTMLElement): void {
-    if (this.#class !== '')
+    if (this.#class === '') wely.classList.add(this.#name)
+    else
       wely.setAttribute(
         'class',
         this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
       )
-    else wely.classList.add(this.#name)
   }
 
   #setProps(): void {
@@ -135,7 +135,7 @@ export class WelyClass<T, D, P> {
           if (renderer) this.#insert(renderer, shadowRoot)
         })
       }
-    } else if ('branches' in <If<T, D, P>>html) {
+    } else {
       const { branches, fallback } = <If<T, D, P>>html
       let isInserted = false
 
