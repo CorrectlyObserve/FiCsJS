@@ -14,6 +14,7 @@ export class Class<T, D, P> {
   #dependencySet: Set<Class<T, D, P>> = new Set()
   #props: P = <P>{}
   #isEach: boolean = false
+  #component: HTMLElement | undefined = undefined
 
   constructor({
     name,
@@ -247,7 +248,7 @@ export class Class<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const : HTMLElement = document.createElement(this.#convertName())
+    const  = this.#component || document.createElement(this.#convertName())
 
     this.#setClassName()
     this.#setProps()
