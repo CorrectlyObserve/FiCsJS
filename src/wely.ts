@@ -24,10 +24,7 @@ export const  = <T, D, P>({
     events
   })
 
-export const html = <T, D, P>(
-  templates: TemplateStringsArray,
-  ...classes: Class<T, D, P>[]
-) =>
+export const html = <T, D, P>(templates: TemplateStringsArray, ...classes: Class<T, D, P>[]) =>
   Array.from({ length: Math.max(templates.length, classes.length) }, (_, index) => {
     const result = []
 
