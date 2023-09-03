@@ -42,7 +42,7 @@ export class WelyClass<T, D, P> {
 
     if (className) this.#class = className
 
-    if (dependencies) this.#dependencies = this.#convertToArray(dependencies)
+    if (dependencies) this.#dependencies = this.#toArray(dependencies)
 
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
 
@@ -55,11 +55,11 @@ export class WelyClass<T, D, P> {
     if (events && events.length > 0) this.#events = [...events]
   }
 
-  #convertToArray(val: unknown | unknown[]) {
+  #toArray(val: unknown | unknown[]) {
     return Array.isArray(val) ? [...val] : [val]
   }
 
-  #convertToKebabCase(str: string): string {
+  #toKebabCase(str: string): string {
     const upperCase = new RegExp(/[A-Z]/g)
     const body = str.slice(1)
 
@@ -70,7 +70,7 @@ export class WelyClass<T, D, P> {
   }
 
   #define(): void {
-    const name = `w-${this.#convertToKebabCase(this.#name)}`
+    const name = `w-${this.#toKebabCase(this.#name)}`
 
     if (!customElements.get(name))
       customElements.define(
@@ -86,7 +86,7 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  #setClassName(wely: HTMLElement): void {
+  #setClass(wely: HTMLElement): void {
     if (this.#class === '') wely.classList.add(this.#name)
     else
       wely.setAttribute(
@@ -110,7 +110,7 @@ export class WelyClass<T, D, P> {
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
-        for (const descendant of this.#convertToArray(descendants))
+        for (const descendant of this.#toArray(descendants))
           if (this.#dependencySet.has(descendant)) descendant.#props = props(this.#data)
           else throw Error(`This component is not a descendant...`)
       }
@@ -118,7 +118,7 @@ export class WelyClass<T, D, P> {
   }
 
   #insert(arg: SingleOrArray<WelyClass<T, D, P> | string>, wely: HTMLElement | ShadowRoot): void {
-    for (const val of this.#convertToArray(arg))
+    for (const val of this.#toArray(arg))
       if (val instanceof WelyClass) {
         if (this.#dependencies.includes(val)) wely.appendChild(val.render())
         else throw Error(`The dependencies does not have '${val.#name}'.`)
@@ -177,7 +177,7 @@ export class WelyClass<T, D, P> {
           style.textContent +=
             cssObj.selector +
             `{${Object.entries(cssObj.style({ data: { ...this.#data }, props: { ...this.#props } }))
-              .map(([key, value]) => `${this.#convertToKebabCase(key)}: ${value};`)
+              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
               .join('\n')}}`
       })
 
@@ -187,7 +187,7 @@ export class WelyClass<T, D, P> {
 
   #setSlot(wely: HTMLElement) {
     if (this.#slot.length > 0)
-      for (const slot of this.#convertToArray(this.#slot))
+      for (const slot of this.#toArray(this.#slot))
         this.#insert(
           typeof slot === 'function'
             ? slot({ data: { ...this.#data }, props: { ...this.#props } })
@@ -252,10 +252,9 @@ export class WelyClass<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const wely =
-      this.#component || document.createElement(`w-${this.#convertToKebabCase(this.#name)}`)
+    const wely = this.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
-    this.#setClassName(wely)
+    this.#setClass(wely)
     this.#setProps()
     this.#setHtml(<ShadowRoot>wely.shadowRoot)
     this.#setCss(<ShadowRoot>wely.shadowRoot)
