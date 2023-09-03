@@ -26,13 +26,25 @@ export const wely = <T, D, P>({
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
-  ...classes: WelyClass<T, D, P>[]
-) =>
-  Array.from({ length: Math.max(templates.length, classes.length) }, (_, index) => {
-    const result = []
+  ...variables: WelyClass<T, D, P>[]
+): (WelyClass<T, D, P> | string)[] => {
+  const result: (string | WelyClass<T, D, P>)[] = []
+  let isSkipped: boolean = false
 
-    if (index < templates.length) result.push(templates[index])
-    if (index < classes.length) result.push(classes[index])
+  for (let i = 0; i < templates.length; i++) {
+    const template = templates[i]
+    const variable = variables[i]
 
-    return result
-  }).flat()
+    if (variable instanceof WelyClass || variable === undefined) {
+      if (template !== '' && !isSkipped) result.push(template)
+      if (variable !== undefined) result.push(variable)
+
+      isSkipped = false
+    } else {
+      result.push(`${template}${variable}${templates[i + 1]}`)
+      isSkipped = true
+    }
+  }
+
+  return result
+}

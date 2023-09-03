@@ -1,4 +1,15 @@
-import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot, Wely } from '@/types'
+import {
+  Css,
+  Each,
+  EachIf,
+  Events,
+  Html,
+  If,
+  Inheritances,
+  SingleOrArray,
+  Slot,
+  Wely
+} from '@/types'
 
 export class WelyClass<T, D, P> {
   readonly #name: string = ''
@@ -14,6 +25,7 @@ export class WelyClass<T, D, P> {
   #dependencySet: Set<WelyClass<T, D, P>> = new Set()
   #props: P = <P>{}
   #isEach: boolean = false
+  #component: HTMLElement | undefined = undefined
 
   constructor({
     name,
@@ -36,10 +48,10 @@ export class WelyClass<T, D, P> {
 
     if (data) this.#data = { ...data() }
 
-    this.#html = [html]
+    this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
-    if (slot) this.#slot = [slot]
+    if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -57,12 +69,8 @@ export class WelyClass<T, D, P> {
     )
   }
 
-  #convertName(): string {
-    return `w-${this.#convertToKebabCase(this.#name)}`
-  }
-
   #define(): void {
-    const name = this.#convertName()
+    const name = `w-${this.#convertToKebabCase(this.#name)}`
 
     if (!customElements.get(name))
       customElements.define(
@@ -79,12 +87,12 @@ export class WelyClass<T, D, P> {
   }
 
   #setClassName(wely: HTMLElement): void {
-    if (this.#class !== '')
+    if (this.#class === '') wely.classList.add(this.#name)
+    else
       wely.setAttribute(
         'class',
         this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
       )
-    else wely.classList.add(this.#name)
   }
 
   #setProps(): void {
@@ -109,10 +117,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #insert(
-    arg: WelyClass<T, D, P> | string | (WelyClass<T, D, P> | string)[],
-    wely: HTMLElement | ShadowRoot
-  ): void {
+  #insert(arg: SingleOrArray<WelyClass<T, D, P> | string>, wely: HTMLElement | ShadowRoot): void {
     for (const val of this.#convertToArray(arg))
       if (val instanceof WelyClass) {
         if (this.#dependencies.includes(val)) wely.appendChild(val.render())
@@ -148,7 +153,7 @@ export class WelyClass<T, D, P> {
           if (renderer) this.#insert(renderer, shadowRoot)
         })
       }
-    } else if ('branches' in <If<T, D, P>>html) {
+    } else {
       const { branches, fallback } = <If<T, D, P>>html
       let isInserted = false
 
@@ -191,7 +196,7 @@ export class WelyClass<T, D, P> {
         )
   }
 
-  #setEventHandlers(wely: HTMLElement): void {
+  #setEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
         const { selector, handler, method } = event
@@ -247,14 +252,15 @@ export class WelyClass<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const wely: HTMLElement = document.createElement(this.#convertName())
+    const wely =
+      this.#component || document.createElement(`w-${this.#convertToKebabCase(this.#name)}`)
 
     this.#setClassName(wely)
     this.#setProps()
     this.#setHtml(<ShadowRoot>wely.shadowRoot)
     this.#setCss(<ShadowRoot>wely.shadowRoot)
     this.#setSlot(wely)
-    this.#setEventHandlers(wely)
+    this.#setEvents(wely)
 
     return wely
   }
