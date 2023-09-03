@@ -24,12 +24,27 @@ export const  = <T, D, P>({
     events
   })
 
-export const html = <T, D, P>(templates: TemplateStringsArray, ...classes: Class<T, D, P>[]) =>
-  Array.from({ length: Math.max(templates.length, classes.length) }, (_, index) => {
-    const result = []
+export const html = <T, D, P>(
+  templates: TemplateStringsArray,
+  ...variables: Class<T, D, P>[]
+): (Class<T, D, P> | string)[] => {
+  const result: (string | Class<T, D, P>)[] = []
+  let isSkipped: boolean = false
 
-    if (index < templates.length) result.push(templates[index])
-    if (index < classes.length) result.push(classes[index])
+  for (let i = 0; i < templates.length; i++) {
+    const template = templates[i]
+    const variable = variables[i]
 
-    return result
-  }).flat()
+    if (variable instanceof Class || variable === undefined) {
+      if (template !== '' && !isSkipped) result.push(template)
+      if (variable !== undefined) result.push(variable)
+
+      isSkipped = false
+    } else {
+      result.push(`${template}${variable}${templates[i + 1]}`)
+      isSkipped = true
+    }
+  }
+
+  return result
+}
