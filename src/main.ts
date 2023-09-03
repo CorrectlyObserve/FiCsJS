@@ -43,14 +43,17 @@ const child = wely({
       method: ({ data: { message }, props: { click } }) => click(message)
     }
   ]
-}).overwrite(() => ({ message: 'Good bye!' }))
+})
+
+// const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 
 const parent = wely({
   name: 'parent',
   className: 'test',
   dependencies: child,
-  slot: [child, 'aaa'],
-  html: '<slot />'
+  slot: html`${child}
+    <p>aaa</p>`,
+  html: `<slot />`
 })
 
 wely({
@@ -61,7 +64,9 @@ wely({
     number: 12,
     click: (message: string) => console.log(message)
   }),
-  html: ({ data: { number } }) => html`${parent}${number}`,
+  html: ({ data: { number } }) =>
+    html`${parent}
+      <p>人数: ${number}</p>`,
   inheritances: [
     {
       descendants: child,
