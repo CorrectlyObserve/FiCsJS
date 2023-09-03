@@ -1,5 +1,5 @@
-import { WelyClass } from '@/class'
-import { Wely } from '@/types'
+import { WelyClass } from './class'
+import { Wely } from './types'
 
 export const wely = <T, D, P>({
   name,
