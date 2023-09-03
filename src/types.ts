@@ -1,4 +1,4 @@
-import { WelyClass } from '@/class'
+import { WelyClass } from './class'
 
 export type Css<D, P> = (
   | string
