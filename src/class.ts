@@ -1,4 +1,15 @@
-import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot, Wely } from '@/types'
+import {
+  Css,
+  Each,
+  EachIf,
+  Events,
+  Html,
+  If,
+  Inheritances,
+  SingleOrArray,
+  Slot,
+  Wely
+} from '@/types'
 
 export class WelyClass<T, D, P> {
   readonly #name: string = ''
@@ -106,10 +117,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #insert(
-    arg: WelyClass<T, D, P> | string | (WelyClass<T, D, P> | string)[],
-    wely: HTMLElement | ShadowRoot
-  ): void {
+  #insert(arg: SingleOrArray<WelyClass<T, D, P> | string>, wely: HTMLElement | ShadowRoot): void {
     for (const val of this.#convertToArray(arg))
       if (val instanceof WelyClass) {
         if (this.#dependencies.includes(val)) wely.appendChild(val.render())
