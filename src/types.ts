@@ -1,4 +1,4 @@
-import { Class } from '@/class'
+import { Class } from './class'
 
 export type Css<D, P> = (
   | string

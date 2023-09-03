@@ -1,5 +1,5 @@
-import { Class } from '@/class'
-import {  } from '@/types'
+import { Class } from './class'
+import {  } from './types'
 
 export const  = <T, D, P>({
   name,
