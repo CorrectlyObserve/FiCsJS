@@ -1,4 +1,15 @@
-import { Css, Each, EachIf, Events, Html, If, Inheritances, Slot,  } from '@/types'
+import {
+  Css,
+  Each,
+  EachIf,
+  Events,
+  Html,
+  If,
+  Inheritances,
+  SingleOrArray,
+  Slot,
+  
+} from '@/types'
 
 export class Class<T, D, P> {
   readonly #name: string = ''
@@ -106,10 +117,7 @@ export class Class<T, D, P> {
     }
   }
 
-  #insert(
-    arg: Class<T, D, P> | string | (Class<T, D, P> | string)[],
-    : HTMLElement | ShadowRoot
-  ): void {
+  #insert(arg: SingleOrArray<Class<T, D, P> | string>, : HTMLElement | ShadowRoot): void {
     for (const val of this.#convertToArray(arg))
       if (val instanceof Class) {
         if (this.#dependencies.includes(val)) .appendChild(val.render())
