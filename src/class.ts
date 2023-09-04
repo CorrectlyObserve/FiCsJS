@@ -9,7 +9,7 @@ import {
   SingleOrArray,
   Slot,
   Wely
-} from '@/types'
+} from './types'
 
 export class WelyClass<T, D, P> {
   readonly #name: string = ''
@@ -86,6 +86,20 @@ export class WelyClass<T, D, P> {
       )
   }
 
+  #clone(): WelyClass<T, D, P> {
+    return new WelyClass<T, D, P>({
+      name: this.#name,
+      className: this.#class,
+      dependencies: this.#dependencies,
+      inheritances: this.#inheritances,
+      data: () => <D>{ ...this.#data },
+      html: this.#html[0],
+      css: this.#css,
+      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
+      events: this.#events
+    })
+  }
+
   #setClass(wely: HTMLElement): void {
     if (this.#class === '') wely.classList.add(this.#name)
     else
@@ -95,8 +109,8 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  #setProps(): void {
-    if (this.#inheritances.length > 0) {
+  #getDependencySet(): void {
+    if (this.#dependencies.length > 0 && this.#inheritances.length > 0) {
       const getDependencies = (dependencies: WelyClass<T, D, P>[]) => {
         if (dependencies.length > 0)
           for (const dependency of dependencies) {
@@ -106,7 +120,11 @@ export class WelyClass<T, D, P> {
       }
 
       getDependencies(this.#dependencies)
+    }
+  }
 
+  #setProps(): void {
+    if (Array.from(this.#dependencySet).length > 0)
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
@@ -114,7 +132,6 @@ export class WelyClass<T, D, P> {
           if (this.#dependencySet.has(descendant)) descendant.#props = props(this.#data)
           else throw Error(`This component is not a descendant...`)
       }
-    }
   }
 
   #insert(arg: SingleOrArray<WelyClass<T, D, P> | string>, wely: HTMLElement | ShadowRoot): void {
@@ -252,14 +269,15 @@ export class WelyClass<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const wely = this.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
+    const that = this.#clone()
+    const wely = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
-    this.#setClass(wely)
-    this.#setProps()
-    this.#setHtml(<ShadowRoot>wely.shadowRoot)
-    this.#setCss(<ShadowRoot>wely.shadowRoot)
-    this.#setSlot(wely)
-    this.#setEvents(wely)
+    that.#setClass(wely)
+    that.#getDependencySet()
+    that.#setHtml(<ShadowRoot>wely.shadowRoot)
+    that.#setCss(<ShadowRoot>wely.shadowRoot)
+    that.#setSlot(wely)
+    that.#setEvents(wely)
 
     return wely
   }
