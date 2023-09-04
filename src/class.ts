@@ -9,7 +9,7 @@ import {
   SingleOrArray,
   Slot,
   
-} from '@/types'
+} from './types'
 
 export class Class<T, D, P> {
   readonly #name: string = ''
@@ -86,6 +86,20 @@ export class Class<T, D, P> {
       )
   }
 
+  #clone(): Class<T, D, P> {
+    return new Class<T, D, P>({
+      name: this.#name,
+      className: this.#class,
+      dependencies: this.#dependencies,
+      inheritances: this.#inheritances,
+      data: () => <D>{ ...this.#data },
+      html: this.#html[0],
+      css: this.#css,
+      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
+      events: this.#events
+    })
+  }
+
   #setClass(: HTMLElement): void {
     if (this.#class === '') .classList.add(this.#name)
     else
@@ -95,8 +109,8 @@ export class Class<T, D, P> {
       )
   }
 
-  #setProps(): void {
-    if (this.#inheritances.length > 0) {
+  #getDependencySet(): void {
+    if (this.#dependencies.length > 0 && this.#inheritances.length > 0) {
       const getDependencies = (dependencies: Class<T, D, P>[]) => {
         if (dependencies.length > 0)
           for (const dependency of dependencies) {
@@ -106,7 +120,11 @@ export class Class<T, D, P> {
       }
 
       getDependencies(this.#dependencies)
+    }
+  }
 
+  #setProps(): void {
+    if (Array.from(this.#dependencySet).length > 0)
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
@@ -114,7 +132,6 @@ export class Class<T, D, P> {
           if (this.#dependencySet.has(descendant)) descendant.#props = props(this.#data)
           else throw Error(`This component is not a descendant...`)
       }
-    }
   }
 
   #insert(arg: SingleOrArray<Class<T, D, P> | string>, : HTMLElement | ShadowRoot): void {
@@ -252,14 +269,15 @@ export class Class<T, D, P> {
 
   render(): HTMLElement {
     this.#define()
-    const  = this.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
+    const that = this.#clone()
+    const  = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
-    this.#setClass()
-    this.#setProps()
-    this.#setHtml(<ShadowRoot>.shadowRoot)
-    this.#setCss(<ShadowRoot>.shadowRoot)
-    this.#setSlot()
-    this.#setEvents()
+    that.#setClass()
+    that.#getDependencySet()
+    that.#setHtml(<ShadowRoot>.shadowRoot)
+    that.#setCss(<ShadowRoot>.shadowRoot)
+    that.#setSlot()
+    that.#setEvents()
 
     return 
   }
