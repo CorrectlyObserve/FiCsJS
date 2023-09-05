@@ -109,18 +109,13 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  #getDependencySet(): void {
-    if (this.#dependencies.length > 0 && this.#inheritances.length > 0) {
-      const getDependencies = (dependencies: WelyClass<T, D, P>[]) => {
-        if (dependencies.length > 0)
-          for (const dependency of dependencies) {
-            if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
-            if (dependency.#dependencies) getDependencies(dependency.#dependencies)
-          }
+  #getDependencySet(dependencies: WelyClass<T, D, P>[], inheritances: Inheritances<T, D, P>): void {
+    if (dependencies.length > 0 && inheritances.length > 0)
+      for (const dependency of dependencies) {
+        if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
+        if (dependency.#dependencies)
+          this.#getDependencySet(dependency.#dependencies, dependency.#inheritances)
       }
-
-      getDependencies(this.#dependencies)
-    }
   }
 
   #setProps(): void {
@@ -273,7 +268,7 @@ export class WelyClass<T, D, P> {
     const wely = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
     that.#setClass(wely)
-    that.#getDependencySet()
+    that.#getDependencySet(that.#dependencies, that.#inheritances)
     that.#setHtml(<ShadowRoot>wely.shadowRoot)
     that.#setCss(<ShadowRoot>wely.shadowRoot)
     that.#setSlot(wely)
