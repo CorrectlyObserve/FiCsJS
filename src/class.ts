@@ -109,18 +109,13 @@ export class Class<T, D, P> {
       )
   }
 
-  #getDependencySet(): void {
-    if (this.#dependencies.length > 0 && this.#inheritances.length > 0) {
-      const getDependencies = (dependencies: Class<T, D, P>[]) => {
-        if (dependencies.length > 0)
-          for (const dependency of dependencies) {
-            if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
-            if (dependency.#dependencies) getDependencies(dependency.#dependencies)
-          }
+  #getDependencySet(dependencies: Class<T, D, P>[], inheritances: Inheritances<T, D, P>): void {
+    if (dependencies.length > 0 && inheritances.length > 0)
+      for (const dependency of dependencies) {
+        if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
+        if (dependency.#dependencies)
+          this.#getDependencySet(dependency.#dependencies, dependency.#inheritances)
       }
-
-      getDependencies(this.#dependencies)
-    }
   }
 
   #setProps(): void {
@@ -273,7 +268,7 @@ export class Class<T, D, P> {
     const  = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
     that.#setClass()
-    that.#getDependencySet()
+    that.#getDependencySet(that.#dependencies, that.#inheritances)
     that.#setHtml(<ShadowRoot>.shadowRoot)
     that.#setCss(<ShadowRoot>.shadowRoot)
     that.#setSlot()
