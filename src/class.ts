@@ -109,23 +109,27 @@ export class Class<T, D, P> {
       )
   }
 
-  #getDependencySet(dependencies: Class<T, D, P>[], inheritances: Inheritances<T, D, P>): void {
-    if (dependencies.length > 0 && inheritances.length > 0)
-      for (const dependency of dependencies) {
-        if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
-        if (dependency.#dependencies)
-          this.#getDependencySet(dependency.#dependencies, dependency.#inheritances)
-      }
-  }
+  #getDependencies() {
+    const getDependencySet = (dependencies: Class<T, D, P>[]): void => {
+      if (dependencies.length > 0)
+        for (const dependency of dependencies) {
+          if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
+          if (dependency.#dependencies) getDependencySet(dependency.#dependencies)
+        }
+    }
 
-  #setProps(): void {
+    if (this.#inheritances.length > 0) getDependencySet(this.#dependencies)
+
     if (Array.from(this.#dependencySet).length > 0)
       for (const inheritance of this.#inheritances) {
-        const { descendants, props } = inheritance
+        const { descendants } = inheritance
 
-        for (const descendant of this.#toArray(descendants))
-          if (this.#dependencySet.has(descendant)) descendant.#props = props(this.#data)
-          else throw Error(`This component is not a descendant...`)
+        for (const descendant of this.#toArray(descendants)) {
+          if (!this.#dependencySet.has(descendant))
+            throw Error(`${descendant.#name} is not a descendant...`)
+
+          continue
+        }
       }
   }
 
@@ -268,7 +272,7 @@ export class Class<T, D, P> {
     const  = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
     that.#setClass()
-    that.#getDependencySet(that.#dependencies, that.#inheritances)
+    that.#getDependencies()
     that.#setHtml(<ShadowRoot>.shadowRoot)
     that.#setCss(<ShadowRoot>.shadowRoot)
     that.#setSlot()
