@@ -23,6 +23,7 @@ export class Class<T, D, P> {
   readonly #events: Events<D, P> = []
 
   #dependencySet: Set<Class<T, D, P>> = new Set()
+  #inheritedTree = {}
   #props: P = <P>{}
   #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
