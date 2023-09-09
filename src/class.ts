@@ -23,6 +23,7 @@ export class WelyClass<T, D, P> {
   readonly #events: Events<D, P> = []
 
   #dependencySet: Set<WelyClass<T, D, P>> = new Set()
+  #inheritedTree = {}
   #props: P = <P>{}
   #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
