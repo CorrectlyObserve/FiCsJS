@@ -13,15 +13,16 @@ export const wely = <T, D, P>({
   events
 }: Wely<T, D, P>) =>
   new WelyClass({
-    name,
-    className,
-    dependencies,
-    inheritances,
-    data,
-    html,
-    css,
-    slot,
-    events
+    welyId: undefined,
+    name: name,
+    className: className,
+    dependencies: dependencies,
+    inheritances: inheritances,
+    data: data,
+    html: html,
+    css: css,
+    slot: slot,
+    events: events
   })
 
 export const html = <T, D, P>(
