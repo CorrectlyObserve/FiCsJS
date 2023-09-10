@@ -1,3 +1,4 @@
+import generator from './generator'
 import {
   Css,
   Each,
@@ -12,6 +13,7 @@ import {
 } from './types'
 
 export class Class<T, D, P> {
+  readonly #Id: string = ''
   readonly #name: string = ''
   readonly #class: string = ''
   readonly #dependencies: Class<T, D, P>[] = []
@@ -29,6 +31,7 @@ export class Class<T, D, P> {
   #component: HTMLElement | undefined = undefined
 
   constructor({
+    Id,
     name,
     className,
     dependencies,
@@ -39,6 +42,7 @@ export class Class<T, D, P> {
     slot,
     events
   }: <T, D, P>) {
+    this.#Id = Id ?? `-id${generator.next().value}`
     this.#name = name
 
     if (className) this.#class = className
@@ -52,7 +56,9 @@ export class Class<T, D, P> {
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
+
     if (slot) this.#slot.push(slot)
+
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -83,6 +89,7 @@ export class Class<T, D, P> {
 
   #clone(): Class<T, D, P> {
     return new Class<T, D, P>({
+      Id: this.#Id,
       name: this.#name,
       className: this.#class,
       dependencies: this.#dependencies,
@@ -111,15 +118,20 @@ export class Class<T, D, P> {
   }
 
   #getDependencies() {
-    const getDependencySet = (dependencies: Class<T, D, P>[]): void => {
-      if (dependencies.length > 0)
+    const getDependencySet = (
+      dependencies: Class<T, D, P>[],
+      component: Class<T, D, P>
+    ): void => {
+      if (dependencies.length > 0) {
         for (const dependency of dependencies) {
+          console.log(dependency)
           if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
-          if (dependency.#dependencies) getDependencySet(dependency.#dependencies)
+          if (dependency.#dependencies) getDependencySet(dependency.#dependencies, dependency)
         }
+      }
     }
 
-    if (this.#inheritances.length > 0) getDependencySet(this.#dependencies)
+    if (this.#inheritances.length > 0) getDependencySet(this.#dependencies, this)
 
     if (Array.from(this.#dependencySet).length > 0)
       for (const inheritance of this.#inheritances) {
@@ -255,6 +267,7 @@ export class Class<T, D, P> {
 
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
     return new Class<T, D, P>({
+      Id: undefined,
       name: this.#name,
       className: this.#class,
       dependencies: this.#dependencies,
