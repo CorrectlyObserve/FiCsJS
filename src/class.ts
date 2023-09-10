@@ -106,6 +106,10 @@ export class WelyClass<T, D, P> {
       )
   }
 
+  #toCamelCase(str: string): string {
+    return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
+  }
+
   #getDependencies() {
     const getDependencySet = (dependencies: WelyClass<T, D, P>[]): void => {
       if (dependencies.length > 0)
