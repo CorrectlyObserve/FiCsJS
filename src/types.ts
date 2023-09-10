@@ -64,6 +64,7 @@ export type Slot<T, D, P> =
   | (({ data, props }: { data: D; props: P }) => Result<T, D, P>)
 
 export interface Wely<T, D, P> {
+  welyId?: string
   name: string
   className?: string
   dependencies?: SingleOrArray<WelyClass<T, D | any, P>>
