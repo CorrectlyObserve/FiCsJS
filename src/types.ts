@@ -64,6 +64,7 @@ export type Slot<T, D, P> =
   | (({ data, props }: { data: D; props: P }) => Result<T, D, P>)
 
 export interface <T, D, P> {
+  Id?: string
   name: string
   className?: string
   dependencies?: SingleOrArray<Class<T, D | any, P>>
