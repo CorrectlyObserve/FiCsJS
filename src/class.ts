@@ -1,3 +1,4 @@
+import generator from './generator'
 import {
   Css,
   Each,
@@ -12,6 +13,7 @@ import {
 } from './types'
 
 export class WelyClass<T, D, P> {
+  readonly #welyId: string = ''
   readonly #name: string = ''
   readonly #class: string = ''
   readonly #dependencies: WelyClass<T, D, P>[] = []
@@ -29,6 +31,7 @@ export class WelyClass<T, D, P> {
   #component: HTMLElement | undefined = undefined
 
   constructor({
+    welyId,
     name,
     className,
     dependencies,
@@ -39,6 +42,7 @@ export class WelyClass<T, D, P> {
     slot,
     events
   }: Wely<T, D, P>) {
+    this.#welyId = welyId ?? `wely-id${generator.next().value}`
     this.#name = name
 
     if (className) this.#class = className
@@ -52,7 +56,9 @@ export class WelyClass<T, D, P> {
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
+
     if (slot) this.#slot.push(slot)
+
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -83,6 +89,7 @@ export class WelyClass<T, D, P> {
 
   #clone(): WelyClass<T, D, P> {
     return new WelyClass<T, D, P>({
+      welyId: this.#welyId,
       name: this.#name,
       className: this.#class,
       dependencies: this.#dependencies,
@@ -111,15 +118,20 @@ export class WelyClass<T, D, P> {
   }
 
   #getDependencies() {
-    const getDependencySet = (dependencies: WelyClass<T, D, P>[]): void => {
-      if (dependencies.length > 0)
+    const getDependencySet = (
+      dependencies: WelyClass<T, D, P>[],
+      component: WelyClass<T, D, P>
+    ): void => {
+      if (dependencies.length > 0) {
         for (const dependency of dependencies) {
+          console.log(dependency)
           if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
-          if (dependency.#dependencies) getDependencySet(dependency.#dependencies)
+          if (dependency.#dependencies) getDependencySet(dependency.#dependencies, dependency)
         }
+      }
     }
 
-    if (this.#inheritances.length > 0) getDependencySet(this.#dependencies)
+    if (this.#inheritances.length > 0) getDependencySet(this.#dependencies, this)
 
     if (Array.from(this.#dependencySet).length > 0)
       for (const inheritance of this.#inheritances) {
@@ -255,6 +267,7 @@ export class WelyClass<T, D, P> {
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     return new WelyClass<T, D, P>({
+      welyId: undefined,
       name: this.#name,
       className: this.#class,
       dependencies: this.#dependencies,
