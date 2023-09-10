@@ -61,13 +61,7 @@ export class Class<T, D, P> {
   }
 
   #toKebabCase(str: string): string {
-    const upperCase = new RegExp(/[A-Z]/g)
-    const body = str.slice(1)
-
-    return (
-      str.slice(0, 1).toLowerCase() +
-      (upperCase.test(body) ? body.replace(upperCase, val => `-${val.toLowerCase()}`) : body)
-    )
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #define(): void {
@@ -102,11 +96,13 @@ export class Class<T, D, P> {
   }
 
   #setClass(: HTMLElement): void {
-    if (this.#class === '') .classList.add(this.#name)
+    const name = this.#toKebabCase(this.#name)
+
+    if (this.#class === '') .classList.add(name)
     else
       .setAttribute(
         'class',
-        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#name)
+        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, name)
       )
   }
 
