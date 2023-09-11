@@ -55,6 +55,11 @@ export type Inheritances<T, D, P> = {
   props: (data: D) => P
 }[]
 
+export interface InheritedTree {
+  component: string
+  children: InheritedTree[]
+}
+
 type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P> | string>
 
 export type SingleOrArray<T> = T | T[]
