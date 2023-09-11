@@ -7,6 +7,7 @@ import {
   Html,
   If,
   Inheritances,
+  InheritedTree,
   SingleOrArray,
   Slot,
   
@@ -25,7 +26,7 @@ export class Class<T, D, P> {
   readonly #events: Events<D, P> = []
 
   #dependencySet: Set<Class<T, D, P>> = new Set()
-  #inheritedTree = {}
+  #inheritedTree: InheritedTree = <InheritedTree>{}
   #props: P = <P>{}
   #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
@@ -122,9 +123,11 @@ export class Class<T, D, P> {
       dependencies: Class<T, D, P>[],
       component: Class<T, D, P>
     ): void => {
+      this.#inheritedTree.component = component.#Id
+
       if (dependencies.length > 0) {
         for (const dependency of dependencies) {
-          console.log(dependency)
+          console.log(this.#name, this.#inheritedTree)
           if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
           if (dependency.#dependencies) getDependencySet(dependency.#dependencies, dependency)
         }
