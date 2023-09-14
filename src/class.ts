@@ -123,7 +123,14 @@ export class Class<T, D, P> {
           const Id = descendant.#Id
 
           if (propsChain.components.has(Id)) {
-            console.log(`${descendant}`)
+            const checkPrototype = (chain: Record<string, P | any>): void => {
+              const current = chain[this.#toCamelCase(Id)]!
+
+              if (Object.keys(current).includes('__proto__')) checkPrototype(current.__proto__)
+              else chain[this.#toCamelCase(Id)].__proto__ = { ...props(this.#data) }
+            }
+
+            checkPrototype(propsChain.chain)
           } else {
             propsChain.components.add(Id)
             propsChain.chain[this.#toCamelCase(Id)] = { ...props(this.#data) }
@@ -135,8 +142,10 @@ export class Class<T, D, P> {
   }
 
   #setProps(propsChain: PropsChain<P>) {
-    if (propsChain.components.has(this.#Id))
-      this.#props = { ...propsChain.chain[this.#toCamelCase(this.#Id)] }
+    if (propsChain.components.has(this.#Id)) {
+      console.log(propsChain.chain[this.#toCamelCase(this.#Id)])
+      this.#props = propsChain.chain[this.#toCamelCase(this.#Id)]
+    }
   }
 
   #insert(
