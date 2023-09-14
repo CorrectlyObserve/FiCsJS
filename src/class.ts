@@ -42,19 +42,12 @@ export class WelyClass<T, D, P> {
   }: Wely<T, D, P>) {
     this.#welyId = welyId ?? `wely-id${generator.next().value}`
     this.#name = name
-
     if (className) this.#class = className
-
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
-
     if (data) this.#data = { ...data() }
-
     this.#html.push(html)
-
     if (css && css.length > 0) this.#css = [...css]
-
     if (slot) this.#slot.push(slot)
-
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -67,11 +60,9 @@ export class WelyClass<T, D, P> {
   }
 
   #define(): void {
-    const name = `w-${this.#toKebabCase(this.#name)}`
-
-    if (!customElements.get(name))
+    if (!customElements.get(`w-${this.#toKebabCase(this.#name)}`))
       customElements.define(
-        name,
+        `w-${this.#toKebabCase(this.#name)}`,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -98,13 +89,13 @@ export class WelyClass<T, D, P> {
   }
 
   #setClass(wely: HTMLElement): void {
-    const name = this.#toKebabCase(this.#name)
-
-    if (this.#class === '') wely.classList.add(name)
+    if (this.#class === '') wely.classList.add(this.#toKebabCase(this.#name))
     else
       wely.setAttribute(
         'class',
-        this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, name)
+        this.#class
+          .split(' ')
+          .reduce((prev, current) => `${prev} ${current}`, this.#toKebabCase(this.#name))
       )
   }
 
@@ -112,9 +103,7 @@ export class WelyClass<T, D, P> {
     return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
-  #setProps(
-    propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
-  ): void {
+  #setProps(propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }): void {
     if (this.#inheritances.length > 0)
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
@@ -150,11 +139,11 @@ export class WelyClass<T, D, P> {
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
-    for (const val of this.#toArray(arg))
+    for (const element of this.#toArray(arg))
       wely.appendChild(
-        val instanceof WelyClass
-          ? val.render(propsChain)
-          : document.createRange().createContextualFragment(val)
+        element instanceof WelyClass
+          ? element.render(propsChain)
+          : document.createRange().createContextualFragment(element)
       )
   }
 
