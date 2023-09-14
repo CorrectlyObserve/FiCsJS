@@ -30,15 +30,7 @@ export type Events<D, P> = {
 
 export type Html<T, D, P> =
   | HtmlArg<T, D, P>
-  | (({
-      data,
-      props,
-      dependencies
-    }: {
-      data: D | any
-      props: P
-      dependencies?: WelyClass<T, D, P>[]
-    }) => HtmlArg<T, D, P>)
+  | (({ data, props }: { data: D | any; props: P }) => HtmlArg<T, D, P>)
 
 export interface PropsChain<P> {
   components: Set<string>
@@ -72,7 +64,6 @@ export interface Wely<T, D, P> {
   welyId?: string
   name: string
   className?: string
-  dependencies?: SingleOrArray<WelyClass<T, D | any, P>>
   inheritances?: Inheritances<T, D, P>
   data?: () => D
   html: Html<T, D, P>
