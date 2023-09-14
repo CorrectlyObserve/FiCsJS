@@ -112,7 +112,7 @@ export class Class<T, D, P> {
     return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
-  #setPropsChain(
+  #setProps(
     propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
   ): void {
     if (this.#inheritances.length > 0)
@@ -139,13 +139,10 @@ export class Class<T, D, P> {
       }
 
     this.#propsChain = propsChain
-  }
 
-  #setProps(propsChain: PropsChain<P>) {
-    if (propsChain.components.has(this.#Id)) {
-      console.log(propsChain.chain[this.#toCamelCase(this.#Id)])
-      this.#props = propsChain.chain[this.#toCamelCase(this.#Id)]
-    }
+    if (this.#propsChain.components.has(this.#Id))
+      for (const key in propsChain.chain[this.#toCamelCase(this.#Id)])
+        this.#props[key] = propsChain.chain[this.#toCamelCase(this.#Id)][key]
   }
 
   #insert(
@@ -294,8 +291,7 @@ export class Class<T, D, P> {
     const  = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
     that.#setClass()
-    that.#setPropsChain(propsChain)
-    that.#setProps(that.#propsChain)
+    that.#setProps(propsChain)
     that.#setHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
     that.#setCss(<ShadowRoot>.shadowRoot)
     that.#setSlot(, that.#propsChain)
