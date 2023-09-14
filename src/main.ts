@@ -50,17 +50,26 @@ const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 const parent = wely({
   name: 'parent',
   className: 'test',
+  data: () => ({
+    color: 'blue',
+    click: (message: string) => console.log(message)
+  }),
   slot: html`${child2}
     <p>aaa</p>`,
-  html: `<slot />`
+  html: `<slot />`,
+  inheritances: [
+    {
+      descendants: child2,
+      props: ({ color, click }) => ({ color, click })
+    }
+  ]
 })
 
 wely({
   name: 'grandParent',
   data: () => ({
     color: 'green',
-    number: 12,
-    click: (message: string) => console.log(message)
+    number: 12
   }),
   html: ({ data: { number } }) =>
     html`${parent}
@@ -68,7 +77,7 @@ wely({
   inheritances: [
     {
       descendants: [child, child2],
-      props: ({ color, click }) => ({ color, click })
+      props: ({ color }) => ({ color })
     }
   ]
 }).mount(app)
