@@ -24,7 +24,7 @@ export class WelyClass<T, D, P> {
   readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
 
-  #propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
+  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
   #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
@@ -103,7 +103,9 @@ export class WelyClass<T, D, P> {
     return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
-  #setProps(propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }): void {
+  #setProps(
+    propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
+  ): void {
     if (this.#inheritances.length > 0)
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
@@ -111,27 +113,28 @@ export class WelyClass<T, D, P> {
         for (const descendant of this.#toArray(descendants)) {
           const welyId = descendant.#welyId
 
-          if (propsChain.components.has(welyId)) {
-            const checkPrototype = (chain: Record<string, P | any>): void => {
-              const current = chain[this.#toCamelCase(welyId)]!
+          if (propsChain.descendants.has(welyId)) {
+            const setPropsChain = (chain: Record<string, P | any>): void => {
+              const currentChain = chain[this.#toCamelCase(welyId)]!
 
-              if (Object.keys(current).includes('__proto__')) checkPrototype(current.__proto__)
+              if (Object.keys(currentChain).includes('__proto__'))
+                setPropsChain(currentChain.__proto__)
               else chain[this.#toCamelCase(welyId)].__proto__ = { ...props(this.#data) }
             }
 
-            checkPrototype(propsChain.chain)
+            setPropsChain(propsChain.chains)
           } else {
-            propsChain.components.add(welyId)
-            propsChain.chain[this.#toCamelCase(welyId)] = { ...props(this.#data) }
+            propsChain.descendants.add(welyId)
+            propsChain.chains[this.#toCamelCase(welyId)] = { ...props(this.#data) }
           }
         }
       }
 
     this.#propsChain = propsChain
 
-    if (this.#propsChain.components.has(this.#welyId))
-      for (const key in propsChain.chain[this.#toCamelCase(this.#welyId)])
-        this.#props[key] = propsChain.chain[this.#toCamelCase(this.#welyId)][key]
+    if (this.#propsChain.descendants.has(this.#welyId))
+      for (const key in this.#propsChain.chains[this.#toCamelCase(this.#welyId)])
+        this.#props[key] = this.#propsChain.chains[this.#toCamelCase(this.#welyId)][key]
   }
 
   #insert(
