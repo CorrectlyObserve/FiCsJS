@@ -7,7 +7,7 @@ import {
   Html,
   If,
   Inheritances,
-  InheritedTree,
+  PropsChain,
   SingleOrArray,
   Slot,
   
@@ -25,8 +25,7 @@ export class Class<T, D, P> {
   readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
 
-  #dependencySet: Set<Class<T, D, P>> = new Set()
-  #inheritedTree: InheritedTree = <InheritedTree>{}
+  #propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
   #props: P = <P>{}
   #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
@@ -118,53 +117,54 @@ export class Class<T, D, P> {
     return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
-  #getDependencies() {
-    const getDependencySet = (
-      dependencies: Class<T, D, P>[],
-      component: Class<T, D, P>
-    ): void => {
-      this.#inheritedTree.component = component.#Id
-
-      if (dependencies.length > 0) {
-        for (const dependency of dependencies) {
-          console.log(this.#name, this.#inheritedTree)
-          if (!this.#dependencySet.has(dependency)) this.#dependencySet.add(dependency)
-          if (dependency.#dependencies) getDependencySet(dependency.#dependencies, dependency)
-        }
-      }
-    }
-
-    if (this.#inheritances.length > 0) getDependencySet(this.#dependencies, this)
-
-    if (Array.from(this.#dependencySet).length > 0)
+  #setPropsChain(
+    propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
+  ): void {
+    if (this.#inheritances.length > 0)
       for (const inheritance of this.#inheritances) {
-        const { descendants } = inheritance
+        const { descendants, props } = inheritance
 
         for (const descendant of this.#toArray(descendants)) {
-          if (!this.#dependencySet.has(descendant))
-            throw Error(`${descendant.#name} is not a descendant...`)
+          const Id = descendant.#Id
 
-          continue
+          if (propsChain.components.has(Id)) {
+            console.log(`${descendant}`)
+          } else {
+            propsChain.components.add(Id)
+            propsChain.chain[this.#toCamelCase(Id)] = { ...props(this.#data) }
+          }
         }
       }
+
+    this.#propsChain = propsChain
   }
 
-  #insert(arg: SingleOrArray<Class<T, D, P> | string>, : HTMLElement | ShadowRoot): void {
+  #setProps(propsChain: PropsChain<P>) {
+    if (propsChain.components.has(this.#Id))
+      this.#props = { ...propsChain.chain[this.#toCamelCase(this.#Id)] }
+  }
+
+  #insert(
+    arg: SingleOrArray<Class<T, D, P> | string>,
+    : HTMLElement | ShadowRoot,
+    propsChain: PropsChain<P>
+  ): void {
     for (const val of this.#toArray(arg))
-      if (val instanceof Class) {
-        if (this.#dependencies.includes(val)) .appendChild(val.render())
-        else throw Error(`The dependencies does not have '${val.#name}'.`)
-      } else .appendChild(document.createRange().createContextualFragment(val))
+      .appendChild(
+        val instanceof Class
+          ? val.render(propsChain)
+          : document.createRange().createContextualFragment(val)
+      )
   }
 
-  #setHtml(shadowRoot: ShadowRoot): void {
+  #setHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
     const html: Html<T, D, P> =
       typeof this.#html[0] === 'function'
         ? this.#html[0]({ data: { ...this.#data }, props: { ...this.#props } })
         : this.#html[0]
 
     if (typeof html === 'string' || html instanceof Class || Array.isArray(html))
-      this.#insert(html, shadowRoot)
+      this.#insert(html, shadowRoot, propsChain)
     else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
       this.#isEach = true
 
@@ -173,16 +173,17 @@ export class Class<T, D, P> {
 
         contents.forEach((content, index) => {
           for (const branch of branches)
-            if (branch.judge(content)) this.#insert(branch.render(content, index), shadowRoot)
+            if (branch.judge(content))
+              this.#insert(branch.render(content, index), shadowRoot, propsChain)
 
-          if (fallback) this.#insert(fallback(content, index), shadowRoot)
+          if (fallback) this.#insert(fallback(content, index), shadowRoot, propsChain)
         })
       } else {
         const { contents, render } = <Each<T, D, P>>html
 
         contents.forEach((content, index) => {
           const renderer = render(content, index)
-          if (renderer) this.#insert(renderer, shadowRoot)
+          if (renderer) this.#insert(renderer, shadowRoot, propsChain)
         })
       }
     } else {
@@ -191,11 +192,11 @@ export class Class<T, D, P> {
 
       for (const branch of branches)
         if (branch.judge) {
-          this.#insert(branch.render, shadowRoot)
+          this.#insert(branch.render, shadowRoot, propsChain)
           isInserted = true
         }
 
-      if (!isInserted && fallback) this.#insert(fallback, shadowRoot)
+      if (!isInserted && fallback) this.#insert(fallback, shadowRoot, propsChain)
     }
   }
 
@@ -217,14 +218,15 @@ export class Class<T, D, P> {
     }
   }
 
-  #setSlot(: HTMLElement) {
+  #setSlot(: HTMLElement, propsChain: PropsChain<P>) {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
           typeof slot === 'function'
             ? slot({ data: { ...this.#data }, props: { ...this.#props } })
             : slot,
-          
+          ,
+          propsChain
         )
   }
 
@@ -283,16 +285,17 @@ export class Class<T, D, P> {
     })
   }
 
-  render(): HTMLElement {
+  render(propsChain?: PropsChain<P>): HTMLElement {
     this.#define()
     const that = this.#clone()
     const  = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
     that.#setClass()
-    that.#getDependencies()
-    that.#setHtml(<ShadowRoot>.shadowRoot)
+    that.#setPropsChain(propsChain)
+    that.#setProps(that.#propsChain)
+    that.#setHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
     that.#setCss(<ShadowRoot>.shadowRoot)
-    that.#setSlot()
+    that.#setSlot(, that.#propsChain)
     that.#setEvents()
 
     return 
