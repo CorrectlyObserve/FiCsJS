@@ -45,13 +45,13 @@ const child = ({
   ]
 })
 
-// const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
+const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 
 const parent = ({
   name: 'parent',
   className: 'test',
   dependencies: child,
-  slot: html`${child}
+  slot: html`${child2}
     <p>aaa</p>`,
   html: `<slot />`
 })
@@ -69,7 +69,7 @@ const parent = ({
       <p>人数: ${number}</p>`,
   inheritances: [
     {
-      descendants: child,
+      descendants: [child, child2],
       props: ({ color, click }) => ({ color, click })
     }
   ]
