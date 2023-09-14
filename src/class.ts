@@ -123,7 +123,14 @@ export class WelyClass<T, D, P> {
           const welyId = descendant.#welyId
 
           if (propsChain.components.has(welyId)) {
-            console.log(`${descendant}`)
+            const checkPrototype = (chain: Record<string, P | any>): void => {
+              const current = chain[this.#toCamelCase(welyId)]!
+
+              if (Object.keys(current).includes('__proto__')) checkPrototype(current.__proto__)
+              else chain[this.#toCamelCase(welyId)].__proto__ = { ...props(this.#data) }
+            }
+
+            checkPrototype(propsChain.chain)
           } else {
             propsChain.components.add(welyId)
             propsChain.chain[this.#toCamelCase(welyId)] = { ...props(this.#data) }
@@ -135,8 +142,10 @@ export class WelyClass<T, D, P> {
   }
 
   #setProps(propsChain: PropsChain<P>) {
-    if (propsChain.components.has(this.#welyId))
-      this.#props = { ...propsChain.chain[this.#toCamelCase(this.#welyId)] }
+    if (propsChain.components.has(this.#welyId)) {
+      console.log(propsChain.chain[this.#toCamelCase(this.#welyId)])
+      this.#props = propsChain.chain[this.#toCamelCase(this.#welyId)]
+    }
   }
 
   #insert(
