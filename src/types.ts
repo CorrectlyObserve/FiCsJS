@@ -32,11 +32,6 @@ export type Html<T, D, P> =
   | HtmlArg<T, D, P>
   | (({ data, props }: { data: D | any; props: P }) => HtmlArg<T, D, P>)
 
-export interface PropsChain<P> {
-  components: Set<string>
-  chain: Record<string, P>
-}
-
 type HtmlArg<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
 
 export interface If<T, D, P> {
@@ -48,11 +43,16 @@ export interface If<T, D, P> {
 }
 
 export type Inheritances<T, D, P> = {
-  descendants: SingleOrArray<WelyClass<T, D | any, P>>
+  descendants: SingleOrArray<WelyClass<T, D | any, P | any>>
   props: (data: D) => P
 }[]
 
-type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P> | string>
+export interface PropsChain<P> {
+  components: Set<string>
+  chain: Record<string, P>
+}
+
+type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P | any> | string>
 
 export type SingleOrArray<T> = T | T[]
 
