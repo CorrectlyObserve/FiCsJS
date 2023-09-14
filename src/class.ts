@@ -286,6 +286,8 @@ export class WelyClass<T, D, P> {
     that.#setSlot(wely, that.#propsChain)
     that.#setEvents(wely)
 
+    if (!that.#component) that.#component = wely
+
     return wely
   }
 
