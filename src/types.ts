@@ -40,6 +40,11 @@ export type Html<T, D, P> =
       dependencies?: WelyClass<T, D, P>[]
     }) => HtmlArg<T, D, P>)
 
+export interface PropsChain<P> {
+  components: Set<string>
+  chain: Record<string, P>
+}
+
 type HtmlArg<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
 
 export interface If<T, D, P> {
@@ -54,11 +59,6 @@ export type Inheritances<T, D, P> = {
   descendants: SingleOrArray<WelyClass<T, D | any, P>>
   props: (data: D) => P
 }[]
-
-export interface InheritedTree {
-  component: string
-  children: InheritedTree[]
-}
 
 type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P> | string>
 
