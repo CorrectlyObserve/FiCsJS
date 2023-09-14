@@ -48,8 +48,8 @@ export type Inheritances<T, D, P> = {
 }[]
 
 export interface PropsChain<P> {
-  components: Set<string>
-  chain: Record<string, P>
+  descendants: Set<string>
+  chains: Record<string, P>
 }
 
 type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P | any> | string>
