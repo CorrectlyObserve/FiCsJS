@@ -286,6 +286,8 @@ export class Class<T, D, P> {
     that.#setSlot(, that.#propsChain)
     that.#setEvents()
 
+    if (!that.#component) that.#component = 
+
     return 
   }
 
