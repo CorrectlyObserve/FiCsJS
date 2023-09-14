@@ -4,7 +4,6 @@ import {  } from './types'
 export const  = <T, D, P>({
   name,
   className,
-  dependencies,
   inheritances,
   data,
   html,
@@ -16,7 +15,6 @@ export const  = <T, D, P>({
     Id: undefined,
     name: name,
     className: className,
-    dependencies: dependencies,
     inheritances: inheritances,
     data: data,
     html: html,
