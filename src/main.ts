@@ -50,7 +50,6 @@ const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 const parent = wely({
   name: 'parent',
   className: 'test',
-  dependencies: child,
   slot: html`${child2}
     <p>aaa</p>`,
   html: `<slot />`
@@ -58,7 +57,6 @@ const parent = wely({
 
 wely({
   name: 'grandParent',
-  dependencies: parent,
   data: () => ({
     color: 'green',
     number: 12,
@@ -85,7 +83,6 @@ wely({
 
 wely({
   name: 'wely3',
-  dependencies: child,
   data: () => ({
     number: 100,
     text: 'AA',
