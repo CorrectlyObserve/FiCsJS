@@ -24,7 +24,7 @@ export class Class<T, D, P> {
   readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
 
-  #propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
+  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
   #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
@@ -103,7 +103,9 @@ export class Class<T, D, P> {
     return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
-  #setProps(propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }): void {
+  #setProps(
+    propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
+  ): void {
     if (this.#inheritances.length > 0)
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
@@ -111,27 +113,28 @@ export class Class<T, D, P> {
         for (const descendant of this.#toArray(descendants)) {
           const Id = descendant.#Id
 
-          if (propsChain.components.has(Id)) {
-            const checkPrototype = (chain: Record<string, P | any>): void => {
-              const current = chain[this.#toCamelCase(Id)]!
+          if (propsChain.descendants.has(Id)) {
+            const setPropsChain = (chain: Record<string, P | any>): void => {
+              const currentChain = chain[this.#toCamelCase(Id)]!
 
-              if (Object.keys(current).includes('__proto__')) checkPrototype(current.__proto__)
+              if (Object.keys(currentChain).includes('__proto__'))
+                setPropsChain(currentChain.__proto__)
               else chain[this.#toCamelCase(Id)].__proto__ = { ...props(this.#data) }
             }
 
-            checkPrototype(propsChain.chain)
+            setPropsChain(propsChain.chains)
           } else {
-            propsChain.components.add(Id)
-            propsChain.chain[this.#toCamelCase(Id)] = { ...props(this.#data) }
+            propsChain.descendants.add(Id)
+            propsChain.chains[this.#toCamelCase(Id)] = { ...props(this.#data) }
           }
         }
       }
 
     this.#propsChain = propsChain
 
-    if (this.#propsChain.components.has(this.#Id))
-      for (const key in propsChain.chain[this.#toCamelCase(this.#Id)])
-        this.#props[key] = propsChain.chain[this.#toCamelCase(this.#Id)][key]
+    if (this.#propsChain.descendants.has(this.#Id))
+      for (const key in this.#propsChain.chains[this.#toCamelCase(this.#Id)])
+        this.#props[key] = this.#propsChain.chains[this.#toCamelCase(this.#Id)][key]
   }
 
   #insert(
