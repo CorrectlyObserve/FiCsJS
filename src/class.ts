@@ -112,7 +112,7 @@ export class WelyClass<T, D, P> {
     return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
-  #setPropsChain(
+  #setProps(
     propsChain: PropsChain<P> = <PropsChain<P>>{ components: new Set(), chain: {} }
   ): void {
     if (this.#inheritances.length > 0)
@@ -139,13 +139,10 @@ export class WelyClass<T, D, P> {
       }
 
     this.#propsChain = propsChain
-  }
 
-  #setProps(propsChain: PropsChain<P>) {
-    if (propsChain.components.has(this.#welyId)) {
-      console.log(propsChain.chain[this.#toCamelCase(this.#welyId)])
-      this.#props = propsChain.chain[this.#toCamelCase(this.#welyId)]
-    }
+    if (this.#propsChain.components.has(this.#welyId))
+      for (const key in propsChain.chain[this.#toCamelCase(this.#welyId)])
+        this.#props[key] = propsChain.chain[this.#toCamelCase(this.#welyId)][key]
   }
 
   #insert(
@@ -294,8 +291,7 @@ export class WelyClass<T, D, P> {
     const wely = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
 
     that.#setClass(wely)
-    that.#setPropsChain(propsChain)
-    that.#setProps(that.#propsChain)
+    that.#setProps(propsChain)
     that.#setHtml(<ShadowRoot>wely.shadowRoot, that.#propsChain)
     that.#setCss(<ShadowRoot>wely.shadowRoot)
     that.#setSlot(wely, that.#propsChain)
