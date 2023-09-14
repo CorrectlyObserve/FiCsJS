@@ -4,7 +4,6 @@ import { Wely } from './types'
 export const wely = <T, D, P>({
   name,
   className,
-  dependencies,
   inheritances,
   data,
   html,
@@ -16,7 +15,6 @@ export const wely = <T, D, P>({
     welyId: undefined,
     name: name,
     className: className,
-    dependencies: dependencies,
     inheritances: inheritances,
     data: data,
     html: html,
