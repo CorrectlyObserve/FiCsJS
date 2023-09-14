@@ -17,7 +17,6 @@ export class Class<T, D, P> {
   readonly #Id: string = ''
   readonly #name: string = ''
   readonly #class: string = ''
-  readonly #dependencies: Class<T, D, P>[] = []
   readonly #inheritances: Inheritances<T, D, P> = []
   readonly #data: D = <D>{}
   readonly #html: Html<T, D, P>[] = []
@@ -34,7 +33,6 @@ export class Class<T, D, P> {
     Id,
     name,
     className,
-    dependencies,
     inheritances,
     data,
     html,
@@ -46,8 +44,6 @@ export class Class<T, D, P> {
     this.#name = name
 
     if (className) this.#class = className
-
-    if (dependencies) this.#dependencies = this.#toArray(dependencies)
 
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
 
@@ -92,7 +88,6 @@ export class Class<T, D, P> {
       Id: this.#Id,
       name: this.#name,
       className: this.#class,
-      dependencies: this.#dependencies,
       inheritances: this.#inheritances,
       data: () => <D>{ ...this.#data },
       html: this.#html[0],
@@ -275,7 +270,6 @@ export class Class<T, D, P> {
       Id: undefined,
       name: this.#name,
       className: this.#class,
-      dependencies: this.#dependencies,
       inheritances: this.#inheritances,
       data: () => <D>{ ...this.#data, ...partialData() },
       html: this.#html[0],
