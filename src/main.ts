@@ -45,32 +45,39 @@ const child = ({
   ]
 })
 
-// const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
+const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 
 const parent = ({
   name: 'parent',
   className: 'test',
-  dependencies: child,
-  slot: html`${child}
+  data: () => ({
+    color: 'blue',
+    click: (message: string) => console.log(message)
+  }),
+  slot: html`${child2}
     <p>aaa</p>`,
-  html: `<slot />`
+  html: `<slot />`,
+  inheritances: [
+    {
+      descendants: child2,
+      props: ({ color, click }) => ({ color, click })
+    }
+  ]
 })
 
 ({
   name: 'grandParent',
-  dependencies: parent,
   data: () => ({
     color: 'green',
-    number: 12,
-    click: (message: string) => console.log(message)
+    number: 12
   }),
   html: ({ data: { number } }) =>
     html`${parent}
       <p>人数: ${number}</p>`,
   inheritances: [
     {
-      descendants: child,
-      props: ({ color, click }) => ({ color, click })
+      descendants: [child, child2],
+      props: ({ color }) => ({ color })
     }
   ]
 }).mount(app)
@@ -85,7 +92,6 @@ const parent = ({
 
 ({
   name: '3',
-  dependencies: child,
   data: () => ({
     number: 100,
     text: 'AA',

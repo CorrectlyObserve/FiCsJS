@@ -1,10 +1,9 @@
-import { Class } from '@/class'
-import {  } from '@/types'
+import { Class } from './class'
+import {  } from './types'
 
 export const  = <T, D, P>({
   name,
   className,
-  dependencies,
   inheritances,
   data,
   html,
@@ -13,15 +12,15 @@ export const  = <T, D, P>({
   events
 }: <T, D, P>) =>
   new Class({
-    name,
-    className,
-    dependencies,
-    inheritances,
-    data,
-    html,
-    css,
-    slot,
-    events
+    Id: undefined,
+    name: name,
+    className: className,
+    inheritances: inheritances,
+    data: data,
+    html: html,
+    css: css,
+    slot: slot,
+    events: events
   })
 
 export const html = <T, D, P>(
