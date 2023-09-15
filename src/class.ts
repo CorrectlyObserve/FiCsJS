@@ -55,8 +55,26 @@ export class WelyClass<T, D, P> {
     return Array.isArray(val) ? [...val] : [val]
   }
 
+  #toCamelCase(str: string): string {
+    return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
+  }
+
   #toKebabCase(str: string): string {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  }
+
+  overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
+    return new WelyClass<T, D, P>({
+      welyId: undefined,
+      name: this.#name,
+      className: this.#class,
+      inheritances: this.#inheritances,
+      data: () => <D>{ ...this.#data, ...partialData() },
+      html: this.#html[0],
+      css: this.#css,
+      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
+      events: this.#events
+    })
   }
 
   #define(): void {
@@ -97,10 +115,6 @@ export class WelyClass<T, D, P> {
           .split(' ')
           .reduce((prev, current) => `${prev} ${current}`, this.#toKebabCase(this.#name))
       )
-  }
-
-  #toCamelCase(str: string): string {
-    return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
   }
 
   #setProps(
@@ -261,20 +275,6 @@ export class WelyClass<T, D, P> {
             method({ data: { ...this.#data }, props: { ...this.#props } }, event)
           )
       }
-  }
-
-  overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
-    return new WelyClass<T, D, P>({
-      welyId: undefined,
-      name: this.#name,
-      className: this.#class,
-      inheritances: this.#inheritances,
-      data: () => <D>{ ...this.#data, ...partialData() },
-      html: this.#html[0],
-      css: this.#css,
-      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
-      events: this.#events
-    })
   }
 
   render(propsChain?: PropsChain<P>): HTMLElement {
