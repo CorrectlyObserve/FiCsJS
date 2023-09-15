@@ -131,9 +131,8 @@ export class WelyClass<T, D, P> {
             const setPropsChain = (chain: Record<string, P | any>): void => {
               const currentChain = chain[this.#toCamelCase(welyId)]!
 
-              if (Object.keys(currentChain).includes('__proto__'))
-                setPropsChain(currentChain.__proto__)
-              else chain[this.#toCamelCase(welyId)].__proto__ = { ...props(this.#data) }
+              if (currentChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(currentChain))
+              else currentChain.__proto__ = { ...props(this.#data) }
             }
 
             setPropsChain(propsChain.chains)
