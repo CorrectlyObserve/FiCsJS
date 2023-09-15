@@ -1,10 +1,9 @@
-import { WelyClass } from '@/class'
-import { Wely } from '@/types'
+import { WelyClass } from './class'
+import { Wely } from './types'
 
 export const wely = <T, D, P>({
   name,
   className,
-  dependencies,
   inheritances,
   data,
   html,
@@ -13,15 +12,15 @@ export const wely = <T, D, P>({
   events
 }: Wely<T, D, P>) =>
   new WelyClass({
-    name,
-    className,
-    dependencies,
-    inheritances,
-    data,
-    html,
-    css,
-    slot,
-    events
+    welyId: undefined,
+    name: name,
+    className: className,
+    inheritances: inheritances,
+    data: data,
+    html: html,
+    css: css,
+    slot: slot,
+    events: events
   })
 
 export const html = <T, D, P>(
