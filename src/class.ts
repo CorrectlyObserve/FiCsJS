@@ -16,6 +16,7 @@ import {
 export class Class<T, D, P> {
   readonly #Id: string = ''
   readonly #name: string = ''
+  readonly #componentName: string = ''
   readonly #class: string = ''
   readonly #inheritances: Inheritances<T, D, P> = []
   readonly #data: D = <D>{}
@@ -42,10 +43,14 @@ export class Class<T, D, P> {
   }: <T, D, P>) {
     this.#Id = Id ?? `-id${generator.next().value}`
     this.#name = name
+    this.#componentName = this.#toKebabCase(this.#name)
+
     if (className) this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
     if (data) this.#data = { ...data() }
+
     this.#html.push(html)
+
     if (css && css.length > 0) this.#css = [...css]
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
@@ -78,9 +83,9 @@ export class Class<T, D, P> {
   }
 
   #define(): void {
-    if (!customElements.get(`w-${this.#toKebabCase(this.#name)}`))
+    if (!customElements.get(`w-${this.#componentName}`))
       customElements.define(
-        `w-${this.#toKebabCase(this.#name)}`,
+        `w-${this.#componentName}`,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -107,14 +112,14 @@ export class Class<T, D, P> {
   }
 
   #setClass(: HTMLElement): void {
-    if (this.#class === '') .classList.add(this.#toKebabCase(this.#name))
-    else
-      .setAttribute(
-        'class',
-        this.#class
-          .split(' ')
-          .reduce((prev, current) => `${prev} ${current}`, this.#toKebabCase(this.#name))
-      )
+    this.#class === ''
+      ? .classList.add(this.#componentName)
+      : .setAttribute(
+          'class',
+          this.#class
+            .split(' ')
+            .reduce((prev, current) => `${prev} ${current}`, this.#componentName)
+        )
   }
 
   #setProps(
@@ -158,7 +163,7 @@ export class Class<T, D, P> {
     for (const element of this.#toArray(arg))
       .appendChild(
         element instanceof Class
-          ? element.render(propsChain)
+          ? <HTMLElement>element.render(propsChain)
           : document.createRange().createContextualFragment(element)
       )
   }
@@ -276,10 +281,10 @@ export class Class<T, D, P> {
       }
   }
 
-  render(propsChain?: PropsChain<P>): HTMLElement {
+  render(propsChain?: PropsChain<P>): HTMLElement | string {
     this.#define()
     const that = this.#clone()
-    const  = that.#component || document.createElement(`w-${this.#toKebabCase(this.#name)}`)
+    const  = that.#component || document.createElement(`w-${this.#componentName}`)
 
     that.#setClass()
     that.#setProps(propsChain)
@@ -294,6 +299,7 @@ export class Class<T, D, P> {
   }
 
   mount(base: HTMLElement): void {
-    base.appendChild(this.render())
+    const  = <HTMLElement>this.render()
+    base.appendChild()
   }
 }
