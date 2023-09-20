@@ -16,7 +16,7 @@ import {
 export class Class<T, D, P> {
   readonly #Id: string = ''
   readonly #name: string = ''
-  readonly #componentName: string = ''
+  readonly #tagName: string = ''
   readonly #class: string = ''
   readonly #inheritances: Inheritances<T, D, P> = []
   readonly #data: D = <D>{}
@@ -43,7 +43,7 @@ export class Class<T, D, P> {
   }: <T, D, P>) {
     this.#Id = Id ?? `-id${generator.next().value}`
     this.#name = name
-    this.#componentName = this.#toKebabCase(this.#name)
+    this.#tagName = this.#toKebabCase(this.#name)
 
     if (className) this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
@@ -54,6 +54,10 @@ export class Class<T, D, P> {
     if (css && css.length > 0) this.#css = [...css]
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
+  }
+
+  #getTagName(): string {
+    return `w-${this.#tagName}`
   }
 
   #toArray(val: unknown | unknown[]) {
@@ -82,21 +86,6 @@ export class Class<T, D, P> {
     })
   }
 
-  #define(): void {
-    if (!customElements.get(`w-${this.#componentName}`))
-      customElements.define(
-        `w-${this.#componentName}`,
-        class extends HTMLElement {
-          readonly shadowRoot: ShadowRoot
-
-          constructor() {
-            super()
-            this.shadowRoot = this.attachShadow({ mode: 'open' })
-          }
-        }
-      )
-  }
-
   #clone(): Class<T, D, P> {
     return new Class<T, D, P>({
       Id: this.#Id,
@@ -113,12 +102,10 @@ export class Class<T, D, P> {
 
   #setClass(: HTMLElement): void {
     this.#class === ''
-      ? .classList.add(this.#componentName)
+      ? .classList.add(this.#tagName)
       : .setAttribute(
           'class',
-          this.#class
-            .split(' ')
-            .reduce((prev, current) => `${prev} ${current}`, this.#componentName)
+          this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
         )
   }
 
@@ -163,7 +150,7 @@ export class Class<T, D, P> {
     for (const element of this.#toArray(arg))
       .appendChild(
         element instanceof Class
-          ? <HTMLElement>element.render(propsChain)
+          ? <HTMLElement>element.#render(propsChain)
           : document.createRange().createContextualFragment(element)
       )
   }
@@ -281,10 +268,22 @@ export class Class<T, D, P> {
       }
   }
 
-  render(propsChain?: PropsChain<P>): HTMLElement | string {
-    this.#define()
+  #render(propsChain?: PropsChain<P>): HTMLElement {
+    if (!customElements.get(this.#getTagName()))
+      customElements.define(
+        this.#getTagName(),
+        class extends HTMLElement {
+          readonly shadowRoot: ShadowRoot
+
+          constructor() {
+            super()
+            this.shadowRoot = this.attachShadow({ mode: 'open' })
+          }
+        }
+      )
+
     const that = this.#clone()
-    const  = that.#component || document.createElement(`w-${this.#componentName}`)
+    const  = that.#component || document.createElement(this.#getTagName())
 
     that.#setClass()
     that.#setProps(propsChain)
@@ -299,7 +298,6 @@ export class Class<T, D, P> {
   }
 
   mount(base: HTMLElement): void {
-    const  = <HTMLElement>this.render()
-    base.appendChild()
+    base.appendChild(this.#render())
   }
 }
