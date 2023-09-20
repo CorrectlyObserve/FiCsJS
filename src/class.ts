@@ -260,9 +260,11 @@ export class WelyClass<T, D, P> {
   }
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
-    if (!customElements.get(this.#getTagName()))
+    const that = this.#clone()
+
+    if (!customElements.get(that.#getTagName()))
       customElements.define(
-        this.#getTagName(),
+        that.#getTagName(),
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -273,7 +275,6 @@ export class WelyClass<T, D, P> {
         }
       )
 
-    const that = this.#clone()
     const wely = that.#component || document.createElement(this.#getTagName())
 
     that.#setClass(wely)
