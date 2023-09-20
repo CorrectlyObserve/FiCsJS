@@ -72,27 +72,18 @@ export class WelyClass<T, D, P> {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
-  overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
-    return new WelyClass<T, D, P>({
-      welyId: undefined,
-      name: this.#name,
-      className: this.#class,
-      inheritances: this.#inheritances,
-      data: () => <D>{ ...this.#data, ...partialData() },
-      html: this.#html[0],
-      css: this.#css,
-      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
-      events: this.#events
-    })
-  }
-
-  #clone(): WelyClass<T, D, P> {
-    return new WelyClass<T, D, P>({
+  #clone(
+    { welyId, data }: { welyId?: string; data?: () => D } = {
       welyId: this.#welyId,
+      data: () => <D>{ ...this.#data }
+    }
+  ): WelyClass<T, D, P> {
+    return new WelyClass<T, D, P>({
+      welyId: welyId,
       name: this.#name,
       className: this.#class,
       inheritances: this.#inheritances,
-      data: () => <D>{ ...this.#data },
+      data: data,
       html: this.#html[0],
       css: this.#css,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
@@ -295,6 +286,15 @@ export class WelyClass<T, D, P> {
     if (!that.#component) that.#component = wely
 
     return wely
+  }
+
+  overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
+    const instance = this.#clone({
+      welyId: undefined,
+      data: () => <D>{ ...this.#data, ...partialData() }
+    })
+
+    return instance
   }
 
   mount(base: HTMLElement): void {
