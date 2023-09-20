@@ -190,20 +190,24 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #setCss(shadowRoot: ShadowRoot): void {
+  #setCss(shadowRoot?: ShadowRoot): string | void {
     if (this.#css.length > 0) {
-      const style = document.createElement('style')
+      let styleContent = ''
 
       this.#css.forEach(cssObj => {
-        if (typeof cssObj === 'string') style.textContent += cssObj
+        if (typeof cssObj === 'string') styleContent += cssObj
         else if (cssObj.selector && 'style' in cssObj)
-          style.textContent +=
+          styleContent +=
             cssObj.selector +
             `{${Object.entries(cssObj.style({ data: { ...this.#data }, props: { ...this.#props } }))
               .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
               .join('\n')}}`
       })
 
+      if (!shadowRoot) return styleContent
+
+      const style = document.createElement('style')
+      style.textContent = styleContent
       shadowRoot.appendChild(style)
     }
   }
@@ -299,7 +303,7 @@ export class WelyClass<T, D, P> {
     return instance
   }
 
-  define() {
+  define(): void {
     const that = this.#clone()
 
     if (!customElements.get(that.#getTagName()))
@@ -328,5 +332,17 @@ export class WelyClass<T, D, P> {
           }
         }
       )
+  }
+
+  ssr(): string {
+    return `
+      <${this.#getTagName()}>
+        <template shadowroot="open">
+          ${this.#setCss() ? `<style>${this.#setCss()}</style>` : ''}
+          <slot></slot>
+        </template>
+        <h2>aaaa</h2>
+      </${this.#getTagName()}>
+    `.trim()
   }
 }
