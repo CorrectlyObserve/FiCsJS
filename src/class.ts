@@ -43,7 +43,7 @@ export class WelyClass<T, D, P> {
   }: Wely<T, D, P>) {
     this.#welyId = welyId ?? `wely-id${generator.next().value}`
     this.#name = name
-    this.#tagName = this.#toKebabCase(this.#name)
+    this.#tagName = this.#convertCase(this.#name, 'kebab')
 
     if (className) this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
@@ -56,20 +56,17 @@ export class WelyClass<T, D, P> {
     if (events && events.length > 0) this.#events = [...events]
   }
 
-  #getTagName(): string {
-    return `w-${this.#tagName}`
+  #convertCase(str: string, type: 'camel' | 'kebab'): string {
+    if (type === 'camel')
+      return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
+
+    if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+
+    return str
   }
 
   #toArray(val: unknown | unknown[]) {
     return Array.isArray(val) ? [...val] : [val]
-  }
-
-  #toCamelCase(str: string): string {
-    return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
-  }
-
-  #toKebabCase(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #clone(
@@ -89,6 +86,10 @@ export class WelyClass<T, D, P> {
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
       events: this.#events
     })
+  }
+
+  #getTagName(): string {
+    return `w-${this.#tagName}`
   }
 
   #setClass(wely: HTMLElement): void {
@@ -112,7 +113,7 @@ export class WelyClass<T, D, P> {
 
           if (propsChain.descendants.has(welyId)) {
             const setPropsChain = (chain: Record<string, P | any>): void => {
-              const currentChain = chain[this.#toCamelCase(welyId)]!
+              const currentChain = chain[this.#convertCase(welyId, 'camel')]!
 
               if (currentChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(currentChain))
               else currentChain.__proto__ = { ...props(this.#data) }
@@ -121,7 +122,7 @@ export class WelyClass<T, D, P> {
             setPropsChain(propsChain.chains)
           } else {
             propsChain.descendants.add(welyId)
-            propsChain.chains[this.#toCamelCase(welyId)] = { ...props(this.#data) }
+            propsChain.chains[this.#convertCase(welyId, 'camel')] = { ...props(this.#data) }
           }
         }
       }
@@ -129,8 +130,8 @@ export class WelyClass<T, D, P> {
     this.#propsChain = propsChain
 
     if (this.#propsChain.descendants.has(this.#welyId))
-      for (const key in this.#propsChain.chains[this.#toCamelCase(this.#welyId)])
-        this.#props[key] = this.#propsChain.chains[this.#toCamelCase(this.#welyId)][key]
+      for (const key in this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')])
+        this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
   }
 
   #insert(
@@ -199,7 +200,7 @@ export class WelyClass<T, D, P> {
           style.textContent +=
             cssObj.selector +
             `{${Object.entries(cssObj.style({ data: { ...this.#data }, props: { ...this.#props } }))
-              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
+              .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
               .join('\n')}}`
       })
 
