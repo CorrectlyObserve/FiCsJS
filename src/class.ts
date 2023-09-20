@@ -298,7 +298,34 @@ export class WelyClass<T, D, P> {
     return instance
   }
 
-  mount(base: HTMLElement): void {
-    base.appendChild(this.#render())
+  define() {
+    const that = this.#clone()
+
+    if (!customElements.get(that.#getTagName()))
+      customElements.define(
+        that.#getTagName(),
+        class extends HTMLElement {
+          readonly shadowRoot: ShadowRoot
+          #isRendered: boolean = false
+
+          constructor() {
+            super()
+            this.shadowRoot = this.attachShadow({ mode: 'open' })
+          }
+
+          connectedCallback(): void {
+            if (!this.#isRendered) {
+              that.#setClass(this)
+              that.#setProps()
+              that.#setHtml(this.shadowRoot, that.#propsChain)
+              that.#setCss(this.shadowRoot)
+              that.#setSlot(this, that.#propsChain)
+              that.#setEvents(this)
+
+              this.#isRendered = true
+            }
+          }
+        }
+      )
   }
 }
