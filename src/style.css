@@ -6,3 +6,11 @@
 :host div p {
   color: red;
 }
+
+div {
+  background: skyblue;
+}
+
+p {
+  color: green;
+}
