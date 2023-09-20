@@ -92,13 +92,15 @@ export class WelyClass<T, D, P> {
     return `w-${this.#tagName}`
   }
 
+  #getClass(): string {
+    if (this.#class === '') return this.#tagName
+    return this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
+  }
+
   #setClass(wely: HTMLElement): void {
     this.#class === ''
       ? wely.classList.add(this.#tagName)
-      : wely.setAttribute(
-          'class',
-          this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
-        )
+      : wely.setAttribute('class', this.#getClass())
   }
 
   #setProps(
@@ -334,13 +336,18 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  ssr(): string {
+  ssr(id?: string): string {
+    if (this.#css.length > 0) console.warn(`You cannot use #css in srr method...`)
+    if (this.#slot.length > 0) console.warn(`You cannot use #slot in srr method...`)
+    if (this.#events.length > 0) console.warn(`You cannot use #events in srr method...`)
+
     return `
-      <${this.#getTagName()}>
-        <template shadowroot="open">
-          ${this.#setCss() ? `<style>${this.#setCss()}</style>` : ''}
-          <slot></slot>
-        </template>
+      <${this.#getTagName()}
+        class="${this.#getClass()}"
+        ${id ? `id="${id}"` : ``}
+        wely-id="${this.#welyId}"
+      >
+        <template shadowroot="open"><slot></slot></template>
         <h2>aaaa</h2>
       </${this.#getTagName()}>
     `.trim()
