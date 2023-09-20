@@ -72,27 +72,18 @@ export class Class<T, D, P> {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
-  overwrite(partialData: () => Partial<D>): Class<T, D, P> {
-    return new Class<T, D, P>({
-      Id: undefined,
-      name: this.#name,
-      className: this.#class,
-      inheritances: this.#inheritances,
-      data: () => <D>{ ...this.#data, ...partialData() },
-      html: this.#html[0],
-      css: this.#css,
-      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
-      events: this.#events
-    })
-  }
-
-  #clone(): Class<T, D, P> {
-    return new Class<T, D, P>({
+  #clone(
+    { Id, data }: { Id?: string; data?: () => D } = {
       Id: this.#Id,
+      data: () => <D>{ ...this.#data }
+    }
+  ): Class<T, D, P> {
+    return new Class<T, D, P>({
+      Id: Id,
       name: this.#name,
       className: this.#class,
       inheritances: this.#inheritances,
-      data: () => <D>{ ...this.#data },
+      data: data,
       html: this.#html[0],
       css: this.#css,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
@@ -295,6 +286,15 @@ export class Class<T, D, P> {
     if (!that.#component) that.#component = 
 
     return 
+  }
+
+  overwrite(partialData: () => Partial<D>): Class<T, D, P> {
+    const instance = this.#clone({
+      Id: undefined,
+      data: () => <D>{ ...this.#data, ...partialData() }
+    })
+
+    return instance
   }
 
   mount(base: HTMLElement): void {
