@@ -192,11 +192,11 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #setCss(shadowRoot?: ShadowRoot): string | void {
-    if (this.#css.length > 0) {
+  #setCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
+    if (css.length > 0) {
       let styleContent = ''
 
-      this.#css.forEach(cssObj => {
+      css.forEach(cssObj => {
         if (typeof cssObj === 'string') styleContent += cssObj
         else if (cssObj.selector && 'style' in cssObj)
           styleContent +=
@@ -287,7 +287,7 @@ export class WelyClass<T, D, P> {
     that.#setClass(wely)
     that.#setProps(propsChain)
     that.#setHtml(<ShadowRoot>wely.shadowRoot, that.#propsChain)
-    that.#setCss(<ShadowRoot>wely.shadowRoot)
+    that.#setCss(this.#css, <ShadowRoot>wely.shadowRoot)
     that.#setSlot(wely, that.#propsChain)
     that.#setEvents(wely)
 
@@ -325,7 +325,7 @@ export class WelyClass<T, D, P> {
               that.#setClass(this)
               that.#setProps()
               that.#setHtml(this.shadowRoot, that.#propsChain)
-              that.#setCss(this.shadowRoot)
+              that.#setCss(that.#css, this.shadowRoot)
               that.#setSlot(this, that.#propsChain)
               that.#setEvents(this)
 
@@ -336,18 +336,17 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  ssr(id?: string): string {
-    if (this.#css.length > 0) console.warn(`You cannot use #css in srr method...`)
-    if (this.#slot.length > 0) console.warn(`You cannot use #slot in srr method...`)
-    if (this.#events.length > 0) console.warn(`You cannot use #events in srr method...`)
-
+  ssr(css: Css<D, P>): string {
     return `
       <${this.#getTagName()}
         class="${this.#getClass()}"
-        ${id ? `id="${id}"` : ``}
+        id="${this.#getTagName()}"
         wely-id="${this.#welyId}"
       >
-        <template shadowroot="open"><slot></slot></template>
+        <template shadowroot="open">
+          <slot></slot>
+          <style>${this.#setCss(css)}</style>
+          </template>
         <h2>aaaa</h2>
       </${this.#getTagName()}>
     `.trim()
