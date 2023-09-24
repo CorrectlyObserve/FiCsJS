@@ -208,9 +208,9 @@ export class WelyClass<T, D, P> {
 
       if (!shadowRoot) return styleContent
 
-      const style = document.createElement('style')
-      style.textContent = styleContent
-      shadowRoot.appendChild(style)
+      const stylesheet = new CSSStyleSheet()
+      shadowRoot!.adoptedStyleSheets = [stylesheet]
+      stylesheet.replace(`${styleContent}`)
     }
   }
 
@@ -296,6 +296,31 @@ export class WelyClass<T, D, P> {
     return wely
   }
 
+  // #getHtmlStr(welyClass: WelyClass<T, D, P>, css: Css<D, P>): string {
+  //   console.log(welyClass.#html)
+
+  //   // for(const child of children) welyClass.#getHtmlStr()
+
+  //   const tagName = welyClass.#getTagName()
+
+  //   return `
+  //     <${tagName}
+  //       class="${welyClass.#getClass()}"
+  //       id="${tagName}"
+  //     >
+  //       <template shadowroot="open">
+  //         <slot></slot>
+  //         <style>${welyClass.#setCss(css)}</style>
+  //         <script id="ssr-json" type="application/json">
+  //           {
+  //             "welyId": "${welyClass.#welyId}"
+  //           }
+  //         </script>
+  //       </template>
+  //     </${tagName}>
+  //   `.trim()
+  // }
+
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     const instance = this.#clone({
       welyId: undefined,
@@ -336,19 +361,7 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  ssr(css: Css<D, P>): string {
-    return `
-      <${this.#getTagName()}
-        class="${this.#getClass()}"
-        id="${this.#getTagName()}"
-        wely-id="${this.#welyId}"
-      >
-        <template shadowroot="open">
-          <slot></slot>
-          <style>${this.#setCss(css)}</style>
-          </template>
-        <h2>aaaa</h2>
-      </${this.#getTagName()}>
-    `.trim()
-  }
+  // ssr(css: Css<D, P>): string {
+  //   return this.#getHtmlStr(this.#clone(), css)
+  // }
 }
