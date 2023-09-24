@@ -208,9 +208,9 @@ export class Class<T, D, P> {
 
       if (!shadowRoot) return styleContent
 
-      const style = document.createElement('style')
-      style.textContent = styleContent
-      shadowRoot.appendChild(style)
+      const stylesheet = new CSSStyleSheet()
+      shadowRoot!.adoptedStyleSheets = [stylesheet]
+      stylesheet.replace(`${styleContent}`)
     }
   }
 
@@ -296,6 +296,31 @@ export class Class<T, D, P> {
     return 
   }
 
+  // #getHtmlStr(Class: Class<T, D, P>, css: Css<D, P>): string {
+  //   console.log(Class.#html)
+
+  //   // for(const child of children) Class.#getHtmlStr()
+
+  //   const tagName = Class.#getTagName()
+
+  //   return `
+  //     <${tagName}
+  //       class="${Class.#getClass()}"
+  //       id="${tagName}"
+  //     >
+  //       <template shadowroot="open">
+  //         <slot></slot>
+  //         <style>${Class.#setCss(css)}</style>
+  //         <script id="ssr-json" type="application/json">
+  //           {
+  //             "Id": "${Class.#Id}"
+  //           }
+  //         </script>
+  //       </template>
+  //     </${tagName}>
+  //   `.trim()
+  // }
+
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
     const instance = this.#clone({
       Id: undefined,
@@ -336,19 +361,7 @@ export class Class<T, D, P> {
       )
   }
 
-  ssr(css: Css<D, P>): string {
-    return `
-      <${this.#getTagName()}
-        class="${this.#getClass()}"
-        id="${this.#getTagName()}"
-        -id="${this.#Id}"
-      >
-        <template shadowroot="open">
-          <slot></slot>
-          <style>${this.#setCss(css)}</style>
-          </template>
-        <h2>aaaa</h2>
-      </${this.#getTagName()}>
-    `.trim()
-  }
+  // ssr(css: Css<D, P>): string {
+  //   return this.#getHtmlStr(this.#clone(), css)
+  // }
 }
