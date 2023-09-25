@@ -13,8 +13,6 @@ interface Props {
   click: (message: string) => void
 }
 
-const app = document.getElementById('app')!
-
 const child = wely({
   name: 'child',
   data: () => ({
@@ -65,10 +63,11 @@ const parent = wely({
   ]
 })
 
-wely({
+const grandParent = wely({
   name: 'grandParent',
   data: () => ({
     color: 'green',
+    fontSize: 24,
     number: 12
   }),
   html: ({ data: { number } }) =>
@@ -80,7 +79,19 @@ wely({
       props: ({ color }) => ({ color })
     }
   ]
-}).mount(app)
+})
+
+grandParent.define()
+
+console.log(
+  grandParent.ssr([
+    cssUrl,
+    {
+      selector: 'p',
+      style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
+    }
+  ])
+)
 
 wely({
   name: 'Wely2',
@@ -88,7 +99,7 @@ wely({
     contents: [1, 2, 3],
     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
   }
-}).mount(app)
+}).define()
 
 wely({
   name: 'wely3',
@@ -121,7 +132,7 @@ wely({
       method: ({ data: { number, text } }, e, index) => console.log(number, text, e, index)
     }
   ]
-}).mount(app)
+}).define()
 
 wely({
   name: 'Wely4',
@@ -149,4 +160,4 @@ wely({
       method: ({ data: { numbers } }, e, index) => console.log(numbers[index ?? 0], e)
     }
   ]
-}).mount(app)
+}).define()
