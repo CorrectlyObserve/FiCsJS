@@ -52,9 +52,8 @@ const parent = wely({
     color: 'blue',
     click: (message: string) => console.log(message)
   }),
-  slot: html`${child2}
-    <p>aaa</p>`,
   html: `<slot />`,
+  slot: child2,
   inheritances: [
     {
       descendants: child2,
