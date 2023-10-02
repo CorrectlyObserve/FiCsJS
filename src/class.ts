@@ -226,7 +226,7 @@ export class Class<T, D, P> {
         )
   }
 
-  #setEvents(: HTMLElement): void {
+  #addEvents(: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
         const { selector, handler, method } = event
@@ -289,7 +289,7 @@ export class Class<T, D, P> {
     that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
     that.#addCss(this.#css, <ShadowRoot>.shadowRoot)
     that.#addSlot(, that.#propsChain)
-    that.#setEvents()
+    that.#addEvents()
 
     if (!that.#component) that.#component = 
 
@@ -352,7 +352,7 @@ export class Class<T, D, P> {
               that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#addCss(that.#css, this.shadowRoot)
               that.#addSlot(this, that.#propsChain)
-              that.#setEvents(this)
+              that.#addEvents(this)
 
               this.#isRendered = true
             }
