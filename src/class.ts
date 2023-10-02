@@ -192,7 +192,7 @@ export class Class<T, D, P> {
     }
   }
 
-  #setCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
+  #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
     if (css.length > 0) {
       let styleContent = ''
 
@@ -287,7 +287,7 @@ export class Class<T, D, P> {
     that.#setClass()
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
-    that.#setCss(this.#css, <ShadowRoot>.shadowRoot)
+    that.#addCss(this.#css, <ShadowRoot>.shadowRoot)
     that.#setSlot(, that.#propsChain)
     that.#setEvents()
 
@@ -310,7 +310,7 @@ export class Class<T, D, P> {
   //     >
   //       <template shadowroot="open">
   //         <slot></slot>
-  //         <style>${Class.#setCss(css)}</style>
+  //         <style>${Class.#addCss(css)}</style>
   //         <script id="ssr-json" type="application/json">
   //           {
   //             "Id": "${Class.#Id}"
@@ -350,7 +350,7 @@ export class Class<T, D, P> {
               that.#setClass(this)
               that.#setProps()
               that.#addHtml(this.shadowRoot, that.#propsChain)
-              that.#setCss(that.#css, this.shadowRoot)
+              that.#addCss(that.#css, this.shadowRoot)
               that.#setSlot(this, that.#propsChain)
               that.#setEvents(this)
 
