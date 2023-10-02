@@ -214,7 +214,7 @@ export class Class<T, D, P> {
     }
   }
 
-  #setSlot(: HTMLElement, propsChain: PropsChain<P>) {
+  #addSlot(: HTMLElement, propsChain: PropsChain<P>) {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
@@ -288,7 +288,7 @@ export class Class<T, D, P> {
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
     that.#addCss(this.#css, <ShadowRoot>.shadowRoot)
-    that.#setSlot(, that.#propsChain)
+    that.#addSlot(, that.#propsChain)
     that.#setEvents()
 
     if (!that.#component) that.#component = 
@@ -351,7 +351,7 @@ export class Class<T, D, P> {
               that.#setProps()
               that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#addCss(that.#css, this.shadowRoot)
-              that.#setSlot(this, that.#propsChain)
+              that.#addSlot(this, that.#propsChain)
               that.#setEvents(this)
 
               this.#isRendered = true
