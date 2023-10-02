@@ -295,30 +295,31 @@ export class WelyClass<T, D, P> {
     return wely
   }
 
-  // #getHtmlStr(welyClass: WelyClass<T, D, P>, css: Css<D, P>): string {
-  //   console.log(welyClass.#html)
+  #getHtmlStr(welyClass: WelyClass<T, D, P>, css: Css<D, P>): string {
+    console.log(welyClass.#html)
 
-  //   // for(const child of children) welyClass.#getHtmlStr()
+    // for(const child of children) welyClass.#getHtmlStr()
 
-  //   const tagName = welyClass.#getTagName()
+    const tagName = welyClass.#getTagName()
 
-  //   return `
-  //     <${tagName}
-  //       class="${welyClass.#getClass()}"
-  //       id="${tagName}"
-  //     >
-  //       <template shadowroot="open">
-  //         <slot></slot>
-  //         <style>${welyClass.#addCss(css)}</style>
-  //         <script id="ssr-json" type="application/json">
-  //           {
-  //             "welyId": "${welyClass.#welyId}"
-  //           }
-  //         </script>
-  //       </template>
-  //     </${tagName}>
-  //   `.trim()
-  // }
+    return `
+      <${tagName}
+        class="${this.#class === '' ? this.#tagName : welyClass.#getClass()}"
+        id="${tagName}"
+      >
+        <template shadowroot="open">
+          <slot></slot>
+          <style>${welyClass.#addCss(css)}</style>
+          <script id="ssr-json" type="application/json">
+            {
+              "welyId": "${welyClass.#welyId}"
+            }
+          </script>
+        </template>
+        ___
+      </${tagName}>
+    `.trim()
+  }
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
     const instance = this.#clone({
@@ -360,7 +361,7 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  // ssr(css: Css<D, P>): string {
-  //   return this.#getHtmlStr(this.#clone(), css)
-  // }
+  ssr(css: Css<D, P>): string {
+    return this.#getHtmlStr(this.#clone(), css)
+  }
 }
