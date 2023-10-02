@@ -97,7 +97,7 @@ export class WelyClass<T, D, P> {
     return this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
   }
 
-  #setClass(wely: HTMLElement): void {
+  #addClass(wely: HTMLElement): void {
     this.#class === ''
       ? wely.classList.add(this.#tagName)
       : wely.setAttribute('class', this.#getClass())
@@ -284,7 +284,7 @@ export class WelyClass<T, D, P> {
 
     const wely = that.#component || document.createElement(this.#getTagName())
 
-    that.#setClass(wely)
+    that.#addClass(wely)
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>wely.shadowRoot, that.#propsChain)
     that.#addCss(this.#css, <ShadowRoot>wely.shadowRoot)
@@ -347,7 +347,7 @@ export class WelyClass<T, D, P> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#setClass(this)
+              that.#addClass(this)
               that.#setProps()
               that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#addCss(that.#css, this.shadowRoot)
