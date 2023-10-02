@@ -149,7 +149,7 @@ export class Class<T, D, P> {
       )
   }
 
-  #setHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
+  #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
     const html: Html<T, D, P> =
       typeof this.#html[0] === 'function'
         ? this.#html[0]({ data: { ...this.#data }, props: { ...this.#props } })
@@ -286,7 +286,7 @@ export class Class<T, D, P> {
 
     that.#setClass()
     that.#setProps(propsChain)
-    that.#setHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
+    that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
     that.#setCss(this.#css, <ShadowRoot>.shadowRoot)
     that.#setSlot(, that.#propsChain)
     that.#setEvents()
@@ -349,7 +349,7 @@ export class Class<T, D, P> {
             if (!this.#isRendered) {
               that.#setClass(this)
               that.#setProps()
-              that.#setHtml(this.shadowRoot, that.#propsChain)
+              that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#setCss(that.#css, this.shadowRoot)
               that.#setSlot(this, that.#propsChain)
               that.#setEvents(this)
