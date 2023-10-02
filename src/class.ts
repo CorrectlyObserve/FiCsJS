@@ -97,7 +97,7 @@ export class Class<T, D, P> {
     return this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
   }
 
-  #setClass(: HTMLElement): void {
+  #addClass(: HTMLElement): void {
     this.#class === ''
       ? .classList.add(this.#tagName)
       : .setAttribute('class', this.#getClass())
@@ -284,7 +284,7 @@ export class Class<T, D, P> {
 
     const  = that.#component || document.createElement(this.#getTagName())
 
-    that.#setClass()
+    that.#addClass()
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
     that.#addCss(this.#css, <ShadowRoot>.shadowRoot)
@@ -347,7 +347,7 @@ export class Class<T, D, P> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#setClass(this)
+              that.#addClass(this)
               that.#setProps()
               that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#addCss(that.#css, this.shadowRoot)
