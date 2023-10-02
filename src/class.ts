@@ -93,7 +93,6 @@ export class WelyClass<T, D, P> {
   }
 
   #getClass(): string {
-    if (this.#class === '') return this.#tagName
     return this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
   }
 
