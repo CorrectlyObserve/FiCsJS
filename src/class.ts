@@ -214,7 +214,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #setSlot(wely: HTMLElement, propsChain: PropsChain<P>) {
+  #addSlot(wely: HTMLElement, propsChain: PropsChain<P>) {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
@@ -288,7 +288,7 @@ export class WelyClass<T, D, P> {
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>wely.shadowRoot, that.#propsChain)
     that.#addCss(this.#css, <ShadowRoot>wely.shadowRoot)
-    that.#setSlot(wely, that.#propsChain)
+    that.#addSlot(wely, that.#propsChain)
     that.#setEvents(wely)
 
     if (!that.#component) that.#component = wely
@@ -351,7 +351,7 @@ export class WelyClass<T, D, P> {
               that.#setProps()
               that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#addCss(that.#css, this.shadowRoot)
-              that.#setSlot(this, that.#propsChain)
+              that.#addSlot(this, that.#propsChain)
               that.#setEvents(this)
 
               this.#isRendered = true
