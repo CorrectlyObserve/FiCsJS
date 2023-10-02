@@ -226,7 +226,7 @@ export class WelyClass<T, D, P> {
         )
   }
 
-  #setEvents(wely: HTMLElement): void {
+  #addEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
         const { selector, handler, method } = event
@@ -289,7 +289,7 @@ export class WelyClass<T, D, P> {
     that.#addHtml(<ShadowRoot>wely.shadowRoot, that.#propsChain)
     that.#addCss(this.#css, <ShadowRoot>wely.shadowRoot)
     that.#addSlot(wely, that.#propsChain)
-    that.#setEvents(wely)
+    that.#addEvents(wely)
 
     if (!that.#component) that.#component = wely
 
@@ -352,7 +352,7 @@ export class WelyClass<T, D, P> {
               that.#addHtml(this.shadowRoot, that.#propsChain)
               that.#addCss(that.#css, this.shadowRoot)
               that.#addSlot(this, that.#propsChain)
-              that.#setEvents(this)
+              that.#addEvents(this)
 
               this.#isRendered = true
             }
