@@ -192,7 +192,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #setCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
+  #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
     if (css.length > 0) {
       let styleContent = ''
 
@@ -287,7 +287,7 @@ export class WelyClass<T, D, P> {
     that.#setClass(wely)
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>wely.shadowRoot, that.#propsChain)
-    that.#setCss(this.#css, <ShadowRoot>wely.shadowRoot)
+    that.#addCss(this.#css, <ShadowRoot>wely.shadowRoot)
     that.#setSlot(wely, that.#propsChain)
     that.#setEvents(wely)
 
@@ -310,7 +310,7 @@ export class WelyClass<T, D, P> {
   //     >
   //       <template shadowroot="open">
   //         <slot></slot>
-  //         <style>${welyClass.#setCss(css)}</style>
+  //         <style>${welyClass.#addCss(css)}</style>
   //         <script id="ssr-json" type="application/json">
   //           {
   //             "welyId": "${welyClass.#welyId}"
@@ -350,7 +350,7 @@ export class WelyClass<T, D, P> {
               that.#setClass(this)
               that.#setProps()
               that.#addHtml(this.shadowRoot, that.#propsChain)
-              that.#setCss(that.#css, this.shadowRoot)
+              that.#addCss(that.#css, this.shadowRoot)
               that.#setSlot(this, that.#propsChain)
               that.#setEvents(this)
 
