@@ -295,30 +295,31 @@ export class Class<T, D, P> {
     return 
   }
 
-  // #getHtmlStr(Class: Class<T, D, P>, css: Css<D, P>): string {
-  //   console.log(Class.#html)
+  #getHtmlStr(Class: Class<T, D, P>, css: Css<D, P>): string {
+    console.log(Class.#html)
 
-  //   // for(const child of children) Class.#getHtmlStr()
+    // for(const child of children) Class.#getHtmlStr()
 
-  //   const tagName = Class.#getTagName()
+    const tagName = Class.#getTagName()
 
-  //   return `
-  //     <${tagName}
-  //       class="${Class.#getClass()}"
-  //       id="${tagName}"
-  //     >
-  //       <template shadowroot="open">
-  //         <slot></slot>
-  //         <style>${Class.#addCss(css)}</style>
-  //         <script id="ssr-json" type="application/json">
-  //           {
-  //             "Id": "${Class.#Id}"
-  //           }
-  //         </script>
-  //       </template>
-  //     </${tagName}>
-  //   `.trim()
-  // }
+    return `
+      <${tagName}
+        class="${this.#class === '' ? this.#tagName : Class.#getClass()}"
+        id="${tagName}"
+      >
+        <template shadowroot="open">
+          <slot></slot>
+          <style>${Class.#addCss(css)}</style>
+          <script id="ssr-json" type="application/json">
+            {
+              "Id": "${Class.#Id}"
+            }
+          </script>
+        </template>
+        ___
+      </${tagName}>
+    `.trim()
+  }
 
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
     const instance = this.#clone({
@@ -360,7 +361,7 @@ export class Class<T, D, P> {
       )
   }
 
-  // ssr(css: Css<D, P>): string {
-  //   return this.#getHtmlStr(this.#clone(), css)
-  // }
+  ssr(css: Css<D, P>): string {
+    return this.#getHtmlStr(this.#clone(), css)
+  }
 }
