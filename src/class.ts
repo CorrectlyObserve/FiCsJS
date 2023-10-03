@@ -217,7 +217,7 @@ export class Class<T, D, P> {
     }
   }
 
-  #addSlot(: HTMLElement, propsChain: PropsChain<P>) {
+  #addSlot(: HTMLElement, propsChain: PropsChain<P>):void {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
