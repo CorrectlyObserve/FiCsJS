@@ -47,7 +47,7 @@ export class Class<T, D, P> {
     this.#name = name
     this.#tagName = this.#convertCase(this.#name, 'kebab')
 
-    if (className) this.#class = className
+    if (className && className !== '') this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
     if (data) this.#data = { ...data() }
 
@@ -306,6 +306,7 @@ export class Class<T, D, P> {
         <${tagName}
           class="${Class.#class === '' ? Class.#tagName : Class.#getClass()}"
           id="${tagName}"
+          created-by="-js"
         >
           <template shadowroot="open">
             <slot></slot>
@@ -315,9 +316,17 @@ export class Class<T, D, P> {
                 : ''
             }
             <script id="-ssr-json" type="application/json">
-              {
-                "Id": "${Class.#Id}"
-              }
+              ${JSON.stringify({
+                Id: Class.#Id,
+                name: Class.#name,
+                class: Class.#class,
+                inheritances: Class.#inheritances,
+                data: Class.#data,
+                html: Class.#html,
+                css: Class.#css,
+                slot: Class.#slot,
+                events: Class.#events
+              })}
             </script>
           </template>
           ${html}
