@@ -9,18 +9,20 @@ export const wely = <T, D, P>({
   html,
   css,
   slot,
-  events
+  events,
+  ssr
 }: Wely<T, D, P>) =>
   new WelyClass({
     welyId: undefined,
-    name: name,
-    className: className,
-    inheritances: inheritances,
-    data: data,
-    html: html,
-    css: css,
-    slot: slot,
-    events: events
+    name,
+    className,
+    inheritances,
+    data,
+    html,
+    css,
+    slot,
+    events,
+    ssr
   })
 
 export const html = <T, D, P>(
