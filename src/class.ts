@@ -24,6 +24,7 @@ export class Class<T, D, P> {
   readonly #css: Css<D, P> = []
   readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
+  readonly #ssr: { props?: P; css?: Css<D, P> } | undefined = undefined
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
@@ -39,7 +40,8 @@ export class Class<T, D, P> {
     html,
     css,
     slot,
-    events
+    events,
+    ssr
   }: <T, D, P>) {
     this.#Id = Id ?? `-id${generator.next().value}`
     this.#name = name
@@ -54,6 +56,7 @@ export class Class<T, D, P> {
     if (css && css.length > 0) this.#css = [...css]
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
+    if (ssr) this.#ssr = ssr
   }
 
   #convertCase(str: string, type: 'camel' | 'kebab'): string {
@@ -76,15 +79,16 @@ export class Class<T, D, P> {
     }
   ): Class<T, D, P> {
     return new Class<T, D, P>({
-      Id: Id,
+      Id,
       name: this.#name,
       className: this.#class,
       inheritances: this.#inheritances,
-      data: data,
+      data,
       html: this.#html[0],
       css: this.#css,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
-      events: this.#events
+      events: this.#events,
+      ssr: this.#ssr
     })
   }
 
@@ -295,30 +299,74 @@ export class Class<T, D, P> {
     return 
   }
 
-  #getHtmlStr(Class: Class<T, D, P>, css: Css<D, P>): string {
-    console.log(Class.#html)
-
-    // for(const child of children) Class.#getHtmlStr()
-
+  #createHtml(Class: Class<T, D, P>, props: P, css?: Css<D, P>): string {
     const tagName = Class.#getTagName()
-
-    return `
-      <${tagName}
-        class="${this.#class === '' ? this.#tagName : Class.#getClass()}"
-        id="${tagName}"
-      >
-        <template shadowroot="open">
-          <slot></slot>
-          <style>${Class.#addCss(css)}</style>
-          <script id="ssr-json" type="application/json">
-            {
-              "Id": "${Class.#Id}"
+    const createTemplate = (html: any) =>
+      `
+        <${tagName}
+          class="${Class.#class === '' ? Class.#tagName : Class.#getClass()}"
+          id="${tagName}"
+        >
+          <template shadowroot="open">
+            <slot></slot>
+            ${
+              css || Class.#css.length > 0
+                ? `<style>${Class.#addCss(css || Class.#css)}</style>`
+                : ''
             }
-          </script>
-        </template>
-        ___
-      </${tagName}>
-    `.trim()
+            <script id="-ssr-json" type="application/json">
+              {
+                "Id": "${Class.#Id}"
+              }
+            </script>
+          </template>
+          ${html}
+        </${tagName}>
+      `.trim()
+
+    const html: Html<T, D, P> =
+      typeof Class.#html[0] === 'function'
+        ? Class.#html[0]({ data: { ...this.#data }, props: { ...props } })
+        : Class.#html[0]
+
+    if (typeof html === 'string' || html instanceof Class || Array.isArray(html)) {
+    } else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
+      this.#isEach = true
+
+      if ('branches' in <EachIf<T, D, P>>html) {
+        const { contents, branches, fallback } = <EachIf<T, D, P>>html
+
+        contents.forEach((content, index) => {
+          for (const branch of branches)
+            if (branch.judge(content)) {
+            }
+
+          if (fallback) {
+          }
+        })
+      } else {
+        const { contents, render } = <Each<T, D, P>>html
+
+        contents.forEach((content, index) => {
+          const renderer = render(content, index)
+          if (renderer) {
+          }
+        })
+      }
+    } else {
+      const { branches, fallback } = <If<T, D, P>>html
+      let isInserted = false
+
+      for (const branch of branches)
+        if (branch.judge) {
+          isInserted = true
+        }
+
+      if (!isInserted && fallback) {
+      }
+    }
+
+    return createTemplate(null)
   }
 
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
@@ -361,7 +409,7 @@ export class Class<T, D, P> {
       )
   }
 
-  ssr(css: Css<D, P>): string {
-    return this.#getHtmlStr(this.#clone(), css)
+  onServer(props?: P, css?: Css<D, P>): string {
+    return this.#createHtml(this.#clone(), props ?? <P>{}, css)
   }
 }
