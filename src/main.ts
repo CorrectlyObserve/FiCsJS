@@ -83,7 +83,7 @@ const grandParent = wely({
 grandParent.define()
 
 console.log(
-  grandParent.ssr({ color: 'green' }, [
+  grandParent.onServer({ color: 'green' }, [
     cssUrl,
     {
       selector: 'p',
