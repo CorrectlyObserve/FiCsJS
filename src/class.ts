@@ -47,7 +47,7 @@ export class WelyClass<T, D, P> {
     this.#name = name
     this.#tagName = this.#convertCase(this.#name, 'kebab')
 
-    if (className) this.#class = className
+    if (className && className !== '') this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
     if (data) this.#data = { ...data() }
 
@@ -306,6 +306,7 @@ export class WelyClass<T, D, P> {
         <${tagName}
           class="${welyClass.#class === '' ? welyClass.#tagName : welyClass.#getClass()}"
           id="${tagName}"
+          created-by="wely-js"
         >
           <template shadowroot="open">
             <slot></slot>
@@ -315,9 +316,17 @@ export class WelyClass<T, D, P> {
                 : ''
             }
             <script id="wely-ssr-json" type="application/json">
-              {
-                "welyId": "${welyClass.#welyId}"
-              }
+              ${JSON.stringify({
+                welyId: welyClass.#welyId,
+                name: welyClass.#name,
+                class: welyClass.#class,
+                inheritances: welyClass.#inheritances,
+                data: welyClass.#data,
+                html: welyClass.#html,
+                css: welyClass.#css,
+                slot: welyClass.#slot,
+                events: welyClass.#events
+              })}
             </script>
           </template>
           ${html}
