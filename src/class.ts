@@ -217,7 +217,7 @@ export class Class<T, D, P> {
     }
   }
 
-  #addSlot(: HTMLElement, propsChain: PropsChain<P>):void {
+  #addSlot(: HTMLElement, propsChain: PropsChain<P>): void {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
@@ -370,12 +370,10 @@ export class Class<T, D, P> {
   }
 
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
-    const instance = this.#clone({
+    return this.#clone({
       Id: undefined,
       data: () => <D>{ ...this.#data, ...partialData() }
     })
-
-    return instance
   }
 
   define(): void {
