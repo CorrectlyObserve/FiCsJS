@@ -217,7 +217,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #addSlot(wely: HTMLElement, propsChain: PropsChain<P>) {
+  #addSlot(wely: HTMLElement, propsChain: PropsChain<P>):void {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
