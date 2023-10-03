@@ -217,7 +217,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  #addSlot(wely: HTMLElement, propsChain: PropsChain<P>):void {
+  #addSlot(wely: HTMLElement, propsChain: PropsChain<P>): void {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#insert(
@@ -370,12 +370,10 @@ export class WelyClass<T, D, P> {
   }
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
-    const instance = this.#clone({
+    return this.#clone({
       welyId: undefined,
       data: () => <D>{ ...this.#data, ...partialData() }
     })
-
-    return instance
   }
 
   define(): void {
