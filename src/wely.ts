@@ -9,18 +9,20 @@ export const  = <T, D, P>({
   html,
   css,
   slot,
-  events
+  events,
+  ssr
 }: <T, D, P>) =>
   new Class({
     Id: undefined,
-    name: name,
-    className: className,
-    inheritances: inheritances,
-    data: data,
-    html: html,
-    css: css,
-    slot: slot,
-    events: events
+    name,
+    className,
+    inheritances,
+    data,
+    html,
+    css,
+    slot,
+    events,
+    ssr
   })
 
 export const html = <T, D, P>(
