@@ -83,7 +83,7 @@ const grandParent = ({
 grandParent.define()
 
 console.log(
-  grandParent.ssr([
+  grandParent.ssr({ color: 'green' }, [
     cssUrl,
     {
       selector: 'p',
