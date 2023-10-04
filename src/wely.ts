@@ -1,30 +1,6 @@
 import { WelyClass } from './class'
 import { Wely } from './types'
 
-export const wely = <T, D, P>({
-  name,
-  className,
-  inheritances,
-  data,
-  html,
-  css,
-  slot,
-  events,
-  ssr
-}: Wely<T, D, P>) =>
-  new WelyClass({
-    welyId: undefined,
-    name,
-    className,
-    inheritances,
-    data,
-    html,
-    css,
-    slot,
-    events,
-    ssr
-  })
-
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: WelyClass<T, D, P>[]
@@ -49,3 +25,27 @@ export const html = <T, D, P>(
 
   return result
 }
+
+export const wely = <T, D, P>({
+  name,
+  className,
+  inheritances,
+  data,
+  html,
+  css,
+  slot,
+  events,
+  ssr
+}: Wely<T, D, P>) =>
+  new WelyClass({
+    welyId: undefined,
+    name,
+    className,
+    inheritances,
+    data,
+    html,
+    css,
+    slot,
+    events,
+    ssr
+  })
