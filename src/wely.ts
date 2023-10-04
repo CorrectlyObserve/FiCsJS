@@ -1,30 +1,6 @@
 import { Class } from './class'
 import {  } from './types'
 
-export const  = <T, D, P>({
-  name,
-  className,
-  inheritances,
-  data,
-  html,
-  css,
-  slot,
-  events,
-  ssr
-}: <T, D, P>) =>
-  new Class({
-    Id: undefined,
-    name,
-    className,
-    inheritances,
-    data,
-    html,
-    css,
-    slot,
-    events,
-    ssr
-  })
-
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: Class<T, D, P>[]
@@ -49,3 +25,27 @@ export const html = <T, D, P>(
 
   return result
 }
+
+export const  = <T, D, P>({
+  name,
+  className,
+  inheritances,
+  data,
+  html,
+  css,
+  slot,
+  events,
+  ssr
+}: <T, D, P>) =>
+  new Class({
+    Id: undefined,
+    name,
+    className,
+    inheritances,
+    data,
+    html,
+    css,
+    slot,
+    events,
+    ssr
+  })
