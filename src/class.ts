@@ -139,7 +139,7 @@ export class WelyClass<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
   }
 
-  #insert(
+  #appendChild(
     arg: SingleOrArray<WelyClass<T, D, P> | string>,
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
@@ -159,7 +159,7 @@ export class WelyClass<T, D, P> {
         : this.#html[0]
 
     if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
-      this.#insert(html, shadowRoot, propsChain)
+      this.#appendChild(html, shadowRoot, propsChain)
     else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
       this.#isEach = true
 
@@ -169,16 +169,16 @@ export class WelyClass<T, D, P> {
         contents.forEach((content, index) => {
           for (const branch of branches)
             if (branch.judge(content))
-              this.#insert(branch.render(content, index), shadowRoot, propsChain)
+              this.#appendChild(branch.render(content, index), shadowRoot, propsChain)
 
-          if (fallback) this.#insert(fallback(content, index), shadowRoot, propsChain)
+          if (fallback) this.#appendChild(fallback(content, index), shadowRoot, propsChain)
         })
       } else {
         const { contents, render } = <Each<T, D, P>>html
 
         contents.forEach((content, index) => {
           const renderer = render(content, index)
-          if (renderer) this.#insert(renderer, shadowRoot, propsChain)
+          if (renderer) this.#appendChild(renderer, shadowRoot, propsChain)
         })
       }
     } else {
@@ -187,11 +187,11 @@ export class WelyClass<T, D, P> {
 
       for (const branch of branches)
         if (branch.judge) {
-          this.#insert(branch.render, shadowRoot, propsChain)
+          this.#appendChild(branch.render, shadowRoot, propsChain)
           isInserted = true
         }
 
-      if (!isInserted && fallback) this.#insert(fallback, shadowRoot, propsChain)
+      if (!isInserted && fallback) this.#appendChild(fallback, shadowRoot, propsChain)
     }
   }
 
@@ -220,7 +220,7 @@ export class WelyClass<T, D, P> {
   #addSlot(wely: HTMLElement, propsChain: PropsChain<P>): void {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
-        this.#insert(
+        this.#appendChild(
           typeof slot === 'function'
             ? slot({ data: { ...this.#data }, props: { ...this.#props } })
             : slot,
