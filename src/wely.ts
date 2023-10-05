@@ -33,9 +33,9 @@ export const  = <T, D, P>({
   data,
   html,
   css,
+  ssrCss,
   slot,
-  events,
-  ssr
+  events
 }: <T, D, P>) =>
   new Class({
     Id: undefined,
@@ -45,7 +45,7 @@ export const  = <T, D, P>({
     data,
     html,
     css,
+    ssrCss,
     slot,
-    events,
-    ssr
+    events
   })
