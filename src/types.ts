@@ -68,7 +68,7 @@ export interface Wely<T, D, P> {
   data?: () => D
   html: Html<T, D, P>
   css?: Css<D, P>
+  ssrCss?: Css<D, P>
   slot?: Slot<T, D, P>
   events?: Events<D, P>
-  ssr?: { props?: P; css?: Css<D, P> }
 }
