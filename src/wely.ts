@@ -33,9 +33,9 @@ export const wely = <T, D, P>({
   data,
   html,
   css,
+  ssrCss,
   slot,
-  events,
-  ssr
+  events
 }: Wely<T, D, P>) =>
   new WelyClass({
     welyId: undefined,
@@ -45,7 +45,7 @@ export const wely = <T, D, P>({
     data,
     html,
     css,
+    ssrCss,
     slot,
-    events,
-    ssr
+    events
   })
