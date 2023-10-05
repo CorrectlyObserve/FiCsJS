@@ -22,9 +22,9 @@ export class Class<T, D, P> {
   readonly #data: D = <D>{}
   readonly #html: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
+  readonly #ssrCss: Css<D, P> = []
   readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
-  readonly #ssr: { props?: P; css?: Css<D, P> } | undefined = undefined
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
@@ -39,9 +39,9 @@ export class Class<T, D, P> {
     data,
     html,
     css,
+    ssrCss,
     slot,
-    events,
-    ssr
+    events
   }: <T, D, P>) {
     this.#Id = Id ?? `-id${generator.next().value}`
     this.#name = name
@@ -54,9 +54,9 @@ export class Class<T, D, P> {
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
+    if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
-    if (ssr) this.#ssr = ssr
   }
 
   #convertCase(str: string, type: 'camel' | 'kebab'): string {
@@ -86,9 +86,9 @@ export class Class<T, D, P> {
       data,
       html: this.#html[0],
       css: this.#css,
+      ssrCss: this.#ssrCss,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
-      events: this.#events,
-      ssr: this.#ssr
+      events: this.#events
     })
   }
 
@@ -147,7 +147,7 @@ export class Class<T, D, P> {
     for (const element of this.#toArray(arg))
       .appendChild(
         element instanceof Class
-          ? <HTMLElement>element.#render(propsChain)
+          ? element.#render(propsChain)
           : document.createRange().createContextualFragment(element)
       )
   }
@@ -299,48 +299,63 @@ export class Class<T, D, P> {
     return 
   }
 
-  #createHtml(Class: Class<T, D, P>, props: P, css?: Css<D, P>): string {
-    const tagName = Class.#getTagName()
-    const createTemplate = (html: any) =>
-      `
+  #renderOnServer(instance: Class<T, D, P>, propsChain?: PropsChain<P>) {
+    const html: Html<T, D, P> =
+      typeof instance.#html[0] === 'function'
+        ? instance.#html[0]({ data: { ...instance.#data }, props: { ...instance.#props } })
+        : instance.#html[0]
+
+    const createTemplate = (instance: Class<T, D, P>, html: Html<T, D, P>): string => {
+      const tagName = instance.#getTagName()
+
+      return `
         <${tagName}
-          class="${Class.#class === '' ? Class.#tagName : Class.#getClass()}"
+          class="${instance.#class === '' ? instance.#tagName : instance.#getClass()}"
           id="${tagName}"
           created-by="-js"
         >
           <template shadowroot="open">
             <slot></slot>
             ${
-              css || Class.#css.length > 0
-                ? `<style>${Class.#addCss(css || Class.#css)}</style>`
+              instance.#css.length > 0 || instance.#ssrCss.length > 0
+                ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
                 : ''
             }
             <script id="-ssr-json" type="application/json">
               ${JSON.stringify({
-                Id: Class.#Id,
-                name: Class.#name,
-                class: Class.#class,
-                inheritances: Class.#inheritances,
-                data: Class.#data,
-                html: Class.#html,
-                css: Class.#css,
-                slot: Class.#slot,
-                events: Class.#events
+                Id: instance.#Id,
+                name: instance.#name,
+                class: instance.#class,
+                inheritances: instance.#inheritances,
+                data: instance.#data,
+                html: instance.#html,
+                css: instance.#css,
+                slot: instance.#slot,
+                events: instance.#events
               })}
             </script>
           </template>
           ${html}
         </${tagName}>
       `.trim()
+    }
 
-    const html: Html<T, D, P> =
-      typeof Class.#html[0] === 'function'
-        ? Class.#html[0]({ data: { ...this.#data }, props: { ...props } })
-        : Class.#html[0]
+    const insertTemplate = (
+      arg: SingleOrArray<Class<T, D, P> | string>,
+      propsChain: PropsChain<P>
+    ): string => {
+      let html: string = ''
+
+      for (const element of this.#toArray(arg))
+        html +=
+          element instanceof Class ? createTemplate(element, '') : element
+
+      return html
+    }
 
     if (typeof html === 'string' || html instanceof Class || Array.isArray(html)) {
     } else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
-      this.#isEach = true
+      instance.#isEach = true
 
       if ('branches' in <EachIf<T, D, P>>html) {
         const { contents, branches, fallback } = <EachIf<T, D, P>>html
@@ -375,7 +390,7 @@ export class Class<T, D, P> {
       }
     }
 
-    return createTemplate(null)
+    return createTemplate(instance, [])
   }
 
   overwrite(partialData: () => Partial<D>): Class<T, D, P> {
@@ -416,7 +431,7 @@ export class Class<T, D, P> {
       )
   }
 
-  onServer(props?: P, css?: Css<D, P>): string {
-    return this.#createHtml(this.#clone(), props ?? <P>{}, css)
+  ssr(): string {
+    return this.#renderOnServer(this.#clone())
   }
 }
