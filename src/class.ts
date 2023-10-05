@@ -22,9 +22,9 @@ export class WelyClass<T, D, P> {
   readonly #data: D = <D>{}
   readonly #html: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
+  readonly #ssrCss: Css<D, P> = []
   readonly #slot: Slot<T, D, P>[] = []
   readonly #events: Events<D, P> = []
-  readonly #ssr: { props?: P; css?: Css<D, P> } | undefined = undefined
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
@@ -39,9 +39,9 @@ export class WelyClass<T, D, P> {
     data,
     html,
     css,
+    ssrCss,
     slot,
-    events,
-    ssr
+    events
   }: Wely<T, D, P>) {
     this.#welyId = welyId ?? `wely-id${generator.next().value}`
     this.#name = name
@@ -54,9 +54,9 @@ export class WelyClass<T, D, P> {
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
+    if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
-    if (ssr) this.#ssr = ssr
   }
 
   #convertCase(str: string, type: 'camel' | 'kebab'): string {
@@ -86,9 +86,9 @@ export class WelyClass<T, D, P> {
       data,
       html: this.#html[0],
       css: this.#css,
+      ssrCss: this.#ssrCss,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
-      events: this.#events,
-      ssr: this.#ssr
+      events: this.#events
     })
   }
 
@@ -147,7 +147,7 @@ export class WelyClass<T, D, P> {
     for (const element of this.#toArray(arg))
       wely.appendChild(
         element instanceof WelyClass
-          ? <HTMLElement>element.#render(propsChain)
+          ? element.#render(propsChain)
           : document.createRange().createContextualFragment(element)
       )
   }
@@ -299,48 +299,63 @@ export class WelyClass<T, D, P> {
     return wely
   }
 
-  #createHtml(welyClass: WelyClass<T, D, P>, props: P, css?: Css<D, P>): string {
-    const tagName = welyClass.#getTagName()
-    const createTemplate = (html: any) =>
-      `
+  #renderOnServer(instance: WelyClass<T, D, P>, propsChain?: PropsChain<P>) {
+    const html: Html<T, D, P> =
+      typeof instance.#html[0] === 'function'
+        ? instance.#html[0]({ data: { ...instance.#data }, props: { ...instance.#props } })
+        : instance.#html[0]
+
+    const createTemplate = (instance: WelyClass<T, D, P>, html: Html<T, D, P>): string => {
+      const tagName = instance.#getTagName()
+
+      return `
         <${tagName}
-          class="${welyClass.#class === '' ? welyClass.#tagName : welyClass.#getClass()}"
+          class="${instance.#class === '' ? instance.#tagName : instance.#getClass()}"
           id="${tagName}"
           created-by="wely-js"
         >
           <template shadowroot="open">
             <slot></slot>
             ${
-              css || welyClass.#css.length > 0
-                ? `<style>${welyClass.#addCss(css || welyClass.#css)}</style>`
+              instance.#css.length > 0 || instance.#ssrCss.length > 0
+                ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
                 : ''
             }
             <script id="wely-ssr-json" type="application/json">
               ${JSON.stringify({
-                welyId: welyClass.#welyId,
-                name: welyClass.#name,
-                class: welyClass.#class,
-                inheritances: welyClass.#inheritances,
-                data: welyClass.#data,
-                html: welyClass.#html,
-                css: welyClass.#css,
-                slot: welyClass.#slot,
-                events: welyClass.#events
+                welyId: instance.#welyId,
+                name: instance.#name,
+                class: instance.#class,
+                inheritances: instance.#inheritances,
+                data: instance.#data,
+                html: instance.#html,
+                css: instance.#css,
+                slot: instance.#slot,
+                events: instance.#events
               })}
             </script>
           </template>
           ${html}
         </${tagName}>
       `.trim()
+    }
 
-    const html: Html<T, D, P> =
-      typeof welyClass.#html[0] === 'function'
-        ? welyClass.#html[0]({ data: { ...this.#data }, props: { ...props } })
-        : welyClass.#html[0]
+    const insertTemplate = (
+      arg: SingleOrArray<WelyClass<T, D, P> | string>,
+      propsChain: PropsChain<P>
+    ): string => {
+      let html: string = ''
+
+      for (const element of this.#toArray(arg))
+        html +=
+          element instanceof WelyClass ? createTemplate(element, '') : element
+
+      return html
+    }
 
     if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html)) {
     } else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
-      this.#isEach = true
+      instance.#isEach = true
 
       if ('branches' in <EachIf<T, D, P>>html) {
         const { contents, branches, fallback } = <EachIf<T, D, P>>html
@@ -375,7 +390,7 @@ export class WelyClass<T, D, P> {
       }
     }
 
-    return createTemplate(null)
+    return createTemplate(instance, [])
   }
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
@@ -416,7 +431,7 @@ export class WelyClass<T, D, P> {
       )
   }
 
-  onServer(props?: P, css?: Css<D, P>): string {
-    return this.#createHtml(this.#clone(), props ?? <P>{}, css)
+  ssr(): string {
+    return this.#renderOnServer(this.#clone())
   }
 }
