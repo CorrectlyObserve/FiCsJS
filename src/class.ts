@@ -299,13 +299,71 @@ export class WelyClass<T, D, P> {
     return wely
   }
 
-  #renderOnServer(instance: WelyClass<T, D, P>, propsChain?: PropsChain<P>) {
-    const html: Html<T, D, P> =
-      typeof instance.#html[0] === 'function'
-        ? instance.#html[0]({ data: { ...instance.#data }, props: { ...instance.#props } })
-        : instance.#html[0]
+  #renderOnServer(propsChain?: PropsChain<P>) {
+    const that = this.#clone()
+    that.#setProps(propsChain)
 
-    const createTemplate = (instance: WelyClass<T, D, P>, html: Html<T, D, P>): string => {
+    const insertTemplate = (
+      arg: SingleOrArray<WelyClass<T, D, P> | string>,
+      propsChain: PropsChain<P>
+    ): string => {
+      let html: string = ''
+
+      for (const element of this.#toArray(arg))
+        html += element instanceof WelyClass ? element.#renderOnServer(propsChain) : element
+
+      return html
+    }
+
+    const addHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>) => {
+      const html: Html<T, D, P> =
+        typeof instance.#html[0] === 'function'
+          ? instance.#html[0]({ data: { ...instance.#data }, props: { ...instance.#props } })
+          : instance.#html[0]
+
+      if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
+        return insertTemplate(html, propsChain)
+
+      if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
+        instance.#isEach = true
+
+        if ('branches' in <EachIf<T, D, P>>html) {
+          const { contents, branches, fallback } = <EachIf<T, D, P>>html
+
+          contents.forEach((content, index) => {
+            for (const branch of branches)
+              if (branch.judge(content))
+                return insertTemplate(branch.render(content, index), propsChain)
+
+            if (fallback) return insertTemplate(fallback(content, index), propsChain)
+
+            return
+          })
+
+          return
+        }
+
+        const { contents, render } = <Each<T, D, P>>html
+
+        contents.forEach((content, index) => {
+          const renderer = render(content, index)
+          if (renderer) return insertTemplate(renderer, propsChain)
+
+          return
+        })
+      }
+
+      const { branches, fallback } = <If<T, D, P>>html
+
+      for (const branch of branches)
+        if (branch.judge) return insertTemplate(branch.render, propsChain)
+
+      if (fallback) return insertTemplate(fallback, propsChain)
+
+      return
+    }
+
+    const createStringHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>): string => {
       const tagName = instance.#getTagName()
 
       return `
@@ -335,62 +393,12 @@ export class WelyClass<T, D, P> {
               })}
             </script>
           </template>
-          ${html}
+          ${addHtml(instance, propsChain)}
         </${tagName}>
       `.trim()
     }
 
-    const insertTemplate = (
-      arg: SingleOrArray<WelyClass<T, D, P> | string>,
-      propsChain: PropsChain<P>
-    ): string => {
-      let html: string = ''
-
-      for (const element of this.#toArray(arg))
-        html +=
-          element instanceof WelyClass ? createTemplate(element, '') : element
-
-      return html
-    }
-
-    if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html)) {
-    } else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
-      instance.#isEach = true
-
-      if ('branches' in <EachIf<T, D, P>>html) {
-        const { contents, branches, fallback } = <EachIf<T, D, P>>html
-
-        contents.forEach((content, index) => {
-          for (const branch of branches)
-            if (branch.judge(content)) {
-            }
-
-          if (fallback) {
-          }
-        })
-      } else {
-        const { contents, render } = <Each<T, D, P>>html
-
-        contents.forEach((content, index) => {
-          const renderer = render(content, index)
-          if (renderer) {
-          }
-        })
-      }
-    } else {
-      const { branches, fallback } = <If<T, D, P>>html
-      let isInserted = false
-
-      for (const branch of branches)
-        if (branch.judge) {
-          isInserted = true
-        }
-
-      if (!isInserted && fallback) {
-      }
-    }
-
-    return createTemplate(instance, [])
+    return createStringHtml(that, that.#propsChain)
   }
 
   overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
@@ -432,6 +440,6 @@ export class WelyClass<T, D, P> {
   }
 
   ssr(): string {
-    return this.#renderOnServer(this.#clone())
+    return this.#renderOnServer()
   }
 }
