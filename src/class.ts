@@ -365,6 +365,10 @@ export class WelyClass<T, D, P> {
 
     const createStringHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>): string => {
       const tagName = instance.#getTagName()
+      const style =
+        instance.#css.length > 0 || instance.#ssrCss.length > 0
+          ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
+          : ''
 
       return `
         <${tagName}
@@ -373,12 +377,7 @@ export class WelyClass<T, D, P> {
           created-by="wely-js"
         >
           <template shadowroot="open">
-            <slot></slot>
-            ${
-              instance.#css.length > 0 || instance.#ssrCss.length > 0
-                ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
-                : ''
-            }
+            <slot></slot>${style}
             <script id="wely-ssr-json" type="application/json">
               ${JSON.stringify({
                 welyId: instance.#welyId,
