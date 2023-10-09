@@ -3,14 +3,14 @@ import {  } from './types'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
-  ...variables: Class<T, D, P>[]
+  ...variables: (Class<T, D, P> | unknown)[]
 ): (Class<T, D, P> | string)[] => {
   const result: (string | Class<T, D, P>)[] = []
   let isSkipped: boolean = false
 
   for (let i = 0; i < templates.length; i++) {
     const template = templates[i]
-    const variable = variables[i]
+    let variable = variables[i]
 
     if (variable instanceof Class || variable === undefined) {
       if (template !== '' && !isSkipped) result.push(template)
@@ -18,6 +18,9 @@ export const html = <T, D, P>(
 
       isSkipped = false
     } else {
+      if (typeof variable === 'string')
+        variable = variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+
       result.push(`${template}${variable}${templates[i + 1]}`)
       isSkipped = true
     }
