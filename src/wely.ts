@@ -3,14 +3,14 @@ import { Wely } from './types'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
-  ...variables: WelyClass<T, D, P>[]
+  ...variables: (WelyClass<T, D, P> | unknown)[]
 ): (WelyClass<T, D, P> | string)[] => {
   const result: (string | WelyClass<T, D, P>)[] = []
   let isSkipped: boolean = false
 
   for (let i = 0; i < templates.length; i++) {
     const template = templates[i]
-    const variable = variables[i]
+    let variable = variables[i]
 
     if (variable instanceof WelyClass || variable === undefined) {
       if (template !== '' && !isSkipped) result.push(template)
@@ -18,6 +18,9 @@ export const html = <T, D, P>(
 
       isSkipped = false
     } else {
+      if (typeof variable === 'string')
+        variable = variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+
       result.push(`${template}${variable}${templates[i + 1]}`)
       isSkipped = true
     }
