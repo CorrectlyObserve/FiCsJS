@@ -1,5 +1,6 @@
 import { WelyClass } from './class'
 import { Wely } from './types'
+import { sanitize } from './utils'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
@@ -18,8 +19,7 @@ export const html = <T, D, P>(
 
       isSkipped = false
     } else {
-      if (typeof variable === 'string')
-        variable = variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+      if (typeof variable === 'string' && variable !== '') variable = sanitize(variable)
 
       result.push(`${template}${variable}${templates[i + 1]}`)
       isSkipped = true
