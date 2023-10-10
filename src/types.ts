@@ -44,7 +44,7 @@ export interface If<T, D, P> {
 
 export type Inheritances<T, D, P> = {
   descendants: SingleOrArray<WelyClass<T, D | any, P | any>>
-  props: (data: D) => P
+  props: (data: D) => P | any
 }[]
 
 export interface PropsChain<P> {
