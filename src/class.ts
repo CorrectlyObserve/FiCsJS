@@ -378,13 +378,13 @@ export class Class<T, D, P> {
         >
           <template shadowroot="open">
             <slot></slot>${style}
-            <script id="-ssr-json" type="application/json">
+            <script type="application/json">
               ${JSON.stringify({
                 Id: instance.#Id,
                 name: instance.#name,
                 class: instance.#class,
-                inheritances: instance.#inheritances,
                 data: instance.#data,
+                props: instance.#props,
                 html: instance.#html,
                 css: instance.#css,
                 slot: instance.#slot,
