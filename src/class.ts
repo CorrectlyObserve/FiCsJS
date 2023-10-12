@@ -378,13 +378,13 @@ export class WelyClass<T, D, P> {
         >
           <template shadowroot="open">
             <slot></slot>${style}
-            <script id="wely-ssr-json" type="application/json">
+            <script type="application/json">
               ${JSON.stringify({
                 welyId: instance.#welyId,
                 name: instance.#name,
                 class: instance.#class,
-                inheritances: instance.#inheritances,
                 data: instance.#data,
+                props: instance.#props,
                 html: instance.#html,
                 css: instance.#css,
                 slot: instance.#slot,
