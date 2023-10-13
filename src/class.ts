@@ -5,7 +5,7 @@ import {
   EachIf,
   Events,
   Html,
-  HtmlValue,
+  HtmlOrSlot,
   If,
   Inheritances,
   PropsChain,
@@ -140,9 +140,7 @@ export class WelyClass<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
   }
 
-  #getHtml(): HtmlValue<T, D, P> {
-    const html: Html<T, D, P> = this.#html[0]
-
+  #convertHtml(html: Html<T, D, P> | Slot<T, D, P> = this.#html[0]): HtmlOrSlot<T, D, P> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
@@ -162,7 +160,7 @@ export class WelyClass<T, D, P> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
-    const html: Html<T, D, P> = this.#getHtml()
+    const html: Html<T, D, P> = this.#convertHtml()
 
     if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
       this.#appendChild(html, shadowRoot, propsChain)
@@ -227,9 +225,7 @@ export class WelyClass<T, D, P> {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#appendChild(
-          typeof slot === 'function'
-            ? slot({ data: { ...this.#data }, props: { ...this.#props } })
-            : slot,
+          <WelyClass<T, D, P> | string>this.#convertHtml(<Slot<T, D, P>>slot),
           wely,
           propsChain
         )
@@ -322,7 +318,7 @@ export class WelyClass<T, D, P> {
     }
 
     const addHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>) => {
-      const html: Html<T, D, P> = instance.#getHtml()
+      const html: Html<T, D, P> = instance.#convertHtml()
 
       if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
         return insertTemplate(html, propsChain)
