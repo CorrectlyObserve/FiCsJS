@@ -29,10 +29,10 @@ export type Events<D, P> = {
 }[]
 
 export type Html<T, D, P> =
-  | HtmlArg<T, D, P>
-  | (({ data, props }: { data: D | any; props: P }) => HtmlArg<T, D, P>)
+  | HtmlValue<T, D, P>
+  | (({ data, props }: { data: D | any; props: P }) => HtmlValue<T, D, P>)
 
-type HtmlArg<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
+export type HtmlValue<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
 
 export interface If<T, D, P> {
   branches: {
