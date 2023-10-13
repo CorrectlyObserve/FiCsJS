@@ -3,7 +3,7 @@ import {
   Css,
   Each,
   EachIf,
-  Events,
+  EventHandler,
   Html,
   HtmlOrSlot,
   If,
@@ -25,7 +25,7 @@ export class WelyClass<T, D, P> {
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
   readonly #slot: Slot<T, D, P>[] = []
-  readonly #events: Events<D, P> = []
+  readonly #events: EventHandler<D, P>[] = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
@@ -376,6 +376,24 @@ export class WelyClass<T, D, P> {
             ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
             : ''
 
+        const addEvents = (events: EventHandler<D, P>[]) =>
+          events.map(event => {
+            const eventObj: {
+              handler: string
+              selector?: string
+              method: string
+            } = { handler: '', method: '' }
+
+            Object.keys(event).forEach(key => {
+              const eventKey = <'handler' | 'selector' | 'method'>key
+
+              eventObj[eventKey] =
+                eventKey === 'method' ? `'${event[eventKey]}'` : `${event[eventKey]}`
+            })
+
+            return eventObj
+          })
+
         return `
         <${tagName}
           class="${instance.#class === '' ? instance.#tagName : instance.#getClass()}"
@@ -391,10 +409,9 @@ export class WelyClass<T, D, P> {
                 class: instance.#class,
                 data: instance.#data,
                 props: instance.#props,
-                html:
-                  typeof instance.#html[0] === 'function' ? `'${instance.#html}'` : instance.#html,
+                html: that.#convertHtml(instance.#html[0]),
                 css: instance.#css,
-                events: instance.#events
+                events: addEvents(instance.#events)
               })}
             </script>
           </template>
