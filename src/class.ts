@@ -371,53 +371,77 @@ export class WelyClass<T, D, P> {
         propsChain: PropsChain<P>
       ): string => {
         const tagName = instance.#getTagName()
-        const style =
-          instance.#css.length > 0 || instance.#ssrCss.length > 0
-            ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
-            : ''
+        const getDataOrProps = (arg: D | P): D | P => {
+          const obj: Record<string, unknown> = {}
+          const convertedArg = <Record<string, unknown>>arg
 
-        const addEvents = (events: EventHandler<D, P>[]) =>
-          events.map(event => {
-            const eventObj: {
-              handler: string
-              selector?: string
-              method: string
-            } = { handler: '', method: '' }
+          const getValue = (key: string): unknown => {
+            if (convertedArg.hasOwnProperty(key)) {
+              const value = convertedArg[key]
 
-            Object.keys(event).forEach(key => {
-              const eventKey = <'handler' | 'selector' | 'method'>key
+              if (Array.isArray(value)) return [...value]
 
-              eventObj[eventKey] =
-                eventKey === 'method' ? `'${event[eventKey]}'` : `${event[eventKey]}`
-            })
+              if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype)
+                return { ...value }
 
-            return eventObj
+              if (typeof value === 'function') return `'${value}'`
+
+              return value
+            }
+
+            return
+          }
+
+          Object.keys(arg ?? {}).forEach(key => {
+            if (key !== '') obj[key] = getValue(key)
           })
 
+          return <D | P>obj
+        }
+
         return `
-        <${tagName}
-          class="${instance.#class === '' ? instance.#tagName : instance.#getClass()}"
-          id="${tagName}"
-          created-by="wely-js"
-        >
-          <template shadowroot="open">
-            <slot></slot>${style}
-            <script type="application/json">
-              ${JSON.stringify({
-                welyId: instance.#welyId,
-                name: instance.#name,
-                class: instance.#class,
-                data: instance.#data,
-                props: instance.#props,
-                html: that.#convertHtml(instance.#html[0]),
-                css: instance.#css,
-                events: addEvents(instance.#events)
-              })}
-            </script>
-          </template>
-          ${addHtml(instance, propsChain)}
-        </${tagName}>
-      `.trim()
+          <${tagName}
+            class="${instance.#class === '' ? instance.#tagName : instance.#getClass()}"
+            id="${tagName}"
+            created-by="wely-js"
+          >
+            <template shadowroot="open">
+              <slot></slot>
+              ${
+                instance.#css.length > 0 || instance.#ssrCss.length > 0
+                  ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
+                  : ''
+              }
+              <script type="application/json">
+                ${JSON.stringify({
+                  welyId: instance.#welyId,
+                  name: instance.#name,
+                  class: instance.#class,
+                  data: <D>getDataOrProps(instance.#data),
+                  props: <P>getDataOrProps(instance.#props),
+                  html: that.#convertHtml(instance.#html[0]),
+                  css: instance.#css,
+                  events: instance.#events.map(event => {
+                    const eventObj: { handler: string; selector?: string; method: string } = {
+                      handler: '',
+                      method: ''
+                    }
+
+                    Object.keys(event).forEach(key => {
+                      const eventKey = <'handler' | 'selector' | 'method'>key
+
+                      eventObj[eventKey] =
+                        eventKey === 'method' ? `'${event[eventKey]}'` : `${event[eventKey]}`
+                    })
+
+                    return eventObj
+                  })
+                })}
+              </script>
+            </template>
+            ${addHtml(instance, propsChain)}
+          </${tagName}>
+        `.trim()
       }
 
       return createStringHtml(that, that.#propsChain)
