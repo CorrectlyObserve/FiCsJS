@@ -5,6 +5,7 @@ import {
   EachIf,
   Events,
   Html,
+  HtmlValue,
   If,
   Inheritances,
   PropsChain,
@@ -139,6 +140,14 @@ export class WelyClass<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
   }
 
+  #getHtml(): HtmlValue<T, D, P> {
+    const html: Html<T, D, P> = this.#html[0]
+
+    return typeof html === 'function'
+      ? html({ data: { ...this.#data }, props: { ...this.#props } })
+      : html
+  }
+
   #appendChild(
     arg: SingleOrArray<WelyClass<T, D, P> | string>,
     wely: HTMLElement | ShadowRoot,
@@ -153,10 +162,7 @@ export class WelyClass<T, D, P> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
-    const html: Html<T, D, P> =
-      typeof this.#html[0] === 'function'
-        ? this.#html[0]({ data: { ...this.#data }, props: { ...this.#props } })
-        : this.#html[0]
+    const html: Html<T, D, P> = this.#getHtml()
 
     if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
       this.#appendChild(html, shadowRoot, propsChain)
@@ -316,10 +322,7 @@ export class WelyClass<T, D, P> {
     }
 
     const addHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>) => {
-      const html: Html<T, D, P> =
-        typeof instance.#html[0] === 'function'
-          ? instance.#html[0]({ data: { ...instance.#data }, props: { ...instance.#props } })
-          : instance.#html[0]
+      const html: Html<T, D, P> = instance.#getHtml()
 
       if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
         return insertTemplate(html, propsChain)
