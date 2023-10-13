@@ -32,6 +32,10 @@ export type Html<T, D, P> =
   | HtmlValue<T, D, P>
   | (({ data, props }: { data: D | any; props: P }) => HtmlValue<T, D, P>)
 
+export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, D, P>
+  ? HtmlValue<T, D, P>
+  : WelyClass<T, D, P> | string
+
 export type HtmlValue<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
 
 export interface If<T, D, P> {
