@@ -22,11 +22,11 @@ export interface EachIf<T, D, P> {
   fallback?: (arg: T, index: number) => Result<T, D, P>
 }
 
-export type Events<D, P> = {
+export interface EventHandler<D, P> {
   handler: string
   selector?: string
   method: ({ data, props }: { data: D; props: P }, event: Event, index?: number) => void
-}[]
+}
 
 export type Html<T, D, P> =
   | HtmlValue<T, D, P>
@@ -74,5 +74,5 @@ export interface Wely<T, D, P> {
   css?: Css<D, P>
   ssrCss?: Css<D, P>
   slot?: Slot<T, D, P>
-  events?: Events<D, P>
+  events?: EventHandler<D, P>[]
 }
