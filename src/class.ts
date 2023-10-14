@@ -93,10 +93,6 @@ export class WelyClass<T, D, P> {
     })
   }
 
-  #getTagName(): string {
-    return `w-${this.#tagName}`
-  }
-
   #getClass(): string {
     return this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
   }
@@ -273,10 +269,11 @@ export class WelyClass<T, D, P> {
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
+    const tagName = `w-${that.#tagName}`
 
-    if (!customElements.get(that.#getTagName()))
+    if (!customElements.get(tagName))
       customElements.define(
-        that.#getTagName(),
+        tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -287,7 +284,7 @@ export class WelyClass<T, D, P> {
         }
       )
 
-    const wely = that.#component || document.createElement(this.#getTagName())
+    const wely = that.#component || document.createElement(tagName)
 
     that.#addClass(wely)
     that.#setProps(propsChain)
@@ -370,7 +367,7 @@ export class WelyClass<T, D, P> {
         instance: WelyClass<T, D, P>,
         propsChain: PropsChain<P>
       ): string => {
-        const tagName = instance.#getTagName()
+        const tagName = `w-${instance.#tagName}`
 
         const getDataOrProps = (arg: D | P): D | P => {
           const getDataOrProps: Record<string, unknown> = {}
@@ -453,10 +450,11 @@ export class WelyClass<T, D, P> {
 
   define(): void {
     const that = this.#clone()
+    const tagName = `w-${that.#tagName}`
 
-    if (!customElements.get(that.#getTagName()))
+    if (!customElements.get(tagName))
       customElements.define(
-        that.#getTagName(),
+        tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
