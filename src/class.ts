@@ -371,32 +371,28 @@ export class WelyClass<T, D, P> {
         propsChain: PropsChain<P>
       ): string => {
         const tagName = instance.#getTagName()
+
         const getDataOrProps = (arg: D | P): D | P => {
-          const obj: Record<string, unknown> = {}
-          const convertedArg = <Record<string, unknown>>arg
+          const getDataOrProps: Record<string, unknown> = {}
 
           const getValue = (key: string): unknown => {
-            if (convertedArg.hasOwnProperty(key)) {
-              const value = convertedArg[key]
+            if ((<Record<string, unknown>>arg).hasOwnProperty(key)) {
+              const value = (<Record<string, unknown>>arg)[key]
 
               if (Array.isArray(value)) return [...value]
 
               if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype)
                 return { ...value }
 
-              if (typeof value === 'function') return `'${value}'`
-
-              return value
+              return typeof value === 'function' ? `'${value}'` : value
             }
 
             return
           }
 
-          Object.keys(arg ?? {}).forEach(key => {
-            if (key !== '') obj[key] = getValue(key)
-          })
+          Object.keys(arg ?? {}).forEach(key => (getDataOrProps[key] = getValue(key)))
 
-          return <D | P>obj
+          return <D | P>getDataOrProps
         }
 
         return `
