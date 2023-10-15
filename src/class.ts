@@ -1,4 +1,5 @@
 import generator from './generator'
+import { htmlSymbol } from './symbol'
 import {
   Css,
   Each,
@@ -158,8 +159,12 @@ export class WelyClass<T, D, P> {
   #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
     const html: Html<T, D, P> = this.#convertHtml()
 
-    if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
-      this.#appendChild(html, shadowRoot, propsChain)
+    if (html.hasOwnProperty(htmlSymbol))
+      this.#appendChild(
+        (<Record<symbol, (WelyClass<T, D, P> | string)[]>>html)[htmlSymbol],
+        shadowRoot,
+        propsChain
+      )
     else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
       this.#isEach = true
 
