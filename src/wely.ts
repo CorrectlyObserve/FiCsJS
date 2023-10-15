@@ -1,10 +1,11 @@
 import { Class } from './class'
+import { htmlSymbol } from './symbol'
 import {  } from './types'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: (Class<T, D, P> | unknown)[]
-): (Class<T, D, P> | string)[] => {
+): Record<symbol, (Class<T, D, P> | string)[]> => {
   const result: (string | Class<T, D, P>)[] = []
   let isSkipped: boolean = false
 
@@ -26,7 +27,7 @@ export const html = <T, D, P>(
     }
   }
 
-  return result
+  return { [htmlSymbol]: result }
 }
 
 export const  = <T, D, P>({
