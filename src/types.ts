@@ -36,7 +36,11 @@ export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, 
   ? HtmlValue<T, D, P>
   : WelyClass<T, D, P> | string
 
-export type HtmlValue<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
+type HtmlValue<T, D, P> =
+  | Record<symbol, Result<T, D, P>>
+  | Each<T, D, P>
+  | EachIf<T, D, P>
+  | If<T, D, P>
 
 export interface If<T, D, P> {
   branches: {
@@ -61,8 +65,8 @@ type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P | any> | string>
 export type SingleOrArray<T> = T | T[]
 
 export type Slot<T, D, P> =
-  | Result<T, D, P>
-  | (({ data, props }: { data: D; props: P }) => Result<T, D, P>)
+  | Record<symbol, Result<T, D, P>>
+  | (({ data, props }: { data: D; props: P }) => Record<symbol, Result<T, D, P>>)
 
 export interface Wely<T, D, P> {
   welyId?: string
