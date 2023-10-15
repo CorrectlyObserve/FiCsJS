@@ -226,7 +226,9 @@ export class Class<T, D, P> {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#appendChild(
-          <Class<T, D, P> | string>this.#convertHtml(<Slot<T, D, P>>slot),
+          (<Record<symbol, (Class<T, D, P> | string)[]>>this.#convertHtml(<Slot<T, D, P>>slot))[
+            htmlSymbol
+          ],
           ,
           propsChain
         )
