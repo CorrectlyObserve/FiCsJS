@@ -186,7 +186,7 @@ export class WelyClass<T, D, P> {
           if (renderer) this.#appendChild(renderer, shadowRoot, propsChain)
         })
       }
-    } else {
+    } else if ('contents' in <If<T, D, P>>html) {
       const { branches, fallback } = <If<T, D, P>>html
       let isInserted = false
 
@@ -197,7 +197,10 @@ export class WelyClass<T, D, P> {
         }
 
       if (!isInserted && fallback) this.#appendChild(fallback, shadowRoot, propsChain)
-    }
+    } else
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
+      )
   }
 
   #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
@@ -360,14 +363,20 @@ export class WelyClass<T, D, P> {
           })
         }
 
-        const { branches, fallback } = <If<T, D, P>>html
+        if ('contents' in <If<T, D, P>>html) {
+          const { branches, fallback } = <If<T, D, P>>html
 
-        for (const branch of branches)
-          if (branch.judge) return insertTemplate(branch.render, propsChain)
+          for (const branch of branches)
+            if (branch.judge) return insertTemplate(branch.render, propsChain)
 
-        if (fallback) return insertTemplate(fallback, propsChain)
+          if (fallback) return insertTemplate(fallback, propsChain)
 
-        return
+          return
+        }
+
+        throw Error(
+          `${this.#name} has to use html function (tagged template literal) in html argument.`
+        )
       }
 
       const createStringHtml = (
