@@ -36,6 +36,8 @@ export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, 
   ? HtmlValue<T, D, P>
   : WelyClass<T, D, P> | string
 
+export type HtmlSymbol<T, D, P> = Record<symbol, (WelyClass<T, D, P> | string)[]>
+
 type HtmlValue<T, D, P> =
   | Record<symbol, Result<T, D, P>>
   | Each<T, D, P>
