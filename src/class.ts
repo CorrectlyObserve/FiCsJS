@@ -7,6 +7,7 @@ import {
   EventHandler,
   Html,
   HtmlOrSlot,
+  HtmlSymbol,
   If,
   Inheritances,
   PropsChain,
@@ -160,11 +161,7 @@ export class WelyClass<T, D, P> {
     const html: Html<T, D, P> = this.#convertHtml()
 
     if (html.hasOwnProperty(htmlSymbol))
-      this.#appendChild(
-        (<Record<symbol, (WelyClass<T, D, P> | string)[]>>html)[htmlSymbol],
-        shadowRoot,
-        propsChain
-      )
+      this.#appendChild((<HtmlSymbol<T, D, P>>html)[htmlSymbol], shadowRoot, propsChain)
     else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
       this.#isEach = true
 
@@ -229,9 +226,7 @@ export class WelyClass<T, D, P> {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#appendChild(
-          (<Record<symbol, (WelyClass<T, D, P> | string)[]>>this.#convertHtml(<Slot<T, D, P>>slot))[
-            htmlSymbol
-          ],
+          (<HtmlSymbol<T, D, P>>this.#convertHtml(<Slot<T, D, P>>slot))[htmlSymbol],
           wely,
           propsChain
         )
