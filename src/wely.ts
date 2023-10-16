@@ -1,11 +1,11 @@
 import { WelyClass } from './class'
 import { htmlSymbol } from './symbol'
-import { Wely } from './types'
+import { HtmlSymbol, Wely } from './types'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyClass<T, D, P> | unknown)[]
-): Record<symbol, (WelyClass<T, D, P> | string)[]> => {
+): HtmlSymbol<T, D, P> => {
   const result: (string | WelyClass<T, D, P>)[] = []
   let isSkipped: boolean = false
 
