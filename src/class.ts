@@ -326,8 +326,8 @@ export class WelyClass<T, D, P> {
       const addHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>) => {
         const html: Html<T, D, P> = instance.#convertHtml()
 
-        if (typeof html === 'string' || html instanceof WelyClass || Array.isArray(html))
-          return insertTemplate(html, propsChain)
+        if (html.hasOwnProperty(htmlSymbol))
+          return insertTemplate((<HtmlSymbol<T, D, P>>html)[htmlSymbol], propsChain)
 
         if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
           instance.#isEach = true
