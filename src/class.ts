@@ -1,5 +1,4 @@
-import generator from './generator'
-import { htmlSymbol } from './symbol'
+import { generator, symbol } from './utils'
 import {
   Css,
   Each,
@@ -160,8 +159,8 @@ export class WelyClass<T, D, P> {
   #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
     const html: Html<T, D, P> = this.#convertHtml()
 
-    if (html.hasOwnProperty(htmlSymbol))
-      this.#appendChild((<HtmlSymbol<T, D, P>>html)[htmlSymbol], shadowRoot, propsChain)
+    if (html.hasOwnProperty(symbol))
+      this.#appendChild((<HtmlSymbol<T, D, P>>html)[symbol], shadowRoot, propsChain)
     else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
       this.#isEach = true
 
@@ -226,7 +225,7 @@ export class WelyClass<T, D, P> {
     if (this.#slot.length > 0)
       for (const slot of this.#toArray(this.#slot))
         this.#appendChild(
-          (<HtmlSymbol<T, D, P>>this.#convertHtml(<Slot<T, D, P>>slot))[htmlSymbol],
+          (<HtmlSymbol<T, D, P>>this.#convertHtml(<Slot<T, D, P>>slot))[symbol],
           wely,
           propsChain
         )
@@ -326,8 +325,8 @@ export class WelyClass<T, D, P> {
       const addHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>) => {
         const html: Html<T, D, P> = instance.#convertHtml()
 
-        if (html.hasOwnProperty(htmlSymbol))
-          return insertTemplate((<HtmlSymbol<T, D, P>>html)[htmlSymbol], propsChain)
+        if (html.hasOwnProperty(symbol))
+          return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], propsChain)
 
         if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
           instance.#isEach = true
