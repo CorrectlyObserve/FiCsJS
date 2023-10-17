@@ -1,6 +1,6 @@
 import { Class } from './class'
-import { htmlSymbol } from './symbol'
 import { HtmlSymbol,  } from './types'
+import { symbol } from './utils'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
@@ -27,7 +27,7 @@ export const html = <T, D, P>(
     }
   }
 
-  return { [htmlSymbol]: result }
+  return { [symbol]: result }
 }
 
 export const  = <T, D, P>({
