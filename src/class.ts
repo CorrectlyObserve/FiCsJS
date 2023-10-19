@@ -10,7 +10,7 @@ import {
   If,
   Inheritances,
   PropsChain,
-  SingleOrArray,
+  SanitizedHtml,
   Slot,
   Wely
 } from './types'
@@ -144,7 +144,7 @@ export class WelyClass<T, D, P> {
   }
 
   #appendChild(
-    arg: SingleOrArray<WelyClass<T, D, P> | string>,
+    arg: SanitizedHtml<T, D, P> | WelyClass<T, D, P> | string,
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
@@ -311,7 +311,7 @@ export class WelyClass<T, D, P> {
       that.#setProps(propsChain)
 
       const insertTemplate = (
-        arg: SingleOrArray<WelyClass<T, D, P> | string>,
+        arg: SanitizedHtml<T, D, P> | WelyClass<T, D, P> | string,
         propsChain: PropsChain<P>
       ): string => {
         let html: string = ''
