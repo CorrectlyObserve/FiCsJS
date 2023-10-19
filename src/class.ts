@@ -20,7 +20,7 @@ export class WelyClass<T, D, P> {
   readonly #name: string = ''
   readonly #tagName: string = ''
   readonly #class: string = ''
-  readonly #inheritances: Inheritances<T, D, P> = []
+  readonly #inheritances: Inheritances<T, D> = []
   readonly #data: D = <D>{}
   readonly #html: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
@@ -115,7 +115,7 @@ export class WelyClass<T, D, P> {
           const welyId = descendant.#welyId
 
           if (propsChain.descendants.has(welyId)) {
-            const setPropsChain = (chain: Record<string, P | any>): void => {
+            const setPropsChain = (chain: Record<string, any>): void => {
               const currentChain = chain[this.#convertCase(welyId, 'camel')]!
 
               if (currentChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(currentChain))
@@ -161,11 +161,11 @@ export class WelyClass<T, D, P> {
 
     if (html.hasOwnProperty(symbol))
       this.#appendChild((<HtmlSymbol<T, D, P>>html)[symbol], shadowRoot, propsChain)
-    else if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
+    else if ('contents' in <Each<T> | EachIf<T>>html) {
       this.#isEach = true
 
-      if ('branches' in <EachIf<T, D, P>>html) {
-        const { contents, branches, fallback } = <EachIf<T, D, P>>html
+      if ('branches' in <EachIf<T>>html) {
+        const { contents, branches, fallback } = <EachIf<T>>html
 
         contents.forEach((content, index) => {
           for (const branch of branches)
@@ -175,15 +175,15 @@ export class WelyClass<T, D, P> {
           if (fallback) this.#appendChild(fallback(content, index), shadowRoot, propsChain)
         })
       } else {
-        const { contents, render } = <Each<T, D, P>>html
+        const { contents, render } = <Each<T>>html
 
         contents.forEach((content, index) => {
           const renderer = render(content, index)
           if (renderer) this.#appendChild(renderer, shadowRoot, propsChain)
         })
       }
-    } else if ('contents' in <If<T, D, P>>html) {
-      const { branches, fallback } = <If<T, D, P>>html
+    } else if ('contents' in <If<T>>html) {
+      const { branches, fallback } = <If<T>>html
       let isInserted = false
 
       for (const branch of branches)
@@ -328,11 +328,11 @@ export class WelyClass<T, D, P> {
         if (html.hasOwnProperty(symbol))
           return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], propsChain)
 
-        if ('contents' in <Each<T, D, P> | EachIf<T, D, P>>html) {
+        if ('contents' in <Each<T> | EachIf<T>>html) {
           instance.#isEach = true
 
-          if ('branches' in <EachIf<T, D, P>>html) {
-            const { contents, branches, fallback } = <EachIf<T, D, P>>html
+          if ('branches' in <EachIf<T>>html) {
+            const { contents, branches, fallback } = <EachIf<T>>html
 
             contents.forEach((content, index) => {
               for (const branch of branches)
@@ -347,7 +347,7 @@ export class WelyClass<T, D, P> {
             return
           }
 
-          const { contents, render } = <Each<T, D, P>>html
+          const { contents, render } = <Each<T>>html
 
           contents.forEach((content, index) => {
             const renderer = render(content, index)
@@ -357,8 +357,8 @@ export class WelyClass<T, D, P> {
           })
         }
 
-        if ('contents' in <If<T, D, P>>html) {
-          const { branches, fallback } = <If<T, D, P>>html
+        if ('contents' in <If<T>>html) {
+          const { branches, fallback } = <If<T>>html
 
           for (const branch of branches)
             if (branch.judge) return insertTemplate(branch.render, propsChain)
