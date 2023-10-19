@@ -10,7 +10,7 @@ import {
   If,
   Inheritances,
   PropsChain,
-  SingleOrArray,
+  SanitizedHtml,
   Slot,
   
 } from './types'
@@ -144,7 +144,7 @@ export class Class<T, D, P> {
   }
 
   #appendChild(
-    arg: SingleOrArray<Class<T, D, P> | string>,
+    arg: SanitizedHtml<T, D, P> | Class<T, D, P> | string,
     : HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
@@ -311,7 +311,7 @@ export class Class<T, D, P> {
       that.#setProps(propsChain)
 
       const insertTemplate = (
-        arg: SingleOrArray<Class<T, D, P> | string>,
+        arg: SanitizedHtml<T, D, P> | Class<T, D, P> | string,
         propsChain: PropsChain<P>
       ): string => {
         let html: string = ''
