@@ -36,7 +36,7 @@ export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, 
   ? HtmlValue<T, D, P>
   : WelyClass<T, D, P> | string
 
-export type HtmlSymbol<T, D, P> = Record<symbol, (WelyClass<T, D, P> | string)[]>
+export type HtmlSymbol<T, D, P> = Record<symbol, SanitizedHtml<T, D, P>>
 
 type HtmlValue<T, D, P> =
   | Record<symbol, Result<T, D, P>>
@@ -64,7 +64,9 @@ export interface PropsChain<P> {
 
 type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P | any> | string>
 
-export type SingleOrArray<T> = T | T[]
+export type SanitizedHtml<T, D, P> = (WelyClass<T, D, P> | string)[]
+
+type SingleOrArray<T> = T | T[]
 
 export type Slot<T, D, P> =
   | Record<symbol, Result<T, D, P>>
