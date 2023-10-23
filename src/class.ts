@@ -203,23 +203,24 @@ export class WelyClass<T, D, P> {
 
   #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
     if (css.length > 0) {
-      let styleContent = ''
+      const styleContent = <string>css.reduce((prev, current) => {
+        if (typeof current === 'string') return `${prev}${current}`
 
-      css.forEach(cssObj => {
-        if (typeof cssObj === 'string') styleContent += cssObj
-        else if (cssObj.selector && 'style' in cssObj)
-          styleContent +=
-            cssObj.selector +
-            `{${Object.entries(cssObj.style({ data: { ...this.#data }, props: { ...this.#props } }))
-              .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
-              .join('\n')}}`
-      })
+        if (current.selector && 'style' in current)
+          return `${prev}${current.selector}{${Object.entries(
+            current.style({ data: { ...this.#data }, props: { ...this.#props } })
+          )
+            .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
+            .join('\n')}}`
+
+        return ''
+      }, '')
 
       if (!shadowRoot) return styleContent
 
       const stylesheet = new CSSStyleSheet()
-      shadowRoot!.adoptedStyleSheets = [stylesheet]
-      stylesheet.replace(`${styleContent}`)
+      shadowRoot.adoptedStyleSheets = [stylesheet]
+      stylesheet.replace(styleContent)
     }
   }
 
