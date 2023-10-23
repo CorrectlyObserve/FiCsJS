@@ -1,4 +1,3 @@
-import { generator, symbol } from './utils'
 import {
   Css,
   Each,
@@ -14,6 +13,7 @@ import {
   Slot,
   
 } from './types'
+import { generator, symbol } from './utils'
 
 export class Class<T, D, P> {
   readonly #Id: string = ''
