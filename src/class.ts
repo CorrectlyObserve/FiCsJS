@@ -95,7 +95,7 @@ export class Class<T, D, P> {
   }
 
   #getClass(): string {
-    return this.#class.split(' ').reduce((prev, current) => `${prev} ${current}`, this.#tagName)
+    return this.#class.split(' ').reduce((prev, current) => prev + ' ' + current, this.#tagName)
   }
 
   #addClass(: HTMLElement): void {
@@ -204,7 +204,7 @@ export class Class<T, D, P> {
   #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
     if (css.length > 0) {
       const styleContent = <string>css.reduce((prev, current) => {
-        if (typeof current === 'string') return `${prev}${current}`
+        if (typeof current === 'string') return prev + current
 
         if (current.selector && 'style' in current)
           return `${prev}${current.selector}{${Object.entries(
