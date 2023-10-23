@@ -137,7 +137,9 @@ export class WelyClass<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
   }
 
-  #convertHtml(html: Html<T, D, P> | Slot<T, D, P> = this.#html[0]): HtmlOrSlot<T, D, P> {
+  #convertHtml(
+    html: Html<T, D, P> | Slot<T, D, P> = this.#html[0]
+  ): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
@@ -397,7 +399,7 @@ export class WelyClass<T, D, P> {
             return
           }
 
-          Object.keys(arg ?? {}).forEach(key => (getDataOrProps[key] = getValue(key)))
+          for (const key in arg ?? {}) getDataOrProps[key] = getValue(key)
 
           return <D | P>getDataOrProps
         }
@@ -422,7 +424,7 @@ export class WelyClass<T, D, P> {
                   class: instance.#class,
                   data: <D>getDataOrProps(instance.#data),
                   props: <P>getDataOrProps(instance.#props),
-                  html: that.#convertHtml(instance.#html[0]),
+                  html: (<HtmlSymbol<T, D, P>>that.#convertHtml(instance.#html[0]))[symbol],
                   css: instance.#css,
                   events: instance.#events.map(event => {
                     const eventObj: { handler: string; selector?: string; method: string } = {
@@ -430,12 +432,12 @@ export class WelyClass<T, D, P> {
                       method: ''
                     }
 
-                    Object.keys(event).forEach(key => {
+                    for (const key in event) {
                       const eventKey = <'handler' | 'selector' | 'method'>key
 
                       eventObj[eventKey] =
                         eventKey === 'method' ? `'${event[eventKey]}'` : `${event[eventKey]}`
-                    })
+                    }
 
                     return eventObj
                   })
