@@ -1,4 +1,3 @@
-import { generator, symbol } from './utils'
 import {
   Css,
   Each,
@@ -14,6 +13,7 @@ import {
   Slot,
   Wely
 } from './types'
+import { generator, symbol } from './utils'
 
 export class WelyClass<T, D, P> {
   readonly #welyId: string = ''
