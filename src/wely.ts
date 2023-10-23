@@ -6,34 +6,41 @@ export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: (Class<T, D, P> | unknown)[]
 ): HtmlSymbol<T, D, P> => {
-  const hasClass: boolean = variables.some(variable => variable instanceof Class)
+  const sanitize = (value: unknown) =>
+    typeof value === 'string' && value !== ''
+      ? value.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+      : value
 
-  let isSkipped: boolean = false
-  const arr: (Class<T, D, P> | string)[] = []
-  let str: string = ''
+  if (variables.some(variable => variable instanceof Class)) {
+    const result: (Class<T, D, P> | string)[] = []
+    let isSkipped: boolean = false
 
-  for (let i = 0; i < templates.length; i++) {
-    const sanitize = (value: unknown) =>
-      typeof value === 'string' && value !== ''
-        ? value.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-        : value
-    const template = templates[i]
-    const variable = sanitize(variables[i])
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i]
+      const variable = variables[i]
 
-    if (hasClass) {
       if (variable instanceof Class || variable === undefined) {
-        if (template !== '' && !isSkipped) arr.push(template)
-        if (variable !== undefined) arr.push(variable)
+        if (template !== '' && !isSkipped) result.push(template)
+        if (variable !== undefined) result.push(variable)
 
         isSkipped = false
       } else {
-        arr.push(`${template}${variable}${templates[i + 1]}`)
+        result.push(`${template}${sanitize(variable)}${templates[i + 1]}`)
         isSkipped = true
       }
-    } else str += `${template}${variable === undefined ? '' : variable}`
+    }
+
+    return { [symbol]: result }
   }
 
-  return { [symbol]: hasClass ? arr : [str] }
+  return {
+    [symbol]: [
+      templates.reduce(
+        (prev, current, index) => prev + current + (sanitize(variables[index]) ?? ''),
+        ''
+      )
+    ]
+  }
 }
 
 export const  = <T, D, P>({
