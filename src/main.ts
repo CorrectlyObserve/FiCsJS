@@ -1,28 +1,25 @@
 import { html, wely } from './wely'
 import cssUrl from './style.css?inline'
 
-interface Data {
-  count: number
-  fontSize: number
-  message: string
-  back: string
-}
-
-interface Props {
-  color: string
-  click: (message: string) => void
-}
-
 const child = wely({
   name: 'child',
   data: () => ({
     count: 1,
     fontSize: 16,
     message: 'Hello',
-    back: 'black'
+    back: 'black',
+    arr: [1, 2, () => 3],
+    obj: { key: 'value' }
   }),
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) =>
-    `<div><p class="hello" style="display: inline">${message}</p></div><p>${color}</p>`,
+  html: ({
+    data: { message },
+    props: { color }
+  }: {
+    data: { message: string }
+    props: { color: string; click: (message: string) => void }
+  }) =>
+    html`<div><p class="hello" style="display: inline">${message}</p></div>
+      <p>${color}</p>`,
   css: [
     cssUrl,
     {
@@ -52,8 +49,12 @@ const parent = wely({
     color: 'blue',
     click: (message: string) => console.log(message)
   }),
-  html: `<slot />`,
-  slot: child2,
+  // html: html`<slot />`,
+  // slot: ({ props: { propsColor } }: { props: { propsColor: string } }) => html`${child2}
+  //   <p>${propsColor}</p>`,
+  html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
+    html`${child2}
+      <p>propsColor: ${propsColor}</p>`,
   inheritances: [
     {
       descendants: child2,
@@ -73,24 +74,13 @@ const grandParent = wely({
     html`${parent}
       <p>人数: ${number}</p>`,
   inheritances: [
-    {
-      descendants: [child, child2],
-      props: ({ color }) => ({ color })
-    }
+    { descendants: [child, child2], props: ({ color }) => ({ color }) },
+    { descendants: parent, props: ({ color }) => ({ propsColor: color }) }
   ]
 })
 
 grandParent.define()
-
-console.log(
-  grandParent.onServer({ color: 'green' }, [
-    cssUrl,
-    {
-      selector: 'p',
-      style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
-    }
-  ])
-)
+console.log(grandParent.ssr())
 
 wely({
   name: 'Wely2',
@@ -109,14 +99,8 @@ wely({
   }),
   html: ({ data: { number } }) => ({
     branches: [
-      {
-        judge: number > 100,
-        render: child
-      },
-      {
-        judge: number < 100,
-        render: `<p>bbb</p>`
-      }
+      { judge: number > 100, render: child },
+      { judge: number < 100, render: `<p>bbb</p>` }
     ],
     fallback: `<slot />`
   }),
