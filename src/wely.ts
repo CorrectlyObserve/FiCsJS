@@ -1,15 +1,13 @@
 import { WelyClass } from './class'
 import { HtmlSymbol, Wely } from './types'
-import { symbol } from './utils'
+import { sanitize, symbol } from './utils'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyClass<T, D, P> | unknown)[]
 ): HtmlSymbol<T, D, P> => {
-  const sanitize = (value: unknown) =>
-    typeof value === 'string' && value !== ''
-      ? value.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-      : value
+  const createSanitizedValue = (value: unknown) =>
+    typeof value === 'string' && value !== '' ? sanitize(value) : value
 
   if (variables.some(variable => variable instanceof WelyClass)) {
     const result: (WelyClass<T, D, P> | string)[] = []
@@ -25,7 +23,7 @@ export const html = <T, D, P>(
 
         isSkipped = false
       } else {
-        result.push(`${template}${sanitize(variable)}${templates[i + 1]}`)
+        result.push(`${template}${createSanitizedValue(variable)}${templates[i + 1]}`)
         isSkipped = true
       }
     }
@@ -36,7 +34,7 @@ export const html = <T, D, P>(
   return {
     [symbol]: [
       templates.reduce(
-        (prev, current, index) => prev + current + (sanitize(variables[index]) ?? ''),
+        (prev, current, index) => prev + current + createSanitizedValue(variables[index]),
         ''
       )
     ]
