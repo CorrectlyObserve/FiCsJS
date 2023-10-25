@@ -8,8 +8,9 @@ const child = wely({
     fontSize: 16,
     message: 'Hello',
     back: 'black',
-    arr: [1, 2, () => 3],
-    obj: { key: 'value' }
+    arr: [1, 2, 3],
+    obj: { key: 'value' },
+    number: () => 3
   }),
   html: ({
     data: { message },
