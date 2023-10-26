@@ -6,7 +6,7 @@ export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyClass<T, D, P> | unknown)[]
 ): HtmlSymbol<T, D, P> => {
-  const createSanitizedValue = (value: unknown) =>
+  const sanitizeStr = (value: unknown) =>
     typeof value === 'string' && value !== '' ? sanitize(value) : value
 
   if (variables.some(variable => variable instanceof WelyClass)) {
@@ -23,7 +23,7 @@ export const html = <T, D, P>(
 
         isSkipped = false
       } else {
-        result.push(`${template}${createSanitizedValue(variable)}${templates[i + 1]}`)
+        result.push(`${template}${sanitizeStr(variable)}${templates[i + 1]}`)
         isSkipped = true
       }
     }
@@ -33,10 +33,7 @@ export const html = <T, D, P>(
 
   return {
     [symbol]: [
-      templates.reduce(
-        (prev, current, index) => prev + current + createSanitizedValue(variables[index]),
-        ''
-      )
+      templates.reduce((prev, current, index) => prev + current + sanitizeStr(variables[index]), '')
     ]
   }
 }
