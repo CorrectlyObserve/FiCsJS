@@ -141,9 +141,7 @@ export class WelyElement<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
   }
 
-  #convertHtml(
-    html: Html<T, D, P> | Slot<T, D, P> = this.#html[0]
-  ): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
+  #convertHtml(html: Html<T, D, P> | Slot<T, D, P>): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
@@ -163,7 +161,7 @@ export class WelyElement<T, D, P> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
-    const html: Html<T, D, P> = this.#convertHtml()
+    const html: Html<T, D, P> = this.#convertHtml(this.#html[0])
 
     if (html.hasOwnProperty(symbol))
       this.#appendChild((<HtmlSymbol<T, D, P>>html)[symbol], shadowRoot, propsChain)
@@ -330,7 +328,9 @@ export class WelyElement<T, D, P> {
       }
 
       const addHtml = (instance: WelyElement<T, D, P>, propsChain: PropsChain<P>) => {
-        const html: Html<T, D, P> = instance.#convertHtml()
+        const html: Html<T, D, P> = instance.#convertHtml(
+          instance.#ssrHtml.length > 0 ? instance.#ssrHtml[0] : instance.#html[0]
+        )
 
         if (html.hasOwnProperty(symbol))
           return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], propsChain)
