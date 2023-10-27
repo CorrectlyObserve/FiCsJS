@@ -23,6 +23,7 @@ export class WelyClass<T, D, P> {
   readonly #inheritances: Inheritances<T, D> = []
   readonly #data: D = <D>{}
   readonly #html: Html<T, D, P>[] = []
+  readonly #ssrHtml: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
   readonly #slot: Slot<T, D, P>[] = []
@@ -40,6 +41,7 @@ export class WelyClass<T, D, P> {
     inheritances,
     data,
     html,
+    ssrHtml,
     css,
     ssrCss,
     slot,
@@ -54,6 +56,7 @@ export class WelyClass<T, D, P> {
     if (data) this.#data = { ...data() }
 
     this.#html.push(html)
+    if (ssrHtml) this.#ssrHtml.push(ssrHtml)
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
@@ -87,6 +90,7 @@ export class WelyClass<T, D, P> {
       inheritances: this.#inheritances,
       data,
       html: this.#html[0],
+      ssrHtml: this.#ssrHtml[0],
       css: this.#css,
       ssrCss: this.#ssrCss,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
