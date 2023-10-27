@@ -15,7 +15,7 @@ import {
 } from './types'
 import { generator, symbol } from './utils'
 
-export class WelyClass<T, D, P> {
+export class WelyElement<T, D, P> {
   readonly #welyId: string = ''
   readonly #name: string = ''
   readonly #tagName: string = ''
@@ -82,8 +82,8 @@ export class WelyClass<T, D, P> {
       welyId: this.#welyId,
       data: () => <D>{ ...this.#data }
     }
-  ): WelyClass<T, D, P> {
-    return new WelyClass<T, D, P>({
+  ): WelyElement<T, D, P> {
+    return new WelyElement<T, D, P>({
       welyId,
       name: this.#name,
       className: this.#class,
@@ -150,13 +150,13 @@ export class WelyClass<T, D, P> {
   }
 
   #appendChild(
-    arg: SanitizedHtml<T, D, P> | WelyClass<T, D, P> | string,
+    arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string,
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
     for (const element of this.#toArray(arg))
       wely.appendChild(
-        element instanceof WelyClass
+        element instanceof WelyElement
           ? element.#render(propsChain)
           : document.createRange().createContextualFragment(element)
       )
@@ -318,18 +318,18 @@ export class WelyClass<T, D, P> {
       that.#setProps(propsChain)
 
       const insertTemplate = (
-        arg: SanitizedHtml<T, D, P> | WelyClass<T, D, P> | string,
+        arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string,
         propsChain: PropsChain<P>
       ): string => {
         let html: string = ''
 
         for (const element of this.#toArray(arg))
-          html += element instanceof WelyClass ? element.#renderOnServer(propsChain) : element
+          html += element instanceof WelyElement ? element.#renderOnServer(propsChain) : element
 
         return html
       }
 
-      const addHtml = (instance: WelyClass<T, D, P>, propsChain: PropsChain<P>) => {
+      const addHtml = (instance: WelyElement<T, D, P>, propsChain: PropsChain<P>) => {
         const html: Html<T, D, P> = instance.#convertHtml()
 
         if (html.hasOwnProperty(symbol))
@@ -381,7 +381,7 @@ export class WelyClass<T, D, P> {
       }
 
       const createStringHtml = (
-        instance: WelyClass<T, D, P>,
+        instance: WelyElement<T, D, P>,
         propsChain: PropsChain<P>
       ): string => {
         const tagName = `w-${instance.#tagName}`
@@ -458,7 +458,7 @@ export class WelyClass<T, D, P> {
     }
   }
 
-  overwrite(partialData: () => Partial<D>): WelyClass<T, D, P> {
+  overwrite(partialData: () => Partial<D>): WelyElement<T, D, P> {
     return this.#clone({
       welyId: undefined,
       data: () => <D>{ ...this.#data, ...partialData() }
