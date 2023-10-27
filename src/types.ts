@@ -75,6 +75,7 @@ export interface Wely<T, D, P> {
   inheritances?: Inheritances<T, D>
   data?: () => D
   html: Html<T, D, P>
+  ssrHtml?: Html<T, D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
   slot?: Slot<T, D, P>
