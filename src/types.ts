@@ -1,4 +1,4 @@
-import { Class } from './class'
+import { Element } from './class'
 
 export type Css<D, P> = (
   | string
@@ -34,7 +34,7 @@ export type Html<T, D, P> =
 
 export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, D, P>
   ? HtmlValue<T>
-  : Class<T, D, P> | string
+  : Element<T, D, P> | string
 
 export type HtmlSymbol<T, D, P> = Record<symbol, SanitizedHtml<T, D, P>>
 
@@ -49,7 +49,7 @@ export interface If<T> {
 }
 
 export type Inheritances<T, D> = {
-  descendants: SingleOrArray<Class<T, any, any>>
+  descendants: SingleOrArray<Element<T, any, any>>
   props: (data: D) => any
 }[]
 
@@ -58,9 +58,9 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-type Result<T> = SingleOrArray<Class<T, any, any> | string>
+type Result<T> = SingleOrArray<Element<T, any, any> | string>
 
-export type SanitizedHtml<T, D, P> = (Class<T, D, P> | string)[]
+export type SanitizedHtml<T, D, P> = (Element<T, D, P> | string)[]
 
 type SingleOrArray<T> = T | T[]
 

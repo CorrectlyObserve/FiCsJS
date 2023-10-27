@@ -1,23 +1,23 @@
-import { Class } from './class'
+import { Element } from './class'
 import { HtmlSymbol,  } from './types'
 import { sanitize, symbol } from './utils'
 
 export const html = <T, D, P>(
   templates: TemplateStringsArray,
-  ...variables: (Class<T, D, P> | unknown)[]
+  ...variables: (Element<T, D, P> | unknown)[]
 ): HtmlSymbol<T, D, P> => {
   const sanitizeStr = (value: unknown) =>
     typeof value === 'string' && value !== '' ? sanitize(value) : value
 
-  if (variables.some(variable => variable instanceof Class)) {
-    const result: (Class<T, D, P> | string)[] = []
+  if (variables.some(variable => variable instanceof Element)) {
+    const result: (Element<T, D, P> | string)[] = []
     let isSkipped: boolean = false
 
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i]
       const variable = variables[i]
 
-      if (variable instanceof Class || variable === undefined) {
+      if (variable instanceof Element || variable === undefined) {
         if (template !== '' && !isSkipped) result.push(template)
         if (variable !== undefined) result.push(variable)
 
@@ -50,7 +50,7 @@ export const  = <T, D, P>({
   slot,
   events
 }: <T, D, P>) =>
-  new Class({
+  new Element({
     Id: undefined,
     name,
     className,

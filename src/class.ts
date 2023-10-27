@@ -15,7 +15,7 @@ import {
 } from './types'
 import { generator, symbol } from './utils'
 
-export class Class<T, D, P> {
+export class Element<T, D, P> {
   readonly #Id: string = ''
   readonly #name: string = ''
   readonly #tagName: string = ''
@@ -82,8 +82,8 @@ export class Class<T, D, P> {
       Id: this.#Id,
       data: () => <D>{ ...this.#data }
     }
-  ): Class<T, D, P> {
-    return new Class<T, D, P>({
+  ): Element<T, D, P> {
+    return new Element<T, D, P>({
       Id,
       name: this.#name,
       className: this.#class,
@@ -150,13 +150,13 @@ export class Class<T, D, P> {
   }
 
   #appendChild(
-    arg: SanitizedHtml<T, D, P> | Class<T, D, P> | string,
+    arg: SanitizedHtml<T, D, P> | Element<T, D, P> | string,
     : HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
     for (const element of this.#toArray(arg))
       .appendChild(
-        element instanceof Class
+        element instanceof Element
           ? element.#render(propsChain)
           : document.createRange().createContextualFragment(element)
       )
@@ -318,18 +318,18 @@ export class Class<T, D, P> {
       that.#setProps(propsChain)
 
       const insertTemplate = (
-        arg: SanitizedHtml<T, D, P> | Class<T, D, P> | string,
+        arg: SanitizedHtml<T, D, P> | Element<T, D, P> | string,
         propsChain: PropsChain<P>
       ): string => {
         let html: string = ''
 
         for (const element of this.#toArray(arg))
-          html += element instanceof Class ? element.#renderOnServer(propsChain) : element
+          html += element instanceof Element ? element.#renderOnServer(propsChain) : element
 
         return html
       }
 
-      const addHtml = (instance: Class<T, D, P>, propsChain: PropsChain<P>) => {
+      const addHtml = (instance: Element<T, D, P>, propsChain: PropsChain<P>) => {
         const html: Html<T, D, P> = instance.#convertHtml()
 
         if (html.hasOwnProperty(symbol))
@@ -381,7 +381,7 @@ export class Class<T, D, P> {
       }
 
       const createStringHtml = (
-        instance: Class<T, D, P>,
+        instance: Element<T, D, P>,
         propsChain: PropsChain<P>
       ): string => {
         const tagName = `w-${instance.#tagName}`
@@ -458,7 +458,7 @@ export class Class<T, D, P> {
     }
   }
 
-  overwrite(partialData: () => Partial<D>): Class<T, D, P> {
+  overwrite(partialData: () => Partial<D>): Element<T, D, P> {
     return this.#clone({
       Id: undefined,
       data: () => <D>{ ...this.#data, ...partialData() }
