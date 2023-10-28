@@ -265,7 +265,7 @@ export class WelyElement<T, D, P> {
           })()
 
           if (elements.length === 0)
-            throw Error(`The element does not exist or is not applicable...`)
+            console.error(`The element does not exist or is not applicable...`)
           else
             for (let i = 0; i < elements.length; i++)
               elements[i].addEventListener(handler, (e: Event) =>
