@@ -4,7 +4,7 @@ export type Css<D, P> = (
   | string
   | {
       selector: string
-      style: ({ data, props }: { data: D; props: P }) => Record<string, string | number>
+      style: ValueOrArrowFunc<Record<string, string | number>, D, P>
     }
 )[]
 
@@ -28,9 +28,7 @@ export interface EventHandler<D, P> {
   method: ({ data, props }: { data: D; props: P }, event: Event, index?: number) => void
 }
 
-export type Html<T, D, P> =
-  | HtmlValue<T>
-  | (({ data, props }: { data: D; props: P }) => HtmlValue<T>)
+export type Html<T, D, P> = ValueOrArrowFunc<HtmlValue<T>, D, P>
 
 export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, D, P>
   ? HtmlValue<T>
@@ -64,9 +62,9 @@ export type SanitizedHtml<T, D, P> = (WelyElement<T, D, P> | string)[]
 
 type SingleOrArray<T> = T | T[]
 
-export type Slot<T, D, P> =
-  | Record<symbol, Result<T>>
-  | (({ data, props }: { data: D; props: P }) => Record<symbol, Result<T>>)
+export type Slot<T, D, P> = ValueOrArrowFunc<Record<symbol, Result<T>>, D, P>
+
+type ValueOrArrowFunc<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
 
 export interface Wely<T, D, P> {
   welyId?: string
