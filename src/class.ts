@@ -22,8 +22,8 @@ export class WelyElement<T, D, P> {
   readonly #class: string = ''
   readonly #inheritances: Inheritances<T, D> = []
   readonly #data: D = <D>{}
+  readonly #isOnlyCsr: boolean = false
   readonly #html: Html<T, D, P>[] = []
-  readonly #ssrHtml: Html<T, D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
   readonly #slot: Slot<T, D, P>[] = []
@@ -40,8 +40,8 @@ export class WelyElement<T, D, P> {
     className,
     inheritances,
     data,
+    isOnlyCsr,
     html,
-    ssrHtml,
     css,
     ssrCss,
     slot,
@@ -54,9 +54,9 @@ export class WelyElement<T, D, P> {
     if (className && className !== '') this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
     if (data) this.#data = { ...data() }
+    if (isOnlyCsr) this.#isOnlyCsr = true
 
     this.#html.push(html)
-    if (ssrHtml) this.#ssrHtml.push(ssrHtml)
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
@@ -89,8 +89,8 @@ export class WelyElement<T, D, P> {
       className: this.#class,
       inheritances: this.#inheritances,
       data,
+      isOnlyCsr: this.#isOnlyCsr,
       html: this.#html[0],
-      ssrHtml: this.#ssrHtml[0],
       css: this.#css,
       ssrCss: this.#ssrCss,
       slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
@@ -328,9 +328,7 @@ export class WelyElement<T, D, P> {
       }
 
       const addHtml = (instance: WelyElement<T, D, P>) => {
-        const html: Html<T, D, P> = instance.#convertHtml(
-          instance.#ssrHtml.length > 0 ? instance.#ssrHtml[0] : instance.#html[0]
-        )
+        const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
 
         if (html.hasOwnProperty(symbol))
           return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], instance.#propsChain)
