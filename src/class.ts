@@ -327,21 +327,20 @@ export class WelyElement<T, D, P> {
 
     that.#setProps(propsChain)
 
-    const insertTemplate = (
-      arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string,
-      propsChain: PropsChain<P>
-    ): string =>
-      this.#toArray(arg).reduce(
-        (prev, curr) =>
-          prev + curr instanceof WelyElement ? curr.#renderOnServer(propsChain) : curr,
-        ''
-      )
-
     const addHtml = (instance: WelyElement<T, D, P>) => {
       const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
 
-      if (html.hasOwnProperty(symbol))
-        return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], instance.#propsChain)
+      const insertTemplate = (
+        arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string
+      ): string =>
+        this.#toArray(arg).reduce(
+          (prev, curr) =>
+            prev +
+            (curr instanceof WelyElement ? curr.#renderOnServer(instance.#propsChain) : curr),
+          ''
+        )
+
+      if (html.hasOwnProperty(symbol)) return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol])
 
       if ('contents' in <Each<T> | EachIf<T>>html) {
         instance.#isEach = true
@@ -351,10 +350,9 @@ export class WelyElement<T, D, P> {
 
           contents.forEach((content, index) => {
             for (const branch of branches)
-              if (branch.judge(content))
-                return insertTemplate(branch.render(content, index), instance.#propsChain)
+              if (branch.judge(content)) return insertTemplate(branch.render(content, index))
 
-            if (fallback) return insertTemplate(fallback(content, index), instance.#propsChain)
+            if (fallback) return insertTemplate(fallback(content, index))
 
             return
           })
@@ -366,7 +364,7 @@ export class WelyElement<T, D, P> {
 
         contents.forEach((content, index) => {
           const renderer = render(content, index)
-          if (renderer) return insertTemplate(renderer, instance.#propsChain)
+          if (renderer) return insertTemplate(renderer)
 
           return
         })
@@ -375,10 +373,9 @@ export class WelyElement<T, D, P> {
       if ('contents' in <If<T>>html) {
         const { branches, fallback } = <If<T>>html
 
-        for (const branch of branches)
-          if (branch.judge) return insertTemplate(branch.render, instance.#propsChain)
+        for (const branch of branches) if (branch.judge) return insertTemplate(branch.render)
 
-        if (fallback) return insertTemplate(fallback, instance.#propsChain)
+        if (fallback) return insertTemplate(fallback)
 
         return
       }
