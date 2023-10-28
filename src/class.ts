@@ -322,14 +322,12 @@ export class Element<T, D, P> {
     const insertTemplate = (
       arg: SanitizedHtml<T, D, P> | Element<T, D, P> | string,
       propsChain: PropsChain<P>
-    ): string => {
-      let html: string = ''
-
-      for (const element of this.#toArray(arg))
-        html += element instanceof Element ? element.#renderOnServer(propsChain) : element
-
-      return html
-    }
+    ): string =>
+      this.#toArray(arg).reduce(
+        (prev, curr) =>
+          prev + curr instanceof Element ? curr.#renderOnServer(propsChain) : curr,
+        ''
+      )
 
     const addHtml = (instance: Element<T, D, P>) => {
       const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
