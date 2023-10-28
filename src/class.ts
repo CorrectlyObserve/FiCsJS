@@ -317,87 +317,83 @@ export class WelyElement<T, D, P> {
 
     if (that.#isOnlyCsr) return `<${that.#getTagName()}></${that.#getTagName()}>`
 
-    if (that.#slot.length > 0)
-      throw Error(`${that.#name} cannot use slot in server side rendering...`)
-    else {
-      that.#setProps(propsChain)
+    that.#setProps(propsChain)
 
-      const insertTemplate = (
-        arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string,
-        propsChain: PropsChain<P>
-      ): string => {
-        let html: string = ''
+    const insertTemplate = (
+      arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string,
+      propsChain: PropsChain<P>
+    ): string => {
+      let html: string = ''
 
-        for (const element of this.#toArray(arg))
-          html += element instanceof WelyElement ? element.#renderOnServer(propsChain) : element
+      for (const element of this.#toArray(arg))
+        html += element instanceof WelyElement ? element.#renderOnServer(propsChain) : element
 
-        return html
-      }
+      return html
+    }
 
-      const addHtml = (instance: WelyElement<T, D, P>) => {
-        const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
+    const addHtml = (instance: WelyElement<T, D, P>) => {
+      const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
 
-        if (html.hasOwnProperty(symbol))
-          return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], instance.#propsChain)
+      if (html.hasOwnProperty(symbol))
+        return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], instance.#propsChain)
 
-        if ('contents' in <Each<T> | EachIf<T>>html) {
-          instance.#isEach = true
+      if ('contents' in <Each<T> | EachIf<T>>html) {
+        instance.#isEach = true
 
-          if ('branches' in <EachIf<T>>html) {
-            const { contents, branches, fallback } = <EachIf<T>>html
-
-            contents.forEach((content, index) => {
-              for (const branch of branches)
-                if (branch.judge(content))
-                  return insertTemplate(branch.render(content, index), instance.#propsChain)
-
-              if (fallback) return insertTemplate(fallback(content, index), instance.#propsChain)
-
-              return
-            })
-
-            return
-          }
-
-          const { contents, render } = <Each<T>>html
+        if ('branches' in <EachIf<T>>html) {
+          const { contents, branches, fallback } = <EachIf<T>>html
 
           contents.forEach((content, index) => {
-            const renderer = render(content, index)
-            if (renderer) return insertTemplate(renderer, instance.#propsChain)
+            for (const branch of branches)
+              if (branch.judge(content))
+                return insertTemplate(branch.render(content, index), instance.#propsChain)
+
+            if (fallback) return insertTemplate(fallback(content, index), instance.#propsChain)
 
             return
           })
-        }
-
-        if ('contents' in <If<T>>html) {
-          const { branches, fallback } = <If<T>>html
-
-          for (const branch of branches)
-            if (branch.judge) return insertTemplate(branch.render, instance.#propsChain)
-
-          if (fallback) return insertTemplate(fallback, instance.#propsChain)
 
           return
         }
 
-        throw Error(
-          `${this.#name} has to use html function (tagged template literal) in html argument.`
-        )
+        const { contents, render } = <Each<T>>html
+
+        contents.forEach((content, index) => {
+          const renderer = render(content, index)
+          if (renderer) return insertTemplate(renderer, instance.#propsChain)
+
+          return
+        })
       }
 
-      const className = that.#class === '' ? that.#getKebabName() : that.#getClass()
-      const style =
-        that.#css.length > 0 || that.#ssrCss.length > 0
-          ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
-          : ''
+      if ('contents' in <If<T>>html) {
+        const { branches, fallback } = <If<T>>html
 
-      return `
+        for (const branch of branches)
+          if (branch.judge) return insertTemplate(branch.render, instance.#propsChain)
+
+        if (fallback) return insertTemplate(fallback, instance.#propsChain)
+
+        return
+      }
+
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
+      )
+    }
+
+    const className = that.#class === '' ? that.#getKebabName() : that.#getClass()
+    const style =
+      that.#css.length > 0 || that.#ssrCss.length > 0
+        ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
+        : ''
+
+    return `
           <${that.#getTagName()} class="${className}">
             <template shadowroot="open"><slot></slot>${style}</template>
             ${addHtml(that)}
           </${that.#getTagName()}>
         `.trim()
-    }
   }
 
   overwrite(partialData: () => Partial<D>): WelyElement<T, D, P> {
