@@ -18,7 +18,6 @@ import { generator, symbol } from './utils'
 export class WelyElement<T, D, P> {
   readonly #welyId: string = ''
   readonly #name: string = ''
-  readonly #tagName: string = ''
   readonly #class: string = ''
   readonly #inheritances: Inheritances<T, D> = []
   readonly #data: D = <D>{}
@@ -49,7 +48,6 @@ export class WelyElement<T, D, P> {
   }: Wely<T, D, P>) {
     this.#welyId = welyId ?? `wely-id${generator.next().value}`
     this.#name = name
-    this.#tagName = this.#convertCase(this.#name, 'kebab')
 
     if (className && className !== '') this.#class = className
     if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
@@ -62,19 +60,6 @@ export class WelyElement<T, D, P> {
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
-  }
-
-  #convertCase(str: string, type: 'camel' | 'kebab'): string {
-    if (type === 'camel')
-      return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
-
-    if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-
-    return str
-  }
-
-  #toArray(val: unknown | unknown[]) {
-    return Array.isArray(val) ? [...val] : [val]
   }
 
   #clone(
@@ -98,14 +83,35 @@ export class WelyElement<T, D, P> {
     })
   }
 
+  #convertCase(str: string, type: 'camel' | 'kebab'): string {
+    if (type === 'camel')
+      return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
+
+    if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+
+    return str
+  }
+
+  #getKebabName() {
+    return this.#convertCase(this.#name, 'kebab')
+  }
+
+  #getTagName() {
+    return `w-${this.#getKebabName()}`
+  }
+
   #getClass(): string {
-    return this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, this.#tagName)
+    return this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, this.#getKebabName())
   }
 
   #addClass(wely: HTMLElement): void {
     this.#class === ''
-      ? wely.classList.add(this.#tagName)
+      ? wely.classList.add(this.#getKebabName())
       : wely.setAttribute('class', this.#getClass())
+  }
+
+  #toArray(val: unknown | unknown[]) {
+    return Array.isArray(val) ? [...val] : [val]
   }
 
   #setProps(
@@ -278,11 +284,10 @@ export class WelyElement<T, D, P> {
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
-    const tagName = `w-${that.#tagName}`
 
-    if (!customElements.get(tagName))
+    if (!customElements.get(that.#getTagName()))
       customElements.define(
-        tagName,
+        that.#getTagName(),
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -293,7 +298,7 @@ export class WelyElement<T, D, P> {
         }
       )
 
-    const wely = that.#component || document.createElement(tagName)
+    const wely = that.#component || document.createElement(that.#getTagName())
 
     that.#addClass(wely)
     that.#setProps(propsChain)
@@ -310,7 +315,7 @@ export class WelyElement<T, D, P> {
   #renderOnServer(propsChain?: PropsChain<P>): string {
     const that = this.#clone()
 
-    if (that.#isOnlyCsr) return `<w-${that.#tagName}></w-${that.#tagName}>`
+    if (that.#isOnlyCsr) return `<${that.#getTagName()}></${that.#getTagName()}>`
 
     if (that.#slot.length > 0)
       throw Error(`${that.#name} cannot use slot in server side rendering...`)
@@ -380,17 +385,17 @@ export class WelyElement<T, D, P> {
         )
       }
 
-      const tagName = `w-${that.#tagName}`
+      const className = that.#class === '' ? that.#getKebabName() : that.#getClass()
       const style =
         that.#css.length > 0 || that.#ssrCss.length > 0
           ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
           : ''
 
       return `
-          <${tagName} class="${that.#class === '' ? that.#tagName : that.#getClass()}">
+          <${that.#getTagName()} class="${className}">
             <template shadowroot="open"><slot></slot>${style}</template>
             ${addHtml(that)}
-          </${tagName}>
+          </${that.#getTagName()}>
         `.trim()
     }
   }
@@ -401,11 +406,10 @@ export class WelyElement<T, D, P> {
 
   define(): void {
     const that = this.#clone()
-    const tagName = `w-${that.#tagName}`
 
-    if (!customElements.get(tagName))
+    if (!customElements.get(that.#getTagName()))
       customElements.define(
-        tagName,
+        that.#getTagName(),
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
