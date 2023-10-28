@@ -327,13 +327,13 @@ export class WelyElement<T, D, P> {
         return html
       }
 
-      const addHtml = (instance: WelyElement<T, D, P>, propsChain: PropsChain<P>) => {
+      const addHtml = (instance: WelyElement<T, D, P>) => {
         const html: Html<T, D, P> = instance.#convertHtml(
           instance.#ssrHtml.length > 0 ? instance.#ssrHtml[0] : instance.#html[0]
         )
 
         if (html.hasOwnProperty(symbol))
-          return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], propsChain)
+          return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol], instance.#propsChain)
 
         if ('contents' in <Each<T> | EachIf<T>>html) {
           instance.#isEach = true
@@ -344,9 +344,9 @@ export class WelyElement<T, D, P> {
             contents.forEach((content, index) => {
               for (const branch of branches)
                 if (branch.judge(content))
-                  return insertTemplate(branch.render(content, index), propsChain)
+                  return insertTemplate(branch.render(content, index), instance.#propsChain)
 
-              if (fallback) return insertTemplate(fallback(content, index), propsChain)
+              if (fallback) return insertTemplate(fallback(content, index), instance.#propsChain)
 
               return
             })
@@ -358,7 +358,7 @@ export class WelyElement<T, D, P> {
 
           contents.forEach((content, index) => {
             const renderer = render(content, index)
-            if (renderer) return insertTemplate(renderer, propsChain)
+            if (renderer) return insertTemplate(renderer, instance.#propsChain)
 
             return
           })
@@ -368,9 +368,9 @@ export class WelyElement<T, D, P> {
           const { branches, fallback } = <If<T>>html
 
           for (const branch of branches)
-            if (branch.judge) return insertTemplate(branch.render, propsChain)
+            if (branch.judge) return insertTemplate(branch.render, instance.#propsChain)
 
-          if (fallback) return insertTemplate(fallback, propsChain)
+          if (fallback) return insertTemplate(fallback, instance.#propsChain)
 
           return
         }
@@ -380,89 +380,23 @@ export class WelyElement<T, D, P> {
         )
       }
 
-      const createStringHtml = (
-        instance: WelyElement<T, D, P>,
-        propsChain: PropsChain<P>
-      ): string => {
-        const tagName = `w-${instance.#tagName}`
+      const tagName = `w-${that.#tagName}`
+      const style =
+        that.#css.length > 0 || that.#ssrCss.length > 0
+          ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
+          : ''
 
-        const getDataOrProps = (arg: D | P): D | P => {
-          const getDataOrProps: Record<string, unknown> = {}
-
-          const getValue = (key: string): unknown => {
-            if ((<Record<string, unknown>>arg).hasOwnProperty(key)) {
-              const value = (<Record<string, unknown>>arg)[key]
-
-              if (Array.isArray(value)) return [...value]
-
-              if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype)
-                return { ...value }
-
-              return typeof value === 'function' ? `'${value}'` : value
-            }
-
-            return
-          }
-
-          for (const key in arg ?? {}) getDataOrProps[key] = getValue(key)
-
-          return <D | P>getDataOrProps
-        }
-
-        return `
-          <${tagName}
-            class="${instance.#class === '' ? instance.#tagName : instance.#getClass()}"
-            id="${tagName}"
-            created-by="wely-js"
-          >
-            <template shadowroot="open">
-              <slot></slot>
-              ${
-                instance.#css.length > 0 || instance.#ssrCss.length > 0
-                  ? `<style>${instance.#addCss([...instance.#css, ...instance.#ssrCss])}</style>`
-                  : ''
-              }
-              <script type="application/json">
-                ${JSON.stringify({
-                  welyId: instance.#welyId,
-                  name: instance.#name,
-                  class: instance.#class,
-                  data: <D>getDataOrProps(instance.#data),
-                  props: <P>getDataOrProps(instance.#props),
-                  html: (<HtmlSymbol<T, D, P>>that.#convertHtml(instance.#html[0]))[symbol],
-                  css: instance.#css,
-                  events: instance.#events.map(event => {
-                    const eventObj: { handler: string; selector?: string; method: string } = {
-                      handler: '',
-                      method: ''
-                    }
-
-                    for (const key in event) {
-                      const eventKey = <'handler' | 'selector' | 'method'>key
-
-                      eventObj[eventKey] =
-                        eventKey === 'method' ? `'${event[eventKey]}'` : `${event[eventKey]}`
-                    }
-
-                    return eventObj
-                  })
-                })}
-              </script>
-            </template>
-            ${addHtml(instance, propsChain)}
+      return `
+          <${tagName} class="${that.#class === '' ? that.#tagName : that.#getClass()}">
+            <template shadowroot="open"><slot></slot>${style}</template>
+            ${addHtml(that)}
           </${tagName}>
         `.trim()
-      }
-
-      return createStringHtml(that, that.#propsChain)
     }
   }
 
   overwrite(partialData: () => Partial<D>): WelyElement<T, D, P> {
-    return this.#clone({
-      welyId: undefined,
-      data: () => <D>{ ...this.#data, ...partialData() }
-    })
+    return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
   define(): void {
