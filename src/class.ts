@@ -220,9 +220,13 @@ export class WelyElement<T, D, P> {
               ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
               : curr.style
 
-          return `${prev}${curr.selector}{${Object.entries(style)
-            .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
-            .join('\n')}}`
+          return (
+            prev +
+            curr.selector +
+            `{${Object.entries(style)
+              .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
+              .join('\n')}}`
+          )
         }
 
         return ''
