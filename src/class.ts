@@ -99,7 +99,7 @@ export class WelyElement<T, D, P> {
   }
 
   #getClass(): string {
-    return this.#class.split(' ').reduce((prev, current) => prev + ' ' + current, this.#tagName)
+    return this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, this.#tagName)
   }
 
   #addClass(wely: HTMLElement): void {
@@ -120,10 +120,10 @@ export class WelyElement<T, D, P> {
 
           if (propsChain.descendants.has(welyId)) {
             const setPropsChain = (chain: Record<string, any>): void => {
-              const currentChain = chain[this.#convertCase(welyId, 'camel')]!
+              const localChain = chain[this.#convertCase(welyId, 'camel')]!
 
-              if (currentChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(currentChain))
-              else currentChain.__proto__ = { ...props(this.#data) }
+              if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
+              else localChain.__proto__ = { ...props(this.#data) }
             }
 
             setPropsChain(propsChain.chains)
@@ -205,12 +205,12 @@ export class WelyElement<T, D, P> {
 
   #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
     if (css.length > 0) {
-      const styleContent = <string>css.reduce((prev, current) => {
-        if (typeof current === 'string') return prev + current
+      const styleContent = <string>css.reduce((prev, curr) => {
+        if (typeof curr === 'string') return prev + curr
 
-        if (current.selector && 'style' in current)
-          return `${prev}${current.selector}{${Object.entries(
-            current.style({ data: { ...this.#data }, props: { ...this.#props } })
+        if (curr.selector && 'style' in curr)
+          return `${prev}${curr.selector}{${Object.entries(
+            curr.style({ data: { ...this.#data }, props: { ...this.#props } })
           )
             .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
             .join('\n')}}`
