@@ -6,8 +6,8 @@ export const html = <T, D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyElement<T, D, P> | unknown)[]
 ): HtmlSymbol<T, D, P> => {
-  const sanitizeStr = (value: unknown) =>
-    typeof value === 'string' && value !== '' ? sanitize(value) : value
+  const wrapSanitize = (value: unknown) =>
+    value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
 
   if (variables.some(variable => variable instanceof WelyElement)) {
     const result: (WelyElement<T, D, P> | string)[] = []
@@ -23,7 +23,7 @@ export const html = <T, D, P>(
 
         isSkipped = false
       } else {
-        result.push(`${template}${sanitizeStr(variable)}${templates[i + 1]}`)
+        result.push(`${template}${wrapSanitize(variable)}${templates[i + 1]}`)
         isSkipped = true
       }
     }
@@ -33,7 +33,10 @@ export const html = <T, D, P>(
 
   return {
     [symbol]: [
-      templates.reduce((prev, current, index) => prev + current + sanitizeStr(variables[index]), '')
+      templates.reduce(
+        (prev, current, index) => prev + current + wrapSanitize(variables[index]),
+        ''
+      )
     ]
   }
 }
