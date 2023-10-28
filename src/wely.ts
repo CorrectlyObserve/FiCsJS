@@ -33,10 +33,7 @@ export const html = <T, D, P>(
 
   return {
     [symbol]: [
-      templates.reduce(
-        (prev, current, index) => prev + current + wrapSanitize(variables[index]),
-        ''
-      )
+      templates.reduce((prev, curr, index) => prev + curr + wrapSanitize(variables[index]), '')
     ]
   }
 }
