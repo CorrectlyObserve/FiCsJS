@@ -310,6 +310,8 @@ export class WelyElement<T, D, P> {
   #renderOnServer(propsChain?: PropsChain<P>): string {
     const that = this.#clone()
 
+    if (that.#isOnlyCsr) return `<w-${that.#tagName}></w-${that.#tagName}>`
+
     if (that.#slot.length > 0)
       throw Error(`${that.#name} cannot use slot in server side rendering...`)
     else {
