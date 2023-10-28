@@ -214,12 +214,16 @@ export class WelyElement<T, D, P> {
       const styleContent = <string>css.reduce((prev, curr) => {
         if (typeof curr === 'string') return prev + curr
 
-        if (curr.selector && 'style' in curr)
-          return `${prev}${curr.selector}{${Object.entries(
-            curr.style({ data: { ...this.#data }, props: { ...this.#props } })
-          )
+        if (curr.selector && 'style' in curr) {
+          const style =
+            typeof curr.style === 'function'
+              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
+              : curr.style
+
+          return `${prev}${curr.selector}{${Object.entries(style)
             .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
             .join('\n')}}`
+        }
 
         return ''
       }, '')
