@@ -306,7 +306,7 @@ export class WelyElement<T, D, P> {
         }
       )
 
-    const wely = that.#component || document.createElement(that.#getTagName())
+    const wely = that.#component ?? document.createElement(that.#getTagName())
 
     that.#addClass(wely)
     that.#setProps(propsChain)
