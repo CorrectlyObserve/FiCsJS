@@ -306,7 +306,7 @@ export class Element<T, D, P> {
         }
       )
 
-    const  = that.#component || document.createElement(that.#getTagName())
+    const  = that.#component ?? document.createElement(that.#getTagName())
 
     that.#addClass()
     that.#setProps(propsChain)
