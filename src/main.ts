@@ -12,6 +12,7 @@ const child = ({
     obj: { key: 'value' },
     number: () => 3
   }),
+  isOnlyCsr: true,
   html: ({
     data: { message },
     props: { color }
@@ -50,9 +51,6 @@ const parent = ({
     color: 'blue',
     click: (message: string) => console.log(message)
   }),
-  // html: html`<slot />`,
-  // slot: ({ props: { propsColor } }: { props: { propsColor: string } }) => html`${child2}
-  //   <p>${propsColor}</p>`,
   html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
     html`${child2}
       <p>propsColor: ${propsColor}</p>`,
@@ -80,8 +78,8 @@ const grandParent = ({
   ]
 })
 
-grandParent.define()
 console.log(grandParent.ssr())
+grandParent.define()
 
 ({
   name: '2',
@@ -105,10 +103,8 @@ console.log(grandParent.ssr())
     ],
     fallback: `<slot />`
   }),
-  slot: html`
-    ${child}
-    <p>AAA</p>
-  `,
+  csrSlot: html`${child}
+    <p>AAA</p>`,
   events: [
     {
       handler: 'click',
