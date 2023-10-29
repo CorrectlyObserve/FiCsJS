@@ -5,34 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WelyJS</title>
-    <style>
-      w-grand-parent:not(:defined) {
-        opacity: 0;
-      }
-    </style>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
   <body>
     <div id="app">
-      <w-grand-parent></w-grand-parent>
-
-      <host-element class="aaa">
-        <template shadowroot="open">
-          <style>
-            ::slotted(h2 .span) {
-              color: skyblue;
-            }
-          </style>
-          <slot>
-            <style>
-              ::slotted(h2) {
-                color: skyblue;
-              }
-            </style>
-          </slot>
-        </template>
-        <h2>inside host custom <span class="span">element</span> with <span>Shadow</span> DOM</h2>
-      </host-element>
+      <w-grand-parent class="grand-parent">
+        <template shadowroot="open"><slot></slot></template>
+        <w-parent class="parent test">
+          <template shadowroot="open"><slot></slot></template>
+          <w-child></w-child>
+          <p>propsColor: green</p>
+        </w-parent>
+        <p>人数: 12</p>
+      </w-grand-parent>
     </div>
   </body>
 </html>
