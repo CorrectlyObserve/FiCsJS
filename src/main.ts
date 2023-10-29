@@ -12,6 +12,7 @@ const child = wely({
     obj: { key: 'value' },
     number: () => 3
   }),
+  isOnlyCsr: true,
   html: ({
     data: { message },
     props: { color }
@@ -50,9 +51,6 @@ const parent = wely({
     color: 'blue',
     click: (message: string) => console.log(message)
   }),
-  // html: html`<slot />`,
-  // slot: ({ props: { propsColor } }: { props: { propsColor: string } }) => html`${child2}
-  //   <p>${propsColor}</p>`,
   html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
     html`${child2}
       <p>propsColor: ${propsColor}</p>`,
@@ -80,8 +78,8 @@ const grandParent = wely({
   ]
 })
 
-grandParent.define()
 console.log(grandParent.ssr())
+grandParent.define()
 
 wely({
   name: 'Wely2',
@@ -105,10 +103,8 @@ wely({
     ],
     fallback: `<slot />`
   }),
-  slot: html`
-    ${child}
-    <p>AAA</p>
-  `,
+  csrSlot: html`${child}
+    <p>AAA</p>`,
   events: [
     {
       handler: 'click',
