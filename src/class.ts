@@ -91,16 +91,13 @@ export class WelyElement<T, D, P> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #getClass(): string {
-    return this.#class
-      .split(' ')
-      .reduce((prev, curr) => prev + ' ' + curr, this.#toKebabCase(this.#name))
-  }
+  #addClass(wely?: HTMLElement): string | void {
+    const name = this.#toKebabCase(this.#name)
+    const className = this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, name)
 
-  #addClass(wely: HTMLElement): void {
-    this.#class === ''
-      ? wely.classList.add(this.#toKebabCase(this.#name))
-      : wely.setAttribute('class', this.#getClass())
+    if (!wely) return this.#class === '' ? name : className
+
+    this.#class === '' ? wely.classList.add(name) : wely.setAttribute('class', className)
   }
 
   #toArray(val: unknown | unknown[]) {
@@ -225,7 +222,7 @@ export class WelyElement<T, D, P> {
         return ''
       }, '')
 
-      if (!shadowRoot) return styleContent
+      if (!shadowRoot) return `<style>${styleContent}</style>`
 
       const stylesheet = new CSSStyleSheet()
       shadowRoot.adoptedStyleSheets = [stylesheet]
@@ -378,18 +375,14 @@ export class WelyElement<T, D, P> {
       )
     }
 
-    const className = that.#class === '' ? that.#toKebabCase(that.#name) : that.#getClass()
-    const style =
-      that.#css.length > 0 || that.#ssrCss.length > 0
-        ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
-        : ''
+    const style = that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''
 
     return `
-          <${that.#getTagName()} class="${className}">
-            <template shadowroot="open"><slot></slot>${style}</template>
-            ${addHtml(that)}
-          </${that.#getTagName()}>
-        `.trim()
+        <${that.#getTagName()} class="${that.#addClass()}">
+          <template shadowroot="open"><slot></slot>${style}</template>
+          ${addHtml(that)}
+        </${that.#getTagName()}>
+      `.trim()
   }
 
   overwrite(partialData: () => Partial<D>): WelyElement<T, D, P> {
