@@ -83,30 +83,23 @@ export class WelyElement<T, D, P> {
     })
   }
 
-  #convertCase(str: string, type: 'camel' | 'kebab'): string {
-    if (type === 'camel')
-      return str.replace(/-+(.)?/g, (_, targets) => (targets ? targets.toUpperCase() : ''))
-
-    if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-
-    return str
-  }
-
-  #getKebabName() {
-    return this.#convertCase(this.#name, 'kebab')
+  #toKebabCase(str: string): string {
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #getTagName() {
-    return `w-${this.#getKebabName()}`
+    return `w-${this.#toKebabCase(this.#name)}`
   }
 
   #getClass(): string {
-    return this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, this.#getKebabName())
+    return this.#class
+      .split(' ')
+      .reduce((prev, curr) => prev + ' ' + curr, this.#toKebabCase(this.#name))
   }
 
   #addClass(wely: HTMLElement): void {
     this.#class === ''
-      ? wely.classList.add(this.#getKebabName())
+      ? wely.classList.add(this.#toKebabCase(this.#name))
       : wely.setAttribute('class', this.#getClass())
   }
 
@@ -224,7 +217,7 @@ export class WelyElement<T, D, P> {
             prev +
             curr.selector +
             `{${Object.entries(style)
-              .map(([key, value]) => `${this.#convertCase(key, 'kebab')}: ${value};`)
+              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
               .join('\n')}}`
           )
         }
@@ -385,7 +378,7 @@ export class WelyElement<T, D, P> {
       )
     }
 
-    const className = that.#class === '' ? that.#getKebabName() : that.#getClass()
+    const className = that.#class === '' ? that.#toKebabCase(that.#name) : that.#getClass()
     const style =
       that.#css.length > 0 || that.#ssrCss.length > 0
         ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
