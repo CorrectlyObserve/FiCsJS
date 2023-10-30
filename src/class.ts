@@ -46,7 +46,7 @@ export class Element<T, D, P> {
     csrSlot,
     events
   }: <T, D, P>) {
-    this.#Id = Id ?? `-id${generator.next().value}`
+    this.#Id = Id ?? `${generator.next().value}`
     this.#name = name
 
     if (className && className !== '') this.#class = className
@@ -126,7 +126,7 @@ export class Element<T, D, P> {
 
           if (propsChain.descendants.has(Id)) {
             const setPropsChain = (chain: Record<string, any>): void => {
-              const localChain = chain[this.#convertCase(Id, 'camel')]!
+              const localChain = chain[Id]
 
               if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
               else localChain.__proto__ = { ...props(this.#data) }
@@ -135,7 +135,7 @@ export class Element<T, D, P> {
             setPropsChain(propsChain.chains)
           } else {
             propsChain.descendants.add(Id)
-            propsChain.chains[this.#convertCase(Id, 'camel')] = { ...props(this.#data) }
+            propsChain.chains[Id] = { ...props(this.#data) }
           }
         }
       }
@@ -143,8 +143,8 @@ export class Element<T, D, P> {
     this.#propsChain = propsChain
 
     if (this.#propsChain.descendants.has(this.#Id))
-      for (const key in this.#propsChain.chains[this.#convertCase(this.#Id, 'camel')])
-        this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#Id, 'camel')][key]
+      for (const key in this.#propsChain.chains[this.#Id])
+        this.#props[key] = this.#propsChain.chains[this.#Id][key]
   }
 
   #convertHtml(html: Html<T, D, P> | Slot<T, D, P>): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
