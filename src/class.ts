@@ -282,10 +282,11 @@ export class WelyElement<T, D, P> {
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
+    const name = that.#getTagName()
 
-    if (!customElements.get(that.#getTagName()))
+    if (!customElements.get(name))
       customElements.define(
-        that.#getTagName(),
+        name,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -296,7 +297,7 @@ export class WelyElement<T, D, P> {
         }
       )
 
-    const wely = that.#component ?? document.createElement(that.#getTagName())
+    const wely = that.#component ?? document.createElement(name)
 
     that.#addClass(wely)
     that.#setProps(propsChain)
@@ -312,8 +313,9 @@ export class WelyElement<T, D, P> {
 
   #renderOnServer(propsChain?: PropsChain<P>): string {
     const that = this.#clone()
+    const name = that.#getTagName()
 
-    if (that.#isOnlyCsr) return `<${that.#getTagName()}></${that.#getTagName()}>`
+    if (that.#isOnlyCsr) return `<${name}></${name}>`
 
     that.#setProps(propsChain)
 
@@ -378,10 +380,10 @@ export class WelyElement<T, D, P> {
     const style = that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''
 
     return `
-        <${that.#getTagName()} class="${that.#addClass()}">
+        <${name} class="${that.#addClass()}">
           <template shadowroot="open"><slot></slot>${style}</template>
           ${addHtml(that)}
-        </${that.#getTagName()}>
+        </${name}>
       `.trim()
   }
 
@@ -391,10 +393,11 @@ export class WelyElement<T, D, P> {
 
   define(): void {
     const that = this.#clone()
+    const name = that.#getTagName()
 
-    if (!customElements.get(that.#getTagName()))
+    if (!customElements.get(name))
       customElements.define(
-        that.#getTagName(),
+        name,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
