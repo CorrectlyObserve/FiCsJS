@@ -46,7 +46,7 @@ export class WelyElement<T, D, P> {
     csrSlot,
     events
   }: Wely<T, D, P>) {
-    this.#welyId = welyId ?? `wely-id${generator.next().value}`
+    this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
 
     if (className && className !== '') this.#class = className
@@ -126,7 +126,7 @@ export class WelyElement<T, D, P> {
 
           if (propsChain.descendants.has(welyId)) {
             const setPropsChain = (chain: Record<string, any>): void => {
-              const localChain = chain[this.#convertCase(welyId, 'camel')]!
+              const localChain = chain[welyId]
 
               if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
               else localChain.__proto__ = { ...props(this.#data) }
@@ -135,7 +135,7 @@ export class WelyElement<T, D, P> {
             setPropsChain(propsChain.chains)
           } else {
             propsChain.descendants.add(welyId)
-            propsChain.chains[this.#convertCase(welyId, 'camel')] = { ...props(this.#data) }
+            propsChain.chains[welyId] = { ...props(this.#data) }
           }
         }
       }
@@ -143,8 +143,8 @@ export class WelyElement<T, D, P> {
     this.#propsChain = propsChain
 
     if (this.#propsChain.descendants.has(this.#welyId))
-      for (const key in this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')])
-        this.#props[key] = this.#propsChain.chains[this.#convertCase(this.#welyId, 'camel')][key]
+      for (const key in this.#propsChain.chains[this.#welyId])
+        this.#props[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
   #convertHtml(html: Html<T, D, P> | Slot<T, D, P>): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
