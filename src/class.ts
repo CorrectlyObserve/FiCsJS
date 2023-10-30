@@ -91,16 +91,13 @@ export class Element<T, D, P> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #getClass(): string {
-    return this.#class
-      .split(' ')
-      .reduce((prev, curr) => prev + ' ' + curr, this.#toKebabCase(this.#name))
-  }
+  #addClass(?: HTMLElement): string | void {
+    const name = this.#toKebabCase(this.#name)
+    const className = this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, name)
 
-  #addClass(: HTMLElement): void {
-    this.#class === ''
-      ? .classList.add(this.#toKebabCase(this.#name))
-      : .setAttribute('class', this.#getClass())
+    if (!) return this.#class === '' ? name : className
+
+    this.#class === '' ? .classList.add(name) : .setAttribute('class', className)
   }
 
   #toArray(val: unknown | unknown[]) {
@@ -225,7 +222,7 @@ export class Element<T, D, P> {
         return ''
       }, '')
 
-      if (!shadowRoot) return styleContent
+      if (!shadowRoot) return `<style>${styleContent}</style>`
 
       const stylesheet = new CSSStyleSheet()
       shadowRoot.adoptedStyleSheets = [stylesheet]
@@ -378,18 +375,14 @@ export class Element<T, D, P> {
       )
     }
 
-    const className = that.#class === '' ? that.#toKebabCase(that.#name) : that.#getClass()
-    const style =
-      that.#css.length > 0 || that.#ssrCss.length > 0
-        ? `<style>${that.#addCss([...that.#css, ...that.#ssrCss])}</style>`
-        : ''
+    const style = that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''
 
     return `
-          <${that.#getTagName()} class="${className}">
-            <template shadowroot="open"><slot></slot>${style}</template>
-            ${addHtml(that)}
-          </${that.#getTagName()}>
-        `.trim()
+        <${that.#getTagName()} class="${that.#addClass()}">
+          <template shadowroot="open"><slot></slot>${style}</template>
+          ${addHtml(that)}
+        </${that.#getTagName()}>
+      `.trim()
   }
 
   overwrite(partialData: () => Partial<D>): Element<T, D, P> {
