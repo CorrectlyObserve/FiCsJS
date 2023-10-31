@@ -111,12 +111,10 @@ export class WelyElement<T, D, P> {
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
-        for (const descendant of this.#toArray(descendants)) {
-          const welyId = descendant.#welyId
-
-          if (propsChain.descendants.has(welyId)) {
+        for (const descendant of this.#toArray(descendants))
+          if (propsChain.descendants.has(descendant.#welyId)) {
             const setPropsChain = (chain: Record<string, any>): void => {
-              const localChain = chain[welyId]
+              const localChain = chain[descendant.#welyId]
 
               if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
               else localChain.__proto__ = { ...props(this.#data) }
@@ -124,10 +122,9 @@ export class WelyElement<T, D, P> {
 
             setPropsChain(propsChain.chains)
           } else {
-            propsChain.descendants.add(welyId)
-            propsChain.chains[welyId] = { ...props(this.#data) }
+            propsChain.descendants.add(descendant.#welyId)
+            propsChain.chains[descendant.#welyId] = { ...props(this.#data) }
           }
-        }
       }
 
     this.#propsChain = propsChain
