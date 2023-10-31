@@ -1,50 +1,54 @@
-import { WelyClass } from './class'
+import { WelyElement } from './class'
 
 export type Css<D, P> = (
   | string
   | {
       selector: string
-      style: ({ data, props }: { data: D; props: P }) => Record<string, string | number>
+      style: ValueOrArrowFunc<Record<string, string | number>, D, P>
     }
 )[]
 
-export interface Each<T, D, P> {
+export interface Each<T> {
   contents: T[]
-  render: (arg: T, index: number) => Result<T, D, P> | undefined
+  render: (arg: T, index: number) => Result<T> | undefined
 }
 
-export interface EachIf<T, D, P> {
+export interface EachIf<T> {
   contents: T[]
   branches: {
     judge: (arg: T) => boolean
-    render: (arg: T, index: number) => Result<T, D, P>
+    render: (arg: T, index: number) => Result<T>
   }[]
-  fallback?: (arg: T, index: number) => Result<T, D, P>
+  fallback?: (arg: T, index: number) => Result<T>
 }
 
-export type Events<D, P> = {
+export interface EventHandler<D, P> {
   handler: string
   selector?: string
   method: ({ data, props }: { data: D; props: P }, event: Event, index?: number) => void
-}[]
-
-export type Html<T, D, P> =
-  | HtmlArg<T, D, P>
-  | (({ data, props }: { data: D | any; props: P }) => HtmlArg<T, D, P>)
-
-type HtmlArg<T, D, P> = Result<T, D, P> | Each<T, D, P> | EachIf<T, D, P> | If<T, D, P>
-
-export interface If<T, D, P> {
-  branches: {
-    judge: boolean | unknown
-    render: Result<T, D, P>
-  }[]
-  fallback?: Result<T, D, P>
 }
 
-export type Inheritances<T, D, P> = {
-  descendants: SingleOrArray<WelyClass<T, D | any, P | any>>
-  props: (data: D) => P
+export type Html<T, D, P> = ValueOrArrowFunc<HtmlValue<T>, D, P>
+
+export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, D, P>
+  ? HtmlValue<T>
+  : WelyElement<T, D, P> | string
+
+export type HtmlSymbol<T, D, P> = Record<symbol, SanitizedHtml<T, D, P>>
+
+type HtmlValue<T> = Record<symbol, Result<T>> | Each<T> | EachIf<T> | If<T>
+
+export interface If<T> {
+  branches: {
+    judge: boolean | unknown
+    render: Result<T>
+  }[]
+  fallback?: Result<T>
+}
+
+export type Inheritances<T, D> = {
+  descendants: SingleOrArray<WelyElement<T, any, any>>
+  props: (data: D) => any
 }[]
 
 export interface PropsChain<P> {
@@ -52,22 +56,26 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-type Result<T, D, P> = SingleOrArray<WelyClass<T, D | any, P | any> | string>
+type Result<T> = SingleOrArray<WelyElement<T, any, any> | string>
+
+export type SanitizedHtml<T, D, P> = (WelyElement<T, D, P> | string)[]
 
 export type SingleOrArray<T> = T | T[]
 
-export type Slot<T, D, P> =
-  | Result<T, D, P>
-  | (({ data, props }: { data: D; props: P }) => Result<T, D, P>)
+export type Slot<T, D, P> = ValueOrArrowFunc<Record<symbol, Result<T>>, D, P>
+
+type ValueOrArrowFunc<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
 
 export interface Wely<T, D, P> {
   welyId?: string
   name: string
   className?: string
-  inheritances?: Inheritances<T, D, P>
+  inheritances?: Inheritances<T, D>
   data?: () => D
+  isOnlyCsr?: boolean
   html: Html<T, D, P>
   css?: Css<D, P>
+  ssrCss?: Css<D, P>
   slot?: Slot<T, D, P>
-  events?: Events<D, P>
+  events?: EventHandler<D, P>[]
 }
