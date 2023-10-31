@@ -256,7 +256,7 @@ export class WelyElement<T, D, P> {
           })()
 
           if (elements.length === 0)
-            console.error(`The element does not exist or is not applicable...`)
+            console.error(`:host ${selector} does not exist or is not applicable...`)
           else
             for (let i = 0; i < elements.length; i++)
               elements[i].addEventListener(handler, (e: Event) =>
@@ -369,6 +369,9 @@ export class WelyElement<T, D, P> {
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
     }
+
+    if (that.#slot.length > 0)
+      console.warn(`${that.#name} has slot property, but it cannot be used in ssr...`)
 
     return `
         <${name} class="${that.#addClass()}">
