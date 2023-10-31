@@ -1,30 +1,27 @@
 import { html, wely } from './wely'
 import cssUrl from './style.css?inline'
 
-interface Data {
-  count: number
-  fontSize: number
-  message: string
-  back: string
-}
-
-interface Props {
-  color: string
-  click: (message: string) => void
-}
-
-const app = document.getElementById('app')!
-
 const child = wely({
   name: 'child',
   data: () => ({
     count: 1,
     fontSize: 16,
     message: 'Hello',
-    back: 'black'
+    back: 'black',
+    arr: [1, 2, 3],
+    obj: { key: 'value' },
+    number: () => 3
   }),
-  html: ({ data: { message }, props: { color } }: { data: Data; props: Props }) =>
-    `<div><p class="hello" style="display: inline">${message}</p></div><p>${color}</p>`,
+  isOnlyCsr: true,
+  html: ({
+    data: { message },
+    props: { color }
+  }: {
+    data: { message: string }
+    props: { color: string; click: (message: string) => void }
+  }) =>
+    html`<div><p class="hello" style="display: inline">${message}</p></div>
+      <p>${color}</p>`,
   css: [
     cssUrl,
     {
@@ -54,9 +51,9 @@ const parent = wely({
     color: 'blue',
     click: (message: string) => console.log(message)
   }),
-  slot: html`${child2}
-    <p>aaa</p>`,
-  html: `<slot />`,
+  html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
+    html`${child2}
+      <p>propsColor: ${propsColor}</p>`,
   inheritances: [
     {
       descendants: child2,
@@ -65,22 +62,24 @@ const parent = wely({
   ]
 })
 
-wely({
+const grandParent = wely({
   name: 'grandParent',
   data: () => ({
     color: 'green',
+    fontSize: 24,
     number: 12
   }),
   html: ({ data: { number } }) =>
     html`${parent}
       <p>人数: ${number}</p>`,
   inheritances: [
-    {
-      descendants: [child, child2],
-      props: ({ color }) => ({ color })
-    }
+    { descendants: [child, child2], props: ({ color }) => ({ color }) },
+    { descendants: parent, props: ({ color }) => ({ propsColor: color }) }
   ]
-}).mount(app)
+})
+
+console.log(grandParent.ssr())
+grandParent.define()
 
 wely({
   name: 'Wely2',
@@ -88,7 +87,7 @@ wely({
     contents: [1, 2, 3],
     render: (arg: number, index) => `<p class="class-${index}">${arg * 2}</p>`
   }
-}).mount(app)
+}).define()
 
 wely({
   name: 'wely3',
@@ -99,21 +98,13 @@ wely({
   }),
   html: ({ data: { number } }) => ({
     branches: [
-      {
-        judge: number > 100,
-        render: child
-      },
-      {
-        judge: number < 100,
-        render: `<p>bbb</p>`
-      }
+      { judge: number > 100, render: child },
+      { judge: number < 100, render: `<p>bbb</p>` }
     ],
     fallback: `<slot />`
   }),
-  slot: html`
-    ${child}
-    <p>AAA</p>
-  `,
+  slot: html`${child}
+    <p>AAA</p>`,
   events: [
     {
       handler: 'click',
@@ -121,7 +112,7 @@ wely({
       method: ({ data: { number, text } }, e, index) => console.log(number, text, e, index)
     }
   ]
-}).mount(app)
+}).define()
 
 wely({
   name: 'Wely4',
@@ -149,4 +140,4 @@ wely({
       method: ({ data: { numbers } }, e, index) => console.log(numbers[index ?? 0], e)
     }
   ]
-}).mount(app)
+}).define()
