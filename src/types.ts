@@ -76,6 +76,6 @@ export interface Wely<T, D, P> {
   html: Html<T, D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
-  csrSlot?: Slot<T, D, P>
+  slot?: Slot<T, D, P>
   events?: EventHandler<D, P>[]
 }

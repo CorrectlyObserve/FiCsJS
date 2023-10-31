@@ -47,7 +47,7 @@ export const wely = <T, D, P>({
   html,
   css,
   ssrCss,
-  csrSlot,
+  slot,
   events
 }: Wely<T, D, P>) =>
   new WelyElement({
@@ -60,6 +60,6 @@ export const wely = <T, D, P>({
     html,
     css,
     ssrCss,
-    csrSlot,
+    slot,
     events
   })
