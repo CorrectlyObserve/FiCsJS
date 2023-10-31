@@ -370,11 +370,11 @@ export class WelyElement<T, D, P> {
       )
     }
 
-    const style = that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''
-
     return `
         <${name} class="${that.#addClass()}">
-          <template shadowroot="open"><slot></slot>${style}</template>
+          <template shadowroot="open">
+            <slot></slot>${that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''}
+          </template>
           ${addHtml(that)}
         </${name}>
       `.trim()
