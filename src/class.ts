@@ -44,7 +44,7 @@ export class WelyElement<T, D, P> {
     html,
     css,
     ssrCss,
-    csrSlot,
+    slot,
     events
   }: Wely<T, D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
@@ -59,7 +59,7 @@ export class WelyElement<T, D, P> {
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
-    if (csrSlot) this.#slot.push(csrSlot)
+    if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -79,7 +79,7 @@ export class WelyElement<T, D, P> {
       html: this.#html[0],
       css: this.#css,
       ssrCss: this.#ssrCss,
-      csrSlot: this.#slot.length > 0 ? this.#slot[0] : undefined,
+      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
       events: this.#events
     })
   }
