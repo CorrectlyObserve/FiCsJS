@@ -111,12 +111,10 @@ export class Element<T, D, P> {
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
-        for (const descendant of this.#toArray(descendants)) {
-          const Id = descendant.#Id
-
-          if (propsChain.descendants.has(Id)) {
+        for (const descendant of this.#toArray(descendants))
+          if (propsChain.descendants.has(descendant.#Id)) {
             const setPropsChain = (chain: Record<string, any>): void => {
-              const localChain = chain[Id]
+              const localChain = chain[descendant.#Id]
 
               if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
               else localChain.__proto__ = { ...props(this.#data) }
@@ -124,10 +122,9 @@ export class Element<T, D, P> {
 
             setPropsChain(propsChain.chains)
           } else {
-            propsChain.descendants.add(Id)
-            propsChain.chains[Id] = { ...props(this.#data) }
+            propsChain.descendants.add(descendant.#Id)
+            propsChain.chains[descendant.#Id] = { ...props(this.#data) }
           }
-        }
       }
 
     this.#propsChain = propsChain
