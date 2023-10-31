@@ -10,6 +10,7 @@ import {
   Inheritances,
   PropsChain,
   SanitizedHtml,
+  SingleOrArray,
   Slot,
   
 } from './types'
@@ -100,7 +101,7 @@ export class Element<T, D, P> {
     this.#class === '' ? .classList.add(name) : .setAttribute('class', className)
   }
 
-  #toArray(val: unknown | unknown[]) {
+  #toArray(val: SingleOrArray<unknown>) {
     return Array.isArray(val) ? [...val] : [val]
   }
 
