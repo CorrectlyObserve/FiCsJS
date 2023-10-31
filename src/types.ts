@@ -60,7 +60,7 @@ type Result<T> = SingleOrArray<Element<T, any, any> | string>
 
 export type SanitizedHtml<T, D, P> = (Element<T, D, P> | string)[]
 
-type SingleOrArray<T> = T | T[]
+export type SingleOrArray<T> = T | T[]
 
 export type Slot<T, D, P> = ValueOrArrowFunc<Record<symbol, Result<T>>, D, P>
 
