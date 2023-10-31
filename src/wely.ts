@@ -47,7 +47,7 @@ export const  = <T, D, P>({
   html,
   css,
   ssrCss,
-  csrSlot,
+  slot,
   events
 }: <T, D, P>) =>
   new Element({
@@ -60,6 +60,6 @@ export const  = <T, D, P>({
     html,
     css,
     ssrCss,
-    csrSlot,
+    slot,
     events
   })

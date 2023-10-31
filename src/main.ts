@@ -103,7 +103,7 @@ grandParent.define()
     ],
     fallback: `<slot />`
   }),
-  csrSlot: html`${child}
+  slot: html`${child}
     <p>AAA</p>`,
   events: [
     {
