@@ -198,32 +198,27 @@ export class WelyElement<T, D, P> {
 
   #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
     if (css.length > 0) {
-      const styleContent = <string>css.reduce((prev, curr) => {
-        if (typeof curr === 'string') return prev + curr
-
-        if (curr.selector && 'style' in curr) {
-          const style =
+      const style = css.reduce((prev, curr) => {
+        if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
+          const styleContent = Object.entries(
             typeof curr.style === 'function'
               ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
               : curr.style
-
-          return (
-            prev +
-            curr.selector +
-            `{${Object.entries(style)
-              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
-              .join('\n')}}`
           )
+            .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
+            .join('\n')
+
+          return `${prev}${curr.selector}{${styleContent}}`
         }
 
-        return ''
+        return `${prev}${curr}`
       }, '')
 
-      if (!shadowRoot) return `<style>${styleContent}</style>`
+      if (!shadowRoot) return `<style>${style}</style>`
 
       const stylesheet = new CSSStyleSheet()
       shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replace(styleContent)
+      stylesheet.replace(<string>style)
     }
   }
 
