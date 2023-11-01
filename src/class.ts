@@ -155,7 +155,9 @@ export class WelyElement<D, P> {
       )
   }
 
-  #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
+  #addCss(shadowRoot?: ShadowRoot): string | void {
+    const css = shadowRoot ? [...this.#css] : [...this.#css, ...this.#ssrCss]
+
     if (css.length > 0) {
       const style = css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
@@ -249,7 +251,7 @@ export class WelyElement<D, P> {
     that.#addClass(wely)
     that.#setProps(propsChain)
     that.#addHtml(<ShadowRoot>wely.shadowRoot)
-    that.#addCss(this.#css, <ShadowRoot>wely.shadowRoot)
+    that.#addCss(<ShadowRoot>wely.shadowRoot)
     that.#addSlot(wely)
     that.#addEvents(wely)
 
@@ -272,7 +274,7 @@ export class WelyElement<D, P> {
     return `
         <${name} class="${that.#addClass()}">
           <template shadowroot="open">
-            <slot></slot>${that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''}
+            <slot></slot>${that.#addCss() ?? ''}
           </template>
           ${that.#addHtml()}
         </${name}>
@@ -304,7 +306,7 @@ export class WelyElement<D, P> {
               that.#addClass(this)
               that.#setProps()
               that.#addHtml(this.shadowRoot)
-              that.#addCss(that.#css, this.shadowRoot)
+              that.#addCss(this.shadowRoot)
               that.#addSlot(this)
               that.#addEvents(this)
 
