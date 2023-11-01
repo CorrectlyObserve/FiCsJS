@@ -30,10 +30,7 @@ const child = wely({
     }
   ],
   events: [
-    {
-      handler: 'click',
-      method: ({ data: { count } }) => console.log(count++)
-    },
+    { handler: 'click', method: ({ data: { count } }) => console.log(count++) },
     {
       selector: 'div',
       handler: 'click',
@@ -47,35 +44,23 @@ const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
 const parent = wely({
   name: 'parent',
   className: 'test',
-  data: () => ({
-    color: 'blue',
-    click: (message: string) => console.log(message)
-  }),
+  data: () => ({ color: 'blue', click: (message: string) => console.log(message) }),
+  props: [{ descendants: child2, props: ({ color, click }) => ({ color, click }) }],
   html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
     html`${child2}
-      <p>propsColor: ${propsColor}</p>`,
-  inheritances: [
-    {
-      descendants: child2,
-      props: ({ color, click }) => ({ color, click })
-    }
-  ]
+      <p>propsColor: ${propsColor}</p>`
 })
 
 const grandParent = wely({
   name: 'grandParent',
-  data: () => ({
-    color: 'green',
-    fontSize: 24,
-    number: 12
-  }),
-  html: ({ data: { number } }) =>
-    html`${parent}
-      <p>人数: ${number}</p>`,
-  inheritances: [
+  data: () => ({ color: 'green', fontSize: 24, number: 12 }),
+  props: [
     { descendants: [child, child2], props: ({ color }) => ({ color }) },
     { descendants: parent, props: ({ color }) => ({ propsColor: color }) }
-  ]
+  ],
+  html: ({ data: { number } }) =>
+    html`${parent}
+      <p>人数: ${number}</p>`
 })
 
 console.log(grandParent.ssr())
