@@ -1,17 +1,17 @@
 import { WelyElement } from './class'
-import { HtmlValue, Wely } from './types'
+import { Wely } from './types'
 import { sanitize, symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyElement<D, P> | unknown)[]
-): Record<symbol, HtmlValue<D, P>> => {
+): Record<symbol, (WelyElement<D, P> | string)[]> => {
   const wrapSanitize = (value: unknown) =>
     value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
 
   if (variables.some(variable => variable instanceof WelyElement)) {
-    const result: HtmlValue<D, P> = []
-    let isSkipped: boolean = false
+    const result = []
+    let isSkipped = false
 
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i]
