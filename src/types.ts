@@ -36,8 +36,8 @@ export interface <D, P> {
   Id?: string
   name: string
   className?: string
-  inheritances?: Inheritances<D>
   data?: () => D
+  props?: Inheritances<D>
   isOnlyCsr?: boolean
   html: Html<D, P>
   css?: Css<D, P>
