@@ -1,16 +1,16 @@
 import { WelyElement } from './class'
-import { HtmlSymbol, Wely } from './types'
+import { HtmlValue, Wely } from './types'
 import { sanitize, symbol } from './utils'
 
-export const html = <T, D, P>(
+export const html = <D, P>(
   templates: TemplateStringsArray,
-  ...variables: (WelyElement<T, D, P> | unknown)[]
-): HtmlSymbol<T, D, P> => {
+  ...variables: (WelyElement<D, P> | unknown)[]
+): Record<symbol, HtmlValue<D, P>> => {
   const wrapSanitize = (value: unknown) =>
     value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
 
   if (variables.some(variable => variable instanceof WelyElement)) {
-    const result: (WelyElement<T, D, P> | string)[] = []
+    const result: HtmlValue<D, P> = []
     let isSkipped: boolean = false
 
     for (let i = 0; i < templates.length; i++) {
@@ -38,7 +38,7 @@ export const html = <T, D, P>(
   }
 }
 
-export const wely = <T, D, P>({
+export const wely = <D, P>({
   name,
   className,
   inheritances,
@@ -49,7 +49,7 @@ export const wely = <T, D, P>({
   ssrCss,
   slot,
   events
-}: Wely<T, D, P>) =>
+}: Wely<D, P>) =>
   new WelyElement({
     welyId: undefined,
     name,
