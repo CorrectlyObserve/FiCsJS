@@ -135,11 +135,21 @@ export class Element<D, P> {
       )
   }
 
-  #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
+  #addHtml(shadowRoot?: ShadowRoot): string | void {
     const html = this.#convertHtml(this.#html[0])
 
-    if (html.hasOwnProperty(symbol)) this.#appendChild(html[symbol], shadowRoot, propsChain)
-    else
+    if (html.hasOwnProperty(symbol)) {
+      if (!shadowRoot)
+        return <string>(
+          html[symbol].reduce(
+            (prev, curr) =>
+              prev + (curr instanceof Element ? curr.#renderOnServer(this.#propsChain) : curr),
+            ''
+          )
+        )
+
+      this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
+    } else
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
@@ -171,10 +181,10 @@ export class Element<D, P> {
     }
   }
 
-  #addSlot(: HTMLElement, propsChain: PropsChain<P>): void {
+  #addSlot(: HTMLElement): void {
     if (this.#slot.length > 0)
       for (const slot of this.#slot)
-        this.#appendChild(this.#convertHtml(slot)[symbol], , propsChain)
+        this.#appendChild(this.#convertHtml(slot)[symbol], , this.#propsChain)
   }
 
   #addEvents(: HTMLElement): void {
@@ -238,9 +248,9 @@ export class Element<D, P> {
 
     that.#addClass()
     that.#setProps(propsChain)
-    that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
+    that.#addHtml(<ShadowRoot>.shadowRoot)
     that.#addCss(this.#css, <ShadowRoot>.shadowRoot)
-    that.#addSlot(, that.#propsChain)
+    that.#addSlot()
     that.#addEvents()
 
     if (!that.#component) that.#component = 
@@ -262,8 +272,7 @@ export class Element<D, P> {
       if (html.hasOwnProperty(symbol))
         return html[symbol].reduce(
           (prev, curr) =>
-            prev +
-            (curr instanceof Element ? curr.#renderOnServer(that.#propsChain) : curr),
+            prev + (curr instanceof Element ? curr.#renderOnServer(that.#propsChain) : curr),
           ''
         )
 
@@ -309,9 +318,9 @@ export class Element<D, P> {
             if (!this.#isRendered) {
               that.#addClass(this)
               that.#setProps()
-              that.#addHtml(this.shadowRoot, that.#propsChain)
+              that.#addHtml(this.shadowRoot)
               that.#addCss(that.#css, this.shadowRoot)
-              that.#addSlot(this, that.#propsChain)
+              that.#addSlot(this)
               that.#addEvents(this)
 
               this.#isRendered = true
