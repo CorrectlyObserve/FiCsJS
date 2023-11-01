@@ -5,8 +5,8 @@ export class WelyElement<D, P> {
   readonly #welyId: string = ''
   readonly #name: string = ''
   readonly #class: string = ''
-  readonly #inheritances: Inheritances<D> = []
   readonly #data: D = <D>{}
+  readonly #inheritances: Inheritances<D> = []
   readonly #isOnlyCsr: boolean = false
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
@@ -22,8 +22,8 @@ export class WelyElement<D, P> {
     welyId,
     name,
     className,
-    inheritances,
     data,
+    props,
     isOnlyCsr,
     html,
     css,
@@ -33,16 +33,17 @@ export class WelyElement<D, P> {
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
-
     if (className && className !== '') this.#class = className
-    if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
-    if (data) this.#data = { ...data() }
-    if (isOnlyCsr) this.#isOnlyCsr = true
 
+    if (data) this.#data = { ...data() }
+    if (props && props.length > 0) this.#inheritances = [...props]
+
+    if (isOnlyCsr) this.#isOnlyCsr = true
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
+
     if (slot) this.#slot.push(slot)
     if (events && events.length > 0) this.#events = [...events]
   }
@@ -57,8 +58,8 @@ export class WelyElement<D, P> {
       welyId,
       name: this.#name,
       className: this.#class,
-      inheritances: this.#inheritances,
       data,
+      props: this.#inheritances,
       isOnlyCsr: this.#isOnlyCsr,
       html: this.#html[0],
       css: this.#css,
