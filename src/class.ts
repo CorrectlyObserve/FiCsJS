@@ -193,34 +193,30 @@ export class WelyElement<D, P> {
       for (const event of this.#events) {
         const { selector, handler, method } = event
 
-        if (selector) {
-          const elements = (() => {
-            const getSelectors = (selector: string) =>
-              Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
+        const elements = selector
+          ? (() => {
+              const getSelectors = (selector: string) =>
+                Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
 
-            if (/^.+(\.|#).+$/.test(selector)) {
-              const symbol = selector.includes('.') ? '.' : '#'
-              const [tag, attr] = selector.split(symbol)
+              if (/^.+(\.|#).+$/.test(selector)) {
+                const symbol = selector.includes('.') ? '.' : '#'
+                const [tag, attr] = selector.split(symbol)
 
-              return getSelectors(tag).filter(
-                element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
-              )
-            }
+                return getSelectors(tag).filter(
+                  element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
+                )
+              }
 
-            return getSelectors(selector)
-          })()
+              return getSelectors(selector)
+            })()
+          : [wely]
 
-          if (elements.length === 0)
-            console.error(`:host ${selector} does not exist or is not applicable...`)
-          else
-            for (let i = 0; i < elements.length; i++)
-              elements[i].addEventListener(handler, (e: Event) =>
-                method({ data: { ...this.#data }, props: { ...this.#props } }, e)
-              )
-        } else
-          wely.addEventListener(handler, (event: Event) =>
-            method({ data: { ...this.#data }, props: { ...this.#props } }, event)
-          )
+        if (elements.length > 0)
+          for (const element of elements)
+            element.addEventListener(handler, (event: Event) =>
+              method({ data: { ...this.#data }, props: { ...this.#props } }, event)
+            )
+        else console.error(`:host ${selector} does not exist or is not applicable...`)
       }
   }
 
