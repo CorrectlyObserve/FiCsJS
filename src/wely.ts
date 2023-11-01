@@ -1,16 +1,16 @@
 import { Element } from './class'
-import { HtmlSymbol,  } from './types'
+import { HtmlValue,  } from './types'
 import { sanitize, symbol } from './utils'
 
-export const html = <T, D, P>(
+export const html = <D, P>(
   templates: TemplateStringsArray,
-  ...variables: (Element<T, D, P> | unknown)[]
-): HtmlSymbol<T, D, P> => {
+  ...variables: (Element<D, P> | unknown)[]
+): Record<symbol, HtmlValue<D, P>> => {
   const wrapSanitize = (value: unknown) =>
     value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
 
   if (variables.some(variable => variable instanceof Element)) {
-    const result: (Element<T, D, P> | string)[] = []
+    const result: HtmlValue<D, P> = []
     let isSkipped: boolean = false
 
     for (let i = 0; i < templates.length; i++) {
@@ -38,7 +38,7 @@ export const html = <T, D, P>(
   }
 }
 
-export const  = <T, D, P>({
+export const  = <D, P>({
   name,
   className,
   inheritances,
@@ -49,7 +49,7 @@ export const  = <T, D, P>({
   ssrCss,
   slot,
   events
-}: <T, D, P>) =>
+}: <D, P>) =>
   new Element({
     Id: undefined,
     name,

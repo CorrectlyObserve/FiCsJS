@@ -1,33 +1,18 @@
-import {
-  Css,
-  Each,
-  EachIf,
-  EventHandler,
-  Html,
-  HtmlOrSlot,
-  HtmlSymbol,
-  If,
-  Inheritances,
-  PropsChain,
-  SanitizedHtml,
-  SingleOrArray,
-  Slot,
-  
-} from './types'
+import { Css, Events, Html, HtmlValue, Inheritances, PropsChain,  } from './types'
 import { generator, symbol } from './utils'
 
-export class Element<T, D, P> {
+export class Element<D, P> {
   readonly #Id: string = ''
   readonly #name: string = ''
   readonly #class: string = ''
-  readonly #inheritances: Inheritances<T, D> = []
+  readonly #inheritances: Inheritances<D> = []
   readonly #data: D = <D>{}
   readonly #isOnlyCsr: boolean = false
-  readonly #html: Html<T, D, P>[] = []
+  readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: Slot<T, D, P>[] = []
-  readonly #events: EventHandler<D, P>[] = []
+  readonly #slot: Html<D, P>[] = []
+  readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
@@ -46,7 +31,7 @@ export class Element<T, D, P> {
     ssrCss,
     slot,
     events
-  }: <T, D, P>) {
+  }: <D, P>) {
     this.#Id = Id ?? `${generator.next().value}`
     this.#name = name
 
@@ -68,8 +53,8 @@ export class Element<T, D, P> {
       Id: this.#Id,
       data: () => <D>{ ...this.#data }
     }
-  ): Element<T, D, P> {
-    return new Element<T, D, P>({
+  ): Element<D, P> {
+    return new Element<D, P>({
       Id,
       name: this.#name,
       className: this.#class,
@@ -101,10 +86,6 @@ export class Element<T, D, P> {
     this.#class === '' ? .classList.add(name) : .setAttribute('class', className)
   }
 
-  #toArray(val: SingleOrArray<unknown>) {
-    return Array.isArray(val) ? [...val] : [val]
-  }
-
   #setProps(
     propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   ): void {
@@ -112,7 +93,7 @@ export class Element<T, D, P> {
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
-        for (const descendant of this.#toArray(descendants))
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
           if (propsChain.descendants.has(descendant.#Id)) {
             const setPropsChain = (chain: Record<string, any>): void => {
               const localChain = chain[descendant.#Id]
@@ -135,18 +116,18 @@ export class Element<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#Id][key]
   }
 
-  #convertHtml(html: Html<T, D, P> | Slot<T, D, P>): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
+  #convertHtml(html: Html<D, P>): Record<symbol, HtmlValue<D, P>> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
   }
 
   #appendChild(
-    arg: SanitizedHtml<T, D, P> | Element<T, D, P> | string,
+    elements: HtmlValue<D, P>,
     : HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
-    for (const element of this.#toArray(arg))
+    for (const element of elements)
       .appendChild(
         element instanceof Element
           ? element.#render(propsChain)
@@ -154,50 +135,29 @@ export class Element<T, D, P> {
       )
   }
 
-  #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
-    const html: Html<T, D, P> = this.#convertHtml(this.#html[0])
+  #addHtml(shadowRoot?: ShadowRoot): string | void {
+    const html = this.#convertHtml(this.#html[0])
 
-    if (html.hasOwnProperty(symbol))
-      this.#appendChild((<HtmlSymbol<T, D, P>>html)[symbol], shadowRoot, propsChain)
-    else if ('contents' in <Each<T> | EachIf<T>>html) {
-      this.#isEach = true
+    if (html.hasOwnProperty(symbol)) {
+      if (!shadowRoot)
+        return <string>(
+          html[symbol].reduce(
+            (prev, curr) =>
+              prev + (curr instanceof Element ? curr.#renderOnServer(this.#propsChain) : curr),
+            ''
+          )
+        )
 
-      if ('branches' in <EachIf<T>>html) {
-        const { contents, branches, fallback } = <EachIf<T>>html
-
-        contents.forEach((content, index) => {
-          for (const branch of branches)
-            if (branch.judge(content))
-              this.#appendChild(branch.render(content, index), shadowRoot, propsChain)
-
-          if (fallback) this.#appendChild(fallback(content, index), shadowRoot, propsChain)
-        })
-      } else {
-        const { contents, render } = <Each<T>>html
-
-        contents.forEach((content, index) => {
-          const renderer = render(content, index)
-          if (renderer) this.#appendChild(renderer, shadowRoot, propsChain)
-        })
-      }
-    } else if ('contents' in <If<T>>html) {
-      const { branches, fallback } = <If<T>>html
-      let isInserted = false
-
-      for (const branch of branches)
-        if (branch.judge) {
-          this.#appendChild(branch.render, shadowRoot, propsChain)
-          isInserted = true
-        }
-
-      if (!isInserted && fallback) this.#appendChild(fallback, shadowRoot, propsChain)
+      this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
     } else
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
   }
 
-  #addCss(css: Css<D, P>, shadowRoot?: ShadowRoot): string | void {
+  #addCss(shadowRoot?: ShadowRoot): string | void {
+    const css = shadowRoot ? [...this.#css] : [...this.#css, ...this.#ssrCss]
+
     if (css.length > 0) {
       const style = css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
@@ -223,14 +183,10 @@ export class Element<T, D, P> {
     }
   }
 
-  #addSlot(: HTMLElement, propsChain: PropsChain<P>): void {
+  #addSlot(: HTMLElement): void {
     if (this.#slot.length > 0)
-      for (const slot of this.#toArray(this.#slot))
-        this.#appendChild(
-          (<HtmlSymbol<T, D, P>>this.#convertHtml(<Slot<T, D, P>>slot))[symbol],
-          ,
-          propsChain
-        )
+      for (const slot of this.#slot)
+        this.#appendChild(this.#convertHtml(slot)[symbol], , this.#propsChain)
   }
 
   #addEvents(: HTMLElement): void {
@@ -273,6 +229,15 @@ export class Element<T, D, P> {
       }
   }
 
+  #createComponent(: HTMLElement, propsChain?: PropsChain<P>): void {
+    this.#addClass()
+    this.#setProps(propsChain)
+    this.#addHtml(<ShadowRoot>.shadowRoot)
+    this.#addCss(<ShadowRoot>.shadowRoot)
+    this.#addSlot()
+    this.#addEvents()
+  }
+
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
     const name = that.#getTagName()
@@ -292,12 +257,7 @@ export class Element<T, D, P> {
 
     const  = that.#component ?? document.createElement(name)
 
-    that.#addClass()
-    that.#setProps(propsChain)
-    that.#addHtml(<ShadowRoot>.shadowRoot, that.#propsChain)
-    that.#addCss(this.#css, <ShadowRoot>.shadowRoot)
-    that.#addSlot(, that.#propsChain)
-    that.#addEvents()
+    that.#createComponent(, propsChain)
 
     if (!that.#component) that.#component = 
 
@@ -312,78 +272,20 @@ export class Element<T, D, P> {
 
     that.#setProps(propsChain)
 
-    const addHtml = (instance: Element<T, D, P>) => {
-      const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
-
-      const insertTemplate = (
-        arg: SanitizedHtml<T, D, P> | Element<T, D, P> | string
-      ): string =>
-        this.#toArray(arg).reduce(
-          (prev, curr) =>
-            prev +
-            (curr instanceof Element ? curr.#renderOnServer(instance.#propsChain) : curr),
-          ''
-        )
-
-      if (html.hasOwnProperty(symbol)) return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol])
-
-      if ('contents' in <Each<T> | EachIf<T>>html) {
-        instance.#isEach = true
-
-        if ('branches' in <EachIf<T>>html) {
-          const { contents, branches, fallback } = <EachIf<T>>html
-
-          contents.forEach((content, index) => {
-            for (const branch of branches)
-              if (branch.judge(content)) return insertTemplate(branch.render(content, index))
-
-            if (fallback) return insertTemplate(fallback(content, index))
-
-            return
-          })
-
-          return
-        }
-
-        const { contents, render } = <Each<T>>html
-
-        contents.forEach((content, index) => {
-          const renderer = render(content, index)
-          if (renderer) return insertTemplate(renderer)
-
-          return
-        })
-      }
-
-      if ('contents' in <If<T>>html) {
-        const { branches, fallback } = <If<T>>html
-
-        for (const branch of branches) if (branch.judge) return insertTemplate(branch.render)
-
-        if (fallback) return insertTemplate(fallback)
-
-        return
-      }
-
-      throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
-      )
-    }
-
     if (that.#slot.length > 0)
       console.warn(`${that.#name} has slot property, but it cannot be used in ssr...`)
 
     return `
         <${name} class="${that.#addClass()}">
           <template shadowroot="open">
-            <slot></slot>${that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''}
+            <slot></slot>${that.#addCss() ?? ''}
           </template>
-          ${addHtml(that)}
+          ${that.#addHtml()}
         </${name}>
       `.trim()
   }
 
-  overwrite(partialData: () => Partial<D>): Element<T, D, P> {
+  overwrite(partialData: () => Partial<D>): Element<D, P> {
     return this.#clone({ Id: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
@@ -405,13 +307,7 @@ export class Element<T, D, P> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#addClass(this)
-              that.#setProps()
-              that.#addHtml(this.shadowRoot, that.#propsChain)
-              that.#addCss(that.#css, this.shadowRoot)
-              that.#addSlot(this, that.#propsChain)
-              that.#addEvents(this)
-
+              that.#createComponent(this)
               this.#isRendered = true
             }
           }
