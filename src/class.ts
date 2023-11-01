@@ -16,7 +16,6 @@ export class WelyElement<D, P> {
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
-  #isEach: boolean = false
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -216,11 +215,7 @@ export class WelyElement<D, P> {
           else
             for (let i = 0; i < elements.length; i++)
               elements[i].addEventListener(handler, (e: Event) =>
-                method(
-                  { data: { ...this.#data }, props: { ...this.#props } },
-                  e,
-                  this.#isEach ? i : undefined
-                )
+                method({ data: { ...this.#data }, props: { ...this.#props } }, e)
               )
         } else
           wely.addEventListener(handler, (event: Event) =>
