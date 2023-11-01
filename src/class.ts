@@ -1,4 +1,4 @@
-import { Css, Events, Html, HtmlValue, Inheritances, PropsChain,  } from './types'
+import { Css, Events, Html, Inheritances, PropsChain,  } from './types'
 import { generator, symbol } from './utils'
 
 export class Element<D, P> {
@@ -73,7 +73,7 @@ export class Element<D, P> {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
-  #getTagName() {
+  #getTagName(): string {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
@@ -116,14 +116,14 @@ export class Element<D, P> {
         this.#props[key] = this.#propsChain.chains[this.#Id][key]
   }
 
-  #convertHtml(html: Html<D, P>): Record<symbol, HtmlValue<D, P>> {
+  #convertHtml(html: Html<D, P>): Record<symbol, (Element<D, P> | string)[]> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
   }
 
   #appendChild(
-    elements: HtmlValue<D, P>,
+    elements: (Element<D, P> | string)[],
     : HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
@@ -195,7 +195,7 @@ export class Element<D, P> {
         const { selector, handler, method } = event
 
         if (selector) {
-          const elements: Element[] = (() => {
+          const elements = (() => {
             const getSelectors = (selector: string) =>
               Array.from((<ShadowRoot>.shadowRoot).querySelectorAll(`:host ${selector}`))
 
