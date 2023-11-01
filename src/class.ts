@@ -229,6 +229,15 @@ export class WelyElement<D, P> {
       }
   }
 
+  #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
+    this.#addClass(wely)
+    this.#setProps(propsChain)
+    this.#addHtml(<ShadowRoot>wely.shadowRoot)
+    this.#addCss(<ShadowRoot>wely.shadowRoot)
+    this.#addSlot(wely)
+    this.#addEvents(wely)
+  }
+
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
     const name = that.#getTagName()
@@ -248,12 +257,7 @@ export class WelyElement<D, P> {
 
     const wely = that.#component ?? document.createElement(name)
 
-    that.#addClass(wely)
-    that.#setProps(propsChain)
-    that.#addHtml(<ShadowRoot>wely.shadowRoot)
-    that.#addCss(<ShadowRoot>wely.shadowRoot)
-    that.#addSlot(wely)
-    that.#addEvents(wely)
+    that.#createComponent(wely, propsChain)
 
     if (!that.#component) that.#component = wely
 
@@ -303,13 +307,7 @@ export class WelyElement<D, P> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#addClass(this)
-              that.#setProps()
-              that.#addHtml(this.shadowRoot)
-              that.#addCss(this.shadowRoot)
-              that.#addSlot(this)
-              that.#addEvents(this)
-
+              that.#createComponent(this)
               this.#isRendered = true
             }
           }
