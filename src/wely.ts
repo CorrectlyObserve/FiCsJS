@@ -6,15 +6,14 @@ export const html = <D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyElement<D, P> | unknown)[]
 ): Record<symbol, (WelyElement<D, P> | string)[]> => {
-  const wrapSanitize = (value: unknown) =>
-    value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
+  const wrapSanitize = (arg: unknown) =>
+    arg === '' || arg === undefined ? '' : typeof arg === 'string' ? sanitize(arg) : arg
 
   if (variables.some(variable => variable instanceof WelyElement)) {
     const result = []
     let isSkipped = false
 
-    for (let i = 0; i < templates.length; i++) {
-      const template = templates[i]
+    for (const [i, template] of templates.entries()) {
       const variable = variables[i]
 
       if (variable instanceof WelyElement || variable === undefined) {
@@ -32,9 +31,7 @@ export const html = <D, P>(
   }
 
   return {
-    [symbol]: [
-      templates.reduce((prev, curr, index) => prev + curr + wrapSanitize(variables[index]), '')
-    ]
+    [symbol]: [templates.reduce((prev, curr, i) => prev + curr + wrapSanitize(variables[i]), '')]
   }
 }
 
