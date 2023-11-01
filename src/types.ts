@@ -1,10 +1,14 @@
 import { WelyElement } from './class'
 
+type ChildComponent = WelyElement<any, any>
+
 export type Css<D, P> = (
   | string
   | {
       selector: string
-      style: ValueOrArrowFunc<D, P, Record<string, string | number>>
+      style:
+        | Record<string, string | number>
+        | (({ data, props }: { data: D; props: P }) => Record<string, string | number>)
     }
 )[]
 
@@ -14,12 +18,12 @@ export type Events<D, P> = {
   method: ({ data, props }: { data: D; props: P }, event: Event, index?: number) => void
 }[]
 
-export type Html<D, P> = ValueOrArrowFunc<D, P, Record<symbol, (WelyElement<any, any> | string)[]>>
-
-export type HtmlValue<D, P> = (WelyElement<D, P> | string)[]
+export type Html<D, P> =
+  | Record<symbol, (ChildComponent | string)[]>
+  | (({ data, props }: { data: D; props: P }) => Record<symbol, (ChildComponent | string)[]>)
 
 export type Inheritances<D> = {
-  descendants: WelyElement<any, any> | WelyElement<any, any>[]
+  descendants: ChildComponent | ChildComponent[]
   props: (data: D) => any
 }[]
 
@@ -27,8 +31,6 @@ export interface PropsChain<P> {
   descendants: Set<string>
   chains: Record<string, P>
 }
-
-type ValueOrArrowFunc<D, P, T> = T | (({ data, props }: { data: D; props: P }) => T)
 
 export interface Wely<D, P> {
   welyId?: string
