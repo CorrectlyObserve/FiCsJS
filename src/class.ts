@@ -1,4 +1,4 @@
-import { Css, Events, Html, HtmlValue, Inheritances, PropsChain, Wely } from './types'
+import { Css, Events, Html, Inheritances, PropsChain, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
@@ -73,7 +73,7 @@ export class WelyElement<D, P> {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
-  #getTagName() {
+  #getTagName(): string {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
@@ -116,14 +116,14 @@ export class WelyElement<D, P> {
         this.#props[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
-  #convertHtml(html: Html<D, P>): Record<symbol, HtmlValue<D, P>> {
+  #convertHtml(html: Html<D, P>): Record<symbol, (WelyElement<D, P> | string)[]> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
   }
 
   #appendChild(
-    elements: HtmlValue<D, P>,
+    elements: (WelyElement<D, P> | string)[],
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
@@ -195,7 +195,7 @@ export class WelyElement<D, P> {
         const { selector, handler, method } = event
 
         if (selector) {
-          const elements: Element[] = (() => {
+          const elements = (() => {
             const getSelectors = (selector: string) =>
               Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
 
