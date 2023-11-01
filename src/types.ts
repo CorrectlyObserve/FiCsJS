@@ -4,50 +4,22 @@ export type Css<D, P> = (
   | string
   | {
       selector: string
-      style: ValueOrArrowFunc<Record<string, string | number>, D, P>
+      style: ValueOrArrowFunc<D, P, Record<string, string | number>>
     }
 )[]
 
-export interface Each<T> {
-  contents: T[]
-  render: (arg: T, index: number) => Result<T> | undefined
-}
-
-export interface EachIf<T> {
-  contents: T[]
-  branches: {
-    judge: (arg: T) => boolean
-    render: (arg: T, index: number) => Result<T>
-  }[]
-  fallback?: (arg: T, index: number) => Result<T>
-}
-
-export interface EventHandler<D, P> {
+export type Events<D, P> = {
   handler: string
   selector?: string
   method: ({ data, props }: { data: D; props: P }, event: Event, index?: number) => void
-}
+}[]
 
-export type Html<T, D, P> = ValueOrArrowFunc<HtmlValue<T>, D, P>
+export type Html<D, P> = ValueOrArrowFunc<D, P, Record<symbol, (WelyElement<any, any> | string)[]>>
 
-export type HtmlOrSlot<T, D, P> = Html<T, D, P> | Slot<T, D, P> extends Html<T, D, P>
-  ? HtmlValue<T>
-  : WelyElement<T, D, P> | string
+export type HtmlValue<D, P> = (WelyElement<D, P> | string)[]
 
-export type HtmlSymbol<T, D, P> = Record<symbol, SanitizedHtml<T, D, P>>
-
-type HtmlValue<T> = Record<symbol, Result<T>> | Each<T> | EachIf<T> | If<T>
-
-export interface If<T> {
-  branches: {
-    judge: boolean | unknown
-    render: Result<T>
-  }[]
-  fallback?: Result<T>
-}
-
-export type Inheritances<T, D> = {
-  descendants: SingleOrArray<WelyElement<T, any, any>>
+export type Inheritances<D> = {
+  descendants: WelyElement<any, any> | WelyElement<any, any>[]
   props: (data: D) => any
 }[]
 
@@ -56,26 +28,18 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-type Result<T> = SingleOrArray<WelyElement<T, any, any> | string>
+type ValueOrArrowFunc<D, P, T> = T | (({ data, props }: { data: D; props: P }) => T)
 
-export type SanitizedHtml<T, D, P> = (WelyElement<T, D, P> | string)[]
-
-export type SingleOrArray<T> = T | T[]
-
-export type Slot<T, D, P> = ValueOrArrowFunc<Record<symbol, Result<T>>, D, P>
-
-type ValueOrArrowFunc<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
-
-export interface Wely<T, D, P> {
+export interface Wely<D, P> {
   welyId?: string
   name: string
   className?: string
-  inheritances?: Inheritances<T, D>
+  inheritances?: Inheritances<D>
   data?: () => D
   isOnlyCsr?: boolean
-  html: Html<T, D, P>
+  html: Html<D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
-  slot?: Slot<T, D, P>
-  events?: EventHandler<D, P>[]
+  slot?: Html<D, P>
+  events?: Events<D, P>
 }
