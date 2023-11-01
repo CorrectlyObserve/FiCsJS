@@ -266,21 +266,6 @@ export class WelyElement<D, P> {
 
     that.#setProps(propsChain)
 
-    const addHtml = () => {
-      const html = that.#convertHtml(that.#html[0])
-
-      if (html.hasOwnProperty(symbol))
-        return html[symbol].reduce(
-          (prev, curr) =>
-            prev + (curr instanceof WelyElement ? curr.#renderOnServer(that.#propsChain) : curr),
-          ''
-        )
-
-      throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
-      )
-    }
-
     if (that.#slot.length > 0)
       console.warn(`${that.#name} has slot property, but it cannot be used in ssr...`)
 
@@ -289,7 +274,7 @@ export class WelyElement<D, P> {
           <template shadowroot="open">
             <slot></slot>${that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''}
           </template>
-          ${addHtml()}
+          ${that.#addHtml()}
         </${name}>
       `.trim()
   }
