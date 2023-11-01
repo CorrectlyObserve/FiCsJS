@@ -7,9 +7,9 @@ const generate = function* (): Generator<number> {
   }
 }
 
-export const generator = generate()
+export const generator:Generator<number> = generate()
 
-export const sanitize = (str: string) =>
+export const sanitize = (str: string): string =>
   str.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
 
 export const symbol: symbol = Symbol('html')
