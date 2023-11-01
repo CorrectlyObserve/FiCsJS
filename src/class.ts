@@ -1,33 +1,18 @@
-import {
-  Css,
-  Each,
-  EachIf,
-  EventHandler,
-  Html,
-  HtmlOrSlot,
-  HtmlSymbol,
-  If,
-  Inheritances,
-  PropsChain,
-  SanitizedHtml,
-  SingleOrArray,
-  Slot,
-  Wely
-} from './types'
+import { Css, Events, Html, HtmlValue, Inheritances, PropsChain, Wely } from './types'
 import { generator, symbol } from './utils'
 
-export class WelyElement<T, D, P> {
+export class WelyElement<D, P> {
   readonly #welyId: string = ''
   readonly #name: string = ''
   readonly #class: string = ''
-  readonly #inheritances: Inheritances<T, D> = []
+  readonly #inheritances: Inheritances<D> = []
   readonly #data: D = <D>{}
   readonly #isOnlyCsr: boolean = false
-  readonly #html: Html<T, D, P>[] = []
+  readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: Slot<T, D, P>[] = []
-  readonly #events: EventHandler<D, P>[] = []
+  readonly #slot: Html<D, P>[] = []
+  readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #props: P = <P>{}
@@ -46,7 +31,7 @@ export class WelyElement<T, D, P> {
     ssrCss,
     slot,
     events
-  }: Wely<T, D, P>) {
+  }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
 
@@ -68,8 +53,8 @@ export class WelyElement<T, D, P> {
       welyId: this.#welyId,
       data: () => <D>{ ...this.#data }
     }
-  ): WelyElement<T, D, P> {
-    return new WelyElement<T, D, P>({
+  ): WelyElement<D, P> {
+    return new WelyElement<D, P>({
       welyId,
       name: this.#name,
       className: this.#class,
@@ -101,10 +86,6 @@ export class WelyElement<T, D, P> {
     this.#class === '' ? wely.classList.add(name) : wely.setAttribute('class', className)
   }
 
-  #toArray(val: SingleOrArray<unknown>) {
-    return Array.isArray(val) ? [...val] : [val]
-  }
-
   #setProps(
     propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   ): void {
@@ -112,7 +93,7 @@ export class WelyElement<T, D, P> {
       for (const inheritance of this.#inheritances) {
         const { descendants, props } = inheritance
 
-        for (const descendant of this.#toArray(descendants))
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
           if (propsChain.descendants.has(descendant.#welyId)) {
             const setPropsChain = (chain: Record<string, any>): void => {
               const localChain = chain[descendant.#welyId]
@@ -135,18 +116,18 @@ export class WelyElement<T, D, P> {
         this.#props[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
-  #convertHtml(html: Html<T, D, P> | Slot<T, D, P>): HtmlSymbol<T, D, P> | HtmlOrSlot<T, D, P> {
+  #convertHtml(html: Html<D, P>): Record<symbol, HtmlValue<D, P>> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })
       : html
   }
 
   #appendChild(
-    arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string,
+    elements: HtmlValue<D, P>,
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
-    for (const element of this.#toArray(arg))
+    for (const element of elements)
       wely.appendChild(
         element instanceof WelyElement
           ? element.#render(propsChain)
@@ -155,43 +136,10 @@ export class WelyElement<T, D, P> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, propsChain: PropsChain<P>): void {
-    const html: Html<T, D, P> = this.#convertHtml(this.#html[0])
+    const html = this.#convertHtml(this.#html[0])
 
-    if (html.hasOwnProperty(symbol))
-      this.#appendChild((<HtmlSymbol<T, D, P>>html)[symbol], shadowRoot, propsChain)
-    else if ('contents' in <Each<T> | EachIf<T>>html) {
-      this.#isEach = true
-
-      if ('branches' in <EachIf<T>>html) {
-        const { contents, branches, fallback } = <EachIf<T>>html
-
-        contents.forEach((content, index) => {
-          for (const branch of branches)
-            if (branch.judge(content))
-              this.#appendChild(branch.render(content, index), shadowRoot, propsChain)
-
-          if (fallback) this.#appendChild(fallback(content, index), shadowRoot, propsChain)
-        })
-      } else {
-        const { contents, render } = <Each<T>>html
-
-        contents.forEach((content, index) => {
-          const renderer = render(content, index)
-          if (renderer) this.#appendChild(renderer, shadowRoot, propsChain)
-        })
-      }
-    } else if ('contents' in <If<T>>html) {
-      const { branches, fallback } = <If<T>>html
-      let isInserted = false
-
-      for (const branch of branches)
-        if (branch.judge) {
-          this.#appendChild(branch.render, shadowRoot, propsChain)
-          isInserted = true
-        }
-
-      if (!isInserted && fallback) this.#appendChild(fallback, shadowRoot, propsChain)
-    } else
+    if (html.hasOwnProperty(symbol)) this.#appendChild(html[symbol], shadowRoot, propsChain)
+    else
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
@@ -225,12 +173,8 @@ export class WelyElement<T, D, P> {
 
   #addSlot(wely: HTMLElement, propsChain: PropsChain<P>): void {
     if (this.#slot.length > 0)
-      for (const slot of this.#toArray(this.#slot))
-        this.#appendChild(
-          (<HtmlSymbol<T, D, P>>this.#convertHtml(<Slot<T, D, P>>slot))[symbol],
-          wely,
-          propsChain
-        )
+      for (const slot of this.#slot)
+        this.#appendChild(this.#convertHtml(slot)[symbol], wely, propsChain)
   }
 
   #addEvents(wely: HTMLElement): void {
@@ -312,58 +256,16 @@ export class WelyElement<T, D, P> {
 
     that.#setProps(propsChain)
 
-    const addHtml = (instance: WelyElement<T, D, P>) => {
-      const html: Html<T, D, P> = instance.#convertHtml(instance.#html[0])
+    const addHtml = () => {
+      const html = that.#convertHtml(that.#html[0])
 
-      const insertTemplate = (
-        arg: SanitizedHtml<T, D, P> | WelyElement<T, D, P> | string
-      ): string =>
-        this.#toArray(arg).reduce(
+      if (html.hasOwnProperty(symbol))
+        return html[symbol].reduce(
           (prev, curr) =>
             prev +
-            (curr instanceof WelyElement ? curr.#renderOnServer(instance.#propsChain) : curr),
+            (curr instanceof WelyElement ? curr.#renderOnServer(that.#propsChain) : curr),
           ''
         )
-
-      if (html.hasOwnProperty(symbol)) return insertTemplate((<HtmlSymbol<T, D, P>>html)[symbol])
-
-      if ('contents' in <Each<T> | EachIf<T>>html) {
-        instance.#isEach = true
-
-        if ('branches' in <EachIf<T>>html) {
-          const { contents, branches, fallback } = <EachIf<T>>html
-
-          contents.forEach((content, index) => {
-            for (const branch of branches)
-              if (branch.judge(content)) return insertTemplate(branch.render(content, index))
-
-            if (fallback) return insertTemplate(fallback(content, index))
-
-            return
-          })
-
-          return
-        }
-
-        const { contents, render } = <Each<T>>html
-
-        contents.forEach((content, index) => {
-          const renderer = render(content, index)
-          if (renderer) return insertTemplate(renderer)
-
-          return
-        })
-      }
-
-      if ('contents' in <If<T>>html) {
-        const { branches, fallback } = <If<T>>html
-
-        for (const branch of branches) if (branch.judge) return insertTemplate(branch.render)
-
-        if (fallback) return insertTemplate(fallback)
-
-        return
-      }
 
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
@@ -378,12 +280,12 @@ export class WelyElement<T, D, P> {
           <template shadowroot="open">
             <slot></slot>${that.#addCss([...that.#css, ...that.#ssrCss]) ?? ''}
           </template>
-          ${addHtml(that)}
+          ${addHtml()}
         </${name}>
       `.trim()
   }
 
-  overwrite(partialData: () => Partial<D>): WelyElement<T, D, P> {
+  overwrite(partialData: () => Partial<D>): WelyElement<D, P> {
     return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
