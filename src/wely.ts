@@ -6,33 +6,24 @@ export const html = <D, P>(
   templates: TemplateStringsArray,
   ...variables: (WelyElement<D, P> | unknown)[]
 ): Record<symbol, (WelyElement<D, P> | string)[]> => {
-  const wrapSanitize = (arg: unknown) =>
-    arg === '' || arg === undefined ? '' : typeof arg === 'string' ? sanitize(arg) : arg
+  const result = []
 
-  if (variables.some(variable => variable instanceof WelyElement)) {
-    const result = []
-    let isSkipped = false
+  for (const [index, template] of templates.entries()) {
+    const variable = sanitize(variables[index]) ?? ''
 
-    for (const [i, template] of templates.entries()) {
-      const variable = variables[i]
+    if (index === 0 && template === '') result.push(variable)
+    else {
+      const last: WelyElement<D, P> | string | unknown = result[result.length - 1] ?? ''
 
-      if (variable instanceof WelyElement || variable === undefined) {
-        if (template !== '' && !isSkipped) result.push(template)
-        if (variable !== undefined) result.push(variable)
-
-        isSkipped = false
-      } else {
-        result.push(`${template}${wrapSanitize(variable)}${templates[i + 1]}`)
-        isSkipped = true
-      }
+      if (last instanceof WelyElement)
+        variable instanceof WelyElement
+          ? result.push(template, variable)
+          : result.push(`${template}${variable}`)
+      else result.splice(result.length - 1, 1, `${last}${template}${variable}`)
     }
-
-    return { [symbol]: result }
   }
 
-  return {
-    [symbol]: [templates.reduce((prev, curr, i) => prev + curr + wrapSanitize(variables[i]), '')]
-  }
+  return { [symbol]: <(WelyElement<D, P> | string)[]>result }
 }
 
 export const wely = <D, P>({
