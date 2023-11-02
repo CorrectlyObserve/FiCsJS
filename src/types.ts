@@ -22,9 +22,9 @@ export type Html<D, P> =
   | Record<symbol, (ChildComponent | string)[]>
   | (({ data, props }: { data: D; props: P }) => Record<symbol, (ChildComponent | string)[]>)
 
-export type Inheritances<D> = {
+export type Props<D> = {
   descendants: ChildComponent | ChildComponent[]
-  props: (data: D) => any
+  values: (data: D) => any
 }[]
 
 export interface PropsChain<P> {
@@ -37,7 +37,7 @@ export interface Wely<D, P> {
   name: string
   className?: string
   data?: () => D
-  props?: Inheritances<D>
+  props?: Props<D>
   isOnlyCsr?: boolean
   html: Html<D, P>
   css?: Css<D, P>
