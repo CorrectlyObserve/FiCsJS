@@ -1,7 +1,5 @@
 import { WelyElement } from './class'
 
-type ChildComponent = WelyElement<any, any>
-
 export type Css<D, P> = (
   | string
   | {
@@ -12,6 +10,8 @@ export type Css<D, P> = (
     }
 )[]
 
+type Descendant = WelyElement<any, any>
+
 export type Events<D, P> = {
   handler: string
   selector?: string
@@ -19,11 +19,11 @@ export type Events<D, P> = {
 }[]
 
 export type Html<D, P> =
-  | Record<symbol, (ChildComponent | string)[]>
-  | (({ data, props }: { data: D; props: P }) => Record<symbol, (ChildComponent | string)[]>)
+  | Record<symbol, (Descendant | string)[]>
+  | (({ data, props }: { data: D; props: P }) => Record<symbol, (Descendant | string)[]>)
 
 export type Props<D> = {
-  descendants: ChildComponent | ChildComponent[]
+  descendants: Descendant | Descendant[]
   values: (data: D) => any
 }[]
 
