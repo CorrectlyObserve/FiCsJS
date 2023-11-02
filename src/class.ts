@@ -1,4 +1,4 @@
-import { Css, Events, Html, Inheritances, PropsChain, Wely } from './types'
+import { Css, Events, Html, Props, PropsChain, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
@@ -6,7 +6,7 @@ export class WelyElement<D, P> {
   readonly #name: string = ''
   readonly #class: string = ''
   readonly #data: D = <D>{}
-  readonly #inheritances: Inheritances<D> = []
+  readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
@@ -15,7 +15,7 @@ export class WelyElement<D, P> {
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
-  #props: P = <P>{}
+  #inheritedProps: P = <P>{}
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -36,7 +36,7 @@ export class WelyElement<D, P> {
     if (className && className !== '') this.#class = className
 
     if (data) this.#data = { ...data() }
-    if (props && props.length > 0) this.#inheritances = [...props]
+    if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
     this.#html.push(html)
@@ -59,7 +59,7 @@ export class WelyElement<D, P> {
       name: this.#name,
       className: this.#class,
       data,
-      props: this.#inheritances,
+      props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
       html: this.#html[0],
       css: this.#css,
@@ -89,9 +89,9 @@ export class WelyElement<D, P> {
   #setProps(
     propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   ): void {
-    if (this.#inheritances.length > 0)
-      for (const inheritance of this.#inheritances) {
-        const { descendants, props } = inheritance
+    if (this.#props.length > 0)
+      for (const prop of this.#props) {
+        const { descendants, values } = prop
 
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
           if (propsChain.descendants.has(descendant.#welyId)) {
@@ -99,13 +99,13 @@ export class WelyElement<D, P> {
               const localChain = chain[descendant.#welyId]
 
               if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
-              else localChain.__proto__ = { ...props(this.#data) }
+              else localChain.__proto__ = { ...values(this.#data) }
             }
 
             setPropsChain(propsChain.chains)
           } else {
             propsChain.descendants.add(descendant.#welyId)
-            propsChain.chains[descendant.#welyId] = { ...props(this.#data) }
+            propsChain.chains[descendant.#welyId] = { ...values(this.#data) }
           }
       }
 
@@ -113,12 +113,12 @@ export class WelyElement<D, P> {
 
     if (this.#propsChain.descendants.has(this.#welyId))
       for (const key in this.#propsChain.chains[this.#welyId])
-        this.#props[key] = this.#propsChain.chains[this.#welyId][key]
+        this.#inheritedProps[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
   #convertHtml(html: Html<D, P>): Record<symbol, (WelyElement<D, P> | string)[]> {
     return typeof html === 'function'
-      ? html({ data: { ...this.#data }, props: { ...this.#props } })
+      ? html({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
       : html
   }
 
@@ -163,7 +163,7 @@ export class WelyElement<D, P> {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
           const styleContent = Object.entries(
             typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
+              ? curr.style({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
               : curr.style
           )
             .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
@@ -215,7 +215,7 @@ export class WelyElement<D, P> {
         if (elements.length > 0)
           for (const element of elements)
             element.addEventListener(handler, (event: Event) =>
-              method({ data: { ...this.#data }, props: { ...this.#props } }, event)
+              method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
             )
         else console.error(`:host ${selector} does not exist or is not applicable...`)
       }
