@@ -6,33 +6,24 @@ export const html = <D, P>(
   templates: TemplateStringsArray,
   ...variables: (Element<D, P> | unknown)[]
 ): Record<symbol, (Element<D, P> | string)[]> => {
-  const wrapSanitize = (arg: unknown) =>
-    arg === '' || arg === undefined ? '' : typeof arg === 'string' ? sanitize(arg) : arg
+  const result = []
 
-  if (variables.some(variable => variable instanceof Element)) {
-    const result = []
-    let isSkipped = false
+  for (const [index, template] of templates.entries()) {
+    const variable = sanitize(variables[index]) ?? ''
 
-    for (const [i, template] of templates.entries()) {
-      const variable = variables[i]
+    if (index === 0 && template === '') result.push(variable)
+    else {
+      const last: Element<D, P> | string | unknown = result[result.length - 1] ?? ''
 
-      if (variable instanceof Element || variable === undefined) {
-        if (template !== '' && !isSkipped) result.push(template)
-        if (variable !== undefined) result.push(variable)
-
-        isSkipped = false
-      } else {
-        result.push(`${template}${wrapSanitize(variable)}${templates[i + 1]}`)
-        isSkipped = true
-      }
+      if (last instanceof Element)
+        variable instanceof Element
+          ? result.push(template, variable)
+          : result.push(`${template}${variable}`)
+      else result.splice(result.length - 1, 1, `${last}${template}${variable}`)
     }
-
-    return { [symbol]: result }
   }
 
-  return {
-    [symbol]: [templates.reduce((prev, curr, i) => prev + curr + wrapSanitize(variables[i]), '')]
-  }
+  return { [symbol]: <(Element<D, P> | string)[]>result }
 }
 
 export const  = <D, P>({
