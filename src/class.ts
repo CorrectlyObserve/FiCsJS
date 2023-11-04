@@ -1,15 +1,4 @@
-import {
-  Css,
-  Events,
-  Html,
-  NamedSlot,
-  Props,
-  PropsChain,
-  SanitizedHtml,
-  Slot,
-  Variables,
-  Wely
-} from './types'
+import { Css, Events, Html, NamedSlot, Props, PropsChain, Slot, Variables, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
@@ -127,7 +116,7 @@ export class WelyElement<D, P> {
         this.#inheritedProps[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
-  #convertHtml(html: Html<D, P>): SanitizedHtml<D, P> {
+  #convertHtml(html: Html<D, P>): Record<symbol, Variables<D, P>[]> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
       : html
