@@ -17,8 +17,8 @@ export type Events<D, P> = {
 }[]
 
 export type Html<D, P> =
-  | SanitizedHtml<any, any>
-  | (({ data, props }: { data: D; props: P }) => SanitizedHtml<any, any>)
+  | Record<symbol, Variables<any, any>[]>
+  | (({ data, props }: { data: D; props: P }) => Record<symbol, Variables<any, any>[]>)
 
 export type NamedSlot<D, P> = { name: string; values: Html<D, P> }[]
 
@@ -31,8 +31,6 @@ export interface PropsChain<P> {
   descendants: Set<string>
   chains: Record<string, P>
 }
-
-export type SanitizedHtml<D, P> = Record<symbol, Variables<D, P>[]>
 
 export type Slot<D, P> = Html<D, P> | NamedSlot<D, P>
 
