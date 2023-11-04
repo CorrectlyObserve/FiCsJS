@@ -1,11 +1,11 @@
 import { Element } from './class'
-import { SanitizedHtml, Variables,  } from './types'
+import { Variables,  } from './types'
 import { sanitize, symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
   ...variables: (Variables<D, P> | unknown)[]
-): SanitizedHtml<D, P> => {
+): Record<symbol, Variables<D, P>[]> => {
   const result = []
 
   for (const [index, template] of templates.entries()) {
