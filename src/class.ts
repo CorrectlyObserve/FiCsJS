@@ -122,81 +122,46 @@ export class WelyElement<D, P> {
       : html
   }
 
-  #appendChild(
-    variables: Variables<D, P>[],
-    shadowRoot: ShadowRoot,
-    propsChain: PropsChain<P>
-  ): void {
-    for (const variable of variables)
-      if (variable instanceof WelyElement)
-        if (variable.#getTagName() === 'w-wely-slot')
-          if (this.#slot.length > 0) {
-            const slotName = variable.#convertHtml(variable.#html[0])[symbol][0]
-
-            if (this.#slot.every(slot => 'name' in slot && 'values' in slot)) {
-              const slot = (<NamedSlot<D, P>>this.#slot).find(slot => slot.name === slotName)
-
-              if (slot)
-                this.#appendChild(this.#convertHtml(slot.values)[symbol], shadowRoot, propsChain)
-              else
-                throw Error(
-                  `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
-                )
-            } else if (slotName === '')
-              this.#appendChild(
-                this.#convertHtml(<Html<D, P>>this.#slot[0])[symbol],
-                shadowRoot,
-                propsChain
-              )
-            else throw Error(`${this.#name} has no slot...`)
-          } else throw Error(`${this.#name} has no slot...`)
-        else shadowRoot.appendChild(variable.#render(propsChain))
-      else shadowRoot.appendChild(document.createRange().createContextualFragment(variable))
-  }
-
   #addHtml(shadowRoot: ShadowRoot): void {
     const html = this.#convertHtml(this.#html[0])
 
-    if (html.hasOwnProperty(symbol)) this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
-    else
-      throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
-      )
-  }
-
-  #returnHtml(html: Html<D, P>): string {
-    const sanitizedHtml = this.#convertHtml(html)
-
-    if (sanitizedHtml.hasOwnProperty(symbol)) return <string>sanitizedHtml[symbol].reduce(
-        (prev, curr) => {
-          if (curr instanceof WelyElement) {
-            if (curr.#getTagName() === 'w-wely-slot')
+    if (html.hasOwnProperty(symbol)) {
+      const insert = (
+        variables: Variables<D, P>[],
+        shadowRoot: ShadowRoot,
+        propsChain: PropsChain<P>
+      ): void => {
+        for (const variable of variables)
+          if (variable instanceof WelyElement)
+            if (variable.#getTagName() === 'w-wely-slot')
               if (this.#slot.length > 0) {
-                const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
+                const slotName = variable.#convertHtml(variable.#html[0])[symbol][0]
 
                 if (this.#slot.every(slot => 'name' in slot && 'values' in slot)) {
                   const slot = (<NamedSlot<D, P>>this.#slot).find(slot => slot.name === slotName)
 
-                  if (slot) return this.#returnHtml(slot.values)
+                  if (slot) insert(this.#convertHtml(slot.values)[symbol], shadowRoot, propsChain)
                   else
                     throw Error(
                       `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
                     )
-                } else if (slotName === '') return this.#returnHtml(<Html<D, P>>this.#slot[0])
+                } else if (slotName === '')
+                  insert(
+                    this.#convertHtml(<Html<D, P>>this.#slot[0])[symbol],
+                    shadowRoot,
+                    propsChain
+                  )
                 else throw Error(`${this.#name} has no slot...`)
               } else throw Error(`${this.#name} has no slot...`)
+            else shadowRoot.appendChild(variable.#render(propsChain))
+          else shadowRoot.appendChild(document.createRange().createContextualFragment(variable))
+      }
 
-            return prev + curr.#renderOnServer(this.#propsChain)
-          }
-
-          return prev + curr
-        },
-        ''
+      insert(html[symbol], shadowRoot, this.#propsChain)
+    } else
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
-
-    throw Error(
-      `${this.#name} has to use html function (tagged template literal) in html argument.`
-    )
   }
 
   #addCss(shadowRoot?: ShadowRoot): string | void {
@@ -301,12 +266,47 @@ export class WelyElement<D, P> {
 
     that.#setProps(propsChain)
 
+    const addHtml = (html: Html<D, P>): string => {
+      const sanitizedHtml = this.#convertHtml(html)
+
+      if (sanitizedHtml.hasOwnProperty(symbol)) return <string>sanitizedHtml[symbol].reduce(
+          (prev, curr) => {
+            if (curr instanceof WelyElement) {
+              if (curr.#getTagName() === 'w-wely-slot')
+                if (this.#slot.length > 0) {
+                  const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
+
+                  if (this.#slot.every(slot => 'name' in slot && 'values' in slot)) {
+                    const slot = (<NamedSlot<D, P>>this.#slot).find(slot => slot.name === slotName)
+
+                    if (slot) return addHtml(slot.values)
+                    else
+                      throw Error(
+                        `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
+                      )
+                  } else if (slotName === '') return addHtml(<Html<D, P>>this.#slot[0])
+                  else throw Error(`${this.#name} has no slot...`)
+                } else throw Error(`${this.#name} has no slot...`)
+
+              return prev + curr.#renderOnServer(this.#propsChain)
+            }
+
+            return prev + curr
+          },
+          ''
+        )
+
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
+      )
+    }
+
     return `
         <${name} class="${that.#addClass()}">
           <template shadowroot="open">
             <slot></slot>${that.#addCss() ?? ''}
           </template>
-          ${that.#returnHtml(that.#html[0])}
+          ${addHtml(that.#html[0])}
         </${name}>
       `.trim()
   }
