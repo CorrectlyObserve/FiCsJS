@@ -13,23 +13,28 @@ export const html = <D, P>(
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const last: Variables<D, P> | unknown = result[result.length - 1] ?? ''
+      const lastValue: Variables<D, P> | unknown = result[result.length - 1] ?? ''
 
-      if (last instanceof Element)
+      if (lastValue instanceof Element)
         variable instanceof Element
           ? result.push(template, variable)
           : result.push(`${template}${variable}`)
-      else result.splice(result.length - 1, 1, `${last}${template}${variable}`)
+      else {
+        result.splice(
+          result.length - 1,
+          1,
+          `${lastValue}${template}${variable instanceof Element ? '' : variable}`
+        )
+        if (variable instanceof Element) result.push(variable)
+      }
     }
   }
 
   return { [symbol]: <Variables<D, P>[]>result }
 }
 
-export const slot = (name?: string): Element<never, never> => {
-  const localName = name ? `-${name}` : ''
-  return ({ name: `slot-${localName}`, html: html`<w-var>-slot${localName}</w-var>` })
-}
+export const slot = (slot?: string): Element<never, never> =>
+  ({ name: '-slot', html: { [symbol]: [slot ?? ''] } })
 
 export const  = <D, P>({
   name,
