@@ -10,8 +10,6 @@ export type Css<D, P> = (
     }
 )[]
 
-type Descendant = WelyElement<any, any>
-
 export type Events<D, P> = {
   handler: string
   selector?: string
@@ -19,11 +17,11 @@ export type Events<D, P> = {
 }[]
 
 export type Html<D, P> =
-  | Record<symbol, (Descendant | string)[]>
-  | (({ data, props }: { data: D; props: P }) => Record<symbol, (Descendant | string)[]>)
+  | SanitizedHtml<any, any>
+  | (({ data, props }: { data: D; props: P }) => SanitizedHtml<any, any>)
 
 export type Props<D> = {
-  descendants: Descendant | Descendant[]
+  descendants: WelyElement<any, any> | WelyElement<any, any>[]
   values: (data: D) => any
 }[]
 
@@ -31,6 +29,10 @@ export interface PropsChain<P> {
   descendants: Set<string>
   chains: Record<string, P>
 }
+
+export type SanitizedHtml<D, P> = Record<symbol, WelyElementOrString<D, P>[]>
+
+export type Slot<D, P> = Html<D, P> | { name: string; values: Html<D, P> }[]
 
 export interface Wely<D, P> {
   welyId?: string
@@ -42,6 +44,8 @@ export interface Wely<D, P> {
   html: Html<D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
-  slot?: Html<D, P>
+  slot?: Slot<D, P>
   events?: Events<D, P>
 }
+
+export type WelyElementOrString<D, P> = WelyElement<D, P> | string
