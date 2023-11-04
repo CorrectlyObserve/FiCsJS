@@ -1,9 +1,9 @@
-import { Css, Events, Html, Props, PropsChain, Wely } from './types'
+import { Css, Events, Html, Props, PropsChain, SanitizedHtml, Slot, Variables, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
-  readonly #welyId: string = ''
-  readonly #name: string = ''
+  readonly #welyId: string
+  readonly #name: string
   readonly #class: string = ''
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
@@ -11,7 +11,7 @@ export class WelyElement<D, P> {
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: Html<D, P>[] = []
+  readonly #slot: Slot<D, P>[] = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -116,22 +116,22 @@ export class WelyElement<D, P> {
         this.#inheritedProps[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
-  #convertHtml(html: Html<D, P>): Record<symbol, (WelyElement<D, P> | string)[]> {
+  #convertHtml(html: Html<D, P>): SanitizedHtml<D, P> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
       : html
   }
 
   #appendChild(
-    elements: (WelyElement<D, P> | string)[],
+    variables: Variables<D, P>[],
     wely: HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
-    for (const element of elements)
+    for (const variable of variables)
       wely.appendChild(
-        element instanceof WelyElement
-          ? element.#render(propsChain)
-          : document.createRange().createContextualFragment(element)
+        variable instanceof WelyElement
+          ? variable.#render(propsChain)
+          : document.createRange().createContextualFragment(variable)
       )
   }
 
@@ -183,11 +183,11 @@ export class WelyElement<D, P> {
     }
   }
 
-  #addSlot(wely: HTMLElement): void {
-    if (this.#slot.length > 0)
-      for (const slot of this.#slot)
-        this.#appendChild(this.#convertHtml(slot)[symbol], wely, this.#propsChain)
-  }
+  // #addSlot(wely: HTMLElement): void {
+  //   if (this.#slot.length > 0)
+  //     for (const slot of this.#slot)
+  //       this.#appendChild(this.#convertHtml(slot)[symbol], wely, this.#propsChain)
+  // }
 
   #addEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
@@ -226,7 +226,7 @@ export class WelyElement<D, P> {
     this.#setProps(propsChain)
     this.#addHtml(<ShadowRoot>wely.shadowRoot)
     this.#addCss(<ShadowRoot>wely.shadowRoot)
-    this.#addSlot(wely)
+    // this.#addSlot(wely)
     this.#addEvents(wely)
   }
 
