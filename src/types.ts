@@ -20,6 +20,8 @@ export type Html<D, P> =
   | SanitizedHtml<any, any>
   | (({ data, props }: { data: D; props: P }) => SanitizedHtml<any, any>)
 
+export type NamedSlot<D, P> = { name: string; values: Html<D, P> }[]
+
 export type Props<D> = {
   descendants: WelyElement<any, any> | WelyElement<any, any>[]
   values: (data: D) => any
@@ -32,7 +34,7 @@ export interface PropsChain<P> {
 
 export type SanitizedHtml<D, P> = Record<symbol, Variables<D, P>[]>
 
-export type Slot<D, P> = Html<D, P> | { name: string; values: Html<D, P> }[]
+export type Slot<D, P> = Html<D, P> | NamedSlot<D, P>
 
 export type Variables<D, P> = WelyElement<D, P> | string
 
