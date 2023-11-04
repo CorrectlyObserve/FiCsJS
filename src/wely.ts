@@ -1,11 +1,11 @@
 import { WelyElement } from './class'
-import { Wely } from './types'
+import { SanitizedHtml, Variables, Wely } from './types'
 import { sanitize, symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
-  ...variables: (WelyElement<D, P> | unknown)[]
-): Record<symbol, (WelyElement<D, P> | string)[]> => {
+  ...variables: (Variables<D, P> | unknown)[]
+): SanitizedHtml<D, P> => {
   const result = []
 
   for (const [index, template] of templates.entries()) {
@@ -13,7 +13,7 @@ export const html = <D, P>(
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const last: WelyElement<D, P> | string | unknown = result[result.length - 1] ?? ''
+      const last: Variables<D, P> | unknown = result[result.length - 1] ?? ''
 
       if (last instanceof WelyElement)
         variable instanceof WelyElement
@@ -23,7 +23,12 @@ export const html = <D, P>(
     }
   }
 
-  return { [symbol]: <(WelyElement<D, P> | string)[]>result }
+  return { [symbol]: <Variables<D, P>[]>result }
+}
+
+export const slot = (name?: string): WelyElement<never, never> => {
+  const localName = name ? `-${name}` : ''
+  return wely({ name: `slot-${localName}`, html: html`<w-var>wely-slot${localName}</w-var>` })
 }
 
 export const wely = <D, P>({
