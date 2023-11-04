@@ -30,9 +30,11 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-export type SanitizedHtml<D, P> = Record<symbol, ElementOrString<D, P>[]>
+export type SanitizedHtml<D, P> = Record<symbol, Variables<D, P>[]>
 
 export type Slot<D, P> = Html<D, P> | { name: string; values: Html<D, P> }[]
+
+export type Variables<D, P> = Element<D, P> | string
 
 export interface <D, P> {
   Id?: string
@@ -47,5 +49,3 @@ export interface <D, P> {
   slot?: Slot<D, P>
   events?: Events<D, P>
 }
-
-export type ElementOrString<D, P> = Element<D, P> | string
