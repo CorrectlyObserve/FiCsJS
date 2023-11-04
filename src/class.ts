@@ -1,9 +1,9 @@
-import { Css, Events, Html, Props, PropsChain,  } from './types'
+import { Css, Events, Html, Props, PropsChain, SanitizedHtml, Slot, Variables,  } from './types'
 import { generator, symbol } from './utils'
 
 export class Element<D, P> {
-  readonly #Id: string = ''
-  readonly #name: string = ''
+  readonly #Id: string
+  readonly #name: string
   readonly #class: string = ''
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
@@ -11,7 +11,7 @@ export class Element<D, P> {
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: Html<D, P>[] = []
+  readonly #slot: Slot<D, P>[] = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -116,22 +116,22 @@ export class Element<D, P> {
         this.#inheritedProps[key] = this.#propsChain.chains[this.#Id][key]
   }
 
-  #convertHtml(html: Html<D, P>): Record<symbol, (Element<D, P> | string)[]> {
+  #convertHtml(html: Html<D, P>): SanitizedHtml<D, P> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
       : html
   }
 
   #appendChild(
-    elements: (Element<D, P> | string)[],
+    variables: Variables<D, P>[],
     : HTMLElement | ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
-    for (const element of elements)
+    for (const variable of variables)
       .appendChild(
-        element instanceof Element
-          ? element.#render(propsChain)
-          : document.createRange().createContextualFragment(element)
+        variable instanceof Element
+          ? variable.#render(propsChain)
+          : document.createRange().createContextualFragment(variable)
       )
   }
 
@@ -183,11 +183,11 @@ export class Element<D, P> {
     }
   }
 
-  #addSlot(: HTMLElement): void {
-    if (this.#slot.length > 0)
-      for (const slot of this.#slot)
-        this.#appendChild(this.#convertHtml(slot)[symbol], , this.#propsChain)
-  }
+  // #addSlot(: HTMLElement): void {
+  //   if (this.#slot.length > 0)
+  //     for (const slot of this.#slot)
+  //       this.#appendChild(this.#convertHtml(slot)[symbol], , this.#propsChain)
+  // }
 
   #addEvents(: HTMLElement): void {
     if (this.#events.length > 0)
@@ -226,7 +226,7 @@ export class Element<D, P> {
     this.#setProps(propsChain)
     this.#addHtml(<ShadowRoot>.shadowRoot)
     this.#addCss(<ShadowRoot>.shadowRoot)
-    this.#addSlot()
+    // this.#addSlot()
     this.#addEvents()
   }
 
