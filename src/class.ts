@@ -135,57 +135,70 @@ export class WelyElement<D, P> {
             const slotName = variable.#convertHtml(variable.#html[0])[symbol][0]
 
             if (Array.isArray(slot)) {
-              for (const slotContent of slot)
-                if (slotContent.name === slotName)
-                  variable.#appendChild(
-                    this.#convertHtml(slotContent.values)[symbol],
-                    shadowRoot,
-                    propsChain
-                  )
-                else
-                  throw Error(
-                    `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
-                  )
+              const slotContent = slot.find(localSlot => localSlot.name === slotName)
+
+              if (slotContent)
+                this.#appendChild(
+                  this.#convertHtml(slotContent.values)[symbol],
+                  shadowRoot,
+                  propsChain
+                )
+              else
+                throw Error(
+                  `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
+                )
             } else if (slotName === '')
-              variable.#appendChild(
-                this.#convertHtml(<Html<D, P>>slot)[symbol],
-                shadowRoot,
-                propsChain
-              )
-            else continue
+              this.#appendChild(this.#convertHtml(<Html<D, P>>slot)[symbol], shadowRoot, propsChain)
+            else throw Error(`${this.#name} has no slot...`)
           } else throw Error(`${this.#name} has no slot...`)
         else shadowRoot.appendChild(variable.#render(propsChain))
       else shadowRoot.appendChild(document.createRange().createContextualFragment(variable))
   }
 
-  #addHtml(shadowRoot?: ShadowRoot): string | void {
+  #addHtml(shadowRoot: ShadowRoot): void {
     const html = this.#convertHtml(this.#html[0])
 
-    if (html.hasOwnProperty(symbol)) {
-      if (!shadowRoot) return <string>html[symbol].reduce((prev, curr) => {
+    if (html.hasOwnProperty(symbol)) this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
+    else
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
+      )
+  }
+
+  #returnHtml(html: Html<D, P>): string {
+    const sanitizedHtml = this.#convertHtml(html)
+
+    if (sanitizedHtml.hasOwnProperty(symbol)) return <string>sanitizedHtml[symbol].reduce(
+        (prev, curr) => {
           if (curr instanceof WelyElement) {
-            if (this.#slot.length > 0 && curr.#getTagName() === 'w-wely-slot') {
-              console.log('aa')
-              const slot = this.#slot[0]
-              if (Array.isArray(slot))
-                for (const slotContent of slot)
-                  if (slotContent.name === curr.#convertHtml(curr.#html[0])[symbol][0])
-                    console.log(this.#convertHtml(slotContent.values)[symbol])
-                  else continue
-              else console.log('cc')
-            }
+            if (curr.#getTagName() === 'w-wely-slot')
+              if (this.#slot.length > 0) {
+                const slot = this.#slot[0]
+                const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
+
+                if (Array.isArray(slot)) {
+                  const slotContent = slot.find(localSlot => localSlot.name === slotName)
+
+                  if (slotContent) return this.#returnHtml(slotContent.values)
+                  else
+                    throw Error(
+                      `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
+                    )
+                } else if (slotName === '') return this.#returnHtml(slot)
+                else throw Error(`${this.#name} has no slot...`)
+              } else throw Error(`${this.#name} has no slot...`)
 
             return prev + curr.#renderOnServer(this.#propsChain)
           }
 
           return prev + curr
-        }, '')
-
-      this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
-    } else
-      throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
+        },
+        ''
       )
+
+    throw Error(
+      `${this.#name} has to use html function (tagged template literal) in html argument.`
+    )
   }
 
   #addCss(shadowRoot?: ShadowRoot): string | void {
@@ -295,7 +308,7 @@ export class WelyElement<D, P> {
           <template shadowroot="open">
             <slot></slot>${that.#addCss() ?? ''}
           </template>
-          ${that.#addHtml()}
+          ${that.#returnHtml(that.#html[0])}
         </${name}>
       `.trim()
   }
