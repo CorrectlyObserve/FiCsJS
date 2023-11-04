@@ -124,29 +124,62 @@ export class Element<D, P> {
 
   #appendChild(
     variables: Variables<D, P>[],
-    : HTMLElement | ShadowRoot,
+    shadowRoot: ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
     for (const variable of variables)
-      .appendChild(
-        variable instanceof Element
-          ? variable.#render(propsChain)
-          : document.createRange().createContextualFragment(variable)
-      )
+      if (variable instanceof Element)
+        if (variable.#getTagName() === 'w--slot')
+          if (this.#slot.length > 0) {
+            const slot = this.#slot[0]
+            const slotName = variable.#convertHtml(variable.#html[0])[symbol][0]
+
+            if (Array.isArray(slot)) {
+              for (const slotContent of slot)
+                if (slotContent.name === slotName)
+                  variable.#appendChild(
+                    this.#convertHtml(slotContent.values)[symbol],
+                    shadowRoot,
+                    propsChain
+                  )
+                else
+                  throw Error(
+                    `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
+                  )
+            } else if (slotName === '')
+              variable.#appendChild(
+                this.#convertHtml(<Html<D, P>>slot)[symbol],
+                shadowRoot,
+                propsChain
+              )
+            else continue
+          } else throw Error(`${this.#name} has no slot...`)
+        else shadowRoot.appendChild(variable.#render(propsChain))
+      else shadowRoot.appendChild(document.createRange().createContextualFragment(variable))
   }
 
   #addHtml(shadowRoot?: ShadowRoot): string | void {
     const html = this.#convertHtml(this.#html[0])
 
     if (html.hasOwnProperty(symbol)) {
-      if (!shadowRoot)
-        return <string>(
-          html[symbol].reduce(
-            (prev, curr) =>
-              prev + (curr instanceof Element ? curr.#renderOnServer(this.#propsChain) : curr),
-            ''
-          )
-        )
+      if (!shadowRoot) return <string>html[symbol].reduce((prev, curr) => {
+          if (curr instanceof Element) {
+            if (this.#slot.length > 0 && curr.#getTagName() === 'w--slot') {
+              console.log('aa')
+              const slot = this.#slot[0]
+              if (Array.isArray(slot))
+                for (const slotContent of slot)
+                  if (slotContent.name === curr.#convertHtml(curr.#html[0])[symbol][0])
+                    console.log(this.#convertHtml(slotContent.values)[symbol])
+                  else continue
+              else console.log('cc')
+            }
+
+            return prev + curr.#renderOnServer(this.#propsChain)
+          }
+
+          return prev + curr
+        }, '')
 
       this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
     } else
@@ -182,12 +215,6 @@ export class Element<D, P> {
       stylesheet.replace(<string>style)
     }
   }
-
-  // #addSlot(: HTMLElement): void {
-  //   if (this.#slot.length > 0)
-  //     for (const slot of this.#slot)
-  //       this.#appendChild(this.#convertHtml(slot)[symbol], , this.#propsChain)
-  // }
 
   #addEvents(: HTMLElement): void {
     if (this.#events.length > 0)
@@ -226,7 +253,6 @@ export class Element<D, P> {
     this.#setProps(propsChain)
     this.#addHtml(<ShadowRoot>.shadowRoot)
     this.#addCss(<ShadowRoot>.shadowRoot)
-    // this.#addSlot()
     this.#addEvents()
   }
 
@@ -263,9 +289,6 @@ export class Element<D, P> {
     if (that.#isOnlyCsr) return `<${name}></${name}>`
 
     that.#setProps(propsChain)
-
-    if (that.#slot.length > 0)
-      console.warn(`${that.#name} has slot property, but it cannot be used in ssr...`)
 
     return `
         <${name} class="${that.#addClass()}">
