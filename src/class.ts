@@ -124,29 +124,62 @@ export class WelyElement<D, P> {
 
   #appendChild(
     variables: Variables<D, P>[],
-    wely: HTMLElement | ShadowRoot,
+    shadowRoot: ShadowRoot,
     propsChain: PropsChain<P>
   ): void {
     for (const variable of variables)
-      wely.appendChild(
-        variable instanceof WelyElement
-          ? variable.#render(propsChain)
-          : document.createRange().createContextualFragment(variable)
-      )
+      if (variable instanceof WelyElement)
+        if (variable.#getTagName() === 'w-wely-slot')
+          if (this.#slot.length > 0) {
+            const slot = this.#slot[0]
+            const slotName = variable.#convertHtml(variable.#html[0])[symbol][0]
+
+            if (Array.isArray(slot)) {
+              for (const slotContent of slot)
+                if (slotContent.name === slotName)
+                  variable.#appendChild(
+                    this.#convertHtml(slotContent.values)[symbol],
+                    shadowRoot,
+                    propsChain
+                  )
+                else
+                  throw Error(
+                    `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
+                  )
+            } else if (slotName === '')
+              variable.#appendChild(
+                this.#convertHtml(<Html<D, P>>slot)[symbol],
+                shadowRoot,
+                propsChain
+              )
+            else continue
+          } else throw Error(`${this.#name} has no slot...`)
+        else shadowRoot.appendChild(variable.#render(propsChain))
+      else shadowRoot.appendChild(document.createRange().createContextualFragment(variable))
   }
 
   #addHtml(shadowRoot?: ShadowRoot): string | void {
     const html = this.#convertHtml(this.#html[0])
 
     if (html.hasOwnProperty(symbol)) {
-      if (!shadowRoot)
-        return <string>(
-          html[symbol].reduce(
-            (prev, curr) =>
-              prev + (curr instanceof WelyElement ? curr.#renderOnServer(this.#propsChain) : curr),
-            ''
-          )
-        )
+      if (!shadowRoot) return <string>html[symbol].reduce((prev, curr) => {
+          if (curr instanceof WelyElement) {
+            if (this.#slot.length > 0 && curr.#getTagName() === 'w-wely-slot') {
+              console.log('aa')
+              const slot = this.#slot[0]
+              if (Array.isArray(slot))
+                for (const slotContent of slot)
+                  if (slotContent.name === curr.#convertHtml(curr.#html[0])[symbol][0])
+                    console.log(this.#convertHtml(slotContent.values)[symbol])
+                  else continue
+              else console.log('cc')
+            }
+
+            return prev + curr.#renderOnServer(this.#propsChain)
+          }
+
+          return prev + curr
+        }, '')
 
       this.#appendChild(html[symbol], shadowRoot, this.#propsChain)
     } else
@@ -182,12 +215,6 @@ export class WelyElement<D, P> {
       stylesheet.replace(<string>style)
     }
   }
-
-  // #addSlot(wely: HTMLElement): void {
-  //   if (this.#slot.length > 0)
-  //     for (const slot of this.#slot)
-  //       this.#appendChild(this.#convertHtml(slot)[symbol], wely, this.#propsChain)
-  // }
 
   #addEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
@@ -226,7 +253,6 @@ export class WelyElement<D, P> {
     this.#setProps(propsChain)
     this.#addHtml(<ShadowRoot>wely.shadowRoot)
     this.#addCss(<ShadowRoot>wely.shadowRoot)
-    // this.#addSlot(wely)
     this.#addEvents(wely)
   }
 
@@ -263,9 +289,6 @@ export class WelyElement<D, P> {
     if (that.#isOnlyCsr) return `<${name}></${name}>`
 
     that.#setProps(propsChain)
-
-    if (that.#slot.length > 0)
-      console.warn(`${that.#name} has slot property, but it cannot be used in ssr...`)
 
     return `
         <${name} class="${that.#addClass()}">
