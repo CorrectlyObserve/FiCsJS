@@ -13,23 +13,28 @@ export const html = <D, P>(
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const last: Variables<D, P> | unknown = result[result.length - 1] ?? ''
+      const lastValue: Variables<D, P> | unknown = result[result.length - 1] ?? ''
 
-      if (last instanceof WelyElement)
+      if (lastValue instanceof WelyElement)
         variable instanceof WelyElement
           ? result.push(template, variable)
           : result.push(`${template}${variable}`)
-      else result.splice(result.length - 1, 1, `${last}${template}${variable}`)
+      else {
+        result.splice(
+          result.length - 1,
+          1,
+          `${lastValue}${template}${variable instanceof WelyElement ? '' : variable}`
+        )
+        if (variable instanceof WelyElement) result.push(variable)
+      }
     }
   }
 
   return { [symbol]: <Variables<D, P>[]>result }
 }
 
-export const slot = (name?: string): WelyElement<never, never> => {
-  const localName = name ? `-${name}` : ''
-  return wely({ name: `slot-${localName}`, html: html`<w-var>wely-slot${localName}</w-var>` })
-}
+export const slot = (slot?: string): WelyElement<never, never> =>
+  wely({ name: 'wely-slot', html: { [symbol]: [slot ?? ''] } })
 
 export const wely = <D, P>({
   name,
