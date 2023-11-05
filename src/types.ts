@@ -17,10 +17,8 @@ export type Events<D, P> = {
 }[]
 
 export type Html<D, P> =
-  | Record<symbol, Variables<any, any>[]>
-  | (({ data, props }: { data: D; props: P }) => Record<symbol, Variables<any, any>[]>)
-
-export type NamedSlot<D, P> = { name: string; values: Html<D, P> }[]
+  | Record<symbol, (WelyElement<any, any> | string)[]>
+  | (({ data, props }: { data: D; props: P }) => Record<symbol, (WelyElement<any, any> | string)[]>)
 
 export type Props<D> = {
   descendants: WelyElement<any, any> | WelyElement<any, any>[]
@@ -32,9 +30,7 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-export type Slot<D, P> = Html<D, P> | NamedSlot<D, P>
-
-export type Variables<D, P> = WelyElement<D, P> | string
+export type Slot<D, P> = { name: string; values: Html<D, P> }[]
 
 export interface Wely<D, P> {
   welyId?: string
@@ -46,6 +42,6 @@ export interface Wely<D, P> {
   html: Html<D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
-  slot?: Slot<D, P>
+  slot?: Html<D, P> | Slot<D, P>
   events?: Events<D, P>
 }
