@@ -1,11 +1,11 @@
 import { Element } from './class'
-import { Variables,  } from './types'
+import {  } from './types'
 import { sanitize, symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
-  ...variables: (Variables<D, P> | unknown)[]
-): Record<symbol, Variables<D, P>[]> => {
+  ...variables: (Element<D, P> | unknown)[]
+): Record<symbol, (Element<D, P> | string)[]> => {
   const result = []
 
   for (const [index, template] of templates.entries()) {
@@ -13,9 +13,9 @@ export const html = <D, P>(
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const lastValue: Variables<D, P> | unknown = result[result.length - 1] ?? ''
+      const last: Element<D, P> | unknown = result[result.length - 1] ?? ''
 
-      if (lastValue instanceof Element)
+      if (last instanceof Element)
         variable instanceof Element
           ? result.push(template, variable)
           : result.push(`${template}${variable}`)
@@ -23,14 +23,14 @@ export const html = <D, P>(
         result.splice(
           result.length - 1,
           1,
-          `${lastValue}${template}${variable instanceof Element ? '' : variable}`
+          `${last}${template}${variable instanceof Element ? '' : variable}`
         )
         if (variable instanceof Element) result.push(variable)
       }
     }
   }
 
-  return { [symbol]: <Variables<D, P>[]>result }
+  return { [symbol]: <(Element<D, P> | string)[]>result }
 }
 
 export const slot = (slot?: string): Element<never, never> =>
