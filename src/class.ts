@@ -1,4 +1,4 @@
-import { Css, Events, Html, NamedSlot, Props, PropsChain, Slot, Variables, Wely } from './types'
+import { Css, Events, Html, Props, PropsChain, Slot, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
@@ -11,7 +11,7 @@ export class WelyElement<D, P> {
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: Slot<D, P>[] = []
+  readonly #slot: (Html<D, P> | Slot<D, P>)[] = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -116,7 +116,7 @@ export class WelyElement<D, P> {
         this.#inheritedProps[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
-  #convertHtml(html: Html<D, P>): Record<symbol, Variables<D, P>[]> {
+  #convertHtml(html: Html<D, P>): Record<symbol, (WelyElement<D, P> | string)[]> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
       : html
@@ -127,18 +127,18 @@ export class WelyElement<D, P> {
 
     if (html.hasOwnProperty(symbol)) {
       const insert = (
-        variables: Variables<D, P>[],
+        elements: (WelyElement<D, P> | string)[],
         shadowRoot: ShadowRoot,
         propsChain: PropsChain<P>
       ): void => {
-        for (const variable of variables)
-          if (variable instanceof WelyElement)
-            if (variable.#getTagName() === 'w-wely-slot')
+        for (const element of elements)
+          if (element instanceof WelyElement)
+            if (element.#getTagName() === 'w-wely-slot')
               if (this.#slot.length > 0) {
-                const slotName = variable.#convertHtml(variable.#html[0])[symbol][0]
+                const slotName = element.#convertHtml(element.#html[0])[symbol][0]
 
                 if (this.#slot.every(slot => 'name' in slot && 'values' in slot)) {
-                  const slot = (<NamedSlot<D, P>>this.#slot).find(slot => slot.name === slotName)
+                  const slot = (<Slot<D, P>>this.#slot).find(slot => slot.name === slotName)
 
                   if (slot) insert(this.#convertHtml(slot.values)[symbol], shadowRoot, propsChain)
                   else
@@ -153,8 +153,8 @@ export class WelyElement<D, P> {
                   )
                 else throw Error(`${this.#name} has no slot...`)
               } else throw Error(`${this.#name} has no slot...`)
-            else shadowRoot.appendChild(variable.#render(propsChain))
-          else shadowRoot.appendChild(document.createRange().createContextualFragment(variable))
+            else shadowRoot.appendChild(element.#render(propsChain))
+          else shadowRoot.appendChild(document.createRange().createContextualFragment(element))
       }
 
       insert(html[symbol], shadowRoot, this.#propsChain)
@@ -277,7 +277,7 @@ export class WelyElement<D, P> {
                   const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
 
                   if (this.#slot.every(slot => 'name' in slot && 'values' in slot)) {
-                    const slot = (<NamedSlot<D, P>>this.#slot).find(slot => slot.name === slotName)
+                    const slot = (<Slot<D, P>>this.#slot).find(slot => slot.name === slotName)
 
                     if (slot) return addHtml(slot.values)
                     else
