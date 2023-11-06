@@ -6,19 +6,24 @@ export type Css<D, P> = (
       selector: string
       style:
         | Record<string, string | number>
-        | (({ data, props }: { data: D; props: P }) => Record<string, string | number>)
+        | (({ data, props }: DataProps<D, P>) => Record<string, string | number>)
     }
 )[]
+
+interface DataProps<D, P> {
+  data: D
+  props: P
+}
 
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: ({ data, props }: { data: D; props: P }, event: Event, index?: number) => void
+  method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
 }[]
 
 export type Html<D, P> =
   | Record<symbol, (WelyElement<any, any> | string)[]>
-  | (({ data, props }: { data: D; props: P }) => Record<symbol, (WelyElement<any, any> | string)[]>)
+  | (({ data, props }: DataProps<D, P>) => Record<symbol, (WelyElement<any, any> | string)[]>)
 
 export type Props<D> = {
   descendants: WelyElement<any, any> | WelyElement<any, any>[]
