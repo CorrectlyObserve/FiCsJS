@@ -123,9 +123,7 @@ export class WelyElement<D, P> {
   }
 
   #addHtml(shadowRoot: ShadowRoot): void {
-    const html = this.#convertHtml(this.#html[0])
-
-    if (html.hasOwnProperty(symbol)) {
+    if (this.#convertHtml(this.#html[0]).hasOwnProperty(symbol)) {
       const insert = (
         elements: (WelyElement<D, P> | string)[],
         shadowRoot: ShadowRoot,
@@ -157,7 +155,7 @@ export class WelyElement<D, P> {
           else shadowRoot.appendChild(document.createRange().createContextualFragment(element))
       }
 
-      insert(html[symbol], shadowRoot, this.#propsChain)
+      insert(this.#convertHtml(this.#html[0])[symbol], shadowRoot, this.#propsChain)
     } else
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
@@ -267,37 +265,34 @@ export class WelyElement<D, P> {
     that.#setProps(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
-      const sanitizedHtml = this.#convertHtml(html)
+      if (that.#convertHtml(html).hasOwnProperty(symbol))
+        return <string>that.#convertHtml(html)[symbol].reduce((prev, curr) => {
+          if (curr instanceof WelyElement) {
+            if (curr.#getTagName() === 'w-wely-slot')
+              if (that.#slot.length > 0) {
+                const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
 
-      if (sanitizedHtml.hasOwnProperty(symbol)) return <string>sanitizedHtml[symbol].reduce(
-          (prev, curr) => {
-            if (curr instanceof WelyElement) {
-              if (curr.#getTagName() === 'w-wely-slot')
-                if (this.#slot.length > 0) {
-                  const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
+                if (slotName === '') return prev + addHtml(<Html<D, P>>that.#slot[0])
 
-                  if (this.#slot.every(slot => 'name' in slot && 'values' in slot)) {
-                    const slot = (<Slot<D, P>>this.#slot).find(slot => slot.name === slotName)
+                if (that.#slot.every(slot => 'name' in slot && 'values' in slot)) {
+                  const slot = (<Slot<D, P>>that.#slot).find(slot => slot.name === slotName)
 
-                    if (slot) return addHtml(slot.values)
-                    else
-                      throw Error(
-                        `${this.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
-                      )
-                  } else if (slotName === '') return addHtml(<Html<D, P>>this.#slot[0])
-                  else throw Error(`${this.#name} has no slot...`)
-                } else throw Error(`${this.#name} has no slot...`)
+                  if (slot) return prev + addHtml(slot.values)
 
-              return prev + curr.#renderOnServer(this.#propsChain)
-            }
+                  throw Error(
+                    `${that.#name} has no ${slotName === '' ? 'applicable' : slotName} slot...`
+                  )
+                } else throw Error(`${that.#name} has no slot...`)
+              } else throw Error(`${that.#name} has no slot...`)
 
-            return prev + curr
-          },
-          ''
-        )
+            return prev + curr.#renderOnServer(that.#propsChain)
+          }
+
+          return prev + curr
+        }, '')
 
       throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
+        `${that.#name} has to use html function (tagged template literal) in html argument.`
       )
     }
 
