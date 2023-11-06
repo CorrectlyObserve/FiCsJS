@@ -77,7 +77,7 @@ export class WelyElement<D, P> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #addClass(wely?: HTMLElement): string | void {
+  #addClassName(wely?: HTMLElement): string | void {
     const name = this.#toKebabCase(this.#name)
     const className = this.#className === '' ? name : `${name} ${this.#className}`
 
@@ -223,7 +223,7 @@ export class WelyElement<D, P> {
   }
 
   #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
-    this.#addClass(wely)
+    this.#addClassName(wely)
     this.#setProps(propsChain)
     this.#addHtml(<ShadowRoot>wely.shadowRoot)
     this.#addCss(<ShadowRoot>wely.shadowRoot)
@@ -297,7 +297,7 @@ export class WelyElement<D, P> {
     }
 
     return `
-        <${name} class="${that.#addClass()}">
+        <${name} class="${that.#addClassName()}">
           <template shadowroot="open">
             <slot></slot>${that.#addCss() ?? ''}
           </template>
