@@ -4,7 +4,7 @@ import { generator, symbol } from './utils'
 export class Element<D, P> {
   readonly #Id: string
   readonly #name: string
-  readonly #class: string = ''
+  readonly #className: string = ''
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
@@ -33,7 +33,7 @@ export class Element<D, P> {
   }: <D, P>) {
     this.#Id = Id ?? `${generator.next().value}`
     this.#name = name
-    if (className && className !== '') this.#class = className
+    if (className && className !== '') this.#className = className
 
     if (data) this.#data = { ...data() }
     if (props && props.length > 0) this.#props = [...props]
@@ -57,7 +57,7 @@ export class Element<D, P> {
     return new Element<D, P>({
       Id,
       name: this.#name,
-      className: this.#class,
+      className: this.#className,
       data,
       props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
@@ -79,11 +79,11 @@ export class Element<D, P> {
 
   #addClass(?: HTMLElement): string | void {
     const name = this.#toKebabCase(this.#name)
-    const className = this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, name)
+    const className = this.#className === '' ? name : `${name} ${this.#className}`
 
-    if (!) return this.#class === '' ? name : className
+    if (!) return className
 
-    this.#class === '' ? .classList.add(name) : .setAttribute('class', className)
+    this.#className === '' ? .classList.add(className) : .setAttribute('class', className)
   }
 
   #setProps(
