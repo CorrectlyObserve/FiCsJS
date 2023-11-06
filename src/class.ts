@@ -4,7 +4,7 @@ import { generator, symbol } from './utils'
 export class WelyElement<D, P> {
   readonly #welyId: string
   readonly #name: string
-  readonly #class: string = ''
+  readonly #className: string = ''
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
@@ -33,7 +33,7 @@ export class WelyElement<D, P> {
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
-    if (className && className !== '') this.#class = className
+    if (className && className !== '') this.#className = className
 
     if (data) this.#data = { ...data() }
     if (props && props.length > 0) this.#props = [...props]
@@ -57,7 +57,7 @@ export class WelyElement<D, P> {
     return new WelyElement<D, P>({
       welyId,
       name: this.#name,
-      className: this.#class,
+      className: this.#className,
       data,
       props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
@@ -79,11 +79,11 @@ export class WelyElement<D, P> {
 
   #addClass(wely?: HTMLElement): string | void {
     const name = this.#toKebabCase(this.#name)
-    const className = this.#class.split(' ').reduce((prev, curr) => prev + ' ' + curr, name)
+    const className = this.#className === '' ? name : `${name} ${this.#className}`
 
-    if (!wely) return this.#class === '' ? name : className
+    if (!wely) return className
 
-    this.#class === '' ? wely.classList.add(name) : wely.setAttribute('class', className)
+    this.#className === '' ? wely.classList.add(className) : wely.setAttribute('class', className)
   }
 
   #setProps(
