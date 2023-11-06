@@ -77,7 +77,7 @@ export class Element<D, P> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #addClass(?: HTMLElement): string | void {
+  #addClassName(?: HTMLElement): string | void {
     const name = this.#toKebabCase(this.#name)
     const className = this.#className === '' ? name : `${name} ${this.#className}`
 
@@ -223,7 +223,7 @@ export class Element<D, P> {
   }
 
   #createComponent(: HTMLElement, propsChain?: PropsChain<P>): void {
-    this.#addClass()
+    this.#addClassName()
     this.#setProps(propsChain)
     this.#addHtml(<ShadowRoot>.shadowRoot)
     this.#addCss(<ShadowRoot>.shadowRoot)
@@ -297,7 +297,7 @@ export class Element<D, P> {
     }
 
     return `
-        <${name} class="${that.#addClass()}">
+        <${name} class="${that.#addClassName()}">
           <template shadowroot="open">
             <slot></slot>${that.#addCss() ?? ''}
           </template>
