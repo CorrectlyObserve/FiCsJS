@@ -25,6 +25,11 @@ export type Html<D, P> =
   | Record<symbol, (WelyElement<any, any> | string)[]>
   | (({ data, props }: DataProps<D, P>) => Record<symbol, (WelyElement<any, any> | string)[]>)
 
+export interface NamedSlot<D, P> {
+  name: string
+  values: Html<D, P>
+}
+
 export type Props<D> = {
   descendants: WelyElement<any, any> | WelyElement<any, any>[]
   values: (data: D) => any
@@ -34,8 +39,6 @@ export interface PropsChain<P> {
   descendants: Set<string>
   chains: Record<string, P>
 }
-
-export type Slot<D, P> = { name: string; values: Html<D, P> }[]
 
 export interface Wely<D, P> {
   welyId?: string
@@ -47,6 +50,6 @@ export interface Wely<D, P> {
   html: Html<D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
-  slot?: Html<D, P> | Slot<D, P>
+  slot?: Html<D, P> | (Html<D, P> | NamedSlot<D, P>)[]
   events?: Events<D, P>
 }
