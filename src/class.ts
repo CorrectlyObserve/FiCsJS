@@ -1,4 +1,14 @@
-import { ClassName, Css, Events, Html, NamedSlot, Props, PropsChain,  } from './types'
+import {
+  ClassName,
+  Css,
+  Descendant,
+  Events,
+  Html,
+  NamedSlot,
+  Props,
+  PropsChain,
+  
+} from './types'
 import { generator, symbol } from './utils'
 
 export class Element<D, P> {
@@ -130,9 +140,7 @@ export class Element<D, P> {
   }
 
   #convertHtml(html: Html<D, P>): (Element<D, P> | string)[] | undefined {
-    return this.#convert<Html<D, P>, Record<symbol, (Element<any, any> | string)[]>>(html)[
-      symbol
-    ]
+    return this.#convert<Html<D, P>, Record<symbol, (Descendant | string)[]>>(html)[symbol]
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P>): void {
