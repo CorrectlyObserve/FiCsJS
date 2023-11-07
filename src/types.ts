@@ -1,6 +1,6 @@
 import { WelyElement } from './class'
 
-export type ClassName<D, P> = string | (({ data, props }: DataProps<D, P>) => string)
+export type Class<D, P> = string | (({ data, props }: DataProps<D, P>) => string)
 
 export type Css<D, P> = (
   | string
@@ -50,7 +50,7 @@ export interface Wely<D, P> {
   data?: () => D
   props?: Props<D>
   isOnlyCsr?: boolean
-  className?: ClassName<D, P>
+  className?: Class<D, P>
   html: Html<D, P>
   css?: Css<D, P>
   ssrCss?: Css<D, P>
