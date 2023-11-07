@@ -17,6 +17,8 @@ interface DataProps<D, P> {
   props: P
 }
 
+export type Descendant = WelyElement<any, any>
+
 export type Events<D, P> = {
   handler: string
   selector?: string
@@ -24,8 +26,8 @@ export type Events<D, P> = {
 }[]
 
 export type Html<D, P> =
-  | Record<symbol, (WelyElement<any, any> | string)[]>
-  | (({ data, props }: DataProps<D, P>) => Record<symbol, (WelyElement<any, any> | string)[]>)
+  | Record<symbol, (Descendant | string)[]>
+  | (({ data, props }: DataProps<D, P>) => Record<symbol, (Descendant | string)[]>)
 
 export interface NamedSlot<D, P> {
   name: string
@@ -33,7 +35,7 @@ export interface NamedSlot<D, P> {
 }
 
 export type Props<D> = {
-  descendants: WelyElement<any, any> | WelyElement<any, any>[]
+  descendants: Descendant | Descendant[]
   values: (data: D) => any
 }[]
 
