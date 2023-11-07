@@ -11,7 +11,7 @@ export class WelyElement<D, P> {
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: (Html<D, P> | Slot<D, P>)[] = []
+  readonly #slot: Html<D, P>[] | Slot<D, P> = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -44,7 +44,9 @@ export class WelyElement<D, P> {
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
 
-    if (slot) Array.isArray(slot) ? (this.#slot = [...slot]) : this.#slot.push(slot)
+    if (Array.isArray(slot)) this.#slot = [...slot]
+    else if (slot) (<Html<D, P>[]>this.#slot).push(slot)
+
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -54,6 +56,14 @@ export class WelyElement<D, P> {
       data: () => <D>{ ...this.#data }
     }
   ): WelyElement<D, P> {
+    let slot: Html<D, P> | Slot<D, P> | undefined = undefined
+
+    if (this.#slot.length > 0)
+      slot =
+        this.#slot[0].hasOwnProperty('name') && this.#slot[0].hasOwnProperty('values')
+          ? <Slot<D, P>>[...this.#slot]
+          : <Html<D, P>>this.#slot[0]
+
     return new WelyElement<D, P>({
       welyId,
       name: this.#name,
@@ -64,7 +74,7 @@ export class WelyElement<D, P> {
       html: this.#html[0],
       css: this.#css,
       ssrCss: this.#ssrCss,
-      slot: this.#slot.length > 0 ? this.#slot[0] : undefined,
+      slot,
       events: this.#events
     })
   }
