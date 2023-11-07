@@ -1,13 +1,13 @@
-import { Css, Events, Html, NamedSlot, Props, PropsChain, Wely } from './types'
+import { ClassName, Css, Events, Html, NamedSlot, Props, PropsChain, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
   readonly #welyId: string
   readonly #name: string
-  readonly #className: string = ''
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
+  readonly #className: ClassName<D, P>[] = []
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
@@ -21,10 +21,10 @@ export class WelyElement<D, P> {
   constructor({
     welyId,
     name,
-    className,
     data,
     props,
     isOnlyCsr,
+    className,
     html,
     css,
     ssrCss,
@@ -33,20 +33,18 @@ export class WelyElement<D, P> {
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
-    if (className && className !== '') this.#className = className
 
     if (data) this.#data = { ...data() }
     if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
+    if (className && className !== '') this.#className.push(className)
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
 
-    if (Array.isArray(slot)) this.#slot = [...slot]
-    else if (slot) (<Html<D, P>[]>this.#slot).push(slot)
-
+    if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -59,10 +57,10 @@ export class WelyElement<D, P> {
     return new WelyElement<D, P>({
       welyId,
       name: this.#name,
-      className: this.#className,
       data,
       props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
+      className: this.#className[0],
       html: this.#html[0],
       css: this.#css,
       ssrCss: this.#ssrCss,
@@ -82,15 +80,6 @@ export class WelyElement<D, P> {
 
   #getTagName(): string {
     return `w-${this.#toKebabCase(this.#name)}`
-  }
-
-  #addClassName(wely?: HTMLElement): string | void {
-    const name = this.#toKebabCase(this.#name)
-    const className = this.#className === '' ? name : `${name} ${this.#className}`
-
-    if (!wely) return className
-
-    this.#className === '' ? wely.classList.add(className) : wely.setAttribute('class', className)
   }
 
   #setProps(
@@ -123,13 +112,27 @@ export class WelyElement<D, P> {
         this.#inheritedProps[key] = this.#propsChain.chains[this.#welyId][key]
   }
 
-  #convertHtml(arg: Html<D, P>): (WelyElement<D, P> | string)[] | undefined {
-    const html =
-      typeof arg === 'function'
-        ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
-        : arg
+  #convert<A, R>(arg: A): R {
+    return typeof arg === 'function'
+      ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+      : arg
+  }
 
-    return html[symbol]
+  #addClassName(wely?: HTMLElement): string | void {
+    const className =
+      this.#toKebabCase(this.#name) +
+      (this.#className.length > 0
+        ? ` ${this.#convert<ClassName<D, P>, string>(this.#className[0])}`
+        : '')
+
+    if (!wely) return className
+    wely.setAttribute('class', className)
+  }
+
+  #convertHtml(html: Html<D, P>): (WelyElement<D, P> | string)[] | undefined {
+    return this.#convert<Html<D, P>, Record<symbol, (WelyElement<any, any> | string)[]>>(html)[
+      symbol
+    ]
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P>): void {
@@ -232,8 +235,8 @@ export class WelyElement<D, P> {
   }
 
   #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
-    this.#addClassName(wely)
     this.#setProps(propsChain)
+    this.#addClassName(wely)
     this.#addHtml(<ShadowRoot>wely.shadowRoot, this.#html[0])
     this.#addCss(<ShadowRoot>wely.shadowRoot)
     this.#addEvents(wely)
@@ -345,6 +348,7 @@ export class WelyElement<D, P> {
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
+            this.innerHTML = ''
           }
 
           connectedCallback(): void {
