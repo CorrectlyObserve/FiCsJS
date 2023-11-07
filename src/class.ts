@@ -123,49 +123,49 @@ export class Element<D, P> {
         this.#inheritedProps[key] = this.#propsChain.chains[this.#Id][key]
   }
 
-  #convertHtml(html: Html<D, P>): Record<symbol, (Element<D, P> | string)[]> {
-    return typeof html === 'function'
-      ? html({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
-      : html
+  #convertHtml(arg: Html<D, P>): (Element<D, P> | string)[] | undefined {
+    const html =
+      typeof arg === 'function'
+        ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+        : arg
+
+    return html[symbol]
   }
 
-  #addHtml(shadowRoot: ShadowRoot): void {
-    const converted = this.#convertHtml(this.#html[0])
+  #addHtml(shadowRoot: ShadowRoot, html: Html<D, P>): void {
+    const elements = this.#convertHtml(html)
 
-    if (converted.hasOwnProperty(symbol)) {
-      const insert = (elements: (Element<D, P> | string)[]): void => {
-        for (const element of elements)
-          if (element instanceof Element) {
-            if (element.#getTagName() === 'w--slot') {
-              if (this.#slot.length > 0) {
-                const slotName = element.#convertHtml(element.#html[0])[symbol][0]
+    if (elements)
+      for (const element of elements) {
+        if (element instanceof Element) {
+          if (element.#getTagName() === 'w--slot') {
+            if (this.#slot.length > 0) {
+              const slotName = this.#convertHtml(element.#html[0])?.[0] ?? ''
 
-                if (slotName === '') {
-                  if (this.#slot.some(slot => 'name' in slot && 'values' in slot)) {
-                    const slot = <Html<D, P> | undefined>(
-                      this.#slot.find(slot => !('name' in slot && 'values' in slot))
-                    )
-
-                    if (slot) insert(this.#convertHtml(slot)[symbol])
-                    else throw Error(`${this.#name} has no unnamed slot...`)
-                  } else insert(this.#convertHtml(<Html<D, P>>this.#slot[0])[symbol])
-                } else {
-                  const slot = <NamedSlot<D, P>>(
-                    this.#slot.find(
-                      slot => 'name' in slot && 'values' in slot && slot.name === slotName
-                    )
+              if (slotName === '') {
+                if (this.#slot.some(slot => 'name' in slot && 'values' in slot)) {
+                  const slot = <Html<D, P> | undefined>(
+                    this.#slot.find(slot => !('name' in slot && 'values' in slot))
                   )
 
-                  if (slot) insert(this.#convertHtml(slot.values)[symbol])
-                  else throw Error(`${this.#name} has no ${slotName} slot...`)
-                }
-              } else throw Error(`${this.#name} has no slot...`)
-            } else shadowRoot.appendChild(element.#render(this.#propsChain))
-          } else shadowRoot.appendChild(document.createRange().createContextualFragment(element))
-      }
+                  if (slot) this.#addHtml(shadowRoot, slot)
+                  else throw Error(`${this.#name} has no unnamed slot...`)
+                } else this.#addHtml(shadowRoot, <Html<D, P>>this.#slot[0])
+              } else {
+                const slot = <NamedSlot<D, P>>(
+                  this.#slot.find(
+                    slot => 'name' in slot && 'values' in slot && slot.name === slotName
+                  )
+                )
 
-      insert(converted[symbol])
-    } else
+                if (slot) this.#addHtml(shadowRoot, slot.values)
+                else throw Error(`${this.#name} has no ${slotName} slot...`)
+              }
+            } else throw Error(`${this.#name} has no slot...`)
+          } else shadowRoot.appendChild(element.#render(this.#propsChain))
+        } else shadowRoot.appendChild(document.createRange().createContextualFragment(element))
+      }
+    else
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
@@ -234,7 +234,7 @@ export class Element<D, P> {
   #createComponent(: HTMLElement, propsChain?: PropsChain<P>): void {
     this.#addClassName()
     this.#setProps(propsChain)
-    this.#addHtml(<ShadowRoot>.shadowRoot)
+    this.#addHtml(<ShadowRoot>.shadowRoot, this.#html[0])
     this.#addCss(<ShadowRoot>.shadowRoot)
     this.#addEvents()
   }
@@ -274,46 +274,43 @@ export class Element<D, P> {
     that.#setProps(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
-      const converted = that.#convertHtml(html)
+      const elements = that.#convertHtml(html)
 
-      if (converted.hasOwnProperty(symbol)) return <string>converted[symbol].reduce(
-          (prev, curr) => {
-            if (curr instanceof Element) {
-              if (curr.#getTagName() === 'w--slot') {
-                if (that.#slot.length > 0) {
-                  const slotName = curr.#convertHtml(curr.#html[0])[symbol][0]
+      if (elements) return <string>elements.reduce((prev, curr) => {
+          if (curr instanceof Element) {
+            if (curr.#getTagName() === 'w--slot') {
+              if (that.#slot.length > 0) {
+                const slotName = that.#convertHtml(curr.#html[0])?.[0] ?? ''
 
-                  if (slotName === '') {
-                    if (that.#slot.some(slot => 'name' in slot && 'values' in slot)) {
-                      const slot = <Html<D, P> | undefined>(
-                        that.#slot.find(slot => !('name' in slot && 'values' in slot))
-                      )
-
-                      if (slot) return prev + addHtml(slot)
-
-                      throw Error(`${that.#name} has no unnamed slot...`)
-                    } else return prev + addHtml(<Html<D, P>>that.#slot[0])
-                  } else {
-                    const slot = <NamedSlot<D, P>>(
-                      that.#slot.find(
-                        slot => 'name' in slot && 'values' in slot && slot.name === slotName
-                      )
+                if (slotName === '') {
+                  if (that.#slot.some(slot => 'name' in slot && 'values' in slot)) {
+                    const slot = <Html<D, P> | undefined>(
+                      that.#slot.find(slot => !('name' in slot && 'values' in slot))
                     )
 
-                    if (slot) return prev + addHtml(slot.values)
+                    if (slot) return prev + addHtml(slot)
 
-                    throw Error(`${that.#name} has no ${slotName} slot...`)
-                  }
-                } else throw Error(`${that.#name} has no slot...`)
-              }
+                    throw Error(`${that.#name} has no unnamed slot...`)
+                  } else return prev + addHtml(<Html<D, P>>that.#slot[0])
+                } else {
+                  const slot = <NamedSlot<D, P>>(
+                    that.#slot.find(
+                      slot => 'name' in slot && 'values' in slot && slot.name === slotName
+                    )
+                  )
 
-              return prev + curr.#renderOnServer(that.#propsChain)
+                  if (slot) return prev + addHtml(slot.values)
+
+                  throw Error(`${that.#name} has no ${slotName} slot...`)
+                }
+              } else throw Error(`${that.#name} has no slot...`)
             }
 
-            return prev + curr
-          },
-          ''
-        )
+            return prev + curr.#renderOnServer(that.#propsChain)
+          }
+
+          return prev + curr
+        }, '')
 
       throw Error(
         `${that.#name} has to use html function (tagged template literal) in html argument.`
