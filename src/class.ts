@@ -1,14 +1,4 @@
-import {
-  ClassName,
-  Css,
-  Descendant,
-  Events,
-  Html,
-  NamedSlot,
-  Props,
-  PropsChain,
-  Wely
-} from './types'
+import { Class, Css, Descendant, Events, Html, NamedSlot, Props, PropsChain, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
@@ -17,7 +7,7 @@ export class WelyElement<D, P> {
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
-  readonly #className: ClassName<D, P>[] = []
+  readonly #class: Class<D, P>[] = []
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
@@ -48,7 +38,7 @@ export class WelyElement<D, P> {
     if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
-    if (className && className !== '') this.#className.push(className)
+    if (className && className !== '') this.#class.push(className)
     this.#html.push(html)
 
     if (css && css.length > 0) this.#css = [...css]
@@ -70,7 +60,7 @@ export class WelyElement<D, P> {
       data,
       props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
-      className: this.#className[0],
+      className: this.#class[0],
       html: this.#html[0],
       css: this.#css,
       ssrCss: this.#ssrCss,
@@ -128,12 +118,10 @@ export class WelyElement<D, P> {
       : arg
   }
 
-  #addClassName(wely?: HTMLElement): string | void {
+  #addClass(wely?: HTMLElement): string | void {
     const className =
       this.#toKebabCase(this.#name) +
-      (this.#className.length > 0
-        ? ` ${this.#convert<ClassName<D, P>, string>(this.#className[0])}`
-        : '')
+      (this.#class.length > 0 ? ` ${this.#convert<Class<D, P>, string>(this.#class[0])}` : '')
 
     if (!wely) return className
     wely.setAttribute('class', className)
@@ -244,7 +232,7 @@ export class WelyElement<D, P> {
 
   #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
     this.#setProps(propsChain)
-    this.#addClassName(wely)
+    this.#addClass(wely)
     this.#addHtml(<ShadowRoot>wely.shadowRoot, this.#html[0])
     this.#addCss(<ShadowRoot>wely.shadowRoot)
     this.#addEvents(wely)
@@ -329,7 +317,7 @@ export class WelyElement<D, P> {
     }
 
     return `
-        <${name} class="${that.#addClassName()}">
+        <${name} class="${that.#addClass()}">
           <template shadowroot="open">
             <slot></slot>${that.#addCss() ?? ''}
           </template>
