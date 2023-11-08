@@ -9,9 +9,9 @@ export class WelyElement<D, P> {
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P>[] = []
   readonly #html: Html<D, P>[] = []
+  readonly #slot: (Html<D, P> | { name: string; values: Html<D, P> })[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: (Html<D, P> | { name: string; values: Html<D, P> })[] = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -26,9 +26,9 @@ export class WelyElement<D, P> {
     isOnlyCsr,
     className,
     html,
+    slot,
     css,
     ssrCss,
-    slot,
     events
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
@@ -39,12 +39,12 @@ export class WelyElement<D, P> {
 
     if (isOnlyCsr) this.#isOnlyCsr = true
     if (className && className !== '') this.#class.push(className)
+
     this.#html.push(html)
+    if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
-
-    if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -62,14 +62,14 @@ export class WelyElement<D, P> {
       isOnlyCsr: this.#isOnlyCsr,
       className: this.#class[0],
       html: this.#html[0],
-      css: this.#css,
-      ssrCss: this.#ssrCss,
       slot:
         this.#slot.length > 0
           ? this.#slot.some(slot => 'name' in slot && 'values' in slot)
             ? [...this.#slot]
             : this.#slot[0]
           : undefined,
+      css: this.#css,
+      ssrCss: this.#ssrCss,
       events: this.#events
     })
   }
