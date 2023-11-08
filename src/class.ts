@@ -127,8 +127,25 @@ export class WelyElement<D, P> {
     wely.setAttribute('class', className)
   }
 
-  #convertHtml(html: Html<D, P>): (WelyElement<D, P> | string)[] | undefined {
+  #convertHtml(html: Html<D, P>): (WelyElement<D, P> | string)[] | void {
     return this.#convert<Html<D, P>, Record<symbol, (Descendant | string)[]>>(html)[symbol]
+  }
+
+  #getSlot(slotName: string): Html<D, P> | undefined {
+    const slot = this.#slot.find(slot =>
+      slotName !== ''
+        ? 'name' in slot && 'values' in slot && slot.name === slotName
+        : !('name' in slot && 'values' in slot)
+    )
+
+    if (slot) {
+      if (this.#slot.some(slot => 'name' in slot && 'values' in slot))
+        return 'name' in slot && 'values' in slot ? slot.values : slot
+
+      return <Html<D, P>>this.#slot[0]
+    }
+
+    return undefined
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P>): void {
@@ -136,38 +153,26 @@ export class WelyElement<D, P> {
 
     if (elements)
       for (const element of elements) {
-        if (element instanceof WelyElement) {
-          if (element.#getTagName() === 'w-wely-slot') {
-            if (this.#slot.length > 0) {
-              const slotName = this.#convertHtml(element.#html[0])?.[0] ?? ''
+        if (element instanceof WelyElement && element.#getTagName() === 'w-wely-slot') {
+          if (this.#slot.length > 0) {
+            const slotName = this.#convertHtml(element.#html[0])?.[0] ?? ''
+            const slot = this.#getSlot(<string>slotName)
 
-              if (slotName === '') {
-                if (this.#slot.some(slot => 'name' in slot && 'values' in slot)) {
-                  const slot = <Html<D, P> | undefined>(
-                    this.#slot.find(slot => !('name' in slot && 'values' in slot))
-                  )
-
-                  if (slot) this.#addHtml(shadowRoot, slot)
-                  else throw Error(`${this.#name} has no unnamed slot...`)
-                } else this.#addHtml(shadowRoot, <Html<D, P>>this.#slot[0])
-              } else {
-                const slot = <NamedSlot<D, P>>(
-                  this.#slot.find(
-                    slot => 'name' in slot && 'values' in slot && slot.name === slotName
-                  )
-                )
-
-                if (slot) this.#addHtml(shadowRoot, slot.values)
-                else throw Error(`${this.#name} has no ${slotName} slot...`)
-              }
-            } else throw Error(`${this.#name} has no slot...`)
-          } else shadowRoot.appendChild(element.#render(this.#propsChain))
-        } else shadowRoot.appendChild(document.createRange().createContextualFragment(element))
+            if (slot) this.#addHtml(shadowRoot, slot)
+            else
+              throw Error(`${this.#name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
+          } else throw Error(`${this.#name} has no slot contents...`)
+        } else
+          shadowRoot.appendChild(
+            element instanceof WelyElement
+              ? element.#render(this.#propsChain)
+              : document.createRange().createContextualFragment(element)
+          )
       }
-    else
-      throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
-      )
+
+    throw Error(
+      `${this.#name} has to use html function (tagged template literal) in html argument.`
+    )
   }
 
   #addCss(shadowRoot?: ShadowRoot): string | void {
@@ -276,43 +281,23 @@ export class WelyElement<D, P> {
       const elements = that.#convertHtml(html)
 
       if (elements) return <string>elements.reduce((prev, curr) => {
-          if (curr instanceof WelyElement) {
-            if (curr.#getTagName() === 'w-wely-slot') {
-              if (that.#slot.length > 0) {
-                const slotName = that.#convertHtml(curr.#html[0])?.[0] ?? ''
+          if (curr instanceof WelyElement && curr.#getTagName() === 'w-wely-slot') {
+            if (this.#slot.length > 0) {
+              const slotName = this.#convertHtml(curr.#html[0])?.[0] ?? ''
+              const slot = this.#getSlot(<string>slotName)
 
-                if (slotName === '') {
-                  if (that.#slot.some(slot => 'name' in slot && 'values' in slot)) {
-                    const slot = <Html<D, P> | undefined>(
-                      that.#slot.find(slot => !('name' in slot && 'values' in slot))
-                    )
+              if (slot) return prev + addHtml(slot)
 
-                    if (slot) return prev + addHtml(slot)
-
-                    throw Error(`${that.#name} has no unnamed slot...`)
-                  } else return prev + addHtml(<Html<D, P>>that.#slot[0])
-                } else {
-                  const slot = <NamedSlot<D, P>>(
-                    that.#slot.find(
-                      slot => 'name' in slot && 'values' in slot && slot.name === slotName
-                    )
-                  )
-
-                  if (slot) return prev + addHtml(slot.values)
-
-                  throw Error(`${that.#name} has no ${slotName} slot...`)
-                }
-              } else throw Error(`${that.#name} has no slot...`)
-            }
-
-            return prev + curr.#renderOnServer(that.#propsChain)
-          }
-
-          return prev + curr
+              throw Error(`${this.#name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
+            } else throw Error(`${this.#name} has no slot contents...`)
+          } else
+            return (
+              prev + (curr instanceof WelyElement ? curr.#renderOnServer(that.#propsChain) : curr)
+            )
         }, '')
 
       throw Error(
-        `${that.#name} has to use html function (tagged template literal) in html argument.`
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
     }
 
