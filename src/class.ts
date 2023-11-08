@@ -1,4 +1,4 @@
-import { Class, Css, Descendant, Events, Html, NamedSlot, Props, PropsChain, Wely } from './types'
+import { Class, Css, Descendant, Events, Html, Props, PropsChain, Sanitized, Wely } from './types'
 import { generator, symbol } from './utils'
 
 export class WelyElement<D, P> {
@@ -11,7 +11,7 @@ export class WelyElement<D, P> {
   readonly #html: Html<D, P>[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
-  readonly #slot: Html<D, P>[] | (Html<D, P> | NamedSlot<D, P>)[] = []
+  readonly #slot: (Html<D, P> | { name: string; values: Html<D, P> })[] = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -68,7 +68,7 @@ export class WelyElement<D, P> {
         this.#slot.length > 0
           ? this.#slot.some(slot => 'name' in slot && 'values' in slot)
             ? [...this.#slot]
-            : <Html<D, P>>this.#slot[0]
+            : this.#slot[0]
           : undefined,
       events: this.#events
     })
@@ -127,8 +127,8 @@ export class WelyElement<D, P> {
     wely.setAttribute('class', className)
   }
 
-  #convertHtml(html: Html<D, P>): (WelyElement<D, P> | string)[] | void {
-    return this.#convert<Html<D, P>, Record<symbol, (Descendant | string)[]>>(html)[symbol]
+  #convertHtml(html: Html<D, P>): Sanitized<D, P> | undefined {
+    return this.#convert<Html<D, P>, Descendant>(html)[symbol]
   }
 
   #getSlot(slotName: string): Html<D, P> | undefined {
@@ -142,7 +142,7 @@ export class WelyElement<D, P> {
       if (this.#slot.some(slot => 'name' in slot && 'values' in slot))
         return 'name' in slot && 'values' in slot ? slot.values : slot
 
-      return <Html<D, P>>this.#slot[0]
+      return this.#slot[0]
     }
 
     return undefined
@@ -169,10 +169,10 @@ export class WelyElement<D, P> {
               : document.createRange().createContextualFragment(element)
           )
       }
-
-    throw Error(
-      `${this.#name} has to use html function (tagged template literal) in html argument.`
-    )
+    else
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
+      )
   }
 
   #addCss(shadowRoot?: ShadowRoot): string | void {
