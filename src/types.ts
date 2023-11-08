@@ -17,7 +17,9 @@ interface DataProps<D, P> {
   props: P
 }
 
-export type Descendant = WelyElement<any, any>
+export type Descendant = Record<symbol, (DescendantElement | string)[]>
+
+type DescendantElement = WelyElement<any, any>
 
 export type Events<D, P> = {
   handler: string
@@ -25,17 +27,10 @@ export type Events<D, P> = {
   method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
 }[]
 
-export type Html<D, P> =
-  | Record<symbol, (Descendant | string)[]>
-  | (({ data, props }: DataProps<D, P>) => Record<symbol, (Descendant | string)[]>)
-
-export interface NamedSlot<D, P> {
-  name: string
-  values: Html<D, P>
-}
+export type Html<D, P> = Descendant | (({ data, props }: DataProps<D, P>) => Descendant)
 
 export type Props<D> = {
-  descendants: Descendant | Descendant[]
+  descendants: DescendantElement | DescendantElement[]
   values: (data: D) => any
 }[]
 
@@ -43,6 +38,8 @@ export interface PropsChain<P> {
   descendants: Set<string>
   chains: Record<string, P>
 }
+
+export type Sanitized<D, P> = (WelyElement<D, P> | string)[]
 
 export interface Wely<D, P> {
   welyId?: string
@@ -52,8 +49,8 @@ export interface Wely<D, P> {
   isOnlyCsr?: boolean
   className?: Class<D, P>
   html: Html<D, P>
+  slot?: Html<D, P> | (Html<D, P> | { name: string; values: Html<D, P> })[]
   css?: Css<D, P>
   ssrCss?: Css<D, P>
-  slot?: Html<D, P> | (Html<D, P> | NamedSlot<D, P>)[]
   events?: Events<D, P>
 }
