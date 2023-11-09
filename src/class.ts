@@ -9,7 +9,7 @@ export class WelyElement<D, P> {
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P>[] = []
   readonly #html: Html<D, P>[] = []
-  readonly #slot: (Html<D, P> | { name: string; values: Html<D, P> })[] = []
+  readonly #slot: (Html<D, P> | { name: string; contents: Html<D, P> })[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
   readonly #events: Events<D, P> = []
@@ -64,7 +64,7 @@ export class WelyElement<D, P> {
       html: this.#html[0],
       slot:
         this.#slot.length > 0
-          ? this.#slot.some(slot => 'name' in slot && 'values' in slot)
+          ? this.#slot.some(slot => 'name' in slot && 'contents' in slot)
             ? [...this.#slot]
             : this.#slot[0]
           : undefined,
@@ -134,13 +134,13 @@ export class WelyElement<D, P> {
   #getSlot(slotName: string): Html<D, P> | undefined {
     const slot = this.#slot.find(slot =>
       slotName !== ''
-        ? 'name' in slot && 'values' in slot && slot.name === slotName
-        : !('name' in slot && 'values' in slot)
+        ? 'name' in slot && 'contents' in slot && slot.name === slotName
+        : !('name' in slot && 'contents' in slot)
     )
 
     if (slot) {
-      if (this.#slot.some(slot => 'name' in slot && 'values' in slot))
-        return 'name' in slot && 'values' in slot ? slot.values : slot
+      if (this.#slot.some(slot => 'name' in slot && 'contents' in slot))
+        return 'name' in slot && 'contents' in slot ? slot.contents : slot
 
       return this.#slot[0]
     }
