@@ -175,7 +175,7 @@ export class Element<D, P> {
       )
   }
 
-  #addCss(shadowRoot?: ShadowRoot): string | void {
+  #addCss(shadowRoot?: ShadowRoot | null): string | void {
     const css = shadowRoot ? [...this.#css] : [...this.#css, ...this.#ssrCss]
 
     if (css.length > 0) {
@@ -203,6 +203,14 @@ export class Element<D, P> {
     }
   }
 
+  #getShadowRoot(: HTMLElement): ShadowRoot {
+    const shadowRoot = .shadowRoot
+
+    if (shadowRoot) return .shadowRoot
+
+    throw Error(`${this.#name} does not have a shadowRoot...`)
+  }
+
   #addEvents(: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
@@ -211,7 +219,7 @@ export class Element<D, P> {
         const elements = selector
           ? (() => {
               const getSelectors = (selector: string) =>
-                Array.from((<ShadowRoot>.shadowRoot).querySelectorAll(`:host ${selector}`))
+                Array.from(this.#getShadowRoot().querySelectorAll(`:host ${selector}`))
 
               if (/^.+(\.|#).+$/.test(selector)) {
                 const prefix = selector.includes('.') ? '.' : '#'
@@ -238,8 +246,8 @@ export class Element<D, P> {
   #createComponent(: HTMLElement, propsChain?: PropsChain<P>): void {
     this.#setProps(propsChain)
     this.#addClass()
-    this.#addHtml(<ShadowRoot>.shadowRoot, this.#html[0])
-    this.#addCss(<ShadowRoot>.shadowRoot)
+    this.#addHtml(this.#getShadowRoot(), this.#html[0])
+    this.#addCss(this.#getShadowRoot())
     this.#addEvents()
   }
 
