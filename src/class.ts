@@ -175,7 +175,7 @@ export class WelyElement<D, P> {
       )
   }
 
-  #addCss(shadowRoot?: ShadowRoot): string | void {
+  #addCss(shadowRoot?: ShadowRoot | null): string | void {
     const css = shadowRoot ? [...this.#css] : [...this.#css, ...this.#ssrCss]
 
     if (css.length > 0) {
@@ -203,6 +203,14 @@ export class WelyElement<D, P> {
     }
   }
 
+  #getShadowRoot(wely: HTMLElement): ShadowRoot {
+    const shadowRoot = wely.shadowRoot
+
+    if (shadowRoot) return wely.shadowRoot
+
+    throw Error(`${this.#name} does not have a shadowRoot...`)
+  }
+
   #addEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
       for (const event of this.#events) {
@@ -211,7 +219,7 @@ export class WelyElement<D, P> {
         const elements = selector
           ? (() => {
               const getSelectors = (selector: string) =>
-                Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
+                Array.from(this.#getShadowRoot(wely).querySelectorAll(`:host ${selector}`))
 
               if (/^.+(\.|#).+$/.test(selector)) {
                 const prefix = selector.includes('.') ? '.' : '#'
@@ -238,8 +246,8 @@ export class WelyElement<D, P> {
   #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
     this.#setProps(propsChain)
     this.#addClass(wely)
-    this.#addHtml(<ShadowRoot>wely.shadowRoot, this.#html[0])
-    this.#addCss(<ShadowRoot>wely.shadowRoot)
+    this.#addHtml(this.#getShadowRoot(wely), this.#html[0])
+    this.#addCss(this.#getShadowRoot(wely))
     this.#addEvents(wely)
   }
 
