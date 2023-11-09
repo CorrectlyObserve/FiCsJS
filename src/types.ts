@@ -24,7 +24,7 @@ type DescendantElement = WelyElement<any, any>
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: ({ data, props }: DataProps<D, P>, event: Event, index?: number) => void
+  method: ({ data, props }: DataProps<D, P>, event: Event) => void
 }[]
 
 export type Html<D, P> = Descendant | (({ data, props }: DataProps<D, P>) => Descendant)
@@ -49,7 +49,7 @@ export interface Wely<D, P> {
   isOnlyCsr?: boolean
   className?: Class<D, P>
   html: Html<D, P>
-  slot?: Html<D, P> | (Html<D, P> | { name: string; values: Html<D, P> })[]
+  slot?: Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[]
   css?: Css<D, P>
   ssrCss?: Css<D, P>
   events?: Events<D, P>
