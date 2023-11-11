@@ -1,6 +1,6 @@
 import WelyElement from './class'
+import symbol from './symbol'
 import { Sanitized, Wely } from './types'
-import { symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
