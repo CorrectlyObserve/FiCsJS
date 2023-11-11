@@ -1,7 +1,7 @@
 import { Class, Css, Descendant, Events, Html, Props, PropsChain, Sanitized, Wely } from './types'
 import { generator, symbol } from './utils'
 
-export class WelyElement<D, P> {
+export default class WelyElement<D, P> {
   readonly #welyId: string
   readonly #name: string
   readonly #data: D = <D>{}
@@ -17,6 +17,9 @@ export class WelyElement<D, P> {
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #inheritedProps: P = <P>{}
   #component: HTMLElement | undefined = undefined
+  #isHtmlBinding: boolean = false
+  #bindingCss: number[] = []
+  #bindingEvents: number[] = []
 
   constructor({
     welyId,
@@ -148,8 +151,14 @@ export class WelyElement<D, P> {
     return undefined
   }
 
-  #addHtml(shadowRoot: ShadowRoot, html: Html<D, P>): void {
+  #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html[0]): void {
     const elements = this.#convertHtml(html)
+
+    this.#isHtmlBinding =
+      typeof html === 'function' ||
+      this.#slot.some(
+        slot => typeof ('name' in slot && 'contents' in slot ? slot.contents : slot) === 'function'
+      )
 
     if (elements)
       for (const element of elements) {
@@ -179,8 +188,10 @@ export class WelyElement<D, P> {
     const css = shadowRoot ? [...this.#css] : [...this.#css, ...this.#ssrCss]
 
     if (css.length > 0) {
-      const style = css.reduce((prev, curr) => {
+      const style = css.reduce((prev, curr, index) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
+          if (typeof curr.style === 'function') this.#bindingCss.push(index)
+
           const styleContent = Object.entries(
             typeof curr.style === 'function'
               ? curr.style({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
@@ -213,8 +224,10 @@ export class WelyElement<D, P> {
 
   #addEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
-      for (const event of this.#events) {
+      this.#events.forEach((event, index) => {
         const { selector, handler, method } = event
+
+        if (selector) this.#bindingEvents.push(index)
 
         const elements = selector
           ? (() => {
@@ -239,14 +252,15 @@ export class WelyElement<D, P> {
             element.addEventListener(handler, (event: Event) =>
               method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
             )
-        else console.error(`:host ${selector} does not exist or is not applicable...`)
-      }
+        else
+          console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
+      })
   }
 
   #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
     this.#setProps(propsChain)
     this.#addClass(wely)
-    this.#addHtml(this.#getShadowRoot(wely), this.#html[0])
+    this.#addHtml(this.#getShadowRoot(wely))
     this.#addCss(this.#getShadowRoot(wely))
     this.#addEvents(wely)
   }
