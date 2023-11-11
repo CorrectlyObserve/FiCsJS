@@ -1,5 +1,6 @@
+import generator from './generator'
+import symbol from './symbol'
 import { Class, Css, Descendant, Events, Html, Props, PropsChain, Sanitized,  } from './types'
-import { generator, symbol } from './utils'
 
 export default class Element<D, P> {
   readonly #Id: string
