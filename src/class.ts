@@ -175,7 +175,7 @@ export default class Element<D, P> {
         } else
           shadowRoot.appendChild(
             element instanceof Element
-              ? element.#render(this.#propsChain)
+              ? element.#component ?? element.#render(this.#propsChain)
               : document.createRange().createContextualFragment(element)
           )
       }
