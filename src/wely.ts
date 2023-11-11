@@ -1,63 +1,63 @@
-import { Element } from './class'
-import {  } from './types'
-import { sanitize, symbol } from './utils'
+import Element from './class'
+import { Sanitized,  } from './types'
+import { symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
-  ...variables: (Element<D, P> | unknown)[]
-): Record<symbol, (Element<D, P> | string)[]> => {
+  ...variables: unknown[]
+): Record<symbol, Sanitized<D, P>> => {
   const result = []
 
   for (const [index, template] of templates.entries()) {
-    const variable = sanitize(variables[index]) ?? ''
+    const sanitize = (arg: unknown): unknown =>
+      typeof arg === 'string' && arg !== ''
+        ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        : arg ?? ''
+
+    const variable = sanitize(variables[index])
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const last: Element<D, P> | unknown = result[result.length - 1] ?? ''
+      const last = result[result.length - 1] ?? ''
+      const isElement = variable instanceof Element
 
       if (last instanceof Element)
-        variable instanceof Element
-          ? result.push(template, variable)
-          : result.push(`${template}${variable}`)
+        isElement ? result.push(template, variable) : result.push(`${template}${variable}`)
       else {
-        result.splice(
-          result.length - 1,
-          1,
-          `${last}${template}${variable instanceof Element ? '' : variable}`
-        )
-        if (variable instanceof Element) result.push(variable)
+        result.splice(result.length - 1, 1, `${last}${template}${isElement ? '' : variable}`)
+        if (isElement) result.push(variable)
       }
     }
   }
 
-  return { [symbol]: <(Element<D, P> | string)[]>result }
+  return { [symbol]: <Sanitized<D, P>>result }
 }
 
-export const slot = (slot?: string): Element<never, never> =>
-  ({ name: '-slot', html: { [symbol]: [slot ?? ''] } })
+export const slot = (slot: string = ''): Element<never, never> =>
+  ({ name: '-slot', html: html`${slot}` })
 
 export const  = <D, P>({
   name,
-  className,
   data,
   props,
   isOnlyCsr,
+  className,
   html,
+  slot,
   css,
   ssrCss,
-  slot,
   events
 }: <D, P>) =>
   new Element({
     Id: undefined,
     name,
-    className,
     data,
     props,
     isOnlyCsr,
+    className,
     html,
+    slot,
     css,
     ssrCss,
-    slot,
     events
   })
