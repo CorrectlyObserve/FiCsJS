@@ -8,7 +8,7 @@ export default class WelyElement<D, P> {
   readonly #data: D = <D>{}
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
-  readonly #class: Class<D, P>[] = []
+  readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P>[] = []
   readonly #slot: (Html<D, P> | { name: string; contents: Html<D, P> })[] = []
   readonly #css: Css<D, P> = []
@@ -18,6 +18,8 @@ export default class WelyElement<D, P> {
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #inheritedProps: P = <P>{}
   #component: HTMLElement | undefined = undefined
+
+  #isClassBinding: boolean = false
   #isHtmlBinding: boolean = false
   #bindingCss: number[] = []
   #bindingEvents: number[] = []
@@ -42,7 +44,7 @@ export default class WelyElement<D, P> {
     if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
-    if (className && className !== '') this.#class.push(className)
+    if (className) this.#class = className
 
     this.#html.push(html)
     if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
@@ -64,7 +66,7 @@ export default class WelyElement<D, P> {
       data,
       props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
-      className: this.#class[0],
+      className: this.#class,
       html: this.#html[0],
       slot:
         this.#slot.length > 0
@@ -123,12 +125,19 @@ export default class WelyElement<D, P> {
   }
 
   #addClass(wely?: HTMLElement): string | void {
-    const className =
-      this.#toKebabCase(this.#name) +
-      (this.#class.length > 0 ? ` ${this.#convert<Class<D, P>, string>(this.#class[0])}` : '')
+    const name = this.#toKebabCase(this.#name)
 
-    if (!wely) return className
-    wely.setAttribute('class', className)
+    if (this.#class) {
+      if (typeof this.#class === 'function') this.#isClassBinding = true
+
+      const className = `${name} ${this.#convert<Class<D, P>, string>(this.#class)}`
+
+      if (!wely) return className
+      wely.setAttribute('class', className)
+    } else {
+      if (!wely) return name
+      wely.classList.add(name)
+    }
   }
 
   #convertHtml(html: Html<D, P>): Sanitized<D, P> | undefined {
