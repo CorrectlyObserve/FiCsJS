@@ -1,63 +1,63 @@
-import { WelyElement } from './class'
-import { Wely } from './types'
-import { sanitize, symbol } from './utils'
+import WelyElement from './class'
+import { Sanitized, Wely } from './types'
+import { symbol } from './utils'
 
 export const html = <D, P>(
   templates: TemplateStringsArray,
-  ...variables: (WelyElement<D, P> | unknown)[]
-): Record<symbol, (WelyElement<D, P> | string)[]> => {
+  ...variables: unknown[]
+): Record<symbol, Sanitized<D, P>> => {
   const result = []
 
   for (const [index, template] of templates.entries()) {
-    const variable = sanitize(variables[index]) ?? ''
+    const sanitize = (arg: unknown): unknown =>
+      typeof arg === 'string' && arg !== ''
+        ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        : arg ?? ''
+
+    const variable = sanitize(variables[index])
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const last: WelyElement<D, P> | unknown = result[result.length - 1] ?? ''
+      const last = result[result.length - 1] ?? ''
+      const isWelyElement = variable instanceof WelyElement
 
       if (last instanceof WelyElement)
-        variable instanceof WelyElement
-          ? result.push(template, variable)
-          : result.push(`${template}${variable}`)
+        isWelyElement ? result.push(template, variable) : result.push(`${template}${variable}`)
       else {
-        result.splice(
-          result.length - 1,
-          1,
-          `${last}${template}${variable instanceof WelyElement ? '' : variable}`
-        )
-        if (variable instanceof WelyElement) result.push(variable)
+        result.splice(result.length - 1, 1, `${last}${template}${isWelyElement ? '' : variable}`)
+        if (isWelyElement) result.push(variable)
       }
     }
   }
 
-  return { [symbol]: <(WelyElement<D, P> | string)[]>result }
+  return { [symbol]: <Sanitized<D, P>>result }
 }
 
-export const slot = (slot?: string): WelyElement<never, never> =>
-  wely({ name: 'wely-slot', html: { [symbol]: [slot ?? ''] } })
+export const slot = (slot: string = ''): WelyElement<never, never> =>
+  wely({ name: 'wely-slot', html: html`${slot}` })
 
 export const wely = <D, P>({
   name,
-  className,
   data,
   props,
   isOnlyCsr,
+  className,
   html,
+  slot,
   css,
   ssrCss,
-  slot,
   events
 }: Wely<D, P>) =>
   new WelyElement({
     welyId: undefined,
     name,
-    className,
     data,
     props,
     isOnlyCsr,
+    className,
     html,
+    slot,
     css,
     ssrCss,
-    slot,
     events
   })
