@@ -175,7 +175,7 @@ export default class WelyElement<D, P> {
         } else
           shadowRoot.appendChild(
             element instanceof WelyElement
-              ? element.#render(this.#propsChain)
+              ? element.#component ?? element.#render(this.#propsChain)
               : document.createRange().createContextualFragment(element)
           )
       }
