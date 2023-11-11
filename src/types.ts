@@ -1,4 +1,4 @@
-import { Element } from './class'
+import Element from './class'
 
 export type Class<D, P> = string | (({ data, props }: DataProps<D, P>) => string)
 
