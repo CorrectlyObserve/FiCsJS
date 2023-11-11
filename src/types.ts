@@ -1,4 +1,4 @@
-import { WelyElement } from './class'
+import WelyElement from './class'
 
 export type Class<D, P> = string | (({ data, props }: DataProps<D, P>) => string)
 
