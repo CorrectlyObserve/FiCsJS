@@ -46,7 +46,7 @@ export default class WelyElement<D, P> {
     if (isOnlyCsr) this.#isOnlyCsr = true
     if (className) this.#class = className
 
-    this.#html = typeof html === 'function' ? html : {...html}
+    this.#html = typeof html === 'function' ? html : { ...html }
     if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
 
     if (css && css.length > 0) this.#css = [...css]
@@ -237,33 +237,39 @@ export default class WelyElement<D, P> {
       this.#events.forEach((event, index) => {
         const { selector, handler, method } = event
 
-        if (selector) this.#bindingEvents.push(index)
+        if (selector) {
+          this.#bindingEvents.push(index)
 
-        const elements = selector
-          ? (() => {
-              const getSelectors = (selector: string) =>
-                Array.from(this.#getShadowRoot(wely).querySelectorAll(`:host ${selector}`))
+          const getSelectors = (selector: string): Element[] => {
+            Array.from(this.#getShadowRoot(wely).querySelectorAll(`:host ${selector}`))
 
-              if (/^.+(\.|#).+$/.test(selector)) {
-                const prefix = selector.includes('.') ? '.' : '#'
-                const [tag, attr] = selector.split(prefix)
+            if (/^.+(\.|#).+$/.test(selector)) {
+              const prefix = selector.includes('.') ? '.' : '#'
+              const [tag, attr] = selector.split(prefix)
 
-                return getSelectors(tag).filter(
-                  element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
-                )
-              }
+              return getSelectors(tag).filter(
+                element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
+              )
+            }
 
-              return getSelectors(selector)
-            })()
-          : [wely]
+            return getSelectors(selector)
+          }
 
-        if (elements.length > 0)
-          for (const element of elements)
-            element.addEventListener(handler, (event: Event) =>
-              method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
+          const elements = getSelectors(selector)
+
+          if (elements.length > 0)
+            for (const element of elements)
+              element.addEventListener(handler, (event: Event) =>
+                method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
+              )
+          else
+            console.error(
+              `:host ${selector} does not exist or is not applicable in ${this.#name}...`
             )
-        else
-          console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
+        } else
+          wely.addEventListener(handler, (event: Event) =>
+            method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
+          )
       })
   }
 
