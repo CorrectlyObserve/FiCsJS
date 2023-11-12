@@ -46,7 +46,7 @@ export default class WelyElement<D, P> {
     if (isOnlyCsr) this.#isOnlyCsr = true
     if (className) this.#class = className
 
-    this.#html = html
+    this.#html = typeof html === 'function' ? html : {...html}
     if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
 
     if (css && css.length > 0) this.#css = [...css]
