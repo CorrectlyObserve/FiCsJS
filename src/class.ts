@@ -10,7 +10,8 @@ export default class WelyElement<D, P> {
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
-  readonly #slot: (Html<D, P> | { name: string; contents: Html<D, P> })[] = []
+  readonly #slot: Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[] | undefined =
+    undefined
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
   readonly #events: Events<D, P> = []
@@ -47,7 +48,7 @@ export default class WelyElement<D, P> {
     if (className) this.#class = className
 
     this.#html = typeof html === 'function' ? html : { ...html }
-    if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
+    if (slot) this.#slot = Array.isArray(slot) ? [...slot] : slot
 
     if (css && css.length > 0) this.#css = [...css]
     if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
@@ -68,12 +69,7 @@ export default class WelyElement<D, P> {
       isOnlyCsr: this.#isOnlyCsr,
       className: this.#class,
       html: this.#html,
-      slot:
-        this.#slot.length > 0
-          ? this.#slot.some(slot => 'name' in slot && 'contents' in slot)
-            ? [...this.#slot]
-            : this.#slot[0]
-          : undefined,
+      slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
       css: this.#css,
       ssrCss: this.#ssrCss,
       events: this.#events
@@ -145,20 +141,17 @@ export default class WelyElement<D, P> {
   }
 
   #getSlot(slotName: string): Html<D, P> | undefined {
-    const slot = this.#slot.find(slot =>
-      slotName !== ''
-        ? 'name' in slot && 'contents' in slot && slot.name === slotName
-        : !('name' in slot && 'contents' in slot)
-    )
+    if (Array.isArray(this.#slot)) {
+      const slot = this.#slot.find(slot =>
+        slotName === ''
+          ? !('name' in slot && 'contents' in slot)
+          : 'name' in slot && 'contents' in slot && slot.name === slotName
+      )
 
-    if (slot) {
-      if (this.#slot.some(slot => 'name' in slot && 'contents' in slot))
-        return 'name' in slot && 'contents' in slot ? slot.contents : slot
-
-      return this.#slot[0]
+      return slot && 'name' in slot && 'contents' in slot ? slot.contents : slot
     }
 
-    return undefined
+    return this.#slot
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
@@ -166,14 +159,17 @@ export default class WelyElement<D, P> {
 
     this.#isHtmlBinding =
       typeof html === 'function' ||
-      this.#slot.some(
-        slot => typeof ('name' in slot && 'contents' in slot ? slot.contents : slot) === 'function'
-      )
+      (Array.isArray(this.#slot)
+        ? this.#slot.some(
+            slot =>
+              typeof ('name' in slot && 'contents' in slot ? slot.contents : slot) === 'function'
+          )
+        : typeof this.#slot === 'function')
 
     if (elements)
       for (const element of elements) {
         if (element instanceof WelyElement && element.#getTagName() === 'w-wely-slot') {
-          if (this.#slot.length > 0) {
+          if (this.#slot) {
             const slotName = this.#convertHtml(element.#html)?.[0] ?? ''
             const slot = this.#getSlot(<string>slotName)
 
@@ -240,22 +236,20 @@ export default class WelyElement<D, P> {
         if (selector) {
           this.#bindingEvents.push(index)
 
-          const getSelectors = (selector: string): Element[] => {
-            Array.from(this.#getShadowRoot(wely).querySelectorAll(`:host ${selector}`))
+          const elements = []
+          const getSelectors = (selector: string): Element[] =>
+            Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
 
-            if (/^.+(\.|#).+$/.test(selector)) {
-              const prefix = selector.includes('.') ? '.' : '#'
-              const [tag, attr] = selector.split(prefix)
+          if (/^.+(\.|#).+$/.test(selector)) {
+            const symbol = selector.includes('.') ? '.' : '#'
+            const [tag, attr] = selector.split(symbol)
 
-              return getSelectors(tag).filter(
-                element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
+            elements.push(
+              ...getSelectors(tag).filter(
+                element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
               )
-            }
-
-            return getSelectors(selector)
-          }
-
-          const elements = getSelectors(selector)
+            )
+          } else elements.push(...getSelectors(selector))
 
           if (elements.length > 0)
             for (const element of elements)
@@ -320,7 +314,7 @@ export default class WelyElement<D, P> {
 
       if (elements) return <string>elements.reduce((prev, curr) => {
           if (curr instanceof WelyElement && curr.#getTagName() === 'w-wely-slot') {
-            if (this.#slot.length > 0) {
+            if (this.#slot) {
               const slotName = this.#convertHtml(curr.#html)?.[0] ?? ''
               const slot = this.#getSlot(<string>slotName)
 
@@ -341,9 +335,7 @@ export default class WelyElement<D, P> {
 
     return `
         <${name} class="${that.#addClass()}">
-          <template shadowroot="open">
-            <slot></slot>${that.#addCss() ?? ''}
-          </template>
+          <template shadowroot="open"><slot></slot>${that.#addCss() ?? ''}</template>
           ${addHtml(that.#html)}
         </${name}>
       `.trim()
