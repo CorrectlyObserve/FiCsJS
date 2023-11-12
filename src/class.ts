@@ -9,7 +9,7 @@ export default class WelyElement<D, P> {
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
-  readonly #html: Html<D, P>[] = []
+  readonly #html: Html<D, P> = { [symbol]: [] }
   readonly #slot: (Html<D, P> | { name: string; contents: Html<D, P> })[] = []
   readonly #css: Css<D, P> = []
   readonly #ssrCss: Css<D, P> = []
@@ -46,7 +46,7 @@ export default class WelyElement<D, P> {
     if (isOnlyCsr) this.#isOnlyCsr = true
     if (className) this.#class = className
 
-    this.#html.push(html)
+    this.#html = html
     if (slot) this.#slot = Array.isArray(slot) ? [...slot] : [slot]
 
     if (css && css.length > 0) this.#css = [...css]
@@ -67,7 +67,7 @@ export default class WelyElement<D, P> {
       props: this.#props,
       isOnlyCsr: this.#isOnlyCsr,
       className: this.#class,
-      html: this.#html[0],
+      html: this.#html,
       slot:
         this.#slot.length > 0
           ? this.#slot.some(slot => 'name' in slot && 'contents' in slot)
@@ -161,7 +161,7 @@ export default class WelyElement<D, P> {
     return undefined
   }
 
-  #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html[0]): void {
+  #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
     const elements = this.#convertHtml(html)
 
     this.#isHtmlBinding =
@@ -174,7 +174,7 @@ export default class WelyElement<D, P> {
       for (const element of elements) {
         if (element instanceof WelyElement && element.#getTagName() === 'w-wely-slot') {
           if (this.#slot.length > 0) {
-            const slotName = this.#convertHtml(element.#html[0])?.[0] ?? ''
+            const slotName = this.#convertHtml(element.#html)?.[0] ?? ''
             const slot = this.#getSlot(<string>slotName)
 
             if (slot) this.#addHtml(shadowRoot, slot)
@@ -315,7 +315,7 @@ export default class WelyElement<D, P> {
       if (elements) return <string>elements.reduce((prev, curr) => {
           if (curr instanceof WelyElement && curr.#getTagName() === 'w-wely-slot') {
             if (this.#slot.length > 0) {
-              const slotName = this.#convertHtml(curr.#html[0])?.[0] ?? ''
+              const slotName = this.#convertHtml(curr.#html)?.[0] ?? ''
               const slot = this.#getSlot(<string>slotName)
 
               if (slot) return prev + addHtml(slot)
@@ -338,7 +338,7 @@ export default class WelyElement<D, P> {
           <template shadowroot="open">
             <slot></slot>${that.#addCss() ?? ''}
           </template>
-          ${addHtml(that.#html[0])}
+          ${addHtml(that.#html)}
         </${name}>
       `.trim()
   }
