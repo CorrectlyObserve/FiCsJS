@@ -11,12 +11,14 @@
     <div id="app">
       <w-grand-parent class="grand-parent">
         <template shadowroot="open"><slot></slot></template>
+        <p>Content is...</p>
         <w-parent class="parent test">
           <template shadowroot="open"><slot></slot></template>
           <w-child></w-child>
           <p>propsColor: green</p>
         </w-parent>
         <p>人数: 12</p>
+        <input value="24" />
       </w-grand-parent>
     </div>
   </body>
