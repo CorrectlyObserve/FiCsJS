@@ -39,7 +39,7 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-export type Sanitized<D, P> = (Element<D, P> | string)[]
+export type Sanitized<D extends object, P> = (Element<D, P> | string)[]
 
 export interface <D, P> {
   Id?: string
