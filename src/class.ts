@@ -1,11 +1,12 @@
 import generator from './generator'
+import createProxy from './proxy'
 import symbol from './symbol'
 import { Class, Css, Descendant, Events, Html, Props, PropsChain, Sanitized, Wely } from './types'
 
-export default class WelyElement<D, P> {
+export default class WelyElement<D extends object, P> {
   readonly #welyId: string
   readonly #name: string
-  readonly #data: D = <D>{}
+  readonly #data: D = <D>createProxy({})
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
@@ -41,7 +42,7 @@ export default class WelyElement<D, P> {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
 
-    if (data) this.#data = { ...data() }
+    if (data) for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
     if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
@@ -254,7 +255,7 @@ export default class WelyElement<D, P> {
           if (elements.length > 0)
             for (const element of elements)
               element.addEventListener(handler, (event: Event) =>
-                method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
+                method({ data: this.#data, props: { ...this.#inheritedProps } }, event)
               )
           else
             console.error(
@@ -262,7 +263,7 @@ export default class WelyElement<D, P> {
             )
         } else
           wely.addEventListener(handler, (event: Event) =>
-            method({ data: { ...this.#data }, props: { ...this.#inheritedProps } }, event)
+            method({ data: this.#data, props: { ...this.#inheritedProps } }, event)
           )
       })
   }
