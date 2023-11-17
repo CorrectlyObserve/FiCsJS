@@ -59,7 +59,7 @@ export default class Element<D extends object, P> {
   #clone(
     { Id, data }: { Id?: string; data?: () => D } = {
       Id: this.#Id,
-      data: () => <D>{ ...this.#data }
+      data: () => this.#data
     }
   ): Element<D, P> {
     return new Element<D, P>({
@@ -116,9 +116,7 @@ export default class Element<D extends object, P> {
   }
 
   #convert<A, R>(arg: A): R {
-    return typeof arg === 'function'
-      ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
-      : arg
+    return typeof arg === 'function' ? arg({ data: this.#data, props: this.#inheritedProps }) : arg
   }
 
   #addClass(?: HTMLElement): string | void {
@@ -201,7 +199,7 @@ export default class Element<D extends object, P> {
 
           const styleContent = Object.entries(
             typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+              ? curr.style({ data: this.#data, props: this.#inheritedProps })
               : curr.style
           )
             .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
@@ -255,7 +253,7 @@ export default class Element<D extends object, P> {
           if (elements.length > 0)
             for (const element of elements)
               element.addEventListener(handler, (event: Event) =>
-                method({ data: this.#data, props: { ...this.#inheritedProps } }, event)
+                method({ data: this.#data, props: this.#inheritedProps }, event)
               )
           else
             console.error(
@@ -263,17 +261,21 @@ export default class Element<D extends object, P> {
             )
         } else
           .addEventListener(handler, (event: Event) =>
-            method({ data: this.#data, props: { ...this.#inheritedProps } }, event)
+            method({ data: this.#data, props: this.#inheritedProps }, event)
           )
       })
   }
 
-  #createComponent(: HTMLElement, propsChain?: PropsChain<P>): void {
-    this.#setProps(propsChain)
-    this.#addClass()
-    this.#addHtml(this.#getShadowRoot())
-    this.#addCss(this.#getShadowRoot())
-    this.#addEvents()
+  #createComponent(: HTMLElement, propsChain?: PropsChain<P>): Promise<void> {
+    return new Promise<void>(resolve => {
+      this.#setProps(propsChain)
+      resolve()
+    }).then(() => {
+      this.#addClass()
+      this.#addHtml(this.#getShadowRoot())
+      this.#addCss(this.#getShadowRoot())
+      this.#addEvents()
+    })
   }
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
