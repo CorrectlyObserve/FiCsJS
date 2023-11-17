@@ -59,7 +59,7 @@ export default class WelyElement<D extends object, P> {
   #clone(
     { welyId, data }: { welyId?: string; data?: () => D } = {
       welyId: this.#welyId,
-      data: () => <D>{ ...this.#data }
+      data: () => this.#data
     }
   ): WelyElement<D, P> {
     return new WelyElement<D, P>({
@@ -116,9 +116,7 @@ export default class WelyElement<D extends object, P> {
   }
 
   #convert<A, R>(arg: A): R {
-    return typeof arg === 'function'
-      ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
-      : arg
+    return typeof arg === 'function' ? arg({ data: this.#data, props: this.#inheritedProps }) : arg
   }
 
   #addClass(wely?: HTMLElement): string | void {
@@ -201,7 +199,7 @@ export default class WelyElement<D extends object, P> {
 
           const styleContent = Object.entries(
             typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+              ? curr.style({ data: this.#data, props: this.#inheritedProps })
               : curr.style
           )
             .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
@@ -255,7 +253,7 @@ export default class WelyElement<D extends object, P> {
           if (elements.length > 0)
             for (const element of elements)
               element.addEventListener(handler, (event: Event) =>
-                method({ data: this.#data, props: { ...this.#inheritedProps } }, event)
+                method({ data: this.#data, props: this.#inheritedProps }, event)
               )
           else
             console.error(
@@ -263,17 +261,21 @@ export default class WelyElement<D extends object, P> {
             )
         } else
           wely.addEventListener(handler, (event: Event) =>
-            method({ data: this.#data, props: { ...this.#inheritedProps } }, event)
+            method({ data: this.#data, props: this.#inheritedProps }, event)
           )
       })
   }
 
-  #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): void {
-    this.#setProps(propsChain)
-    this.#addClass(wely)
-    this.#addHtml(this.#getShadowRoot(wely))
-    this.#addCss(this.#getShadowRoot(wely))
-    this.#addEvents(wely)
+  #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): Promise<void> {
+    return new Promise<void>(resolve => {
+      this.#setProps(propsChain)
+      resolve()
+    }).then(() => {
+      this.#addClass(wely)
+      this.#addHtml(this.#getShadowRoot(wely))
+      this.#addCss(this.#getShadowRoot(wely))
+      this.#addEvents(wely)
+    })
   }
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
