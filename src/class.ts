@@ -14,7 +14,6 @@ export default class WelyElement<D extends object, P> {
   readonly #slot: Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[] | undefined =
     undefined
   readonly #css: Css<D, P> = []
-  readonly #ssrCss: Css<D, P> = []
   readonly #events: Events<D, P> = []
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
@@ -36,7 +35,6 @@ export default class WelyElement<D extends object, P> {
     html,
     slot,
     css,
-    ssrCss,
     events
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
@@ -52,7 +50,6 @@ export default class WelyElement<D extends object, P> {
     if (slot) this.#slot = Array.isArray(slot) ? [...slot] : slot
 
     if (css && css.length > 0) this.#css = [...css]
-    if (ssrCss && ssrCss.length > 0) this.#ssrCss = [...ssrCss]
     if (events && events.length > 0) this.#events = [...events]
   }
 
@@ -72,7 +69,6 @@ export default class WelyElement<D extends object, P> {
       html: this.#html,
       slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
       css: this.#css,
-      ssrCss: this.#ssrCss,
       events: this.#events
     })
   }
@@ -190,10 +186,8 @@ export default class WelyElement<D extends object, P> {
   }
 
   #addCss(shadowRoot?: ShadowRoot | null): string | void {
-    const css = shadowRoot ? [...this.#css] : [...this.#css, ...this.#ssrCss]
-
-    if (css.length > 0) {
-      const style = css.reduce((prev, curr, index) => {
+    if (this.#css.length > 0) {
+      const style = this.#css.reduce((prev, curr, index) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
           if (typeof curr.style === 'function') this.#bindingCss.push(index)
 
