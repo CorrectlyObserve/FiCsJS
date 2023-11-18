@@ -45,7 +45,6 @@ export const wely = <D extends object, P>({
   html,
   slot,
   css,
-  ssrCss,
   events
 }: Wely<D, P>) =>
   new WelyElement({
@@ -58,6 +57,5 @@ export const wely = <D extends object, P>({
     html,
     slot,
     css,
-    ssrCss,
     events
   })
