@@ -45,7 +45,6 @@ export const  = <D extends object, P>({
   html,
   slot,
   css,
-  ssrCss,
   events
 }: <D, P>) =>
   new Element({
@@ -58,6 +57,5 @@ export const  = <D extends object, P>({
     html,
     slot,
     css,
-    ssrCss,
     events
   })
