@@ -51,6 +51,5 @@ export interface <D, P> {
   html: Html<D, P>
   slot?: Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[]
   css?: Css<D, P>
-  ssrCss?: Css<D, P>
   events?: Events<D, P>
 }
