@@ -24,7 +24,14 @@ type DescendantElement = WelyElement<any, any>
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: ({ data, props }: DataProps<D, P>, event: Event) => void
+  method: (
+    {
+      data,
+      setData,
+      props
+    }: DataProps<D, P> & { setData: <K extends keyof D>(key: string, value: D[K]) => void },
+    event: Event
+  ) => void
 }[]
 
 export type Html<D, P> = Descendant | (({ data, props }: DataProps<D, P>) => Descendant)
