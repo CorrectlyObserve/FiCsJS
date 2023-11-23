@@ -7,6 +7,4 @@ const generate = function* (): Generator<number> {
   }
 }
 
-const generator: Generator<number> = generate()
-
-export default generator
+export default generate
