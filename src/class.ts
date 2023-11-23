@@ -1,12 +1,13 @@
-import generator from './generator'
-import createProxy from './proxy'
+import generate from './generator'
 import symbol from './symbol'
 import { Class, Css, Descendant, Events, Html, Props, PropsChain, Sanitized, Wely } from './types'
+
+const generator: Generator<number> = generate()
 
 export default class WelyElement<D extends object, P> {
   readonly #welyId: string
   readonly #name: string
-  readonly #data: D = <D>createProxy({})
+  readonly #data: D = <D>{}
   readonly #props: Props<D> = []
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
@@ -40,7 +41,7 @@ export default class WelyElement<D extends object, P> {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
 
-    if (data) for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+    if (data) this.#data = { ...data() }
     if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
@@ -112,7 +113,9 @@ export default class WelyElement<D extends object, P> {
   }
 
   #convert<A, R>(arg: A): R {
-    return typeof arg === 'function' ? arg({ data: this.#data, props: this.#inheritedProps }) : arg
+    return typeof arg === 'function'
+      ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+      : arg
   }
 
   #addClass(wely?: HTMLElement): string | void {
@@ -193,7 +196,7 @@ export default class WelyElement<D extends object, P> {
 
           const styleContent = Object.entries(
             typeof curr.style === 'function'
-              ? curr.style({ data: this.#data, props: this.#inheritedProps })
+              ? curr.style({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
               : curr.style
           )
             .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
@@ -247,7 +250,14 @@ export default class WelyElement<D extends object, P> {
           if (elements.length > 0)
             for (const element of elements)
               element.addEventListener(handler, (event: Event) =>
-                method({ data: this.#data, props: this.#inheritedProps }, event)
+                method(
+                  {
+                    data: { ...this.#data },
+                    setData: (key: keyof D, value: D[keyof D]) => this.setData(key, value),
+                    props: { ...this.#inheritedProps }
+                  },
+                  event
+                )
               )
           else
             console.error(
@@ -255,7 +265,14 @@ export default class WelyElement<D extends object, P> {
             )
         } else
           wely.addEventListener(handler, (event: Event) =>
-            method({ data: this.#data, props: this.#inheritedProps }, event)
+            method(
+              {
+                data: { ...this.#data },
+                setData: (key: keyof D, value: D[keyof D]) => this.setData(key, value),
+                props: { ...this.#inheritedProps }
+              },
+              event
+            )
           )
       })
   }
@@ -340,6 +357,10 @@ export default class WelyElement<D extends object, P> {
 
   overwrite(partialData: () => Partial<D>): WelyElement<D, P> {
     return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
+  }
+
+  setData(key: keyof D, value: D[keyof D]): void {
+    this.#data[key] = value
   }
 
   define(): void {
