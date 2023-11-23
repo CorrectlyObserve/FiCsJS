@@ -29,7 +29,7 @@ export type Events<D, P> = {
       data,
       setData,
       props
-    }: DataProps<D, P> & { setData: <K extends keyof D>(key: string, value: D[K]) => void },
+    }: DataProps<D, P> & { setData: (key: keyof D, value: D[keyof D]) => void },
     event: Event
   ) => void
 }[]
