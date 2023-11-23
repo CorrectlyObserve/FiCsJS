@@ -10,6 +10,7 @@ const child = wely({
     back: 'black',
     arr: [1, 2, 3],
     obj: { key: 'value' },
+    email: '',
     number: () => 3
   }),
   isOnlyCsr: true,
@@ -94,6 +95,23 @@ const grandParent = wely({
   ]
 })
 
-// console.log(grandParent.ssr())
+console.log(grandParent.ssr())
 
 grandParent.define()
+
+fetch('https://jsonplaceholder.typicode.com/comments/1')
+  .then(response => response.json())
+  .then(json => child.setData('email', json.email))
+
+let count = <number>child.getData('count')
+
+const timer = setInterval(() => {
+  if (count >= 5) {
+    clearInterval(timer)
+    console.log('stop')
+  }
+
+  child.setData('count', ++count)
+
+  console.log('continue')
+}, 1000)
