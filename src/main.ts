@@ -15,14 +15,14 @@ const child = wely({
   isOnlyCsr: true,
   className: ({ data: { back } }) => back,
   html: ({
-    data: { message },
+    data: { message, count },
     props: { color }
   }: {
-    data: { message: string }
+    data: { message: string; count: number }
     props: { color: string; click: (message: string) => void }
-  }) =>
-    html`<div><p class="hello" style="display: inline">${message}</p></div>
-      <p>${color}</p>`,
+  }) => html`<div><p class="hello" style="display: inline">${message}</p></div>
+    <p>${color}</p>
+    <p>${count}</p>`,
   css: [
     cssUrl,
     {
@@ -33,10 +33,7 @@ const child = wely({
   events: [
     {
       handler: 'click',
-      method: ({ data }) => {
-        data.count++
-        console.log(data.count)
-      }
+      method: ({ data: { count }, setData }) => setData('count', ++count)
     },
     {
       selector: 'div',
@@ -46,7 +43,7 @@ const child = wely({
   ]
 })
 
-const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
+const child2 = child.overwrite(() => ({ message: 'Good bye' }))
 
 const parent = wely({
   name: 'parent',
@@ -97,6 +94,6 @@ const grandParent = wely({
   ]
 })
 
-console.log(grandParent.ssr())
+// console.log(grandParent.ssr())
 
 grandParent.define()
