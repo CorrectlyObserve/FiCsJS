@@ -2,7 +2,7 @@ import WelyElement from './class'
 import symbol from './symbol'
 import { Sanitized, Wely } from './types'
 
-export const html = <D extends object, P>(
+export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
   ...variables: unknown[]
 ): Record<symbol, Sanitized<D, P>> => {
@@ -36,26 +36,30 @@ export const html = <D extends object, P>(
 export const slot = (slot: string = ''): WelyElement<object, never> =>
   wely({ name: 'wely-slot', html: html`${slot}` })
 
-export const wely = <D extends object, P>({
+export const wely = <D extends object, P extends object>({
   name,
   data,
+  computed,
   props,
   isOnlyCsr,
   className,
   html,
   slot,
   css,
-  events
+  events,
+  effects
 }: Wely<D, P>) =>
   new WelyElement({
     welyId: undefined,
     name,
     data,
+    computed,
     props,
     isOnlyCsr,
     className,
     html,
     slot,
     css,
-    events
+    events,
+    effects
   })
