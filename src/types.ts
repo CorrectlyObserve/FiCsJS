@@ -44,7 +44,6 @@ export interface Wely<D, P> {
   welyId?: string
   name: string
   data?: () => D
-  computed?: (data: D) => D
   props?: Props<D>
   isOnlyCsr?: boolean
   className?: Class<D, P>
@@ -52,5 +51,5 @@ export interface Wely<D, P> {
   slot?: Html<D, P> | Slot<D, P>
   css?: Css<D, P>
   events?: Events<D, P>
-  effects?: () => Effects<D>
+  reflections?: () => Effects<D>
 }
