@@ -359,7 +359,7 @@ export default class Element<D extends object, P> {
     return this.#clone({ Id: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
-  getData(key: keyof D): D[keyof D] {
+  getData<T extends keyof D>(key: T): D[T] {
     return this.#data[key]
   }
 
