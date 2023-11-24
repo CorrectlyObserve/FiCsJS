@@ -359,7 +359,7 @@ export default class WelyElement<D extends object, P> {
     return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
-  getData(key: keyof D): D[keyof D] {
+  getData<T extends keyof D>(key: T): D[T] {
     return this.#data[key]
   }
 
