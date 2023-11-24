@@ -3,7 +3,6 @@ import symbol from './symbol'
 import {
   Class,
   Css,
-  Descendant,
   Effects,
   Events,
   Html,
@@ -27,7 +26,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #slot: Html<D, P> | Slot<D, P> | undefined = undefined
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
-  readonly #effects: Effects<D> = <Effects<D>>{}
+  readonly #reflections: Effects<D> = <Effects<D>>{}
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #inheritedProps: P = <P>{}
@@ -49,13 +48,13 @@ export default class WelyElement<D extends object, P extends object> {
     slot,
     css,
     events,
-    effects
+    reflections
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
 
     if (data) {
-      if (effects) this.#effects = { ...effects() }
+      if (reflections) this.#reflections = { ...reflections() }
       for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
     }
     if (props && props.length > 0) this.#props = [...props]
@@ -87,7 +86,7 @@ export default class WelyElement<D extends object, P extends object> {
       slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
       css: this.#css,
       events: this.#events,
-      effects: () => this.#effects
+      reflections: () => this.#reflections
     })
   }
 
@@ -153,7 +152,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #convertHtml(html: Html<D, P>): Sanitized<D, P> | undefined {
-    return this.#convert<Html<D, P>, Descendant>(html)[symbol]
+    return this.#convert<Html<D, P>, Record<symbol, (WelyElement<D, P> | string)[]>>(html)[symbol]
   }
 
   #getSlot(slotName: string): Html<D, P> | undefined {
@@ -384,7 +383,7 @@ export default class WelyElement<D extends object, P extends object> {
   setData<T extends keyof D>(key: T, value: D[T]): void {
     this.#data[key] = value
 
-    if (key in this.#effects) this.#effects[key](this.#data[key])
+    if (key in this.#reflections) this.#reflections[key](this.#data[key])
 
     console.log('data', this.#data[key])
   }
