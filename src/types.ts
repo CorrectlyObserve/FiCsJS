@@ -1,25 +1,13 @@
 import WelyElement from './class'
 
-export type Class<D, P> = string | (({ data, props }: DataProps<D, P>) => string)
+type ArrowFuncOrValue<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
+
+export type Class<D, P> = ArrowFuncOrValue<string, D, P>
 
 export type Css<D, P> = (
   | string
-  | {
-      selector: string
-      style:
-        | Record<string, string | number>
-        | (({ data, props }: DataProps<D, P>) => Record<string, string | number>)
-    }
+  | { selector: string; style: ArrowFuncOrValue<Record<string, string | number>, D, P> }
 )[]
-
-interface DataProps<D, P> {
-  data: D
-  props: P
-}
-
-export type Descendant = Record<symbol, (DescendantElement | string)[]>
-
-type DescendantElement = WelyElement<any, any>
 
 export type Effects<D> = { [T in keyof D]: (data: D[T]) => void }
 
@@ -31,15 +19,15 @@ export type Events<D, P> = {
       data,
       setData,
       props
-    }: DataProps<D, P> & { setData: (key: keyof D, value: D[keyof D]) => void },
+    }: { data: D; setData: (key: keyof D, value: D[keyof D]) => void; props: P },
     event: Event
   ) => void
 }[]
 
-export type Html<D, P> = Descendant | (({ data, props }: DataProps<D, P>) => Descendant)
+export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (WelyElement<any, any> | string)[]>, D, P>
 
 export type Props<D> = {
-  descendants: DescendantElement | DescendantElement[]
+  descendants: WelyElement<any, any> | WelyElement<any, any>[]
   values: (data: D) => any
 }[]
 
