@@ -103,7 +103,7 @@ fetch('https://jsonplaceholder.typicode.com/comments/1')
   .then(response => response.json())
   .then(json => child.setData('email', json.email))
 
-let count = <number>child.getData('count')
+let count = child.getData('count')
 
 const timer = setInterval(() => {
   if (count >= 5) {
