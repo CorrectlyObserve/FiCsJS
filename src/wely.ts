@@ -39,7 +39,6 @@ export const slot = (slot: string = ''): WelyElement<object, never> =>
 export const wely = <D extends object, P extends object>({
   name,
   data,
-  computed,
   props,
   isOnlyCsr,
   className,
@@ -47,13 +46,12 @@ export const wely = <D extends object, P extends object>({
   slot,
   css,
   events,
-  effects
+  reflections
 }: Wely<D, P>) =>
   new WelyElement({
     welyId: undefined,
     name,
     data,
-    computed,
     props,
     isOnlyCsr,
     className,
@@ -61,5 +59,5 @@ export const wely = <D extends object, P extends object>({
     slot,
     css,
     events,
-    effects
+    reflections
   })
