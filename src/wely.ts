@@ -39,7 +39,6 @@ export const slot = (slot: string = ''): Element<object, never> =>
 export const  = <D extends object, P extends object>({
   name,
   data,
-  computed,
   props,
   isOnlyCsr,
   className,
@@ -47,13 +46,12 @@ export const  = <D extends object, P extends object>({
   slot,
   css,
   events,
-  effects
+  reflections
 }: <D, P>) =>
   new Element({
     Id: undefined,
     name,
     data,
-    computed,
     props,
     isOnlyCsr,
     className,
@@ -61,5 +59,5 @@ export const  = <D extends object, P extends object>({
     slot,
     css,
     events,
-    effects
+    reflections
   })
