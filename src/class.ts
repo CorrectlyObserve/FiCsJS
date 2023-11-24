@@ -1,10 +1,22 @@
 import generate from './generator'
 import symbol from './symbol'
-import { Class, Css, Descendant, Events, Html, Props, PropsChain, Sanitized, Wely } from './types'
+import {
+  Class,
+  Css,
+  Descendant,
+  Effects,
+  Events,
+  Html,
+  Props,
+  PropsChain,
+  Sanitized,
+  Slot,
+  Wely
+} from './types'
 
 const generator: Generator<number> = generate()
 
-export default class WelyElement<D extends object, P> {
+export default class WelyElement<D extends object, P extends object> {
   readonly #welyId: string
   readonly #name: string
   readonly #data: D = <D>{}
@@ -12,10 +24,10 @@ export default class WelyElement<D extends object, P> {
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
-  readonly #slot: Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[] | undefined =
-    undefined
+  readonly #slot: Html<D, P> | Slot<D, P> | undefined = undefined
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
+  readonly #effects: Effects<D> = <Effects<D>>{}
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #inheritedProps: P = <P>{}
@@ -36,12 +48,16 @@ export default class WelyElement<D extends object, P> {
     html,
     slot,
     css,
-    events
+    events,
+    effects
   }: Wely<D, P>) {
     this.#welyId = welyId ?? `wely${generator.next().value}`
     this.#name = name
 
-    if (data) this.#data = { ...data() }
+    if (data) {
+      if (effects) this.#effects = { ...effects() }
+      for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
+    }
     if (props && props.length > 0) this.#props = [...props]
 
     if (isOnlyCsr) this.#isOnlyCsr = true
@@ -70,7 +86,8 @@ export default class WelyElement<D extends object, P> {
       html: this.#html,
       slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
       css: this.#css,
-      events: this.#events
+      events: this.#events,
+      effects: () => this.#effects
     })
   }
 
@@ -91,11 +108,12 @@ export default class WelyElement<D extends object, P> {
 
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
           if (propsChain.descendants.has(descendant.#welyId)) {
-            const setPropsChain = (chain: Record<string, any>): void => {
+            const setPropsChain = (chain: Record<string, P>): void => {
               const localChain = chain[descendant.#welyId]
 
-              if (localChain.isPrototypeOf()) setPropsChain(Object.getPrototypeOf(localChain))
-              else localChain.__proto__ = { ...values(this.#data) }
+              if (Object.prototype.isPrototypeOf.call(Object.prototype, localChain))
+                setPropsChain(Object.getPrototypeOf(localChain))
+              else if (localChain) Object.setPrototypeOf(localChain, { ...values(this.#data) })
             }
 
             setPropsChain(propsChain.chains)
@@ -363,8 +381,11 @@ export default class WelyElement<D extends object, P> {
     return this.#data[key]
   }
 
-  setData(key: keyof D, value: D[keyof D]): void {
+  setData<T extends keyof D>(key: T, value: D[T]): void {
     this.#data[key] = value
+
+    if (key in this.#effects) this.#effects[key](this.#data[key])
+
     console.log('data', this.#data[key])
   }
 
