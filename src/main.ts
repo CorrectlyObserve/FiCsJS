@@ -11,19 +11,19 @@ const child = wely({
     arr: [1, 2, 3],
     obj: { key: 'value' },
     email: '',
-    number: () => 3
+    countedNum: (count: number) => count * 3
   }),
   isOnlyCsr: true,
   className: ({ data: { back } }) => back,
   html: ({
-    data: { message, count },
+    data: { message, count, countedNum },
     props: { color }
   }: {
-    data: { message: string; count: number }
+    data: { message: string; count: number; countedNum: (count: number) => number }
     props: { color: string; click: (message: string) => void }
   }) => html`<div><p class="hello" style="display: inline">${message}</p></div>
     <p>${color}</p>
-    <p>${count}</p>`,
+    <p>${countedNum(count)}</p>`,
   css: [
     cssUrl,
     {
@@ -34,14 +34,21 @@ const child = wely({
   events: [
     {
       handler: 'click',
-      method: ({ data: { count }, setData }) => setData('count', ++count)
+      method: ({ data: { obj, arr }, setData }) => {
+        setData('obj', { ...obj })
+        setData('arr', [...arr])
+      }
     },
     {
       selector: 'div',
       handler: 'click',
       method: ({ data: { message }, props: { click } }) => click(message)
     }
-  ]
+  ],
+  reflections: () => ({
+    count: count => console.log('count', count),
+    sample: sample => console.log(sample)
+  })
 })
 
 const child2 = child.overwrite(() => ({ message: 'Good bye' }))
@@ -95,7 +102,7 @@ const grandParent = wely({
   ]
 })
 
-console.log(grandParent.ssr())
+// console.log(grandParent.ssr())
 
 grandParent.define()
 
@@ -106,7 +113,7 @@ fetch('https://jsonplaceholder.typicode.com/comments/1')
 let count = child.getData('count')
 
 const timer = setInterval(() => {
-  if (count >= 5) {
+  if (count >= 4) {
     clearInterval(timer)
     console.log('stop')
   }
