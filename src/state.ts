@@ -4,7 +4,7 @@ const generator: Generator<number> = generate()
 
 const uneditableStates: Map<string, unknown> = new Map()
 const states: Map<string, unknown> = new Map()
-export const observers: Map<string, () => void> = new Map()
+const observers: Map<string, () => void> = new Map()
 
 export const createState = <S>(value: S, isReadonly: boolean = false): string => {
   const key: string = `state${generator.next().value}`
@@ -28,11 +28,11 @@ export const setState = <S>(key: string, value: S): void => {
   if (observers.has(key)) observers.get(key)?.()
 }
 
-export const subscribe = (key: string, value: () => void): void => {
+export const subscribeState = (key: string, value: () => void): void => {
   observers.set(key, value)
 }
 
-export const unsubscribe = (key: string): void => {
+export const unsubscribeState = (key: string): void => {
   if (observers.has(key)) observers.delete(key)
   else throw Error(`${key} not defined in observers...`)
 }
