@@ -271,12 +271,12 @@ export default class WelyElement<D extends object, P extends object> {
             Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
 
           if (/^.+(\.|#).+$/.test(selector)) {
-            const symbol = selector.includes('.') ? '.' : '#'
-            const [tag, attr] = selector.split(symbol)
+            const prefix = selector.includes('.') ? '.' : '#'
+            const [tag, attr] = selector.split(prefix)
 
             elements.push(
               ...getSelectors(tag).filter(
-                element => element.getAttribute(symbol === '.' ? 'class' : 'id') === attr
+                element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
               )
             )
           } else elements.push(...getSelectors(selector))
