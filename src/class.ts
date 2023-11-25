@@ -50,23 +50,26 @@ export default class WelyElement<D extends object, P extends object> {
     events,
     reflections
   }: Wely<D, P>) {
-    this.#welyId = welyId ?? `wely${generator.next().value}`
-    this.#name = name
+    if (['slot'].includes(name)) throw Error(`${name} is a reserved word in WelyJS...`)
+    else {
+      this.#welyId = welyId ?? `wely${generator.next().value}`
+      this.#name = name
 
-    if (data) {
-      if (reflections) this.#reflections = { ...reflections() }
-      for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
+      if (data) {
+        if (reflections) this.#reflections = { ...reflections() }
+        for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
+      }
+      if (props && props.length > 0) this.#props = [...props]
+
+      if (isOnlyCsr) this.#isOnlyCsr = true
+      if (className) this.#class = className
+
+      this.#html = typeof html === 'function' ? html : { ...html }
+      if (slot) this.#slot = Array.isArray(slot) ? [...slot] : slot
+
+      if (css && css.length > 0) this.#css = [...css]
+      if (events && events.length > 0) this.#events = [...events]
     }
-    if (props && props.length > 0) this.#props = [...props]
-
-    if (isOnlyCsr) this.#isOnlyCsr = true
-    if (className) this.#class = className
-
-    this.#html = typeof html === 'function' ? html : { ...html }
-    if (slot) this.#slot = Array.isArray(slot) ? [...slot] : slot
-
-    if (css && css.length > 0) this.#css = [...css]
-    if (events && events.length > 0) this.#events = [...events]
   }
 
   #clone(
