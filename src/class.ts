@@ -393,11 +393,11 @@ export default class WelyElement<D extends object, P extends object> {
     return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
-  getData<T extends keyof D>(key: T): D[T] {
+  getData<K extends keyof D>(key: K): D[K] {
     return this.#data[key]
   }
 
-  setData<T extends keyof D>(key: T, value: D[T]): void {
+  setData<K extends keyof D>(key: K, value: D[K]): void {
     if (!(key in this.#data) || this.#data[key] !== value) {
       this.#data[key] = value
 
