@@ -1,6 +1,6 @@
 import WelyElement from './class'
 
-type ArrowFuncOrValue<T, D, P> = T | (({ data, props }: { data: D; props: P }) => T)
+type ArrowFuncOrValue<V, D, P> = V | (({ data, props }: { data: D; props: P }) => V)
 
 export type Class<D, P> = ArrowFuncOrValue<string, D, P>
 
@@ -34,7 +34,7 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
-export type Reflections<D> = { [T in keyof Partial<D>]: (data: D[T]) => void }
+export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
 
