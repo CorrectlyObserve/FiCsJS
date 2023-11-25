@@ -110,9 +110,9 @@ export default class WelyElement<D extends object, P extends object> {
             const setPropsChain = (chain: Record<string, P>): void => {
               const localChain = chain[descendant.#welyId]
 
-              if (Object.prototype.isPrototypeOf.call(Object.prototype, localChain))
-                setPropsChain(Object.getPrototypeOf(localChain))
-              else if (localChain) Object.setPrototypeOf(localChain, { ...values(this.#data) })
+              localChain.isPrototypeOf(localChain)
+                ? setPropsChain(Object.getPrototypeOf(localChain))
+                : Object.setPrototypeOf(localChain, { ...values(this.#data) })
             }
 
             setPropsChain(propsChain.chains)
@@ -381,11 +381,13 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   setData<T extends keyof D>(key: T, value: D[T]): void {
-    this.#data[key] = value
+    if (!(key in this.#data) || this.#data[key] !== value) {
+      this.#data[key] = value
 
-    if (key in this.#reflections) this.#reflections[key](this.#data[key])
+      if (key in this.#reflections) this.#reflections[key](this.#data[key])
 
-    console.log('data', this.#data[key])
+      console.log('data', key, this.#data[key])
+    }
   }
 
   define(): void {
