@@ -3,11 +3,11 @@ import symbol from './symbol'
 import {
   Class,
   Css,
-  Effects,
   Events,
   Html,
   Props,
   PropsChain,
+  Reflections,
   Sanitized,
   Slot,
   Wely
@@ -26,7 +26,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #slot: Html<D, P> | Slot<D, P> | undefined = undefined
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
-  readonly #reflections: Effects<D> = <Effects<D>>{}
+  readonly #reflections: Reflections<D> = <Reflections<D>>{}
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   #inheritedProps: P = <P>{}
@@ -387,7 +387,7 @@ export default class WelyElement<D extends object, P extends object> {
     if (!(key in this.#data) || this.#data[key] !== value) {
       this.#data[key] = value
 
-      if (key in this.#reflections) this.#reflections[key](this.#data[key])
+      if (key in this.#reflections) this.#reflections[key]?.(this.#data[key])
 
       console.log('data', key, this.#data[key])
     }
