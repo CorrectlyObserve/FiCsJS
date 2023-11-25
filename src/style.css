@@ -1,10 +1,6 @@
 :host div {
   background: black;
   padding-left: 16px;
-
-  > p {
-    color: red;
-  }
 }
 
 div {
