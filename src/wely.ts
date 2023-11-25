@@ -34,7 +34,7 @@ export const html = <D extends object, P extends object>(
 }
 
 export const slot = (slot: string = ''): Element<object, never> =>
-  ({ name: 'slot', html: html`${slot}` })
+  new Element({ Id: 'slot', name: 'slot', html: html`${slot}` })
 
 export const  = <D extends object, P extends object>({
   name,
