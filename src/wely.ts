@@ -34,7 +34,7 @@ export const html = <D extends object, P extends object>(
 }
 
 export const slot = (slot: string = ''): WelyElement<object, never> =>
-  wely({ name: 'slot', html: html`${slot}` })
+  new WelyElement({ welyId: 'slot', name: 'slot', html: html`${slot}` })
 
 export const wely = <D extends object, P extends object>({
   name,
