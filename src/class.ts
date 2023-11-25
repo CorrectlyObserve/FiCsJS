@@ -16,6 +16,7 @@ import {
 const generator: Generator<number> = generate()
 
 export default class Element<D extends object, P extends object> {
+  readonly #reservedWords: string[] = ['slot']
   readonly #Id: string
   readonly #name: string
   readonly #data: D = <D>{}
@@ -50,7 +51,8 @@ export default class Element<D extends object, P extends object> {
     events,
     reflections
   }: <D, P>) {
-    if (['slot'].includes(name)) throw Error(`${name} is a reserved word in JS...`)
+    if (Id && !this.#reservedWords.includes(Id) && this.#reservedWords.includes(name))
+      throw Error(`${name} is a reserved word in JS...`)
     else {
       this.#Id = Id ?? `${generator.next().value}`
       this.#name = name
@@ -186,7 +188,7 @@ export default class Element<D extends object, P extends object> {
 
     if (elements)
       for (const element of elements) {
-        if (element instanceof Element && element.#getTagName() === 'w--slot') {
+        if (element instanceof Element && element.#getTagName() === 'w-slot') {
           if (this.#slot) {
             const slotName = this.#convertHtml(element.#html)?.[0] ?? ''
             const slot = this.#getSlot(<string>slotName)
@@ -347,7 +349,7 @@ export default class Element<D extends object, P extends object> {
       const elements = that.#convertHtml(html)
 
       if (elements) return <string>elements.reduce((prev, curr) => {
-          if (curr instanceof Element && curr.#getTagName() === 'w--slot') {
+          if (curr instanceof Element && curr.#getTagName() === 'w-slot') {
             if (this.#slot) {
               const slotName = this.#convertHtml(curr.#html)?.[0] ?? ''
               const slot = this.#getSlot(<string>slotName)
