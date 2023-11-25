@@ -401,7 +401,7 @@ export default class WelyElement<D extends object, P extends object> {
     if (!(key in this.#data) || this.#data[key] !== value) {
       this.#data[key] = value
 
-      if (key in this.#reflections) this.#reflections[key]?.(this.#data[key])
+      if (key in this.#reflections) this.#reflections[key](this.#data[key])
 
       console.log('data', key, this.#data[key])
     }
