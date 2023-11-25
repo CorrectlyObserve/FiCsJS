@@ -58,9 +58,21 @@ export default class WelyElement<D extends object, P extends object> {
       this.#name = name
 
       if (data) {
-        if (reflections) this.#reflections = { ...reflections() }
+        if (reflections) {
+          let hasError = false
+
+          for (const key of Object.keys(reflections()))
+            if (!(key in data())) {
+              hasError = true
+              throw Error(`${key} is not defined in data...`)
+            }
+
+          if (!hasError) this.#reflections = { ...reflections() }
+        }
+
         for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
       }
+
       if (props && props.length > 0) this.#props = [...props]
 
       if (isOnlyCsr) this.#isOnlyCsr = true
