@@ -16,6 +16,7 @@ import {
 const generator: Generator<number> = generate()
 
 export default class WelyElement<D extends object, P extends object> {
+  readonly #reservedWords: string[] = ['slot']
   readonly #welyId: string
   readonly #name: string
   readonly #data: D = <D>{}
@@ -50,7 +51,8 @@ export default class WelyElement<D extends object, P extends object> {
     events,
     reflections
   }: Wely<D, P>) {
-    if (['slot'].includes(name)) throw Error(`${name} is a reserved word in WelyJS...`)
+    if (welyId && !this.#reservedWords.includes(welyId) && this.#reservedWords.includes(name))
+      throw Error(`${name} is a reserved word in WelyJS...`)
     else {
       this.#welyId = welyId ?? `wely${generator.next().value}`
       this.#name = name
@@ -186,7 +188,7 @@ export default class WelyElement<D extends object, P extends object> {
 
     if (elements)
       for (const element of elements) {
-        if (element instanceof WelyElement && element.#getTagName() === 'w-wely-slot') {
+        if (element instanceof WelyElement && element.#getTagName() === 'w-slot') {
           if (this.#slot) {
             const slotName = this.#convertHtml(element.#html)?.[0] ?? ''
             const slot = this.#getSlot(<string>slotName)
@@ -347,7 +349,7 @@ export default class WelyElement<D extends object, P extends object> {
       const elements = that.#convertHtml(html)
 
       if (elements) return <string>elements.reduce((prev, curr) => {
-          if (curr instanceof WelyElement && curr.#getTagName() === 'w-wely-slot') {
+          if (curr instanceof WelyElement && curr.#getTagName() === 'w-slot') {
             if (this.#slot) {
               const slotName = this.#convertHtml(curr.#html)?.[0] ?? ''
               const slot = this.#getSlot(<string>slotName)
