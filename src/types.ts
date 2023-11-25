@@ -9,8 +9,6 @@ export type Css<D, P> = (
   | { selector: string; style: ArrowFuncOrValue<Record<string, string | number>, D, P> }
 )[]
 
-export type Effects<D> = { [T in keyof D]: (data: D[T]) => void }
-
 export type Events<D, P> = {
   handler: string
   selector?: string
@@ -36,6 +34,8 @@ export interface PropsChain<P> {
   chains: Record<string, P>
 }
 
+export type Reflections<D> = { [T in keyof D]?: (data: D[T]) => void }
+
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
 
 export type Slot<D, P> = (Html<D, P> | { name: string; contents: Html<D, P> })[]
@@ -51,5 +51,5 @@ export interface Wely<D, P> {
   slot?: Html<D, P> | Slot<D, P>
   css?: Css<D, P>
   events?: Events<D, P>
-  reflections?: () => Effects<D>
+  reflections?: () => Reflections<D>
 }
