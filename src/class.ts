@@ -118,7 +118,7 @@ export default class WelyElement<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #setProps(
+  #setPropsChain(
     propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   ): void {
     if (this.#inheritances.length > 0)
@@ -316,7 +316,7 @@ export default class WelyElement<D extends object, P extends object> {
 
   #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): Promise<void> {
     return new Promise<void>(resolve => {
-      this.#setProps(propsChain)
+      this.#setPropsChain(propsChain)
       resolve()
     }).then(() => {
       this.#addClass(wely)
@@ -358,7 +358,7 @@ export default class WelyElement<D extends object, P extends object> {
 
     if (that.#isOnlyCsr) return `<${name}></${name}>`
 
-    that.#setProps(propsChain)
+    that.#setPropsChain(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
       const elements = that.#convertHtml(html)
