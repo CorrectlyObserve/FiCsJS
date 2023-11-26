@@ -21,6 +21,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #name: string
   readonly #data: D = <D>{}
   readonly #inheritances: Props<D> = []
+  readonly #props: P = <P>{}
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
@@ -28,17 +29,15 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> = <Reflections<D>>{}
-
-  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
-  #props: P = <P>{}
-  #component: HTMLElement | undefined = undefined
-
-  #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
+  readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
     css: [],
     events: []
   }
+
+  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
+  #component: HTMLElement | undefined = undefined
 
   constructor({
     welyId,
