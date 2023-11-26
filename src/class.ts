@@ -20,7 +20,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #welyId: string
   readonly #name: string
   readonly #data: D = <D>{}
-  readonly #props: Props<D> = []
+  readonly #inheritances: Props<D> = []
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
@@ -76,7 +76,7 @@ export default class WelyElement<D extends object, P extends object> {
         for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
       }
 
-      if (props && props.length > 0) this.#props = [...props]
+      if (props && props.length > 0) this.#inheritances = [...props]
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#class = className
@@ -99,7 +99,7 @@ export default class WelyElement<D extends object, P extends object> {
       welyId,
       name: this.#name,
       data,
-      props: this.#props,
+      props: this.#inheritances,
       isOnlyCsr: this.#isOnlyCsr,
       className: this.#class,
       html: this.#html,
@@ -121,8 +121,8 @@ export default class WelyElement<D extends object, P extends object> {
   #setProps(
     propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   ): void {
-    if (this.#props.length > 0)
-      for (const prop of this.#props) {
+    if (this.#inheritances.length > 0)
+      for (const prop of this.#inheritances) {
         const { descendants, values } = prop
 
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
