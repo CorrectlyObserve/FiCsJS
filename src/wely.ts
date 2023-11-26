@@ -1,65 +1,63 @@
-import { Element } from './class'
-import { HtmlValue,  } from './types'
-import { sanitize, symbol } from './utils'
+import Element from './class'
+import symbol from './symbol'
+import { Sanitized,  } from './types'
 
-export const html = <D, P>(
+export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
-  ...variables: (Element<D, P> | unknown)[]
-): Record<symbol, HtmlValue<D, P>> => {
-  const wrapSanitize = (value: unknown) =>
-    value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
+  ...variables: unknown[]
+): Record<symbol, Sanitized<D, P>> => {
+  const result = []
 
-  if (variables.some(variable => variable instanceof Element)) {
-    const result: HtmlValue<D, P> = []
-    let isSkipped: boolean = false
+  for (const [index, template] of templates.entries()) {
+    const sanitize = (arg: unknown): unknown =>
+      typeof arg === 'string' && arg !== ''
+        ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        : arg ?? ''
 
-    for (let i = 0; i < templates.length; i++) {
-      const template = templates[i]
-      const variable = variables[i]
+    const variable = sanitize(variables[index])
 
-      if (variable instanceof Element || variable === undefined) {
-        if (template !== '' && !isSkipped) result.push(template)
-        if (variable !== undefined) result.push(variable)
+    if (index === 0 && template === '') result.push(variable)
+    else {
+      const last = result[result.length - 1] ?? ''
+      const isElement = variable instanceof Element
 
-        isSkipped = false
-      } else {
-        result.push(`${template}${wrapSanitize(variable)}${templates[i + 1]}`)
-        isSkipped = true
+      if (last instanceof Element)
+        isElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+      else {
+        result.splice(result.length - 1, 1, `${last}${template}${isElement ? '' : variable}`)
+        if (isElement) result.push(variable)
       }
     }
-
-    return { [symbol]: result }
   }
 
-  return {
-    [symbol]: [
-      templates.reduce((prev, curr, index) => prev + curr + wrapSanitize(variables[index]), '')
-    ]
-  }
+  return { [symbol]: <Sanitized<D, P>>result }
 }
 
-export const  = <D, P>({
+export const slot = (slot: string = ''): Element<object, never> =>
+  new Element({ Id: 'slot', name: 'slot', html: html`${slot}` })
+
+export const  = <D extends object, P extends object>({
   name,
-  className,
-  inheritances,
   data,
+  props,
   isOnlyCsr,
+  className,
   html,
-  css,
-  ssrCss,
   slot,
-  events
+  css,
+  events,
+  reflections
 }: <D, P>) =>
   new Element({
     Id: undefined,
     name,
-    className,
-    inheritances,
     data,
+    props,
     isOnlyCsr,
+    className,
     html,
-    css,
-    ssrCss,
     slot,
-    events
+    css,
+    events,
+    reflections
   })
