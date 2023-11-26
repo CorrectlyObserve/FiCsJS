@@ -117,6 +117,14 @@ export default class WelyElement<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
+  #setProps<K extends keyof P>(key: K, value: P[K]): void {
+    if (!(key in this.#data) || this.#props[key] !== value) {
+      this.#props[key] = value
+
+      console.log('props', key, this.#props[key])
+    }
+  }
+
   #setPropsChain(
     propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
   ): void {
@@ -145,7 +153,7 @@ export default class WelyElement<D extends object, P extends object> {
 
     if (this.#propsChain.descendants.has(this.#welyId))
       for (const key in this.#propsChain.chains[this.#welyId])
-        this.#props[key] = this.#propsChain.chains[this.#welyId][key]
+        this.#setProps(key, this.#propsChain.chains[this.#welyId][key])
   }
 
   #convert<A, R>(arg: A): R {
