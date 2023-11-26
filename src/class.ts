@@ -30,7 +30,7 @@ export default class Element<D extends object, P extends object> {
   readonly #reflections: Reflections<D> = <Reflections<D>>{}
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
-  #inheritedProps: P = <P>{}
+  #props: P = <P>{}
   #component: HTMLElement | undefined = undefined
 
   #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
@@ -146,12 +146,12 @@ export default class Element<D extends object, P extends object> {
 
     if (this.#propsChain.descendants.has(this.#Id))
       for (const key in this.#propsChain.chains[this.#Id])
-        this.#inheritedProps[key] = this.#propsChain.chains[this.#Id][key]
+        this.#props[key] = this.#propsChain.chains[this.#Id][key]
   }
 
   #convert<A, R>(arg: A): R {
     return typeof arg === 'function'
-      ? arg({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+      ? arg({ data: { ...this.#data }, props: { ...this.#props } })
       : arg
   }
 
@@ -233,7 +233,7 @@ export default class Element<D extends object, P extends object> {
 
           const styleContent = Object.entries(
             typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#inheritedProps } })
+              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
               : curr.style
           )
             .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
@@ -291,7 +291,7 @@ export default class Element<D extends object, P extends object> {
                   {
                     data: { ...this.#data },
                     setData: (key: keyof D, value: D[keyof D]) => this.setData(key, value),
-                    props: { ...this.#inheritedProps }
+                    props: { ...this.#props }
                   },
                   event
                 )
@@ -306,7 +306,7 @@ export default class Element<D extends object, P extends object> {
               {
                 data: { ...this.#data },
                 setData: (key: keyof D, value: D[keyof D]) => this.setData(key, value),
-                props: { ...this.#inheritedProps }
+                props: { ...this.#props }
               },
               event
             )
