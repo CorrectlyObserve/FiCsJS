@@ -61,11 +61,12 @@ export default class WelyElement<D extends object, P extends object> {
         if (reflections) {
           let hasError = false
 
-          for (const key of Object.keys(reflections()))
-            if (!(key in data())) {
-              hasError = true
-              throw Error(`${key} is not defined in data...`)
-            }
+          for (const key of Object.keys(reflections())) {
+            if (key in data()) continue
+
+            if (!hasError) hasError = true
+            throw Error(`${key} is not defined in data...`)
+          }
 
           if (!hasError) this.#reflections = { ...reflections() }
         }
