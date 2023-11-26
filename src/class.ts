@@ -118,7 +118,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #setProps<K extends keyof P>(key: K, value: P[K]): void {
-    if (!(key in this.#data) || this.#props[key] !== value) {
+    if (!(key in this.#props) || this.#props[key] !== value) {
       this.#props[key] = value
 
       console.log('props', key, this.#props[key])
