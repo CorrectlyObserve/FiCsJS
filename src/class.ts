@@ -33,10 +33,12 @@ export default class WelyElement<D extends object, P extends object> {
   #inheritedProps: P = <P>{}
   #component: HTMLElement | undefined = undefined
 
-  #isClassBinding: boolean = false
-  #isHtmlBinding: boolean = false
-  #bindingCss: number[] = []
-  #bindingEvents: number[] = []
+  #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
+    class: false,
+    html: false,
+    css: [],
+    events: []
+  }
 
   constructor({
     welyId,
@@ -157,7 +159,7 @@ export default class WelyElement<D extends object, P extends object> {
     const name = this.#toKebabCase(this.#name)
 
     if (this.#class) {
-      if (typeof this.#class === 'function') this.#isClassBinding = true
+      if (typeof this.#class === 'function') this.#dataBindings.class = true
 
       const className = `${name} ${this.#convert<Class<D, P>, string>(this.#class)}`
 
@@ -190,7 +192,7 @@ export default class WelyElement<D extends object, P extends object> {
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
     const elements = this.#convertHtml(html)
 
-    this.#isHtmlBinding =
+    this.#dataBindings.html =
       typeof html === 'function' ||
       (Array.isArray(this.#slot)
         ? this.#slot.some(
@@ -227,7 +229,7 @@ export default class WelyElement<D extends object, P extends object> {
     if (this.#css.length > 0) {
       const style = this.#css.reduce((prev, curr, index) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
-          if (typeof curr.style === 'function') this.#bindingCss.push(index)
+          if (typeof curr.style === 'function') this.#dataBindings.css.push(index)
 
           const styleContent = Object.entries(
             typeof curr.style === 'function'
@@ -265,7 +267,7 @@ export default class WelyElement<D extends object, P extends object> {
         const { selector, handler, method } = event
 
         if (selector) {
-          this.#bindingEvents.push(index)
+          this.#dataBindings.events.push(index)
 
           const elements = []
           const getSelectors = (selector: string): Element[] =>
