@@ -1,65 +1,63 @@
-import { WelyElement } from './class'
-import { HtmlValue, Wely } from './types'
-import { sanitize, symbol } from './utils'
+import WelyElement from './class'
+import symbol from './symbol'
+import { Sanitized, Wely } from './types'
 
-export const html = <D, P>(
+export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
-  ...variables: (WelyElement<D, P> | unknown)[]
-): Record<symbol, HtmlValue<D, P>> => {
-  const wrapSanitize = (value: unknown) =>
-    value === '' || value === undefined ? '' : typeof value === 'string' ? sanitize(value) : value
+  ...variables: unknown[]
+): Record<symbol, Sanitized<D, P>> => {
+  const result = []
 
-  if (variables.some(variable => variable instanceof WelyElement)) {
-    const result: HtmlValue<D, P> = []
-    let isSkipped: boolean = false
+  for (const [index, template] of templates.entries()) {
+    const sanitize = (arg: unknown): unknown =>
+      typeof arg === 'string' && arg !== ''
+        ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        : arg ?? ''
 
-    for (let i = 0; i < templates.length; i++) {
-      const template = templates[i]
-      const variable = variables[i]
+    const variable = sanitize(variables[index])
 
-      if (variable instanceof WelyElement || variable === undefined) {
-        if (template !== '' && !isSkipped) result.push(template)
-        if (variable !== undefined) result.push(variable)
+    if (index === 0 && template === '') result.push(variable)
+    else {
+      const last = result[result.length - 1] ?? ''
+      const isWelyElement = variable instanceof WelyElement
 
-        isSkipped = false
-      } else {
-        result.push(`${template}${wrapSanitize(variable)}${templates[i + 1]}`)
-        isSkipped = true
+      if (last instanceof WelyElement)
+        isWelyElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+      else {
+        result.splice(result.length - 1, 1, `${last}${template}${isWelyElement ? '' : variable}`)
+        if (isWelyElement) result.push(variable)
       }
     }
-
-    return { [symbol]: result }
   }
 
-  return {
-    [symbol]: [
-      templates.reduce((prev, curr, index) => prev + curr + wrapSanitize(variables[index]), '')
-    ]
-  }
+  return { [symbol]: <Sanitized<D, P>>result }
 }
 
-export const wely = <D, P>({
+export const slot = (slot: string = ''): WelyElement<object, never> =>
+  new WelyElement({ welyId: 'slot', name: 'slot', html: html`${slot}` })
+
+export const wely = <D extends object, P extends object>({
   name,
-  className,
-  inheritances,
   data,
+  props,
   isOnlyCsr,
+  className,
   html,
-  css,
-  ssrCss,
   slot,
-  events
+  css,
+  events,
+  reflections
 }: Wely<D, P>) =>
   new WelyElement({
     welyId: undefined,
     name,
-    className,
-    inheritances,
     data,
+    props,
     isOnlyCsr,
+    className,
     html,
-    css,
-    ssrCss,
     slot,
-    events
+    css,
+    events,
+    reflections
   })

@@ -1,4 +1,4 @@
-import { html, wely } from './wely'
+import { html, slot, wely } from './wely'
 import cssUrl from './style.css?inline'
 
 const child = wely({
@@ -10,18 +10,20 @@ const child = wely({
     back: 'black',
     arr: [1, 2, 3],
     obj: { key: 'value' },
-    number: () => 3
+    email: '',
+    countedNum: (count: number) => count * 3
   }),
   isOnlyCsr: true,
+  className: ({ data: { back } }) => back,
   html: ({
-    data: { message },
+    data: { message, count, countedNum },
     props: { color }
   }: {
-    data: { message: string }
+    data: { message: string; count: number; countedNum: (count: number) => number }
     props: { color: string; click: (message: string) => void }
-  }) =>
-    html`<div><p class="hello" style="display: inline">${message}</p></div>
-      <p>${color}</p>`,
+  }) => html`<div><p class="hello" style="display: inline">${message}</p></div>
+    <p>${color}</p>
+    <p>${countedNum(count)}</p>`,
   css: [
     cssUrl,
     {
@@ -32,51 +34,91 @@ const child = wely({
   events: [
     {
       handler: 'click',
-      method: ({ data: { count } }) => console.log(count++)
+      method: ({ data: { obj, arr }, setData }) => {
+        setData('obj', { ...obj })
+        setData('arr', [...arr])
+      }
     },
     {
       selector: 'div',
       handler: 'click',
       method: ({ data: { message }, props: { click } }) => click(message)
     }
-  ]
+  ],
+  reflections: () => ({
+    count: count => console.log('count', count),
+    sample: sample => console.log(sample)
+  })
 })
 
-const child2 = child.overwrite(() => ({ message: 'Good bye!' }))
+const child2 = child.overwrite(() => ({ message: 'Good bye' }))
 
 const parent = wely({
   name: 'parent',
-  className: 'test',
   data: () => ({
     color: 'blue',
     click: (message: string) => console.log(message)
   }),
-  html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
-    html`${child2}
-      <p>propsColor: ${propsColor}</p>`,
-  inheritances: [
+  props: [
     {
       descendants: child2,
-      props: ({ color, click }) => ({ color, click })
+      values: ({ color, click }) => ({ color, click })
     }
-  ]
+  ],
+  className: 'test',
+  html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
+    html`${child2}
+      <p>propsColor: ${propsColor}</p>`
 })
 
 const grandParent = wely({
   name: 'grandParent',
-  data: () => ({
-    color: 'green',
-    fontSize: 24,
-    number: 12
-  }),
-  html: ({ data: { number } }) =>
-    html`${parent}
-      <p>人数: ${number}</p>`,
-  inheritances: [
-    { descendants: [child, child2], props: ({ color }) => ({ color }) },
-    { descendants: parent, props: ({ color }) => ({ propsColor: color }) }
+  data: () => ({ color: 'green', fontSize: 24, number: 12 }),
+  props: [
+    {
+      descendants: [child, child2],
+      values: ({ color }) => ({ color })
+    },
+    {
+      descendants: parent,
+      values: ({ color }) => ({ propsColor: color })
+    }
+  ],
+  html: html` <p>Content is...</p>
+    ${slot()}`,
+  // slot: ({ data: { fontSize, number } }) =>
+  //   html`${parent}
+  //     <p>人数: ${number}</p>
+  //     <input value="${fontSize}" />`
+  slot: [
+    ({ data: { fontSize, number } }) =>
+      html`${parent}
+        <p>人数: ${number}</p>
+        <input value="${fontSize}" />`,
+    {
+      name: 'test',
+      contents: html`${parent}`
+    }
   ]
 })
 
-console.log(grandParent.ssr())
+// console.log(grandParent.ssr())
+
 grandParent.define()
+
+fetch('https://jsonplaceholder.typicode.com/comments/1')
+  .then(response => response.json())
+  .then(json => child.setData('email', json.email))
+
+let count = child.getData('count')
+
+const timer = setInterval(() => {
+  if (count >= 4) {
+    clearInterval(timer)
+    console.log('stop')
+  }
+
+  child.setData('count', ++count)
+
+  console.log('continue')
+}, 1000)
