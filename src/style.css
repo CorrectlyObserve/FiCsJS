@@ -3,8 +3,8 @@
   padding-left: 16px;
 }
 
-div {
-  background: skyblue;
+:host div p {
+  color: red;
 }
 
 p {
