@@ -51,5 +51,5 @@ export interface Wely<D, P> {
   slot?: Html<D, P> | Slot<D, P>
   css?: Css<D, P>
   events?: Events<D, P>
-  reflections?: () => Reflections<D>
+  reflections?: Reflections<D>
 }
