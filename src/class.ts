@@ -28,7 +28,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #slot: Html<D, P> | Slot<D, P> | undefined = undefined
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
-  readonly #reflections: Reflections<D> = <Reflections<D>>{}
+  readonly #reflections: Reflections<D> | undefined = undefined
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -62,14 +62,14 @@ export default class WelyElement<D extends object, P extends object> {
         if (reflections) {
           let hasError = false
 
-          for (const key of Object.keys(reflections())) {
+          for (const key of Object.keys(reflections)) {
             if (key in data()) continue
 
             if (!hasError) hasError = true
             throw Error(`${key} is not defined in data...`)
           }
 
-          if (!hasError) this.#reflections = { ...reflections() }
+          if (!hasError) this.#reflections = { ...reflections }
         }
 
         for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
@@ -105,7 +105,7 @@ export default class WelyElement<D extends object, P extends object> {
       slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
       css: this.#css,
       events: this.#events,
-      reflections: () => this.#reflections
+      reflections: this.#reflections
     })
   }
 
@@ -154,6 +154,8 @@ export default class WelyElement<D extends object, P extends object> {
     if (this.#propsChain.descendants.has(this.#welyId))
       for (const key in this.#propsChain.chains[this.#welyId])
         this.#setProps(key, this.#propsChain.chains[this.#welyId][key])
+
+    console.log(this.#name, this.#inheritances)
   }
 
   #convert<A, R>(arg: A): R {
@@ -411,9 +413,9 @@ export default class WelyElement<D extends object, P extends object> {
     if (!(key in this.#data) || this.#data[key] !== value) {
       this.#data[key] = value
 
-      if (key in this.#reflections) this.#reflections[key](this.#data[key])
+      if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
 
-      console.log('data', key, this.#data[key])
+      // console.log('data', key, this.#data[key])
     }
   }
 
