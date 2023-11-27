@@ -34,6 +34,7 @@ export type Props<D> = {
 export interface PropsChain<P> {
   descendants: Set<string>
   chains: Record<string, P>
+  map: Map<string, string>
 }
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
