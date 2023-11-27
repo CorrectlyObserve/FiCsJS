@@ -36,7 +36,7 @@ export default class Element<D extends object, P extends object> {
     events: []
   }
 
-  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
+  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {}, map: new Map() }
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -126,27 +126,38 @@ export default class Element<D extends object, P extends object> {
   }
 
   #setPropsChain(
-    propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {} }
+    propsChain: PropsChain<P> = <PropsChain<P>>{
+      descendants: new Set(),
+      chains: {},
+      map: new Map()
+    }
   ): void {
     if (this.#inheritances.length > 0)
       for (const prop of this.#inheritances) {
         const { descendants, values } = prop
 
-        for (const descendant of Array.isArray(descendants) ? descendants : [descendants])
-          if (propsChain.descendants.has(descendant.#Id)) {
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
+          const Id: string = descendant.#Id
+          const data: any = { ...values(this.#data) }
+
+          if (propsChain.descendants.has(Id)) {
             const setPropsChain = (chain: Record<string, P>): void => {
-              const localChain = chain[descendant.#Id]
+              const localChain = chain[Id]
 
               localChain.isPrototypeOf(localChain)
                 ? setPropsChain(Object.getPrototypeOf(localChain))
-                : Object.setPrototypeOf(localChain, { ...values(this.#data) })
+                : Object.setPrototypeOf(localChain, data)
             }
 
             setPropsChain(propsChain.chains)
           } else {
-            propsChain.descendants.add(descendant.#Id)
-            propsChain.chains[descendant.#Id] = { ...values(this.#data) }
+            propsChain.descendants.add(Id)
+            propsChain.chains[Id] = data
+
+            const [key] = Object.entries(data)[0]
+            if (!propsChain.map.has(key)) propsChain.map.set(key, this.#Id)
           }
+        }
       }
 
     this.#propsChain = propsChain
@@ -154,8 +165,6 @@ export default class Element<D extends object, P extends object> {
     if (this.#propsChain.descendants.has(this.#Id))
       for (const key in this.#propsChain.chains[this.#Id])
         this.#setProps(key, this.#propsChain.chains[this.#Id][key])
-
-    console.log(this.#name, this.#inheritances)
   }
 
   #convert<A, R>(arg: A): R {
