@@ -323,18 +323,6 @@ export default class WelyElement<D extends object, P extends object> {
       })
   }
 
-  #createComponent(wely: HTMLElement, propsChain?: PropsChain<P>): Promise<void> {
-    return new Promise<void>(resolve => {
-      this.#setPropsChain(propsChain)
-      resolve()
-    }).then(() => {
-      this.#addClass(wely)
-      this.#addHtml(this.#getShadowRoot(wely))
-      this.#addCss(this.#getShadowRoot(wely))
-      this.#addEvents(wely)
-    })
-  }
-
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
     const name = that.#getTagName()
@@ -354,7 +342,11 @@ export default class WelyElement<D extends object, P extends object> {
 
     const wely = that.#component ?? document.createElement(name)
 
-    that.#createComponent(wely, propsChain)
+    that.#setPropsChain(propsChain)
+    that.#addClass(wely)
+    that.#addHtml(that.#getShadowRoot(wely))
+    that.#addCss(that.#getShadowRoot(wely))
+    that.#addEvents(wely)
 
     if (!that.#component) that.#component = wely
 
@@ -438,7 +430,11 @@ export default class WelyElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#createComponent(this)
+              that.#setPropsChain()
+              that.#addClass(this)
+              that.#addHtml(that.#getShadowRoot(this))
+              that.#addCss(that.#getShadowRoot(this))
+              that.#addEvents(this)
               this.#isRendered = true
             }
           }
