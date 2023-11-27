@@ -9,6 +9,8 @@ export type Css<D, P> = (
   | { selector: string; style: ArrowFuncOrValue<Record<string, string | number>, D, P> }
 )[]
 
+type Descendant = Element<any, any>
+
 export type Events<D, P> = {
   handler: string
   selector?: string
@@ -22,10 +24,10 @@ export type Events<D, P> = {
   ) => void
 }[]
 
-export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (Element<any, any> | string)[]>, D, P>
+export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (Descendant | string)[]>, D, P>
 
 export type Props<D> = {
-  descendants: Element<any, any> | Element<any, any>[]
+  descendants: Descendant | Descendant[]
   values: (data: D) => any
 }[]
 
