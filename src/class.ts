@@ -323,18 +323,6 @@ export default class Element<D extends object, P extends object> {
       })
   }
 
-  #createComponent(: HTMLElement, propsChain?: PropsChain<P>): Promise<void> {
-    return new Promise<void>(resolve => {
-      this.#setPropsChain(propsChain)
-      resolve()
-    }).then(() => {
-      this.#addClass()
-      this.#addHtml(this.#getShadowRoot())
-      this.#addCss(this.#getShadowRoot())
-      this.#addEvents()
-    })
-  }
-
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
     const name = that.#getTagName()
@@ -354,7 +342,11 @@ export default class Element<D extends object, P extends object> {
 
     const  = that.#component ?? document.createElement(name)
 
-    that.#createComponent(, propsChain)
+    that.#setPropsChain(propsChain)
+    that.#addClass()
+    that.#addHtml(that.#getShadowRoot())
+    that.#addCss(that.#getShadowRoot())
+    that.#addEvents()
 
     if (!that.#component) that.#component = 
 
@@ -438,7 +430,11 @@ export default class Element<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#createComponent(this)
+              that.#setPropsChain()
+              that.#addClass(this)
+              that.#addHtml(that.#getShadowRoot(this))
+              that.#addCss(that.#getShadowRoot(this))
+              that.#addEvents(this)
               this.#isRendered = true
             }
           }
