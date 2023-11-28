@@ -19,7 +19,7 @@ export type Events<D, P> = {
       data,
       setData,
       props
-    }: { data: D; setData: (key: keyof D, value: D[keyof D]) => void; props: P },
+    }: { data: D; setData: (key: keyof D, value: D[typeof key]) => void; props: P },
     event: Event
   ) => void
 }[]
@@ -28,7 +28,10 @@ export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (Descendant | string)[]
 
 export type Props<D> = {
   descendants: Descendant | Descendant[]
-  values: (data: D) => any
+  values: (
+    data: D,
+    getData?: (key: keyof D) => Record<typeof key, D[typeof key]>
+  ) => any
 }[]
 
 export interface PropsChain<P> {
