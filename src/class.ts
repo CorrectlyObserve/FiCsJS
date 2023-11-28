@@ -401,7 +401,9 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   getData(key: keyof D): D[typeof key] {
-    return this.#data[key]
+    if (key in this.#data) return this.#data[key]
+
+    throw Error(`${key as string} is not defined in data...`)
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
