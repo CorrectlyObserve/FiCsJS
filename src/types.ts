@@ -28,10 +28,7 @@ export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (Descendant | string)[]
 
 export type Props<D> = {
   descendants: Descendant | Descendant[]
-  values: (
-    data: D,
-    getData?: (key: keyof D) => Record<typeof key, D[typeof key]>
-  ) => any
+  values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
 
 export interface PropsChain<P> {
