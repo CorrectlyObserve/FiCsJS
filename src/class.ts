@@ -36,7 +36,7 @@ export default class WelyElement<D extends object, P extends object> {
     events: []
   }
 
-  #propsChain: PropsChain<P> = <PropsChain<P>>{ descendants: new Set(), chains: {}, map: new Map() }
+  #propsChain: PropsChain<P> = { descendants: new Set(), chains: {}, map: new Map() }
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -72,7 +72,7 @@ export default class WelyElement<D extends object, P extends object> {
           if (!hasError) this.#reflections = { ...reflections }
         }
 
-        for (const [key, value] of Object.entries(data())) this.setData(key as keyof D, value)
+        for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
       }
 
       if (props && props.length > 0) this.#inheritances = [...props]
@@ -117,21 +117,13 @@ export default class WelyElement<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #setProps<K extends keyof P>(key: K, value: P[K]): void {
-    if (!(key in this.#props) || this.#props[key] !== value) {
-      this.#props[key] = value
+  // #setProps<K extends keyof P>(key: K, value: P[K]): void {
+  //   if (this.#props[key] !== value) {
+  //     this.#props[key] = value
+  //   }
+  // }
 
-      console.log('props', key, this.#props[key])
-    }
-  }
-
-  #setPropsChain(
-    propsChain: PropsChain<P> = <PropsChain<P>>{
-      descendants: new Set(),
-      chains: {},
-      map: new Map()
-    }
-  ): void {
+  #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
       for (const prop of this.#inheritances) {
         const { descendants, values } = prop
@@ -160,11 +152,13 @@ export default class WelyElement<D extends object, P extends object> {
         }
       }
 
-    this.#propsChain = propsChain
+    this.#propsChain = { ...propsChain }
 
     if (this.#propsChain.descendants.has(this.#welyId))
       for (const key in this.#propsChain.chains[this.#welyId])
-        this.#setProps(key, this.#propsChain.chains[this.#welyId][key])
+        this.#props[key] = this.#propsChain.chains[this.#welyId][key]
+
+    console.log(this.#name, propsChain)
   }
 
   #convert<A, R>(arg: A): R {
@@ -411,7 +405,8 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    if (!(key in this.#data) || this.#data[key] !== value) {
+    if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
+    else if (this.#data[key] !== value) {
       this.#data[key] = value
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
