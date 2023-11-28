@@ -302,7 +302,7 @@ export default class WelyElement<D extends object, P extends object> {
                 method(
                   {
                     data: { ...this.#data },
-                    setData: (key: keyof D, value: D[keyof D]) => this.setData(key, value),
+                    setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
                     props: { ...this.#props }
                   },
                   event
@@ -317,7 +317,7 @@ export default class WelyElement<D extends object, P extends object> {
             method(
               {
                 data: { ...this.#data },
-                setData: (key: keyof D, value: D[keyof D]) => this.setData(key, value),
+                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
                 props: { ...this.#props }
               },
               event
@@ -400,11 +400,11 @@ export default class WelyElement<D extends object, P extends object> {
     return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
-  getData<K extends keyof D>(key: K): D[K] {
+  getData(key: keyof D): D[typeof key] {
     return this.#data[key]
   }
 
-  setData<K extends keyof D>(key: K, value: D[K]): void {
+  setData(key: keyof D, value: D[typeof key]): void {
     if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
