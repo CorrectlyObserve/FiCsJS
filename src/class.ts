@@ -130,7 +130,11 @@ export default class WelyElement<D extends object, P extends object> {
 
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           const welyId: string = descendant.#welyId
-          const data: any = { ...values(this.#data) }
+
+          const getData = (key: keyof D) => {
+            return this.getData(key)
+          }
+          const data = { ...values((key: keyof D) => getData(key)) }
 
           if (propsChain.descendants.has(welyId)) {
             const setPropsChain = (chain: Record<string, P>): void => {
