@@ -130,7 +130,11 @@ export default class Element<D extends object, P extends object> {
 
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           const Id: string = descendant.#Id
-          const data: any = { ...values(this.#data) }
+
+          const getData = (key: keyof D) => {
+            return this.getData(key)
+          }
+          const data = { ...values((key: keyof D) => getData(key)) }
 
           if (propsChain.descendants.has(Id)) {
             const setPropsChain = (chain: Record<string, P>): void => {
