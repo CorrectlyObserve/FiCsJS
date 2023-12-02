@@ -32,7 +32,6 @@ export type Props<D> = {
 }[]
 
 export interface PropsChain<P> {
-  descendants: Set<string>
   chains: Record<string, P>
   map: Map<string, string>
 }
