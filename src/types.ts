@@ -31,11 +31,6 @@ export type Props<D> = {
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
 
-export interface PropsChain<P> {
-  chains: Record<string, P>
-  map: Map<string, string>
-}
-
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
