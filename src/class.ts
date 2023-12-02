@@ -367,14 +367,15 @@ export default class WelyElement<D extends object, P extends object> {
 
   #renderOnServer(propsChain?: PropsChain<P>): string {
     const that = this.#clone()
-    const name = that.#getTagName()
+    const tagName = that.#getTagName()
 
-    if (that.#isOnlyCsr) return `<${name}></${name}>`
+    if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
     that.#setPropsChain(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
       const elements = that.#convertHtml(html)
+      const name = that.#name
 
       if (elements) return <string>elements.reduce((prev, curr) => {
           if (curr instanceof WelyElement && curr.#getTagName() === 'w-slot') {
@@ -384,17 +385,15 @@ export default class WelyElement<D extends object, P extends object> {
 
               if (slot) return prev + addHtml(slot)
 
-              throw Error(`${that.#name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
-            } else throw Error(`${that.#name} has no slot contents...`)
+              throw Error(`${name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
+            } else throw Error(`${name} has no slot contents...`)
           } else
             return (
               prev + (curr instanceof WelyElement ? curr.#renderOnServer(that.#propsChain) : curr)
             )
         }, '')
 
-      throw Error(
-        `${that.#name} has to use html function (tagged template literal) in html argument.`
-      )
+      throw Error(`${name} has to use html function (tagged template literal) in html argument.`)
     }
 
     return `
