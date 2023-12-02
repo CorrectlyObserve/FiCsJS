@@ -31,7 +31,7 @@ export type Props<D> = {
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
 
-export type PropsChain<P> = Record<string, Record<string, P>>
+export type PropsChain<P> = Map<string, Record<string, P>>
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
