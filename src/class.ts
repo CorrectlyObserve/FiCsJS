@@ -37,7 +37,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #propsMap: Map<string, Record<'welyId' | 'key', string>[]> = new Map()
+  #propsMap: Map<string, { descendant: WelyElement<D, P>; key: string }[]> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -121,11 +121,7 @@ export default class WelyElement<D extends object, P extends object> {
   #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances) {
-        const welyIds = Array.isArray(descendants)
-          ? descendants.map(descendant => descendant.#welyId)
-          : [descendants.#welyId]
-
-        for (const welyId of welyIds) {
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           let dataKey: string = ''
 
           const getData = (key: keyof D): D[keyof D] => {
@@ -137,6 +133,7 @@ export default class WelyElement<D extends object, P extends object> {
           const data: [string, P][] = Object.entries({
             ...values((key: keyof D) => getData(key))
           })
+          const welyId = descendant.#welyId
 
           for (const [key, value] of data) {
             const chain: Record<string, P> = propsChain.get(welyId) ?? {}
@@ -145,16 +142,14 @@ export default class WelyElement<D extends object, P extends object> {
               propsChain.set(welyId, { ...chain, [key]: value })
 
               this.#propsMap.has(dataKey)
-                ? this.#propsMap.get(dataKey)?.push({ welyId, key })
-                : this.#propsMap.set(dataKey, [{ welyId, key }])
+                ? this.#propsMap.get(dataKey)?.push({ descendant, key })
+                : this.#propsMap.set(dataKey, [{ descendant, key }])
             }
           }
         }
       }
 
     this.#propsChain = new Map(propsChain)
-
-    console.log(this.#propsMap)
 
     for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {}))
       this.#props[key as keyof P] = value as P[keyof P]
@@ -398,7 +393,7 @@ export default class WelyElement<D extends object, P extends object> {
     return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
-  getData(key: keyof D): D[typeof key] {
+  getData<K extends keyof D>(key: K): D[K] {
     if (key in this.#data) return this.#data[key]
 
     throw Error(`${key as string} is not defined in data...`)
