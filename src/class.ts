@@ -37,6 +37,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = <PropsChain<P>>{}
+  #propsMap: Map<string, Record<'descendant' | 'key', string>[]> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -120,8 +121,11 @@ export default class WelyElement<D extends object, P extends object> {
   #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances) {
-        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          const descendantId: string = descendant.#welyId
+        const descendantIds = Array.isArray(descendants)
+          ? descendants.map(descendant => descendant.#welyId)
+          : [descendants.#welyId]
+
+        for (const descendantId of descendantIds) {
           let dataKey: string = ''
 
           const getData = (key: keyof D): D[keyof D] => {
@@ -130,17 +134,17 @@ export default class WelyElement<D extends object, P extends object> {
             return this.getData(key)
           }
 
-          const data: any = Object.entries({ ...values((key: keyof D) => getData(key)) })
+          const data: [string, P][] = Object.entries({
+            ...values((key: keyof D) => getData(key))
+          })
 
           for (const [key, value] of data) {
-            if (descendantId in propsChain) {
-              if (key in propsChain[descendantId]) continue
+            if (!(descendantId in propsChain) || !(key in propsChain[descendantId])) {
+              propsChain[descendantId] = { ...(propsChain[descendantId] ?? {}), [key]: value }
 
-              propsChain[descendantId][key] = value
-              console.log(dataKey, this.#welyId, descendantId, key, value)
-            } else {
-              propsChain[descendantId] = { [key]: value }
-              console.log(dataKey, this.#welyId, descendantId, key, value)
+              this.#propsMap.has(dataKey)
+                ? this.#propsMap.get(dataKey)?.push({ descendant: descendantId, key })
+                : this.#propsMap.set(dataKey, [{ descendant: descendantId, key }])
             }
           }
         }
