@@ -337,11 +337,11 @@ export default class WelyElement<D extends object, P extends object> {
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
-    const name = that.#getTagName()
+    const tagName = that.#getTagName()
 
-    if (!customElements.get(name))
+    if (!customElements.get(tagName))
       customElements.define(
-        name,
+        tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -352,7 +352,7 @@ export default class WelyElement<D extends object, P extends object> {
         }
       )
 
-    const wely = that.#component ?? document.createElement(name)
+    const wely = that.#component ?? document.createElement(tagName)
 
     that.#setPropsChain(propsChain)
     that.#addClass(wely)
@@ -378,14 +378,14 @@ export default class WelyElement<D extends object, P extends object> {
 
       if (elements) return <string>elements.reduce((prev, curr) => {
           if (curr instanceof WelyElement && curr.#getTagName() === 'w-slot') {
-            if (this.#slot) {
-              const slotName = this.#convertHtml(curr.#html)?.[0] ?? ''
-              const slot = this.#getSlot(<string>slotName)
+            if (that.#slot) {
+              const slotName = that.#convertHtml(curr.#html)?.[0] ?? ''
+              const slot = that.#getSlot(<string>slotName)
 
               if (slot) return prev + addHtml(slot)
 
-              throw Error(`${this.#name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
-            } else throw Error(`${this.#name} has no slot contents...`)
+              throw Error(`${that.#name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
+            } else throw Error(`${that.#name} has no slot contents...`)
           } else
             return (
               prev + (curr instanceof WelyElement ? curr.#renderOnServer(that.#propsChain) : curr)
@@ -393,7 +393,7 @@ export default class WelyElement<D extends object, P extends object> {
         }, '')
 
       throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
+        `${that.#name} has to use html function (tagged template literal) in html argument.`
       )
     }
 
