@@ -1,6 +1,17 @@
 import generate from './generator'
 import symbol from './symbol'
-import { Class, Css, Events, Html, Props, Reflections, Sanitized, Slot,  } from './types'
+import {
+  Class,
+  Css,
+  Events,
+  Html,
+  Props,
+  PropsChain,
+  Reflections,
+  Sanitized,
+  Slot,
+  
+} from './types'
 
 const generator: Generator<number> = generate()
 
@@ -25,8 +36,7 @@ export default class Element<D extends object, P extends object> {
     events: []
   }
 
-  #propsChains: Record<string, P> = <Record<string, P>>{}
-  #propsMap: Map<keyof D, Set<string>> = new Map()
+  #propsChain: PropsChain<P> = <PropsChain<P>>{}
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -107,46 +117,40 @@ export default class Element<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #setPropsChain(propsChains: Record<string, P> = this.#propsChains): void {
-    const chainKeys: Set<string> = new Set(Object.keys(propsChains))
-
+  #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
-      for (const inheritance of this.#inheritances) {
-        const { descendants, values } = inheritance
-
+      for (const { descendants, values } of this.#inheritances) {
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          const Id: string = descendant.#Id
+          const descendantId: string = descendant.#Id
+          let dataKey: string = ''
 
           const getData = (key: keyof D): D[keyof D] => {
-            this.#propsMap.has(key)
-              ? this.#propsMap.get(key)?.add(Id)
-              : this.#propsMap.set(key, new Set([Id]))
+            dataKey = <string>key
 
             return this.getData(key)
           }
 
-          const data: any = { ...values((key: keyof D) => getData(key)) }
+          const data: any = Object.entries({ ...values((key: keyof D) => getData(key)) })
 
-          if (chainKeys.has(Id)) {
-            const setPropsChain = (chain: Record<string, P>): void => {
-              const localChain = chain[Id]
+          for (const [key, value] of data) {
+            if (descendantId in propsChain) {
+              if (key in propsChain[descendantId]) continue
 
-              localChain.isPrototypeOf(localChain)
-                ? setPropsChain(Object.getPrototypeOf(localChain))
-                : Object.setPrototypeOf(localChain, data)
+              propsChain[descendantId][key] = value
+              console.log(dataKey, this.#Id, descendantId, key, value)
+            } else {
+              propsChain[descendantId] = { [key]: value }
+              console.log(dataKey, this.#Id, descendantId, key, value)
             }
-
-            setPropsChain(propsChains)
-          } else propsChains[Id] = data
+          }
         }
       }
 
-    if (chainKeys.has(this.#Id))
-      for (const key in propsChains[this.#Id]) this.#props[key] = propsChains[this.#Id][key]
+    this.#propsChain = { ...propsChain }
 
-    this.#propsChains = { ...propsChains }
-
-    console.log(this.#name, this.#propsChains, this.#propsMap)
+    if (this.#Id in this.#propsChain)
+      for (const [key, value] of Object.entries(this.#propsChain[this.#Id]))
+        this.#props[key as keyof P] = value as P[keyof P]
   }
 
   #addClass(?: HTMLElement): string | void {
@@ -215,7 +219,7 @@ export default class Element<D extends object, P extends object> {
         } else
           shadowRoot.appendChild(
             element instanceof Element
-              ? element.#component ?? element.#render(this.#propsChains)
+              ? element.#component ?? element.#render(this.#propsChain)
               : document.createRange().createContextualFragment(element)
           )
       }
@@ -314,7 +318,7 @@ export default class Element<D extends object, P extends object> {
       })
   }
 
-  #render(propsChains?: Record<string, P>): HTMLElement {
+  #render(propsChain?: PropsChain<P>): HTMLElement {
     const that = this.#clone()
     const tagName = that.#getTagName()
 
@@ -333,7 +337,7 @@ export default class Element<D extends object, P extends object> {
 
     const  = that.#component ?? document.createElement(tagName)
 
-    that.#setPropsChain(propsChains)
+    that.#setPropsChain(propsChain)
     that.#addClass()
     that.#addHtml(that.#getShadowRoot())
     that.#addCss(that.#getShadowRoot())
@@ -344,13 +348,13 @@ export default class Element<D extends object, P extends object> {
     return 
   }
 
-  #renderOnServer(propsChains?: Record<string, P>): string {
+  #renderOnServer(propsChain?: PropsChain<P>): string {
     const that = this.#clone()
     const tagName = that.#getTagName()
 
     if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
-    that.#setPropsChain(propsChains)
+    that.#setPropsChain(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
       const elements = that.#convertHtml(html)
@@ -368,7 +372,7 @@ export default class Element<D extends object, P extends object> {
             } else throw Error(`${name} has no slot contents...`)
           } else
             return (
-              prev + (curr instanceof Element ? curr.#renderOnServer(that.#propsChains) : curr)
+              prev + (curr instanceof Element ? curr.#renderOnServer(that.#propsChain) : curr)
             )
         }, '')
 
@@ -400,7 +404,7 @@ export default class Element<D extends object, P extends object> {
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
 
-      console.log('data', key, this.#data[key])
+      // console.log('data', key, this.#data[key])
     }
   }
 
