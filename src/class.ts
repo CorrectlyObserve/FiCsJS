@@ -36,7 +36,8 @@ export default class Element<D extends object, P extends object> {
     events: []
   }
 
-  #propsChain: PropsChain<P> = { descendants: new Set(), chains: {}, map: new Map() }
+  #propsChain: PropsChain<P> = { chains: {}, map: new Map() }
+  #propsMap: Map<keyof D, Set<string>> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -125,18 +126,24 @@ export default class Element<D extends object, P extends object> {
 
   #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
-      for (const prop of this.#inheritances) {
-        const { descendants, values } = prop
+      for (const inheritance of this.#inheritances) {
+        const { descendants, values } = inheritance
 
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           const Id: string = descendant.#Id
 
           const getData = (key: keyof D) => {
+            this.#propsMap.has(key)
+              ? this.#propsMap.get(key)?.add(Id)
+              : this.#propsMap.set(key, new Set([Id]))
+
             return this.getData(key)
           }
-          const data = { ...values((key: keyof D) => getData(key)) }
 
-          if (propsChain.descendants.has(Id)) {
+          const data = { ...values((key: keyof D) => getData(key)) }
+          const [key] = Object.entries(data)[0]
+
+          if (new Set(Object.keys(propsChain.chains)).has(Id)) {
             const setPropsChain = (chain: Record<string, P>): void => {
               const localChain = chain[Id]
 
@@ -147,10 +154,8 @@ export default class Element<D extends object, P extends object> {
 
             setPropsChain(propsChain.chains)
           } else {
-            propsChain.descendants.add(Id)
             propsChain.chains[Id] = data
 
-            const [key] = Object.entries(data)[0]
             if (!propsChain.map.has(key)) propsChain.map.set(key, this.#Id)
           }
         }
@@ -158,17 +163,11 @@ export default class Element<D extends object, P extends object> {
 
     this.#propsChain = { ...propsChain }
 
-    if (this.#propsChain.descendants.has(this.#Id))
+    if (new Set(Object.keys(this.#propsChain.chains)).has(this.#Id))
       for (const key in this.#propsChain.chains[this.#Id])
         this.#props[key] = this.#propsChain.chains[this.#Id][key]
 
-    console.log(this.#name, propsChain)
-  }
-
-  #convert<A, R>(arg: A): R {
-    return typeof arg === 'function'
-      ? arg({ data: { ...this.#data }, props: { ...this.#props } })
-      : arg
+    console.log(this.#name, this.#propsChain, this.#inheritances)
   }
 
   #addClass(?: HTMLElement): string | void {
@@ -177,7 +176,11 @@ export default class Element<D extends object, P extends object> {
     if (this.#class) {
       if (typeof this.#class === 'function') this.#dataBindings.class = true
 
-      const className = `${name} ${this.#convert<Class<D, P>, string>(this.#class)}`
+      const className = `${name} ${
+        typeof this.#class === 'function'
+          ? this.#class({ data: { ...this.#data }, props: { ...this.#props } })
+          : this.#class
+      }`
 
       if (!) return className
       .setAttribute('class', className)
@@ -188,7 +191,9 @@ export default class Element<D extends object, P extends object> {
   }
 
   #convertHtml(html: Html<D, P>): Sanitized<D, P> | undefined {
-    return this.#convert<Html<D, P>, Record<symbol, (Element<D, P> | string)[]>>(html)[symbol]
+    return typeof html === 'function'
+      ? html({ data: { ...this.#data }, props: { ...this.#props } })[symbol]
+      : html[symbol]
   }
 
   #getSlot(slotName: string): Html<D, P> | undefined {
@@ -417,7 +422,7 @@ export default class Element<D extends object, P extends object> {
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
 
-      // console.log('data', key, this.#data[key])
+      console.log('data', key, this.#data[key])
     }
   }
 
