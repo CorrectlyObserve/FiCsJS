@@ -36,8 +36,8 @@ export default class Element<D extends object, P extends object> {
     events: []
   }
 
-  #propsChain: PropsChain<P> = <PropsChain<P>>{}
-  #propsMap: Map<string, Record<'descendant' | 'key', string>[]> = new Map()
+  #propsChain: PropsChain<P> = new Map()
+  #propsMap: Map<string, Record<'Id' | 'key', string>[]> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -121,11 +121,11 @@ export default class Element<D extends object, P extends object> {
   #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances) {
-        const descendantIds = Array.isArray(descendants)
+        const Ids = Array.isArray(descendants)
           ? descendants.map(descendant => descendant.#Id)
           : [descendants.#Id]
 
-        for (const descendantId of descendantIds) {
+        for (const Id of Ids) {
           let dataKey: string = ''
 
           const getData = (key: keyof D): D[keyof D] => {
@@ -139,22 +139,25 @@ export default class Element<D extends object, P extends object> {
           })
 
           for (const [key, value] of data) {
-            if (!(descendantId in propsChain) || !(key in propsChain[descendantId])) {
-              propsChain[descendantId] = { ...(propsChain[descendantId] ?? {}), [key]: value }
+            const chain: Record<string, P> = propsChain.get(Id) ?? {}
+
+            if (!propsChain.has(Id) || !(key in chain)) {
+              propsChain.set(Id, { ...chain, [key]: value })
 
               this.#propsMap.has(dataKey)
-                ? this.#propsMap.get(dataKey)?.push({ descendant: descendantId, key })
-                : this.#propsMap.set(dataKey, [{ descendant: descendantId, key }])
+                ? this.#propsMap.get(dataKey)?.push({ Id, key })
+                : this.#propsMap.set(dataKey, [{ Id, key }])
             }
           }
         }
       }
 
-    this.#propsChain = { ...propsChain }
+    this.#propsChain = new Map(propsChain)
 
-    if (this.#Id in this.#propsChain)
-      for (const [key, value] of Object.entries(this.#propsChain[this.#Id]))
-        this.#props[key as keyof P] = value as P[keyof P]
+    console.log(this.#propsMap)
+
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {}))
+      this.#props[key as keyof P] = value as P[keyof P]
   }
 
   #addClass(?: HTMLElement): string | void {
