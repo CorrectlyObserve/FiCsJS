@@ -37,7 +37,7 @@ export default class Element<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #propsMap: Map<string, Record<'Id' | 'key', string>[]> = new Map()
+  #propsMap: Map<string, { descendant: Element<D, P>; key: string }[]> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -121,11 +121,7 @@ export default class Element<D extends object, P extends object> {
   #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances) {
-        const Ids = Array.isArray(descendants)
-          ? descendants.map(descendant => descendant.#Id)
-          : [descendants.#Id]
-
-        for (const Id of Ids) {
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           let dataKey: string = ''
 
           const getData = (key: keyof D): D[keyof D] => {
@@ -137,6 +133,7 @@ export default class Element<D extends object, P extends object> {
           const data: [string, P][] = Object.entries({
             ...values((key: keyof D) => getData(key))
           })
+          const Id = descendant.#Id
 
           for (const [key, value] of data) {
             const chain: Record<string, P> = propsChain.get(Id) ?? {}
@@ -145,16 +142,14 @@ export default class Element<D extends object, P extends object> {
               propsChain.set(Id, { ...chain, [key]: value })
 
               this.#propsMap.has(dataKey)
-                ? this.#propsMap.get(dataKey)?.push({ Id, key })
-                : this.#propsMap.set(dataKey, [{ Id, key }])
+                ? this.#propsMap.get(dataKey)?.push({ descendant, key })
+                : this.#propsMap.set(dataKey, [{ descendant, key }])
             }
           }
         }
       }
 
     this.#propsChain = new Map(propsChain)
-
-    console.log(this.#propsMap)
 
     for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {}))
       this.#props[key as keyof P] = value as P[keyof P]
@@ -398,7 +393,7 @@ export default class Element<D extends object, P extends object> {
     return this.#clone({ Id: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
   }
 
-  getData(key: keyof D): D[typeof key] {
+  getData<K extends keyof D>(key: K): D[K] {
     if (key in this.#data) return this.#data[key]
 
     throw Error(`${key as string} is not defined in data...`)
