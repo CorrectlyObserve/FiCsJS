@@ -118,7 +118,7 @@ export default class WelyElement<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #setPropsChain(propsChain: PropsChain<P> = this.#propsChain): void {
+  #setProps(propsChain: PropsChain<P> = this.#propsChain): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances) {
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -339,7 +339,7 @@ export default class WelyElement<D extends object, P extends object> {
 
     const wely = that.#component ?? document.createElement(tagName)
 
-    that.#setPropsChain(propsChain)
+    that.#setProps(propsChain)
     that.#addClass(wely)
     that.#addHtml(that.#getShadowRoot(wely))
     that.#addCss(that.#getShadowRoot(wely))
@@ -356,7 +356,7 @@ export default class WelyElement<D extends object, P extends object> {
 
     if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
-    that.#setPropsChain(propsChain)
+    that.#setProps(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
       const elements = that.#convertHtml(html)
@@ -428,7 +428,7 @@ export default class WelyElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#setPropsChain()
+              that.#setProps()
               that.#addClass(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
