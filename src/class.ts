@@ -428,11 +428,10 @@ export default class WelyElement<D extends object, P extends object> {
 
   define(): void {
     const that = this.#clone()
-    const name = that.#getTagName()
 
-    if (!customElements.get(name))
+    if (!customElements.get(that.#getTagName()))
       customElements.define(
-        name,
+        that.#getTagName(),
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
