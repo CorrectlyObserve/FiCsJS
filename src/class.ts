@@ -25,7 +25,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
-  readonly #slot: Html<D, P> | Slot<D, P> | undefined = undefined
+  readonly #slot: Slot<D, P> | undefined = undefined
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
