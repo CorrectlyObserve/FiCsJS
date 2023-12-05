@@ -122,7 +122,7 @@ export default class Element<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #initializeProps(propsChain: PropsChain<P>, renewMap?: RenewPropsMap<D, P>): void {
+  #initializeProps(propsChain: PropsChain<P>, renewPropsMap?: RenewPropsMap<D, P>): void {
     if (this.#inheritances.length > 0) {
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -145,8 +145,8 @@ export default class Element<D extends object, P extends object> {
                 ? this.#propsMap.get(dataKey)?.push({ descendant, propsKey: key as keyof P })
                 : this.#propsMap.set(dataKey, [{ descendant, propsKey: key as keyof P }])
 
-              if (renewMap) {
-                renewMap.set(`${Id}-${key}`, (that: Element<D, P>) => {
+              if (renewPropsMap) {
+                renewPropsMap.set(`${Id}-${key}`, (that: Element<D, P>) => {
                   const propsMap = this.#propsMap.get(dataKey)
 
                   if (propsMap) {
@@ -166,7 +166,7 @@ export default class Element<D extends object, P extends object> {
     }
 
     this.#propsChain = new Map(propsChain)
-    this.#renewPropsMap = new Map(renewMap)
+    this.#renewPropsMap = new Map(renewPropsMap)
 
     for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {})) {
       this.#props[key as keyof P] = value as P[keyof P]
@@ -340,7 +340,7 @@ export default class Element<D extends object, P extends object> {
       })
   }
 
-  #render(propsChain: PropsChain<P>, renewMap: RenewPropsMap<D, P>): HTMLElement {
+  #render(propsChain: PropsChain<P>, renewPropsMap: RenewPropsMap<D, P>): HTMLElement {
     const that: Element<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
@@ -359,7 +359,7 @@ export default class Element<D extends object, P extends object> {
 
     const  = that.#component ?? document.createElement(tagName)
 
-    that.#initializeProps(propsChain, renewMap)
+    that.#initializeProps(propsChain, renewPropsMap)
     that.#addClass()
     that.#addHtml(that.#getShadowRoot())
     that.#addCss(that.#getShadowRoot())
