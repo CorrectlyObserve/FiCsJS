@@ -29,6 +29,9 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
+
+  readonly #propsMap: Map<string, { descendant: WelyElement<D, P>; propsKey: keyof P }[]> =
+    new Map()
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -37,7 +40,6 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #propsMap: Map<string, ((value: P[keyof P]) => void)[]> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -148,17 +150,20 @@ export default class WelyElement<D extends object, P extends object> {
               const propsKey = key as keyof P
 
               this.#propsMap.has(dataKey)
-                ? this.#propsMap.get(dataKey)?.push(value => descendant.#setProps(propsKey, value))
-                : this.#propsMap.set(dataKey, [value => descendant.#setProps(propsKey, value)])
+                ? this.#propsMap.get(dataKey)?.push({ descendant: descendant, propsKey })
+                : this.#propsMap.set(dataKey, [{ descendant: descendant, propsKey }])
             }
           }
         }
     }
 
-    this.#propsChain = new Map(propsChain)
-
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {}))
+    for (const [key, value] of Object.entries(propsChain.get(this.#welyId) ?? {}))
       this.#props[key as keyof P] = value as P[keyof P]
+
+    console.log(propsChain, this.#propsMap)
+
+    this.#propsChain = new Map(propsChain)
+    // console.log(this.#instance)
   }
 
   #addClass(wely?: HTMLElement): string | void {
@@ -202,7 +207,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
-    const elements = this.#convertHtml(html)
+    const elements: Sanitized<D, P> | undefined = this.#convertHtml(html)
 
     this.#dataBindings.html =
       typeof html === 'function' ||
@@ -217,8 +222,8 @@ export default class WelyElement<D extends object, P extends object> {
       for (const element of elements) {
         if (element instanceof WelyElement && element.#getTagName() === 'w-slot') {
           if (this.#slot) {
-            const slotName = this.#convertHtml(element.#html)?.[0] ?? ''
-            const slot = this.#getSlot(<string>slotName)
+            const slotName: string | WelyElement<D, P> = this.#convertHtml(element.#html)?.[0] ?? ''
+            const slot: Html<D, P> | undefined = this.#getSlot(<string>slotName)
 
             if (slot) this.#addHtml(shadowRoot, slot)
             else
@@ -259,16 +264,14 @@ export default class WelyElement<D extends object, P extends object> {
 
       if (!shadowRoot) return `<style>${style}</style>`
 
-      const stylesheet = new CSSStyleSheet()
+      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
       shadowRoot.adoptedStyleSheets = [stylesheet]
       stylesheet.replace(<string>style)
     }
   }
 
   #getShadowRoot(wely: HTMLElement): ShadowRoot {
-    const shadowRoot = wely.shadowRoot
-
-    if (shadowRoot) return wely.shadowRoot
+    if (wely.shadowRoot) return wely.shadowRoot
 
     throw Error(`${this.#name} does not have a shadowRoot...`)
   }
@@ -281,7 +284,7 @@ export default class WelyElement<D extends object, P extends object> {
         if (selector) {
           this.#dataBindings.events.push(index)
 
-          const elements = []
+          const elements: Element[] = []
           const getSelectors = (selector: string): Element[] =>
             Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
 
@@ -327,8 +330,8 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #render(propsChain?: PropsChain<P>): HTMLElement {
-    const that = this.#clone()
-    const tagName = that.#getTagName()
+    const that: WelyElement<D, P> = this.#clone()
+    const tagName: string = that.#getTagName()
 
     if (!customElements.get(tagName))
       customElements.define(
@@ -357,8 +360,8 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #renderOnServer(propsChain?: PropsChain<P>): string {
-    const that = this.#clone()
-    const tagName = that.#getTagName()
+    const that: WelyElement<D, P> = this.#clone()
+    const tagName: string = that.#getTagName()
 
     if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
@@ -371,8 +374,8 @@ export default class WelyElement<D extends object, P extends object> {
       if (elements) return <string>elements.reduce((prev, curr) => {
           if (curr instanceof WelyElement && curr.#getTagName() === 'w-slot') {
             if (that.#slot) {
-              const slotName = that.#convertHtml(curr.#html)?.[0] ?? ''
-              const slot = that.#getSlot(<string>slotName)
+              const slotName: string | WelyElement<D, P> = that.#convertHtml(curr.#html)?.[0] ?? ''
+              const slot: Html<D, P> | undefined = that.#getSlot(<string>slotName)
 
               if (slot) return prev + addHtml(slot)
 
@@ -410,8 +413,9 @@ export default class WelyElement<D extends object, P extends object> {
     else if (this.#data[key] !== value) {
       this.#data[key] = value
 
-      for (const setProps of this.#propsMap.get(key as string) ?? [])
-        console.log(setProps(value as unknown as P[keyof P]))
+      for (const { descendant, propsKey } of this.#propsMap.get(key as string) ?? []) {
+        console.log(descendant.#props, propsKey)
+      }
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
 
@@ -420,7 +424,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   define(): void {
-    const that = this.#clone()
+    const that: WelyElement<D, P> = this.#clone()
 
     if (!customElements.get(that.#getTagName()))
       customElements.define(
