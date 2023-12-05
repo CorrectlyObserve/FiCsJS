@@ -8,6 +8,7 @@ import {
   Props,
   PropsChain,
   Reflections,
+  RenewPropsMap,
   Sanitized,
   Slot,
   Wely
@@ -40,7 +41,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #renewPropsMap: Map<string, (that: WelyElement<D, P>) => void> = new Map()
+  #renewPropsMap: RenewPropsMap<D, P> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -121,10 +122,7 @@ export default class WelyElement<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #initializeProps(
-    propsChain: PropsChain<P>,
-    renewMap?: Map<string, (that: WelyElement<D, P>) => void>
-  ): void {
+  #initializeProps(propsChain: PropsChain<P>, renewMap?: RenewPropsMap<D, P>): void {
     if (this.#inheritances.length > 0) {
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -342,10 +340,7 @@ export default class WelyElement<D extends object, P extends object> {
       })
   }
 
-  #render(
-    propsChain: PropsChain<P>,
-    renewMap: Map<string, (that: WelyElement<D, P>) => void>
-  ): HTMLElement {
+  #render(propsChain: PropsChain<P>, renewMap: RenewPropsMap<D, P>): HTMLElement {
     const that: WelyElement<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
