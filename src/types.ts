@@ -35,7 +35,10 @@ export type PropsChain<P> = Map<string, Record<string, P>>
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
-export type RenewPropsMap<D extends object, P extends object> = Map<string, (that: WelyElement<D, P>) => void>
+export type RenewPropsMap<P extends object> = Map<
+  string,
+  (welyId: string, setProps: (key: keyof P, value: P[typeof key]) => void) => void
+>
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
 
