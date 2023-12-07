@@ -31,8 +31,10 @@ export default class Element<D extends object, P extends object> {
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
 
-  readonly #propsMap: Map<string, { Id: string; setProps: (value: P[keyof P]) => void }[]> =
-    new Map()
+  readonly #propsMap: Map<
+    string,
+    { descendantId: string; setProps: (value: P[keyof P]) => void }[]
+  > = new Map()
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -41,7 +43,7 @@ export default class Element<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #renewPropsMap: RenewPropsMap<D, P> = new Map()
+  #renewPropsMap: RenewPropsMap<P> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -114,15 +116,15 @@ export default class Element<D extends object, P extends object> {
     })
   }
 
-  #toKebabCase(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  #setProps(key: keyof P, value: P[typeof key]): void {
+    if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
+    else if (this.#props[key] !== value) {
+      this.#props[key] = value
+      console.log('props', key, this.#props[key])
+    }
   }
 
-  #getTagName(): string {
-    return `w-${this.#toKebabCase(this.#name)}`
-  }
-
-  #initializeProps(propsChain: PropsChain<P>, renewPropsMap?: RenewPropsMap<D, P>): void {
+  #initializeProps(propsChain: PropsChain<P>, renewPropsMap?: RenewPropsMap<P>): void {
     if (this.#inheritances.length > 0) {
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -135,45 +137,44 @@ export default class Element<D extends object, P extends object> {
           })
 
           for (const [key, value] of data) {
-            const Id: string = descendant.#Id
-            const chain: Record<string, P> = propsChain.get(Id) ?? {}
+            const descendantId: string = descendant.#Id
+            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (!(key in chain) || !propsChain.has(Id)) {
-              propsChain.set(Id, { ...chain, [key]: value })
+            if (!(key in chain) || !propsChain.has(descendantId)) {
+              propsChain.set(descendantId, { ...chain, [key]: value })
 
               this.#propsMap.has(dataKey)
                 ? this.#propsMap.get(dataKey)?.push({
-                    Id,
+                    descendantId,
                     setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
                   })
                 : this.#propsMap.set(dataKey, [
                     {
-                      Id,
+                      descendantId,
                       setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
                     }
                   ])
 
               if (renewPropsMap)
-                renewPropsMap.set(`${Id}-${key}`, (that: Element<D, P>) => {
+                renewPropsMap.set(`${descendantId}-${key}`, (Id, newSetProps) => {
                   const propsMap:
                     | {
-                        Id: string
+                        descendantId: string
                         setProps: (value: P[keyof P]) => void
                       }[]
                     | undefined = this.#propsMap.get(dataKey)
 
-                  if (propsMap) {
+                  if (propsMap)
                     this.#propsMap.set(
                       dataKey,
-                      propsMap.map(({ Id, setProps }) => ({
-                        Id,
+                      propsMap.map(({ descendantId, setProps }) => ({
+                        descendantId: descendantId,
                         setProps:
-                          Id === that.#Id
-                            ? (value: P[keyof P]) => that.#setProps(key as keyof P, value)
+                          descendantId === Id
+                            ? (value: P[keyof P]) => newSetProps(key as keyof P, value)
                             : setProps
                       }))
                     )
-                  }
                 })
             }
           }
@@ -182,13 +183,19 @@ export default class Element<D extends object, P extends object> {
 
     this.#propsChain = new Map(propsChain)
     this.#renewPropsMap = new Map(renewPropsMap)
+    const Id = this.#Id
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {})) {
+    for (const [key, value] of Object.entries(this.#propsChain.get(Id) ?? {})) {
       this.#props[key as keyof P] = value as P[keyof P]
 
-      const renewPropsMap = this.#renewPropsMap.get(`${this.#Id}-${key}`)
-      if (renewPropsMap) renewPropsMap(this)
+      const renewPropsMap = this.#renewPropsMap.get(`${Id}-${key}`)
+      if (renewPropsMap)
+        renewPropsMap(Id, (key: keyof P, value: P[typeof key]) => this.#setProps(key, value))
     }
+  }
+
+  #toKebabCase(str: string): string {
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #addClass(?: HTMLElement): string | void {
@@ -215,6 +222,10 @@ export default class Element<D extends object, P extends object> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })[symbol]
       : html[symbol]
+  }
+
+  #getTagName(): string {
+    return `w-${this.#toKebabCase(this.#name)}`
   }
 
   #getSlot(slotName: string): Html<D, P> | undefined {
@@ -354,7 +365,7 @@ export default class Element<D extends object, P extends object> {
       })
   }
 
-  #render(propsChain: PropsChain<P>, renewPropsMap: RenewPropsMap<D, P>): HTMLElement {
+  #render(propsChain: PropsChain<P>, renewPropsMap: RenewPropsMap<P>): HTMLElement {
     const that: Element<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
@@ -421,14 +432,6 @@ export default class Element<D extends object, P extends object> {
           ${addHtml(that.#html)}
         </${tagName}>
       `.trim()
-  }
-
-  #setProps(key: keyof P, value: P[typeof key]): void {
-    if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
-    else if (this.#props[key] !== value) {
-      this.#props[key] = value
-      console.log('props', key, this.#props[key])
-    }
   }
 
   overwrite(partialData: () => Partial<D>): Element<D, P> {
