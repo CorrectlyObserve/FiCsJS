@@ -31,7 +31,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
 
-  readonly #propsMap: Map<string, { descendant: WelyElement<D, P>; propsKey: keyof P }[]> =
+  readonly #propsMap: Map<string, { welyId: string; setProps: (value: P[keyof P]) => void }[]> =
     new Map()
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
@@ -142,21 +142,35 @@ export default class WelyElement<D extends object, P extends object> {
               propsChain.set(welyId, { ...chain, [key]: value })
 
               this.#propsMap.has(dataKey)
-                ? this.#propsMap.get(dataKey)?.push({ descendant, propsKey: key as keyof P })
-                : this.#propsMap.set(dataKey, [{ descendant, propsKey: key as keyof P }])
+                ? this.#propsMap.get(dataKey)?.push({
+                    welyId,
+                    setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
+                  })
+                : this.#propsMap.set(dataKey, [
+                    {
+                      welyId,
+                      setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
+                    }
+                  ])
 
               if (renewPropsMap)
                 renewPropsMap.set(`${welyId}-${key}`, (that: WelyElement<D, P>) => {
                   const propsMap:
-                    | { descendant: WelyElement<D, P>; propsKey: keyof P }[]
+                    | {
+                        welyId: string
+                        setProps: (value: P[keyof P]) => void
+                      }[]
                     | undefined = this.#propsMap.get(dataKey)
 
                   if (propsMap) {
                     this.#propsMap.set(
                       dataKey,
-                      propsMap.map(({ descendant, propsKey }) => ({
-                        descendant: descendant.#welyId === that.#welyId ? that : descendant,
-                        propsKey
+                      propsMap.map(({ welyId, setProps }) => ({
+                        welyId,
+                        setProps:
+                          welyId === that.#welyId
+                            ? (value: P[keyof P]) => that.#setProps(key as keyof P, value)
+                            : setProps
                       }))
                     )
                   }
@@ -434,8 +448,8 @@ export default class WelyElement<D extends object, P extends object> {
 
       console.log('data', key, this.#data[key])
 
-      for (const { descendant, propsKey } of this.#propsMap.get(key as string) ?? [])
-        descendant.#setProps(propsKey, value as unknown as P[keyof P])
+      for (const { setProps } of this.#propsMap.get(key as string) ?? [])
+        setProps(value as unknown as P[keyof P])
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
     }
