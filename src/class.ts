@@ -145,21 +145,22 @@ export default class WelyElement<D extends object, P extends object> {
                 ? this.#propsMap.get(dataKey)?.push({ descendant, propsKey: key as keyof P })
                 : this.#propsMap.set(dataKey, [{ descendant, propsKey: key as keyof P }])
 
-              if (renewPropsMap) {
+              if (renewPropsMap)
                 renewPropsMap.set(`${welyId}-${key}`, (that: WelyElement<D, P>) => {
-                  const propsMap = this.#propsMap.get(dataKey)
+                  const propsMap:
+                    | { descendant: WelyElement<D, P>; propsKey: keyof P }[]
+                    | undefined = this.#propsMap.get(dataKey)
 
                   if (propsMap) {
                     this.#propsMap.set(
                       dataKey,
-                      propsMap.map(map => ({
-                        descendant: map.descendant.#welyId === that.#welyId ? that : map.descendant,
-                        propsKey: map.propsKey
+                      propsMap.map(({ descendant, propsKey }) => ({
+                        descendant: descendant.#welyId === that.#welyId ? that : descendant,
+                        propsKey
                       }))
                     )
                   }
                 })
-              }
             }
           }
         }
@@ -172,7 +173,6 @@ export default class WelyElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
 
       const renewPropsMap = this.#renewPropsMap.get(`${this.#welyId}-${key}`)
-
       if (renewPropsMap) renewPropsMap(this)
     }
   }
@@ -432,12 +432,12 @@ export default class WelyElement<D extends object, P extends object> {
     else if (this.#data[key] !== value) {
       this.#data[key] = value
 
+      console.log('data', key, this.#data[key])
+
       for (const { descendant, propsKey } of this.#propsMap.get(key as string) ?? [])
         descendant.#setProps(propsKey, value as unknown as P[keyof P])
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
-
-      console.log('data', key, this.#data[key])
     }
   }
 
