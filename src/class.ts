@@ -31,8 +31,10 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
 
-  readonly #propsMap: Map<string, { welyId: string; setProps: (value: P[keyof P]) => void }[]> =
-    new Map()
+  readonly #propsMap: Map<
+    string,
+    { descendantId: string; setProps: (value: P[keyof P]) => void }[]
+  > = new Map()
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -41,7 +43,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #renewPropsMap: RenewPropsMap<D, P> = new Map()
+  #renewPropsMap: RenewPropsMap<P> = new Map()
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -114,15 +116,15 @@ export default class WelyElement<D extends object, P extends object> {
     })
   }
 
-  #toKebabCase(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  #setProps(key: keyof P, value: P[typeof key]): void {
+    if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
+    else if (this.#props[key] !== value) {
+      this.#props[key] = value
+      console.log('props', key, this.#props[key])
+    }
   }
 
-  #getTagName(): string {
-    return `w-${this.#toKebabCase(this.#name)}`
-  }
-
-  #initializeProps(propsChain: PropsChain<P>, renewPropsMap?: RenewPropsMap<D, P>): void {
+  #initializeProps(propsChain: PropsChain<P>, renewPropsMap?: RenewPropsMap<P>): void {
     if (this.#inheritances.length > 0) {
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -135,45 +137,44 @@ export default class WelyElement<D extends object, P extends object> {
           })
 
           for (const [key, value] of data) {
-            const welyId: string = descendant.#welyId
-            const chain: Record<string, P> = propsChain.get(welyId) ?? {}
+            const descendantId: string = descendant.#welyId
+            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (!(key in chain) || !propsChain.has(welyId)) {
-              propsChain.set(welyId, { ...chain, [key]: value })
+            if (!(key in chain) || !propsChain.has(descendantId)) {
+              propsChain.set(descendantId, { ...chain, [key]: value })
 
               this.#propsMap.has(dataKey)
                 ? this.#propsMap.get(dataKey)?.push({
-                    welyId,
+                    descendantId,
                     setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
                   })
                 : this.#propsMap.set(dataKey, [
                     {
-                      welyId,
+                      descendantId,
                       setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
                     }
                   ])
 
               if (renewPropsMap)
-                renewPropsMap.set(`${welyId}-${key}`, (that: WelyElement<D, P>) => {
+                renewPropsMap.set(`${descendantId}-${key}`, (welyId, newSetProps) => {
                   const propsMap:
                     | {
-                        welyId: string
+                        descendantId: string
                         setProps: (value: P[keyof P]) => void
                       }[]
                     | undefined = this.#propsMap.get(dataKey)
 
-                  if (propsMap) {
+                  if (propsMap)
                     this.#propsMap.set(
                       dataKey,
-                      propsMap.map(({ welyId, setProps }) => ({
-                        welyId,
+                      propsMap.map(({ descendantId, setProps }) => ({
+                        descendantId: descendantId,
                         setProps:
-                          welyId === that.#welyId
-                            ? (value: P[keyof P]) => that.#setProps(key as keyof P, value)
+                          descendantId === welyId
+                            ? (value: P[keyof P]) => newSetProps(key as keyof P, value)
                             : setProps
                       }))
                     )
-                  }
                 })
             }
           }
@@ -182,13 +183,19 @@ export default class WelyElement<D extends object, P extends object> {
 
     this.#propsChain = new Map(propsChain)
     this.#renewPropsMap = new Map(renewPropsMap)
+    const welyId = this.#welyId
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {})) {
+    for (const [key, value] of Object.entries(this.#propsChain.get(welyId) ?? {})) {
       this.#props[key as keyof P] = value as P[keyof P]
 
-      const renewPropsMap = this.#renewPropsMap.get(`${this.#welyId}-${key}`)
-      if (renewPropsMap) renewPropsMap(this)
+      const renewPropsMap = this.#renewPropsMap.get(`${welyId}-${key}`)
+      if (renewPropsMap)
+        renewPropsMap(welyId, (key: keyof P, value: P[typeof key]) => this.#setProps(key, value))
     }
+  }
+
+  #toKebabCase(str: string): string {
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #addClass(wely?: HTMLElement): string | void {
@@ -215,6 +222,10 @@ export default class WelyElement<D extends object, P extends object> {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })[symbol]
       : html[symbol]
+  }
+
+  #getTagName(): string {
+    return `w-${this.#toKebabCase(this.#name)}`
   }
 
   #getSlot(slotName: string): Html<D, P> | undefined {
@@ -354,7 +365,7 @@ export default class WelyElement<D extends object, P extends object> {
       })
   }
 
-  #render(propsChain: PropsChain<P>, renewPropsMap: RenewPropsMap<D, P>): HTMLElement {
+  #render(propsChain: PropsChain<P>, renewPropsMap: RenewPropsMap<P>): HTMLElement {
     const that: WelyElement<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
@@ -421,14 +432,6 @@ export default class WelyElement<D extends object, P extends object> {
           ${addHtml(that.#html)}
         </${tagName}>
       `.trim()
-  }
-
-  #setProps(key: keyof P, value: P[typeof key]): void {
-    if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
-    else if (this.#props[key] !== value) {
-      this.#props[key] = value
-      console.log('props', key, this.#props[key])
-    }
   }
 
   overwrite(partialData: () => Partial<D>): WelyElement<D, P> {
