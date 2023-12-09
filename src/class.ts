@@ -30,6 +30,8 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
+
+  readonly #propsTrees: PropsTrees<P> = []
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -38,7 +40,6 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #propsTrees: PropsTrees<P> = []
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -132,17 +133,16 @@ export default class WelyElement<D extends object, P extends object> {
           })
 
           for (const [key, value] of data) {
-            const descendantId: string = descendant.#welyId
-            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
+            const chain: Record<string, P> = propsChain.get(descendant.#welyId) ?? {}
 
-            if (!(key in chain) || !propsChain.has(descendantId)) {
-              propsChain.set(descendantId, { ...chain, [key]: value })
+            if (!(key in chain) || !propsChain.has(descendant.#welyId)) {
+              propsChain.set(descendant.#welyId, { ...chain, [key]: value })
 
               const propsKey = key as keyof P
 
               this.#propsTrees.push({
                 ancestorId: this.#welyId,
-                descendantId,
+                descendantId: descendant.#welyId,
                 dataKey,
                 propsKey,
                 setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
@@ -156,10 +156,8 @@ export default class WelyElement<D extends object, P extends object> {
 
     console.log(this.#propsTrees)
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {})) {
-      const propsKey = key as keyof P
-      this.#props[propsKey] = value as P[keyof P]
-    }
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {}))
+      this.#props[key as keyof P] = value as P[keyof P]
   }
 
   #toKebabCase(str: string): string {
