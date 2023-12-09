@@ -7,8 +7,8 @@ import {
   Html,
   Props,
   PropsChain,
+  PropsTrees,
   Reflections,
-  RenewPropsMap,
   Sanitized,
   Slot,
   Wely
@@ -30,11 +30,6 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
-
-  readonly #propsMap: Map<
-    string,
-    { descendantId: string; setProps: (value: P[keyof P]) => void }[]
-  > = new Map()
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -43,7 +38,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #renewPropsMap: RenewPropsMap<P> = new Map()
+  #propsTrees: PropsTrees<P> = []
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -124,7 +119,7 @@ export default class WelyElement<D extends object, P extends object> {
     }
   }
 
-  #initializeProps(propsChain: PropsChain<P>, renewPropsMap?: RenewPropsMap<P>): void {
+  #initializeProps(propsChain: PropsChain<P>): void {
     if (this.#inheritances.length > 0) {
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -143,54 +138,27 @@ export default class WelyElement<D extends object, P extends object> {
             if (!(key in chain) || !propsChain.has(descendantId)) {
               propsChain.set(descendantId, { ...chain, [key]: value })
 
-              this.#propsMap.has(dataKey)
-                ? this.#propsMap.get(dataKey)?.push({
-                    descendantId,
-                    setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
-                  })
-                : this.#propsMap.set(dataKey, [
-                    {
-                      descendantId,
-                      setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
-                    }
-                  ])
+              const propsKey = key as keyof P
 
-              if (renewPropsMap)
-                renewPropsMap.set(`${descendantId}-${key}`, (welyId, newSetProps) => {
-                  const propsMap:
-                    | {
-                        descendantId: string
-                        setProps: (value: P[keyof P]) => void
-                      }[]
-                    | undefined = this.#propsMap.get(dataKey)
-
-                  if (propsMap)
-                    this.#propsMap.set(
-                      dataKey,
-                      propsMap.map(({ descendantId, setProps }) => ({
-                        descendantId: descendantId,
-                        setProps:
-                          descendantId === welyId
-                            ? (value: P[keyof P]) => newSetProps(key as keyof P, value)
-                            : setProps
-                      }))
-                    )
-                })
+              this.#propsTrees.push({
+                ancestorId: this.#welyId,
+                descendantId,
+                dataKey,
+                propsKey,
+                setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
+              })
             }
           }
         }
     }
 
     this.#propsChain = new Map(propsChain)
-    this.#renewPropsMap = new Map(renewPropsMap)
-    const welyId = this.#welyId
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(welyId) ?? {})) {
-      this.#props[key as keyof P] = value as P[keyof P]
+    console.log(this.#propsTrees)
 
-      const renewPropsMap = this.#renewPropsMap.get(`${welyId}-${key}`)
-      if (renewPropsMap)
-        renewPropsMap(welyId, (key: keyof P, value: P[typeof key]) => this.#setProps(key, value))
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {})) {
+      const propsKey = key as keyof P
+      this.#props[propsKey] = value as P[keyof P]
     }
   }
 
@@ -268,7 +236,7 @@ export default class WelyElement<D extends object, P extends object> {
         } else
           shadowRoot.appendChild(
             element instanceof WelyElement
-              ? element.#component ?? element.#render(this.#propsChain, this.#renewPropsMap)
+              ? element.#component ?? element.#render(this.#propsChain)
               : document.createRange().createContextualFragment(element)
           )
       }
@@ -365,7 +333,7 @@ export default class WelyElement<D extends object, P extends object> {
       })
   }
 
-  #render(propsChain: PropsChain<P>, renewPropsMap: RenewPropsMap<P>): HTMLElement {
+  #render(propsChain: PropsChain<P>): HTMLElement {
     const that: WelyElement<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
@@ -384,7 +352,7 @@ export default class WelyElement<D extends object, P extends object> {
 
     const wely = that.#component ?? document.createElement(tagName)
 
-    that.#initializeProps(propsChain, renewPropsMap)
+    that.#initializeProps(propsChain)
     that.#addClass(wely)
     that.#addHtml(that.#getShadowRoot(wely))
     that.#addCss(that.#getShadowRoot(wely))
@@ -451,7 +419,9 @@ export default class WelyElement<D extends object, P extends object> {
 
       console.log('data', key, this.#data[key])
 
-      for (const { setProps } of this.#propsMap.get(key as string) ?? [])
+      for (const { setProps } of this.#propsTrees.filter(
+        tree => tree.ancestorId === this.#welyId && tree.dataKey === key
+      ))
         setProps(value as unknown as P[keyof P])
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
@@ -476,7 +446,7 @@ export default class WelyElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#initializeProps(that.#propsChain, that.#renewPropsMap)
+              that.#initializeProps(that.#propsChain)
               that.#addClass(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
