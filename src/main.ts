@@ -1,5 +1,5 @@
-import { html, slot,  } from './'
-import cssUrl from './style.css?inline'
+import { html, slot,  } from './packages/core/'
+import cssUrl from './styles/style.css?inline'
 
 const child = ({
   name: 'child',
