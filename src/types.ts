@@ -9,6 +9,8 @@ export type Css<D, P> = (
   | { selector: string; style: ArrowFuncOrValue<Record<string, string | number>, D, P> }
 )[]
 
+type Descendant = WelyElement<any, any>
+
 export type Events<D, P> = {
   handler: string
   selector?: string
@@ -17,28 +19,31 @@ export type Events<D, P> = {
       data,
       setData,
       props
-    }: { data: D; setData: (key: keyof D, value: D[keyof D]) => void; props: P },
+    }: { data: D; setData: (key: keyof D, value: D[typeof key]) => void; props: P },
     event: Event
   ) => void
 }[]
 
-export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (WelyElement<any, any> | string)[]>, D, P>
+export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (Descendant | string)[]>, D, P>
 
 export type Props<D> = {
-  descendants: WelyElement<any, any> | WelyElement<any, any>[]
-  values: (data: D) => any
+  descendants: Descendant | Descendant[]
+  values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
 
-export interface PropsChain<P> {
-  descendants: Set<string>
-  chains: Record<string, P>
-}
+export type PropsChain<P> = Map<string, Record<string, P>>
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
 
-export type Slot<D, P> = (Html<D, P> | { name: string; contents: Html<D, P> })[]
+export type Slot<D, P> = Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[]
+
+export type UpdatePropsTrees<P> = {
+  descendantId: string
+  propsKey: keyof P
+  updateSetProps: (setProps: (value: P[keyof P]) => void) => void
+}[]
 
 export interface Wely<D, P> {
   welyId?: string
@@ -48,8 +53,8 @@ export interface Wely<D, P> {
   isOnlyCsr?: boolean
   className?: Class<D, P>
   html: Html<D, P>
-  slot?: Html<D, P> | Slot<D, P>
+  slot?: Slot<D, P>
   css?: Css<D, P>
   events?: Events<D, P>
-  reflections?: () => Reflections<D>
+  reflections?: Reflections<D>
 }

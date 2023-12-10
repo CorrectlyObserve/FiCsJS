@@ -10,7 +10,6 @@ const child = wely({
     back: 'black',
     arr: [1, 2, 3],
     obj: { key: 'value' },
-    email: '',
     countedNum: (count: number) => count * 3
   }),
   isOnlyCsr: true,
@@ -45,10 +44,9 @@ const child = wely({
       method: ({ data: { message }, props: { click } }) => click(message)
     }
   ],
-  reflections: () => ({
-    count: count => console.log('count', count),
-    sample: sample => console.log(sample)
-  })
+  reflections: {
+    count: count => console.log('count', count)
+  }
 })
 
 const child2 = child.overwrite(() => ({ message: 'Good bye' }))
@@ -62,7 +60,7 @@ const parent = wely({
   props: [
     {
       descendants: child2,
-      values: ({ color, click }) => ({ color, click })
+      values: getData => ({ color: getData('color'), click: getData('click') })
     }
   ],
   className: 'test',
@@ -73,15 +71,15 @@ const parent = wely({
 
 const grandParent = wely({
   name: 'grandParent',
-  data: () => ({ color: 'green', fontSize: 24, number: 12 }),
+  data: () => ({ color: 'green', fontSize: 24, number: 12, email: '' }),
   props: [
     {
-      descendants: [child, child2],
-      values: ({ color }) => ({ color })
+      descendants: child2,
+      values: getData => ({ color: getData('color') })
     },
     {
       descendants: parent,
-      values: ({ color }) => ({ propsColor: color })
+      values: getData => ({ propsColor: getData('color') + '2' })
     }
   ],
   html: html` <p>Content is...</p>
@@ -99,6 +97,12 @@ const grandParent = wely({
       name: 'test',
       contents: html`${parent}`
     }
+  ],
+  events: [
+    {
+      handler: 'click',
+      method: ({ setData }) => setData('color', 'red')
+    }
   ]
 })
 
@@ -108,7 +112,7 @@ grandParent.define()
 
 fetch('https://jsonplaceholder.typicode.com/comments/1')
   .then(response => response.json())
-  .then(json => child.setData('email', json.email))
+  .then(json => grandParent.setData('email', json.email))
 
 let count = child.getData('count')
 
