@@ -33,19 +33,17 @@ export type Props<D> = {
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
-export type PropsTrees<P> = {
-  ancestorId: string
-  descendantId: string
-  dataKey: string
-  propsKey: keyof P
-  setProps: (value: P[keyof P]) => void
-}[]
-
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
 
 export type Slot<D, P> = Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[]
+
+export type UpdatePropsTrees<P> = {
+  descendantId: string
+  propsKey: keyof P
+  updateSetProps: (setProps: (value: P[keyof P]) => void) => void
+}[]
 
 export interface Wely<D, P> {
   welyId?: string
