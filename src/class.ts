@@ -7,10 +7,10 @@ import {
   Html,
   Props,
   PropsChain,
-  PropsTrees,
   Reflections,
   Sanitized,
   Slot,
+  UpdatePropsTrees,
   
 } from './types'
 
@@ -31,7 +31,12 @@ export default class Element<D extends object, P extends object> {
   readonly #events: Events<D, P> = []
   readonly #reflections: Reflections<D> | undefined = undefined
 
-  readonly #propsTrees: PropsTrees<P> = []
+  readonly #propsTrees: {
+    descendantId: string
+    dataKey: string
+    propsKey: keyof P
+    setProps: (value: P[keyof P]) => void
+  }[] = []
   readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
     class: false,
     html: false,
@@ -40,6 +45,7 @@ export default class Element<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
+  #updatePropsTrees: UpdatePropsTrees<P> = []
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -113,6 +119,8 @@ export default class Element<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
+    console.log(this.#props[key], value)
+
     if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
@@ -120,7 +128,7 @@ export default class Element<D extends object, P extends object> {
     }
   }
 
-  #initializeProps(propsChain: PropsChain<P>): void {
+  #initializeProps(propsChain: PropsChain<P>, updatePropsTrees: UpdatePropsTrees<P> = []): void {
     if (this.#inheritances.length > 0) {
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -131,33 +139,51 @@ export default class Element<D extends object, P extends object> {
               return this.getData(key)
             })
           })
+          const descendantId: string = descendant.#Id
 
           for (const [key, value] of data) {
-            const chain: Record<string, P> = propsChain.get(descendant.#Id) ?? {}
+            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (!(key in chain) || !propsChain.has(descendant.#Id)) {
-              propsChain.set(descendant.#Id, { ...chain, [key]: value })
+            if (!(key in chain) || !propsChain.has(descendantId)) {
+              propsChain.set(descendantId, { ...chain, [key]: value })
 
               const propsKey = key as keyof P
 
               this.#propsTrees.push({
-                ancestorId: this.#Id,
-                descendantId: descendant.#Id,
+                descendantId,
                 dataKey,
                 propsKey,
-                setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
+                setProps: (propsValue: P[keyof P]) => descendant.#setProps(propsKey, propsValue)
               })
-            }
+
+              updatePropsTrees.push({
+                descendantId,
+                propsKey,
+                updateSetProps: (setProps: (value: P[keyof P]) => void) => {
+                  for (const tree of this.#propsTrees)
+                    if (tree.descendantId === descendantId && tree.propsKey === propsKey)
+                      tree.setProps = (value: P[keyof P]) => setProps(value)
+                    else continue
+                }
+              })
+            } else continue
           }
         }
     }
 
     this.#propsChain = new Map(propsChain)
+    this.#updatePropsTrees = [...updatePropsTrees]
 
-    console.log(this.#propsTrees)
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {})) {
+      const propsKey = key as keyof P
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {}))
-      this.#props[key as keyof P] = value as P[keyof P]
+      this.#props[propsKey] = value as P[keyof P]
+
+      for (const tree of this.#updatePropsTrees)
+        if (tree.descendantId === this.#Id && tree.propsKey === propsKey)
+          tree.updateSetProps(() => this.#setProps(propsKey, this.#props[propsKey]))
+        else continue
+    }
   }
 
   #toKebabCase(str: string): string {
@@ -234,7 +260,7 @@ export default class Element<D extends object, P extends object> {
         } else
           shadowRoot.appendChild(
             element instanceof Element
-              ? element.#component ?? element.#render(this.#propsChain)
+              ? element.#component ?? element.#render(this.#propsChain, this.#updatePropsTrees)
               : document.createRange().createContextualFragment(element)
           )
       }
@@ -331,7 +357,7 @@ export default class Element<D extends object, P extends object> {
       })
   }
 
-  #render(propsChain: PropsChain<P>): HTMLElement {
+  #render(propsChain: PropsChain<P>, updatePropsTrees: UpdatePropsTrees<P>): HTMLElement {
     const that: Element<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
@@ -350,7 +376,7 @@ export default class Element<D extends object, P extends object> {
 
     const  = that.#component ?? document.createElement(tagName)
 
-    that.#initializeProps(propsChain)
+    that.#initializeProps(propsChain, updatePropsTrees)
     that.#addClass()
     that.#addHtml(that.#getShadowRoot())
     that.#addCss(that.#getShadowRoot())
@@ -417,10 +443,9 @@ export default class Element<D extends object, P extends object> {
 
       console.log('data', key, this.#data[key])
 
-      for (const { setProps } of this.#propsTrees.filter(
-        tree => tree.ancestorId === this.#Id && tree.dataKey === key
-      ))
-        setProps(value as unknown as P[keyof P])
+      this.#propsTrees
+        .find(tree => tree.dataKey === (key as string))
+        ?.setProps(this.#data[key] as unknown as P[keyof P])
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
     }
