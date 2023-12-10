@@ -1,5 +1,5 @@
-import { html, slot, wely } from './wely'
-import cssUrl from './style.css?inline'
+import { html, slot, wely } from './packages/core/wely'
+import cssUrl from './styles/style.css?inline'
 
 const child = wely({
   name: 'child',
