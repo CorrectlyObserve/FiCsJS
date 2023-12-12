@@ -231,34 +231,43 @@ export default class Element<D extends object, P extends object> {
     return this.#slot
   }
 
-  #render(propsChain: PropsChain<P>, updatePropsTrees: UpdatePropsTrees<P>): HTMLElement {
+  #renderOnServer(propsChain: PropsChain<P>): string {
     const that: Element<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
-    if (!customElements.get(tagName))
-      customElements.define(
-        tagName,
-        class extends HTMLElement {
-          readonly shadowRoot: ShadowRoot
+    if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
-          constructor() {
-            super()
-            this.shadowRoot = this.attachShadow({ mode: 'open' })
-          }
-        }
-      )
+    that.#initializeProps(propsChain, [])
 
-    const  = that.#component ?? document.createElement(tagName)
+    const addHtml = (html: Html<D, P>): string => {
+      const elements = that.#convertHtml(html)
+      const name = that.#name
 
-    that.#initializeProps(propsChain, updatePropsTrees)
-    that.#addClass()
-    that.#addHtml(that.#getShadowRoot())
-    that.#addCss(that.#getShadowRoot())
-    that.#addEvents()
+      if (elements) return <string>elements.reduce((prev, curr) => {
+          if (curr instanceof Element && curr.#getTagName() === 'w-slot') {
+            if (that.#slot) {
+              const slotName: string | Element<D, P> = that.#convertHtml(curr.#html)?.[0] ?? ''
+              const slot: Html<D, P> | undefined = that.#getSlot(<string>slotName)
 
-    if (!that.#component) that.#component = 
+              if (slot) return prev + addHtml(slot)
 
-    return 
+              throw Error(`${name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
+            } else throw Error(`${name} has no slot contents...`)
+          } else
+            return (
+              prev + (curr instanceof Element ? curr.#renderOnServer(that.#propsChain) : curr)
+            )
+        }, '')
+
+      throw Error(`${name} has to use html function (tagged template literal) in html argument.`)
+    }
+
+    return `
+        <${tagName} class="${that.#addClass()}">
+          <template shadowroot="open"><slot></slot>${that.#addCss() ?? ''}</template>
+          ${addHtml(that.#html)}
+        </${tagName}>
+      `.trim()
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
@@ -384,43 +393,34 @@ export default class Element<D extends object, P extends object> {
       })
   }
 
-  #renderOnServer(propsChain: PropsChain<P>): string {
+  #render(propsChain: PropsChain<P>, updatePropsTrees: UpdatePropsTrees<P>): HTMLElement {
     const that: Element<D, P> = this.#clone()
     const tagName: string = that.#getTagName()
 
-    if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
+    if (!customElements.get(tagName))
+      customElements.define(
+        tagName,
+        class extends HTMLElement {
+          readonly shadowRoot: ShadowRoot
 
-    that.#initializeProps(propsChain, [])
+          constructor() {
+            super()
+            this.shadowRoot = this.attachShadow({ mode: 'open' })
+          }
+        }
+      )
 
-    const addHtml = (html: Html<D, P>): string => {
-      const elements = that.#convertHtml(html)
-      const name = that.#name
+    const  = that.#component ?? document.createElement(tagName)
 
-      if (elements) return <string>elements.reduce((prev, curr) => {
-          if (curr instanceof Element && curr.#getTagName() === 'w-slot') {
-            if (that.#slot) {
-              const slotName: string | Element<D, P> = that.#convertHtml(curr.#html)?.[0] ?? ''
-              const slot: Html<D, P> | undefined = that.#getSlot(<string>slotName)
+    that.#initializeProps(propsChain, updatePropsTrees)
+    that.#addClass()
+    that.#addHtml(that.#getShadowRoot())
+    that.#addCss(that.#getShadowRoot())
+    that.#addEvents()
 
-              if (slot) return prev + addHtml(slot)
+    if (!that.#component) that.#component = 
 
-              throw Error(`${name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
-            } else throw Error(`${name} has no slot contents...`)
-          } else
-            return (
-              prev + (curr instanceof Element ? curr.#renderOnServer(that.#propsChain) : curr)
-            )
-        }, '')
-
-      throw Error(`${name} has to use html function (tagged template literal) in html argument.`)
-    }
-
-    return `
-        <${tagName} class="${that.#addClass()}">
-          <template shadowroot="open"><slot></slot>${that.#addCss() ?? ''}</template>
-          ${addHtml(that.#html)}
-        </${tagName}>
-      `.trim()
+    return 
   }
 
   overwrite(partialData: () => Partial<D>): Element<D, P> {
@@ -444,6 +444,10 @@ export default class Element<D extends object, P extends object> {
 
       if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
     }
+  }
+
+  ssr(): string {
+    return this.#renderOnServer(this.#propsChain)
   }
 
   define(): void {
@@ -474,9 +478,5 @@ export default class Element<D extends object, P extends object> {
           }
         }
       )
-  }
-
-  ssr(): string {
-    return this.#renderOnServer(this.#propsChain)
   }
 }
