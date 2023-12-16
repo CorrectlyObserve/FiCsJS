@@ -380,22 +380,6 @@ export default class Element<D extends object, P extends object> {
     return 
   }
 
-  overwrite(partialData: () => Partial<D>): Element<D, P> {
-    return new Element<D, P>({
-      Id: undefined,
-      name: this.#name,
-      data: () => <D>{ ...this.#data, ...partialData() },
-      props: this.#inheritances,
-      isOnlyCsr: this.#isOnlyCsr,
-      className: this.#class,
-      html: this.#html,
-      slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
-      css: this.#css,
-      events: this.#events,
-      reflections: this.#reflections
-    })
-  }
-
   getData<K extends keyof D>(key: K): D[typeof key] {
     if (key in this.#data) return this.#data[key]
 
@@ -421,11 +405,11 @@ export default class Element<D extends object, P extends object> {
   }
 
   define(): void {
-    const that = this
+    if (!customElements.get(this.#getTagName())) {
+      const that = this
 
-    if (!customElements.get(that.#getTagName()))
       customElements.define(
-        that.#getTagName(),
+        this.#getTagName(),
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
@@ -448,5 +432,6 @@ export default class Element<D extends object, P extends object> {
           }
         }
       )
+    }
   }
 }
