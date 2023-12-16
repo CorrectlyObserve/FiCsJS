@@ -39,12 +39,6 @@ export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> |
 
 export type Slot<D, P> = Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[]
 
-export type UpdatePropsTrees<P> = {
-  descendantId: string
-  propsKey: keyof P
-  updateSetProps: (setProps: (value: P[keyof P]) => void) => void
-}[]
-
 export interface Wely<D, P> {
   welyId?: string
   name: string
