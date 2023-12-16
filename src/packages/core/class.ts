@@ -1,4 +1,5 @@
 import generate from './generator'
+// import setQueue from './queue'
 import symbol from './symbol'
 import {
   Class,
@@ -10,7 +11,6 @@ import {
   Reflections,
   Sanitized,
   Slot,
-  UpdatePropsTrees,
   Wely
 } from './types'
 
@@ -45,7 +45,6 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #updatePropsTrees: UpdatePropsTrees<P> = []
   #component: HTMLElement | undefined = undefined
 
   constructor({
@@ -97,36 +96,16 @@ export default class WelyElement<D extends object, P extends object> {
     }
   }
 
-  #clone(
-    { welyId, data }: { welyId?: string; data?: () => D } = {
-      welyId: this.#welyId,
-      data: () => this.#data
-    }
-  ): WelyElement<D, P> {
-    return new WelyElement<D, P>({
-      welyId,
-      name: this.#name,
-      data,
-      props: this.#inheritances,
-      isOnlyCsr: this.#isOnlyCsr,
-      className: this.#class,
-      html: this.#html,
-      slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
-      css: this.#css,
-      events: this.#events,
-      reflections: this.#reflections
-    })
-  }
-
   #setProps(key: keyof P, value: P[typeof key]): void {
     if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
       console.log('props', key, this.#props[key])
+      // setQueue(this, this.#welyId)
     }
   }
 
-  #initializeProps(propsChain: PropsChain<P>, updatePropsTrees: UpdatePropsTrees<P>): void {
+  #initializeProps(propsChain: PropsChain<P>): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -153,34 +132,14 @@ export default class WelyElement<D extends object, P extends object> {
                 propsKey,
                 setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
               })
-
-              updatePropsTrees.push({
-                descendantId,
-                propsKey,
-                updateSetProps: (setProps: (value: P[keyof P]) => void) => {
-                  for (const tree of this.#propsTrees)
-                    if (tree.descendantId === descendantId && tree.propsKey === propsKey)
-                      tree.setProps = (value: P[keyof P]) => setProps(value)
-                    else continue
-                }
-              })
             } else continue
           }
         }
 
     this.#propsChain = new Map(propsChain)
-    this.#updatePropsTrees = [...updatePropsTrees]
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {})) {
-      const propsKey = key as keyof P
-
-      this.#props[propsKey] = value as P[keyof P]
-
-      for (const tree of this.#updatePropsTrees)
-        if (tree.descendantId === this.#welyId && tree.propsKey === propsKey)
-          tree.updateSetProps(value => this.#setProps(propsKey, value))
-        else continue
-    }
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#welyId) ?? {}))
+      this.#props[key as keyof P] = value as P[keyof P]
   }
 
   #toKebabCase(str: string): string {
@@ -232,22 +191,21 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
-    const that: WelyElement<D, P> = this.#clone()
-    const tagName: string = that.#getTagName()
+    const tagName: string = this.#getTagName()
 
-    if (that.#isOnlyCsr) return `<${tagName}></${tagName}>`
+    if (this.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
-    that.#initializeProps(propsChain, [])
+    this.#initializeProps(propsChain)
 
     const addHtml = (html: Html<D, P>): string => {
-      const elements = that.#convertHtml(html)
-      const name = that.#name
+      const elements = this.#convertHtml(html)
+      const name = this.#name
 
       if (elements) return <string>elements.reduce((prev, curr) => {
           if (curr instanceof WelyElement && curr.#getTagName() === 'w-slot') {
-            if (that.#slot) {
-              const slotName: string | WelyElement<D, P> = that.#convertHtml(curr.#html)?.[0] ?? ''
-              const slot: Html<D, P> | undefined = that.#getSlot(<string>slotName)
+            if (this.#slot) {
+              const slotName: string | WelyElement<D, P> = this.#convertHtml(curr.#html)?.[0] ?? ''
+              const slot: Html<D, P> | undefined = this.#getSlot(<string>slotName)
 
               if (slot) return prev + addHtml(slot)
 
@@ -255,7 +213,7 @@ export default class WelyElement<D extends object, P extends object> {
             } else throw Error(`${name} has no slot contents...`)
           } else
             return (
-              prev + (curr instanceof WelyElement ? curr.#renderOnServer(that.#propsChain) : curr)
+              prev + (curr instanceof WelyElement ? curr.#renderOnServer(this.#propsChain) : curr)
             )
         }, '')
 
@@ -263,9 +221,9 @@ export default class WelyElement<D extends object, P extends object> {
     }
 
     return `
-        <${tagName} class="${that.#addClass()}">
-          <template shadowroot="open"><slot></slot>${that.#addCss() ?? ''}</template>
-          ${addHtml(that.#html)}
+        <${tagName} class="${this.#addClass()}">
+          <template shadowroot="open"><slot></slot>${this.#addCss() ?? ''}</template>
+          ${addHtml(this.#html)}
         </${tagName}>
       `.trim()
   }
@@ -296,7 +254,7 @@ export default class WelyElement<D extends object, P extends object> {
         } else
           shadowRoot.appendChild(
             element instanceof WelyElement
-              ? element.#component ?? element.#render(this.#propsChain, this.#updatePropsTrees)
+              ? element.#component ?? element.#render(this.#propsChain)
               : document.createRange().createContextualFragment(element)
           )
       }
@@ -393,9 +351,8 @@ export default class WelyElement<D extends object, P extends object> {
       })
   }
 
-  #render(propsChain: PropsChain<P>, updatePropsTrees: UpdatePropsTrees<P>): HTMLElement {
-    const that: WelyElement<D, P> = this.#clone()
-    const tagName: string = that.#getTagName()
+  #render(propsChain: PropsChain<P>): HTMLElement {
+    const tagName: string = this.#getTagName()
 
     if (!customElements.get(tagName))
       customElements.define(
@@ -410,21 +367,33 @@ export default class WelyElement<D extends object, P extends object> {
         }
       )
 
-    const wely = that.#component ?? document.createElement(tagName)
+    const wely = this.#component ?? document.createElement(tagName)
 
-    that.#initializeProps(propsChain, updatePropsTrees)
-    that.#addClass(wely)
-    that.#addHtml(that.#getShadowRoot(wely))
-    that.#addCss(that.#getShadowRoot(wely))
-    that.#addEvents(wely)
+    this.#initializeProps(propsChain)
+    this.#addClass(wely)
+    this.#addHtml(this.#getShadowRoot(wely))
+    this.#addCss(this.#getShadowRoot(wely))
+    this.#addEvents(wely)
 
-    if (!that.#component) that.#component = wely
+    if (!this.#component) this.#component = wely
 
     return wely
   }
 
   overwrite(partialData: () => Partial<D>): WelyElement<D, P> {
-    return this.#clone({ welyId: undefined, data: () => <D>{ ...this.#data, ...partialData() } })
+    return new WelyElement<D, P>({
+      welyId: undefined,
+      name: this.#name,
+      data: () => <D>{ ...this.#data, ...partialData() },
+      props: this.#inheritances,
+      isOnlyCsr: this.#isOnlyCsr,
+      className: this.#class,
+      html: this.#html,
+      slot: Array.isArray(this.#slot) ? [...this.#slot] : this.#slot,
+      css: this.#css,
+      events: this.#events,
+      reflections: this.#reflections
+    })
   }
 
   getData<K extends keyof D>(key: K): D[typeof key] {
@@ -439,6 +408,7 @@ export default class WelyElement<D extends object, P extends object> {
       this.#data[key] = value
 
       console.log('data', key, value)
+      // setQueue(this, this.#welyId)
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
@@ -451,7 +421,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   define(): void {
-    const that: WelyElement<D, P> = this.#clone()
+    const that = this
 
     if (!customElements.get(that.#getTagName()))
       customElements.define(
@@ -468,7 +438,7 @@ export default class WelyElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered) {
-              that.#initializeProps(that.#propsChain, that.#updatePropsTrees)
+              that.#initializeProps(that.#propsChain)
               that.#addClass(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
