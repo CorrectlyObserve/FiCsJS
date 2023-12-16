@@ -47,7 +47,7 @@ export const wely = <D extends object, P extends object>({
   css,
   events,
   reflections
-}: Wely<D, P>) =>
+}: Wely<D, P>): WelyElement<D, P> =>
   new WelyElement({
     welyId: undefined,
     name,
