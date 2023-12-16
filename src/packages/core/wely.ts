@@ -47,7 +47,7 @@ export const  = <D extends object, P extends object>({
   css,
   events,
   reflections
-}: <D, P>) =>
+}: <D, P>): Element<D, P> =>
   new Element({
     Id: undefined,
     name,
