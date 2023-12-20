@@ -1,23 +1,21 @@
 import { html, wely } from './packages/core/wely'
-import Child2 from './child2'
+import { ChildType } from './child'
 
-const child2 = Child2()
+export const Parent = (child: ChildType) => {
+  let count = child.getData('count')
 
-let count = child2.getData('count')
+  const timer = setInterval(() => {
+    if (count >= 4) {
+      clearInterval(timer)
+      console.log('stop')
+    }
 
-const timer = setInterval(() => {
-  if (count >= 4) {
-    clearInterval(timer)
-    console.log('stop')
-  }
+    child.setData('count', ++count)
 
-  child2.setData('count', ++count)
+    console.log('continue')
+  }, 1000)
 
-  console.log('continue')
-}, 1000)
-
-const Parent = () =>
-  wely({
+  return wely({
     name: 'parent',
     data: () => ({
       color: 'blue',
@@ -25,14 +23,15 @@ const Parent = () =>
     }),
     props: [
       {
-        descendants: child2,
+        descendants: child,
         values: getData => ({ color: getData('color'), click: getData('click') })
       }
     ],
     className: 'test',
     html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
-      html`${child2}
+      html`${child}
         <p>propsColor: ${propsColor}</p>`
   })
+}
 
-export { child2, Parent }
+export type ParentType = ReturnType<typeof Parent>
