@@ -1,7 +1,7 @@
 import { html, wely } from './packages/core/wely'
 import cssUrl from './styles/style.css?inline'
 
-const Child = (message: string = 'Hello') =>
+export const Child = (message: string = 'Hello') =>
   wely({
     name: 'child',
     data: () => ({
@@ -50,4 +50,4 @@ const Child = (message: string = 'Hello') =>
     }
   })
 
-export default Child
+export type ChildType = ReturnType<typeof Child>
