@@ -1,35 +1,23 @@
 import generate from './generator'
 // import setQueue from './queue'
 import symbol from './symbol'
-import {
-  Class,
-  Css,
-  Events,
-  Html,
-  Props,
-  PropsChain,
-  Reflections,
-  Sanitized,
-  Slot,
-  Wely
-} from './types'
+import { Class, Css, Events, Html, Props, PropsChain, Reflections, Sanitized, Wely } from './types'
 
 const generator: Generator<number> = generate()
 
 export default class WelyElement<D extends object, P extends object> {
-  readonly #reservedWords: string[] = ['slot']
+  readonly #reservedWords: string[] = []
   readonly #welyId: string
   readonly #name: string
   readonly #data: D = <D>{}
+  readonly #reflections: Reflections<D> | undefined = undefined
   readonly #inheritances: Props<D> = []
   readonly #props: P = <P>{}
   readonly #isOnlyCsr: boolean = false
   readonly #class: Class<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
-  readonly #slot: Slot<D, P> | undefined = undefined
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
-  readonly #reflections: Reflections<D> | undefined = undefined
 
   readonly #propsTrees: {
     descendantId: string
@@ -55,7 +43,6 @@ export default class WelyElement<D extends object, P extends object> {
     isOnlyCsr,
     className,
     html,
-    slot,
     css,
     events,
     reflections
@@ -89,7 +76,6 @@ export default class WelyElement<D extends object, P extends object> {
       if (className) this.#class = className
 
       this.#html = typeof html === 'function' ? html : { ...html }
-      if (slot) this.#slot = Array.isArray(slot) ? [...slot] : slot
 
       if (css && css.length > 0) this.#css = [...css]
       if (events && events.length > 0) this.#events = [...events]
@@ -176,20 +162,6 @@ export default class WelyElement<D extends object, P extends object> {
     return `w-${this.#toKebabCase(this.#name)}`
   }
 
-  #getSlot(slotName: string): Html<D, P> | undefined {
-    if (Array.isArray(this.#slot)) {
-      const slot = this.#slot.find(slot =>
-        slotName === ''
-          ? !('name' in slot && 'contents' in slot)
-          : 'name' in slot && 'contents' in slot && slot.name === slotName
-      )
-
-      return slot && 'name' in slot && 'contents' in slot ? slot.contents : slot
-    }
-
-    return this.#slot
-  }
-
   #renderOnServer(propsChain: PropsChain<P>): string {
     const tagName: string = this.#getTagName()
 
@@ -199,31 +171,26 @@ export default class WelyElement<D extends object, P extends object> {
 
     const addHtml = (html: Html<D, P>): string => {
       const elements = this.#convertHtml(html)
-      const name = this.#name
 
-      if (elements) return <string>elements.reduce((prev, curr) => {
-          if (curr instanceof WelyElement && curr.#getTagName() === 'w-slot') {
-            if (this.#slot) {
-              const slotName: string | WelyElement<D, P> = this.#convertHtml(curr.#html)?.[0] ?? ''
-              const slot: Html<D, P> | undefined = this.#getSlot(<string>slotName)
+      if (elements)
+        return <string>(
+          elements.reduce(
+            (prev, curr) =>
+              prev + (curr instanceof WelyElement ? curr.#renderOnServer(this.#propsChain) : curr),
+            ''
+          )
+        )
 
-              if (slot) return prev + addHtml(slot)
-
-              throw Error(`${name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
-            } else throw Error(`${name} has no slot contents...`)
-          } else
-            return (
-              prev + (curr instanceof WelyElement ? curr.#renderOnServer(this.#propsChain) : curr)
-            )
-        }, '')
-
-      throw Error(`${name} has to use html function (tagged template literal) in html argument.`)
+      throw Error(
+        `${this.#name} has to use html function (tagged template literal) in html argument.`
+      )
     }
 
     return `
         <${tagName} class="${this.#addClass()}">
-          <template shadowroot="open"><slot></slot>${this.#addCss() ?? ''}</template>
-          ${addHtml(this.#html)}
+          <template shadowrootmode="open">
+            ${this.#addCss() ?? ''}${addHtml(this.#html)}
+          </template>
         </${tagName}>
       `.trim()
   }
@@ -231,33 +198,15 @@ export default class WelyElement<D extends object, P extends object> {
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
     const elements: Sanitized<D, P> | undefined = this.#convertHtml(html)
 
-    this.#dataBindings.html =
-      typeof html === 'function' ||
-      (Array.isArray(this.#slot)
-        ? this.#slot.some(
-            slot =>
-              typeof ('name' in slot && 'contents' in slot ? slot.contents : slot) === 'function'
-          )
-        : typeof this.#slot === 'function')
+    this.#dataBindings.html = typeof html === 'function'
 
     if (elements)
-      for (const element of elements) {
-        if (element instanceof WelyElement && element.#getTagName() === 'w-slot') {
-          if (this.#slot) {
-            const slotName: string | WelyElement<D, P> = this.#convertHtml(element.#html)?.[0] ?? ''
-            const slot: Html<D, P> | undefined = this.#getSlot(<string>slotName)
-
-            if (slot) this.#addHtml(shadowRoot, slot)
-            else
-              throw Error(`${this.#name} has no ${slotName === '' ? 'unnamed' : slotName} slot...`)
-          } else throw Error(`${this.#name} has no slot contents...`)
-        } else
-          shadowRoot.appendChild(
-            element instanceof WelyElement
-              ? element.#component ?? element.#render(this.#propsChain)
-              : document.createRange().createContextualFragment(element)
-          )
-      }
+      for (const element of elements)
+        shadowRoot.appendChild(
+          element instanceof WelyElement
+            ? element.#component ?? element.#render(this.#propsChain)
+            : document.createRange().createContextualFragment(element)
+        )
     else
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
