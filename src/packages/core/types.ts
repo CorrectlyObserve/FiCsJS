@@ -37,8 +37,6 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
 
-export type Slot<D, P> = Html<D, P> | (Html<D, P> | { name: string; contents: Html<D, P> })[]
-
 export interface Wely<D, P> {
   welyId?: string
   name: string
@@ -47,7 +45,6 @@ export interface Wely<D, P> {
   isOnlyCsr?: boolean
   className?: Class<D, P>
   html: Html<D, P>
-  slot?: Slot<D, P>
   css?: Css<D, P>
   events?: Events<D, P>
   reflections?: Reflections<D>
