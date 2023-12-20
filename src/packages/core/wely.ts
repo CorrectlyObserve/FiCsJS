@@ -33,9 +33,6 @@ export const html = <D extends object, P extends object>(
   return { [symbol]: <Sanitized<D, P>>result }
 }
 
-export const slot = (slot: string = ''): WelyElement<object, never> =>
-  new WelyElement({ welyId: 'slot', name: 'slot', html: html`${slot}` })
-
 export const wely = <D extends object, P extends object>({
   name,
   data,
@@ -43,7 +40,6 @@ export const wely = <D extends object, P extends object>({
   isOnlyCsr,
   className,
   html,
-  slot,
   css,
   events,
   reflections
@@ -56,7 +52,6 @@ export const wely = <D extends object, P extends object>({
     isOnlyCsr,
     className,
     html,
-    slot,
     css,
     events,
     reflections
