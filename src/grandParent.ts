@@ -1,15 +1,14 @@
-import { html, slot, wely } from './packages/core/wely'
-import { child2, Parent } from './parent'
+import { html, wely } from './packages/core/wely'
+import { ChildType } from './child'
+import { ParentType } from './parent'
 
-const parent = Parent()
-
-const GrandParent = (color: string) =>
+const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
   wely({
     name: 'grandParent',
     data: () => ({ color, fontSize: 24, number: 12, email: '' }),
     props: [
       {
-        descendants: child2,
+        descendants: child,
         values: getData => ({ color: getData('color') })
       },
       {
@@ -17,17 +16,10 @@ const GrandParent = (color: string) =>
         values: getData => ({ propsColor: getData('color') + '2' })
       }
     ],
-    html: html` <p>Content is...</p>
-      ${slot()}`,
-    slot: [
-      ({ data: { fontSize, number } }) => html`${parent}
-        <p>人数: ${number}</p>
-        <input value="${fontSize}" />`,
-      {
-        name: 'test',
-        contents: html`${parent}`
-      }
-    ],
+    html: ({ data: { fontSize, number } }) => html`<p>Content is...</p>
+      ${parent}
+      <p>人数: ${number}</p>
+      <input value="${fontSize}" />`,
     events: [
       {
         handler: 'click',
