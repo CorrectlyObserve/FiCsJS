@@ -36,23 +36,22 @@ export const html = <D extends object, P extends object>(
 export const  = <D extends object, P extends object>({
   name,
   data,
+  reflections,
   props,
   isOnlyCsr,
   className,
   html,
   css,
-  events,
-  reflections
+  events
 }: <D, P>): Element<D, P> =>
   new Element({
-    Id: undefined,
     name,
     data,
+    reflections,
     props,
     isOnlyCsr,
     className,
     html,
     css,
-    events,
-    reflections
+    events
   })
