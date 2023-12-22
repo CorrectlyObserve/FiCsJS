@@ -36,21 +36,20 @@ export default class WelyElement<D extends object, P extends object> {
   #component: HTMLElement | undefined = undefined
 
   constructor({
-    welyId,
     name,
     data,
+    reflections,
     props,
     isOnlyCsr,
     className,
     html,
     css,
     events,
-    reflections
   }: Wely<D, P>) {
-    if (welyId && !this.#reservedWords.includes(welyId) && this.#reservedWords.includes(name))
+    if (this.#reservedWords.includes(name))
       throw Error(`${name} is a reserved word in WelyJS...`)
     else {
-      this.#welyId = welyId ?? `wely${generator.next().value}`
+      this.#welyId = `wely${generator.next().value}`
       this.#name = name
 
       if (data) {
