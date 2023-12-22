@@ -36,23 +36,22 @@ export const html = <D extends object, P extends object>(
 export const wely = <D extends object, P extends object>({
   name,
   data,
+  reflections,
   props,
   isOnlyCsr,
   className,
   html,
   css,
-  events,
-  reflections
+  events
 }: Wely<D, P>): WelyElement<D, P> =>
   new WelyElement({
-    welyId: undefined,
     name,
     data,
+    reflections,
     props,
     isOnlyCsr,
     className,
     html,
     css,
-    events,
-    reflections
+    events
   })
