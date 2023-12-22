@@ -36,21 +36,20 @@ export default class Element<D extends object, P extends object> {
   #component: HTMLElement | undefined = undefined
 
   constructor({
-    Id,
     name,
     data,
+    reflections,
     props,
     isOnlyCsr,
     className,
     html,
     css,
     events,
-    reflections
   }: <D, P>) {
-    if (Id && !this.#reservedWords.includes(Id) && this.#reservedWords.includes(name))
+    if (this.#reservedWords.includes(name))
       throw Error(`${name} is a reserved word in JS...`)
     else {
-      this.#Id = Id ?? `${generator.next().value}`
+      this.#Id = `${generator.next().value}`
       this.#name = name
 
       if (data) {
