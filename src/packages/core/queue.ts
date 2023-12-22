@@ -1,23 +1,23 @@
-import Element from './class'
-
-const queue: Element<object, object>[] = []
+const queue: (() => void)[] = []
 const ids: string[] = []
 let hasQueue: boolean = false
 
 const processQueue = async (): Promise<void> => {
   while (queue.length > 0) {
-    const  = queue[0]
+    const func = queue[0]
 
     queue.shift()
     ids.shift()
+
+    func()
   }
 
   queue.length > 0 ? await processQueue() : (hasQueue = false)
 }
 
-const setQueue = async (: Element<any, any>, Id: string): Promise<void> => {
+const setQueue = async (func: () => void, Id: string): Promise<void> => {
   if (!ids.includes(Id)) {
-    queue.push()
+    queue.push(func)
     ids.push(Id)
 
     if (!hasQueue) {
