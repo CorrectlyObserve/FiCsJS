@@ -1,6 +1,6 @@
-import GrandParent from './grandParent'
-import { Parent } from './parent'
 import { Child } from './child'
+import { Parent } from './parent'
+import GrandParent from './grandParent'
 
 const child = Child('Good bye!')
 const parent = Parent(child)
@@ -12,4 +12,5 @@ fetch('https://jsonplaceholder.typicode.com/comments/1')
 
 console.log(grandParent.ssr())
 
+child.define()
 grandParent.define()
