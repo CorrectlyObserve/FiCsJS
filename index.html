@@ -9,7 +9,20 @@
   </head>
   <body>
     <div id="app">
-      <w-grand-parent class="grand-parent"></w-grand-parent>
+      <w-grand-parent class="grand-parent">
+        <template shadowrootmode="open">
+          <p>Content is...</p>
+          <w-parent class="parent test">
+            <template shadowrootmode="open">
+              <w-child></w-child>
+              <p>propsColor: green2</p>
+            </template>
+          </w-parent>
+          <p>人数: 12</p>
+          <input value="24" />
+        </template>
+      </w-grand-parent>
+      <w-child></w-child>
     </div>
   </body>
 </html>
