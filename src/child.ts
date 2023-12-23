@@ -13,6 +13,7 @@ export const Child = (message: string = 'Hello') =>
       obj: { key: 'value' },
       countedNum: (count: number) => count * 3
     }),
+    reflections: { count: count => console.log('count', count) },
     isOnlyCsr: true,
     className: ({ data: { back } }) => back,
     html: ({
@@ -44,10 +45,7 @@ export const Child = (message: string = 'Hello') =>
         handler: 'click',
         method: ({ data: { message }, props: { click } }) => click(message)
       }
-    ],
-    reflections: {
-      count: count => console.log('count', count)
-    }
+    ]
   })
 
 export type ChildType = ReturnType<typeof Child>
