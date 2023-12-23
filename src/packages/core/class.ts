@@ -1,5 +1,5 @@
 import generate from './generator'
-// import setQueue from './queue'
+import setQueue from './queue'
 import symbol from './symbol'
 import { Class, Css, Events, Html, Props, PropsChain, Reflections, Sanitized, Wely } from './types'
 
@@ -25,8 +25,8 @@ export default class WelyElement<D extends object, P extends object> {
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = []
-  readonly #dataBindings: { class: boolean; html: boolean; css: number[]; events: number[] } = {
-    class: false,
+  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; events: number[] } = {
+    className: false,
     html: false,
     css: [],
     events: []
@@ -44,10 +44,9 @@ export default class WelyElement<D extends object, P extends object> {
     className,
     html,
     css,
-    events,
+    events
   }: Wely<D, P>) {
-    if (this.#reservedWords.includes(name))
-      throw Error(`${name} is a reserved word in WelyJS...`)
+    if (this.#reservedWords.includes(name)) throw Error(`${name} is a reserved word in WelyJS...`)
     else {
       this.#welyId = `wely${generator.next().value}`
       this.#name = name
@@ -81,12 +80,19 @@ export default class WelyElement<D extends object, P extends object> {
     }
   }
 
+  #toKebabCase(str: string): string {
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  }
+
+  #getTagName(): string {
+    return `w-${this.#toKebabCase(this.#name)}`
+  }
+
   #setProps(key: keyof P, value: P[typeof key]): void {
     if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      console.log('props', key, this.#props[key])
-      // setQueue(this, this.#welyId)
+      setQueue(() => this.#reRender(), this.#welyId)
     }
   }
 
@@ -127,38 +133,48 @@ export default class WelyElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #toKebabCase(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-  }
-
-  #addClass(wely?: HTMLElement): string | void {
-    const name = this.#toKebabCase(this.#name)
-
-    if (this.#class) {
-      if (typeof this.#class === 'function') this.#dataBindings.class = true
-
-      const className = `${name} ${
-        typeof this.#class === 'function'
-          ? this.#class({ data: { ...this.#data }, props: { ...this.#props } })
-          : this.#class
-      }`
-
-      if (!wely) return className
-      wely.setAttribute('class', className)
-    } else {
-      if (!wely) return name
-      wely.classList.add(name)
-    }
-  }
-
   #convertHtml(html: Html<D, P>): Sanitized<D, P> | undefined {
     return typeof html === 'function'
       ? html({ data: { ...this.#data }, props: { ...this.#props } })[symbol]
       : html[symbol]
   }
 
-  #getTagName(): string {
-    return `w-${this.#toKebabCase(this.#name)}`
+  #addCss(shadowRoot?: ShadowRoot): string | void {
+    if (this.#css.length > 0) {
+      const style = this.#css.reduce((prev, curr, index) => {
+        if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
+          if (shadowRoot && typeof curr.style === 'function') this.#dataBindings.css.push(index)
+
+          const styleContent = Object.entries(
+            typeof curr.style === 'function'
+              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
+              : curr.style
+          )
+            .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
+            .join('\n')
+
+          return `${prev}${curr.selector}{${styleContent}}`
+        }
+
+        return `${prev}${curr}`
+      }, '')
+
+      if (!shadowRoot) return `<style>${style}</style>`
+
+      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
+      shadowRoot.adoptedStyleSheets = [stylesheet]
+      stylesheet.replace(<string>style)
+    }
+  }
+
+  #getClassName() {
+    return this.#class
+      ? `${this.#toKebabCase(this.#name)} ${
+          typeof this.#class === 'function'
+            ? this.#class({ data: { ...this.#data }, props: { ...this.#props } })
+            : this.#class
+        }`
+      : this.#toKebabCase(this.#name)
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
@@ -186,12 +202,17 @@ export default class WelyElement<D extends object, P extends object> {
     }
 
     return `
-        <${tagName} class="${this.#addClass()}">
+        <${tagName} class="${this.#getClassName()}">
           <template shadowrootmode="open">
             ${this.#addCss() ?? ''}${addHtml(this.#html)}
           </template>
         </${tagName}>
       `.trim()
+  }
+
+  #addClass(wely: HTMLElement): void {
+    if (typeof this.#class === 'function') this.#dataBindings.className = true
+    wely.setAttribute('class', this.#getClassName())
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
@@ -210,34 +231,6 @@ export default class WelyElement<D extends object, P extends object> {
       throw Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
-  }
-
-  #addCss(shadowRoot?: ShadowRoot | null): string | void {
-    if (this.#css.length > 0) {
-      const style = this.#css.reduce((prev, curr, index) => {
-        if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
-          if (typeof curr.style === 'function') this.#dataBindings.css.push(index)
-
-          const styleContent = Object.entries(
-            typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
-              : curr.style
-          )
-            .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
-            .join('\n')
-
-          return `${prev}${curr.selector}{${styleContent}}`
-        }
-
-        return `${prev}${curr}`
-      }, '')
-
-      if (!shadowRoot) return `<style>${style}</style>`
-
-      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-      shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replace(<string>style)
-    }
   }
 
   #getShadowRoot(wely: HTMLElement): ShadowRoot {
@@ -325,7 +318,28 @@ export default class WelyElement<D extends object, P extends object> {
 
     if (!this.#component) this.#component = wely
 
-    return wely
+    return this.#component
+  }
+
+  #reRender(): void {
+    if (this.#component) {
+      const { className, html, css, events } = this.#dataBindings
+
+      if (className) {
+        this.#component.classList.remove(...Array.from(this.#component.classList))
+        this.#addClass(this.#component)
+      }
+
+      if (html) {
+      }
+
+      if (css.length > 0) {
+      }
+
+      if (events.length > 0) {
+        for (const index of events) console.log(this.#events[index])
+      }
+    }
   }
 
   getData<K extends keyof D>(key: K): D[typeof key] {
@@ -338,9 +352,7 @@ export default class WelyElement<D extends object, P extends object> {
     if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-
-      console.log('data', key, value)
-      // setQueue(this, this.#welyId)
+      setQueue(() => this.#reRender(), this.#welyId)
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
@@ -365,16 +377,17 @@ export default class WelyElement<D extends object, P extends object> {
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
-            this.innerHTML = ''
           }
 
           connectedCallback(): void {
-            if (!this.#isRendered) {
+            if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initializeProps(that.#propsChain)
               that.#addClass(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
               that.#addEvents(this)
+
+              that.#component = this
               this.#isRendered = true
             }
           }
