@@ -14,17 +14,23 @@ type Descendant = WelyElement<any, any>
 export type Events<D, P> = {
   handler: string
   selector?: string
-  method: (
-    {
-      data,
-      setData,
-      props
-    }: { data: D; setData: (key: keyof D, value: D[typeof key]) => void; props: P },
-    event: Event
-  ) => void
+  method: Method<D, P>
 }[]
 
 export type Html<D, P> = ArrowFuncOrValue<Record<symbol, (Descendant | string)[]>, D, P>
+
+export type Method<D, P> = (
+  {
+    data,
+    setData,
+    props
+  }: {
+    data: D
+    setData: (key: keyof D, value: D[typeof key]) => void
+    props: P
+  },
+  event: Event
+) => void
 
 export type Props<D> = {
   descendants: Descendant | Descendant[]
