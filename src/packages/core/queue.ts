@@ -4,15 +4,13 @@ let hasQueue: boolean = false
 
 const processQueue = async (): Promise<void> => {
   while (queue.length > 0) {
-    const func = queue[0]
-
-    queue.shift()
+    const func = queue.shift()!
     ids.shift()
 
     func()
   }
 
-  queue.length > 0 ? await processQueue() : (hasQueue = false)
+  // queue.length > 0 ? await processQueue() : (hasQueue = false)
 }
 
 const setQueue = async (func: () => void, welyId: string): Promise<void> => {
