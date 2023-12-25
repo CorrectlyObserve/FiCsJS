@@ -1,7 +1,18 @@
 import generate from './generator'
 import setQueue from './queue'
 import symbol from './symbol'
-import { Class, Css, Events, Html, Props, PropsChain, Reflections, Sanitized, Wely } from './types'
+import {
+  Class,
+  Css,
+  Events,
+  Html,
+  Method,
+  Props,
+  PropsChain,
+  Reflections,
+  Sanitized,
+  Wely
+} from './types'
 
 const generator: Generator<number> = generate()
 
@@ -184,8 +195,8 @@ export default class WelyElement<D extends object, P extends object> {
 
     this.#initializeProps(propsChain)
 
-    const addHtml = (html: Html<D, P>): string => {
-      const elements = this.#convertHtml(html)
+    const addHtml = (): string => {
+      const elements = this.#convertHtml(this.#html)
 
       if (elements)
         return <string>(
@@ -204,7 +215,7 @@ export default class WelyElement<D extends object, P extends object> {
     return `
         <${tagName} class="${this.#getClassName()}">
           <template shadowrootmode="open">
-            ${this.#addCss() ?? ''}${addHtml(this.#html)}
+            ${this.#addCss() ?? ''}${addHtml()}
           </template>
         </${tagName}>
       `.trim()
@@ -239,6 +250,48 @@ export default class WelyElement<D extends object, P extends object> {
     throw Error(`${this.#name} does not have a shadowRoot...`)
   }
 
+  #controlEvent(wely: HTMLElement, handler: string, method: Method<D, P>, isReset?: boolean): void {
+    const arg: {
+      data: D
+      setData: (key: keyof D, value: D[keyof D]) => void
+      props: P
+    } = {
+      data: { ...this.#data },
+      setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
+      props: { ...this.#props }
+    }
+
+    if (isReset) wely.removeEventListener(handler, (event: Event) => method(arg, event))
+
+    wely.addEventListener(handler, (event: Event) => method(arg, event))
+  }
+
+  #addEventHandler(
+    wely: HTMLElement,
+    selector: string,
+    handler: string,
+    method: Method<D, P>
+  ): void {
+    const elements: Element[] = []
+    const getSelectors = (selector: string): Element[] =>
+      Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
+
+    if (/^.+(\.|#).+$/.test(selector)) {
+      const prefix = selector.includes('.') ? '.' : '#'
+      const [tag, attr] = selector.split(prefix)
+
+      elements.push(
+        ...getSelectors(tag).filter(
+          element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
+        )
+      )
+    } else elements.push(...getSelectors(selector))
+
+    if (elements.length > 0)
+      for (const element of elements) this.#controlEvent(<HTMLElement>element, handler, method)
+    else console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
+  }
+
   #addEvents(wely: HTMLElement): void {
     if (this.#events.length > 0)
       this.#events.forEach((event, index) => {
@@ -246,49 +299,8 @@ export default class WelyElement<D extends object, P extends object> {
 
         if (selector) {
           this.#dataBindings.events.push(index)
-
-          const elements: Element[] = []
-          const getSelectors = (selector: string): Element[] =>
-            Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
-
-          if (/^.+(\.|#).+$/.test(selector)) {
-            const prefix = selector.includes('.') ? '.' : '#'
-            const [tag, attr] = selector.split(prefix)
-
-            elements.push(
-              ...getSelectors(tag).filter(
-                element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
-              )
-            )
-          } else elements.push(...getSelectors(selector))
-
-          if (elements.length > 0)
-            for (const element of elements)
-              element.addEventListener(handler, (event: Event) =>
-                method(
-                  {
-                    data: { ...this.#data },
-                    setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                    props: { ...this.#props }
-                  },
-                  event
-                )
-              )
-          else
-            console.error(
-              `:host ${selector} does not exist or is not applicable in ${this.#name}...`
-            )
-        } else
-          wely.addEventListener(handler, (event: Event) =>
-            method(
-              {
-                data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                props: { ...this.#props }
-              },
-              event
-            )
-          )
+          this.#addEventHandler(wely, selector, handler, method)
+        } else this.#controlEvent(wely, handler, method)
       })
   }
 
@@ -325,6 +337,8 @@ export default class WelyElement<D extends object, P extends object> {
     if (this.#component) {
       const { className, html, css, events } = this.#dataBindings
 
+      console.log(this.#name)
+
       if (className) {
         this.#component.classList.remove(...Array.from(this.#component.classList))
         this.#addClass(this.#component)
@@ -336,9 +350,12 @@ export default class WelyElement<D extends object, P extends object> {
       if (css.length > 0) {
       }
 
-      if (events.length > 0) {
-        for (const index of events) console.log(this.#events[index])
-      }
+      if (events.length > 0)
+        for (const index of events) {
+          const { selector, handler, method } = this.#events[index]
+
+          if (selector) this.#addEventHandler(this.#component, selector, handler, method)
+        }
     }
   }
 
