@@ -2,7 +2,7 @@ import generate from './generator'
 import setQueue from './queue'
 import symbol from './symbol'
 import {
-  Class,
+  ClassName,
   Css,
   Events,
   Html,
@@ -11,6 +11,7 @@ import {
   PropsChain,
   Reflections,
   Sanitized,
+  Value,
   Wely
 } from './types'
 
@@ -25,7 +26,7 @@ export default class WelyElement<D extends object, P extends object> {
   readonly #inheritances: Props<D> = []
   readonly #props: P = <P>{}
   readonly #isOnlyCsr: boolean = false
-  readonly #class: Class<D, P> | undefined = undefined
+  readonly #className: ClassName<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
   readonly #css: Css<D, P> = []
   readonly #events: Events<D, P> = []
@@ -82,7 +83,7 @@ export default class WelyElement<D extends object, P extends object> {
       if (props && props.length > 0) this.#inheritances = [...props]
 
       if (isOnlyCsr) this.#isOnlyCsr = true
-      if (className) this.#class = className
+      if (className) this.#className = className
 
       this.#html = typeof html === 'function' ? html : { ...html }
 
@@ -144,48 +145,36 @@ export default class WelyElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #convertHtml(html: Html<D, P>): Sanitized<D, P> | undefined {
-    return typeof html === 'function'
-      ? html({ data: { ...this.#data }, props: { ...this.#props } })[symbol]
-      : html[symbol]
+  #getProperty<D, P>(property: Value<unknown, D, P>) {
+    return typeof property === 'function'
+      ? property({ data: { ...this.#data }, props: { ...this.#props } })
+      : property
   }
 
-  #addCss(shadowRoot?: ShadowRoot): string | void {
-    if (this.#css.length > 0) {
-      const style = this.#css.reduce((prev, curr, index) => {
+  #getClassName() {
+    return (
+      this.#toKebabCase(this.#name) +
+      (this.#className ? ` ${this.#getProperty(this.#className)}` : '')
+    )
+  }
+
+  #getStyle(css: Css<D, P> = this.#css): string {
+    if (css.length > 0) return <string>css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
-          if (shadowRoot && typeof curr.style === 'function') this.#dataBindings.css.push(index)
+          const style =
+            '{' +
+            Object.entries(this.#getProperty(curr.style))
+              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
+              .join('\n') +
+            '}'
 
-          const styleContent = Object.entries(
-            typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
-              : curr.style
-          )
-            .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
-            .join('\n')
-
-          return `${prev}${curr.selector}{${styleContent}}`
+          return `${prev}${curr.selector}${style}`
         }
 
         return `${prev}${curr}`
       }, '')
 
-      if (!shadowRoot) return `<style>${style}</style>`
-
-      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-      shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replace(<string>style)
-    }
-  }
-
-  #getClassName() {
-    return this.#class
-      ? `${this.#toKebabCase(this.#name)} ${
-          typeof this.#class === 'function'
-            ? this.#class({ data: { ...this.#data }, props: { ...this.#props } })
-            : this.#class
-        }`
-      : this.#toKebabCase(this.#name)
+    return ''
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
@@ -195,41 +184,36 @@ export default class WelyElement<D extends object, P extends object> {
 
     this.#initializeProps(propsChain)
 
-    const addHtml = (): string => {
-      const elements = this.#convertHtml(this.#html)
+    const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
-      if (elements)
-        return <string>(
-          elements.reduce(
-            (prev, curr) =>
-              prev + (curr instanceof WelyElement ? curr.#renderOnServer(this.#propsChain) : curr),
-            ''
-          )
-        )
-
-      throw Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
-      )
-    }
-
-    return `
+    if (elements)
+      return `
         <${tagName} class="${this.#getClassName()}">
           <template shadowrootmode="open">
-            ${this.#addCss() ?? ''}${addHtml()}
+            ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
+            ${elements.reduce(
+              (prev, curr) =>
+                prev +
+                (curr instanceof WelyElement ? curr.#renderOnServer(this.#propsChain) : curr),
+              ''
+            )}
           </template>
         </${tagName}>
       `.trim()
+
+    throw Error(
+      `${this.#name} has to use html function (tagged template literal) in html argument.`
+    )
   }
 
-  #addClass(wely: HTMLElement): void {
-    if (typeof this.#class === 'function') this.#dataBindings.className = true
+  #addClassName(wely: HTMLElement): void {
+    if (typeof this.#className === 'function') this.#dataBindings.className = true
     wely.setAttribute('class', this.#getClassName())
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
-    const elements: Sanitized<D, P> | undefined = this.#convertHtml(html)
-
     this.#dataBindings.html = typeof html === 'function'
+    const elements: Sanitized<D, P> | undefined = this.#getProperty(html)[symbol]
 
     if (elements)
       for (const element of elements)
@@ -244,52 +228,70 @@ export default class WelyElement<D extends object, P extends object> {
       )
   }
 
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = this.#css): string | void {
+    if (this.#css.length > 0) {
+      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
+      shadowRoot.adoptedStyleSheets = [stylesheet]
+      stylesheet.replace(this.#getStyle(css))
+    }
+  }
+
+  #setCssDataBinding() {
+    for (const [index, css] of this.#css.entries()) {
+      if (typeof css !== 'string' && 'style' in css && typeof css.style === 'function')
+        this.#dataBindings.css.push(index)
+      else continue
+    }
+  }
+
   #getShadowRoot(wely: HTMLElement): ShadowRoot {
     if (wely.shadowRoot) return wely.shadowRoot
 
     throw Error(`${this.#name} does not have a shadowRoot...`)
   }
 
-  #controlEvent(wely: HTMLElement, handler: string, method: Method<D, P>, isReset?: boolean): void {
-    const arg: {
-      data: D
-      setData: (key: keyof D, value: D[keyof D]) => void
-      props: P
-    } = {
-      data: { ...this.#data },
-      setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-      props: { ...this.#props }
-    }
-
-    if (isReset) wely.removeEventListener(handler, (event: Event) => method(arg, event))
-
-    wely.addEventListener(handler, (event: Event) => method(arg, event))
-  }
-
   #addEventHandler(
     wely: HTMLElement,
-    selector: string,
-    handler: string,
-    method: Method<D, P>
+    event: { selector?: string; handler: string; method: Method<D, P> },
+    isReset?: boolean
   ): void {
-    const elements: Element[] = []
-    const getSelectors = (selector: string): Element[] =>
-      Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
+    const { selector, handler, method } = event
 
-    if (/^.+(\.|#).+$/.test(selector)) {
-      const prefix = selector.includes('.') ? '.' : '#'
-      const [tag, attr] = selector.split(prefix)
+    if (selector) {
+      const getSelectors = (selector: string): Element[] =>
+        Array.from((<ShadowRoot>wely.shadowRoot).querySelectorAll(`:host ${selector}`))
+      const elements: Element[] = []
 
-      elements.push(
-        ...getSelectors(tag).filter(
-          element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
+      if (/^.+(\.|#).+$/.test(selector)) {
+        const prefix = selector.includes('.') ? '.' : '#'
+        const [tag, attr] = selector.split(prefix)
+
+        elements.push(
+          ...getSelectors(tag).filter(
+            element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
+          )
         )
-      )
-    } else elements.push(...getSelectors(selector))
+      } else elements.push(...getSelectors(selector))
 
-    if (elements.length > 0)
-      for (const element of elements) this.#controlEvent(<HTMLElement>element, handler, method)
-    else console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
+      if (elements.length > 0)
+        for (const element of elements) {
+          const methodFunc = (event: Event): void =>
+            method(
+              {
+                data: { ...this.#data },
+                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
+                props: { ...this.#props }
+              },
+              event
+            )
+
+          if (isReset) element.removeEventListener(handler, (event: Event) => methodFunc(event))
+
+          element.addEventListener(handler, (event: Event) => methodFunc(event))
+        }
+      else
+        console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
+    }
   }
 
   #addEvents(wely: HTMLElement): void {
@@ -299,8 +301,18 @@ export default class WelyElement<D extends object, P extends object> {
 
         if (selector) {
           this.#dataBindings.events.push(index)
-          this.#addEventHandler(wely, selector, handler, method)
-        } else this.#controlEvent(wely, handler, method)
+          this.#addEventHandler(wely, event)
+        } else
+          wely.addEventListener(handler, (event: Event) =>
+            method(
+              {
+                data: { ...this.#data },
+                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
+                props: { ...this.#props }
+              },
+              event
+            )
+          )
       })
   }
 
@@ -323,9 +335,10 @@ export default class WelyElement<D extends object, P extends object> {
     const wely = this.#component ?? document.createElement(tagName)
 
     this.#initializeProps(propsChain)
-    this.#addClass(wely)
+    this.#addClassName(wely)
     this.#addHtml(this.#getShadowRoot(wely))
     this.#addCss(this.#getShadowRoot(wely))
+    this.#setCssDataBinding()
     this.#addEvents(wely)
 
     if (!this.#component) this.#component = wely
@@ -341,20 +354,23 @@ export default class WelyElement<D extends object, P extends object> {
 
       if (className) {
         this.#component.classList.remove(...Array.from(this.#component.classList))
-        this.#addClass(this.#component)
+        this.#addClassName(this.#component)
       }
 
       if (html) {
       }
 
-      if (css.length > 0) {
-      }
+      if (css.length > 0)
+        this.#addCss(
+          this.#getShadowRoot(this.#component),
+          css.map(num => this.#css[num])
+        )
 
       if (events.length > 0)
         for (const index of events) {
-          const { selector, handler, method } = this.#events[index]
+          const { selector } = this.#events[index]
 
-          if (selector) this.#addEventHandler(this.#component, selector, handler, method)
+          if (selector) this.#addEventHandler(this.#component, this.#events[index], true)
         }
     }
   }
@@ -399,9 +415,10 @@ export default class WelyElement<D extends object, P extends object> {
           connectedCallback(): void {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initializeProps(that.#propsChain)
-              that.#addClass(this)
+              that.#addClassName(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
+              that.#setCssDataBinding()
               that.#addEvents(this)
 
               that.#component = this
