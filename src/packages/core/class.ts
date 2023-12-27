@@ -46,6 +46,7 @@ export default class WelyElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
+  #isReflected: boolean = false
 
   constructor({
     name,
@@ -92,12 +93,12 @@ export default class WelyElement<D extends object, P extends object> {
     }
   }
 
-  #toKebabCase(str: string): string {
+  #toKebabCase(str: string = this.#name): string {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #getTagName(): string {
-    return `w-${this.#toKebabCase(this.#name)}`
+    return `w-${this.#toKebabCase()}`
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -151,13 +152,6 @@ export default class WelyElement<D extends object, P extends object> {
       : property
   }
 
-  #getClassName() {
-    return (
-      this.#toKebabCase(this.#name) +
-      (this.#className ? ` ${this.#getProperty(this.#className)}` : '')
-    )
-  }
-
   #getStyle(css: Css<D, P> = this.#css): string {
     if (css.length > 0) return <string>css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
@@ -186,9 +180,11 @@ export default class WelyElement<D extends object, P extends object> {
 
     const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
-    if (elements)
+    if (elements) {
+      const className: string = this.#className ? ` ${this.#getProperty(this.#className)}` : ''
+
       return `
-        <${tagName} class="${this.#getClassName()}">
+        <${tagName} class="${this.#toKebabCase()}${className}">
           <template shadowrootmode="open">
             ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
             ${elements.reduce(
@@ -200,6 +196,7 @@ export default class WelyElement<D extends object, P extends object> {
           </template>
         </${tagName}>
       `.trim()
+    }
 
     throw Error(
       `${this.#name} has to use html function (tagged template literal) in html argument.`
@@ -207,8 +204,13 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #addClassName(wely: HTMLElement): void {
-    if (typeof this.#className === 'function') this.#dataBindings.className = true
-    wely.setAttribute('class', this.#getClassName())
+    const className: ClassName<D, P> | undefined = this.#className
+    const name: string = this.#toKebabCase()
+
+    if (className) {
+      if (typeof className === 'function') this.#dataBindings.className = true
+      wely.setAttribute('class', `${name} ${this.#getProperty(className)}`)
+    } else wely.classList.add(name)
   }
 
   #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
@@ -228,19 +230,17 @@ export default class WelyElement<D extends object, P extends object> {
       )
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = this.#css): string | void {
+  #addCss(shadowRoot: ShadowRoot): string | void {
     if (this.#css.length > 0) {
       const stylesheet: CSSStyleSheet = new CSSStyleSheet()
       shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replace(this.#getStyle(css))
-    }
-  }
+      stylesheet.replaceSync(this.#getStyle())
 
-  #setCssDataBinding() {
-    for (const [index, css] of this.#css.entries()) {
-      if (typeof css !== 'string' && 'style' in css && typeof css.style === 'function')
-        this.#dataBindings.css.push(index)
-      else continue
+      for (const [index, css] of this.#css.entries()) {
+        if (typeof css !== 'string' && 'style' in css && typeof css.style === 'function')
+          this.#dataBindings.css.push(index)
+        else continue
+      }
     }
   }
 
@@ -338,7 +338,6 @@ export default class WelyElement<D extends object, P extends object> {
     this.#addClassName(wely)
     this.#addHtml(this.#getShadowRoot(wely))
     this.#addCss(this.#getShadowRoot(wely))
-    this.#setCssDataBinding()
     this.#addEvents(wely)
 
     if (!this.#component) this.#component = wely
@@ -347,30 +346,35 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #reRender(): void {
-    if (this.#component) {
+    const wely: HTMLElement | undefined = this.#component
+
+    if (wely) {
       const { className, html, css, events } = this.#dataBindings
 
       console.log(this.#name)
 
       if (className) {
-        this.#component.classList.remove(...Array.from(this.#component.classList))
-        this.#addClassName(this.#component)
+        wely.classList.remove(...Array.from(wely.classList))
+        this.#addClassName(wely)
       }
 
       if (html) {
       }
 
-      if (css.length > 0)
-        this.#addCss(
-          this.#getShadowRoot(this.#component),
-          css.map(num => this.#css[num])
+      if (css.length > 0) {
+        const stylesheet: CSSStyleSheet = new CSSStyleSheet()
+        this.#getShadowRoot(wely).adoptedStyleSheets = [stylesheet]
+        const newStyle: Css<D, P> = Array.from(
+          new Set([...this.#css, ...css.map(num => this.#css[num])])
         )
+        stylesheet.replaceSync(this.#getStyle(newStyle))
+      }
 
       if (events.length > 0)
         for (const index of events) {
           const { selector } = this.#events[index]
 
-          if (selector) this.#addEventHandler(this.#component, this.#events[index], true)
+          if (selector) this.#addEventHandler(wely, this.#events[index], true)
         }
     }
   }
@@ -382,14 +386,19 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
-    if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
+    if (this.#isReflected) throw Error(`${key as string} is not changed in reflections...`)
+    else if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
       setQueue(() => this.#reRender(), this.#welyId)
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
-      if (this.#reflections && key in this.#reflections) this.#reflections[key](this.#data[key])
+      if (this.#reflections && key in this.#reflections) {
+        this.#isReflected = true
+        this.#reflections[key](this.#data[key])
+        this.#isReflected = false
+      }
     }
   }
 
@@ -418,7 +427,6 @@ export default class WelyElement<D extends object, P extends object> {
               that.#addClassName(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
-              that.#setCssDataBinding()
               that.#addEvents(this)
 
               that.#component = this
