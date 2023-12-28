@@ -10,7 +10,7 @@ const processQueue = async (): Promise<void> => {
     func()
   }
 
-  // queue.length > 0 ? await processQueue() : (hasQueue = false)
+  queue.length > 0 ? await processQueue() : (hasQueue = false)
 }
 
 const setQueue = async (func: () => void, welyId: string): Promise<void> => {
