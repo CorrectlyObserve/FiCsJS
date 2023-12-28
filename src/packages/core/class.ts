@@ -203,19 +203,20 @@ export default class Element<D extends object, P extends object> {
     )
   }
 
-  #addClassName(: HTMLElement): void {
-    const className: ClassName<D, P> | undefined = this.#className
-    const name: string = this.#toKebabCase()
+  #addClassName(: HTMLElement, isReset?: boolean): void {
+    if (isReset) .classList.remove(...Array.from(.classList))
+    else if (typeof this.#className === 'function') this.#dataBindings.className = true
 
-    if (className) {
-      if (typeof className === 'function') this.#dataBindings.className = true
-      .setAttribute('class', `${name} ${this.#getProperty(className)}`)
-    } else .classList.add(name)
+    this.#className
+      ? .setAttribute('class', `${this.#toKebabCase()} ${this.#getProperty(this.#className)}`)
+      : .classList.add(this.#toKebabCase())
   }
 
-  #addHtml(shadowRoot: ShadowRoot, html: Html<D, P> = this.#html): void {
-    this.#dataBindings.html = typeof html === 'function'
-    const elements: Sanitized<D, P> | undefined = this.#getProperty(html)[symbol]
+  #addHtml(shadowRoot: ShadowRoot, isReset?: boolean): void {
+    if (isReset) shadowRoot.innerHTML = ''
+    else this.#dataBindings.html = typeof this.#html === 'function'
+
+    const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
     if (elements)
       for (const element of elements)
@@ -230,17 +231,25 @@ export default class Element<D extends object, P extends object> {
       )
   }
 
-  #addCss(shadowRoot: ShadowRoot): string | void {
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): string | void {
     if (this.#css.length > 0) {
-      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-      shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replaceSync(this.#getStyle())
+      if (css.length === 0)
+        for (const [index, content] of this.#css.entries()) {
+          if (
+            typeof content !== 'string' &&
+            'style' in content &&
+            typeof content.style === 'function'
+          )
+            this.#dataBindings.css.push(index)
+          else continue
+        }
 
-      for (const [index, css] of this.#css.entries()) {
-        if (typeof css !== 'string' && 'style' in css && typeof css.style === 'function')
-          this.#dataBindings.css.push(index)
-        else continue
-      }
+      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
+      const style: Css<D, P> | undefined =
+        css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : undefined
+
+      shadowRoot.adoptedStyleSheets = [stylesheet]
+      stylesheet.replaceSync(this.#getStyle(style))
     }
   }
 
@@ -351,24 +360,15 @@ export default class Element<D extends object, P extends object> {
     if () {
       const { className, html, css, events } = this.#dataBindings
 
-      console.log(this.#name)
+      if (className) this.#addClassName(, true)
 
-      if (className) {
-        .classList.remove(...Array.from(.classList))
-        this.#addClassName()
-      }
+      if (html) this.#addHtml(this.#getShadowRoot(), true)
 
-      if (html) {
-      }
-
-      if (css.length > 0) {
-        const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-        this.#getShadowRoot().adoptedStyleSheets = [stylesheet]
-        const newStyle: Css<D, P> = Array.from(
-          new Set([...this.#css, ...css.map(num => this.#css[num])])
+      if (css.length > 0)
+        this.#addCss(
+          this.#getShadowRoot(),
+          css.map(index => this.#css[index])
         )
-        stylesheet.replaceSync(this.#getStyle(newStyle))
-      }
 
       if (events.length > 0)
         for (const index of events) {
