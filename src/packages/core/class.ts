@@ -1,5 +1,5 @@
 import generate from './generator'
-import setQueue from './queue'
+import addQueue from './queue'
 import symbol from './symbol'
 import {
   ClassName,
@@ -105,7 +105,7 @@ export default class WelyElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      setQueue(() => this.#reRender(), this.#welyId)
+      addQueue(() => this.#reRender(), this.#welyId)
     }
   }
 
@@ -355,18 +355,16 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #reRender(): void {
-    const wely: HTMLElement | undefined = this.#component
-
-    if (wely) {
+    if (this.#component) {
       const { className, html, css, events } = this.#dataBindings
 
-      if (className) this.#addClassName(wely, true)
+      if (className) this.#addClassName(this.#component, true)
 
-      if (html) this.#addHtml(this.#getShadowRoot(wely), true)
+      if (html) this.#addHtml(this.#getShadowRoot(this.#component), true)
 
       if (css.length > 0)
         this.#addCss(
-          this.#getShadowRoot(wely),
+          this.#getShadowRoot(this.#component),
           css.map(index => this.#css[index])
         )
 
@@ -374,7 +372,7 @@ export default class WelyElement<D extends object, P extends object> {
         for (const index of events) {
           const { selector } = this.#events[index]
 
-          if (selector) this.#addEventHandler(wely, this.#events[index], true)
+          if (selector) this.#addEventHandler(this.#component, this.#events[index], true)
         }
     }
   }
@@ -390,7 +388,7 @@ export default class WelyElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      setQueue(() => this.#reRender(), this.#welyId)
+      addQueue(() => this.#reRender(), this.#welyId)
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
