@@ -10,19 +10,19 @@ const processQueue = async (): Promise<void> => {
     func()
   }
 
-  queue.length > 0 ? await processQueue() : (hasQueue = false)
+  hasQueue = false
 }
 
-const setQueue = async (func: () => void, Id: string): Promise<void> => {
+const addQueue = (func: () => void, Id: string): void => {
   if (!ids.includes(Id)) {
     queue.push(func)
     ids.push(Id)
 
     if (!hasQueue) {
       hasQueue = true
-      await processQueue()
+      processQueue()
     }
   }
 }
 
-export default setQueue
+export default addQueue
