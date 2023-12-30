@@ -1,22 +1,24 @@
-const queue: (() => void)[] = []
-const ids: string[] = []
+import { Queue } from './types'
+
+const queue: Queue[] = []
+const ids: Record<string, boolean> = {}
 let hasQueue: boolean = false
 
 const processQueue = async (): Promise<void> => {
   while (queue.length > 0) {
-    const func = queue.shift()!
-    ids.shift()
+    const queueEl: Queue = queue.shift()!
 
-    func()
+    delete ids[queueEl.Id]
+    queueEl.reRender()
   }
 
   hasQueue = false
 }
 
-const addQueue = (func: () => void, Id: string): void => {
-  if (!ids.includes(Id)) {
-    queue.push(func)
-    ids.push(Id)
+const addQueue = (queueEl: Queue): void => {
+  if (!ids[queueEl.Id]) {
+    queue.push(queueEl)
+    ids[queueEl.Id] = true
 
     if (!hasQueue) {
       hasQueue = true
