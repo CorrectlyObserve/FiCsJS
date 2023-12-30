@@ -46,7 +46,7 @@ export default class WelyElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
-  #isReflected: boolean = false
+  #isReflecting: boolean = false
 
   constructor({
     name,
@@ -384,7 +384,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
-    if (this.#isReflected) throw Error(`${key as string} is not changed in reflections...`)
+    if (this.#isReflecting) throw Error(`${key as string} is not changed in reflections...`)
     else if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
@@ -393,9 +393,9 @@ export default class WelyElement<D extends object, P extends object> {
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
       if (this.#reflections && key in this.#reflections) {
-        this.#isReflected = true
+        this.#isReflecting = true
         this.#reflections[key](this.#data[key])
-        this.#isReflected = false
+        this.#isReflecting = false
       }
     }
   }
