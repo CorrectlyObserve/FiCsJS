@@ -19,7 +19,7 @@ export const getState = (key: string, isReadonly: boolean = false): unknown => {
 
   if (stateMap.has(key)) return stateMap.get(key)
 
-  throw Error(`${key} not defined in states...`)
+  throw new Error(`${key} not defined in states...`)
 }
 
 export const setState = <S>(key: string, value: S): void => {
@@ -34,5 +34,5 @@ export const subscribeState = (key: string, value: () => void): void => {
 
 export const unsubscribeState = (key: string): void => {
   if (observers.has(key)) observers.delete(key)
-  else throw Error(`${key} not defined in observers...`)
+  else throw new Error(`${key} not defined in observers...`)
 }
