@@ -5,21 +5,21 @@ import {
   ClassName,
   Css,
   Events,
+  FiCs,
   Html,
   Method,
   Props,
   PropsChain,
   Reflections,
   Sanitized,
-  Value,
-  
+  Value
 } from './types'
 
 const generator: Generator<number> = generate()
 
-export default class Element<D extends object, P extends object> {
+export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: string[] = []
-  readonly #Id: string
+  readonly #ficsId: string
   readonly #name: string
   readonly #data: D = <D>{}
   readonly #reflections: Reflections<D> | undefined = undefined
@@ -58,11 +58,11 @@ export default class Element<D extends object, P extends object> {
     html,
     css,
     events
-  }: <D, P>) {
+  }: FiCs<D, P>) {
     if (this.#reservedWords.includes(name))
-      throw new Error(`${name} is a reserved word in JS...`)
+      throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#Id = `${generator.next().value}`
+      this.#ficsId = `fics${generator.next().value}`
       this.#name = name
 
       if (data) {
@@ -99,14 +99,14 @@ export default class Element<D extends object, P extends object> {
   }
 
   #getTagName(): string {
-    return `w-${this.#toKebabCase()}`
+    return `f-${this.#toKebabCase()}`
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
     if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addQueue({ Id: this.#Id, reRender: () => this.#reRender() })
+      addQueue({ ficsId: this.#ficsId, reRender: () => this.#reRender() })
     }
   }
 
@@ -121,7 +121,7 @@ export default class Element<D extends object, P extends object> {
               return this.getData(key)
             })
           })
-          const descendantId: string = descendant.#Id
+          const descendantId: string = descendant.#ficsId
 
           for (const [key, value] of data) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
@@ -143,7 +143,7 @@ export default class Element<D extends object, P extends object> {
 
     this.#propsChain = new Map(propsChain)
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#Id) ?? {}))
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#ficsId) ?? {}))
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
@@ -191,7 +191,7 @@ export default class Element<D extends object, P extends object> {
             ${elements.reduce(
               (prev, curr) =>
                 prev +
-                (curr instanceof Element ? curr.#renderOnServer(this.#propsChain) : curr),
+                (curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr),
               ''
             )}
           </template>
@@ -204,13 +204,13 @@ export default class Element<D extends object, P extends object> {
     )
   }
 
-  #addClassName(: HTMLElement, isReset?: boolean): void {
-    if (isReset) .classList.remove(...Array.from(.classList))
+  #addClassName(fics: HTMLElement, isReset?: boolean): void {
+    if (isReset) fics.classList.remove(...Array.from(fics.classList))
     else if (typeof this.#className === 'function') this.#dataBindings.className = true
 
     this.#className
-      ? .setAttribute('class', `${this.#toKebabCase()} ${this.#getProperty(this.#className)}`)
-      : .classList.add(this.#toKebabCase())
+      ? fics.setAttribute('class', `${this.#toKebabCase()} ${this.#getProperty(this.#className)}`)
+      : fics.classList.add(this.#toKebabCase())
   }
 
   #addHtml(shadowRoot: ShadowRoot, isReset?: boolean): void {
@@ -222,7 +222,7 @@ export default class Element<D extends object, P extends object> {
     if (elements)
       for (const element of elements)
         shadowRoot.appendChild(
-          element instanceof Element
+          element instanceof FiCsElement
             ? element.#component ?? element.#render(this.#propsChain)
             : document.createRange().createContextualFragment(element)
         )
@@ -254,14 +254,14 @@ export default class Element<D extends object, P extends object> {
     }
   }
 
-  #getShadowRoot(: HTMLElement): ShadowRoot {
-    if (.shadowRoot) return .shadowRoot
+  #getShadowRoot(fics: HTMLElement): ShadowRoot {
+    if (fics.shadowRoot) return fics.shadowRoot
 
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
   #addEventHandler(
-    : HTMLElement,
+    fics: HTMLElement,
     event: { selector?: string; handler: string; method: Method<D, P> },
     isReset?: boolean
   ): void {
@@ -269,7 +269,7 @@ export default class Element<D extends object, P extends object> {
 
     if (selector) {
       const getSelectors = (selector: string): Element[] =>
-        Array.from((<ShadowRoot>.shadowRoot).querySelectorAll(`:host ${selector}`))
+        Array.from((<ShadowRoot>fics.shadowRoot).querySelectorAll(`:host ${selector}`))
       const elements: Element[] = []
 
       if (/^.+(\.|#).+$/.test(selector)) {
@@ -304,16 +304,16 @@ export default class Element<D extends object, P extends object> {
     }
   }
 
-  #addEvents(: HTMLElement): void {
+  #addEvents(fics: HTMLElement): void {
     if (this.#events.length > 0)
       this.#events.forEach((event, index) => {
         const { selector, handler, method } = event
 
         if (selector) {
           this.#dataBindings.events.push(index)
-          this.#addEventHandler(, event)
+          this.#addEventHandler(fics, event)
         } else
-          .addEventListener(handler, (event: Event) =>
+          fics.addEventListener(handler, (event: Event) =>
             method(
               {
                 data: { ...this.#data },
@@ -342,15 +342,15 @@ export default class Element<D extends object, P extends object> {
         }
       )
 
-    const  = this.#component ?? document.createElement(tagName)
+    const fics = this.#component ?? document.createElement(tagName)
 
     this.#initializeProps(propsChain)
-    this.#addClassName()
-    this.#addHtml(this.#getShadowRoot())
-    this.#addCss(this.#getShadowRoot())
-    this.#addEvents()
+    this.#addClassName(fics)
+    this.#addHtml(this.#getShadowRoot(fics))
+    this.#addCss(this.#getShadowRoot(fics))
+    this.#addEvents(fics)
 
-    if (!this.#component) this.#component = 
+    if (!this.#component) this.#component = fics
 
     return this.#component
   }
@@ -389,7 +389,7 @@ export default class Element<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ Id: this.#Id, reRender: () => this.#reRender() })
+      addQueue({ ficsId: this.#ficsId, reRender: () => this.#reRender() })
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 

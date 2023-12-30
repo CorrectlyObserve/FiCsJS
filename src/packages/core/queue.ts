@@ -8,7 +8,7 @@ const processQueue = async (): Promise<void> => {
   while (queue.length > 0) {
     const queueEl: Queue = queue.shift()!
 
-    delete ids[queueEl.Id]
+    delete ids[queueEl.ficsId]
     queueEl.reRender()
   }
 
@@ -16,9 +16,9 @@ const processQueue = async (): Promise<void> => {
 }
 
 const addQueue = (queueEl: Queue): void => {
-  if (!ids[queueEl.Id]) {
+  if (!ids[queueEl.ficsId]) {
     queue.push(queueEl)
-    ids[queueEl.Id] = true
+    ids[queueEl.ficsId] = true
 
     if (!hasQueue) {
       hasQueue = true
