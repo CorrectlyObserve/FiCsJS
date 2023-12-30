@@ -37,6 +37,11 @@ export type Props<D> = {
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
+export interface Queue {
+  welyId: string
+  reRender: () => void
+}
+
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (WelyElement<D, P> | string)[]
