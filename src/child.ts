@@ -1,8 +1,8 @@
-import { html, wely } from './packages/core/wely'
+import { fics, html } from './packages/core/wely'
 import cssUrl from './styles/style.css?inline'
 
 export const Child = (message: string = 'Hello') =>
-  wely({
+  fics({
     name: 'child',
     data: () => ({
       count: 1,
