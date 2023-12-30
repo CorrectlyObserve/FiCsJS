@@ -105,7 +105,7 @@ export default class WelyElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addQueue(() => this.#reRender(), this.#welyId)
+      addQueue({ welyId: this.#welyId, reRender: () => this.#reRender() })
     }
   }
 
@@ -256,7 +256,7 @@ export default class WelyElement<D extends object, P extends object> {
   #getShadowRoot(wely: HTMLElement): ShadowRoot {
     if (wely.shadowRoot) return wely.shadowRoot
 
-    throw Error(`${this.#name} does not have a shadowRoot...`)
+    throw Error(`${this.#name} does not have shadowRoot...`)
   }
 
   #addEventHandler(
@@ -388,7 +388,7 @@ export default class WelyElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue(() => this.#reRender(), this.#welyId)
+      addQueue({ welyId: this.#welyId, reRender: () => this.#reRender() })
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
