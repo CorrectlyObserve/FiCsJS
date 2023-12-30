@@ -1,4 +1,4 @@
-import { html, wely } from './packages/core/wely'
+import { fics, html } from './packages/core/wely'
 import { ChildType } from './child'
 
 export const Parent = (child: ChildType) => {
@@ -15,7 +15,7 @@ export const Parent = (child: ChildType) => {
     console.log('continue')
   }, 1000)
 
-  return wely({
+  return fics({
     name: 'parent',
     data: () => ({
       color: 'blue',

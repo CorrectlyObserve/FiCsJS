@@ -1,9 +1,9 @@
-import { html, wely } from './packages/core/wely'
+import { fics, html } from './packages/core/wely'
 import { ChildType } from './child'
 import { ParentType } from './parent'
 
 const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
-  wely({
+  fics({
     name: 'grandParent',
     data: () => ({ color, fontSize: 24, number: 12, email: '' }),
     props: [
