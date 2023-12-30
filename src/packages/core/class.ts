@@ -110,7 +110,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #initializeProps(propsChain: PropsChain<P>): void {
+  #initProps(propsChain: PropsChain<P>): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -177,7 +177,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#isOnlyCsr) return `<${tagName}></${tagName}>`
 
-    this.#initializeProps(propsChain)
+    this.#initProps(propsChain)
 
     const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
@@ -344,7 +344,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const fics = this.#component ?? document.createElement(tagName)
 
-    this.#initializeProps(propsChain)
+    this.#initProps(propsChain)
     this.#addClassName(fics)
     this.#addHtml(this.#getShadowRoot(fics))
     this.#addCss(this.#getShadowRoot(fics))
@@ -422,7 +422,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
-              that.#initializeProps(that.#propsChain)
+              that.#initProps(that.#propsChain)
               that.#addClassName(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
