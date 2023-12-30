@@ -12,5 +12,5 @@ fetch('https://jsonplaceholder.typicode.com/comments/1')
 
 console.log(grandParent.ssr())
 
-child.define()
+Child().define()
 grandParent.define()
