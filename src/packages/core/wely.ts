@@ -1,6 +1,6 @@
-import WelyElement from './class'
+import FiCsElement from './class'
 import symbol from './symbol'
-import { Sanitized, Wely } from './types'
+import { Sanitized, FiCs } from './types'
 
 export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
@@ -19,13 +19,13 @@ export const html = <D extends object, P extends object>(
     if (index === 0 && template === '') result.push(variable)
     else {
       const last = result[result.length - 1] ?? ''
-      const isWelyElement = variable instanceof WelyElement
+      const isFiCsElement = variable instanceof FiCsElement
 
-      if (last instanceof WelyElement)
-        isWelyElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+      if (last instanceof FiCsElement)
+        isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
       else {
-        result.splice(result.length - 1, 1, `${last}${template}${isWelyElement ? '' : variable}`)
-        if (isWelyElement) result.push(variable)
+        result.splice(result.length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
+        if (isFiCsElement) result.push(variable)
       }
     }
   }
@@ -33,7 +33,7 @@ export const html = <D extends object, P extends object>(
   return { [symbol]: <Sanitized<D, P>>result }
 }
 
-export const wely = <D extends object, P extends object>({
+export const fics = <D extends object, P extends object>({
   name,
   data,
   reflections,
@@ -43,8 +43,8 @@ export const wely = <D extends object, P extends object>({
   html,
   css,
   events
-}: Wely<D, P>): WelyElement<D, P> =>
-  new WelyElement({
+}: FiCs<D, P>): FiCsElement<D, P> =>
+  new FiCsElement({
     name,
     data,
     reflections,
