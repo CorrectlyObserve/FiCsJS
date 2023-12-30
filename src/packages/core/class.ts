@@ -59,7 +59,8 @@ export default class WelyElement<D extends object, P extends object> {
     css,
     events
   }: Wely<D, P>) {
-    if (this.#reservedWords.includes(name)) throw Error(`${name} is a reserved word in WelyJS...`)
+    if (this.#reservedWords.includes(name))
+      throw new Error(`${name} is a reserved word in WelyJS...`)
     else {
       this.#welyId = `wely${generator.next().value}`
       this.#name = name
@@ -72,7 +73,7 @@ export default class WelyElement<D extends object, P extends object> {
             if (key in data()) continue
 
             if (!hasError) hasError = true
-            throw Error(`${key} is not defined in data...`)
+            throw new Error(`${key} is not defined in data...`)
           }
 
           if (!hasError) this.#reflections = { ...reflections }
@@ -102,7 +103,7 @@ export default class WelyElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (!(key in this.#props)) throw Error(`${key as string} is not defined in props...`)
+    if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
       addQueue({ welyId: this.#welyId, reRender: () => this.#reRender() })
@@ -198,7 +199,7 @@ export default class WelyElement<D extends object, P extends object> {
       `.trim()
     }
 
-    throw Error(
+    throw new Error(
       `${this.#name} has to use html function (tagged template literal) in html argument.`
     )
   }
@@ -226,7 +227,7 @@ export default class WelyElement<D extends object, P extends object> {
             : document.createRange().createContextualFragment(element)
         )
     else
-      throw Error(
+      throw new Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
   }
@@ -256,7 +257,7 @@ export default class WelyElement<D extends object, P extends object> {
   #getShadowRoot(wely: HTMLElement): ShadowRoot {
     if (wely.shadowRoot) return wely.shadowRoot
 
-    throw Error(`${this.#name} does not have shadowRoot...`)
+    throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
   #addEventHandler(
@@ -380,12 +381,12 @@ export default class WelyElement<D extends object, P extends object> {
   getData<K extends keyof D>(key: K): D[typeof key] {
     if (key in this.#data) return this.#data[key]
 
-    throw Error(`${key as string} is not defined in data...`)
+    throw new Error(`${key as string} is not defined in data...`)
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
-    if (this.#isReflecting) throw Error(`${key as string} is not changed in reflections...`)
-    else if (!(key in this.#data)) throw Error(`${key as string} is not defined in data...`)
+    if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
+    else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
       addQueue({ welyId: this.#welyId, reRender: () => this.#reRender() })
