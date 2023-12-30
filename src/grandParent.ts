@@ -1,9 +1,9 @@
-import { html,  } from './packages/core/'
+import { fics, html } from './packages/core/'
 import { ChildType } from './child'
 import { ParentType } from './parent'
 
 const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
-  ({
+  fics({
     name: 'grandParent',
     data: () => ({ color, fontSize: 24, number: 12, email: '' }),
     props: [

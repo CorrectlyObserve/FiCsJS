@@ -1,4 +1,4 @@
-import { html,  } from './packages/core/'
+import { fics, html } from './packages/core/'
 import { ChildType } from './child'
 
 export const Parent = (child: ChildType) => {
@@ -15,7 +15,7 @@ export const Parent = (child: ChildType) => {
     console.log('continue')
   }, 1000)
 
-  return ({
+  return fics({
     name: 'parent',
     data: () => ({
       color: 'blue',

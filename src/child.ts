@@ -1,8 +1,8 @@
-import { html,  } from './packages/core/'
+import { fics, html } from './packages/core/'
 import cssUrl from './styles/style.css?inline'
 
 export const Child = (message: string = 'Hello') =>
-  ({
+  fics({
     name: 'child',
     data: () => ({
       count: 1,
