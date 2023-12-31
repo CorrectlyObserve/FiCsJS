@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FiCsJS</title>
+    <script type="module" src="./main.ts" defer></script>
+  </head>
+  <body>
+    <div id="app">
+      <f-grand-parent class="grand-parent">
+        <template shadowrootmode="open">
+          <p>Content is...</p>
+          <f-parent class="parent test">
+            <template shadowrootmode="open">
+              <f-child></f-child>
+              <p>propsColor: green2</p>
+            </template>
+          </f-parent>
+          <p>人数: 12</p>
+          <input value="24" />
+        </template>
+      </f-grand-parent>
+      <f-child></f-child>
+    </div>
+  </body>
+</html>
