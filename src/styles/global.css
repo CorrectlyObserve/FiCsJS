@@ -1,0 +1,13 @@
+:root {
+  --md: 1rem;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+#app {
+  padding: 0 calc(var(--md) * 2);
+}
