@@ -1,4 +1,4 @@
-import { fics, html } from './packages/core/fics'
+import { fics, html } from '../packages/core/fics'
 import cssUrl from './styles/style.css?inline'
 
 export const Child = (message: string = 'Hello') =>
