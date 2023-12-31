@@ -273,7 +273,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const elements: Element[] = []
 
       if (/^.+(\.|#).+$/.test(selector)) {
-        const prefix = selector.includes('.') ? '.' : '#'
+        const prefix = selector.startsWith('.') ? '.' : '#'
         const [tag, attr] = selector.split(prefix)
 
         elements.push(
