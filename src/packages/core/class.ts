@@ -18,7 +18,7 @@ import {
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: string[] = []
+  readonly #reservedWords: Record<string, boolean> = {}
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = <D>{}
@@ -59,8 +59,7 @@ export default class FiCsElement<D extends object, P extends object> {
     css,
     events
   }: FiCs<D, P>) {
-    if (this.#reservedWords.includes(name))
-      throw new Error(`${name} is a reserved word in FiCsJS...`)
+    if (this.#reservedWords[name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
       this.#name = name
