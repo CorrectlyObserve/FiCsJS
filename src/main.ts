@@ -1,6 +1,6 @@
-import { Child } from './child'
-import { Parent } from './parent'
-import GrandParent from './grandParent'
+import { Child } from './components/child'
+import { Parent } from './components/parent'
+import GrandParent from './components/grandParent'
 
 const child = Child('Good bye!')
 const parent = Parent(child)
