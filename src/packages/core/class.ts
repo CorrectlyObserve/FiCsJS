@@ -2,12 +2,11 @@ import generate from './generator'
 import addQueue from './queue'
 import symbol from './symbol'
 import {
+  Action,
   ClassName,
   Css,
-  Events,
   FiCs,
   Html,
-  Method,
   Props,
   PropsChain,
   Reflections,
@@ -29,7 +28,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #className: ClassName<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
   readonly #css: Css<D, P> = []
-  readonly #events: Events<D, P> = []
+  readonly #actions: Action<D, P>[] = []
 
   readonly #propsTrees: {
     descendantId: string
@@ -37,11 +36,11 @@ export default class FiCsElement<D extends object, P extends object> {
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = []
-  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; events: number[] } = {
+  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } = {
     className: false,
     html: false,
     css: [],
-    events: []
+    actions: []
   }
 
   #propsChain: PropsChain<P> = new Map()
@@ -57,7 +56,7 @@ export default class FiCsElement<D extends object, P extends object> {
     className,
     html,
     css,
-    events
+    actions
   }: FiCs<D, P>) {
     if (this.#reservedWords[name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
@@ -89,7 +88,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#html = typeof html === 'function' ? html : { ...html }
 
       if (css && css.length > 0) this.#css = [...css]
-      if (events && events.length > 0) this.#events = [...events]
+      if (actions && actions.length > 0) this.#actions = [...actions]
     }
   }
 
@@ -259,12 +258,8 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addEventHandler(
-    fics: HTMLElement,
-    event: { selector?: string; handler: string; method: Method<D, P> },
-    isReset?: boolean
-  ): void {
-    const { selector, handler, method } = event
+  #addEvent(fics: HTMLElement, action: Action<D, P>, isReset?: boolean): void {
+    const { handler, selector, method } = action
 
     if (selector) {
       const getSelectors = (selector: string): Element[] =>
@@ -303,14 +298,14 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addEvents(fics: HTMLElement): void {
-    if (this.#events.length > 0)
-      this.#events.forEach((event, index) => {
-        const { selector, handler, method } = event
+  #addActions(fics: HTMLElement): void {
+    if (this.#actions.length > 0)
+      this.#actions.forEach((event, index) => {
+        const { handler, selector, method } = event
 
         if (selector) {
-          this.#dataBindings.events.push(index)
-          this.#addEventHandler(fics, event)
+          this.#dataBindings.actions.push(index)
+          this.#addEvent(fics, event)
         } else
           fics.addEventListener(handler, (event: Event) =>
             method(
@@ -347,7 +342,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addClassName(fics)
     this.#addHtml(this.#getShadowRoot(fics))
     this.#addCss(this.#getShadowRoot(fics))
-    this.#addEvents(fics)
+    this.#addActions(fics)
 
     if (!this.#component) this.#component = fics
 
@@ -356,7 +351,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #reRender(): void {
     if (this.#component) {
-      const { className, html, css, events } = this.#dataBindings
+      const { className, html, css, actions } = this.#dataBindings
 
       if (className) this.#addClassName(this.#component, true)
 
@@ -368,11 +363,11 @@ export default class FiCsElement<D extends object, P extends object> {
           css.map(index => this.#css[index])
         )
 
-      if (events.length > 0)
-        for (const index of events) {
-          const { selector } = this.#events[index]
+      if (actions.length > 0)
+        for (const index of actions) {
+          const { selector } = this.#actions[index]
 
-          if (selector) this.#addEventHandler(this.#component, this.#events[index], true)
+          if (selector) this.#addEvent(this.#component, this.#actions[index], true)
         }
     }
   }
@@ -425,7 +420,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addClassName(this)
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
-              that.#addEvents(this)
+              that.#addActions(this)
 
               that.#component = this
               this.#isRendered = true
