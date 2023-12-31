@@ -1,4 +1,17 @@
 import { defineConfig } from 'vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
+import { resolve } from 'path'
 
-export default defineConfig({ plugins: [tsconfigPaths()] })
+const root = 'src'
+
+export default defineConfig({
+  root,
+  build: {
+    outDir: '../dist',
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, root, 'index.html'),
+        privacy: resolve(__dirname, root, 'todo/index.html')
+      }
+    }
+  }
+})
