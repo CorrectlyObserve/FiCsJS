@@ -1,5 +1,22 @@
 import FiCsElement from './class'
 
+export interface Action<D, P> {
+  handler: string
+  selector?: string
+  method: (
+    {
+      data,
+      setData,
+      props
+    }: {
+      data: D
+      setData: (key: keyof D, value: D[typeof key]) => void
+      props: P
+    },
+    event: Event
+  ) => void
+}
+
 export type ClassName<D, P> = Value<string, D, P>
 
 export type Css<D, P> = (
@@ -8,12 +25,6 @@ export type Css<D, P> = (
 )[]
 
 type Descendant = FiCsElement<any, any>
-
-export type Events<D, P> = {
-  handler: string
-  selector?: string
-  method: Method<D, P>
-}[]
 
 export interface FiCs<D, P> {
   name: string
@@ -24,23 +35,10 @@ export interface FiCs<D, P> {
   className?: ClassName<D, P>
   html: Html<D, P>
   css?: Css<D, P>
-  events?: Events<D, P>
+  actions?: Action<D, P>[]
 }
 
 export type Html<D, P> = Value<Record<symbol, (Descendant | string)[]>, D, P>
-
-export type Method<D, P> = (
-  {
-    data,
-    setData,
-    props
-  }: {
-    data: D
-    setData: (key: keyof D, value: D[typeof key]) => void
-    props: P
-  },
-  event: Event
-) => void
 
 export type Props<D> = {
   descendants: Descendant | Descendant[]
