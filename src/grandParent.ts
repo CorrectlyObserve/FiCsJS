@@ -1,4 +1,4 @@
-import { fics, html } from './packages/core/wely'
+import { fics, html } from './packages/core/fics'
 import { ChildType } from './child'
 import { ParentType } from './parent'
 
@@ -20,12 +20,7 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
       ${parent}
       <p>人数: ${number}</p>
       <input value="${fontSize}" />`,
-    events: [
-      {
-        handler: 'click',
-        method: ({ setData }) => setData('color', 'red')
-      }
-    ]
+    actions: [{ handler: 'click', method: ({ setData }) => setData('color', 'red') }]
   })
 
 export default GrandParent
