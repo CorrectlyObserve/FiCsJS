@@ -6,8 +6,7 @@ const Header = () =>
     data: () => ({
       title: 'To Do App by FiCsJS',
       md: 'var(--md)',
-      red: '#b7282e',
-      pink: '#e7609e'
+      pink: '#e198b4'
     }),
     html: ({ data: { title } }) => html`<header><h1 align="center">${title}</h1></header>`,
     css: [
@@ -18,8 +17,8 @@ const Header = () =>
       },
       {
         selector: 'h1',
-        style: ({ data: { red, pink } }) => ({
-          background: `linear-gradient(15deg, ${red} 15%, ${pink})`,
+        style: ({ data: { pink } }) => ({
+          background: `linear-gradient(30deg, var(--red) 20%, ${pink})`,
           backgroundClip: 'text',
           margin: 0
         })
