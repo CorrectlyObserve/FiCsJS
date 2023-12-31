@@ -1,4 +1,4 @@
-import { fics, html } from './packages/core/wely'
+import { fics, html } from './packages/core/fics'
 import cssUrl from './styles/style.css?inline'
 
 export const Child = (message: string = 'Hello') =>
@@ -32,7 +32,7 @@ export const Child = (message: string = 'Hello') =>
         style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
       }
     ],
-    events: [
+    actions: [
       {
         handler: 'click',
         method: ({ data: { obj, arr }, setData }) => {
