@@ -1,4 +1,4 @@
-import { fics, html } from './packages/core/wely'
+import { fics, html } from './packages/core/fics'
 import { ChildType } from './child'
 
 export const Parent = (child: ChildType) => {
