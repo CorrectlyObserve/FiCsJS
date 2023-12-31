@@ -1,5 +1,7 @@
 :root {
   --md: 1rem;
+  --lg: 2rem;
+  --red: #b7282e;
 }
 
 * {
@@ -8,6 +10,11 @@
   box-sizing: border-box;
 }
 
+body {
+  background: #2b2b2b;
+}
+
 #app {
-  padding: 0 calc(var(--md) * 2);
+  min-height: calc(100vh - 80px - var(--md));
+  padding: 0 var(--lg);
 }
