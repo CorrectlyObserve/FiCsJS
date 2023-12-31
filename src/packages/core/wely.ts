@@ -42,7 +42,7 @@ export const fics = <D extends object, P extends object>({
   className,
   html,
   css,
-  events
+  actions
 }: FiCs<D, P>): FiCsElement<D, P> =>
   new FiCsElement({
     name,
@@ -53,5 +53,5 @@ export const fics = <D extends object, P extends object>({
     className,
     html,
     css,
-    events
+    actions
   })
