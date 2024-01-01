@@ -36,12 +36,8 @@ export default class FiCsElement<D extends object, P extends object> {
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = []
-  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } = {
-    className: false,
-    html: false,
-    css: [],
-    actions: []
-  }
+  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } =
+    { className: false, html: false, css: [], actions: [] }
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
@@ -157,7 +153,12 @@ export default class FiCsElement<D extends object, P extends object> {
           const style =
             '{' +
             Object.entries(this.#getProperty(curr.style))
-              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
+              .map(([key, value]) => {
+                key = this.#toKebabCase(key)
+                if (key.startsWith('webkit')) key = `-${key}`
+
+                return `${key}: ${value};`
+              })
               .join('\n') +
             '}'
 
@@ -399,12 +400,15 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#renderOnServer(this.#propsChain)
   }
 
-  define(): void {
-    if (!customElements.get(this.#getTagName())) {
+  define(suffix?: string): void {
+    const tagName: string = this.#getTagName() + (suffix ? `-${this.#toKebabCase(suffix)}` : '')
+
+    if (customElements.get(tagName)) throw new Error(`${tagName} is already defined...`)
+    else {
       const that = this
 
       customElements.define(
-        this.#getTagName(),
+        tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
