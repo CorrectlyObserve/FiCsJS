@@ -6,6 +6,7 @@ export const Svg = (path: string, color: string) =>
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
     html: html`<div />`,
     css: [
+      { selector: ':host', style: () => ({ display: 'inline-block', cursor: 'pointer' }) },
       {
         selector: 'div',
         style: ({ data: { size, dir } }) => ({
