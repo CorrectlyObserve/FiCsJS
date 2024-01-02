@@ -17,7 +17,7 @@ import {
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, boolean> = {}
+  readonly #reservedWords: Record<string, boolean> = { var: true }
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = <D>{}
@@ -54,7 +54,8 @@ export default class FiCsElement<D extends object, P extends object> {
     css,
     actions
   }: FiCs<D, P>) {
-    if (this.#reservedWords[name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
+    if (this.#reservedWords[this.#toKebabCase(name)])
+      throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
       this.#name = name
@@ -216,16 +217,32 @@ export default class FiCsElement<D extends object, P extends object> {
     if (isReset) shadowRoot.innerHTML = ''
     else this.#dataBindings.html = typeof this.#html === 'function'
 
-    const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
+    const html: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
-    if (elements)
-      for (const element of elements)
-        shadowRoot.appendChild(
-          element instanceof FiCsElement
-            ? element.#component ?? element.#render(this.#propsChain)
-            : document.createRange().createContextualFragment(element)
-        )
-    else
+    if (html) {
+      const ficsElements: FiCsElement<D, P>[] = []
+      const tag = 'f-var'
+      const childNodes: NodeListOf<ChildNode> = document.createRange().createContextualFragment(
+        <string>html.reduce((prev, curr) => {
+          if (curr instanceof FiCsElement) {
+            ficsElements.push(curr)
+            return prev + `<${tag}></${tag}>`
+          }
+
+          return prev + curr
+        }, '')
+      ).childNodes
+
+      for (const node of <HTMLElement[]>Array.from(childNodes)) {
+        for (const element of <HTMLElement[]>Array.from(node.querySelectorAll(tag))) {
+          const fics = ficsElements.shift()
+
+          if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+        }
+
+        shadowRoot.appendChild(node)
+      }
+    } else
       throw new Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
       )
