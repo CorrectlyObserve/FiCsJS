@@ -2,18 +2,20 @@ import { fics, html } from '../packages/core/fics'
 
 export const Svg = (path: string, color: string) =>
   fics({
-    name: 'icon',
+    name: 'svg',
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
-    html: html`<div />`,
+    html: html`<button />`,
     css: [
-      { selector: ':host', style: () => ({ display: 'inline-block', cursor: 'pointer' }) },
+      { selector: ':host', style: () => ({ display: 'flex' }) },
       {
-        selector: 'div',
+        selector: 'button',
         style: ({ data: { size, dir } }) => ({
           width: size,
           height: size,
           maskImage: `url("${dir}/${path}.svg")`,
-          background: color
+          background: color,
+          border: 'none',
+          cursor: 'pointer'
         })
       }
     ]
