@@ -18,6 +18,12 @@ export const Svg = (path: string, color: string) =>
           cursor: 'pointer'
         })
       }
+    ],
+    actions: [
+      {
+        handler: 'click',
+        method: ({ props: { click } }: { props: { click: () => void } }) => click()
+      }
     ]
   })
 
