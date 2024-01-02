@@ -1,6 +1,7 @@
 :root {
   --md: 1rem;
   --lg: 2rem;
+  --black: #2b2b2b;
   --red: #b7282e;
 }
 
@@ -11,7 +12,7 @@
 }
 
 body {
-  background: #2b2b2b;
+  background: var(--black);
 }
 
 #app {
