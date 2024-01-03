@@ -142,7 +142,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #getProperty<D, P>(property: Value<unknown, D, P>) {
+  #getProperty<D, P>(property: Value<unknown, D, P>): any {
     return typeof property === 'function'
       ? property({ data: { ...this.#data }, props: { ...this.#props } })
       : property
@@ -248,7 +248,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): string | void {
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): void {
     if (this.#css.length > 0) {
       if (css.length === 0)
         for (const [index, content] of this.#css.entries()) {
