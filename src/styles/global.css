@@ -16,6 +16,6 @@ body {
 }
 
 #app {
-  min-height: calc(100vh - 80px - var(--md));
-  padding: 0 var(--lg);
+  min-height: calc(100vh - 80px - 56px);
+  padding: var(--md) var(--lg) 0 var(--lg);
 }
