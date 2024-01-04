@@ -1,6 +1,12 @@
 import { fics, html } from '../packages/core/fics'
 
-export const Svg = (path: string, color: string) =>
+interface Props {
+  path: string
+  color: string
+  click: () => void
+}
+
+export const Svg = () =>
   fics({
     name: 'svg',
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
@@ -9,7 +15,13 @@ export const Svg = (path: string, color: string) =>
       { selector: ':host', style: () => ({ display: 'flex' }) },
       {
         selector: 'button',
-        style: ({ data: { size, dir } }) => ({
+        style: ({
+          data: { size, dir },
+          props: { path, color }
+        }: {
+          data: { size: string; dir: string }
+          props: Props
+        }) => ({
           width: size,
           height: size,
           maskImage: `url("${dir}/${path}.svg")`,
@@ -22,7 +34,7 @@ export const Svg = (path: string, color: string) =>
     actions: [
       {
         handler: 'click',
-        method: ({ props: { click } }: { props: { click: () => void } }) => click()
+        method: ({ props: { click } }: { props: Props }) => click()
       }
     ]
   })
