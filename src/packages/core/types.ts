@@ -49,7 +49,7 @@ export type PropsChain<P> = Map<string, Record<string, P>>
 
 export interface Queue {
   ficsId: string
-  reRender: () => void
+  reRender: void
 }
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
