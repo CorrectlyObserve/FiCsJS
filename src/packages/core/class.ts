@@ -365,19 +365,22 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!this.#component) this.#component = fics
 
-    return this.#component
+    return fics
   }
 
   #reRender(binding?: string, value?: string): void {
-    if (this.#component) {
-      const { className, html, css, actions } = this.#dataBindings
+    const fics: HTMLElement | undefined = this.#component
 
-      if (className) this.#addClassName(this.#component, true)
+    if (fics) {
+      const { className, html, css, actions } = this.#dataBindings
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
+
+      if (className) this.#addClassName(fics, true)
 
       if (html) {
-        if (binding && value && this.#component) {
+        if (binding && value && fics) {
           const elements: Element[] = Array.from(
-            this.#getShadowRoot(this.#component).querySelectorAll(`[binding="${binding}"]`)
+            shadowRoot.querySelectorAll(`[binding="${binding}"]`)
           )
 
           if (elements.length > 0)
@@ -386,12 +389,12 @@ export default class FiCsElement<D extends object, P extends object> {
               else element.textContent = value
             }
           else throw new Error(`There are no elements with ${binding} as the binding attribute...`)
-        } else this.#addHtml(this.#getShadowRoot(this.#component), true)
+        } else this.#addHtml(shadowRoot, true)
       }
 
       if (css.length > 0)
         this.#addCss(
-          this.#getShadowRoot(this.#component),
+          shadowRoot,
           css.map(index => this.#css[index])
         )
 
@@ -399,7 +402,7 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const index of actions) {
           const { selector } = this.#actions[index]
 
-          if (selector) this.#addEvent(this.#component, this.#actions[index], true)
+          if (selector) this.#addEvent(fics, this.#actions[index], true)
         }
     }
   }
