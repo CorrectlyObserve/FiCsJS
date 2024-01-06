@@ -10,7 +10,7 @@ export interface Action<D, P> {
       props
     }: {
       data: D
-      setData: (key: keyof D, value: D[typeof key]) => void
+      setData: (key: keyof D, value: D[typeof key], binding?: string) => void
       props: P
     },
     event: Event
