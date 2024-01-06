@@ -9,7 +9,7 @@ const processQueue = async (): Promise<void> => {
     const queueEl: Queue = queue.shift()!
 
     delete ids[queueEl.ficsId]
-    queueEl.reRender()
+    queueEl.reRender
   }
 
   hasQueue = false
