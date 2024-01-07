@@ -14,5 +14,6 @@ body {
 
 #app {
   min-height: calc(100vh - 80px - 56px);
-  padding: var(--md) var(--lg) 0 var(--lg);
+  padding: 0 var(--lg);
+  margin: 0;
 }
