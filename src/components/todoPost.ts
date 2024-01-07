@@ -6,13 +6,13 @@ export const TodoPost = (svg: SvgType) =>
   fics({
     name: 'todo-post',
     data: () => ({ binding: 'post', value: '', placeholder: 'Please enter a new task.' }),
+    props: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
     html: ({ data: { binding, value, placeholder } }) =>
       html`<div class="container">
         <input binding="${binding}" type="text" value="${value}" placeholder="${placeholder}" />
         ${svg}
       </div>`,
     css: [css],
-    props: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
     actions: [
       {
         handler: 'input',
