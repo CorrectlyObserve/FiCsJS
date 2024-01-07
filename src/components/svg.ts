@@ -12,7 +12,7 @@ export const Svg = () =>
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
     html: html`<button />`,
     css: [
-      { selector: ':host', style: () => ({ display: 'flex' }) },
+      { style: () => ({ display: 'flex' }) },
       {
         selector: 'button',
         style: ({
