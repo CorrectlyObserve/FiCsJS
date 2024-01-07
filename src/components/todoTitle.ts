@@ -4,12 +4,16 @@ import css from '../styles/todo.css?inline'
 export const TodoTitle = () =>
   fics({
     name: 'todo-title',
+    data: () => ({ md: 'var(--md)' }),
     html: ({ props: { numberOfTasks } }: { props: { numberOfTasks: number } }) =>
       html`<p>Remaining tasks: ${numberOfTasks}</p>`,
     css: [
       css,
-      { style: () => ({ display: 'block', marginBottom: 'calc(var(--md) * 2)' }) },
-      { selector: 'p', style: () => ({ fontSize: 'var(--md)', color: '#fff', textAlign: 'center' }) }
+      { style: ({ data: { md } }) => ({ display: 'block', marginBottom: `calc(${md} * 2)` }) },
+      {
+        selector: 'p',
+        style: ({ data: { md } }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
+      }
     ]
   })
 
