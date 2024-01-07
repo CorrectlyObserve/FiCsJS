@@ -221,26 +221,30 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (html) {
       const ficsElements: FiCsElement<D, P>[] = []
-      const tag = 'f-var'
+      const tagName = 'f-var'
       const childNodes: NodeListOf<ChildNode> = document.createRange().createContextualFragment(
         <string>html.reduce((prev, curr) => {
           if (curr instanceof FiCsElement) {
             ficsElements.push(curr)
-            return prev + `<${tag}></${tag}>`
+            return prev + `<${tagName}></${tagName}>`
           }
 
           return prev + curr
         }, '')
       ).childNodes
 
-      for (const node of <HTMLElement[]>Array.from(childNodes)) {
-        for (const element of <HTMLElement[]>Array.from(node.querySelectorAll(tag))) {
+      for (const child of <HTMLElement[]>Array.from(childNodes)) {
+        if (child.localName === tagName) {
           const fics = ficsElements.shift()
+          if (fics) shadowRoot.appendChild(fics.#component ?? fics.#render(this.#propsChain))
+        } else {
+          for (const element of <HTMLElement[]>Array.from(child.querySelectorAll(tagName))) {
+            const fics = ficsElements.shift()
+            if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+          }
 
-          if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+          shadowRoot.appendChild(child)
         }
-
-        shadowRoot.appendChild(node)
       }
     } else
       throw new Error(
