@@ -7,7 +7,6 @@
 
   input {
     width: calc(var(--md) * 15);
-    font-size: var(--md);
     padding: calc(var(--md) / 2);
     margin-right: var(--md);
   }
