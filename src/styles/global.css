@@ -11,9 +11,3 @@ body {
   margin: 0;
   box-sizing: border-box;
 }
-
-#app {
-  min-height: calc(100vh - 80px - 56px);
-  padding: 0 var(--lg);
-  margin: 0;
-}
