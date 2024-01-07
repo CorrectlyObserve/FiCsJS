@@ -5,14 +5,11 @@
   --red: #b7282e;
 }
 
-* {
+body {
+  background: var(--black);
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-}
-
-body {
-  background: var(--black);
 }
 
 #app {
