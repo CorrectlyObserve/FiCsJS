@@ -9,6 +9,8 @@ export const TodoTitle = () =>
     css: [
       css,
       { style: () => ({ display: 'block', marginBottom: 'calc(var(--md) * 2)' }) },
-      { selector: 'p', style: () => ({ color: '#fff', textAlign: 'center' }) }
+      { selector: 'p', style: () => ({ fontSize: 'var(--md)', color: '#fff', textAlign: 'center' }) }
     ]
   })
+
+export type TodoTitleType = ReturnType<typeof TodoTitle>
