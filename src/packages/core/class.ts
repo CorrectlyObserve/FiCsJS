@@ -305,8 +305,8 @@ export default class FiCsElement<D extends object, P extends object> {
             method(
               {
                 data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key], binding?: string) =>
-                  this.setData(key, value, binding),
+                setData: (key: keyof D, value: D[typeof key], bind?: string) =>
+                  this.setData(key, value, bind),
                 props: { ...this.#props }
               },
               event
@@ -372,7 +372,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return fics
   }
 
-  #reRender(binding?: string, value?: string): void {
+  #reRender(bind?: string, value?: string): void {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
@@ -382,17 +382,15 @@ export default class FiCsElement<D extends object, P extends object> {
       if (className) this.#addClassName(fics, true)
 
       if (html) {
-        if (binding && value && fics) {
-          const elements: Element[] = Array.from(
-            shadowRoot.querySelectorAll(`[binding="${binding}"]`)
-          )
+        if (bind && value && fics) {
+          const elements: Element[] = Array.from(shadowRoot.querySelectorAll(`[bind="${bind}"]`))
 
           if (elements.length > 0)
             for (const element of elements) {
               if ('value' in element) element.value = value
               else element.textContent = value
             }
-          else throw new Error(`There are no elements with ${binding} as the binding attribute...`)
+          else throw new Error(`There are no elements with ${bind} as the bind attribute...`)
         } else this.#addHtml(shadowRoot, true)
       }
 
@@ -417,12 +415,12 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${key as string} is not defined in data...`)
   }
 
-  setData(key: keyof D, value: D[typeof key], binding?: string): void {
+  setData(key: keyof D, value: D[typeof key], bind?: string): void {
     if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender(binding, <string>this.#data[key]) })
+      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender(bind, <string>this.#data[key]) })
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
