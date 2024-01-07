@@ -150,7 +150,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getStyle(css: Css<D, P> = this.#css): string {
     if (css.length > 0) return <string>css.reduce((prev, curr) => {
-        if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
+        if (typeof curr !== 'string' && 'style' in curr) {
           const style =
             '{' +
             Object.entries(this.#getProperty(curr.style))
@@ -163,7 +163,7 @@ export default class FiCsElement<D extends object, P extends object> {
               .join('\n') +
             '}'
 
-          return `${prev}${curr.selector}${style}`
+          return `${prev}${curr.selector ?? ':host'}${style}`
         }
 
         return `${prev}${curr}`
