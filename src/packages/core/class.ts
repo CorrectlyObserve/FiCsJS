@@ -163,7 +163,7 @@ export default class FiCsElement<D extends object, P extends object> {
               .join('\n') +
             '}'
 
-          return `${prev}${curr.selector ?? ':host'}${style}`
+          return `${prev} :host ${curr.selector ?? ''}${style}`
         }
 
         return `${prev}${curr}`
