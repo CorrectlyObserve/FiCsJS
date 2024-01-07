@@ -21,7 +21,7 @@ export type ClassName<D, P> = Value<string, D, P>
 
 export type Css<D, P> = (
   | string
-  | { selector: string; style: Value<Record<string, string | number>, D, P> }
+  | { selector?: string; style: Value<Record<string, string | number>, D, P> }
 )[]
 
 type Descendant = FiCsElement<any, any>
