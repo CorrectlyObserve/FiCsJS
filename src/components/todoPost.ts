@@ -22,3 +22,5 @@ export const TodoPost = (svg: SvgType) =>
       }
     ]
   })
+
+export type TodoPostType = ReturnType<typeof TodoPost>
