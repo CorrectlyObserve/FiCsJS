@@ -3,7 +3,3 @@
   margin: 0;
   box-sizing: border-box;
 }
-
-p, input {
-  font-size: var(--md);
-}
