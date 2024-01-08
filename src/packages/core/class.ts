@@ -112,7 +112,7 @@ export default class FiCsElement<D extends object, P extends object> {
           let dataKey: string = ''
           const data: [string, P][] = Object.entries({
             ...values((key: keyof D) => {
-              dataKey = <string>key
+              dataKey = key as string
               return this.getData(key)
             })
           })
@@ -149,7 +149,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getStyle(css: Css<D, P> = this.#css): string {
-    if (css.length > 0) return <string>css.reduce((prev, curr) => {
+    if (css.length > 0)
+      return css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && 'style' in curr) {
           const style =
             '{' +
@@ -167,7 +168,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         return `${prev}${curr}`
-      }, '')
+      }, '') as string
 
     return ''
   }
@@ -221,24 +222,24 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (html) {
       const ficsElements: FiCsElement<D, P>[] = []
-      const tagName = 'f-var'
+      const tagName: string = 'f-var'
       const childNodes: NodeListOf<ChildNode> = document.createRange().createContextualFragment(
-        <string>html.reduce((prev, curr) => {
+        html.reduce((prev, curr) => {
           if (curr instanceof FiCsElement) {
             ficsElements.push(curr)
             return prev + `<${tagName}></${tagName}>`
           }
 
           return prev + curr
-        }, '')
+        }, '') as string
       ).childNodes
 
-      for (const child of <HTMLElement[]>Array.from(childNodes)) {
+      for (const child of Array.from(childNodes) as HTMLElement[]) {
         if (child.localName === tagName) {
           const fics = ficsElements.shift()
           if (fics) shadowRoot.appendChild(fics.#component ?? fics.#render(this.#propsChain))
         } else {
-          for (const element of <HTMLElement[]>Array.from(child.querySelectorAll(tagName))) {
+          for (const element of Array.from(child.querySelectorAll(tagName)) as HTMLElement[]) {
             const fics = ficsElements.shift()
             if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
           }
@@ -285,7 +286,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (selector) {
       const getSelectors = (selector: string): Element[] =>
-        Array.from((<ShadowRoot>fics.shadowRoot).querySelectorAll(`:host ${selector}`))
+        Array.from((fics.shadowRoot as ShadowRoot).querySelectorAll(`:host ${selector}`))
       const elements: Element[] = []
 
       if (/^.+(\.|#).+$/.test(selector)) {
@@ -420,7 +421,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender(bind, <string>this.#data[key]) })
+      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender(bind, this.#data[key] as string) })
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
