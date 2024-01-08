@@ -17,7 +17,7 @@ export const TodoPost = (svg: SvgType) =>
         handler: 'input',
         selector: 'input',
         method: ({ data: { bind }, setData }, event) =>
-          setData('value', (<HTMLInputElement>event.target).value, bind)
+          setData('value', (event.target as HTMLInputElement).value, bind)
       }
     ]
   })
