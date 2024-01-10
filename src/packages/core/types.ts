@@ -7,13 +7,13 @@ export interface Action<D, P> {
     {
       data,
       setData,
-      props
+      event
     }: {
       data: D
       setData: (key: keyof D, value: D[typeof key], bind?: string) => void
-      props: P
+      event: Event
     },
-    event: Event
+    props: P
   ) => void
 }
 
@@ -56,4 +56,4 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
 
-export type Value<V, D, P> = V | (({ data, props }: { data: D; props: P }) => V)
+export type Value<V, D, P> = V | ((data: D, props: P) => V)
