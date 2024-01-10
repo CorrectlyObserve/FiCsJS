@@ -16,7 +16,7 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
         values: getData => ({ propsColor: getData('color') + '2' })
       }
     ],
-    html: ({ data: { fontSize, number } }) => html`<p>Content is...</p>
+    html: ({ fontSize, number }) => html`<p>Content is...</p>
       ${parent}
       <p>人数: ${number}</p>
       <input value="${fontSize}" />`,
