@@ -17,13 +17,13 @@ import {
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, boolean> = { var: true }
+  readonly #reservedNames: Record<string, boolean> = { var: true }
   readonly #ficsId: string
   readonly #name: string
-  readonly #data: D = <D>{}
+  readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
   readonly #inheritances: Props<D> = []
-  readonly #props: P = <P>{}
+  readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #className: ClassName<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: [] }
@@ -54,7 +54,7 @@ export default class FiCsElement<D extends object, P extends object> {
     css,
     actions
   }: FiCs<D, P>) {
-    if (this.#reservedWords[this.#toKebabCase(name)])
+    if (this.#reservedNames[this.#toKebabCase(name)])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
@@ -144,7 +144,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getProperty<D, P>(property: Value<unknown, D, P>): any {
     return typeof property === 'function'
-      ? property({ data: { ...this.#data }, props: { ...this.#props } })
+      ? property({ ...this.#data }, { ...this.#props })
       : property
   }
 
@@ -238,7 +238,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (child.localName === tagName) {
           const fics = ficsElements.shift()
           if (fics) shadowRoot.appendChild(fics.#component ?? fics.#render(this.#propsChain))
-        } else {
+        } else if (child instanceof HTMLElement) {
           for (const element of Array.from(child.querySelectorAll(tagName)) as HTMLElement[]) {
             const fics = ficsElements.shift()
             if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
@@ -308,9 +308,9 @@ export default class FiCsElement<D extends object, P extends object> {
                 data: { ...this.#data },
                 setData: (key: keyof D, value: D[typeof key], bind?: string) =>
                   this.setData(key, value, bind),
-                props: { ...this.#props }
+                event
               },
-              event
+              { ...this.#props }
             )
 
           if (isReset) element.removeEventListener(handler, (event: Event) => methodFunc(event))
@@ -336,9 +336,9 @@ export default class FiCsElement<D extends object, P extends object> {
               {
                 data: { ...this.#data },
                 setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                props: { ...this.#props }
+                event
               },
-              event
+              { ...this.#props }
             )
           )
       })
@@ -383,6 +383,8 @@ export default class FiCsElement<D extends object, P extends object> {
       if (className) this.#addClassName(fics, true)
 
       if (html) {
+        console.log(shadowRoot.activeElement)
+
         if (bind && value && fics) {
           const elements: Element[] = Array.from(shadowRoot.querySelectorAll(`[bind="${bind}"]`))
 
