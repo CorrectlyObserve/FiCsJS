@@ -12,16 +12,10 @@ export const Svg = () =>
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
     html: html`<button />`,
     css: [
-      { style: () => ({ display: 'flex' }) },
+      { style: { display: 'flex' } },
       {
         selector: 'button',
-        style: ({
-          data: { size, dir },
-          props: { path, color }
-        }: {
-          data: { size: string; dir: string }
-          props: Props
-        }) => ({
+        style: ({ size, dir }, { path, color }: Props) => ({
           width: size,
           height: size,
           maskImage: `url("${dir}/${path}.svg")`,
@@ -31,12 +25,7 @@ export const Svg = () =>
         })
       }
     ],
-    actions: [
-      {
-        handler: 'click',
-        method: ({ props: { click } }: { props: Props }) => click()
-      }
-    ]
+    actions: [{ handler: 'click', method: (_, { click }: Props) => click() }]
   })
 
 export type SvgType = ReturnType<typeof Svg>
