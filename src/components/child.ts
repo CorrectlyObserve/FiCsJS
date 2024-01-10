@@ -1,6 +1,11 @@
 import { fics, html } from '../packages/core/fics'
 import cssUrl from './../styles/style.css?inline'
 
+interface Props {
+  color: string
+  click: (message: string) => void
+}
+
 export const Child = (message: string = 'Hello') =>
   fics({
     name: 'child',
@@ -15,21 +20,17 @@ export const Child = (message: string = 'Hello') =>
     }),
     reflections: { count: count => console.log('count', count) },
     isOnlyCsr: true,
-    className: ({ data: { back } }) => back,
-    html: ({
-      data: { message, count, countedNum },
-      props: { color }
-    }: {
-      data: { message: string; count: number; countedNum: (count: number) => number }
-      props: { color: string; click: (message: string) => void }
-    }) => html`<div><p class="hello" style="display: inline">${message}</p></div>
+    className: ({ back }) => back,
+    html: ({ message, count, countedNum }, { color }: Props) => html`<div>
+        <p class="hello" style="display: inline">${message}</p>
+      </div>
       <p>${color}</p>
       <p>${countedNum(count)}</p>`,
     css: [
       cssUrl,
       {
         selector: 'p',
-        style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
+        style: ({ fontSize }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
       }
     ],
     actions: [
@@ -43,7 +44,7 @@ export const Child = (message: string = 'Hello') =>
       {
         selector: 'div',
         handler: 'click',
-        method: ({ data: { message }, props: { click } }) => click(message)
+        method: ({ data: { message } }, { click }: Props) => click(message)
       }
     ]
   })
