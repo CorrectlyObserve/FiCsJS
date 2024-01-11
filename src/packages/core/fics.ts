@@ -20,11 +20,12 @@ export const html = <D extends object, P extends object>(
     else {
       const last = result[result.length - 1] ?? ''
       const isFiCsElement = variable instanceof FiCsElement
+      const trimmed = template.trim()
 
       if (last instanceof FiCsElement)
-        isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+        isFiCsElement ? result.push(trimmed, variable) : result.push(`${trimmed}${variable}`)
       else {
-        result.splice(result.length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
+        result.splice(result.length - 1, 1, `${last}${trimmed}${isFiCsElement ? '' : variable}`)
         if (isFiCsElement) result.push(variable)
       }
     }
