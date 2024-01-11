@@ -9,6 +9,7 @@ export const html = <D extends object, P extends object>(
   const result = new Array()
 
   for (const [index, template] of templates.entries()) {
+    const trimmed = template.trim()
     const sanitize = (arg: unknown): unknown =>
       typeof arg === 'string' && arg !== ''
         ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
@@ -20,7 +21,6 @@ export const html = <D extends object, P extends object>(
     else {
       const last = result[result.length - 1] ?? ''
       const isFiCsElement = variable instanceof FiCsElement
-      const trimmed = template.trim()
 
       if (last instanceof FiCsElement)
         isFiCsElement ? result.push(trimmed, variable) : result.push(`${trimmed}${variable}`)
