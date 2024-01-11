@@ -6,7 +6,7 @@ export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
   ...variables: unknown[]
 ): Record<symbol, Sanitized<D, P>> => {
-  const result = []
+  const result = new Array()
 
   for (const [index, template] of templates.entries()) {
     const sanitize = (arg: unknown): unknown =>
