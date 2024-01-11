@@ -1,6 +1,6 @@
 import { Queue } from './types'
 
-const queue: Queue[] = []
+const queue: Queue[] = new Array()
 const ids: Record<string, boolean> = {}
 let hasQueue: boolean = false
 
