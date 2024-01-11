@@ -22,22 +22,22 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
-  readonly #inheritances: Props<D> = []
+  readonly #inheritances: Props<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #className: ClassName<D, P> | undefined = undefined
-  readonly #html: Html<D, P> = { [symbol]: [] }
-  readonly #css: Css<D, P> = []
-  readonly #actions: Action<D, P>[] = []
+  readonly #html: Html<D, P> = { [symbol]: new Array() }
+  readonly #css: Css<D, P> = new Array()
+  readonly #actions: Action<D, P>[] = new Array()
 
   readonly #propsTrees: {
     descendantId: string
     dataKey: string
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
-  }[] = []
+  }[] = new Array()
   readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } =
-    { className: false, html: false, css: [], actions: [] }
+    { className: false, html: false, css: new Array(), actions: new Array() }
 
   #propsChain: PropsChain<P> = new Map()
   #childNodes: ChildNode[] = new Array()
@@ -222,7 +222,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const html: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
     if (html) {
-      const ficsElements: FiCsElement<D, P>[] = []
+      const ficsElements: FiCsElement<D, P>[] = new Array()
       const tagName: string = 'f-var'
       const fragment: DocumentFragment = document.createRange().createContextualFragment(
         html.reduce((prev, curr) => {
@@ -256,7 +256,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): void {
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
     if (this.#css.length > 0) {
       if (css.length === 0)
         for (const [index, content] of this.#css.entries()) {
@@ -290,7 +290,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (selector) {
       const getSelectors = (selector: string): Element[] =>
         Array.from((fics.shadowRoot as ShadowRoot).querySelectorAll(`:host ${selector}`))
-      const elements: Element[] = []
+      const elements: Element[] = new Array()
 
       if (/^.+(\.|#).+$/.test(selector)) {
         const prefix = selector.startsWith('.') ? '.' : '#'
