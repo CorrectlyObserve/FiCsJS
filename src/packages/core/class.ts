@@ -40,6 +40,7 @@ export default class FiCsElement<D extends object, P extends object> {
     { className: false, html: false, css: [], actions: [] }
 
   #propsChain: PropsChain<P> = new Map()
+  #childNodes: ChildNode[] = new Array()
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
@@ -223,7 +224,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (html) {
       const ficsElements: FiCsElement<D, P>[] = []
       const tagName: string = 'f-var'
-      const childNodes: NodeListOf<ChildNode> = document.createRange().createContextualFragment(
+      const fragment: DocumentFragment = document.createRange().createContextualFragment(
         html.reduce((prev, curr) => {
           if (curr instanceof FiCsElement) {
             ficsElements.push(curr)
@@ -232,21 +233,23 @@ export default class FiCsElement<D extends object, P extends object> {
 
           return prev + curr
         }, '') as string
-      ).childNodes
+      )
+      this.#childNodes = [...Array.from(fragment.childNodes)]
 
-      for (const child of Array.from(childNodes) as HTMLElement[]) {
-        if (child.localName === tagName) {
-          const fics = ficsElements.shift()
-          if (fics) shadowRoot.appendChild(fics.#component ?? fics.#render(this.#propsChain))
-        } else if (child instanceof HTMLElement) {
-          for (const element of Array.from(child.querySelectorAll(tagName)) as HTMLElement[]) {
-            const fics = ficsElements.shift()
-            if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-          }
-
-          shadowRoot.appendChild(child)
-        }
+      const createFicsElement = (target: HTMLElement | ShadowRoot): void => {
+        const fics = ficsElements.shift()
+        if (fics) target.appendChild(fics.#component ?? fics.#render(this.#propsChain))
       }
+
+      for (const node of this.#childNodes)
+        if (node instanceof HTMLElement)
+          if (node.localName === tagName) createFicsElement(shadowRoot)
+          else {
+            for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[])
+              createFicsElement(element)
+            shadowRoot.appendChild(node)
+          }
+        else shadowRoot.appendChild(node)
     } else
       throw new Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
@@ -383,7 +386,10 @@ export default class FiCsElement<D extends object, P extends object> {
       if (className) this.#addClassName(fics, true)
 
       if (html) {
-        console.log(shadowRoot.activeElement)
+        // console.log(
+        //   shadowRoot.activeElement,
+        //   shadowRoot.activeElement?.parentNode?.parentNode === shadowRoot
+        // )
 
         if (bind && value && fics) {
           const elements: Element[] = Array.from(shadowRoot.querySelectorAll(`[bind="${bind}"]`))
