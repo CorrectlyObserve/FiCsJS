@@ -215,9 +215,8 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#toKebabCase())
   }
 
-  #addHtml(shadowRoot: ShadowRoot, isReset?: boolean): void {
-    if (isReset) shadowRoot.innerHTML = ''
-    else this.#dataBindings.html = typeof this.#html === 'function'
+  #addHtml(shadowRoot: ShadowRoot, isRerendered?: boolean): void {
+    // if (isRerendered) shadowRoot.innerHTML = ''
 
     const html: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
@@ -234,22 +233,63 @@ export default class FiCsElement<D extends object, P extends object> {
           return prev + curr
         }, '') as string
       )
-      this.#childNodes = [...Array.from(fragment.childNodes)]
+      const focusableElements: (HTMLInputElement | HTMLTextAreaElement)[] = [
+        ...Array.from(fragment.querySelectorAll('input')),
+        ...Array.from(fragment.querySelectorAll('textarea'))
+      ]
+      const attr: string = `${this.#toKebabCase()}-fics-focusable`
+      let generator: number = 0
 
-      const createFicsElement = (target: HTMLElement | ShadowRoot): void => {
-        const fics = ficsElements.shift()
-        if (fics) target.appendChild(fics.#component ?? fics.#render(this.#propsChain))
+      for (const element of focusableElements)
+        if (!element.hasAttribute(attr)) {
+          generator++
+          element.setAttribute(attr, `${this.#toKebabCase()}-${generator}`)
+        }
+
+      const childNodes: ChildNode[] = Array.from(fragment.childNodes)
+      const activeElement: Element | null = shadowRoot.activeElement
+
+      if (this.#childNodes.length > 0 && activeElement?.getAttribute(attr)) {
+        const focusedElement: HTMLElement | null = fragment.querySelector(
+          `[${attr}="${activeElement.getAttribute(attr)}"]`
+        )
+        let targetNode: ChildNode | undefined = undefined
+        let isContained: boolean = false
+        const nextSiblings: ChildNode[] = []
+        const prevSiblings: ChildNode[] = []
+
+        for (const node of childNodes) {
+          if (node.contains(focusedElement)) {
+            targetNode = node
+            isContained = true
+          } else (isContained ? nextSiblings : prevSiblings).push(node)
+        }
+
+        if (targetNode) {
+          for (const node of Array.from(targetNode.childNodes)) {
+            console.log(node, node.contains(focusedElement), node === focusedElement)
+          }
+        }
+      } else {
+        this.#childNodes = [...childNodes]
+        this.#dataBindings.html = typeof this.#html === 'function'
       }
 
-      for (const node of this.#childNodes)
-        if (node instanceof HTMLElement)
-          if (node.localName === tagName) createFicsElement(shadowRoot)
-          else {
+      const createFicsElement = (target: HTMLElement): void => {
+        const fics = ficsElements.shift()
+        if (fics) target.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+      }
+
+      for (const node of this.#childNodes) {
+        shadowRoot.appendChild(node)
+
+        if (node instanceof HTMLElement) {
+          if (node.localName === tagName) createFicsElement(node)
+          else
             for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[])
               createFicsElement(element)
-            shadowRoot.appendChild(node)
-          }
-        else shadowRoot.appendChild(node)
+        }
+      }
     } else
       throw new Error(
         `${this.#name} has to use html function (tagged template literal) in html argument.`
@@ -288,8 +328,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const { handler, selector, method } = action
 
     if (selector) {
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
       const getSelectors = (selector: string): Element[] =>
-        Array.from((fics.shadowRoot as ShadowRoot).querySelectorAll(`:host ${selector}`))
+        Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
       const elements: Element[] = new Array()
 
       if (/^.+(\.|#).+$/.test(selector)) {
@@ -309,8 +350,7 @@ export default class FiCsElement<D extends object, P extends object> {
             method(
               {
                 data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key], bind?: string) =>
-                  this.setData(key, value, bind),
+                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
                 event
               },
               { ...this.#props }
@@ -318,7 +358,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (isReset) element.removeEventListener(handler, (event: Event) => methodFunc(event))
 
-          element.addEventListener(handler, (event: Event) => methodFunc(event))
+          if (shadowRoot.activeElement !== element)
+            element.addEventListener(handler, (event: Event) => methodFunc(event))
         }
       else
         console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
@@ -376,7 +417,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return fics
   }
 
-  #reRender(bind?: string, value?: string): void {
+  #reRender(): void {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
@@ -385,23 +426,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (className) this.#addClassName(fics, true)
 
-      if (html) {
-        // console.log(
-        //   shadowRoot.activeElement,
-        //   shadowRoot.activeElement?.parentNode?.parentNode === shadowRoot
-        // )
-
-        if (bind && value && fics) {
-          const elements: Element[] = Array.from(shadowRoot.querySelectorAll(`[bind="${bind}"]`))
-
-          if (elements.length > 0)
-            for (const element of elements) {
-              if ('value' in element) element.value = value
-              else element.textContent = value
-            }
-          else throw new Error(`There are no elements with ${bind} as the bind attribute...`)
-        } else this.#addHtml(shadowRoot, true)
-      }
+      if (html) this.#addHtml(shadowRoot, true)
 
       if (css.length > 0)
         this.#addCss(
@@ -424,12 +449,12 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${key as string} is not defined in data...`)
   }
 
-  setData(key: keyof D, value: D[typeof key], bind?: string): void {
+  setData(key: keyof D, value: D[typeof key]): void {
     if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender(bind, this.#data[key] as string) })
+      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
