@@ -210,18 +210,16 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #addClassName(fics: HTMLElement, isReset?: boolean): void {
-    if (isReset) fics.classList.remove(...Array.from(fics.classList))
-    else if (typeof this.#className === 'function') this.#dataBindings.className = true
+  #addClassName(fics: HTMLElement, isRerendering?: boolean): void {
+    if (isRerendering) fics.classList.remove(...Array.from(fics.classList))
+    else this.#dataBindings.className = typeof this.#className === 'function'
 
     this.#className
       ? fics.setAttribute('class', `${this.#name} ${this.#getProperty(this.#className)}`)
       : fics.classList.add(this.#name)
   }
 
-  #addHtml(shadowRoot: ShadowRoot, isRerendered?: boolean): void {
-    // if (isRerendered) shadowRoot.innerHTML = ''
-
+  #addHtml(shadowRoot: ShadowRoot): void {
     const html: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
     if (html) {
@@ -328,7 +326,7 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addEvent(fics: HTMLElement, action: Action<D, P>, isReset?: boolean): void {
+  #addEvent(fics: HTMLElement, action: Action<D, P>, isRerendering?: boolean): void {
     const { handler, selector, method } = action
 
     if (selector) {
@@ -360,7 +358,7 @@ export default class FiCsElement<D extends object, P extends object> {
               { ...this.#props }
             )
 
-          if (isReset) element.removeEventListener(handler, (event: Event) => methodFunc(event))
+          if (isRerendering) element.removeEventListener(handler, (event: Event) => methodFunc(event))
 
           if (shadowRoot.activeElement !== element)
             element.addEventListener(handler, (event: Event) => methodFunc(event))
@@ -430,7 +428,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (className) this.#addClassName(fics, true)
 
-      if (html) this.#addHtml(shadowRoot, true)
+      if (html) this.#addHtml(shadowRoot)
 
       if (css.length > 0)
         this.#addCss(
