@@ -59,7 +59,7 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
-      this.#name = name
+      this.#name = this.#toKebabCase(name)
 
       if (data) {
         if (reflections) {
@@ -90,12 +90,12 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #toKebabCase(str: string = this.#name): string {
+  #toKebabCase(str: string): string {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   }
 
   #getTagName(): string {
-    return `f-${this.#toKebabCase()}`
+    return `f-${this.#name}`
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -184,10 +184,12 @@ export default class FiCsElement<D extends object, P extends object> {
     const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
 
     if (elements) {
-      const className: string = this.#className ? ` ${this.#getProperty(this.#className)}` : ''
+      const className: string = (
+        this.#name + ' ' + this.#className ? this.#getProperty(this.#className) : ''
+      ).trim()
 
       return `
-        <${tagName} class="${this.#toKebabCase()}${className}">
+        <${tagName} class="${className}">
           <template shadowrootmode="open">
             ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
             ${elements.reduce(
@@ -211,8 +213,8 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (typeof this.#className === 'function') this.#dataBindings.className = true
 
     this.#className
-      ? fics.setAttribute('class', `${this.#toKebabCase()} ${this.#getProperty(this.#className)}`)
-      : fics.classList.add(this.#toKebabCase())
+      ? fics.setAttribute('class', `${this.#name} ${this.#getProperty(this.#className)}`)
+      : fics.classList.add(this.#name)
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendered?: boolean): void {
@@ -237,13 +239,13 @@ export default class FiCsElement<D extends object, P extends object> {
         ...Array.from(fragment.querySelectorAll('input')),
         ...Array.from(fragment.querySelectorAll('textarea'))
       ]
-      const attr: string = `${this.#toKebabCase()}-fics-focusable`
+      const attr: string = `${this.#name}-fics-focusable`
       let generator: number = 0
 
       for (const element of focusableElements)
         if (!element.hasAttribute(attr)) {
           generator++
-          element.setAttribute(attr, `${this.#toKebabCase()}-${generator}`)
+          element.setAttribute(attr, `${this.#name}-${generator}`)
         }
 
       const childNodes: ChildNode[] = Array.from(fragment.childNodes)
