@@ -277,19 +277,18 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#dataBindings.html = typeof this.#html === 'function'
       }
 
-      const createFicsElement = (target: HTMLElement): void => {
-        const fics = ficsElements.shift()
-        if (fics) target.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-      }
-
       for (const node of this.#childNodes) {
         shadowRoot.appendChild(node)
 
         if (node instanceof HTMLElement) {
-          if (node.localName === tagName) createFicsElement(node)
-          else
-            for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[])
-              createFicsElement(element)
+          if (node.localName === tagName) {
+            const fics = ficsElements.shift()
+            if (fics) node.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+          } else
+            for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[]) {
+              const fics = ficsElements.shift()
+              if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+            }
         }
       }
     } else
@@ -358,7 +357,8 @@ export default class FiCsElement<D extends object, P extends object> {
               { ...this.#props }
             )
 
-          if (isRerendering) element.removeEventListener(handler, (event: Event) => methodFunc(event))
+          if (isRerendering)
+            element.removeEventListener(handler, (event: Event) => methodFunc(event))
 
           if (shadowRoot.activeElement !== element)
             element.addEventListener(handler, (event: Event) => methodFunc(event))
