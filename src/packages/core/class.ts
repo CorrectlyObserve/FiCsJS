@@ -55,11 +55,13 @@ export default class FiCsElement<D extends object, P extends object> {
     css,
     actions
   }: FiCs<D, P>) {
-    if (this.#reservedNames[this.#toKebabCase(name)])
+    const convertedName: string = this.#toKebabCase(name)
+
+    if (this.#reservedNames[convertedName])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
-      this.#name = this.#toKebabCase(name)
+      this.#name = convertedName
 
       if (data) {
         if (reflections) {
