@@ -227,12 +227,9 @@ export default class FiCsElement<D extends object, P extends object> {
       const tagName: string = 'f-var'
       const fragment: DocumentFragment = document.createRange().createContextualFragment(
         html.reduce((prev, curr) => {
-          if (curr instanceof FiCsElement) {
-            ficsElements.push(curr)
-            return prev + `<${tagName}></${tagName}>`
-          }
+          if (curr instanceof FiCsElement) ficsElements.push(curr)
 
-          return prev + curr
+          return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
         }, '') as string
       )
       const focusableElements: (HTMLInputElement | HTMLTextAreaElement)[] = [
