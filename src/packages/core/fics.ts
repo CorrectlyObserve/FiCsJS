@@ -1,28 +1,28 @@
 import FiCsElement from './class'
 import symbol from './symbol'
-import { Sanitized, FiCs } from './types'
+import { FiCs, getIsFiCsElement, Sanitized } from './types'
 
 export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
   ...variables: unknown[]
 ): Record<symbol, Sanitized<D, P>> => {
-  const result = new Array()
+  const result: (Sanitized<D, P> | unknown)[] = new Array()
 
   for (const [index, template] of templates.entries()) {
-    const trimmed = template.trim()
-    const sanitize = (arg: unknown): unknown =>
+    const trimmed: string = template.trim()
+    const sanitize = (arg: Sanitized<D, P> | unknown): Sanitized<D, P> | unknown =>
       typeof arg === 'string' && arg !== ''
         ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         : arg ?? ''
 
-    const variable = sanitize(variables[index])
+    const variable: Sanitized<D, P> | unknown = sanitize(variables[index])
 
     if (index === 0 && template === '') result.push(variable)
     else {
-      const last = result[result.length - 1] ?? ''
-      const isFiCsElement = variable instanceof FiCsElement
+      const last: Sanitized<D, P> | unknown = result[result.length - 1] ?? ''
+      const isFiCsElement: boolean = getIsFiCsElement(variable)
 
-      if (last instanceof FiCsElement)
+      if (getIsFiCsElement(last))
         isFiCsElement ? result.push(trimmed, variable) : result.push(`${trimmed}${variable}`)
       else {
         result.splice(result.length - 1, 1, `${last}${trimmed}${isFiCsElement ? '' : variable}`)
@@ -31,7 +31,7 @@ export const html = <D extends object, P extends object>(
     }
   }
 
-  return { [symbol]: <Sanitized<D, P>>result }
+  return { [symbol]: result as Sanitized<D, P> }
 }
 
 export const fics = <D extends object, P extends object>({
