@@ -38,6 +38,10 @@ export interface FiCs<D, P> {
   actions?: Action<D, P>[]
 }
 
+export const getIsFiCsElement = <D extends object, P extends object>(
+  element: FiCsElement<D, P> | unknown
+): boolean => element instanceof FiCsElement
+
 export type Html<D, P> = Value<Record<symbol, (Descendant | string)[]>, D, P>
 
 export type Props<D> = {
