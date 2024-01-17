@@ -10,8 +10,7 @@ import {
   Props,
   PropsChain,
   Reflections,
-  Sanitized,
-  Value
+  Sanitized
 } from './types'
 
 const generator: Generator<number> = generate()
@@ -38,9 +37,10 @@ export default class FiCsElement<D extends object, P extends object> {
   }[] = new Array()
   readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } =
     { className: false, html: false, css: new Array(), actions: new Array() }
+  readonly #generator: Generator<number> = generate()
 
   #propsChain: PropsChain<P> = new Map()
-  #childNodes: ChildNode[] = new Array()
+  #dom: DocumentFragment = new DocumentFragment()
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
@@ -145,27 +145,23 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #getProperty<D, P>(property: Value<unknown, D, P>): any {
-    return typeof property === 'function'
-      ? property({ ...this.#data }, { ...this.#props })
-      : property
-  }
-
   #getStyle(css: Css<D, P> = this.#css): string {
     if (css.length > 0)
       return css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && 'style' in curr) {
-          const style =
-            '{' +
-            Object.entries(this.#getProperty(curr.style))
-              .map(([key, value]) => {
-                key = this.#toKebabCase(key)
-                if (key.startsWith('webkit')) key = `-${key}`
+          const entries: [string, unknown][] = Object.entries(
+            typeof curr.style === 'function'
+              ? curr.style({ ...this.#data }, { ...this.#props })
+              : curr.style
+          )
+          const style: string = `{${entries
+            .map(([key, value]) => {
+              key = this.#toKebabCase(key)
+              if (key.startsWith('webkit')) key = `-${key}`
 
-                return `${key}: ${value};`
-              })
-              .join('\n') +
-            '}'
+              return `${key}: ${value};`
+            })
+            .join('\n')}}`
 
           return `${prev} :host ${curr.selector ?? ''}${style}`
         }
@@ -176,6 +172,24 @@ export default class FiCsElement<D extends object, P extends object> {
     return ''
   }
 
+  #bind(): string {
+    return ` $bind="${this.#name}-bind-${this.#generator.next().value}" `
+  }
+
+  #getHtml(): Sanitized<D, P> {
+    return (
+      typeof this.#html === 'function'
+        ? this.#html({ data: { ...this.#data }, bind: ()=> this.#bind() }, { ...this.#props })
+        : this.#html
+    )[symbol]
+  }
+
+  #getClassName(): string | undefined {
+    return typeof this.#className === 'function'
+      ? this.#className({ ...this.#data }, { ...this.#props })
+      : this.#className
+  }
+
   #renderOnServer(propsChain: PropsChain<P>): string {
     const tagName: string = this.#getTagName()
 
@@ -183,18 +197,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#initProps(propsChain)
 
-    const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
-
-    if (elements) {
-      const className: string = (
-        this.#name + ' ' + this.#className ? this.#getProperty(this.#className) : ''
-      ).trim()
-
-      return `
-        <${tagName} class="${className}">
+    return `
+        <${tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
           <template shadowrootmode="open">
             ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
-            ${elements.reduce(
+            ${this.#getHtml().reduce(
               (prev, curr) =>
                 prev +
                 (curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr),
@@ -203,11 +210,6 @@ export default class FiCsElement<D extends object, P extends object> {
           </template>
         </${tagName}>
       `.trim()
-    }
-
-    throw new Error(
-      `${this.#name} has to use html function (tagged template literal) in html argument.`
-    )
   }
 
   #addClassName(fics: HTMLElement, isRerendering?: boolean): void {
@@ -215,83 +217,46 @@ export default class FiCsElement<D extends object, P extends object> {
     else this.#dataBindings.className = typeof this.#className === 'function'
 
     this.#className
-      ? fics.setAttribute('class', `${this.#name} ${this.#getProperty(this.#className)}`)
+      ? fics.setAttribute('class', `${this.#name} ${this.#getClassName()}`)
       : fics.classList.add(this.#name)
   }
 
   #addHtml(shadowRoot: ShadowRoot): void {
-    const html: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
+    const ficsElements: FiCsElement<D, P>[] = new Array()
+    const tagName: string = 'f-var'
+    const fragment: DocumentFragment = document.createRange().createContextualFragment(
+      this.#getHtml().reduce((prev, curr) => {
+        if (curr instanceof FiCsElement) ficsElements.push(curr)
 
-    if (html) {
-      const ficsElements: FiCsElement<D, P>[] = new Array()
-      const tagName: string = 'f-var'
-      const fragment: DocumentFragment = document.createRange().createContextualFragment(
-        html.reduce((prev, curr) => {
-          if (curr instanceof FiCsElement) ficsElements.push(curr)
+        return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
+      }, '') as string
+    )
+    const attr: string = `${this.#name}-bind-${this.#generator.next().value}`
 
-          return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
-        }, '') as string
-      )
-      const focusableElements: (HTMLInputElement | HTMLTextAreaElement)[] = [
-        ...Array.from(fragment.querySelectorAll('input')),
-        ...Array.from(fragment.querySelectorAll('textarea'))
-      ]
-      const attr: string = `${this.#name}-fics-focusable`
-      let generator: number = 0
+    if (this.#dom.childNodes.length > 0) {
+    } else {
+      for (const element of Array.from(fragment.querySelectorAll('[fics-bind]'))) {
+        element.removeAttribute('fics-bind')
+        element.setAttribute(attr, '')
+      }
 
-      for (const element of focusableElements)
-        if (!element.hasAttribute(attr)) {
-          generator++
-          element.setAttribute(attr, `${this.#name}-${generator}`)
-        }
+      this.#dom = fragment
+      this.#dataBindings.html = typeof this.#html === 'function'
+    }
 
-      const childNodes: ChildNode[] = Array.from(fragment.childNodes)
-      const activeElement: Element | null = shadowRoot.activeElement
-
-      if (this.#childNodes.length > 0 && activeElement?.getAttribute(attr)) {
-        const focusedElement: HTMLElement | null = fragment.querySelector(
-          `[${attr}="${activeElement.getAttribute(attr)}"]`
-        )
-        let targetNode: ChildNode | undefined = undefined
-        let isContained: boolean = false
-        const nextSiblings: ChildNode[] = []
-        const prevSiblings: ChildNode[] = []
-
-        for (const node of childNodes) {
-          if (node.contains(focusedElement)) {
-            targetNode = node
-            isContained = true
-          } else (isContained ? nextSiblings : prevSiblings).push(node)
-        }
-
-        if (targetNode) {
-          for (const node of Array.from(targetNode.childNodes)) {
-            console.log(node, node.contains(focusedElement), node === focusedElement)
+    for (const node of Array.from(this.#dom.childNodes)) {
+      shadowRoot.appendChild(node)
+      if (node instanceof HTMLElement) {
+        if (node.localName === tagName) {
+          const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+          if (fics) node.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+        } else
+          for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[]) {
+            const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+            if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
           }
-        }
-      } else {
-        this.#childNodes = [...childNodes]
-        this.#dataBindings.html = typeof this.#html === 'function'
       }
-
-      for (const node of this.#childNodes) {
-        shadowRoot.appendChild(node)
-
-        if (node instanceof HTMLElement) {
-          if (node.localName === tagName) {
-            const fics = ficsElements.shift()
-            if (fics) node.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-          } else
-            for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[]) {
-              const fics = ficsElements.shift()
-              if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-            }
-        }
-      }
-    } else
-      throw new Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
-      )
+    }
   }
 
   #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
