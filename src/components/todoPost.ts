@@ -5,24 +5,28 @@ import css from '../styles/todoPost.css?inline'
 export const TodoPost = (svg: SvgType) =>
   fics({
     name: 'todo-post',
-    data: () => ({
-      bind: 'post',
-      value: '',
-      placeholder: 'Please enter a new task.',
-      aaa: (value: string) => console.log(value)
-    }),
+    data: () => ({ value: '', placeholder: 'Please enter a new task.' }),
     props: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
-    html: ({ bind, value, placeholder }) =>
-      html`<div class="container">
-        <input bind="${bind}" type="text" value="${value}" placeholder="${placeholder}" />${svg}
-      </div>`,
+    html: ({ data: { value, placeholder }, bind }) => {
+      return html`aaa
+        <div class="container">
+          <input
+            ${bind()}
+            class="${value}"
+            type="text"
+            value="${value}"
+            placeholder="${placeholder}"
+          />${svg}
+        </div>
+        <p style="color:#fff">value: <span>${value}</span></p>
+        <span ${bind()}>${value}</span>`
+    },
     css: [css],
     actions: [
       {
         handler: 'input',
         selector: 'input',
-        method: ({ data: { bind }, setData, event }) =>
-          setData('value', (event.target as HTMLInputElement).value, bind)
+        method: ({ setData, event }) => setData('value', (event.target as HTMLInputElement).value)
       },
       {
         handler: 'keydown',
