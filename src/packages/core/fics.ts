@@ -1,6 +1,6 @@
 import FiCsElement from './class'
 import symbol from './symbol'
-import { FiCs, getIsFiCsElement, Sanitized } from './types'
+import { FiCs, Sanitized } from './types'
 
 export const html = <D extends object, P extends object>(
   templates: TemplateStringsArray,
@@ -20,9 +20,9 @@ export const html = <D extends object, P extends object>(
     if (index === 0 && template === '') result.push(variable)
     else {
       const last: Sanitized<D, P> | unknown = result[result.length - 1] ?? ''
-      const isFiCsElement: boolean = getIsFiCsElement(variable)
+      const isFiCsElement: boolean = variable instanceof FiCsElement
 
-      if (getIsFiCsElement(last))
+      if (last instanceof FiCsElement)
         isFiCsElement ? result.push(trimmed, variable) : result.push(`${trimmed}${variable}`)
       else {
         result.splice(result.length - 1, 1, `${last}${trimmed}${isFiCsElement ? '' : variable}`)
