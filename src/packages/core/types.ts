@@ -42,7 +42,11 @@ export const getIsFiCsElement = <D extends object, P extends object>(
   element: FiCsElement<D, P> | unknown
 ): boolean => element instanceof FiCsElement
 
-export type Html<D, P> = Value<Record<symbol, (Descendant | string)[]>, D, P>
+export type Html<D, P> = Value<
+  Record<symbol, (Descendant | string)[]>,
+  { data: D; bind: () => string },
+  P
+>
 
 export type Props<D> = {
   descendants: Descendant | Descendant[]
@@ -60,4 +64,4 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
 
-export type Value<V, D, P> = V | ((data: D, props: P) => V)
+type Value<V, D, P> = V | ((data: D, props: P) => V)
