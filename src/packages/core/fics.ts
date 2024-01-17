@@ -10,7 +10,7 @@ export const html = <D extends object, P extends object>(
 
   for (const [index, template] of templates.entries()) {
     const trimmed: string = template.trim()
-    const sanitize = (arg: Sanitized<D, P> | unknown): Sanitized<D, P> | unknown =>
+    const sanitize = (arg: unknown): Sanitized<D, P> | unknown =>
       typeof arg === 'string' && arg !== ''
         ? arg.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         : arg ?? ''
