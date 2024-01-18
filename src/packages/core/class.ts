@@ -35,7 +35,7 @@ export default class FiCsElement<D extends object, P extends object> {
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = new Array()
-  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } =
+  readonly #bindings: { className: boolean; html: boolean; css: number[]; actions: number[] } =
     { className: false, html: false, css: new Array(), actions: new Array() }
   readonly #generator: Generator<number> = generate()
 
@@ -253,7 +253,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addClassName(fics: HTMLElement, isRerendering?: boolean): void {
     if (isRerendering) fics.classList.remove(...Array.from(fics.classList))
-    else this.#dataBindings.className = typeof this.#className === 'function'
+    else this.#bindings.className = typeof this.#className === 'function'
 
     this.#className
       ? fics.setAttribute('class', `${this.#name} ${this.#getClassName()}`)
@@ -276,7 +276,7 @@ export default class FiCsElement<D extends object, P extends object> {
       console.log(attr)
     } else {
       this.#fragment = document.importNode(fragment, true)
-      this.#dataBindings.html = typeof this.#html === 'function'
+      this.#bindings.html = typeof this.#html === 'function'
     }
 
     for (const node of Array.from(this.#fragment.childNodes)) {
@@ -304,7 +304,7 @@ export default class FiCsElement<D extends object, P extends object> {
             'style' in content &&
             typeof content.style === 'function'
           )
-            this.#dataBindings.css.push(index)
+            this.#bindings.css.push(index)
           else continue
         }
 
@@ -372,7 +372,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const { handler, selector, method } = event
 
         if (selector) {
-          this.#dataBindings.actions.push(index)
+          this.#bindings.actions.push(index)
           this.#addEvent(fics, event)
         } else
           fics.addEventListener(handler, (event: Event) =>
@@ -421,7 +421,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
-      const { className, html, css, actions } = this.#dataBindings
+      const { className, html, css, actions } = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
       if (className) this.#addClassName(fics, true)
