@@ -1,6 +1,5 @@
 import generate from './generator'
 import addQueue from './queue'
-import symbol from './symbol'
 import {
   Action,
   ClassName,
@@ -13,6 +12,7 @@ import {
   Sanitized
 } from './types'
 
+const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -172,6 +172,38 @@ export default class FiCsElement<D extends object, P extends object> {
     return ''
   }
 
+  #sanitize(
+    templates: TemplateStringsArray,
+    ...variables: unknown[]
+  ): Record<symbol, Sanitized<D, P>> {
+    const result: (Sanitized<D, P> | unknown)[] = new Array()
+
+    for (let [index, template] of templates.entries()) {
+      let variable: unknown = variables[index]
+
+      template = template.trim()
+      variable =
+        typeof variable === 'string' && variable !== ''
+          ? (variable as string).replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+          : variable ?? ''
+
+      if (index === 0 && template === '') result.push(variable)
+      else {
+        const last: Sanitized<D, P> | unknown = result[result.length - 1] ?? ''
+        const isFiCsElement: boolean = variable instanceof FiCsElement
+
+        if (last instanceof FiCsElement)
+          isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+        else {
+          result.splice(result.length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
+          if (isFiCsElement) result.push(variable)
+        }
+      }
+    }
+
+    return { [symbol]: result as Sanitized<D, P> }
+  }
+
   #bind(): string {
     return ` fics-bind="${this.#name}-bind-${this.#generator.next().value}" `
   }
@@ -179,7 +211,14 @@ export default class FiCsElement<D extends object, P extends object> {
   #getHtml(): Sanitized<D, P> {
     return (
       typeof this.#html === 'function'
-        ? this.#html({ data: { ...this.#data }, bind: () => this.#bind() }, { ...this.#props })
+        ? this.#html(
+            {
+              data: { ...this.#data },
+              html: this.#sanitize,
+              bind: () => this.#bind()
+            },
+            { ...this.#props }
+          )
         : this.#html
     )[symbol]
   }
@@ -234,6 +273,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#fragment) {
       const attr: string = '[fics-bind]'
+      console.log(attr)
     } else {
       this.#fragment = document.importNode(fragment, true)
       this.#dataBindings.html = typeof this.#html === 'function'
