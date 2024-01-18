@@ -1,4 +1,4 @@
-import { fics, html } from '../packages/core/fics'
+import { fics } from '../packages/core/fics'
 import { ChildType } from './child'
 import { ParentType } from './parent'
 
@@ -16,7 +16,7 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
         values: getData => ({ propsColor: getData('color') + '2' })
       }
     ],
-    html: ({ fontSize, number }) => html`<p>Content is...</p>
+    html: ({ data: { fontSize, number }, html }) => html`<p>Content is...</p>
       ${parent}
       <p>人数: ${number}</p>
       <input value="${fontSize}" />`,
