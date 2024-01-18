@@ -1,4 +1,4 @@
-import { fics, html } from '../packages/core/fics'
+import { fics } from '../packages/core/fics'
 import { ChildType } from './child'
 
 export const Parent = (child: ChildType) => {
@@ -28,7 +28,7 @@ export const Parent = (child: ChildType) => {
       }
     ],
     className: 'test',
-    html: (_, { propsColor }: { propsColor: string }) =>
+    html: ({ html }, { propsColor }: { propsColor: string }) =>
       html`${child}
         <p>propsColor: ${propsColor}</p>`
   })
