@@ -1,10 +1,10 @@
-import { fics, html } from '../packages/core/fics'
+import { fics } from '../packages/core/fics'
 
 const Footer = (css: string) =>
   fics({
     name: 'footer',
     data: () => ({ copyright: '&copy; 2023 Masami Ogasawara', md: 'var(--md)' }),
-    html: ({ copyright }) => html`<footer><p>${copyright}</p></footer>`,
+    html: ({ data: { copyright }, html }) => html`<footer><p>${copyright}</p></footer>`,
     css: [
       css,
       { selector: 'footer', style: ({ md }) => ({ padding: `${md} 0` }) },
