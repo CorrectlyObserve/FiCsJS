@@ -26,7 +26,7 @@ export type Css<D, P> = (
 
 type Descendant = FiCsElement<any, any>
 
-export interface FiCs<D, P> {
+export interface FiCs<D extends object, P extends object> {
   name: string
   data?: () => D
   reflections?: Reflections<D>
@@ -38,9 +38,16 @@ export interface FiCs<D, P> {
   actions?: Action<D, P>[]
 }
 
-export type Html<D, P> = Value<
+export type Html<D extends object, P extends object> = Value<
   Record<symbol, (Descendant | string)[]>,
-  { data: D; bind: () => string },
+  {
+    data: D
+    html: (
+      templates: TemplateStringsArray,
+      ...variables: unknown[]
+    ) => Record<symbol, Sanitized<D, P>>
+    bind: () => string
+  },
   P
 >
 
