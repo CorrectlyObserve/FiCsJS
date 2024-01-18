@@ -40,7 +40,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #generator: Generator<number> = generate()
 
   #propsChain: PropsChain<P> = new Map()
-  #dom: DocumentFragment = new DocumentFragment()
+  #fragment: DocumentFragment | undefined = undefined
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
@@ -173,13 +173,13 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #bind(): string {
-    return ` $bind="${this.#name}-bind-${this.#generator.next().value}" `
+    return ` fics-bind="${this.#name}-bind-${this.#generator.next().value}" `
   }
 
   #getHtml(): Sanitized<D, P> {
     return (
       typeof this.#html === 'function'
-        ? this.#html({ data: { ...this.#data }, bind: ()=> this.#bind() }, { ...this.#props })
+        ? this.#html({ data: { ...this.#data }, bind: () => this.#bind() }, { ...this.#props })
         : this.#html
     )[symbol]
   }
@@ -231,21 +231,17 @@ export default class FiCsElement<D extends object, P extends object> {
         return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
       }, '') as string
     )
-    const attr: string = `${this.#name}-bind-${this.#generator.next().value}`
 
-    if (this.#dom.childNodes.length > 0) {
+    if (this.#fragment) {
+      const attr: string = '[fics-bind]'
     } else {
-      for (const element of Array.from(fragment.querySelectorAll('[fics-bind]'))) {
-        element.removeAttribute('fics-bind')
-        element.setAttribute(attr, '')
-      }
-
-      this.#dom = fragment
+      this.#fragment = document.importNode(fragment, true)
       this.#dataBindings.html = typeof this.#html === 'function'
     }
 
-    for (const node of Array.from(this.#dom.childNodes)) {
+    for (const node of Array.from(this.#fragment.childNodes)) {
       shadowRoot.appendChild(node)
+
       if (node instanceof HTMLElement) {
         if (node.localName === tagName) {
           const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
