@@ -1,4 +1,4 @@
-import { fics, html } from '../packages/core/fics'
+import { fics } from '../packages/core/fics'
 
 interface Props {
   path: string
@@ -10,7 +10,7 @@ export const Svg = () =>
   fics({
     name: 'svg',
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
-    html: html`<button />`,
+    html: ({ html }, props: Props) => html`<button />`,
     css: [
       { style: { display: 'flex' } },
       {
