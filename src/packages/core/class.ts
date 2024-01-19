@@ -35,12 +35,15 @@ export default class FiCsElement<D extends object, P extends object> {
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = new Array()
-  readonly #bindings: { className: boolean; html: boolean; css: number[]; actions: number[] } =
-    { className: false, html: false, css: new Array(), actions: new Array() }
-  readonly #generator: Generator<number> = generate()
+  readonly #bindings: { className: boolean; html: boolean; css: number[]; actions: number[] } = {
+    className: false,
+    html: false,
+    css: new Array(),
+    actions: new Array()
+  }
 
   #propsChain: PropsChain<P> = new Map()
-  #fragment: DocumentFragment | undefined = undefined
+  #generator: Generator<number> = generate()
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
@@ -260,7 +263,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#name)
   }
 
-  #addHtml(shadowRoot: ShadowRoot): void {
+  #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
     const ficsElements: FiCsElement<D, P>[] = new Array()
     const tagName: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
@@ -271,26 +274,53 @@ export default class FiCsElement<D extends object, P extends object> {
       }, '') as string
     )
 
-    if (this.#fragment) {
+    if (isRerendering) {
       const attr: string = '[fics-bind]'
-      console.log(attr)
-    } else {
-      this.#fragment = document.importNode(fragment, true)
-      this.#bindings.html = typeof this.#html === 'function'
-    }
 
-    for (const node of Array.from(this.#fragment.childNodes)) {
-      shadowRoot.appendChild(node)
+      console.log(fragment.querySelectorAll(attr))
 
-      if (node instanceof HTMLElement) {
-        if (node.localName === tagName) {
-          const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-          if (fics) node.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-        } else
-          for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[]) {
-            const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-            if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+      const renewElement = (element: Element): Element => {
+        const bind: string | null = element.getAttribute('fics-bind')
+        const newElement: Element | null = fragment.querySelector(`[fics-bind="${bind}"]`)
+
+        if (bind && newElement) {
+          for (let i = 0; i < element.attributes.length; i++) {
+            const { name }: { name: string } = element.attributes[i]
+            const attr: Attr | null = element.attributes.getNamedItem(name)
+
+            if (attr) element.setAttribute(name, attr.value)
+            else element.removeAttribute(name)
           }
+
+          for (let i = 0; i < newElement.attributes.length; i++) {
+            const { name, value }: { name: string; value: string } = newElement.attributes[i]
+
+            if (element.attributes.getNamedItem(name)) continue
+            else element.setAttribute(name, value)
+          }
+        }
+
+        return element
+      }
+
+      const element = fragment.querySelector(attr)
+      console.log(element)
+    } else {
+      this.#bindings.html = typeof this.#html === 'function'
+
+      for (const node of Array.from(fragment.childNodes)) {
+        shadowRoot.append(node)
+
+        if (node instanceof HTMLElement) {
+          if (node.localName === tagName) {
+            const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+            if (fics) node.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+          } else
+            for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[]) {
+              const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+              if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+            }
+        }
       }
     }
   }
@@ -355,11 +385,13 @@ export default class FiCsElement<D extends object, P extends object> {
               { ...this.#props }
             )
 
-          if (isRerendering)
-            element.removeEventListener(handler, (event: Event) => methodFunc(event))
+          if (isRerendering) {
+            /*
+              
+            */
+          }
 
-          if (shadowRoot.activeElement !== element)
-            element.addEventListener(handler, (event: Event) => methodFunc(event))
+          element.addEventListener(handler, (event: Event) => methodFunc(event))
         }
       else
         console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
@@ -426,7 +458,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (className) this.#addClassName(fics, true)
 
-      if (html) this.#addHtml(shadowRoot)
+      if (html) {
+        this.#generator = generate()
+        this.#addHtml(shadowRoot, true)
+      }
 
       if (css.length > 0)
         this.#addCss(
