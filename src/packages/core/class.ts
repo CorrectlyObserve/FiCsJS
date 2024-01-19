@@ -211,7 +211,9 @@ export default class FiCsElement<D extends object, P extends object> {
     return ` fics-bind="${this.#name}-bind-${this.#generator.next().value}" `
   }
 
-  #getHtml(): Sanitized<D, P> {
+  #getHtml(isRerendering?: boolean): Sanitized<D, P> {
+    if (isRerendering) this.#generator = generate()
+
     return (
       typeof this.#html === 'function'
         ? this.#html(
@@ -267,7 +269,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const ficsElements: FiCsElement<D, P>[] = new Array()
     const tagName: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
-      this.#getHtml().reduce((prev, curr) => {
+      this.#getHtml(isRerendering).reduce((prev, curr) => {
         if (curr instanceof FiCsElement) ficsElements.push(curr)
 
         return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
@@ -375,7 +377,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (elements.length > 0)
         for (const element of elements) {
-          const methodFunc = (event: Event): void =>
+          if (isRerendering && element.hasAttribute('fics-bind')) continue
+
+          element.addEventListener(handler, (event: Event) =>
             method(
               {
                 data: { ...this.#data },
@@ -384,14 +388,7 @@ export default class FiCsElement<D extends object, P extends object> {
               },
               { ...this.#props }
             )
-
-          if (isRerendering) {
-            /*
-              
-            */
-          }
-
-          element.addEventListener(handler, (event: Event) => methodFunc(event))
+          )
         }
       else
         console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
@@ -458,10 +455,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (className) this.#addClassName(fics, true)
 
-      if (html) {
-        this.#generator = generate()
-        this.#addHtml(shadowRoot, true)
-      }
+      if (html) this.#addHtml(shadowRoot, true)
 
       if (css.length > 0)
         this.#addCss(
@@ -470,11 +464,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
       if (actions.length > 0)
-        for (const index of actions) {
-          const { selector } = this.#actions[index]
-
-          if (selector) this.#addEvent(fics, this.#actions[index], true)
-        }
+        for (const index of actions) this.#addEvent(fics, this.#actions[index], true)
     }
   }
 
