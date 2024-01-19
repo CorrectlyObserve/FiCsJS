@@ -127,18 +127,18 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const [key, value] of data) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (!(key in chain) || !propsChain.has(descendantId)) {
-              propsChain.set(descendantId, { ...chain, [key]: value })
+            if (key in chain && propsChain.has(descendantId)) continue
 
-              const propsKey = key as keyof P
+            propsChain.set(descendantId, { ...chain, [key]: value })
 
-              this.#propsTrees.push({
-                descendantId,
-                dataKey,
-                propsKey,
-                setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
-              })
-            } else continue
+            const propsKey = key as keyof P
+
+            this.#propsTrees.push({
+              descendantId,
+              dataKey,
+              propsKey,
+              setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
+            })
           }
         }
 
@@ -298,7 +298,8 @@ export default class FiCsElement<D extends object, P extends object> {
             const { name, value }: { name: string; value: string } = newElement.attributes[i]
 
             if (element.attributes.getNamedItem(name)) continue
-            else element.setAttribute(name, value)
+
+            element.setAttribute(name, value)
           }
         }
 
@@ -337,7 +338,8 @@ export default class FiCsElement<D extends object, P extends object> {
             typeof content.style === 'function'
           )
             this.#bindings.css.push(index)
-          else continue
+
+          continue
         }
 
       const stylesheet: CSSStyleSheet = new CSSStyleSheet()
