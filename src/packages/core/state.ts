@@ -1,7 +1,6 @@
 import generate from './generator'
 
 const generator: Generator<number> = generate()
-
 const uneditableStates: Map<string, unknown> = new Map()
 const states: Map<string, unknown> = new Map()
 const observers: Map<string, () => void> = new Map()
