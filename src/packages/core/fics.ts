@@ -1,7 +1,7 @@
 import FiCsElement from './class'
 import { FiCs } from './types'
 
-export const fics = <D extends object, P extends object>({
+const fics = <D extends object, P extends object>({
   name,
   data,
   reflections,
@@ -23,3 +23,5 @@ export const fics = <D extends object, P extends object>({
     css,
     actions
   })
+
+export default fics
