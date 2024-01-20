@@ -1,4 +1,4 @@
-import { fics } from '../packages/core/fics'
+import fics from '../packages/core/fics'
 import { SvgType } from './svg'
 import css from '../styles/todoPost.css?inline'
 
@@ -7,18 +7,19 @@ export const TodoPost = (svg: SvgType) =>
     name: 'todo-post',
     data: () => ({ value: '', placeholder: 'Please enter a new task.' }),
     props: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
-    html: ({ data: { value, placeholder }, html, bind }) => html`aaa
-      <div class="container">
-        <input
-          ${bind()}
-          class="${value}"
-          type="text"
-          value="${value}"
-          placeholder="${placeholder}"
-        />${svg}
-      </div>
-      <p style="color:#fff">value: <span>${value}</span></p>
-      <span ${bind()}>${value}</span>`,
+    html: ({ data: { value, placeholder }, html, bind }) =>
+      html`aaa
+        <div ${bind()} class="container">
+          <input
+            ${bind()}
+            class="${value}"
+            type="text"
+            value="${value}"
+            placeholder="${placeholder}"
+          />${svg}
+        </div>
+        <p style="color:#fff">value: <span>${value}</span></p>
+        <span ${bind()}>${value}</span>`,
     css: [css],
     actions: [
       {
