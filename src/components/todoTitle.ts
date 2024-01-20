@@ -1,4 +1,4 @@
-import { fics } from '../packages/core/fics'
+import fics from '../packages/core/fics'
 import css from '../styles/todo.css?inline'
 
 export const TodoTitle = () =>
