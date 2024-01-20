@@ -1,4 +1,4 @@
-import { fics } from '../packages/core/fics'
+import fics from '../packages/core/fics'
 import cssUrl from './../styles/style.css?inline'
 
 interface Props {
