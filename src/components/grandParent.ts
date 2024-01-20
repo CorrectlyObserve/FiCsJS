@@ -1,4 +1,4 @@
-import { fics } from '../packages/core/fics'
+import fics from '../packages/core/fics'
 import { ChildType } from './child'
 import { ParentType } from './parent'
 
