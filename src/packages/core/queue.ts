@@ -4,17 +4,6 @@ const queue: Queue[] = new Array()
 const ids: Record<string, boolean> = {}
 let hasQueue: boolean = false
 
-const processQueue = async (): Promise<void> => {
-  while (queue.length > 0) {
-    const queueEl: Queue = queue.shift()!
-
-    delete ids[queueEl.ficsId]
-    queueEl.reRender
-  }
-
-  hasQueue = false
-}
-
 const addQueue = (queueEl: Queue): void => {
   if (!ids[queueEl.ficsId]) {
     queue.push(queueEl)
@@ -22,7 +11,15 @@ const addQueue = (queueEl: Queue): void => {
 
     if (!hasQueue) {
       hasQueue = true
-      processQueue()
+
+      while (queue.length > 0) {
+        const queueEl: Queue = queue.shift()!
+
+        delete ids[queueEl.ficsId]
+        queueEl.reRender
+      }
+
+      hasQueue = false
     }
   }
 }
