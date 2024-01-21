@@ -30,7 +30,8 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   data?: () => D
   reflections?: Reflections<D>
-  props?: Props<D>
+  inheritances?: Inheritances<D>
+  props?: P
   isOnlyCsr?: boolean
   className?: ClassName<D, P>
   html: Html<D, P>
@@ -51,7 +52,7 @@ export type Html<D extends object, P extends object> = Value<
   P
 >
 
-export type Props<D> = {
+export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
