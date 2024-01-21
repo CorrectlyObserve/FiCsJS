@@ -6,7 +6,8 @@ export const TodoPost = (svg: SvgType) =>
   fics({
     name: 'todo-post',
     data: () => ({ value: '', placeholder: 'Please enter a new task.' }),
-    props: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
+    inheritances: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
+    props: {} as { keydown: (str: string) => void },
     html: ({ data: { value, placeholder }, html, bind }) =>
       html`aaa
         <div ${bind()} class="container">
