@@ -10,7 +10,7 @@ const Header = (css: string) =>
       { selector: 'header', style: { padding: 'var(--md) 0' } },
       {
         selector: 'header h1',
-        style: ({ pink }) => ({
+        style: ({ data: { pink } }) => ({
           background: `linear-gradient(30deg, var(--red) 20%, ${pink})`,
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
