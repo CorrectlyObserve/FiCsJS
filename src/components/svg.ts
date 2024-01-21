@@ -14,7 +14,7 @@ export const Svg = () =>
       { style: { display: 'flex' } },
       {
         selector: 'button',
-        style: ({ size, dir }, { path, color }) => ({
+        style: ({ data: { size, dir }, props: { path, color } }) => ({
           width: size,
           height: size,
           maskImage: `url("${dir}/${path}.svg")`,
@@ -24,7 +24,7 @@ export const Svg = () =>
         })
       }
     ],
-    actions: [{ handler: 'click', method: (_, { click }) => click() }]
+    actions: [{ handler: 'click', method: ({ props: { click } }) => click() }]
   })
 
 export type SvgType = ReturnType<typeof Svg>
