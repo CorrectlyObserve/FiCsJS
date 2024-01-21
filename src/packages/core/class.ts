@@ -6,7 +6,7 @@ import {
   Css,
   FiCs,
   Html,
-  Props,
+  Inheritances,
   PropsChain,
   Reflections,
   Sanitized
@@ -21,14 +21,13 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
-  readonly #inheritances: Props<D> = new Array()
+  readonly #inheritances: Inheritances<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #className: ClassName<D, P> | undefined = undefined
   readonly #html: Html<D, P> = { [symbol]: new Array() }
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
-
   readonly #propsTrees: {
     descendantId: string
     dataKey: string
@@ -52,6 +51,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     data,
     reflections,
+    inheritances,
     props,
     isOnlyCsr,
     className,
@@ -84,7 +84,9 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
       }
 
-      if (props && props.length > 0) this.#inheritances = [...props]
+      if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
+
+      this.#props = { ...props } as P
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#className = className
