@@ -7,10 +7,10 @@ const Footer = (css: string) =>
     html: ({ data: { copyright }, html }) => html`<footer><p>${copyright}</p></footer>`,
     css: [
       css,
-      { selector: 'footer', style: ({ md }) => ({ padding: `${md} 0` }) },
+      { selector: 'footer', style: ({ data: { md } }) => ({ padding: `${md} 0` }) },
       {
         selector: 'footer p',
-        style: ({ md }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
+        style: ({ data: { md } }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
       }
     ]
   })
