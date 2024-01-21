@@ -5,13 +5,14 @@ export const TodoTitle = () =>
   fics({
     name: 'todo-title',
     data: () => ({ md: 'var(--md)' }),
-    html: ({ html }, { length }: { length: number }) => html`<p>Remaining tasks: ${length}</p>`,
+    props: {} as { length: number },
+    html: ({ props: { length }, html }) => html`<p>Remaining tasks: ${length}</p>`,
     css: [
       css,
-      { style: ({ md }) => ({ display: 'block', marginBottom: `calc(${md} * 2)` }) },
+      { style: ({ data: { md } }) => ({ display: 'block', marginBottom: `calc(${md} * 2)` }) },
       {
         selector: 'p',
-        style: ({ md }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
+        style: ({ data: { md } }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
       }
     ]
   })
