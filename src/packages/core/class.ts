@@ -157,7 +157,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (typeof curr !== 'string' && 'style' in curr) {
           const entries: [string, unknown][] = Object.entries(
             typeof curr.style === 'function'
-              ? curr.style({ ...this.#data }, { ...this.#props })
+              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
               : curr.style
           )
           const style: string = `{${entries
@@ -219,21 +219,19 @@ export default class FiCsElement<D extends object, P extends object> {
 
     return (
       typeof this.#html === 'function'
-        ? this.#html(
-            {
-              data: { ...this.#data },
-              html: this.#sanitize,
-              bind: () => this.#bind()
-            },
-            { ...this.#props }
-          )
+        ? this.#html({
+            data: { ...this.#data },
+            props: { ...this.#props },
+            html: this.#sanitize,
+            bind: () => this.#bind()
+          })
         : this.#html
     )[symbol]
   }
 
   #getClassName(): string | undefined {
     return typeof this.#className === 'function'
-      ? this.#className({ ...this.#data }, { ...this.#props })
+      ? this.#className({ data: { ...this.#data }, props: { ...this.#props } })
       : this.#className
   }
 
@@ -382,14 +380,12 @@ export default class FiCsElement<D extends object, P extends object> {
           if (isRerendering && element.hasAttribute(this.#attr)) continue
 
           element.addEventListener(handler, (event: Event) =>
-            method(
-              {
-                data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                event
-              },
-              { ...this.#props }
-            )
+            method({
+              data: { ...this.#data },
+              props: { ...this.#props },
+              setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+              event
+            })
           )
         }
       else
@@ -407,14 +403,12 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#addEvent(fics, event)
         } else
           fics.addEventListener(handler, (event: Event) =>
-            method(
-              {
-                data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                event
-              },
-              { ...this.#props }
-            )
+            method({
+              data: { ...this.#data },
+              props: { ...this.#props },
+              setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+              event
+            })
           )
       })
   }
