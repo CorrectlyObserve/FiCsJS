@@ -24,8 +24,9 @@ export const Parent = (child: ChildType) => {
         values: getData => ({ color: getData('color'), click: getData('click') })
       }
     ],
+    props: {} as { propsColor: string },
     className: 'test',
-    html: ({ html }, { propsColor }: { propsColor: string }) =>
+    html: ({ props: { propsColor }, html }) =>
       html`${child}
         <p>propsColor: ${propsColor}</p>`
   })
