@@ -6,7 +6,7 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
   fics({
     name: 'grandParent',
     data: () => ({ color, fontSize: 24, number: 12, email: '' }),
-    props: [
+    inheritances: [
       {
         descendants: child,
         values: getData => ({ color: getData('color') })
