@@ -41,6 +41,7 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
+  readonly #attr: string = 'data-fics-bind'
 
   #propsChain: PropsChain<P> = new Map()
   #generator: Generator<number> = generate()
@@ -208,7 +209,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #bind(): string {
-    return ` fics-bind="${this.#name}-bind-${this.#generator.next().value}" `
+    return ` ${this.#attr}="${this.#name}-${this.#generator.next().value}"`
   }
 
   #getHtml(isRerendering?: boolean): Sanitized<D, P> {
@@ -275,15 +276,29 @@ export default class FiCsElement<D extends object, P extends object> {
         return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
       }, '') as string
     )
+    const childNodes: ChildNode[] = Array.from(fragment.childNodes)
+    const append = (childNode: ChildNode): void => {
+      shadowRoot.append(childNode)
+
+      if (childNode instanceof HTMLElement) {
+        if (childNode.localName === tagName) {
+          const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+          if (fics) childNode.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+        } else
+          for (const element of Array.from(childNode.querySelectorAll(tagName)) as HTMLElement[]) {
+            const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+            if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+          }
+      }
+    }
 
     if (isRerendering) {
-      const attr: string = '[fics-bind]'
-
-      console.log(fragment.querySelectorAll(attr))
+      const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`))
+      console.log(shadowRoot.childNodes)
 
       const renewElement = (element: Element): Element => {
-        const bind: string | null = element.getAttribute('fics-bind')
-        const newElement: Element | null = fragment.querySelector(`[fics-bind="${bind}"]`)
+        const bind: string | null = element.getAttribute(this.#attr)
+        const newElement: Element | null = fragment.querySelector(`[${this.#attr}="${bind}"]`)
 
         if (bind && newElement) {
           for (let i = 0; i < element.attributes.length; i++) {
@@ -298,33 +313,16 @@ export default class FiCsElement<D extends object, P extends object> {
             const { name, value }: { name: string; value: string } = newElement.attributes[i]
 
             if (element.attributes.getNamedItem(name)) continue
-
             element.setAttribute(name, value)
           }
-        }
 
+          if ('textContent' in element) element.textContent = newElement.textContent
+        }
         return element
       }
-
-      const element = fragment.querySelector(attr)
-      console.log(element)
     } else {
       this.#bindings.html = typeof this.#html === 'function'
-
-      for (const node of Array.from(fragment.childNodes)) {
-        shadowRoot.append(node)
-
-        if (node instanceof HTMLElement) {
-          if (node.localName === tagName) {
-            const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-            if (fics) node.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-          } else
-            for (const element of Array.from(node.querySelectorAll(tagName)) as HTMLElement[]) {
-              const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-              if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-            }
-        }
-      }
+      for (const childNode of childNodes) append(childNode)
     }
   }
 
@@ -379,7 +377,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (elements.length > 0)
         for (const element of elements) {
-          if (isRerendering && element.hasAttribute('fics-bind')) continue
+          if (isRerendering && element.hasAttribute(this.#attr)) continue
 
           element.addEventListener(handler, (event: Event) =>
             method(
