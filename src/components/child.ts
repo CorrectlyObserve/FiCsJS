@@ -15,9 +15,9 @@ export const Child = (message: string = 'Hello') =>
     }),
     reflections: { count: count => console.log('count', count) },
     isOnlyCsr: true,
-    className: ({ back }) => back,
+    className: ({ data: { back } }) => back,
     props: {} as { color: string; click: (message: string) => void },
-    html: ({ data: { message, count, countedNum }, html }, { color }) => html`<div>
+    html: ({ data: { message, count, countedNum }, html, props: { color } }) => html`<div>
         <p class="hello" style="display: inline">${message}</p>
       </div>
       <p>${color}</p>
@@ -26,7 +26,7 @@ export const Child = (message: string = 'Hello') =>
       cssUrl,
       {
         selector: 'p',
-        style: ({ fontSize }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
+        style: ({ data: { fontSize } }) => ({ fontSize: `${fontSize}px`, cursor: 'pointer' })
       }
     ],
     actions: [
@@ -40,7 +40,7 @@ export const Child = (message: string = 'Hello') =>
       {
         selector: 'div',
         handler: 'click',
-        method: ({ data: { message } }, { click }) => click(message)
+        method: ({ data: { message }, props: { click } }) => click(message)
       }
     ]
   })
