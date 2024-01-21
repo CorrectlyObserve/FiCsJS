@@ -3,25 +3,29 @@ import FiCsElement from './class'
 export interface Action<D, P> {
   handler: string
   selector?: string
-  method: (
-    {
-      data,
-      setData,
-      event
-    }: {
-      data: D
-      setData: (key: keyof D, value: D[typeof key], bind?: string) => void
-      event: Event
-    },
+  method: ({
+    data,
+    props,
+    setData,
+    event
+  }: {
+    data: D
     props: P
-  ) => void
+    setData: (key: keyof D, value: D[typeof key], bind?: string) => void
+    event: Event
+  }) => void
 }
 
-export type ClassName<D, P> = Value<string, D, P>
+export type ClassName<D, P> = string | (({ data, props }: { data: D; props: P }) => string)
 
 export type Css<D, P> = (
   | string
-  | { selector?: string; style: Value<Record<string, string | number>, D, P> }
+  | {
+      selector?: string
+      style:
+        | Record<string, string | number>
+        | (({ data, props }: { data: D; props: P }) => Record<string, string | number>)
+    }
 )[]
 
 type Descendant = FiCsElement<any, any>
@@ -39,18 +43,17 @@ export interface FiCs<D extends object, P extends object> {
   actions?: Action<D, P>[]
 }
 
-export type Html<D extends object, P extends object> = Value<
-  Record<symbol, (Descendant | string)[]>,
-  {
-    data: D
-    html: (
-      templates: TemplateStringsArray,
-      ...variables: unknown[]
-    ) => Record<symbol, Sanitized<D, P>>
-    bind: () => string
-  },
-  P
->
+export type Html<D extends object, P extends object> =
+  | Record<symbol, (Descendant | string)[]>
+  | ((args: {
+      data: D
+      props: P
+      html: (
+        templates: TemplateStringsArray,
+        ...variables: unknown[]
+      ) => Record<symbol, Sanitized<D, P>>
+      bind: () => string
+    }) => Record<symbol, (Descendant | string)[]>)
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
@@ -67,5 +70,3 @@ export interface Queue {
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
-
-type Value<V, D, P> = V | ((data: D, props: P) => V)
