@@ -446,21 +446,18 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
-      const { className, html, css, actions } = this.#bindings
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
+      if (this.#bindings.className) this.#addClassName(fics, true)
 
-      if (className) this.#addClassName(fics, true)
+      if (this.#bindings.html) this.#addHtml(this.#getShadowRoot(fics), true)
 
-      if (html) this.#addHtml(shadowRoot, true)
-
-      if (css.length > 0)
+      if (this.#bindings.css.length > 0)
         this.#addCss(
-          shadowRoot,
-          css.map(index => this.#css[index])
+          this.#getShadowRoot(fics),
+          this.#bindings.css.map(index => this.#css[index])
         )
 
-      if (actions.length > 0)
-        for (const index of actions) this.#addEvent(fics, this.#actions[index], true)
+      if (this.#bindings.actions.length > 0)
+        for (const index of this.#bindings.actions) this.#addEvent(fics, this.#actions[index], true)
     }
   }
 
