@@ -17,11 +17,8 @@ export const Parent = (child: ChildType) => {
 
   return fics({
     name: 'parent',
-    data: () => ({
-      color: 'blue',
-      click: (message: string) => console.log(message)
-    }),
-    props: [
+    data: () => ({ color: 'blue', click: (message: string) => console.log(message) }),
+    inheritances: [
       {
         descendants: child,
         values: getData => ({ color: getData('color'), click: getData('click') })
