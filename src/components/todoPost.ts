@@ -31,7 +31,7 @@ export const TodoPost = (svg: SvgType) =>
       {
         handler: 'keydown',
         selector: 'input',
-        method: ({ data: { value }, event }, { keydown }: { keydown: (str: string) => void }) => {
+        method: ({ data: { value }, props: { keydown }, event }) => {
           if ((event as KeyboardEvent).key === 'Enter') keydown('value: ' + value)
         }
       }
