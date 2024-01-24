@@ -290,7 +290,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (isRerendering) {
       const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
       const bindMap: Map<string | null, HTMLElement> = new Map()
-      const renewElement = (element: Element, newElement: HTMLElement | null): void => {
+      const renewElement = (element: Element, newElement: HTMLElement | null | undefined): void => {
         if (newElement) {
           for (let i = 0; i < element.attributes.length; i++) {
             const { name }: { name: string } = element.attributes[i]
@@ -307,7 +307,8 @@ export default class FiCsElement<D extends object, P extends object> {
             element.setAttribute(name, value)
           }
 
-          if ('textContent' in element) element.textContent = newElement.textContent
+          if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
+            element.textContent = newElement.textContent
         }
       }
 
@@ -332,6 +333,8 @@ export default class FiCsElement<D extends object, P extends object> {
             } else prevSiblings[current].push(prevSibling)
 
             prevSibling = prevSibling.previousSibling
+
+            if (!prevSibling) current = 0
           }
           while (nextSibling) {
             nextSiblings.unshift(nextSibling)
@@ -341,13 +344,35 @@ export default class FiCsElement<D extends object, P extends object> {
           prevSibling = bind.previousSibling
           nextSibling = bind.nextSibling
 
+          let element: HTMLElement | undefined = undefined
+
+          while (prevSibling) {
+            const temporary: ChildNode | null = prevSibling.previousSibling
+            const insert = (): void => {
+              for (const childNode of prevSiblings[current]) (element ?? bind).before(childNode)
+            }
+
+            if (
+              prevSibling instanceof HTMLElement &&
+              bindMap.get(prevSibling.getAttribute(this.#attr))
+            ) {
+              renewElement(prevSibling, bindMap.get(prevSibling.getAttribute(this.#attr)))
+              current++
+              insert()
+              element = prevSibling
+            } else prevSibling.remove()
+
+            prevSibling = temporary
+
+            if (!prevSibling) insert()
+          }
           while (nextSibling) {
             const temporary: ChildNode | null = nextSibling.nextSibling
             nextSibling.remove()
-
             nextSibling = temporary
+
+            if (!nextSibling) for (const childNode of nextSiblings) bind.after(childNode)
           }
-          for (const childNode of nextSiblings) bind.after(childNode)
         }
       }
 
