@@ -276,34 +276,25 @@ export default class FiCsElement<D extends object, P extends object> {
         return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
       }, '') as string
     )
-    const childNodes: ChildNode[] = Array.from(fragment.childNodes)
-    const append = (childNode: ChildNode): void => {
-      shadowRoot.append(childNode)
-
-      if (childNode instanceof HTMLElement) {
-        if (childNode.localName === tagName) {
-          const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-          if (fics) childNode.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-        } else
-          for (const element of Array.from(childNode.querySelectorAll(tagName)) as HTMLElement[]) {
-            const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-            if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-          }
+    const appendDescendant = (descendant: HTMLElement): void => {
+      const replaceWith = (element: Element): void => {
+        const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+        if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
       }
+
+      if (descendant.localName === tagName) replaceWith(descendant)
+      else
+        for (const element of Array.from(descendant.querySelectorAll(tagName))) replaceWith(element)
     }
 
     if (isRerendering) {
-      const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`))
-      console.log(shadowRoot.childNodes)
-
-      const renewElement = (element: Element): Element => {
-        const bind: string | null = element.getAttribute(this.#attr)
-        const newElement: Element | null = fragment.querySelector(`[${this.#attr}="${bind}"]`)
-
-        if (bind && newElement) {
+      const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
+      const bindMap: Map<string | null, HTMLElement> = new Map()
+      const renewElement = (element: Element, newElement: HTMLElement | null): void => {
+        if (newElement) {
           for (let i = 0; i < element.attributes.length; i++) {
             const { name }: { name: string } = element.attributes[i]
-            const attr: Attr | null = element.attributes.getNamedItem(name)
+            const attr: Attr | null = newElement.attributes.getNamedItem(name)
 
             if (attr) element.setAttribute(name, attr.value)
             else element.removeAttribute(name)
@@ -318,11 +309,58 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if ('textContent' in element) element.textContent = newElement.textContent
         }
-        return element
+      }
+
+      for (const bind of binds) {
+        const attr: string | null = bind.getAttribute(this.#attr)
+        const newElement: HTMLElement | null = fragment.querySelector(`[${this.#attr}="${attr}"]`)
+
+        if (attr && !bindMap.get(attr) && newElement) {
+          renewElement(bind, newElement)
+
+          const prevSiblings: ChildNode[][] = [[]]
+          const nextSiblings: ChildNode[] = []
+          let prevSibling: ChildNode | null = newElement.previousSibling
+          let nextSibling: ChildNode | null = newElement.nextSibling
+          let current: number = 0
+
+          while (prevSibling) {
+            if (prevSibling instanceof HTMLElement && prevSibling.hasAttribute(this.#attr)) {
+              bindMap.set(prevSibling.getAttribute(this.#attr), prevSibling)
+              prevSiblings.push([])
+              current++
+            } else prevSiblings[current].push(prevSibling)
+
+            prevSibling = prevSibling.previousSibling
+          }
+          while (nextSibling) {
+            nextSiblings.unshift(nextSibling)
+            nextSibling = nextSibling.nextSibling
+          }
+
+          prevSibling = bind.previousSibling
+          nextSibling = bind.nextSibling
+
+          while (nextSibling) {
+            const temporary: ChildNode | null = nextSibling.nextSibling
+            nextSibling.remove()
+
+            nextSibling = temporary
+          }
+          for (const childNode of nextSiblings) bind.after(childNode)
+        }
+      }
+
+      for (const childNode of Array.from(shadowRoot.childNodes)) {
+        if (childNode instanceof HTMLElement) appendDescendant(childNode)
       }
     } else {
       this.#bindings.html = typeof this.#html === 'function'
-      for (const childNode of childNodes) append(childNode)
+
+      for (const childNode of Array.from(fragment.childNodes)) {
+        shadowRoot.append(childNode)
+        if (childNode instanceof HTMLElement) appendDescendant(childNode)
+      }
     }
   }
 
