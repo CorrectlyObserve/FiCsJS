@@ -330,14 +330,19 @@ export default class FiCsElement<D extends object, P extends object> {
               bindMap.set(prevSibling.getAttribute(this.#attr), prevSibling)
               prevSiblings.push([])
               current++
-            } else prevSiblings[current].push(prevSibling)
+            } else if (
+              !(prevSibling.nodeName === '#text' && prevSibling.textContent?.trim() === '')
+            )
+              prevSiblings[current].push(prevSibling)
 
             prevSibling = prevSibling.previousSibling
 
             if (!prevSibling) current = 0
           }
           while (nextSibling) {
-            nextSiblings.unshift(nextSibling)
+            if (!(nextSibling.nodeName === '#text' && nextSibling.textContent?.trim() === ''))
+              nextSiblings.unshift(nextSibling)
+
             nextSibling = nextSibling.nextSibling
           }
 
