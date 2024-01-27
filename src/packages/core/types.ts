@@ -52,7 +52,7 @@ export type Html<D extends object, P extends object> =
         templates: TemplateStringsArray,
         ...variables: unknown[]
       ) => Record<symbol, Sanitized<D, P>>
-      bind: () => string
+      bind: (name?: string) => string
     }) => Record<symbol, (Descendant | string)[]>)
 
 export type Inheritances<D> = {
