@@ -219,8 +219,9 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as Sanitized<D, P> }
   }
 
-  #bind(): string {
-    return ` ${this.#attr}="${this.#name}-${this.#generator.next().value}"`
+  #bind(name?: string): string {
+    const id: string = name ? this.#toKebabCase(name) : this.#generator.next().value
+    return ` ${this.#attr}="${this.#name}-${id}"`
   }
 
   #getHtml(isRerendering?: boolean): Sanitized<D, P> {
@@ -232,7 +233,7 @@ export default class FiCsElement<D extends object, P extends object> {
             data: { ...this.#data },
             props: { ...this.#props },
             html: this.#sanitize,
-            bind: () => this.#bind()
+            bind: (name?: string) => this.#bind(name)
           })
         : this.#html
     )[symbol]
