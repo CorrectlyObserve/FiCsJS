@@ -178,31 +178,40 @@ export default class FiCsElement<D extends object, P extends object> {
     return ''
   }
 
-  #sanitize(
-    templates: TemplateStringsArray,
-    ...variables: unknown[]
-  ): Record<symbol, Sanitized<D, P>> {
-    const result: (Sanitized<D, P> | unknown)[] = new Array()
+  #sanitize(templates: TemplateStringsArray, ...variables: any[]): Record<symbol, Sanitized<D, P>> {
+    let result: (Sanitized<D, P> | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
-      let variable: unknown = variables[index]
-
       template = template.trim()
-      variable =
-        typeof variable === 'string' && variable !== ''
-          ? (variable as string).replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-          : variable ?? ''
+      let variable: any = variables[index]
 
-      if (index === 0 && template === '') result.push(variable)
-      else {
-        const last: Sanitized<D, P> | unknown = result[result.length - 1] ?? ''
-        const isFiCsElement: boolean = variable instanceof FiCsElement
+      if (variable && typeof variable === 'object' && symbol in variable) {
+        if (typeof variable[symbol][0] === 'string')
+          variable[symbol][0] = template + variable[symbol][0]
+        else variable[symbol].unshift(template)
 
-        if (last instanceof FiCsElement)
-          isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+        result = [...result, ...variable[symbol]]
+      } else {
+        variable =
+          typeof variable === 'string' && variable !== ''
+            ? (variable as string).replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+            : variable ?? ''
+
+        if (index === 0 && template === '') result.push(variable)
         else {
-          result.splice(result.length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
-          if (isFiCsElement) result.push(variable)
+          const last: Sanitized<D, P> | unknown = result[result.length - 1] ?? ''
+          const isFiCsElement: boolean = variable instanceof FiCsElement
+
+          if (last instanceof FiCsElement)
+            isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+          else {
+            result.splice(
+              result.length - 1,
+              1,
+              `${last}${template}${isFiCsElement ? '' : variable}`
+            )
+            if (isFiCsElement) result.push(variable)
+          }
         }
       }
     }
