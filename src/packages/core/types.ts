@@ -31,6 +31,7 @@ export type Css<D, P> = (
 type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
+  ficsId?: string
   name: string
   data?: () => D
   reflections?: Reflections<D>
