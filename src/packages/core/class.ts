@@ -48,6 +48,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #isReflecting: boolean = false
 
   constructor({
+    ficsId,
     name,
     data,
     reflections,
@@ -64,7 +65,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#reservedNames[convertedName])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = `fics${generator.next().value}`
+      this.#ficsId = ficsId ?? `fics${generator.next().value}`
       this.#name = convertedName
 
       if (data) {
@@ -492,7 +493,20 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #render(propsChain: PropsChain<P>): HTMLElement {
-    const tagName: string = this.#getTagName()
+    const that = new FiCsElement({
+      ficsId: this.#ficsId,
+      name: this.#name,
+      data: () => this.#data,
+      reflections: { ...(this.#reflections ?? ({} as Reflections<D>)) },
+      inheritances: [...this.#inheritances],
+      props: { ...(this.#props ?? {}) },
+      isOnlyCsr: this.#isOnlyCsr,
+      className: this.#className,
+      html: this.#html,
+      css: [...this.#css],
+      actions: [...this.#actions]
+    })
+    const tagName: string = that.#getTagName()
 
     if (!customElements.get(tagName))
       customElements.define(
@@ -509,13 +523,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const fics = this.#component ?? document.createElement(tagName)
 
-    this.#initProps(propsChain)
-    this.#addClassName(fics)
-    this.#addHtml(this.#getShadowRoot(fics))
-    this.#addCss(this.#getShadowRoot(fics))
-    this.#addActions(fics)
+    that.#initProps(propsChain)
+    that.#addClassName(fics)
+    that.#addHtml(this.#getShadowRoot(fics))
+    that.#addCss(this.#getShadowRoot(fics))
+    that.#addActions(fics)
 
-    if (!this.#component) this.#component = fics
+    if (!that.#component) that.#component = fics
 
     return fics
   }
