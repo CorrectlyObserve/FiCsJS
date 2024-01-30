@@ -278,130 +278,52 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    const ficsElements: FiCsElement<D, P>[] = new Array()
-    const tagName: string = 'f-var'
-    const fragment: DocumentFragment = document.createRange().createContextualFragment(
-      this.#getHtml(isRerendering).reduce((prev, curr) => {
-        if (curr instanceof FiCsElement) ficsElements.push(curr)
+    const createDOM = (): void => {
+      const ficsElements: FiCsElement<D, P>[] = new Array()
+      const tagName: string = 'f-var'
+      const fragment: DocumentFragment = document.createRange().createContextualFragment(
+        this.#getHtml(isRerendering).reduce((prev, curr) => {
+          if (curr instanceof FiCsElement) ficsElements.push(curr)
 
-        return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
-      }, '') as string
-    )
-    const appendDescendant = (descendant: HTMLElement): void => {
-      const replaceWith = (element: Element): void => {
+          return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
+        }, '') as string
+      )
+      const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
         if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
       }
 
-      if (descendant.localName === tagName) replaceWith(descendant)
-      else
-        for (const element of Array.from(descendant.querySelectorAll(tagName))) replaceWith(element)
+      for (const childNode of Array.from(fragment.childNodes)) {
+        shadowRoot.append(childNode)
+
+        if (childNode instanceof HTMLElement) {
+          if (childNode.localName === tagName) replace(childNode)
+          else
+            for (const element of Array.from(childNode.querySelectorAll(tagName))) replace(element)
+        }
+      }
     }
 
     if (isRerendering) {
       const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
-      const bindMap: Map<string | null, HTMLElement> = new Map()
-      const renewElement = (element: Element, newElement: HTMLElement | null | undefined): void => {
-        if (newElement) {
-          for (let i = 0; i < element.attributes.length; i++) {
-            const { name }: { name: string } = element.attributes[i]
-            const attr: Attr | null = newElement.attributes.getNamedItem(name)
+      const childNodes: ChildNode[] = Array.from(shadowRoot.childNodes)
+      const active: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
 
-            if (attr) element.setAttribute(name, attr.value)
-            else element.removeAttribute(name)
-          }
-
-          for (let i = 0; i < newElement.attributes.length; i++) {
-            const { name, value }: { name: string; value: string } = newElement.attributes[i]
-
-            if (element.attributes.getNamedItem(name)) continue
-            element.setAttribute(name, value)
-          }
-
-          if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
-            element.textContent = newElement.textContent
-        }
-      }
+      createDOM()
+      for (const childNode of childNodes) childNode.remove()
 
       for (const bind of binds) {
         const attr: string | null = bind.getAttribute(this.#attr)
-        const newElement: HTMLElement | null = fragment.querySelector(`[${this.#attr}="${attr}"]`)
+        const newElement: Element | null = shadowRoot.querySelector(`[${this.#attr}="${attr}"]`)
 
-        if (attr && !bindMap.get(attr) && newElement) {
-          renewElement(bind, newElement)
+        newElement?.after(bind)
+        newElement?.remove()
 
-          const prevSiblings: ChildNode[][] = [[]]
-          const nextSiblings: ChildNode[] = []
-          let prevSibling: ChildNode | null = newElement.previousSibling
-          let nextSibling: ChildNode | null = newElement.nextSibling
-          let current: number = 0
-
-          while (prevSibling) {
-            if (prevSibling instanceof HTMLElement && prevSibling.hasAttribute(this.#attr)) {
-              bindMap.set(prevSibling.getAttribute(this.#attr), prevSibling)
-              prevSiblings.push([])
-              current++
-            } else if (
-              !(prevSibling.nodeName === '#text' && prevSibling.textContent?.trim() === '')
-            )
-              prevSiblings[current].push(prevSibling)
-
-            prevSibling = prevSibling.previousSibling
-
-            if (!prevSibling) current = 0
-          }
-          while (nextSibling) {
-            if (!(nextSibling.nodeName === '#text' && nextSibling.textContent?.trim() === ''))
-              nextSiblings.unshift(nextSibling)
-
-            nextSibling = nextSibling.nextSibling
-          }
-
-          prevSibling = bind.previousSibling
-          nextSibling = bind.nextSibling
-
-          let element: HTMLElement | undefined = undefined
-
-          while (prevSibling) {
-            const temporary: ChildNode | null = prevSibling.previousSibling
-            const insert = (): void => {
-              for (const childNode of prevSiblings[current]) (element ?? bind).before(childNode)
-            }
-
-            if (
-              prevSibling instanceof HTMLElement &&
-              bindMap.get(prevSibling.getAttribute(this.#attr))
-            ) {
-              renewElement(prevSibling, bindMap.get(prevSibling.getAttribute(this.#attr)))
-              current++
-              insert()
-              element = prevSibling
-            } else prevSibling.remove()
-
-            prevSibling = temporary
-
-            if (!prevSibling) insert()
-          }
-          while (nextSibling) {
-            const temporary: ChildNode | null = nextSibling.nextSibling
-            nextSibling.remove()
-            nextSibling = temporary
-
-            if (!nextSibling) for (const childNode of nextSiblings) bind.after(childNode)
-          }
-        }
-      }
-
-      for (const childNode of Array.from(shadowRoot.childNodes)) {
-        if (childNode instanceof HTMLElement) appendDescendant(childNode)
+        if (bind instanceof HTMLElement && attr === active) bind.focus()
       }
     } else {
       this.#bindings.html = typeof this.#html === 'function'
-
-      for (const childNode of Array.from(fragment.childNodes)) {
-        shadowRoot.append(childNode)
-        if (childNode instanceof HTMLElement) appendDescendant(childNode)
-      }
+      createDOM()
     }
   }
 
