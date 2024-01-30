@@ -8,19 +8,25 @@ export const TodoPost = (svg: SvgType) =>
     data: () => ({ value: '', placeholder: 'Please enter a new task.' }),
     inheritances: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
     props: {} as { keydown: (str: string) => void },
-    html: ({ data: { value, placeholder }, html, bind }) =>
-      html`aaa
-        <div ${bind()} class="container">
+    html: ({ data: { value, placeholder }, html, bind }) => {
+      const str = 'test'
+
+      return html`<div class="container">
+          <p style="color:#fff">value: ${value}</p>
+          <p><span ${bind()} style="color:#fff">${value}</span></p>
+          <p ${bind()}>Value</p>
+          ${value !== '' ? html`<h2>${str}</h2>` : svg}
           <input
-            ${bind()}
+            ${bind('test')}
             class="${value}"
             type="text"
             value="${value}"
             placeholder="${placeholder}"
           />${svg}
+          <span>${value}</span>
         </div>
-        <p style="color:#fff">value: <span>${value}</span></p>
-        <span ${bind()}>${value}</span>`,
+        <p style="color:#fff">${'value is ' + value}</p>`
+    },
     css: [css],
     actions: [
       {
