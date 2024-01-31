@@ -339,7 +339,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (newElement) {
           renewElement(bind, newElement)
           newElement.replaceWith(bind)
-        }
+        } else throw new Error(`The element has '${attr}' as an attribute does not exist...`)
 
         if (bind instanceof HTMLElement && attr === active) bind.focus()
       }
