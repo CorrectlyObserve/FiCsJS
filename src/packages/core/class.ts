@@ -312,12 +312,34 @@ export default class FiCsElement<D extends object, P extends object> {
       createDOM()
       for (const childNode of childNodes) childNode.remove()
 
+      const renewElement = (element: Element, newElement: Element): void => {
+        for (let i = 0; i < element.attributes.length; i++) {
+          const { name }: { name: string } = element.attributes[i]
+          const attr: Attr | null = newElement.attributes.getNamedItem(name)
+
+          if (attr) element.setAttribute(name, attr.value)
+          else element.removeAttribute(name)
+        }
+
+        for (let i = 0; i < newElement.attributes.length; i++) {
+          const { name, value }: { name: string; value: string } = newElement.attributes[i]
+
+          if (element.attributes.getNamedItem(name)) continue
+          element.setAttribute(name, value)
+        }
+
+        if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
+          element.textContent = newElement.textContent
+      }
+
       for (const bind of binds) {
         const attr: string | null = bind.getAttribute(this.#attr)
         const newElement: Element | null = shadowRoot.querySelector(`[${this.#attr}="${attr}"]`)
 
-        newElement?.after(bind)
-        newElement?.remove()
+        if (newElement) {
+          renewElement(bind, newElement)
+          newElement.replaceWith(bind)
+        }
 
         if (bind instanceof HTMLElement && attr === active) bind.focus()
       }
