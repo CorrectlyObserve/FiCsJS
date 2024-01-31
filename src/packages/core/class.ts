@@ -220,8 +220,13 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as Sanitized<D, P> }
   }
 
-  #bind(name?: string): string {
-    const id: string = name ? this.#toKebabCase(name) : this.#generator.next().value
+  #bind(name?: string | number): string {
+    const id: string | number = name
+      ? typeof name === 'number'
+        ? name
+        : this.#toKebabCase(name)
+      : this.#generator.next().value
+
     return ` ${this.#attr}="${this.#name}-${id}"`
   }
 
