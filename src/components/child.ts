@@ -17,7 +17,7 @@ export const Child = (message: string = 'Hello') =>
     isOnlyCsr: true,
     className: ({ data: { back } }) => back,
     props: {} as { color: string; click: (message: string) => void },
-    html: ({ data: { message, count, countedNum }, html, props: { color } }) => html`<div>
+    html: ({ data: { message, count, countedNum }, template, props: { color } }) => template`<div>
         <p class="hello" style="display: inline">${message}</p>
       </div>
       <p>${color}</p>
