@@ -9,7 +9,7 @@ export const Svg = () =>
       color: string
       click: () => void
     },
-    html: ({ html }) => html`<button />`,
+    html: ({ template }) => template`<button />`,
     css: [
       { style: { display: 'flex' } },
       {
