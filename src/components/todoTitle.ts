@@ -6,7 +6,7 @@ export const TodoTitle = () =>
     name: 'todo-title',
     data: () => ({ md: 'var(--md)' }),
     props: {} as { length: number },
-    html: ({ props: { length }, html }) => html`<p>Remaining tasks: ${length}</p>`,
+    html: ({ props: { length }, template }) => template`<p>Remaining tasks: ${length}</p>`,
     css: [
       css,
       { style: ({ data: { md } }) => ({ display: 'block', marginBottom: `calc(${md} * 2)` }) },
