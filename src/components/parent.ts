@@ -26,8 +26,8 @@ export const Parent = (child: ChildType) => {
     ],
     props: {} as { propsColor: string },
     className: 'test',
-    html: ({ props: { propsColor }, html }) =>
-      html`${child}
+    html: ({ props: { propsColor }, template }) =>
+      template`${child}
         <p>propsColor: ${propsColor}</p>`
   })
 }
