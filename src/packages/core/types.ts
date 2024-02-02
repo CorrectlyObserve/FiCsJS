@@ -49,11 +49,12 @@ export type Html<D extends object, P extends object> =
   | ((args: {
       data: D
       props: P
-      html: (
+      template: (
         templates: TemplateStringsArray,
         ...variables: unknown[]
       ) => Record<symbol, Sanitized<D, P>>
       bind: (id?: string | number) => string
+      html: (content: string) => string
     }) => Record<symbol, (Descendant | string)[]>)
 
 export type Inheritances<D> = {
