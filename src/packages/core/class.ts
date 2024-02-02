@@ -40,6 +40,7 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
+  readonly #sanitization: Map<string, boolean> = new Map()
   readonly #attr: string = 'data-fics-bind'
 
   #propsChain: PropsChain<P> = new Map()
@@ -179,6 +180,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return ''
   }
 
+  #passSanitization(key: string): string {
+    this.#sanitization.set(key, true)
+
+    return key
+  }
+
   #sanitize(templates: TemplateStringsArray, ...variables: any[]): Record<symbol, Sanitized<D, P>> {
     let result: (Sanitized<D, P> | unknown)[] = new Array()
 
@@ -233,8 +240,9 @@ export default class FiCsElement<D extends object, P extends object> {
         ? this.#html({
             data: { ...this.#data },
             props: { ...this.#props },
-            html: this.#sanitize,
-            bind: (id?: string | number) => this.#bind(id)
+            template: this.#sanitize,
+            bind: (id?: string | number) => this.#bind(id),
+            html: (content: string) => this.#passSanitization(content)
           })
         : this.#html
     )[symbol]
@@ -278,6 +286,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+    const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
+      Array.from(parent.childNodes)
+
     const createDOM = (): void => {
       const ficsElements: FiCsElement<D, P>[] = new Array()
       const tagName: string = 'f-var'
@@ -293,7 +304,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
       }
 
-      for (const childNode of Array.from(fragment.childNodes)) {
+      for (const childNode of getChildNodes(fragment)) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement) {
@@ -306,7 +317,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (isRerendering) {
       const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
-      const childNodes: ChildNode[] = Array.from(shadowRoot.childNodes)
+      const childNodes: ChildNode[] = getChildNodes(shadowRoot)
       const active: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
 
       createDOM()
@@ -330,6 +341,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
           element.textContent = newElement.textContent
+
+        for (const childNode of getChildNodes(element)) childNode.remove()
+        for (const childNode of getChildNodes(newElement)) element.append(childNode.cloneNode(true))
       }
 
       for (const bind of binds) {
