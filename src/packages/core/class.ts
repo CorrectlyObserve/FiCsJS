@@ -40,7 +40,7 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
-  readonly #sanitization: Map<string, boolean> = new Map()
+  readonly #sanitization: Map<string, boolean> = new Map([['', true]])
   readonly #attr: string = 'data-fics-bind'
 
   #propsChain: PropsChain<P> = new Map()
@@ -180,9 +180,8 @@ export default class FiCsElement<D extends object, P extends object> {
     return ''
   }
 
-  #passSanitization(key: string): string {
+  #avoidSanitization(key: string): string {
     this.#sanitization.set(key, true)
-
     return key
   }
 
@@ -200,10 +199,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
         result = [...result, ...variable[symbol]]
       } else {
-        variable =
-          typeof variable === 'string' && variable !== ''
-            ? (variable as string).replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-            : variable ?? ''
+        if (typeof variable === 'string' && !this.#sanitization.get(variable)) {
+          variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        } else if (variable === undefined) variable = ''
 
         if (index === 0 && template === '') result.push(variable)
         else {
@@ -240,9 +238,10 @@ export default class FiCsElement<D extends object, P extends object> {
         ? this.#html({
             data: { ...this.#data },
             props: { ...this.#props },
-            template: this.#sanitize,
+            template: (templates: TemplateStringsArray, ...variables: any[]) =>
+              this.#sanitize(templates, ...variables),
             bind: (id?: string | number) => this.#bind(id),
-            html: (content: string) => this.#passSanitization(content)
+            html: (content: string) => this.#avoidSanitization(content)
           })
         : this.#html
     )[symbol]
@@ -342,8 +341,8 @@ export default class FiCsElement<D extends object, P extends object> {
         if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
           element.textContent = newElement.textContent
 
-        for (const childNode of getChildNodes(element)) childNode.remove()
-        for (const childNode of getChildNodes(newElement)) element.append(childNode.cloneNode(true))
+        // for (const childNode of getChildNodes(element)) childNode.remove()
+        // for (const childNode of getChildNodes(newElement)) element.append(childNode.cloneNode(true))
       }
 
       for (const bind of binds) {
@@ -498,7 +497,10 @@ export default class FiCsElement<D extends object, P extends object> {
     if (fics) {
       if (this.#bindings.className) this.#addClassName(fics, true)
 
-      if (this.#bindings.html) this.#addHtml(this.#getShadowRoot(fics), true)
+      if (this.#bindings.html) {
+        this.#sanitization.clear()
+        this.#addHtml(this.#getShadowRoot(fics), true)
+      }
 
       if (this.#bindings.css.length > 0)
         this.#addCss(
