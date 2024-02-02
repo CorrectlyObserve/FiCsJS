@@ -8,21 +8,22 @@ export const TodoPost = (svg: SvgType) =>
     data: () => ({ value: '', placeholder: 'Please enter a new task.' }),
     inheritances: [{ descendants: svg, values: () => ({ path: 'add', color: '#fff' }) }],
     props: {} as { keydown: (str: string) => void },
-    html: ({ data: { value, placeholder }, html, bind }) => {
+    html: ({ data: { value, placeholder }, template, bind }) => {
       const str = 'test'
+      let str2 = ''
 
-      return html`<div class="container">
+      for (let i = 0; i < Number(value); i++) str2 += `<p style="color: #fff;">${i + 1}</p>`
+
+      return template`<div class="container">
           <p style="color:#fff">value: ${value}</p>
           <p><span ${bind()} style="color:#fff">${value}</span></p>
           <p ${bind()}>Value</p>
-          ${value !== '' ? html`<h2>${str}</h2>` : svg}
-          <input
-            ${bind('test')}
-            class="${value}"
-            type="text"
-            value="${value}"
-            placeholder="${placeholder}"
-          />${svg}
+          ${value !== '' ? template`<h2>${str}</h2>` : svg}
+          <span ${bind()}>
+            <input class="${value}" type="text" value="${value}" placeholder="${placeholder}" />
+            ${svg}
+          </span>
+          ${Number(value) > 0 ? template`${str2}` : 'number'}
           <span>${value}</span>
         </div>
         <p style="color:#fff">${'value is ' + value}</p>`
