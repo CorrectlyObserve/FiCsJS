@@ -4,7 +4,7 @@ const Header = (css: string) =>
   fics({
     name: 'header',
     data: () => ({ title: 'To Do App by FiCsJS', pink: '#e198b4' }),
-    html: ({ data: { title }, html }) => html`<header><h1>${title}</h1></header>`,
+    html: ({ data: { title }, template }) => template`<header><h1>${title}</h1></header>`,
     css: [
       css,
       { selector: 'header', style: { padding: 'var(--md) 0' } },
