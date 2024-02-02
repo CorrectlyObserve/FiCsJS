@@ -411,19 +411,22 @@ export default class FiCsElement<D extends object, P extends object> {
         )
       } else elements.push(...getSelectors(selector))
 
-      if (elements.length > 0)
-        for (const element of elements) {
-          if (isRerendering && element.hasAttribute(this.#attr)) continue
+      if (elements.length > 0) {
+        const func = (event: Event) =>
+          method({
+            data: { ...this.#data },
+            props: { ...this.#props },
+            setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+            event
+          })
 
-          element.addEventListener(handler, (event: Event) =>
-            method({
-              data: { ...this.#data },
-              props: { ...this.#props },
-              setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-              event
-            })
-          )
+        for (const element of elements) {
+          if (isRerendering && element.hasAttribute(this.#attr))
+            element.removeEventListener(handler, (event: Event) => func(event))
+
+          element.addEventListener(handler, (event: Event) => func(event))
         }
+      }
     }
   }
 
