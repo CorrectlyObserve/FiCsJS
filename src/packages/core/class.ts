@@ -225,9 +225,9 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as Sanitized<D, P> }
   }
 
-  #bind(id?: string | number): string {
-    id = id ? (typeof id === 'number' ? id : this.#toKebabCase(id)) : this.#generator.next().value
-    return ` ${this.#attr}="${this.#name}-${id}"`
+  #bind(id?: string, index?: number): string {
+    id = id ? this.#toKebabCase(id) : this.#generator.next().value
+    return ` ${this.#attr}="${this.#name}-${id}${typeof index === 'number' ? `-${index}` : ''}"`
   }
 
   #getHtml(isRerendering?: boolean): Sanitized<D, P> {
@@ -240,7 +240,7 @@ export default class FiCsElement<D extends object, P extends object> {
             props: { ...this.#props },
             template: (templates: TemplateStringsArray, ...variables: any[]) =>
               this.#sanitize(templates, ...variables),
-            bind: (id?: string | number) => this.#bind(id),
+            bind: (id?: string, index?: number) => this.#bind(id, index),
             html: (content: string) => this.#avoidSanitization(content)
           })
         : this.#html
