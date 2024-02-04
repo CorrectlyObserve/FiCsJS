@@ -285,25 +285,25 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+    const ficsElements: FiCsElement<D, P>[] = new Array()
+    const tagName: string = 'f-var'
+    const fragment: DocumentFragment = document.createRange().createContextualFragment(
+      this.#getHtml(isRerendering).reduce((prev, curr) => {
+        if (curr instanceof FiCsElement) ficsElements.push(curr)
+
+        return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
+      }, '') as string
+    )
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
 
     const createDOM = (): void => {
-      const ficsElements: FiCsElement<D, P>[] = new Array()
-      const tagName: string = 'f-var'
-      const fragment: DocumentFragment = document.createRange().createContextualFragment(
-        this.#getHtml(isRerendering).reduce((prev, curr) => {
-          if (curr instanceof FiCsElement) ficsElements.push(curr)
-
-          return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
-        }, '') as string
-      )
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
         if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
       }
 
-      for (const childNode of getChildNodes(fragment)) {
+      for (const childNode of getChildNodes(fragment).map(childNode => childNode.cloneNode(true))) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement) {
@@ -315,14 +315,17 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (isRerendering) {
-      const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
+      const attrs: string[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`))
+        .map(element => element.getAttribute(this.#attr)!)
+        .reverse()
+
       const childNodes: ChildNode[] = getChildNodes(shadowRoot)
       const active: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
 
       createDOM()
       for (const childNode of childNodes) childNode.remove()
 
-      const renewElement = (element: Element, newElement: Element): void => {
+      const renewAttr = (element: Element, newElement: Element): void => {
         for (let i = 0; i < element.attributes.length; i++) {
           const { name }: { name: string } = element.attributes[i]
           const attr: Attr | null = newElement.attributes.getNamedItem(name)
@@ -332,7 +335,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         for (let i = 0; i < newElement.attributes.length; i++) {
-          const { name, value }: { name: string; value: string } = newElement.attributes[i]
+          const { name, value }: Record<'name' | 'value', string> = newElement.attributes[i]
 
           if (element.attributes.getNamedItem(name)) continue
           element.setAttribute(name, value)
@@ -340,21 +343,18 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
           element.textContent = newElement.textContent
-
-        // for (const childNode of getChildNodes(element)) childNode.remove()
-        // for (const childNode of getChildNodes(newElement)) element.append(childNode.cloneNode(true))
       }
 
-      for (const bind of binds) {
-        const attr: string | null = bind.getAttribute(this.#attr)
+      for (const attr of attrs) {
         const newElement: Element | null = shadowRoot.querySelector(`[${this.#attr}="${attr}"]`)
+        const element: Element | null = fragment.querySelector(`[${this.#attr}="${attr}"]`)
 
-        if (newElement) {
-          renewElement(bind, newElement)
-          newElement.replaceWith(bind)
+        if (element && newElement) {
+          renewAttr(element, newElement)
+          newElement.replaceWith(element)
         }
 
-        if (bind instanceof HTMLElement && attr === active) bind.focus()
+        if (attr === active) (element as HTMLElement).focus()
       }
     } else {
       this.#bindings.html = typeof this.#html === 'function'
@@ -392,7 +392,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addEvent(fics: HTMLElement, action: Action<D, P>, isRerendering?: boolean): void {
-    const { handler, selector, method } = action
+    const { handler, selector, method }: Action<D, P> = action
 
     if (selector) {
       const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
@@ -433,7 +433,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #addActions(fics: HTMLElement): void {
     if (this.#actions.length > 0)
       this.#actions.forEach((event, index) => {
-        const { handler, selector, method } = event
+        const { handler, selector, method }: Action<D, P> = event
 
         if (selector) {
           this.#bindings.actions.push(index)
