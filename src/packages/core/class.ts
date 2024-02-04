@@ -346,8 +346,10 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       for (const attr of attrs) {
-        const newElement: Element | null = shadowRoot.querySelector(`[${this.#attr}="${attr}"]`)
-        const element: Element | null = fragment.querySelector(`[${this.#attr}="${attr}"]`)
+        const getElement = (parent: ShadowRoot | DocumentFragment): Element | null =>
+          parent.querySelector(`[${this.#attr}="${attr}"]`)
+        const newElement: Element | null = getElement(shadowRoot)
+        const element: Element | null = getElement(fragment)
 
         if (element && newElement) {
           renewAttr(element, newElement)
