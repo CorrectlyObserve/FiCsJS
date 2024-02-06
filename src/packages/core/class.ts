@@ -296,14 +296,15 @@ export default class FiCsElement<D extends object, P extends object> {
     )
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
+    const childNodes: Node[] = getChildNodes(fragment).map(childNode => childNode.cloneNode(true))
 
-    const createDOM = (): void => {
+    const createDOM = (childNodes: Node[]): void => {
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
         if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
       }
 
-      for (const childNode of getChildNodes(fragment).map(childNode => childNode.cloneNode(true))) {
+      for (const childNode of childNodes) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement) {
@@ -315,52 +316,59 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (isRerendering) {
-      const attrs: string[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`))
-        .map(element => element.getAttribute(this.#attr)!)
-        .reverse()
+      const activeAttr: string | null | undefined = shadowRoot.activeElement?.getAttribute(
+        this.#attr
+      )
+      const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
+      const renewAttr = (element: Element, newElement: Element): void => {
+        const exclusionMap: Map<string, true> = new Map()
+        const attrMap: Map<string, string> = new Map()
+        const newAttrMap: Map<string, string> = new Map()
+
+        for (const { name, value } of Array.from(element.attributes)) {
+          if (value === '') exclusionMap.set(name, true)
+          attrMap.set(name, value)
+        }
+
+        for (const { name, value } of Array.from(newElement.attributes)) {
+          const isExcluded: boolean | undefined = exclusionMap.get(name)
+          const attr: string | undefined = attrMap.get(name)
+
+          if (attr === value || (isExcluded && value === '')) attrMap.delete(name)
+          else newAttrMap.set(name, value)
+        }
+
+        if ((attrMap.size > 0, newAttrMap.size > 0)) {
+          for (const [key, value] of Array.from(newAttrMap)) element.setAttribute(key, value)
+
+          if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
+            element.textContent = newElement.textContent
+        }
+      }
+
+      const searchByAttr = (
+        parent: ShadowRoot | DocumentFragment,
+        attr: string | null
+      ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
+
+      for (const bind of binds) {
+        const element: HTMLElement | null = searchByAttr(fragment, bind.getAttribute(this.#attr))
+
+        if (!element) continue
+
+        renewAttr(bind, element)
+        element.replaceWith(bind)
+      }
 
       const childNodes: ChildNode[] = getChildNodes(shadowRoot)
-      const active: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
 
-      createDOM()
+      createDOM(getChildNodes(fragment))
       for (const childNode of childNodes) childNode.remove()
 
-      const renewAttr = (element: Element, newElement: Element): void => {
-        for (let i = 0; i < element.attributes.length; i++) {
-          const { name }: { name: string } = element.attributes[i]
-          const attr: Attr | null = newElement.attributes.getNamedItem(name)
-
-          if (attr) element.setAttribute(name, attr.value)
-          else element.removeAttribute(name)
-        }
-
-        for (let i = 0; i < newElement.attributes.length; i++) {
-          const { name, value }: Record<'name' | 'value', string> = newElement.attributes[i]
-
-          if (element.attributes.getNamedItem(name)) continue
-          element.setAttribute(name, value)
-        }
-
-        if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
-          element.textContent = newElement.textContent
-      }
-
-      for (const attr of attrs) {
-        const getElement = (parent: ShadowRoot | DocumentFragment): Element | null =>
-          parent.querySelector(`[${this.#attr}="${attr}"]`)
-        const newElement: Element | null = getElement(shadowRoot)
-        const element: Element | null = getElement(fragment)
-
-        if (element && newElement) {
-          renewAttr(element, newElement)
-          newElement.replaceWith(element)
-        }
-
-        if (attr === active) (element as HTMLElement).focus()
-      }
+      if (activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
     } else {
       this.#bindings.html = typeof this.#html === 'function'
-      createDOM()
+      createDOM(childNodes)
     }
   }
 
