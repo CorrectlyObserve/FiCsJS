@@ -301,7 +301,13 @@ export default class FiCsElement<D extends object, P extends object> {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
 
-    const createDOM = (): void => {
+    const activeAttr: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
+    const searchByAttr = (
+      parent: ShadowRoot | DocumentFragment,
+      attr: string | null
+    ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
+
+    const createDOM = (isRerendering?: boolean, activeAttr?: string | null): void => {
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
         if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
@@ -316,13 +322,11 @@ export default class FiCsElement<D extends object, P extends object> {
             for (const element of Array.from(childNode.querySelectorAll(tagName))) replace(element)
         }
       }
+
+      if (isRerendering && activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
     }
 
     if (isRerendering) {
-      const activeAttr: string | null | undefined = shadowRoot.activeElement?.getAttribute(
-        this.#attr
-      )
-      const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
       const renewAttr = (element: Element, newElement: Element): void => {
         const attr: string | null = element.getAttribute(this.#attr)
 
@@ -354,28 +358,19 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      const searchByAttr = (
-        parent: ShadowRoot | DocumentFragment,
-        attr: string | null
-      ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
-
-      for (const bind of binds) {
-        const element: HTMLElement | null = searchByAttr(fragment, bind.getAttribute(this.#attr))
+      for (const bound of Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()) {
+        const element: HTMLElement | null = searchByAttr(fragment, bound.getAttribute(this.#attr))
 
         if (!element) continue
 
-        renewAttr(bind, element)
-        element.replaceWith(bind)
+        renewAttr(bound, element)
+        element.replaceWith(bound)
       }
 
       for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
-      createDOM()
+    } else this.#bindings.html = typeof this.#html === 'function'
 
-      if (activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
-    } else {
-      this.#bindings.html = typeof this.#html === 'function'
-      createDOM()
-    }
+    createDOM(isRerendering, activeAttr)
   }
 
   #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
