@@ -421,10 +421,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const { handler, selector, method }: Action<D, P> = action
 
     if (selector) {
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
-      const getSelectors = (selector: string): Element[] =>
-        Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
       const elements: Element[] = new Array()
+      const getSelectors = (selector: string): Element[] =>
+        Array.from(this.#getShadowRoot(fics).querySelectorAll(`:host ${selector}`))
 
       if (/^.+(\.|#).+$/.test(selector)) {
         const prefix = selector.startsWith('.') ? '.' : '#'
