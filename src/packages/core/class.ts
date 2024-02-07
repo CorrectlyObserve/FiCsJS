@@ -7,6 +7,7 @@ import {
   FiCs,
   Html,
   Inheritances,
+  Method,
   PropsChain,
   Reflections,
   Sanitized
@@ -403,6 +404,14 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
+  #addMethod = (method: Method<D, P>, event: Event): void =>
+    method({
+      data: { ...this.#data },
+      props: { ...this.#props },
+      setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      event
+    })
+
   #addEvent(fics: HTMLElement, action: Action<D, P>, isRerendering?: boolean): void {
     const { handler, selector, method }: Action<D, P> = action
 
@@ -423,22 +432,13 @@ export default class FiCsElement<D extends object, P extends object> {
         )
       } else elements.push(...getSelectors(selector))
 
-      if (elements.length > 0) {
-        const func = (event: Event) =>
-          method({
-            data: { ...this.#data },
-            props: { ...this.#props },
-            setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-            event
-          })
-
+      if (elements.length > 0)
         for (const element of elements) {
           if (isRerendering && element.hasAttribute(this.#attr))
-            element.removeEventListener(handler, (event: Event) => func(event))
+            element.removeEventListener(handler, (event: Event) => this.#addMethod(method, event))
 
-          element.addEventListener(handler, (event: Event) => func(event))
+          element.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
         }
-      }
     }
   }
 
@@ -451,14 +451,7 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#bindings.actions.push(index)
           this.#addEvent(fics, event)
         } else
-          fics.addEventListener(handler, (event: Event) =>
-            method({
-              data: { ...this.#data },
-              props: { ...this.#props },
-              setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-              event
-            })
-          )
+          fics.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
       })
   }
 
