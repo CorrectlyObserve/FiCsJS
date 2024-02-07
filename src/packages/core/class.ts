@@ -409,13 +409,15 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addMethod = (method: Method<D, P>, event: Event): void =>
-    method({
-      data: { ...this.#data },
-      props: { ...this.#props },
-      setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-      event
-    })
+  #addMethod = (element: Element, handler: string, method: Method<D, P>): void =>
+    element.addEventListener(handler, (event: Event) =>
+      method({
+        data: { ...this.#data },
+        props: { ...this.#props },
+        setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+        event
+      })
+    )
 
   #addEvent(fics: HTMLElement, action: Action<D, P>, isRerendering?: boolean): void {
     const { handler, selector, method }: Action<D, P> = action
@@ -440,8 +442,8 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const element of elements) {
           const attr: string | null = element.getAttribute(this.#attr)
 
-          if (!isRerendering || !attr || !this.#attrs[attr])
-            element.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
+          if (isRerendering && attr && this.#attrs[attr]) continue
+          this.#addMethod(element, handler, method)
         }
     }
   }
@@ -454,7 +456,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (selector) {
           this.#bindings.actions.push(index)
           this.#addEvent(fics, event)
-        } else fics.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
+        } else this.#addMethod(fics, handler, method)
       })
   }
 
