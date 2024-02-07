@@ -46,6 +46,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #generator: Generator<number> = generate()
+  #attrs: Record<string, boolean> = {}
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
@@ -361,8 +362,12 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       for (const bound of Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()) {
-        const element: HTMLElement | null = searchByAttr(fragment, bound.getAttribute(this.#attr))
+        const attr: string | null = bound.getAttribute(this.#attr)
+        if (!attr) continue
 
+        this.#attrs[attr] = true
+
+        const element: HTMLElement | null = searchByAttr(fragment, attr)
         if (!element) continue
 
         renewAttr(bound, element)
@@ -434,10 +439,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (elements.length > 0)
         for (const element of elements) {
-          if (isRerendering && element.hasAttribute(this.#attr))
-            element.removeEventListener(handler, (event: Event) => this.#addMethod(method, event))
+          const attr: string | null = element.getAttribute(this.#attr)
 
-          element.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
+          if (!isRerendering || !attr || !this.#attrs[attr])
+            element.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
         }
     }
   }
@@ -513,8 +518,10 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#bindings.css.map(index => this.#css[index])
         )
 
-      if (this.#bindings.actions.length > 0)
+      if (this.#bindings.actions.length > 0) {
         for (const index of this.#bindings.actions) this.#addEvent(fics, this.#actions[index], true)
+        this.#attrs = {}
+      }
     }
   }
 
