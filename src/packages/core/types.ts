@@ -3,17 +3,7 @@ import FiCsElement from './class'
 export interface Action<D, P> {
   handler: string
   selector?: string
-  method: ({
-    data,
-    props,
-    setData,
-    event
-  }: {
-    data: D
-    props: P
-    setData: (key: keyof D, value: D[typeof key], bind?: string) => void
-    event: Event
-  }) => void
+  method: Method<D, P>
 }
 
 export type ClassName<D, P> = string | (({ data, props }: { data: D; props: P }) => string)
@@ -61,6 +51,18 @@ export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
+
+export type Method<D, P> = ({
+  data,
+  props,
+  setData,
+  event
+}: {
+  data: D
+  props: P
+  setData: (key: keyof D, value: D[typeof key], bind?: string) => void
+  event: Event
+}) => void
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
