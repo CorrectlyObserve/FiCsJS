@@ -186,7 +186,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return key
   }
 
-  #sanitize(templates: TemplateStringsArray, ...variables: any[]): Record<symbol, Sanitized<D, P>> {
+  #sanitize(
+    templates: TemplateStringsArray,
+    ...variables: unknown[]
+  ): Record<symbol, Sanitized<D, P>> {
     let result: (Sanitized<D, P> | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
@@ -239,7 +242,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ? this.#html({
             data: { ...this.#data },
             props: { ...this.#props },
-            template: (templates: TemplateStringsArray, ...variables: any[]) =>
+            template: (templates: TemplateStringsArray, ...variables: unknown[]) =>
               this.#sanitize(templates, ...variables),
             bind: (id?: string, index?: number) => this.#bind(id, index),
             html: (content: string) => this.#avoidSanitization(content)
@@ -450,8 +453,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (selector) {
           this.#bindings.actions.push(index)
           this.#addEvent(fics, event)
-        } else
-          fics.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
+        } else fics.addEventListener(handler, (event: Event) => this.#addMethod(method, event))
       })
   }
 
