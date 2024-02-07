@@ -340,18 +340,20 @@ export default class FiCsElement<D extends object, P extends object> {
         else {
           const attrs: Attr[] = Array.from(element.attributes)
           const attrNames: Set<string> = new Set(attrs.map(({ name }) => name))
-          const attrMap: Map<string, string> = new Map()
-          const newAttrMap: Map<string, string> = new Map()
+          const oldAttrs: Record<string, string> = {}
+          const newAttrs: Record<string, string> = {}
 
-          for (const { name, value } of attrs) attrMap.set(name, value)
+          for (const { name, value } of attrs) oldAttrs[name] = value
 
           for (const { name, value } of Array.from(newElement.attributes))
             if (attrNames.has(name))
-              attrMap.get(name) === value ? attrMap.delete(name) : newAttrMap.set(name, value)
+              oldAttrs[name] === value ? delete oldAttrs[name] : (newAttrs[name] = value)
             else element.removeAttribute(name)
 
-          if ((attrMap.size > 0, newAttrMap.size > 0))
-            for (const [key, value] of Array.from(newAttrMap)) element.setAttribute(key, value)
+          const newAttrKeys: string[] = Object.keys(newAttrs)
+
+          if ((Object.keys(oldAttrs).length > 0, newAttrKeys.length > 0))
+            for (const key of newAttrKeys) element.setAttribute(key, newAttrs[key])
 
           if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
             element.textContent = newElement.textContent
