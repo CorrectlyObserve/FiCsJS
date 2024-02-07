@@ -296,15 +296,14 @@ export default class FiCsElement<D extends object, P extends object> {
     )
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
-    const childNodes: Node[] = getChildNodes(fragment).map(childNode => childNode.cloneNode(true))
 
-    const createDOM = (childNodes: Node[]): void => {
+    const createDOM = (): void => {
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
         if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
       }
 
-      for (const childNode of childNodes) {
+      for (const childNode of getChildNodes(fragment)) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement) {
@@ -321,25 +320,30 @@ export default class FiCsElement<D extends object, P extends object> {
       )
       const binds: Element[] = Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()
       const renewAttr = (element: Element, newElement: Element): void => {
-        const exclusionMap: Map<string, true> = new Map()
-        const attrMap: Map<string, string> = new Map()
-        const newAttrMap: Map<string, string> = new Map()
+        const attr: string | null = element.getAttribute(this.#attr)
 
-        for (const { name, value } of Array.from(element.attributes)) {
-          if (value === '') exclusionMap.set(name, true)
-          attrMap.set(name, value)
-        }
+        if (
+          element.localName !== newElement.localName &&
+          attr === newElement.getAttribute(this.#attr)
+        )
+          throw new Error(
+            `The Elements have ${attr} as an attribute are different before and after re-rendering...`
+          )
+        else {
+          const attrs: Attr[] = Array.from(element.attributes)
+          const attrNames: Set<string> = new Set(attrs.map(({ name }) => name))
+          const attrMap: Map<string, string> = new Map()
+          const newAttrMap: Map<string, string> = new Map()
 
-        for (const { name, value } of Array.from(newElement.attributes)) {
-          const isExcluded: boolean | undefined = exclusionMap.get(name)
-          const attr: string | undefined = attrMap.get(name)
+          for (const { name, value } of attrs) attrMap.set(name, value)
 
-          if (attr === value || (isExcluded && value === '')) attrMap.delete(name)
-          else newAttrMap.set(name, value)
-        }
+          for (const { name, value } of Array.from(newElement.attributes))
+            if (attrNames.has(name))
+              attrMap.get(name) === value ? attrMap.delete(name) : newAttrMap.set(name, value)
+            else element.removeAttribute(name)
 
-        if ((attrMap.size > 0, newAttrMap.size > 0)) {
-          for (const [key, value] of Array.from(newAttrMap)) element.setAttribute(key, value)
+          if ((attrMap.size > 0, newAttrMap.size > 0))
+            for (const [key, value] of Array.from(newAttrMap)) element.setAttribute(key, value)
 
           if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
             element.textContent = newElement.textContent
@@ -360,15 +364,13 @@ export default class FiCsElement<D extends object, P extends object> {
         element.replaceWith(bind)
       }
 
-      const childNodes: ChildNode[] = getChildNodes(shadowRoot)
-
-      createDOM(getChildNodes(fragment))
-      for (const childNode of childNodes) childNode.remove()
+      for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
+      createDOM()
 
       if (activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
     } else {
       this.#bindings.html = typeof this.#html === 'function'
-      createDOM(childNodes)
+      createDOM()
     }
   }
 
