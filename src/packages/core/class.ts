@@ -340,14 +340,15 @@ export default class FiCsElement<D extends object, P extends object> {
             `The Elements have ${attr} as an attribute are different before and after re-rendering...`
           )
         else {
-          const attrs: Attr[] = Array.from(element.attributes)
+          const getAttrs = (element: Element): Attr[] => Array.from(element.attributes)
+          const attrs: Attr[] = getAttrs(element)
           const attrNames: Set<string> = new Set(attrs.map(({ name }) => name))
           const oldAttrs: Record<string, string> = {}
           const newAttrs: Record<string, string> = {}
 
           for (const { name, value } of attrs) oldAttrs[name] = value
 
-          for (const { name, value } of Array.from(newElement.attributes))
+          for (const { name, value } of getAttrs(newElement))
             if (attrNames.has(name))
               oldAttrs[name] === value ? delete oldAttrs[name] : (newAttrs[name] = value)
             else element.removeAttribute(name)
@@ -357,9 +358,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if ((Object.keys(oldAttrs).length > 0, newAttrKeys.length > 0))
             for (const key of newAttrKeys) element.setAttribute(key, newAttrs[key])
 
-          if (
-            youngers.some(younger => searchByAttr(element, younger.getAttribute(this.#attr)))
-          ) {
+          if (youngers.some(younger => searchByAttr(element, younger.getAttribute(this.#attr)))) {
           } else {
             for (const childNode of getChildNodes(element)) childNode.remove()
             for (const childNode of getChildNodes(newElement))
@@ -383,7 +382,6 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       youngers = new Array()
-
       for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
     } else this.#bindings.html = typeof this.#html === 'function'
 
