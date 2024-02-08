@@ -304,7 +304,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const activeAttr: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
     const searchByAttr = (
-      parent: ShadowRoot | DocumentFragment,
+      parent: ShadowRoot | Element | DocumentFragment,
       attr: string | null
     ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
 
@@ -328,6 +328,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (isRerendering) {
+      let youngers: Element[] = []
       const renewAttr = (element: Element, newElement: Element): void => {
         const attr: string | null = element.getAttribute(this.#attr)
 
@@ -356,8 +357,14 @@ export default class FiCsElement<D extends object, P extends object> {
           if ((Object.keys(oldAttrs).length > 0, newAttrKeys.length > 0))
             for (const key of newAttrKeys) element.setAttribute(key, newAttrs[key])
 
-          if (element.querySelectorAll(`[${this.#attr}]`).length === 0 && 'textContent' in element)
-            element.textContent = newElement.textContent
+          if (
+            youngers.some(younger => searchByAttr(element, younger.getAttribute(this.#attr)))
+          ) {
+          } else {
+            for (const childNode of getChildNodes(element)) childNode.remove()
+            for (const childNode of getChildNodes(newElement))
+              element.append(childNode.cloneNode(true))
+          }
         }
       }
 
@@ -372,7 +379,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
         renewAttr(bound, element)
         element.replaceWith(bound)
+        youngers.push(bound)
       }
+
+      youngers = new Array()
 
       for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
     } else this.#bindings.html = typeof this.#html === 'function'
