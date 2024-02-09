@@ -303,14 +303,12 @@ export default class FiCsElement<D extends object, P extends object> {
       Array.from(parent.childNodes)
 
     const activeAttr: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
-    const searchByAttr = (
-      parent: ShadowRoot | Element | DocumentFragment,
+    const findByAttr = (
+      parent: DocumentFragment | ShadowRoot,
       attr: string | null
     ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
 
     if (isRerendering) {
-      let youngers: Element[] = []
-
       const renewAttr = (element: Element, newElement: Element): void => {
         const attr: string | null = element.getAttribute(this.#attr)
 
@@ -337,29 +335,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const newAttrKeys: string[] = Object.keys(newAttrs)
 
-          if ((Object.keys(oldAttrs).length > 0, newAttrKeys.length > 0))
+          if (Object.keys(oldAttrs).length > 0 && newAttrKeys.length > 0)
             for (const key of newAttrKeys) element.setAttribute(key, newAttrs[key])
 
-          let bound: Element | undefined = undefined
-          const isNested: boolean = youngers.some(younger => {
-            bound = younger
-
-            if (searchByAttr(newElement, bound.getAttribute(this.#attr)) === bound)
-              console.log(searchByAttr(newElement, younger.getAttribute(this.#attr)), bound)
-            return searchByAttr(newElement, bound.getAttribute(this.#attr)) === bound
-          })
-          const newChildNodes: ChildNode[] = getChildNodes(newElement)
-
-          if (isNested) {
-            console.log(element, newElement, newElement.localName, newChildNodes)
-          } else {
-            for (const childNode of getChildNodes(element)) childNode.remove()
-            for (const childNode of newChildNodes) element.append(childNode.cloneNode(true))
-          }
+          for (const childNode of getChildNodes(element)) childNode.remove()
+          for (const childNode of getChildNodes(newElement))
+            element.append(childNode.cloneNode(true))
         }
       }
-
-      let isCompleted = false
 
       for (const bound of Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()) {
         const attr: string | null = bound.getAttribute(this.#attr)
@@ -367,18 +350,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
         this.#attrs[attr] = true
 
-        const newElement: HTMLElement | null = searchByAttr(fragment, attr)
+        const newElement: HTMLElement | null = findByAttr(fragment, attr)
         if (!newElement) continue
 
         renewAttr(bound, newElement)
         newElement.replaceWith(bound)
-
-        if (isCompleted) continue
-
-        bound === newElement ? (isCompleted = true) : youngers.push(bound)
       }
 
-      youngers = new Array()
       for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
     } else this.#bindings.html = typeof this.#html === 'function'
 
@@ -396,7 +374,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (isRerendering && activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
+    if (isRerendering && activeAttr) findByAttr(shadowRoot, activeAttr)?.focus()
   }
 
   #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
