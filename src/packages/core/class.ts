@@ -422,15 +422,15 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#getShadowRoot(fics).querySelectorAll(`:host ${selector.trim()}`)
       )
 
-      const { handler, method }: Action<D, P> = action
-
-      if (elements.length > 0)
+      if (elements.length > 0) {
+        const { handler, method }: Action<D, P> = action
         for (const element of elements) {
           const attr: string | null = element.getAttribute(this.#attr)
 
           if (isRerendering && attr && this.#attrs[attr]) continue
           this.#addMethod(element, handler, method)
         }
+      }
     }
   }
 
