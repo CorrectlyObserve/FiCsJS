@@ -302,7 +302,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
 
-    const activeAttr: string | null | undefined = shadowRoot.activeElement?.getAttribute(this.#attr)
+    const getAttr = (element: Element): string | null => element.getAttribute(this.#attr)
+    const active: Element | null = shadowRoot.activeElement
+    const activeAttr: string | null = active ? getAttr(active) : null
     const findByAttr = (
       parent: DocumentFragment | ShadowRoot,
       attr: string | null
@@ -310,12 +312,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (isRerendering) {
       const renewAttr = (element: Element, newElement: Element): void => {
-        const attr: string | null = element.getAttribute(this.#attr)
+        const attr: string | null = getAttr(element)
 
-        if (
-          element.localName !== newElement.localName &&
-          attr === newElement.getAttribute(this.#attr)
-        )
+        if (element.localName !== newElement.localName && attr === getAttr(newElement))
           throw new Error(
             `The Elements have ${attr} as an attribute are different before and after re-rendering...`
           )
@@ -345,7 +344,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       for (const bound of Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()) {
-        const attr: string | null = bound.getAttribute(this.#attr)
+        const attr: string | null = getAttr(bound)
         if (!attr) continue
 
         this.#attrs[attr] = true
