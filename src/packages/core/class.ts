@@ -306,9 +306,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const getAttr = (element: Element): string | null => element.getAttribute(this.#attr)
     const activeAttr: string | null = active ? getAttr(active) : null
     const findByAttr = (
-      parent: DocumentFragment | ShadowRoot,
+      ancestor: DocumentFragment | ShadowRoot,
       attr: string | null
-    ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
+    ): HTMLElement | null => ancestor.querySelector(`[${this.#attr}="${attr}"]`)
 
     if (isRerendering) {
       const getAttrs = (ancestor: ShadowRoot | HTMLElement): Element[] =>
