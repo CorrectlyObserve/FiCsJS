@@ -311,38 +311,6 @@ export default class FiCsElement<D extends object, P extends object> {
     ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
 
     if (isRerendering) {
-      const renewAttr = (element: Element, newElement: Element): void => {
-        const attr: string | null = getAttr(element)
-
-        if (element.localName !== newElement.localName && attr === getAttr(newElement))
-          throw new Error(
-            `The Elements have ${attr} as an attribute are different before and after re-rendering...`
-          )
-        else {
-          const getAttrs = (element: Element): Attr[] => Array.from(element.attributes)
-          const attrs: Attr[] = getAttrs(element)
-          const attrNames: Set<string> = new Set(attrs.map(({ name }) => name))
-          const oldAttrs: Record<string, string> = {}
-          const newAttrs: Record<string, string> = {}
-
-          for (const { name, value } of attrs) oldAttrs[name] = value
-
-          for (const { name, value } of getAttrs(newElement))
-            if (attrNames.has(name))
-              oldAttrs[name] === value ? delete oldAttrs[name] : (newAttrs[name] = value)
-            else element.removeAttribute(name)
-
-          const newAttrKeys: string[] = Object.keys(newAttrs)
-
-          if (Object.keys(oldAttrs).length > 0 && newAttrKeys.length > 0)
-            for (const key of newAttrKeys) element.setAttribute(key, newAttrs[key])
-
-          for (const childNode of getChildNodes(element)) childNode.remove()
-          for (const childNode of getChildNodes(newElement))
-            element.append(childNode.cloneNode(true))
-        }
-      }
-
       for (const bound of Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()) {
         const attr: string | null = getAttr(bound)
         if (!attr) continue
@@ -352,8 +320,36 @@ export default class FiCsElement<D extends object, P extends object> {
         const newElement: HTMLElement | null = findByAttr(fragment, attr)
         if (!newElement) continue
 
-        renewAttr(bound, newElement)
-        newElement.replaceWith(bound)
+        const boundAttr: string | null = getAttr(bound)
+
+        if (bound.localName !== newElement.localName && boundAttr === getAttr(newElement))
+          throw new Error(
+            `The Elements have ${boundAttr} as an attribute are different before and after re-rendering...`
+          )
+        else {
+          const getAttrs = (bound: Element): Attr[] => Array.from(bound.attributes)
+          const attrs: Attr[] = getAttrs(bound)
+          const attrNames: Set<string> = new Set(attrs.map(({ name }) => name))
+          const oldAttrs: Record<string, string> = {}
+          const newAttrs: Record<string, string> = {}
+
+          for (const { name, value } of attrs) oldAttrs[name] = value
+
+          for (const { name, value } of getAttrs(newElement))
+            if (attrNames.has(name))
+              oldAttrs[name] === value ? delete oldAttrs[name] : (newAttrs[name] = value)
+            else bound.removeAttribute(name)
+
+          const newAttrKeys: string[] = Object.keys(newAttrs)
+
+          if (Object.keys(oldAttrs).length > 0 && newAttrKeys.length > 0)
+            for (const key of newAttrKeys) bound.setAttribute(key, newAttrs[key])
+
+          for (const childNode of getChildNodes(bound)) childNode.remove()
+          for (const childNode of getChildNodes(newElement)) bound.append(childNode.cloneNode(true))
+
+          newElement.replaceWith(bound)
+        }
       }
 
       for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
