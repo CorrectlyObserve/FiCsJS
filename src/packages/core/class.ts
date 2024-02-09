@@ -323,11 +323,9 @@ export default class FiCsElement<D extends object, P extends object> {
         const newElement: HTMLElement | null = findByAttr(fragment, attr)
         if (!newElement) continue
 
-        const boundAttr: string | null = getAttr(bound)
-
-        if (bound.localName !== newElement.localName && boundAttr === getAttr(newElement))
+        if (bound.localName !== newElement.localName && attr === getAttr(newElement))
           throw new Error(
-            `The Elements have ${boundAttr} as an attribute are different before and after re-rendering...`
+            `The Elements have ${attr} as an attribute are different before and after re-rendering...`
           )
         else {
           const getAttrs = (bound: Element): Attr[] => Array.from(bound.attributes)
