@@ -302,8 +302,8 @@ export default class FiCsElement<D extends object, P extends object> {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
 
-    const getAttr = (element: Element): string | null => element.getAttribute(this.#attr)
-    const active: Element | null = shadowRoot.activeElement
+      const active: Element | null = shadowRoot.activeElement
+      const getAttr = (element: Element): string | null => element.getAttribute(this.#attr)
     const activeAttr: string | null = active ? getAttr(active) : null
     const findByAttr = (
       parent: DocumentFragment | ShadowRoot,
@@ -346,7 +346,10 @@ export default class FiCsElement<D extends object, P extends object> {
             for (const key of newAttrKeys) bound.setAttribute(key, newAttrs[key])
 
           for (const childNode of getChildNodes(bound)) childNode.remove()
-          for (const childNode of getChildNodes(newElement)) bound.append(childNode.cloneNode(true))
+
+          const localNames: Record<string, boolean> = { video: true, audio: true }
+          for (const childNode of getChildNodes(newElement) as Element[])
+            bound.append(localNames[childNode.localName] ? childNode : childNode.cloneNode(true))
 
           newElement.replaceWith(bound)
         }
