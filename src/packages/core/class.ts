@@ -311,7 +311,10 @@ export default class FiCsElement<D extends object, P extends object> {
     ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
 
     if (isRerendering) {
-      for (const bound of Array.from(shadowRoot.querySelectorAll(`[${this.#attr}]`)).reverse()) {
+      const getAttrs = (ancestor: ShadowRoot | HTMLElement): Element[] =>
+        Array.from(ancestor.querySelectorAll(`[${this.#attr}]`))
+
+      for (const bound of getAttrs(shadowRoot).reverse()) {
         const attr: string | null = getAttr(bound)
         if (!attr) continue
 
@@ -347,9 +350,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const childNode of getChildNodes(bound)) childNode.remove()
 
-          const localNames: Record<string, boolean> = { video: true, audio: true }
           for (const childNode of getChildNodes(newElement) as Element[])
-            bound.append(localNames[childNode.localName] ? childNode : childNode.cloneNode(true))
+            bound.append(getAttrs(newElement).length > 0 ? childNode : childNode.cloneNode(true))
 
           newElement.replaceWith(bound)
         }
