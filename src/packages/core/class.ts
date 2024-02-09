@@ -415,12 +415,14 @@ export default class FiCsElement<D extends object, P extends object> {
     )
 
   #addEvent(fics: HTMLElement, action: Action<D, P>, isRerendering?: boolean): void {
-    const { handler, selector, method }: Action<D, P> = action
+    const { selector }: Action<D, P> = action
 
     if (selector) {
       const elements: Element[] = Array.from(
         this.#getShadowRoot(fics).querySelectorAll(`:host ${selector.trim()}`)
       )
+
+      const { handler, method }: Action<D, P> = action
 
       if (elements.length > 0)
         for (const element of elements) {
