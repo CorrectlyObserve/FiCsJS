@@ -311,10 +311,10 @@ export default class FiCsElement<D extends object, P extends object> {
     ): HTMLElement | null => ancestor.querySelector(`[${this.#attr}="${attr}"]`)
 
     if (isRerendering) {
-      const getAttrs = (ancestor: ShadowRoot | HTMLElement): Element[] =>
+      const getBounds = (ancestor: ShadowRoot | HTMLElement): Element[] =>
         Array.from(ancestor.querySelectorAll(`[${this.#attr}]`))
 
-      for (const bound of getAttrs(shadowRoot).reverse()) {
+      for (const bound of getBounds(shadowRoot).reverse()) {
         const attr: string | null = getAttr(bound)
         if (!attr) continue
 
@@ -351,7 +351,7 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const childNode of getChildNodes(bound)) childNode.remove()
 
           for (const childNode of getChildNodes(newElement) as Element[])
-            bound.append(getAttrs(newElement).length > 0 ? childNode : childNode.cloneNode(true))
+            bound.append(getBounds(newElement).length > 0 ? childNode : childNode.cloneNode(true))
 
           newElement.replaceWith(bound)
         }
