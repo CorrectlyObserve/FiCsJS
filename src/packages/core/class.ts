@@ -386,15 +386,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
         this.#attrs[attr] = true
 
-        const element: HTMLElement | null = searchByAttr(fragment, attr)
-        if (!element) continue
+        const newElement: HTMLElement | null = searchByAttr(fragment, attr)
+        if (!newElement) continue
 
-        renewAttr(bound, element)
-        element.replaceWith(bound)
+        renewAttr(bound, newElement)
+        newElement.replaceWith(bound)
 
         if (isCompleted) continue
 
-        bound === element ? (isCompleted = true) : youngers.push(bound)
+        bound === newElement ? (isCompleted = true) : youngers.push(bound)
       }
 
       youngers = new Array()
