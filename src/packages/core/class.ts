@@ -302,8 +302,8 @@ export default class FiCsElement<D extends object, P extends object> {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
 
-      const active: Element | null = shadowRoot.activeElement
-      const getAttr = (element: Element): string | null => element.getAttribute(this.#attr)
+    const active: Element | null = shadowRoot.activeElement
+    const getAttr = (element: Element): string | null => element.getAttribute(this.#attr)
     const activeAttr: string | null = active ? getAttr(active) : null
     const findByAttr = (
       parent: DocumentFragment | ShadowRoot,
@@ -418,20 +418,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const { handler, selector, method }: Action<D, P> = action
 
     if (selector) {
-      const elements: Element[] = new Array()
-      const getSelectors = (selector: string): Element[] =>
-        Array.from(this.#getShadowRoot(fics).querySelectorAll(`:host ${selector}`))
-
-      if (/^.+(\.|#).+$/.test(selector)) {
-        const prefix = selector.startsWith('.') ? '.' : '#'
-        const [tag, attr] = selector.split(prefix)
-
-        elements.push(
-          ...getSelectors(tag).filter(
-            element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
-          )
-        )
-      } else elements.push(...getSelectors(selector))
+      const elements: Element[] = Array.from(
+        this.#getShadowRoot(fics).querySelectorAll(`:host ${selector.trim()}`)
+      )
 
       if (elements.length > 0)
         for (const element of elements) {
