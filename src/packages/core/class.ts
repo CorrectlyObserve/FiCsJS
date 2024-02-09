@@ -308,25 +308,6 @@ export default class FiCsElement<D extends object, P extends object> {
       attr: string | null
     ): HTMLElement | null => parent.querySelector(`[${this.#attr}="${attr}"]`)
 
-    const createDOM = (isRerendering?: boolean, activeAttr?: string | null): void => {
-      const replace = (element: Element): void => {
-        const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-        if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
-      }
-
-      for (const childNode of getChildNodes(fragment)) {
-        shadowRoot.append(childNode)
-
-        if (childNode instanceof HTMLElement) {
-          if (childNode.localName === tagName) replace(childNode)
-          else
-            for (const element of Array.from(childNode.querySelectorAll(tagName))) replace(element)
-        }
-      }
-
-      if (isRerendering && activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
-    }
-
     if (isRerendering) {
       let youngers: Element[] = []
 
@@ -401,7 +382,21 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of getChildNodes(shadowRoot)) childNode.remove()
     } else this.#bindings.html = typeof this.#html === 'function'
 
-    createDOM(isRerendering, activeAttr)
+    const replace = (element: Element): void => {
+      const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+      if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+    }
+
+    for (const childNode of getChildNodes(fragment)) {
+      shadowRoot.append(childNode)
+
+      if (childNode instanceof HTMLElement) {
+        if (childNode.localName === tagName) replace(childNode)
+        else for (const element of Array.from(childNode.querySelectorAll(tagName))) replace(element)
+      }
+    }
+
+    if (isRerendering && activeAttr) searchByAttr(shadowRoot, activeAttr)?.focus()
   }
 
   #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
