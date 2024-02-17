@@ -485,7 +485,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!that.#component) that.#component = fics
 
-    return fics
+    this.#component = that.#component
+    return this.#component
   }
 
   #reRender(): void {
