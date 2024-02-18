@@ -367,6 +367,15 @@ export default class FiCsElement<D extends object, P extends object> {
       shadowRoot.append(childNode)
 
       if (childNode instanceof HTMLElement) {
+        if (
+          !isRerendering &&
+          ((childNode.localName === 'iframe' && childNode.hasAttribute(this.#attr)) ||
+            childNode.querySelector(`iframe[${this.#attr}]`))
+        )
+          console.warn(
+            `The iframe elements in ${this.#getTagName()} component are re-created in re-rendering...`
+          )
+
         if (childNode.localName === tagName) replace(childNode)
         else for (const element of Array.from(childNode.querySelectorAll(tagName))) replace(element)
       }
