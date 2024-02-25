@@ -12,12 +12,12 @@ import {
   Reflections,
   Sanitized
 } from './types'
+import { toKebabCase } from './utils'
 
 const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedNames: Record<string, boolean> = { var: true }
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
@@ -63,47 +63,37 @@ export default class FiCsElement<D extends object, P extends object> {
     css,
     actions
   }: FiCs<D, P>) {
-    const convertedName: string = this.#toKebabCase(name)
+    this.#ficsId = ficsId ?? `fics${generator.next().value}`
+    this.#name = toKebabCase(name)
 
-    if (this.#reservedNames[convertedName])
-      throw new Error(`${name} is a reserved word in FiCsJS...`)
-    else {
-      this.#ficsId = ficsId ?? `fics${generator.next().value}`
-      this.#name = convertedName
+    if (data) {
+      if (reflections) {
+        let hasError = false
 
-      if (data) {
-        if (reflections) {
-          let hasError = false
+        for (const key of Object.keys(reflections)) {
+          if (key in data()) continue
 
-          for (const key of Object.keys(reflections)) {
-            if (key in data()) continue
-
-            if (!hasError) hasError = true
-            throw new Error(`${key} is not defined in data...`)
-          }
-
-          if (!hasError) this.#reflections = { ...reflections }
+          if (!hasError) hasError = true
+          throw new Error(`${key} is not defined in data...`)
         }
 
-        for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+        if (!hasError) this.#reflections = { ...reflections }
       }
 
-      if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
-
-      this.#props = { ...props } as P
-
-      if (isOnlyCsr) this.#isOnlyCsr = true
-      if (className) this.#className = className
-
-      this.#html = typeof html === 'function' ? html : { ...html }
-
-      if (css && css.length > 0) this.#css = [...css]
-      if (actions && actions.length > 0) this.#actions = [...actions]
+      for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
     }
-  }
 
-  #toKebabCase(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+    if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
+
+    this.#props = { ...props } as P
+
+    if (isOnlyCsr) this.#isOnlyCsr = true
+    if (className) this.#className = className
+
+    this.#html = typeof html === 'function' ? html : { ...html }
+
+    if (css && css.length > 0) this.#css = [...css]
+    if (actions && actions.length > 0) this.#actions = [...actions]
   }
 
   #getTagName(): string {
@@ -166,7 +156,7 @@ export default class FiCsElement<D extends object, P extends object> {
           )
           const style: string = `{${entries
             .map(([key, value]) => {
-              key = this.#toKebabCase(key)
+              key = toKebabCase(key)
               if (key.startsWith('webkit')) key = `-${key}`
 
               return `${key}: ${value};`
@@ -231,7 +221,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #bind(id?: string, index?: number): string {
-    id = id ? this.#toKebabCase(id) : this.#generator.next().value
+    id = id ? toKebabCase(id) : this.#generator.next().value
     return ` ${this.#attr}="${this.#name}-${id}${typeof index === 'number' ? `-${index}` : ''}"`
   }
 
@@ -271,8 +261,9 @@ export default class FiCsElement<D extends object, P extends object> {
             ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
             ${this.#getHtml().reduce(
               (prev, curr) =>
-                prev +
-                (curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr),
+                `${prev}${
+                  curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr
+                }`,
               ''
             )}
           </template>
@@ -296,7 +287,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#getHtml(isRerendering).reduce((prev, curr) => {
         if (curr instanceof FiCsElement) ficsElements.push(curr)
 
-        return prev + (curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr)
+        return `${prev}${curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr}`
       }, '') as string
     )
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
@@ -484,7 +475,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics = this.#component ?? document.createElement(tagName)
+    const fics = that.#component ?? document.createElement(tagName)
 
     that.#initProps(propsChain)
     that.#addClassName(fics)
@@ -494,8 +485,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!that.#component) that.#component = fics
 
-    this.#component = that.#component
-    return this.#component
+    return that.#component
   }
 
   #reRender(): void {
@@ -550,7 +540,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   define(suffix?: string): void {
-    const tagName: string = this.#getTagName() + (suffix ? `-${this.#toKebabCase(suffix)}` : '')
+    const tagName: string = this.#getTagName() + (suffix ? `-${toKebabCase(suffix)}` : '')
 
     if (customElements.get(tagName)) throw new Error(`${tagName} is already defined...`)
     else {
