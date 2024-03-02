@@ -42,16 +42,16 @@ export interface FiCsIframe<D, P> {
 }
 
 export type Html<D extends object, P extends object> =
-  | Record<symbol, (Descendant | string)[]>
+  | Symbolized<(Descendant | string)[]>
   | ((args: {
       data: D
       props: P
       template: (
         templates: TemplateStringsArray,
         ...variables: unknown[]
-      ) => Record<symbol, Sanitized<D, P>>
-      html: (content: string) => string
-    }) => Record<symbol, (Descendant | string)[]>)
+      ) => Symbolized<Sanitized<D, P>>
+      html: (templates: TemplateStringsArray, ...variables: unknown[]) => Sanitized<D, P>
+    }) => Symbolized<(Descendant | string)[]>)
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
@@ -80,3 +80,5 @@ export interface Queue {
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
+
+export type Symbolized<V> = Record<symbol, V>
