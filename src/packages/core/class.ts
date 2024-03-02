@@ -41,7 +41,6 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
-  readonly #sanitization: Map<string, boolean> = new Map([['', true]])
   readonly #attr: string = 'data-fics-bind'
 
   #propsChain: PropsChain<P> = new Map()
@@ -175,12 +174,8 @@ export default class FiCsElement<D extends object, P extends object> {
     return ''
   }
 
-  #avoidSanitization = (key: string): string => {
-    this.#sanitization.set(key, true)
-    return key
-  }
-
   #sanitize = (
+    isIgnored: boolean,
     templates: TemplateStringsArray,
     ...variables: unknown[]
   ): Record<symbol, Sanitized<D, P>> => {
@@ -197,9 +192,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
         result = [...result, ...variable[symbol]]
       } else {
-        if (typeof variable === 'string' && !this.#sanitization.get(variable)) {
+        if (isIgnored && typeof variable === 'string')
           variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-        } else if (variable === undefined) variable = ''
+        else if (variable === undefined) variable = ''
 
         if (index === 0 && template === '') result.push(variable)
         else {
@@ -230,8 +225,9 @@ export default class FiCsElement<D extends object, P extends object> {
           data: { ...this.#data },
           props: { ...this.#props },
           template: (templates: TemplateStringsArray, ...variables: unknown[]) =>
-            this.#sanitize(templates, ...variables),
-          html: (content: string) => this.#avoidSanitization(content)
+            this.#sanitize(true, templates, ...variables),
+          html: (templates: TemplateStringsArray, ...variables: unknown[]) =>
+            this.#sanitize(false, templates, variables)[symbol]
         })
       : this.#html)[symbol]
 
@@ -487,10 +483,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (fics) {
       if (this.#bindings.className) this.#addClassName(fics, true)
 
-      if (this.#bindings.html) {
-        this.#sanitization.clear()
-        this.#addHtml(this.#getShadowRoot(fics), true)
-      }
+      if (this.#bindings.html) this.#addHtml(this.#getShadowRoot(fics), true)
 
       if (this.#bindings.css.length > 0)
         this.#addCss(
@@ -500,7 +493,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#bindings.actions.length > 0) {
         for (const index of this.#bindings.actions) this.#addEvent(fics, this.#actions[index], true)
-        this.#attrs = {}
       }
     }
   }
