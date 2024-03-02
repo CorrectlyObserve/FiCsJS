@@ -276,8 +276,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addClassName = (fics: HTMLElement, isRerendering?: boolean): void => {
-    if (isRerendering) fics.classList.remove(...Array.from(fics.classList))
-    else this.#bindings.className = typeof this.#className === 'function'
+    isRerendering
+      ? fics.classList.remove(...Array.from(fics.classList))
+      : (this.#bindings.className = typeof this.#className === 'function')
 
     this.#className
       ? fics.setAttribute('class', `${this.#name} ${this.#getClassName()}`)
