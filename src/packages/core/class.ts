@@ -45,7 +45,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #attr: string = 'data-fics-bind'
 
   #propsChain: PropsChain<P> = new Map()
-  #generator: Generator<number> = generate()
   #attrs: Record<string, boolean> = {}
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
@@ -225,27 +224,16 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as Sanitized<D, P> }
   }
 
-  #bind = (id?: string, index?: number): string => {
-    id = id ? this.#toKebabCase(id) : this.#generator.next().value
-    return ` ${this.#attr}="${this.#name}-${id}${typeof index === 'number' ? `-${index}` : ''}"`
-  }
-
-  #getHtml = (isRerendering?: boolean): Sanitized<D, P> => {
-    if (isRerendering) this.#generator = generate()
-
-    return (
-      typeof this.#html === 'function'
-        ? this.#html({
-            data: { ...this.#data },
-            props: { ...this.#props },
-            template: (templates: TemplateStringsArray, ...variables: unknown[]) =>
-              this.#sanitize(templates, ...variables),
-            bind: (id?: string, index?: number) => this.#bind(id, index),
-            html: (content: string) => this.#avoidSanitization(content)
-          })
-        : this.#html
-    )[symbol]
-  }
+  #getHtml = (): Sanitized<D, P> =>
+    (typeof this.#html === 'function'
+      ? this.#html({
+          data: { ...this.#data },
+          props: { ...this.#props },
+          template: (templates: TemplateStringsArray, ...variables: unknown[]) =>
+            this.#sanitize(templates, ...variables),
+          html: (content: string) => this.#avoidSanitization(content)
+        })
+      : this.#html)[symbol]
 
   #getClassName = (): string | undefined =>
     typeof this.#className === 'function'
@@ -289,7 +277,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const ficsElements: FiCsElement<D, P>[] = new Array()
     const tagName: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
-      this.#getHtml(isRerendering).reduce((prev, curr) => {
+      this.#getHtml().reduce((prev, curr) => {
         if (curr instanceof FiCsElement) ficsElements.push(curr)
 
         return `${prev}${curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr}`
