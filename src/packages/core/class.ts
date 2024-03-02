@@ -12,12 +12,12 @@ import {
   Reflections,
   Sanitized
 } from './types'
-import { toKebabCase } from './utils'
 
 const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
+  readonly #reservedWords: Record<string, boolean> = { var: true }
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
@@ -63,38 +63,44 @@ export default class FiCsElement<D extends object, P extends object> {
     css,
     actions
   }: FiCs<D, P>) {
-    this.#ficsId = ficsId ?? `fics${generator.next().value}`
-    this.#name = toKebabCase(name)
+    if (this.#reservedWords[this.#toKebabCase(name)])
+      throw new Error(`${name} is a reserved word in FiCsJS...`)
+    else {
+      this.#ficsId = ficsId ?? `fics${generator.next().value}`
+      this.#name = this.#toKebabCase(name)
 
-    if (data) {
-      if (reflections) {
-        let hasError = false
+      if (data) {
+        if (reflections) {
+          let hasError = false
 
-        for (const key of Object.keys(reflections)) {
-          if (key in data()) continue
+          for (const key of Object.keys(reflections)) {
+            if (key in data()) continue
 
-          if (!hasError) hasError = true
-          throw new Error(`${key} is not defined in data...`)
+            if (!hasError) hasError = true
+            throw new Error(`${key} is not defined in data...`)
+          }
+
+          if (!hasError) this.#reflections = { ...reflections }
         }
 
-        if (!hasError) this.#reflections = { ...reflections }
+        for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
       }
 
-      for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+      if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
+
+      this.#props = { ...props } as P
+
+      if (isOnlyCsr) this.#isOnlyCsr = true
+      if (className) this.#className = className
+
+      this.#html = typeof html === 'function' ? html : { ...html }
+
+      if (css && css.length > 0) this.#css = [...css]
+      if (actions && actions.length > 0) this.#actions = [...actions]
     }
-
-    if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
-
-    this.#props = { ...props } as P
-
-    if (isOnlyCsr) this.#isOnlyCsr = true
-    if (className) this.#className = className
-
-    this.#html = typeof html === 'function' ? html : { ...html }
-
-    if (css && css.length > 0) this.#css = [...css]
-    if (actions && actions.length > 0) this.#actions = [...actions]
   }
+
+  #toKebabCase = (str: string): string => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 
   #getTagName(): string {
     return `f-${this.#name}`
@@ -156,7 +162,7 @@ export default class FiCsElement<D extends object, P extends object> {
           )
           const style: string = `{${entries
             .map(([key, value]) => {
-              key = toKebabCase(key)
+              key = this.#toKebabCase(key)
               if (key.startsWith('webkit')) key = `-${key}`
 
               return `${key}: ${value};`
@@ -211,6 +217,7 @@ export default class FiCsElement<D extends object, P extends object> {
               1,
               `${last}${template}${isFiCsElement ? '' : variable}`
             )
+
             if (isFiCsElement) result.push(variable)
           }
         }
@@ -221,7 +228,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #bind(id?: string, index?: number): string {
-    id = id ? toKebabCase(id) : this.#generator.next().value
+    id = id ? this.#toKebabCase(id) : this.#generator.next().value
     return ` ${this.#attr}="${this.#name}-${id}${typeof index === 'number' ? `-${index}` : ''}"`
   }
 
@@ -540,7 +547,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   define(suffix?: string): void {
-    const tagName: string = this.#getTagName() + (suffix ? `-${toKebabCase(suffix)}` : '')
+    const tagName: string = this.#getTagName() + (suffix ? `-${this.#toKebabCase(suffix)}` : '')
 
     if (customElements.get(tagName)) throw new Error(`${tagName} is already defined...`)
     else {
