@@ -1,11 +1,18 @@
 import fics from '../packages/core/fics'
 import css from '../styles/todo.css?inline'
 
+interface Data {
+  md: string
+}
+
+interface Props {
+  length: number
+}
+
 export const TodoTitle = () =>
-  fics({
+  fics<Data, Props>({
     name: 'todo-title',
     data: () => ({ md: 'var(--md)' }),
-    props: {} as { length: number },
     html: ({ props: { length }, template }) => template`<p>Remaining tasks: ${length}</p>`,
     css: [
       css,
