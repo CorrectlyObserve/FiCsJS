@@ -1,14 +1,20 @@
 import fics from '../packages/core/fics'
 
+interface Data {
+  size: string
+  dir: string
+}
+
+interface Props {
+  path: string
+  color: string
+  click: () => void
+}
+
 export const Svg = () =>
-  fics({
+  fics<Data, Props>({
     name: 'svg',
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
-    props: {} as {
-      path: string
-      color: string
-      click: () => void
-    },
     html: ({ template }) => template`<button />`,
     css: [
       { style: { display: 'flex' } },
