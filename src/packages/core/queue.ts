@@ -1,22 +1,22 @@
 import { Queue } from './types'
 
-const queue: Queue[] = new Array()
+const queues: Queue[] = new Array()
 const ids: Record<string, boolean> = {}
 let hasQueue: boolean = false
 
-const addQueue = (queueEl: Queue): void => {
-  if (!ids[queueEl.ficsId]) {
-    queue.push(queueEl)
-    ids[queueEl.ficsId] = true
+const addQueue = (queue: Queue): void => {
+  if (!ids[queue.instanceId]) {
+    queues.push(queue)
+    ids[queue.instanceId] = true
 
     if (!hasQueue) {
       hasQueue = true
 
-      while (queue.length > 0) {
-        const queueEl: Queue = queue.shift()!
+      while (queues.length > 0) {
+        const queue: Queue = queues.shift()!
 
-        delete ids[queueEl.ficsId]
-        queueEl.reRender
+        delete ids[queue.instanceId]
+        queue.reRender
       }
 
       hasQueue = false
