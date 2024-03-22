@@ -14,11 +14,12 @@ import {
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
-const generator: Generator<number> = generate()
+const instanceIdGenerator: Generator<number> = generate()
+const componentIdGenerator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
-  readonly #ficsId: string
+  readonly #instanceId: string
   readonly #name: string
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
@@ -43,11 +44,13 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
+  #componentId: number = 0
   #component: HTMLElement | undefined = undefined
+  #componentMap: Map<number, HTMLElement> = new Map()
   #isReflecting: boolean = false
 
   constructor({
-    ficsId,
+    instanceId,
     name,
     data,
     reflections,
@@ -62,7 +65,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#reservedWords[this.#toKebabCase(name)])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = ficsId ?? `fics${generator.next().value}`
+      this.#instanceId = instanceId ?? `fics${instanceIdGenerator.next().value}`
       this.#name = this.#toKebabCase(name)
 
       if (data) {
@@ -104,7 +107,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
+      addQueue({ instanceId: this.#instanceId, reRender: this.#reRender() })
     }
   }
 
@@ -119,7 +122,7 @@ export default class FiCsElement<D extends object, P extends object> {
               return this.getData(key)
             })
           })
-          const descendantId: string = descendant.#ficsId
+          const descendantId: string = descendant.#instanceId
 
           for (const [key, value] of data) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
@@ -141,7 +144,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#propsChain = new Map(propsChain)
 
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#ficsId) ?? {}))
+    for (const [key, value] of Object.entries(this.#propsChain.get(this.#instanceId) ?? {}))
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
@@ -286,7 +289,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-        if (fics) element.replaceWith(fics.#component ?? fics.#render(this.#propsChain))
+        if (fics) element.replaceWith(fics.#render(this.#propsChain))
       }
 
       for (const childNode of getChildNodes(fragment)) {
@@ -372,7 +375,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #render = (propsChain: PropsChain<P>): HTMLElement => {
     const that = new FiCsElement({
-      ficsId: this.#ficsId,
+      instanceId: this.#instanceId,
       name: this.#name,
       data: () => this.#data,
       reflections: { ...(this.#reflections ?? ({} as Reflections<D>)) },
@@ -384,6 +387,8 @@ export default class FiCsElement<D extends object, P extends object> {
       css: [...this.#css],
       actions: [...this.#actions]
     })
+    that.#componentId = componentIdGenerator.next().value
+
     const tagName: string = that.#getTagName()
 
     if (!customElements.get(tagName))
@@ -399,17 +404,17 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics = that.#component ?? document.createElement(tagName)
+    const fics = document.createElement(tagName)
 
     that.#initProps(propsChain)
     that.#addClassName(fics)
-    that.#addHtml(this.#getShadowRoot(fics))
-    that.#addCss(this.#getShadowRoot(fics))
+    that.#addHtml(that.#getShadowRoot(fics))
+    that.#addCss(that.#getShadowRoot(fics))
     that.#addActions(fics)
 
-    if (!that.#component) that.#component = fics
+    this.#componentMap.set(that.#componentId, fics)
 
-    return that.#component
+    return fics
   }
 
   #reRender = (): void => {
@@ -442,7 +447,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
+      addQueue({ instanceId: this.#instanceId, reRender: this.#reRender() })
 
       this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
 
