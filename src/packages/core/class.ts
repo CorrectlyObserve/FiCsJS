@@ -45,7 +45,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
-  #componentMap: Map<number, HTMLElement> = new Map()
+  #componentMap: Map<string, HTMLElement> = new Map()
   #isReflecting: boolean = false
 
   constructor({
@@ -288,10 +288,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+
         if (fics) {
           const { instanceId, componentId, component } = fics.#clone()
-          console.log(instanceId, componentId)
-          element.replaceWith(component.#render(this.#propsChain))
+          const rendered: HTMLElement = component.#render(this.#propsChain)
+
+          this.#componentMap.set(`${instanceId}-${componentId}`, rendered)
+          element.replaceWith(rendered)
         }
       }
 
