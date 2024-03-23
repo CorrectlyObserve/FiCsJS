@@ -14,8 +14,8 @@ import {
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
-const instanceIdGenerator: Generator<number> = generate()
-const componentIdGenerator: Generator<number> = generate()
+const generator: Generator<number> = generate()
+const componentGenerator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
@@ -64,7 +64,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#reservedWords[this.#toKebabCase(name)])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#instanceId = instanceId ?? `fics${instanceIdGenerator.next().value}`
+      this.#instanceId = instanceId ?? `fics${generator.next().value}`
       this.#name = this.#toKebabCase(name)
 
       if (data) {
@@ -374,7 +374,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #clone = (): { instanceId: string; componentId: string; component: FiCsElement<D, P> } => ({
     instanceId: this.#instanceId,
-    componentId: `component-${componentIdGenerator.next().value}`,
+    componentId: `component${componentGenerator.next().value}`,
     component: new FiCsElement({
       instanceId: this.#instanceId,
       name: this.#name,
