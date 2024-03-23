@@ -44,7 +44,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #componentId: number = 0
   #component: HTMLElement | undefined = undefined
   #componentMap: Map<number, HTMLElement> = new Map()
   #isReflecting: boolean = false
@@ -289,7 +288,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-        if (fics) element.replaceWith(fics.#render(this.#propsChain))
+        if (fics) element.replaceWith(fics.#clone().component.#render(this.#propsChain))
       }
 
       for (const childNode of getChildNodes(fragment)) {
@@ -373,8 +372,10 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
-  #render = (propsChain: PropsChain<P>): HTMLElement => {
-    const that = new FiCsElement({
+  #clone = (): { instanceId: string; componentId: string; component: FiCsElement<D, P> } => ({
+    instanceId: this.#instanceId,
+    componentId: `component-${componentIdGenerator.next().value}`,
+    component: new FiCsElement({
       instanceId: this.#instanceId,
       name: this.#name,
       data: () => this.#data,
@@ -387,9 +388,10 @@ export default class FiCsElement<D extends object, P extends object> {
       css: [...this.#css],
       actions: [...this.#actions]
     })
-    that.#componentId = componentIdGenerator.next().value
+  })
 
-    const tagName: string = that.#getTagName()
+  #render = (propsChain: PropsChain<P>): HTMLElement => {
+    const tagName: string = this.#getTagName()
 
     if (!customElements.get(tagName))
       customElements.define(
@@ -406,13 +408,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const fics = document.createElement(tagName)
 
-    that.#initProps(propsChain)
-    that.#addClassName(fics)
-    that.#addHtml(that.#getShadowRoot(fics))
-    that.#addCss(that.#getShadowRoot(fics))
-    that.#addActions(fics)
-
-    this.#componentMap.set(that.#componentId, fics)
+    this.#initProps(propsChain)
+    this.#addClassName(fics)
+    this.#addHtml(this.#getShadowRoot(fics))
+    this.#addCss(this.#getShadowRoot(fics))
+    this.#addActions(fics)
 
     return fics
   }
