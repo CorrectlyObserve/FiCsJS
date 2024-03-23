@@ -288,7 +288,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
-        if (fics) element.replaceWith(fics.#clone().component.#render(this.#propsChain))
+        if (fics) {
+          const { instanceId, componentId, component } = fics.#clone()
+          console.log(instanceId, componentId)
+          element.replaceWith(component.#render(this.#propsChain))
+        }
       }
 
       for (const childNode of getChildNodes(fragment)) {
