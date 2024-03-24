@@ -8,6 +8,12 @@ export interface Action<D, P> {
 
 export type ClassName<D, P> = string | (({ data, props }: { data: D; props: P }) => string)
 
+export interface Cloned<D extends object, P extends object> {
+  instanceId: string
+  componentId: string
+  component: FiCsElement<D, P>
+}
+
 export type Css<D, P> = (
   | string
   | {
