@@ -3,6 +3,7 @@ import addQueue from './queue'
 import {
   Action,
   ClassName,
+  Cloned,
   Css,
   FiCs,
   Html,
@@ -290,7 +291,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
 
         if (fics) {
-          const { instanceId, componentId, component } = fics.#clone()
+          const { instanceId, componentId, component }: Cloned<D, P> = fics.#clone()
           const rendered: HTMLElement = component.#render(this.#propsChain)
 
           this.#componentMap.set(`${instanceId}-${componentId}`, rendered)
@@ -379,7 +380,7 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
-  #clone = (): { instanceId: string; componentId: string; component: FiCsElement<D, P> } => ({
+  #clone = (): Cloned<D, P> => ({
     instanceId: this.#instanceId,
     componentId: `component${componentGenerator.next().value}`,
     component: new FiCsElement({
