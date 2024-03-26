@@ -292,10 +292,17 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (fics) {
           const { instanceId, componentId, component }: Cloned<D, P> = fics.#clone()
-          const rendered: HTMLElement = component.#render(this.#propsChain)
+          const mapKey: string = `${instanceId}-${componentId}`
+          const cache: HTMLElement | undefined = this.#componentMap.get(mapKey)
 
-          this.#componentMap.set(`${instanceId}-${componentId}`, rendered)
-          element.replaceWith(rendered)
+          if (cache && fics.#component) element.replaceWith(cache)
+          else {
+            const rendered: HTMLElement = component.#render(this.#propsChain)
+
+            fics.#component = rendered
+            this.#componentMap.set(mapKey, rendered)
+            element.replaceWith(rendered)
+          }
         }
       }
 
@@ -474,7 +481,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (customElements.get(tagName)) throw new Error(`${tagName} is already defined...`)
     else {
-      const that = this
+      const that: this = this
 
       customElements.define(
         tagName,
