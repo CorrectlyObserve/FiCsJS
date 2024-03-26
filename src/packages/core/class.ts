@@ -14,7 +14,7 @@ import {
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
-const instanceGenerator: Generator<number> = generate()
+const instanceId: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
@@ -45,8 +45,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #propsChain: PropsChain<P> = new Map()
-  #component: HTMLElement | undefined = undefined
   #componentMap: Map<string, HTMLElement> = new Map()
+  #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
   constructor({
@@ -66,13 +66,10 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#reservedWords[this.#toKebabCase(name)])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      if (source) {
-        this.#source = source
-        this.#instanceId = source.#instanceId
-      } else this.#instanceId = `instance${instanceGenerator.next().value}`
+      if (source) this.#source = source
 
+      this.#instanceId = source ? source.#instanceId : `instance${instanceId.next().value}`
       this.#componentId = componentId ?? 'component0'
-
       this.#name = this.#toKebabCase(name)
 
       if (data) {
@@ -188,6 +185,7 @@ export default class FiCsElement<D extends object, P extends object> {
     ...variables: unknown[]
   ): Record<symbol, Sanitized<D, P>> => {
     let result: (Sanitized<D, P> | unknown)[] = new Array()
+    const componentId: Generator<number> = generate()
 
     for (let [index, template] of templates.entries()) {
       template = template.trim()
@@ -207,12 +205,11 @@ export default class FiCsElement<D extends object, P extends object> {
         if (index === 0 && template === '') result.push(variable)
         else {
           const isFiCsElement: boolean = variable instanceof FiCsElement
-          const componentGenerator: Generator<number> = generate()
 
           if (isFiCsElement)
             variable = new FiCsElement({
               source: variable,
-              componentId: `component${componentGenerator.next().value}`,
+              componentId: `component${componentId.next().value}`,
               name: variable.#name,
               data: () => variable.#data,
               reflections: { ...(variable.#reflections ?? ({} as Reflections<D>)) },
