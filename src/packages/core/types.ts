@@ -35,13 +35,6 @@ export interface FiCs<D extends object, P extends object> {
   actions?: Action<D, P>[]
 }
 
-export interface FiCsIframe<D, P> {
-  props?: P
-  isOnlyCsr?: boolean
-  className?: ClassName<D, P>
-  css?: Css<D, P>
-}
-
 export type Html<D extends object, P extends object> =
   | Symbolized<(Descendant | string)[]>
   | ((args: {
