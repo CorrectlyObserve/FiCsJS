@@ -3,7 +3,6 @@ import addQueue from './queue'
 import {
   Action,
   ClassName,
-  Cloned,
   Css,
   FiCs,
   Html,
@@ -15,12 +14,13 @@ import {
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
-const generator: Generator<number> = generate()
-const componentGenerator: Generator<number> = generate()
+const instanceGenerator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
+  readonly #source: FiCsElement<D, P> | undefined = undefined
   readonly #instanceId: string
+  readonly #componentId: string
   readonly #name: string
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
@@ -50,7 +50,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #isReflecting: boolean = false
 
   constructor({
-    instanceId,
+    source,
+    componentId,
     name,
     data,
     reflections,
@@ -65,7 +66,13 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#reservedWords[this.#toKebabCase(name)])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#instanceId = instanceId ?? `fics${generator.next().value}`
+      if (source) {
+        this.#source = source
+        this.#instanceId = source.#instanceId
+      } else this.#instanceId = `instance${instanceGenerator.next().value}`
+
+      this.#componentId = componentId ?? 'component0'
+
       this.#name = this.#toKebabCase(name)
 
       if (data) {
@@ -199,17 +206,32 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (index === 0 && template === '') result.push(variable)
         else {
-          const last: Sanitized<D, P> | unknown = result[result.length - 1] ?? ''
           const isFiCsElement: boolean = variable instanceof FiCsElement
+          const componentGenerator: Generator<number> = generate()
+
+          if (isFiCsElement)
+            variable = new FiCsElement({
+              source: variable,
+              componentId: `component${componentGenerator.next().value}`,
+              name: variable.#name,
+              data: () => variable.#data,
+              reflections: { ...(variable.#reflections ?? ({} as Reflections<D>)) },
+              inheritances: [...variable.#inheritances],
+              props: { ...(variable.#props ?? {}) },
+              isOnlyCsr: variable.#isOnlyCsr,
+              className: variable.#className,
+              html: variable.#html,
+              css: [...variable.#css],
+              actions: [...variable.#actions]
+            })
+
+          const length: number = result.length - 1
+          const last: Sanitized<D, P> | unknown = result[length] ?? ''
 
           if (last instanceof FiCsElement)
             isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
           else {
-            result.splice(
-              result.length - 1,
-              1,
-              `${last}${template}${isFiCsElement ? '' : variable}`
-            )
+            result.splice(length, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
 
             if (isFiCsElement) result.push(variable)
           }
@@ -291,17 +313,15 @@ export default class FiCsElement<D extends object, P extends object> {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
 
         if (fics) {
-          const { instanceId, componentId, component }: Cloned<D, P> = fics.#clone()
-          const mapKey: string = `${instanceId}-${componentId}`
+          const mapKey: string = `${fics.#instanceId}-${fics.#componentId}`
           const cache: HTMLElement | undefined = this.#componentMap.get(mapKey)
 
           if (cache && fics.#component) element.replaceWith(cache)
           else {
-            const rendered: HTMLElement = component.#render(this.#propsChain)
+            const component: HTMLElement = fics.#render(this.#propsChain)
 
-            fics.#component = rendered
-            this.#componentMap.set(mapKey, rendered)
-            element.replaceWith(rendered)
+            this.#componentMap.set(mapKey, component)
+            element.replaceWith(component)
           }
         }
       }
@@ -387,23 +407,9 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
-  #clone = (): Cloned<D, P> => ({
-    instanceId: this.#instanceId,
-    componentId: `component${componentGenerator.next().value}`,
-    component: new FiCsElement({
-      instanceId: this.#instanceId,
-      name: this.#name,
-      data: () => this.#data,
-      reflections: { ...(this.#reflections ?? ({} as Reflections<D>)) },
-      inheritances: [...this.#inheritances],
-      props: { ...(this.#props ?? {}) },
-      isOnlyCsr: this.#isOnlyCsr,
-      className: this.#className,
-      html: this.#html,
-      css: [...this.#css],
-      actions: [...this.#actions]
-    })
-  })
+  #setComponent = (fics: HTMLElement): void => {
+    if (!this.#component) this.#component = fics
+  }
 
   #render = (propsChain: PropsChain<P>): HTMLElement => {
     const tagName: string = this.#getTagName()
@@ -428,6 +434,8 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addHtml(this.#getShadowRoot(fics))
     this.#addCss(this.#getShadowRoot(fics))
     this.#addActions(fics)
+
+    if (this.#source) this.#source.#setComponent(fics)
 
     return fics
   }
