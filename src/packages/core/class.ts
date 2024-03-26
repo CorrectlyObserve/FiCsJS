@@ -489,7 +489,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (customElements.get(tagName)) throw new Error(`${tagName} is already defined...`)
     else {
-      const that: this = this
+      const that: FiCsElement<D, P> = this
 
       customElements.define(
         tagName,
