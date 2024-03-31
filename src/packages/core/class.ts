@@ -391,7 +391,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addCss(this.#getShadowRoot(fics))
     this.#addActions(fics)
 
-    this.#component = fics
+    if (!this.#component) this.#component = fics
 
     return this.#component
   }
