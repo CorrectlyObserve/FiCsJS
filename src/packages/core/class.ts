@@ -266,12 +266,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
     const ficsElements: FiCsElement<D, P>[] = new Array()
-    const tagName: string = 'f-var'
+    const tag: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
       this.#getHtml().reduce((prev, curr) => {
         if (curr instanceof FiCsElement) ficsElements.push(curr)
 
-        return `${prev}${curr instanceof FiCsElement ? `<${tagName}></${tagName}>` : curr}`
+        return `${prev}${
+          curr instanceof FiCsElement
+            ? `<${tag} data-id="${curr.#ficsId}" data-name="${curr.#getTagName()}"></${tag}>`
+            : curr
+        }`
       }, '') as string
     )
     const getChildNodes = (parent: ShadowRoot | DocumentFragment): ChildNode[] =>
@@ -291,9 +295,8 @@ export default class FiCsElement<D extends object, P extends object> {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement) {
-          if (childNode.localName === tagName) replace(childNode)
-          else
-            for (const element of Array.from(childNode.querySelectorAll(tagName))) replace(element)
+          if (childNode.localName === tag) replace(childNode)
+          else for (const element of Array.from(childNode.querySelectorAll(tag))) replace(element)
         }
       }
     }
