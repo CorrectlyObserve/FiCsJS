@@ -20,6 +20,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
   readonly #ficsId: string
   readonly #name: string
+  readonly #tagName: string
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
   readonly #inheritances: Inheritances<D> = new Array()
@@ -64,6 +65,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else {
       this.#ficsId = ficsId ?? `fics${generator.next().value}`
       this.#name = this.#toKebabCase(name)
+      this.#tagName = `f-${this.#name}`
 
       if (data) {
         if (reflections) {
@@ -97,8 +99,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #toKebabCase = (str: string): string => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-
-  #getTagName = (): string => `f-${this.#name}`
 
   #setProps = (key: keyof P, value: P[typeof key]): void => {
     if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
@@ -232,14 +232,12 @@ export default class FiCsElement<D extends object, P extends object> {
       : this.#className
 
   #renderOnServer = (propsChain: PropsChain<P>): string => {
-    const tag: string = this.#getTagName()
-
-    if (this.#isOnlyCsr) return `<${tag}></${tag}>`
+    if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
 
     this.#initProps(propsChain)
 
     return `
-        <${tag} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
+        <${this.#tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
           <template shadowrootmode="open">
             ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
             ${this.#getHtml().reduce(
@@ -250,7 +248,7 @@ export default class FiCsElement<D extends object, P extends object> {
               ''
             )}
           </template>
-        </${tag}>
+        </${this.#tagName}>
       `.trim()
   }
 
@@ -273,7 +271,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return `${prev}${
           curr instanceof FiCsElement
-            ? `<${tag} data-id="${curr.#ficsId}" data-name="${curr.#getTagName()}"></${tag}>`
+            ? `<${tag} data-fics-id="${curr.#ficsId}" data-fics-name="${curr.#tagName}"></${tag}>`
             : curr
         }`
       }, '') as string
@@ -372,11 +370,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #render = (propsChain: PropsChain<P>): HTMLElement => {
-    const tag: string = this.#getTagName()
-
-    if (!customElements.get(tag))
+    if (!customElements.get(this.#tagName))
       customElements.define(
-        tag,
+        this.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -387,7 +383,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics = document.createElement(tag)
+    const fics = document.createElement(this.#tagName)
 
     this.#initProps(propsChain)
     this.#addClassName(fics)
@@ -445,14 +441,12 @@ export default class FiCsElement<D extends object, P extends object> {
   ssr = (): string => this.#renderOnServer(this.#propsChain)
 
   define = (): void => {
-    const tag: string = this.#getTagName()
-
-    if (customElements.get(tag)) throw new Error(`${tag} is already defined...`)
+    if (customElements.get(this.#tagName)) throw new Error(`${this.#tagName} is already defined...`)
     else {
       const that: FiCsElement<D, P> = this
 
       customElements.define(
-        tag,
+        this.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
