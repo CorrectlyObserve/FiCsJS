@@ -232,14 +232,14 @@ export default class FiCsElement<D extends object, P extends object> {
       : this.#className
 
   #renderOnServer = (propsChain: PropsChain<P>): string => {
-    const tagName: string = this.#getTagName()
+    const tag: string = this.#getTagName()
 
-    if (this.#isOnlyCsr) return `<${tagName}></${tagName}>`
+    if (this.#isOnlyCsr) return `<${tag}></${tag}>`
 
     this.#initProps(propsChain)
 
     return `
-        <${tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
+        <${tag} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
           <template shadowrootmode="open">
             ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
             ${this.#getHtml().reduce(
@@ -250,7 +250,7 @@ export default class FiCsElement<D extends object, P extends object> {
               ''
             )}
           </template>
-        </${tagName}>
+        </${tag}>
       `.trim()
   }
 
@@ -372,11 +372,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #render = (propsChain: PropsChain<P>): HTMLElement => {
-    const tagName: string = this.#getTagName()
+    const tag: string = this.#getTagName()
 
-    if (!customElements.get(tagName))
+    if (!customElements.get(tag))
       customElements.define(
-        tagName,
+        tag,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -387,7 +387,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics = document.createElement(tagName)
+    const fics = document.createElement(tag)
 
     this.#initProps(propsChain)
     this.#addClassName(fics)
@@ -445,14 +445,14 @@ export default class FiCsElement<D extends object, P extends object> {
   ssr = (): string => this.#renderOnServer(this.#propsChain)
 
   define = (): void => {
-    const tagName: string = this.#getTagName()
+    const tag: string = this.#getTagName()
 
-    if (customElements.get(tagName)) throw new Error(`${tagName} is already defined...`)
+    if (customElements.get(tag)) throw new Error(`${tag} is already defined...`)
     else {
       const that: FiCsElement<D, P> = this
 
       customElements.define(
-        tagName,
+        tag,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
