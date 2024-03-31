@@ -21,8 +21,7 @@ export type Css<D, P> = (
 type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
-  source?: FiCsElement<D, P>
-  componentId?: string
+  ficsId?: string
   name: string
   data?: () => D
   reflections?: Reflections<D>
@@ -67,7 +66,7 @@ export type Method<D, P> = ({
 export type PropsChain<P> = Map<string, Record<string, P>>
 
 export interface Queue {
-  instanceId: string
+  ficsId: string
   reRender: void
 }
 
