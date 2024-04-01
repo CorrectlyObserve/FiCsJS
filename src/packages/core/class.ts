@@ -393,7 +393,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!this.#component) this.#component = fics
 
-    return this.#component
+    return fics
   }
 
   #reRender = (): void => {
