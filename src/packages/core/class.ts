@@ -21,6 +21,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #name: string
   readonly #tagName: string
+  readonly #isImmutable: boolean = false
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
   readonly #inheritances: Inheritances<D> = new Array()
@@ -50,6 +51,7 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     ficsId,
     name,
+    isImmutable,
     data,
     reflections,
     inheritances,
@@ -66,6 +68,8 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#ficsId = ficsId ?? `fics${generator.next().value}`
       this.#name = this.#toKebabCase(name)
       this.#tagName = `f-${this.#name}`
+
+      if (isImmutable) this.#isImmutable = isImmutable
 
       if (data) {
         if (reflections) {
@@ -286,7 +290,10 @@ export default class FiCsElement<D extends object, P extends object> {
       const replace = (element: Element): void => {
         const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
 
-        if (fics) element.replaceWith(fics.#render(this.#propsChain))
+        if (fics)
+          element.replaceWith(
+            this.#isImmutable && fics.#component ? fics.#component : fics.#render(this.#propsChain)
+          )
       }
 
       for (const childNode of getChildNodes(fragment)) {
