@@ -145,14 +145,17 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
+  #setDataProps = (): { data: D; props: P } => ({
+    data: { ...this.#data },
+    props: { ...this.#props }
+  })
+
   #getStyle = (css: Css<D, P> = this.#css): string => {
     if (css.length > 0)
       return css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && 'style' in curr) {
           const entries: [string, unknown][] = Object.entries(
-            typeof curr.style === 'function'
-              ? curr.style({ data: { ...this.#data }, props: { ...this.#props } })
-              : curr.style
+            typeof curr.style === 'function' ? curr.style(this.#setDataProps()) : curr.style
           )
           const style: string = `{${entries
             .map(([key, value]) => {
@@ -217,8 +220,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getHtml = (): Sanitized<D, P> =>
     (typeof this.#html === 'function'
       ? this.#html({
-          data: { ...this.#data },
-          props: { ...this.#props },
+          ...this.#setDataProps(),
           template: (templates: TemplateStringsArray, ...variables: unknown[]) =>
             this.#sanitize(true, templates, ...variables),
           html: (templates: TemplateStringsArray, ...variables: unknown[]) =>
@@ -227,9 +229,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : this.#html)[symbol]
 
   #getClassName = (): string | undefined =>
-    typeof this.#className === 'function'
-      ? this.#className({ data: { ...this.#data }, props: { ...this.#props } })
-      : this.#className
+    typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
 
   #renderOnServer = (propsChain: PropsChain<P>): string => {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
@@ -332,8 +332,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #addMethod = (element: Element, handler: string, method: Method<D, P>): void =>
     element.addEventListener(handler, (event: Event) =>
       method({
-        data: { ...this.#data },
-        props: { ...this.#props },
+        ...this.#setDataProps(),
         setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
         event
       })
