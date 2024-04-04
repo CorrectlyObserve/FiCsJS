@@ -94,7 +94,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
 
-      this.#props = { ...props } as P
+      if (!this.#isStatic && props) this.#props = { ...props } as P
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#className = className
