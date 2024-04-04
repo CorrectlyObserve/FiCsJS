@@ -23,7 +23,7 @@ type Descendant = FiCsElement<any, any>
 export interface FiCs<D extends object, P extends object> {
   ficsId?: string
   name: string
-  isStatic?: boolean
+  isImmutable?: boolean
   data?: () => D
   reflections?: Reflections<D>
   inheritances?: Inheritances<D>
