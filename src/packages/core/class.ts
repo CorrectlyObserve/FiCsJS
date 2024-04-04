@@ -72,20 +72,24 @@ export default class FiCsElement<D extends object, P extends object> {
       if (isStatic) this.#isStatic = isStatic
 
       if (data) {
-        if (reflections) {
-          let hasError = false
+        if (this.#isStatic)
+          throw new Error(`${this.#tagName} is a static component, so it cannot define data...`)
+        else {
+          if (reflections) {
+            let hasError = false
 
-          for (const key of Object.keys(reflections)) {
-            if (key in data()) continue
+            for (const key of Object.keys(reflections)) {
+              if (key in data()) continue
 
-            if (!hasError) hasError = true
-            throw new Error(`${key} is not defined in data...`)
+              if (!hasError) hasError = true
+              throw new Error(`${key} is not defined in data...`)
+            }
+
+            if (!hasError) this.#reflections = { ...reflections }
           }
 
-          if (!hasError) this.#reflections = { ...reflections }
+          for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
         }
-
-        for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
       }
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
@@ -105,9 +109,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #toKebabCase = (str: string): string => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 
   #setProps = (key: keyof P, value: P[typeof key]): void => {
-    if (this.#isStatic)
-      throw new Error(`${this.#tagName} is a static component, so it cannot be re-rendering...`)
-    else if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
+    if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
       addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
@@ -118,30 +120,35 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          let dataKey: string = ''
-          const data: [string, P][] = Object.entries({
-            ...values((key: keyof D) => {
-              dataKey = key as string
-              return this.getData(key)
+          if (descendant.#isStatic)
+            throw new Error(`${this.#tagName} is a static component, so it cannot receive props...`)
+          else {
+            let dataKey: string = ''
+            const data: [string, P][] = Object.entries({
+              ...values((key: keyof D) => {
+                dataKey = key as string
+
+                return this.getData(key)
+              })
             })
-          })
-          const descendantId: string = descendant.#ficsId
+            const descendantId: string = descendant.#ficsId
 
-          for (const [key, value] of data) {
-            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
+            for (const [key, value] of data) {
+              const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (key in chain && propsChain.has(descendantId)) continue
+              if (key in chain && propsChain.has(descendantId)) continue
 
-            propsChain.set(descendantId, { ...chain, [key]: value })
+              propsChain.set(descendantId, { ...chain, [key]: value })
 
-            const propsKey = key as keyof P
+              const propsKey = key as keyof P
 
-            this.#propsTrees.push({
-              descendantId,
-              dataKey,
-              propsKey,
-              setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
-            })
+              this.#propsTrees.push({
+                descendantId,
+                dataKey,
+                propsKey,
+                setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
+              })
+            }
           }
         }
 
@@ -151,10 +158,10 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #setDataProps = (): { data: D; props: P } => ({
-    data: { ...this.#data },
-    props: { ...this.#props }
-  })
+  #setDataProps = (): { data: D; props: P } =>
+    this.#isStatic
+      ? { data: {} as D, props: {} as P }
+      : { data: { ...this.#data }, props: { ...this.#props } }
 
   #getStyle = (css: Css<D, P> = this.#css): string => {
     if (css.length > 0)
@@ -430,8 +437,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData = (key: keyof D, value: D[typeof key]): void => {
-    if (this.#isStatic)
-      throw new Error(`${this.#tagName} is a static component, so it cannot be re-rendering...`)
     if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
@@ -451,12 +456,11 @@ export default class FiCsElement<D extends object, P extends object> {
   ssr = (): string => this.#renderOnServer(this.#propsChain)
 
   define = (): void => {
-    if (customElements.get(this.#tagName)) throw new Error(`${this.#tagName} is already defined...`)
-    else {
+    if (!customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
       customElements.define(
-        this.#tagName,
+        that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
