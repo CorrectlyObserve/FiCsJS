@@ -301,7 +301,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (fics)
           element.replaceWith(
-            this.#isStatic && fics.#component ? fics.#component : fics.#render(this.#propsChain)
+            fics.#isStatic && fics.#component ? fics.#component : fics.#render(this.#propsChain)
           )
       }
 
