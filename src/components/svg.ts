@@ -10,7 +10,7 @@ interface Arg {
 export const Svg = ({ size, path, color, click }: Arg) =>
   fics({
     name: 'svg',
-    isStatic: true,
+    isImmutable: true,
     html: ({ template }) => template`<button />`,
     css: [
       { style: { display: 'flex' } },
