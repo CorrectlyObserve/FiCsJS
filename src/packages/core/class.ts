@@ -21,7 +21,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #name: string
   readonly #tagName: string
-  readonly #isStatic: boolean = false
+  readonly #isImmutable: boolean = false
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
   readonly #inheritances: Inheritances<D> = new Array()
@@ -51,7 +51,7 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     ficsId,
     name,
-    isStatic,
+    isImmutable,
     data,
     reflections,
     inheritances,
@@ -69,11 +69,11 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#name = this.#toKebabCase(name)
       this.#tagName = `f-${this.#name}`
 
-      if (isStatic) this.#isStatic = isStatic
+      if (isImmutable) this.#isImmutable = isImmutable
 
       if (data) {
-        if (this.#isStatic)
-          throw new Error(`${this.#tagName} is a static component, so it cannot define data...`)
+        if (this.#isImmutable)
+          throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
         else {
           if (reflections) {
             let hasError = false
@@ -94,7 +94,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
 
-      if (!this.#isStatic && props) this.#props = { ...props } as P
+      if (!this.#isImmutable && props) this.#props = { ...props } as P
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#className = className
@@ -120,8 +120,10 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          if (descendant.#isStatic)
-            throw new Error(`${this.#tagName} is a static component, so it cannot receive props...`)
+          if (descendant.#isImmutable)
+            throw new Error(
+              `${this.#tagName} is an immutable component, so it cannot receive props...`
+            )
           else {
             let dataKey: string = ''
             const data: [string, P][] = Object.entries({
@@ -159,7 +161,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setDataProps = (): { data: D; props: P } =>
-    this.#isStatic
+    this.#isImmutable
       ? { data: {} as D, props: {} as P }
       : { data: { ...this.#data }, props: { ...this.#props } }
 
@@ -301,7 +303,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (fics)
           element.replaceWith(
-            fics.#isStatic && fics.#component ? fics.#component : fics.#render(this.#propsChain)
+            fics.#isImmutable && fics.#component ? fics.#component : fics.#render(this.#propsChain)
           )
       }
 
