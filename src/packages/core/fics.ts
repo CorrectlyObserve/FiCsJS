@@ -3,7 +3,7 @@ import { FiCs } from './types'
 
 const fics = <D extends object, P extends object>({
   name,
-  isStatic,
+  isImmutable,
   data,
   reflections,
   inheritances,
@@ -16,7 +16,7 @@ const fics = <D extends object, P extends object>({
 }: FiCs<D, P>): FiCsElement<D, P> =>
   new FiCsElement({
     name,
-    isStatic,
+    isImmutable,
     data,
     reflections,
     inheritances,
