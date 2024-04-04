@@ -1,37 +1,32 @@
 import fics from '../packages/core/fics'
 
-interface Data {
+interface Arg {
   size: string
-  dir: string
-}
-
-interface Props {
   path: string
   color: string
   click: () => void
 }
 
-export const Svg = () =>
-  fics<Data, Props>({
+export const Svg = ({ size, path, color, click }: Arg) =>
+  fics({
     name: 'svg',
     isStatic: true,
-    data: () => ({ size: 'var(--lg)', dir: '../icons' }),
     html: ({ template }) => template`<button />`,
     css: [
       { style: { display: 'flex' } },
       {
         selector: 'button',
-        style: ({ data: { size, dir }, props: { path, color } }) => ({
+        style: {
           width: size,
           height: size,
-          maskImage: `url("${dir}/${path}.svg")`,
+          maskImage: `url("../icons/${path}.svg")`,
           background: color,
           border: 'none',
           cursor: 'pointer'
-        })
+        }
       }
     ],
-    actions: [{ handler: 'click', method: ({ props: { click } }) => click() }]
+    actions: [{ handler: 'click', method: click }]
   })
 
 export type SvgType = ReturnType<typeof Svg>
