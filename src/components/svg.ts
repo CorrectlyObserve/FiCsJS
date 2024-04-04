@@ -14,6 +14,7 @@ interface Props {
 export const Svg = () =>
   fics<Data, Props>({
     name: 'svg',
+    isStatic: true,
     data: () => ({ size: 'var(--lg)', dir: '../icons' }),
     html: ({ template }) => template`<button />`,
     css: [
