@@ -21,7 +21,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #name: string
   readonly #tagName: string
-  readonly #isImmutable: boolean = false
+  readonly #isStatic: boolean = false
   readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
   readonly #inheritances: Inheritances<D> = new Array()
@@ -51,7 +51,7 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     ficsId,
     name,
-    isImmutable,
+    isStatic,
     data,
     reflections,
     inheritances,
@@ -69,7 +69,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#name = this.#toKebabCase(name)
       this.#tagName = `f-${this.#name}`
 
-      if (isImmutable) this.#isImmutable = isImmutable
+      if (isStatic) this.#isStatic = isStatic
 
       if (data) {
         if (reflections) {
@@ -105,7 +105,9 @@ export default class FiCsElement<D extends object, P extends object> {
   #toKebabCase = (str: string): string => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 
   #setProps = (key: keyof P, value: P[typeof key]): void => {
-    if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
+    if (this.#isStatic)
+      throw new Error(`${this.#tagName} is a static component, so it cannot be re-rendering...`)
+    else if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
       addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
@@ -292,7 +294,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (fics)
           element.replaceWith(
-            this.#isImmutable && fics.#component ? fics.#component : fics.#render(this.#propsChain)
+            this.#isStatic && fics.#component ? fics.#component : fics.#render(this.#propsChain)
           )
       }
 
@@ -428,6 +430,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData = (key: keyof D, value: D[typeof key]): void => {
+    if (this.#isStatic)
+      throw new Error(`${this.#tagName} is a static component, so it cannot be re-rendering...`)
     if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
