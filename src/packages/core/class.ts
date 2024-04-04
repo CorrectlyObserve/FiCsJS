@@ -278,11 +278,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    const ficsElements: FiCsElement<D, P>[] = new Array()
+    const children: FiCsElement<D, P>[] = new Array()
     const tag: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
       this.#getHtml().reduce((prev, curr) => {
-        if (curr instanceof FiCsElement) ficsElements.push(curr)
+        if (curr instanceof FiCsElement) children.push(curr)
 
         return `${prev}${
           curr instanceof FiCsElement
@@ -299,11 +299,11 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#bindings.html = typeof this.#html === 'function'
 
       const replace = (element: Element): void => {
-        const fics: FiCsElement<D, P> | undefined = ficsElements.shift()
+        const child: FiCsElement<D, P> | undefined = children.shift()
 
-        if (fics)
+        if (child)
           element.replaceWith(
-            fics.#isImmutable && fics.#component ? fics.#component : fics.#render(this.#propsChain)
+            child.#isImmutable && child.#component ? child.#component : child.#render(this.#propsChain)
           )
       }
 
