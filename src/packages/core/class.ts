@@ -291,8 +291,6 @@ export default class FiCsElement<D extends object, P extends object> {
         }`
       }, '') as string
     )
-    const getChildNodes = (parent: ShadowRoot | DocumentFragment): ChildNode[] =>
-      Array.from(parent.childNodes)
 
     if (isRerendering) {
     } else {
@@ -303,11 +301,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (child)
           element.replaceWith(
-            child.#isImmutable && child.#component ? child.#component : child.#render(this.#propsChain)
+            child.#isImmutable && child.#component
+              ? child.#component
+              : child.#render(this.#propsChain)
           )
       }
 
-      for (const childNode of getChildNodes(fragment)) {
+      for (const childNode of Array.from(fragment.childNodes)) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement) {
