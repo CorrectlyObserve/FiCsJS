@@ -8,15 +8,7 @@ export interface Action<D, P> {
 
 export type ClassName<D, P> = string | (({ data, props }: { data: D; props: P }) => string)
 
-export type Css<D, P> = (
-  | string
-  | {
-      selector?: string
-      style:
-        | Record<string, string | number>
-        | (({ data, props }: { data: D; props: P }) => Record<string, string | number>)
-    }
-)[]
+export type Css<D, P> = (string | Style<D, P>)[]
 
 type Descendant = FiCsElement<any, any>
 
@@ -74,5 +66,12 @@ export interface Queue {
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
+
+export interface Style<D, P> {
+  selector?: string
+  style:
+    | Record<string, string | number>
+    | (({ data, props }: { data: D; props: P }) => Record<string, string | number>)
+}
 
 export type Symbolized<V> = Record<symbol, V>
