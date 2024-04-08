@@ -10,7 +10,8 @@ import {
   Method,
   PropsChain,
   Reflections,
-  Sanitized
+  Sanitized,
+  Style
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
@@ -169,10 +170,11 @@ export default class FiCsElement<D extends object, P extends object> {
     if (css.length > 0)
       return css.reduce((prev, curr) => {
         if (typeof curr !== 'string' && 'style' in curr) {
+          const { style, selector }: Style<D, P> = curr
           const entries: [string, unknown][] = Object.entries(
-            typeof curr.style === 'function' ? curr.style(this.#setDataProps()) : curr.style
+            typeof style === 'function' ? style(this.#setDataProps()) : style
           )
-          const style: string = `{${entries
+          const styleContent: string = `{${entries
             .map(([key, value]) => {
               key = this.#toKebabCase(key)
               if (key.startsWith('webkit')) key = `-${key}`
@@ -181,7 +183,7 @@ export default class FiCsElement<D extends object, P extends object> {
             })
             .join('\n')}}`
 
-          return `${prev} :host ${curr.selector ?? ''}${style}`
+          return `${prev} :host ${selector ?? ''}${styleContent}`
         }
 
         return `${prev}${curr}`
