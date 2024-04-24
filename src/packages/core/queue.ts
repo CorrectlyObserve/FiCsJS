@@ -1,4 +1,4 @@
-import { Queue } from './types'
+import type { Queue } from './types'
 
 const queues: Queue[] = new Array()
 const ids: Record<string, boolean> = {}
