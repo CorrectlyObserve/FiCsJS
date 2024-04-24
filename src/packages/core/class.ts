@@ -1,6 +1,6 @@
 import generate from './generator'
 import addQueue from './queue'
-import {
+import type {
   Action,
   ClassName,
   Css,
