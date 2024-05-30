@@ -174,7 +174,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const entries: [string, unknown][] = Object.entries(
             typeof style === 'function' ? style(this.#setDataProps()) : style
           )
-          const styleContent: string = `{${entries
+          const content: string = `{${entries
             .map(([key, value]) => {
               key = this.#toKebabCase(key)
               if (key.startsWith('webkit')) key = `-${key}`
@@ -183,7 +183,7 @@ export default class FiCsElement<D extends object, P extends object> {
             })
             .join('\n')}}`
 
-          return `${prev} :host ${selector ?? ''}${styleContent}`
+          return `${prev} :host ${selector ?? ''}${content}`
         }
 
         return `${prev}${curr}`
