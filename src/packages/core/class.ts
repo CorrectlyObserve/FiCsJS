@@ -235,18 +235,21 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as Sanitized<D, P> }
   }
 
-  #getHtml = (): Sanitized<D, P> =>
-    (typeof this.#html === 'function'
-      ? this.#html({
-          ...this.#setDataProps(),
-          template: (
-            templates: TemplateStringsArray,
-            ...variables: unknown[]
-          ): Symbolized<Sanitized<D, P>> => this.#sanitize(true, templates, ...variables),
-          html: (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
-            this.#sanitize(false, templates, variables)[symbol]
-        })
-      : this.#html)[symbol]
+  #getHtml = (): Sanitized<D, P> => {
+    const template = (
+      templates: TemplateStringsArray,
+      ...variables: unknown[]
+    ): Symbolized<Sanitized<D, P>> => this.#sanitize(true, templates, ...variables)
+
+    const html = (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
+      this.#sanitize(false, templates, ...variables)[symbol]
+
+    return (
+      typeof this.#html === 'function'
+        ? this.#html({ ...this.#setDataProps(), template, html })
+        : this.#html
+    )[symbol]
+  }
 
   #getClassName = (): string | undefined =>
     typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
