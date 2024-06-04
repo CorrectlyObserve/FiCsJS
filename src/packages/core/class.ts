@@ -11,7 +11,8 @@ import type {
   PropsChain,
   Reflections,
   Sanitized,
-  Style
+  Style,
+  Symbolized
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
@@ -238,9 +239,11 @@ export default class FiCsElement<D extends object, P extends object> {
     (typeof this.#html === 'function'
       ? this.#html({
           ...this.#setDataProps(),
-          template: (templates: TemplateStringsArray, ...variables: unknown[]) =>
-            this.#sanitize(true, templates, ...variables),
-          html: (templates: TemplateStringsArray, ...variables: unknown[]) =>
+          template: (
+            templates: TemplateStringsArray,
+            ...variables: unknown[]
+          ): Symbolized<Sanitized<D, P>> => this.#sanitize(true, templates, ...variables),
+          html: (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
             this.#sanitize(false, templates, variables)[symbol]
         })
       : this.#html)[symbol]
@@ -312,10 +315,9 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of Array.from(fragment.childNodes)) {
         shadowRoot.append(childNode)
 
-        if (childNode instanceof HTMLElement) {
+        if (childNode instanceof HTMLElement)
           if (childNode.localName === tag) replace(childNode)
           else for (const element of Array.from(childNode.querySelectorAll(tag))) replace(element)
-        }
       }
     }
   }
