@@ -323,26 +323,26 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addCss = (shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void => {
-    if (this.#css.length > 0) {
-      if (css.length === 0)
-        for (const [index, content] of this.#css.entries()) {
-          if (
-            typeof content !== 'string' &&
-            'style' in content &&
-            typeof content.style === 'function'
-          )
-            this.#bindings.css.push(index)
+    if (this.#css.length === 0) return
 
-          continue
-        }
+    if (css.length === 0)
+      for (const [index, content] of this.#css.entries()) {
+        if (
+          typeof content !== 'string' &&
+          'style' in content &&
+          typeof content.style === 'function'
+        )
+          this.#bindings.css.push(index)
 
-      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-      const style: Css<D, P> | undefined =
-        css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : undefined
+        continue
+      }
 
-      shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replaceSync(this.#getStyle(style))
-    }
+    const stylesheet: CSSStyleSheet = new CSSStyleSheet()
+    const style: Css<D, P> =
+      css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : this.#css
+
+    shadowRoot.adoptedStyleSheets = [stylesheet]
+    stylesheet.replaceSync(this.#getStyle(style))
   }
 
   #getShadowRoot = (fics: HTMLElement): ShadowRoot => {
@@ -370,6 +370,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (elements.length > 0) {
         const { handler, method }: Action<D, P> = action
+
         for (const element of elements) {
           if (isRerendering) continue
           this.#addMethod(element, handler, method)
