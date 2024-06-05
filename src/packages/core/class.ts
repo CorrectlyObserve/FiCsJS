@@ -195,7 +195,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #sanitize = (
-    isIgnored: boolean,
+    isSanitized: boolean,
     templates: TemplateStringsArray,
     ...variables: unknown[]
   ): Record<symbol, Sanitized<D, P>> => {
@@ -212,20 +212,21 @@ export default class FiCsElement<D extends object, P extends object> {
 
         result = [...result, ...variable[symbol]]
       } else {
-        if (isIgnored && typeof variable === 'string')
+        if (isSanitized && typeof variable === 'string')
           variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         else if (variable === undefined) variable = ''
 
         if (index === 0 && template === '') result.push(variable)
         else {
-          const length: number = result.length - 1
-          const last: Sanitized<D, P> | unknown = result[length] ?? ''
+          const { length } = result
+          const last: Sanitized<D, P> | unknown = result[length - 1] ?? ''
           const isFiCsElement: boolean = variable instanceof FiCsElement
 
           if (last instanceof FiCsElement)
             isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
           else {
-            result.splice(length, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
+            const inserted: string = `${last}${template}` + `${isFiCsElement ? '' : variable}`
+            result.splice(length - 1, 1, inserted)
 
             if (isFiCsElement) result.push(variable)
           }
