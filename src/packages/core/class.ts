@@ -119,42 +119,42 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #initProps = (propsChain: PropsChain<P>): void => {
-    if (this.#inheritances.length > 0)
-      for (const { descendants, values } of this.#inheritances)
-        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          if (descendant.#isImmutable)
-            throw new Error(
-              `${this.#tagName} is an immutable component, so it cannot receive props...`
-            )
-          else {
-            let dataKey: string = ''
-            const data: [string, P][] = Object.entries({
-              ...values((key: keyof D) => {
-                dataKey = key as string
+    if (this.#inheritances.length === 0) return
 
-                return this.getData(key)
-              })
-            })
-            const descendantId: string = descendant.#ficsId
+    for (const { descendants, values } of this.#inheritances)
+      for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
+        if (descendant.#isImmutable)
+          throw new Error(
+            `${this.#tagName} is an immutable component, so it cannot receive props...`
+          )
 
-            for (const [key, value] of data) {
-              const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
+        let dataKey: string = ''
+        const data: [string, P][] = Object.entries({
+          ...values((key: keyof D) => {
+            dataKey = key as string
 
-              if (key in chain && propsChain.has(descendantId)) continue
+            return this.getData(key)
+          })
+        })
+        const descendantId: string = descendant.#ficsId
 
-              propsChain.set(descendantId, { ...chain, [key]: value })
+        for (const [key, value] of data) {
+          const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-              const propsKey = key as keyof P
+          if (key in chain && propsChain.has(descendantId)) continue
 
-              this.#propsTrees.push({
-                descendantId,
-                dataKey,
-                propsKey,
-                setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
-              })
-            }
-          }
+          propsChain.set(descendantId, { ...chain, [key]: value })
+
+          const propsKey = key as keyof P
+
+          this.#propsTrees.push({
+            descendantId,
+            dataKey,
+            propsKey,
+            setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
+          })
         }
+      }
 
     this.#propsChain = new Map(propsChain)
 
