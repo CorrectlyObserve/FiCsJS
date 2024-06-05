@@ -168,29 +168,30 @@ export default class FiCsElement<D extends object, P extends object> {
       : { data: { ...this.#data }, props: { ...this.#props } }
 
   #getStyle = (css: Css<D, P> = this.#css): string => {
-    if (css.length > 0)
-      return css.reduce((prev, curr) => {
-        if (typeof curr !== 'string' && 'style' in curr) {
-          const { style, selector }: Style<D, P> = curr
-          const entries: [string, unknown][] = Object.entries(
-            typeof style === 'function' ? style(this.#setDataProps()) : style
-          )
-          const content: string = `{${entries
-            .map(([key, value]) => {
-              key = this.#toKebabCase(key)
-              if (key.startsWith('webkit')) key = `-${key}`
+    if (css.length === 0) return ''
 
-              return `${key}: ${value};`
-            })
-            .join('\n')}}`
+    const createStyle = (arg: Style<D, P>): string => {
+      const { style, selector } = arg
+      const entries: [string, unknown][] = Object.entries(
+        typeof style === 'function' ? style(this.#setDataProps()) : style
+      )
+      const content: string = entries
+        .map(([key, value]) => {
+          key = this.#toKebabCase(key)
+          if (key.startsWith('webkit')) key = `-${key}`
 
-          return `${prev} :host ${selector ?? ''}${content}`
-        }
+          return `${key}: ${value};`
+        })
+        .join('\n')
 
-        return `${prev}${curr}`
-      }, '') as string
+      return `:host ${selector ?? ''}{${content}}`
+    }
 
-    return ''
+    return css.reduce((prev, curr) => {
+      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr)}`
+
+      return `${prev}${curr}`
+    }, '') as string
   }
 
   #sanitize = (
