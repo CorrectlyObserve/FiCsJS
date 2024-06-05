@@ -14,5 +14,6 @@ export default defineConfig({
         iframe: resolve(__dirname, root, 'iframe/index.html')
       }
     }
-  }
+  },
+  server: { hmr: true }
 })
