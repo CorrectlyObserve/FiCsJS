@@ -332,11 +332,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css.length === 0)
       for (const [index, content] of this.#css.entries()) {
-        if (
-          typeof content !== 'string' &&
-          'style' in content &&
-          typeof content.style === 'function'
-        )
+        if (typeof content !== 'string' && typeof content.style === 'function')
           this.#bindings.css.push(index)
 
         continue
