@@ -288,6 +288,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+    if (!isRerendering) this.#bindings.html = typeof this.#html === 'function'
+
+    const oldChildNodes: ChildNode[] = Array.from(shadowRoot.childNodes)
     const children: FiCsElement<D, P>[] = new Array()
     const tag: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
@@ -301,11 +304,9 @@ export default class FiCsElement<D extends object, P extends object> {
         }`
       }, '') as string
     )
+    const newChildNodes: ChildNode[] = Array.from(fragment.childNodes)
 
-    if (isRerendering) {
-    } else {
-      this.#bindings.html = typeof this.#html === 'function'
-
+    if (!isRerendering || oldChildNodes.length === 0) {
       const replace = (element: Element): void => {
         const child: FiCsElement<D, P> | undefined = children.shift()
 
@@ -317,13 +318,16 @@ export default class FiCsElement<D extends object, P extends object> {
           )
       }
 
-      for (const childNode of Array.from(fragment.childNodes)) {
+      for (const childNode of newChildNodes) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement)
           if (childNode.localName === tag) replace(childNode)
           else for (const element of Array.from(childNode.querySelectorAll(tag))) replace(element)
       }
+    } else if (newChildNodes.length === 0)
+      for (const childNode of oldChildNodes) shadowRoot.removeChild(childNode)
+    else {
     }
   }
 
