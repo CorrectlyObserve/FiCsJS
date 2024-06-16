@@ -170,8 +170,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #getStyle = (css: Css<D, P> = this.#css): string => {
     if (css.length === 0) return ''
 
-    const createStyle = (arg: Style<D, P>): string => {
-      const { style, selector } = arg
+    const createStyle = (param: Style<D, P>): string => {
+      const { style, selector } = param
       const entries: [string, unknown][] = Object.entries(
         typeof style === 'function' ? style(this.#setDataProps()) : style
       )
