@@ -6,7 +6,7 @@ export interface Action<D, P> {
   method: Method<D, P>
 }
 
-export type ClassName<D, P> = string | (({ data, props }: { data: D; props: P }) => string)
+export type ClassName<D, P> = string | ((params: { data: D; props: P }) => string)
 
 export type Css<D, P> = (string | Style<D, P>)[]
 
@@ -25,11 +25,12 @@ export interface FiCs<D extends object, P extends object> {
   html: Html<D, P>
   css?: Css<D, P>
   actions?: Action<D, P>[]
+  hooks?: Hooks<D, P>
 }
 
 export type Html<D extends object, P extends object> =
   | Symbolized<(Descendant | string)[]>
-  | ((args: {
+  | ((params: {
       data: D
       props: P
       template: (
@@ -39,20 +40,27 @@ export type Html<D extends object, P extends object> =
       html: (templates: TemplateStringsArray, ...variables: unknown[]) => Sanitized<D, P>
     }) => Symbolized<(Descendant | string)[]>)
 
+export interface Hooks<D, P> {
+  connectedCallback?: HooksCallback<D, P>
+  disconnectedCallback?: HooksCallback<D, P>
+  adoptedCallback?: HooksCallback<D, P>
+}
+
+export type HooksCallback<D, P> = (params: {
+  data: D
+  props: P
+  setData: (key: keyof D, value: D[typeof key]) => void
+}) => void
+
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
 
-export type Method<D, P> = ({
-  data,
-  props,
-  setData,
-  event
-}: {
+export type Method<D, P> = (params: {
   data: D
   props: P
-  setData: (key: keyof D, value: D[typeof key], bind?: string) => void
+  setData: (key: keyof D, value: D[typeof key]) => void
   event: Event
 }) => void
 
@@ -71,7 +79,7 @@ export interface Style<D, P> {
   selector?: string
   style:
     | Record<string, string | number>
-    | (({ data, props }: { data: D; props: P }) => Record<string, string | number>)
+    | ((params: { data: D; props: P }) => Record<string, string | number>)
 }
 
 export type Symbolized<V> = Record<symbol, V>
