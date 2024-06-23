@@ -12,7 +12,8 @@ const fics = <D extends object, P extends object>({
   className,
   html,
   css,
-  actions
+  actions,
+  hooks
 }: FiCs<D, P>): FiCsElement<D, P> =>
   new FiCsElement({
     name,
@@ -25,7 +26,8 @@ const fics = <D extends object, P extends object>({
     className,
     html,
     css,
-    actions
+    actions,
+    hooks
   })
 
 export default fics
