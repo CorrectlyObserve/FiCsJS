@@ -6,6 +6,8 @@ import type {
   Css,
   FiCs,
   Html,
+  Hooks,
+  HooksCallback,
   Inheritances,
   Method,
   PropsChain,
@@ -33,6 +35,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #html: Html<D, P> = { [symbol]: new Array() }
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
+  readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: {
     descendantId: string
     dataKey: string
@@ -62,7 +65,8 @@ export default class FiCsElement<D extends object, P extends object> {
     className,
     html,
     css,
-    actions
+    actions,
+    hooks
   }: FiCs<D, P>) {
     if (this.#reservedWords[this.#toKebabCase(name)])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
@@ -105,6 +109,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (css && css.length > 0) this.#css = [...css]
       if (actions && actions.length > 0) this.#actions = [...actions]
+      if (hooks) this.#hooks = { ...hooks }
     }
   }
 
@@ -396,16 +401,40 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
+  #callback = (key: keyof Hooks<D, P>): void => {
+    const hook: HooksCallback<D, P> | undefined = this.#hooks[key]
+
+    if (hook)
+      hook({
+        ...this.#setDataProps(),
+        setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
+      })
+  }
+
   #render = (propsChain: PropsChain<P>): HTMLElement => {
-    if (!customElements.get(this.#tagName))
+    const that: FiCsElement<D, P> = this
+
+    if (!customElements.get(that.#tagName))
       customElements.define(
-        this.#tagName,
+        that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
+          }
+
+          connectedCallback() {
+            that.#callback('connectedCallback')
+          }
+
+          disconnectedCallback() {
+            that.#callback('disconnectedCallback')
+          }
+
+          adoptedCallback() {
+            that.#callback('adoptedCallback')
           }
         }
       )
@@ -489,10 +518,19 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
               that.#addActions(this)
+              that.#callback('connectedCallback')
 
               that.#component = this
               this.#isRendered = true
             }
+          }
+
+          disconnectedCallback() {
+            that.#callback('disconnectedCallback')
+          }
+
+          adoptedCallback() {
+            that.#callback('adoptedCallback')
           }
         }
       )
