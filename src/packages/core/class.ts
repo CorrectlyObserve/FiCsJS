@@ -4,6 +4,7 @@ import type {
   Action,
   ClassName,
   Css,
+  DataProps,
   FiCs,
   Html,
   Hooks,
@@ -167,7 +168,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #setDataProps = (): { data: D; props: P } =>
+  #setDataProps = (): DataProps<D, P> =>
     this.#isImmutable
       ? { data: {} as D, props: {} as P }
       : { data: { ...this.#data }, props: { ...this.#props } }
