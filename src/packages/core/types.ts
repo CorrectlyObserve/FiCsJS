@@ -10,7 +10,7 @@ export type ClassName<D, P> = string | ((params: DataProps<D, P>) => string)
 
 export type Css<D, P> = (string | Style<D, P>)[]
 
-interface DataProps<D, P> {
+export interface DataProps<D, P> {
   data: D
   props: P
 }
