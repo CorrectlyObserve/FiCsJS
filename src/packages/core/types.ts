@@ -6,9 +6,14 @@ export interface Action<D, P> {
   method: Method<D, P>
 }
 
-export type ClassName<D, P> = string | ((params: { data: D; props: P }) => string)
+export type ClassName<D, P> = string | ((params: DataProps<D, P>) => string)
 
 export type Css<D, P> = (string | Style<D, P>)[]
+
+interface DataProps<D, P> {
+  data: D
+  props: P
+}
 
 type Descendant = FiCsElement<any, any>
 
@@ -30,15 +35,15 @@ export interface FiCs<D extends object, P extends object> {
 
 export type Html<D extends object, P extends object> =
   | Symbolized<(Descendant | string)[]>
-  | ((params: {
-      data: D
-      props: P
-      template: (
-        templates: TemplateStringsArray,
-        ...variables: unknown[]
-      ) => Symbolized<Sanitized<D, P>>
-      html: (templates: TemplateStringsArray, ...variables: unknown[]) => Sanitized<D, P>
-    }) => Symbolized<(Descendant | string)[]>)
+  | ((
+      params: DataProps<D, P> & {
+        template: (
+          templates: TemplateStringsArray,
+          ...variables: unknown[]
+        ) => Symbolized<Sanitized<D, P>>
+        html: (templates: TemplateStringsArray, ...variables: unknown[]) => Sanitized<D, P>
+      }
+    ) => Symbolized<(Descendant | string)[]>)
 
 export interface Hooks<D, P> {
   connectedCallback?: HooksCallback<D, P>
@@ -46,23 +51,18 @@ export interface Hooks<D, P> {
   adoptedCallback?: HooksCallback<D, P>
 }
 
-export type HooksCallback<D, P> = (params: {
-  data: D
-  props: P
-  setData: (key: keyof D, value: D[typeof key]) => void
-}) => void
+export type HooksCallback<D, P> = (
+  params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void }
+) => void
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
 
-export type Method<D, P> = (params: {
-  data: D
-  props: P
-  setData: (key: keyof D, value: D[typeof key]) => void
-  event: Event
-}) => void
+export type Method<D, P> = (
+  params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void; event: Event }
+) => void
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
@@ -79,7 +79,7 @@ export interface Style<D, P> {
   selector?: string
   style:
     | Record<string, string | number>
-    | ((params: { data: D; props: P }) => Record<string, string | number>)
+    | ((params: DataProps<D, P>) => Record<string, string | number>)
 }
 
 export type Symbolized<V> = Record<symbol, V>
