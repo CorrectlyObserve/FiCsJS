@@ -334,6 +334,64 @@ export default class FiCsElement<D extends object, P extends object> {
     } else if (newChildNodes.length === 0)
       for (const childNode of oldChildNodes) shadowRoot.removeChild(childNode)
     else {
+      function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
+        const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
+
+        if (oldChildNode instanceof Element && newChildNode instanceof Element) {
+          if (newChildNode.localName === tag) {
+            return false
+          }
+
+          return isSameNode && oldChildNode.getAttribute('key') === newChildNode.getAttribute('key')
+        }
+
+        return isSameNode
+      }
+
+      function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
+        if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
+          oldChildNode.nodeValue = newChildNode.nodeValue
+        else if (oldChildNode instanceof Element && newChildNode instanceof Element) {
+          const oldAttrs: NamedNodeMap = oldChildNode.attributes
+          const newAttrs: NamedNodeMap = newChildNode.attributes
+          const oldAttrList: Record<string, string> = {}
+
+          for (let i = 0; i < oldAttrs.length; i++) {
+            const { name, value } = oldAttrs[i]
+            oldAttrList[name] = value
+          }
+
+          for (let i = 0; i < newAttrs.length; i++) {
+            const { name, value } = newAttrs[i]
+
+            if (oldAttrList[name] !== value) oldChildNode.setAttribute(name, value)
+
+            delete oldAttrList[name]
+          }
+
+          for (const name in oldAttrList) oldChildNode.removeAttribute(name)
+
+          updateChildNodes(Array.from(oldChildNode.childNodes), Array.from(newChildNode.childNodes))
+        }
+      }
+
+      function updateChildNodes(oldChildNodes: ChildNode[], newChildNodes: ChildNode[]): void {
+        let oldHead: number = 0
+        let oldTail: number = oldChildNodes.length - 1
+        let oldHeadNode: ChildNode = oldChildNodes[oldHead]
+        let oldTailNode: ChildNode = oldChildNodes[oldTail]
+
+        let newHead: number = 0
+        let newTail: number = newChildNodes.length - 1
+        let newHeadNode: ChildNode = newChildNodes[newHead]
+        let newTailNode: ChildNode = newChildNodes[newTail]
+
+        patchChildNode(oldHeadNode, newHeadNode)
+
+        while (false) {}
+      }
+
+      updateChildNodes(oldChildNodes, newChildNodes)
     }
   }
 
