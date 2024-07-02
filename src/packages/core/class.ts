@@ -297,31 +297,40 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isRerendering) this.#bindings.html = typeof this.#html === 'function'
 
     const oldChildNodes: ChildNode[] = Array.from(shadowRoot.childNodes)
-    const children: FiCsElement<D, P>[] = new Array()
+    const children: Record<string, FiCsElement<D, P>> = {}
+    const attr: string = 'data-fics-id'
     const tag: string = 'f-var'
     const fragment: DocumentFragment = document.createRange().createContextualFragment(
       this.#getHtml().reduce((prev, curr) => {
-        if (curr instanceof FiCsElement) children.push(curr)
+        if (curr instanceof FiCsElement) {
+          const ficsId: string = curr.#ficsId
+          children[ficsId] = curr
 
-        return `${prev}${
-          curr instanceof FiCsElement
-            ? `<${tag} data-fics-id="${curr.#ficsId}" data-fics-name="${curr.#tagName}"></${tag}>`
-            : curr
-        }`
+          return `${prev}<${tag} ${attr}="${ficsId}"></${tag}>`
+        }
+
+        return `${prev}${curr}`
       }, '') as string
     )
+
+    const getChild = (element: Element): FiCsElement<D, P> => {
+      const ficsId: string | null = element.getAttribute(attr)
+
+      if (ficsId) return children[ficsId]
+
+      throw new Error('The child FiCsElement does not exist...')
+    }
     const newChildNodes: ChildNode[] = Array.from(fragment.childNodes)
 
     if (!isRerendering || oldChildNodes.length === 0) {
       const replace = (element: Element): void => {
-        const child: FiCsElement<D, P> | undefined = children.shift()
+        const child: FiCsElement<D, P> = getChild(element)
 
-        if (child)
-          element.replaceWith(
-            child.#isImmutable && child.#component
-              ? child.#component
-              : child.#render(this.#propsChain)
-          )
+        element.replaceWith(
+          child.#isImmutable && child.#component
+            ? child.#component
+            : child.#render(this.#propsChain)
+        )
       }
 
       for (const childNode of newChildNodes) {
@@ -507,6 +516,8 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addActions(fics)
 
     if (!this.#component) this.#component = fics
+
+    console.log(this.#component)
 
     return fics
   }
