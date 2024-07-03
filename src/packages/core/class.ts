@@ -188,7 +188,7 @@ export default class FiCsElement<D extends object, P extends object> {
               while (min <= max) {
                 const mid: number = Math.floor((min + max) / 2)
 
-                if (this.#propsTrees[mid].numberId < tree.numberId) max = mid - 1
+                if (this.#propsTrees[mid].numberId <= tree.numberId) max = mid - 1
                 else if (this.#propsTrees[mid].numberId > tree.numberId) min = mid + 1
               }
 
@@ -589,7 +589,9 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#data[key] = value
       addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
 
-      this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
+      for (const { dataKey, setProps } of this.#propsTrees)
+        if (dataKey === key) setProps(value as unknown as P[keyof P])
+        else continue
 
       if (this.#reflections && key in this.#reflections) {
         this.#isReflecting = true
