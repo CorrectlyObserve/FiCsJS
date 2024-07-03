@@ -38,8 +38,9 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: {
+    numberId: number
     descendantId: string
-    dataKey: string
+    dataKey: keyof D
     propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = new Array()
@@ -134,12 +135,12 @@ export default class FiCsElement<D extends object, P extends object> {
             `${this.#tagName} is an immutable component, so it cannot receive props...`
           )
 
-        let dataKey: string = ''
+        let dataKey: keyof D = '' as keyof D
         const data: [string, P][] = Object.entries({
           ...values((key: keyof D) => {
-            dataKey = key as string
+            dataKey = key
 
-            return this.getData(key)
+            return this.getData(dataKey)
           })
         })
         const descendantId: string = descendant.#ficsId
@@ -149,16 +150,50 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (key in chain && propsChain.has(descendantId)) continue
 
-          propsChain.set(descendantId, { ...chain, [key]: value })
-
+          const numberId: number = parseInt(descendantId.replace('fics', ''))
           const propsKey = key as keyof P
 
-          this.#propsTrees.push({
+          propsChain.set(descendantId, { ...chain, [key]: value })
+
+          const { length }: { length: number } = this.#propsTrees
+          const tree: {
+            numberId: number
+            descendantId: string
+            dataKey: keyof D
+            propsKey: keyof P
+            setProps: (value: P[keyof P]) => void
+          } = {
+            numberId,
             descendantId,
             dataKey,
             propsKey,
             setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
-          })
+          }
+
+          switch (length) {
+            case 0:
+              this.#propsTrees.push(tree)
+              break
+
+            case 1:
+              this.#propsTrees[0].numberId > tree.numberId
+                ? this.#propsTrees.push(tree)
+                : this.#propsTrees.unshift(tree)
+              break
+
+            default:
+              let min: number = 0
+              let max: number = length - 1
+
+              while (min <= max) {
+                const mid: number = Math.floor((min + max) / 2)
+
+                if (this.#propsTrees[mid].numberId < tree.numberId) max = mid - 1
+                else if (this.#propsTrees[mid].numberId > tree.numberId) min = mid + 1
+              }
+
+              this.#propsTrees.splice(min, 0, tree)
+          }
         }
       }
 
