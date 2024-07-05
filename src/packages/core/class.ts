@@ -413,13 +413,13 @@ export default class FiCsElement<D extends object, P extends object> {
           const newAttrs: NamedNodeMap = newChildNode.attributes
           const oldAttrList: Record<string, string> = {}
 
-          for (let i = 0; i < oldAttrs.length; i++) {
-            const { name, value } = oldAttrs[i]
+          for (let index = 0; index < oldAttrs.length; index++) {
+            const { name, value } = oldAttrs[index]
             oldAttrList[name] = value
           }
 
-          for (let i = 0; i < newAttrs.length; i++) {
-            const { name, value } = newAttrs[i]
+          for (let index = 0; index < newAttrs.length; index++) {
+            const { name, value } = newAttrs[index]
 
             if (oldAttrList[name] !== value) oldChildNode.setAttribute(name, value)
 
@@ -467,16 +467,15 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             const keyMap: Record<string, number> = {}
 
-            if (headKey === undefined) {
-              for (let i = oldHead; i <= oldTail; ++i) {
-                const childNode: ChildNode = oldChildNodes[i]
+            if (headKey === undefined)
+              for (let index = oldHead; index <= oldTail; ++index) {
+                const childNode: ChildNode = oldChildNodes[index]
 
                 if (!(childNode instanceof Element)) continue
 
                 const key: string | undefined = getKey(childNode)
-                if (key) keyMap[key] = i
+                if (key) keyMap[key] = index
               }
-            }
 
             const newHeadKey: string | undefined = getKey(newHeadNode)
             const newTailKey: string | undefined = getKey(newTailNode)
