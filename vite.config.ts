@@ -11,7 +11,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, root, 'index.html'),
         todo: resolve(__dirname, root, 'todo/index.html'),
-        iframe: resolve(__dirname, root, 'iframe/index.html')
+        sample: resolve(__dirname, root, 'sample/index.html')
       }
     }
   },
