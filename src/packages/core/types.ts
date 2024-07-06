@@ -6,6 +6,13 @@ export interface Action<D, P> {
   method: Method<D, P>
 }
 
+export interface Bindings {
+  className: boolean
+  html: boolean
+  css: number[]
+  actions: number[]
+}
+
 export type ClassName<D, P> = string | ((params: DataProps<D, P>) => string)
 
 export type Css<D, P> = (string | Style<D, P>)[]
