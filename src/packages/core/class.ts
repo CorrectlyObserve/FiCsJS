@@ -657,11 +657,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const fics = document.createElement(this.#tagName)
     fics.setAttribute(this.#ficsIdAttr, this.#ficsId)
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
     this.#initProps(propsChain)
     this.#addClassName(fics)
-    this.#addHtml(this.#getShadowRoot(fics))
-    this.#addCss(this.#getShadowRoot(fics))
+    this.#addHtml(shadowRoot)
+    this.#addCss(shadowRoot)
     this.#addActions(fics)
 
     if (!this.#component) this.#component = fics
@@ -736,8 +737,11 @@ export default class FiCsElement<D extends object, P extends object> {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
-              that.#addHtml(that.#getShadowRoot(this))
-              that.#addCss(that.#getShadowRoot(this))
+
+              const shadowRoot: ShadowRoot = that.#getShadowRoot(this)
+              that.#addHtml(shadowRoot)
+              that.#addCss(shadowRoot)
+
               that.#addActions(this)
               that.#callback('connectedCallback')
 
