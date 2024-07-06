@@ -548,12 +548,9 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#css.length === 0) return
 
     if (css.length === 0)
-      for (const [index, content] of this.#css.entries()) {
+      for (const [index, content] of this.#css.entries())
         if (typeof content !== 'string' && typeof content.style === 'function')
           this.#bindings.css.push(index)
-
-        continue
-      }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     const style: Css<D, P> =
