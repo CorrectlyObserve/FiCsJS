@@ -580,28 +580,21 @@ export default class FiCsElement<D extends object, P extends object> {
     const { selector }: Action<D, P> = action
 
     if (selector) {
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
-      const elements: (Element | undefined)[] = Array.from(
-        shadowRoot.querySelectorAll(`:host ${selector.trim()}`)
-      )
+      const getElements = (selector: string): Element[] =>
+        Array.from(this.#getShadowRoot(fics).querySelectorAll(`:host ${selector}`))
+
+      const elements: Element[] = getElements(selector)
+      const { handler, method }: Action<D, P> = action
 
       if (isRerendering) {
-        const newElements: Element[] = Array.from(
-          shadowRoot.querySelectorAll(`:host *[${this.#newElementAttr}]`)
-        )
+        const newElements: Set<Element> = new Set(getElements(`*[${this.#newElementAttr}]`))
 
-        if (newElements.length > 0)
-          for (const [index, element] of elements.entries())
-            if (element && newElements.includes(element))
-              elements[index]?.removeAttribute(this.#newElementAttr)
-            else elements[index] = undefined
-      }
-
-      if (elements.length > 0) {
-        const { handler, method }: Action<D, P> = action
-
-        for (const element of elements) if (element) this.#addMethod(element, handler, method)
-      }
+        for (const element of elements)
+          if (newElements.has(element)) {
+            this.#addMethod(element, handler, method)
+            element.removeAttribute(this.#newElementAttr)
+          }
+      } else for (const element of elements) this.#addMethod(element, handler, method)
     }
   }
 
