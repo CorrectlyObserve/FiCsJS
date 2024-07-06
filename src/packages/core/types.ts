@@ -73,6 +73,12 @@ export type Method<D, P> = (
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
+export interface PropsTree<D, P> {
+  numberId: number
+  dataKey: keyof D
+  setProps: (value: P[keyof P]) => void
+}
+
 export interface Queue {
   ficsId: string
   reRender: void
