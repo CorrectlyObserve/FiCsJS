@@ -24,6 +24,7 @@ const generator: Generator<number> = generate()
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
   readonly #ficsId: string
+  readonly #newElementAttr: string = ''
   readonly #name: string
   readonly #tagName: string
   readonly #isImmutable: boolean = false
@@ -48,10 +49,10 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
+  readonly #ficsIdAttr: string = 'fics-id'
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
-  #ficsIdAttr: string = 'fics-id'
   #isReflecting: boolean = false
 
   constructor({
@@ -73,6 +74,7 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = ficsId ?? `fics${generator.next().value}`
+      this.#newElementAttr = `${this.#ficsId}-new-element`
       this.#name = this.#toKebabCase(name)
       this.#tagName = `f-${this.#name}`
 
@@ -377,6 +379,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return undefined
       }
+      const newElementAttr: string = this.#newElementAttr
 
       function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
@@ -438,7 +441,10 @@ export default class FiCsElement<D extends object, P extends object> {
             parentNode.insertBefore(children[ficsId].#component, before)
 
           throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
-        } else parentNode.insertBefore(inserted, before)
+        } else {
+          if (inserted instanceof Element) inserted.toggleAttribute(newElementAttr)
+          parentNode.insertBefore(inserted, before)
+        }
       }
 
       function updateChildNodes(
@@ -520,7 +526,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (newHead <= newTail)
           for (; newHead <= newTail; ++newHead) {
-            const childNode: ChildNode | undefined = newChildNodes[newHead] ?? undefined
+            const childNode: ChildNode = newChildNodes[newHead]
 
             if (childNode)
               insertBefore(parentNode, childNode, newChildNodes[newTail + 1] ?? undefined)
@@ -528,7 +534,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (oldHead <= oldTail)
           for (; oldHead <= oldTail; ++oldHead) {
-            const childNode: ChildNode | undefined = oldChildNodes[oldHead] ?? undefined
+            const childNode: ChildNode = oldChildNodes[oldHead]
 
             if (childNode) parentNode.removeChild(childNode)
           }
@@ -576,17 +582,27 @@ export default class FiCsElement<D extends object, P extends object> {
     const { selector }: Action<D, P> = action
 
     if (selector) {
-      const elements: Element[] = Array.from(
-        this.#getShadowRoot(fics).querySelectorAll(`:host ${selector.trim()}`)
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
+      const elements: (Element | undefined)[] = Array.from(
+        shadowRoot.querySelectorAll(`:host ${selector.trim()}`)
       )
+
+      if (isRerendering) {
+        const newElements: Element[] = Array.from(
+          shadowRoot.querySelectorAll(`:host *[${this.#newElementAttr}]`)
+        )
+
+        if (newElements.length > 0)
+          for (const [index, element] of elements.entries())
+            if (element && newElements.includes(element))
+              elements[index]?.removeAttribute(this.#newElementAttr)
+            else elements[index] = undefined
+      }
 
       if (elements.length > 0) {
         const { handler, method }: Action<D, P> = action
 
-        for (const element of elements) {
-          if (isRerendering) continue
-          this.#addMethod(element, handler, method)
-        }
+        for (const element of elements) if (element) this.#addMethod(element, handler, method)
       }
     }
   }
