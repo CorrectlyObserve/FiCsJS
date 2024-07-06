@@ -13,6 +13,7 @@ import type {
   Inheritances,
   Method,
   PropsChain,
+  PropsTree,
   Reflections,
   Sanitized,
   Style,
@@ -39,11 +40,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
-  readonly #propsTrees: {
-    numberId: number
-    dataKey: keyof D
-    setProps: (value: P[keyof P]) => void
-  }[] = new Array()
+  readonly #propsTrees: PropsTree<D, P>[] = new Array()
   readonly #bindings: Bindings = {
     className: false,
     html: false,
@@ -156,11 +153,7 @@ export default class FiCsElement<D extends object, P extends object> {
             propsChain.set(descendantId, { ...chain, [key]: value })
 
             const { length }: { length: number } = this.#propsTrees
-            const tree: {
-              numberId: number
-              dataKey: keyof D
-              setProps: (value: P[keyof P]) => void
-            } = {
+            const tree: PropsTree<D, P> = {
               numberId,
               dataKey,
               setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
