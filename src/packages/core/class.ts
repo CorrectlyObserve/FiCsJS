@@ -2,6 +2,7 @@ import generate from './generator'
 import addQueue from './queue'
 import type {
   Action,
+  Bindings,
   ClassName,
   Css,
   DataProps,
@@ -43,7 +44,7 @@ export default class FiCsElement<D extends object, P extends object> {
     dataKey: keyof D
     setProps: (value: P[keyof P]) => void
   }[] = new Array()
-  readonly #bindings: { className: boolean; html: boolean; css: number[]; actions: number[] } = {
+  readonly #bindings: Bindings = {
     className: false,
     html: false,
     css: new Array(),
@@ -672,18 +673,21 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
-      if (this.#bindings.className) this.#addClassName(fics, true)
+      const { className, html, css, actions }: Bindings = this.#bindings
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
-      if (this.#bindings.html) this.#addHtml(this.#getShadowRoot(fics), true)
+      if (className) this.#addClassName(fics, true)
 
-      if (this.#bindings.css.length > 0)
+      if (html) this.#addHtml(shadowRoot, true)
+
+      if (css.length > 0)
         this.#addCss(
-          this.#getShadowRoot(fics),
-          this.#bindings.css.map(index => this.#css[index])
+          shadowRoot,
+          css.map(index => this.#css[index])
         )
 
-      if (this.#bindings.actions.length > 0)
-        for (const index of this.#bindings.actions) this.#addEvent(fics, this.#actions[index], true)
+      if (actions.length > 0)
+        for (const index of actions) this.#addEvent(fics, this.#actions[index], true)
     }
   }
 
