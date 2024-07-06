@@ -39,9 +39,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: {
     numberId: number
-    descendantId: string
     dataKey: keyof D
-    propsKey: keyof P
     setProps: (value: P[keyof P]) => void
   }[] = new Array()
   readonly #bindings: { className: boolean; html: boolean; css: number[]; actions: number[] } = {
@@ -127,76 +125,70 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #initProps = (propsChain: PropsChain<P>): void => {
-    if (this.#inheritances.length === 0) return
+    if (this.#inheritances.length > 0)
+      for (const { descendants, values } of this.#inheritances)
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
+          if (descendant.#isImmutable)
+            throw new Error(
+              `${this.#tagName} is an immutable component, so it cannot receive props...`
+            )
 
-    for (const { descendants, values } of this.#inheritances)
-      for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-        if (descendant.#isImmutable)
-          throw new Error(
-            `${this.#tagName} is an immutable component, so it cannot receive props...`
-          )
+          let dataKey: keyof D = '' as keyof D
+          const data: [string, P][] = Object.entries({
+            ...values((key: keyof D) => {
+              dataKey = key
 
-        let dataKey: keyof D = '' as keyof D
-        const data: [string, P][] = Object.entries({
-          ...values((key: keyof D) => {
-            dataKey = key
-
-            return this.getData(dataKey)
+              return this.getData(dataKey)
+            })
           })
-        })
-        const descendantId: string = descendant.#ficsId
+          const descendantId: string = descendant.#ficsId
 
-        for (const [key, value] of data) {
-          const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
+          for (const [key, value] of data) {
+            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-          if (key in chain && propsChain.has(descendantId)) continue
+            if (key in chain && propsChain.has(descendantId)) continue
 
-          const numberId: number = parseInt(descendantId.replace('fics', ''))
-          const propsKey = key as keyof P
+            const numberId: number = parseInt(descendantId.replace('fics', ''))
 
-          propsChain.set(descendantId, { ...chain, [key]: value })
+            propsChain.set(descendantId, { ...chain, [key]: value })
 
-          const { length }: { length: number } = this.#propsTrees
-          const tree: {
-            numberId: number
-            descendantId: string
-            dataKey: keyof D
-            propsKey: keyof P
-            setProps: (value: P[keyof P]) => void
-          } = {
-            numberId,
-            descendantId,
-            dataKey,
-            propsKey,
-            setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
-          }
+            const { length }: { length: number } = this.#propsTrees
+            const tree: {
+              numberId: number
+              dataKey: keyof D
+              setProps: (value: P[keyof P]) => void
+            } = {
+              numberId,
+              dataKey,
+              setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
+            }
 
-          switch (length) {
-            case 0:
-              this.#propsTrees.push(tree)
-              break
+            switch (length) {
+              case 0:
+                this.#propsTrees.push(tree)
+                break
 
-            case 1:
-              this.#propsTrees[0].numberId > tree.numberId
-                ? this.#propsTrees.push(tree)
-                : this.#propsTrees.unshift(tree)
-              break
+              case 1:
+                this.#propsTrees[0].numberId > tree.numberId
+                  ? this.#propsTrees.push(tree)
+                  : this.#propsTrees.unshift(tree)
+                break
 
-            default:
-              let min: number = 0
-              let max: number = length - 1
+              default:
+                let min: number = 0
+                let max: number = length - 1
 
-              while (min <= max) {
-                const mid: number = Math.floor((min + max) / 2)
+                while (min <= max) {
+                  const mid: number = Math.floor((min + max) / 2)
 
-                if (this.#propsTrees[mid].numberId <= tree.numberId) max = mid - 1
-                else if (this.#propsTrees[mid].numberId > tree.numberId) min = mid + 1
-              }
+                  if (this.#propsTrees[mid].numberId <= tree.numberId) max = mid - 1
+                  else min = mid + 1
+                }
 
-              this.#propsTrees.splice(min, 0, tree)
+                this.#propsTrees.splice(min, 0, tree)
+            }
           }
         }
-      }
 
     this.#propsChain = new Map(propsChain)
 
@@ -347,13 +339,13 @@ export default class FiCsElement<D extends object, P extends object> {
         return `${prev}${curr}`
       }, '') as string
     )
-
+    const getFicsId = (element: Element): string | null => element.getAttribute(this.#ficsIdAttr)
     const getChild = (element: Element): FiCsElement<D, P> => {
-      const ficsId: string | null = element.getAttribute(this.#ficsIdAttr)
+      const ficsId: string | null = getFicsId(element)
 
       if (ficsId) return children[ficsId]
 
-      throw new Error('The child FiCsElement does not exist...')
+      throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
     }
     const newChildNodes: ChildNode[] = Array.from(fragment.childNodes)
     const isVarTag = (element: Element): boolean => element.localName === varTag
@@ -380,8 +372,6 @@ export default class FiCsElement<D extends object, P extends object> {
     } else if (newChildNodes.length === 0)
       for (const childNode of oldChildNodes) shadowRoot.removeChild(childNode)
     else {
-      const that: FiCsElement<D, P> = this
-      const getFicsId = (element: Element): string | null => element.getAttribute(that.#ficsIdAttr)
       const getKey = (childNode: ChildNode): string | undefined => {
         if (childNode instanceof Element) return childNode.getAttribute('key') ?? undefined
 
@@ -428,11 +418,34 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const name in oldAttrList) oldChildNode.removeAttribute(name)
 
-          updateChildNodes(Array.from(oldChildNode.childNodes), Array.from(newChildNode.childNodes))
+          updateChildNodes(
+            oldChildNode,
+            Array.from(oldChildNode.childNodes),
+            Array.from(newChildNode.childNodes)
+          )
         }
       }
 
-      function updateChildNodes(oldChildNodes: ChildNode[], newChildNodes: ChildNode[]): void {
+      function insertBefore(
+        parentNode: ShadowRoot | ChildNode,
+        inserted: ChildNode | HTMLElement,
+        before: ChildNode | null
+      ): void {
+        if (inserted instanceof Element && isVarTag(inserted)) {
+          const ficsId: string | null = getFicsId(inserted)
+
+          if (ficsId && children[ficsId].#component)
+            parentNode.insertBefore(children[ficsId].#component, before)
+
+          throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+        } else parentNode.insertBefore(inserted, before)
+      }
+
+      function updateChildNodes(
+        parentNode: ShadowRoot | ChildNode,
+        oldChildNodes: ChildNode[],
+        newChildNodes: ChildNode[]
+      ): void {
         let oldHead: number = 0
         let oldTail: number = oldChildNodes.length - 1
         let oldHeadNode: ChildNode = oldChildNodes[oldHead]
@@ -456,12 +469,12 @@ export default class FiCsElement<D extends object, P extends object> {
             newTailNode = newChildNodes[--newTail]
           } else if (matchChildNode(oldHeadNode, newTailNode)) {
             patchChildNode(oldHeadNode, newTailNode)
-            shadowRoot.insertBefore(oldHeadNode, newTailNode.nextSibling)
+            insertBefore(parentNode, oldHeadNode, newTailNode.nextSibling)
             oldHeadNode = oldChildNodes[++oldHead]
             newTailNode = newChildNodes[--newTail]
           } else if (matchChildNode(oldTailNode, newHeadNode)) {
             patchChildNode(oldTailNode, newHeadNode)
-            shadowRoot.insertBefore(oldTailNode, oldHeadNode)
+            insertBefore(parentNode, oldTailNode, oldHeadNode)
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
@@ -484,20 +497,20 @@ export default class FiCsElement<D extends object, P extends object> {
             if (newTailKey) tailKey = keyMap[newTailKey]
 
             if (headKey === undefined) {
-              shadowRoot.insertBefore(newHeadNode, oldHeadNode)
+              insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
             } else if (tailKey === undefined) {
-              shadowRoot.insertBefore(newTailNode, oldTailNode.nextSibling)
+              insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
               const targetNode: ChildNode = oldChildNodes[headKey]
 
               if (targetNode.nodeName === newHeadNode.nodeName) {
                 patchChildNode(targetNode, newHeadNode)
-                shadowRoot.insertBefore(targetNode, oldHeadNode)
+                insertBefore(parentNode, targetNode, oldHeadNode)
               } else {
-                shadowRoot.insertBefore(newHeadNode, oldHeadNode)
-                shadowRoot.removeChild(targetNode)
+                insertBefore(parentNode, newHeadNode, oldHeadNode)
+                parentNode.removeChild(targetNode)
               }
 
               newHeadNode = newChildNodes[++newHead]
@@ -510,18 +523,18 @@ export default class FiCsElement<D extends object, P extends object> {
             const childNode: ChildNode | undefined = newChildNodes[newHead] ?? undefined
 
             if (childNode)
-              shadowRoot.insertBefore(childNode, newChildNodes[newTail + 1] ?? undefined)
+              insertBefore(parentNode, childNode, newChildNodes[newTail + 1] ?? undefined)
           }
 
         if (oldHead <= oldTail)
           for (; oldHead <= oldTail; ++oldHead) {
             const childNode: ChildNode | undefined = oldChildNodes[oldHead] ?? undefined
 
-            if (childNode) shadowRoot.removeChild(childNode)
+            if (childNode) parentNode.removeChild(childNode)
           }
       }
 
-      updateChildNodes(oldChildNodes, newChildNodes)
+      updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
     }
   }
 
