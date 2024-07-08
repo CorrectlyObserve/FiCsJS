@@ -707,7 +707,17 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  ssr = (): string => this.#renderOnServer(this.#propsChain)
+  ssr = (parent?: HTMLElement | string): void => {
+    const component: string = this.#renderOnServer(this.#propsChain)
+
+    if (parent instanceof HTMLElement) parent.setHTMLUnsafe(component)
+    else if (typeof parent === 'string') {
+      const parentElement: HTMLElement | null = document.getElementById(parent)
+
+      if (parentElement) parentElement.setHTMLUnsafe(component)
+      else throw new Error(`The HTMLElement has #${parent} does not exist...`)
+    }
+  }
 
   define = (parent?: HTMLElement | string): void => {
     if (!customElements.get(this.#tagName)) {
