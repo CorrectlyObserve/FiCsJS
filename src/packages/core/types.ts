@@ -49,6 +49,7 @@ export type Html<D extends object, P extends object> =
           ...variables: unknown[]
         ) => Symbolized<Sanitized<D, P>>
         html: (templates: TemplateStringsArray, ...variables: unknown[]) => Sanitized<D, P>
+        i18n: ({ json, lang, keys }: I18n) => string
       }
     ) => Symbolized<(Descendant | string)[]>)
 
@@ -66,6 +67,12 @@ export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
   values: (getData: (key: keyof D) => D[typeof key]) => any
 }[]
+
+export interface I18n {
+  json: Record<string, string>
+  lang: string
+  keys: string | string[]
+}
 
 export type Method<D, P> = (
   params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void; event: Event }
