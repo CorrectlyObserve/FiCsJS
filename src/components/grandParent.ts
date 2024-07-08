@@ -16,10 +16,13 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
         values: getData => ({ propsColor: getData('color') + '2' })
       }
     ],
-    html: ({ data: { fontSize, number }, template }) => template`<p>Content is...</p>
-      ${parent}
-      <p>人数: ${number}</p>
-      <input value="${fontSize}" />`,
+    html: ({ data: { fontSize, number, email }, template }) =>
+      template`
+        <p>Content is...${email}</p>
+        ${parent}
+        <p>人数: ${number}</p>
+        <input value="${fontSize}" />
+      `,
     actions: [{ handler: 'click', method: ({ setData }) => setData('color', 'red') }]
   })
 
