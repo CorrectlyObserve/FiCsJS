@@ -425,19 +425,18 @@ export default class FiCsElement<D extends object, P extends object> {
 
       function insertBefore(
         parentNode: ShadowRoot | ChildNode,
-        inserted: ChildNode | HTMLElement,
+        childNode: ChildNode | HTMLElement,
         before: ChildNode | null
       ): void {
-        if (inserted instanceof Element && isVarTag(inserted)) {
-          const ficsId: string | null = getFicsId(inserted)
+        if (childNode instanceof Element && isVarTag(childNode)) {
+          const ficsId: string | null = getFicsId(childNode)
 
           if (ficsId && children[ficsId].#component)
             parentNode.insertBefore(children[ficsId].#component, before)
-
-          throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+          else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
         } else {
-          if (inserted instanceof Element) inserted.toggleAttribute(newElementAttr)
-          parentNode.insertBefore(inserted, before)
+          if (childNode instanceof Element) childNode.toggleAttribute(newElementAttr)
+          parentNode.insertBefore(childNode, before)
         }
       }
 
@@ -522,8 +521,12 @@ export default class FiCsElement<D extends object, P extends object> {
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode = newChildNodes[newHead]
 
-            if (childNode)
-              insertBefore(parentNode, childNode, newChildNodes[newTail + 1] ?? undefined)
+            if (childNode) {
+              const before: ChildNode | undefined = oldChildNodes.find(childNode =>
+                childNode.isEqualNode(newChildNodes[newTail + 1])
+              )
+              insertBefore(parentNode, childNode, before ?? null)
+            }
           }
 
         if (oldHead <= oldTail)
@@ -580,13 +583,13 @@ export default class FiCsElement<D extends object, P extends object> {
       const { handler, method }: Action<D, P> = action
 
       if (isRerendering) {
-        const newElements: Set<Element> = new Set(getElements(`*[${this.#newElementAttr}]`))
+        const newElementAttr: string = this.#newElementAttr
+        const newElements: Set<Element> = new Set(getElements(`*[${newElementAttr}]`))
 
-        for (const element of elements)
-          if (newElements.has(element)) {
-            this.#addMethod(element, handler, method)
-            element.removeAttribute(this.#newElementAttr)
-          }
+        for (const element of elements) {
+          if (newElements.has(element)) this.#addMethod(element, handler, method)
+          element.removeAttribute(newElementAttr)
+        }
       } else for (const element of elements) this.#addMethod(element, handler, method)
     }
   }
@@ -675,6 +678,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (actions.length > 0)
         for (const index of actions) this.#addEvent(fics, this.#actions[index], true)
+
+      console.log(fics)
     }
   }
 
