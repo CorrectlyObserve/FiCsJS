@@ -709,7 +709,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   ssr = (): string => this.#renderOnServer(this.#propsChain)
 
-  define = (): void => {
+  define = (parent?: HTMLElement | string): void => {
     if (!customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
@@ -751,6 +751,18 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
       )
+
+      if (parent) {
+        const component = document.createElement(this.#tagName)
+
+        if (parent instanceof HTMLElement) parent.append(component)
+        else {
+          const parentElement: HTMLElement | null = document.getElementById(parent)
+
+          if (parentElement) parentElement.append(component)
+          else throw new Error(`The HTMLElement has #${parent} does not exist...`)
+        }
+      }
     }
   }
 }
