@@ -11,6 +11,7 @@ import type {
   Hooks,
   HooksCallback,
   Inheritances,
+  I18n,
   Method,
   PropsChain,
   PropsTree,
@@ -267,6 +268,19 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as Sanitized<D, P> }
   }
 
+  #internationalize = ({ json, lang, keys }: I18n): string => {
+    let texts: Record<string, string> | string = json[lang]
+
+    if (texts) {
+      for (const key of Array.isArray(keys) ? keys : [keys])
+        if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
+
+      if (typeof texts === 'string') return texts
+
+      throw new Error(`There is no applicable value in json..`)
+    } else throw new Error(`${lang}.json does not exist...`)
+  }
+
   #getHtml = (): Sanitized<D, P> => {
     const template = (
       templates: TemplateStringsArray,
@@ -276,9 +290,12 @@ export default class FiCsElement<D extends object, P extends object> {
     const html = (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
       this.#sanitize(false, templates, ...variables)[symbol]
 
+    const i18n = ({ json, lang, keys }: I18n): string =>
+      this.#internationalize({ json, lang, keys })
+
     return (
       typeof this.#html === 'function'
-        ? this.#html({ ...this.#setDataProps(), template, html })
+        ? this.#html({ ...this.#setDataProps(), template, html, i18n })
         : this.#html
     )[symbol]
   }
