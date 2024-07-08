@@ -1,3 +1,3 @@
 import { Sample } from '../components/sample'
 
-Sample().define()
+Sample().define(document.body)
