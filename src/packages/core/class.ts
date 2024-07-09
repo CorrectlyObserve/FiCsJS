@@ -335,43 +335,43 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    if (!isRerendering) this.#bindings.html = typeof this.#html === 'function'
-
-    const oldChildNodes: ChildNode[] = Array.from(shadowRoot.childNodes)
+    const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
+      Array.from(parent.childNodes)
+    const oldChildNodes: ChildNode[] = getChildNodes(shadowRoot)
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
-    const fragment: DocumentFragment = document.createRange().createContextualFragment(
-      this.#getHtml().reduce((prev, curr) => {
-        if (curr instanceof FiCsElement) {
-          const ficsId: string = curr.#ficsId
-          children[ficsId] = curr
+    const newChildNodes: ChildNode[] = getChildNodes(
+      document.createRange().createContextualFragment(
+        this.#getHtml().reduce((prev, curr) => {
+          if (curr instanceof FiCsElement) {
+            const ficsId: string = curr.#ficsId
+            children[ficsId] = curr
 
-          return `${prev}<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
-        }
+            return `${prev}<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
+          }
 
-        return `${prev}${curr}`
-      }, '') as string
+          return `${prev}${curr}`
+        }, '') as string
+      )
     )
     const getFicsId = (element: Element): string | null => element.getAttribute(this.#ficsIdAttr)
-    const getChild = (element: Element): FiCsElement<D, P> => {
-      const ficsId: string | null = getFicsId(element)
-
-      if (ficsId) return children[ficsId]
-
-      throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
-    }
-    const newChildNodes: ChildNode[] = Array.from(fragment.childNodes)
     const isVarTag = (element: Element): boolean => element.localName === varTag
 
     if (!isRerendering || oldChildNodes.length === 0) {
-      const replace = (element: Element): void => {
-        const child: FiCsElement<D, P> = getChild(element)
+      this.#bindings.html = typeof this.#html === 'function'
 
-        element.replaceWith(
-          child.#isImmutable && child.#component
-            ? child.#component
-            : child.#render(this.#propsChain)
-        )
+      const replace = (element: Element): void => {
+        const ficsId: string | null = getFicsId(element)
+
+        if (ficsId) {
+          const child: FiCsElement<D, P> = children[ficsId]
+
+          element.replaceWith(
+            child.#isImmutable && child.#component
+              ? child.#component
+              : child.#render(this.#propsChain)
+          )
+        } else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
       }
 
       for (const childNode of newChildNodes) {
@@ -432,11 +432,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const name in oldAttrList) oldChildNode.removeAttribute(name)
 
-          updateChildNodes(
-            oldChildNode,
-            Array.from(oldChildNode.childNodes),
-            Array.from(newChildNode.childNodes)
-          )
+          updateChildNodes(oldChildNode, getChildNodes(oldChildNode), getChildNodes(newChildNode))
         }
       }
 
