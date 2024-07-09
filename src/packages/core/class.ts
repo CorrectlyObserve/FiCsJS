@@ -9,7 +9,6 @@ import type {
   FiCs,
   Html,
   Hooks,
-  HooksCallback,
   Inheritances,
   I18n,
   Method,
@@ -604,13 +603,10 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #callback = (key: keyof Hooks<D, P>): void => {
-    const hook: HooksCallback<D, P> | undefined = this.#hooks[key]
-
-    if (hook)
-      hook({
-        ...this.#setDataProps(),
-        setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
-      })
+    this.#hooks[key]?.({
+      ...this.#setDataProps(),
+      setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
+    })
   }
 
   #render = (propsChain: PropsChain<P>): HTMLElement => {
@@ -627,16 +623,16 @@ export default class FiCsElement<D extends object, P extends object> {
             this.shadowRoot = this.attachShadow({ mode: 'open' })
           }
 
-          connectedCallback() {
-            that.#callback('connectedCallback')
+          connectedCallback(): void {
+            that.#callback('connect')
           }
 
-          disconnectedCallback() {
-            that.#callback('disconnectedCallback')
+          disconnectedCallback(): void {
+            that.#callback('disconnect')
           }
 
-          adoptedCallback() {
-            that.#callback('adoptedCallback')
+          adoptedCallback(): void {
+            that.#callback('adopt')
           }
         }
       )
@@ -750,19 +746,19 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addHtml(that.#getShadowRoot(this))
               that.#addCss(that.#getShadowRoot(this))
               that.#addActions(this)
-              that.#callback('connectedCallback')
+              that.#callback('connect')
               this.setAttribute(that.#ficsIdAttr, that.#ficsId)
               that.#component = this
               this.#isRendered = true
             }
           }
 
-          disconnectedCallback() {
-            that.#callback('disconnectedCallback')
+          disconnectedCallback(): void {
+            that.#callback('disconnect')
           }
 
-          adoptedCallback() {
-            that.#callback('adoptedCallback')
+          adoptedCallback(): void {
+            that.#callback('adopt')
           }
         }
       )
