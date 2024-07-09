@@ -580,7 +580,7 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addMethod = (element: Element, handler: string, method: Method<D, P>): void =>
+  #addEvent = (element: Element, handler: string, method: Method<D, P>): void =>
     element.addEventListener(handler, (event: Event) =>
       method({
         ...this.#setDataProps(),
@@ -589,37 +589,21 @@ export default class FiCsElement<D extends object, P extends object> {
       })
     )
 
-  #addEvent = (fics: HTMLElement, action: Action<D, P>, isRerendering?: boolean): void => {
-    const { selector }: Action<D, P> = action
-
-    if (selector) {
-      const getElements = (selector: string): Element[] =>
-        Array.from(this.#getShadowRoot(fics).querySelectorAll(`:host ${selector}`))
-
-      const elements: Element[] = getElements(selector)
-      const { handler, method }: Action<D, P> = action
-
-      if (isRerendering) {
-        const newElementAttr: string = this.#newElementAttr
-        const newElements: Set<Element> = new Set(getElements(`*[${newElementAttr}]`))
-
-        for (const element of elements) {
-          if (newElements.has(element)) this.#addMethod(element, handler, method)
-          element.removeAttribute(newElementAttr)
-        }
-      } else for (const element of elements) this.#addMethod(element, handler, method)
-    }
+  #getElements = (shadowRoot: ShadowRoot, selector: string): Element[] => {
+    return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
   }
 
   #addActions = (fics: HTMLElement): void => {
     if (this.#actions.length > 0)
-      this.#actions.forEach((event, index) => {
-        const { handler, selector, method }: Action<D, P> = event
+      this.#actions.forEach((action, index) => {
+        const { handler, selector, method }: Action<D, P> = action
 
         if (selector) {
           this.#bindings.actions.push(index)
-          this.#addEvent(fics, event)
-        } else this.#addMethod(fics, handler, method)
+
+          for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
+            this.#addEvent(element, handler, method)
+        } else this.#addEvent(fics, handler, method)
       })
   }
 
@@ -663,12 +647,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const fics = document.createElement(this.#tagName)
     fics.setAttribute(this.#ficsIdAttr, this.#ficsId)
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
-
     this.#initProps(propsChain)
     this.#addClassName(fics)
-    this.#addHtml(shadowRoot)
-    this.#addCss(shadowRoot)
+    this.#addHtml(this.#getShadowRoot(fics))
+    this.#addCss(this.#getShadowRoot(fics))
     this.#addActions(fics)
 
     if (!this.#component) this.#component = fics
@@ -694,7 +676,21 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
       if (actions.length > 0)
-        for (const index of actions) this.#addEvent(fics, this.#actions[index], true)
+        for (const index of actions) {
+          const { handler, selector, method }: Action<D, P> = this.#actions[index]
+
+          if (selector) {
+            const newElements: Set<Element> = new Set(
+              this.#getElements(shadowRoot, `*[${this.#newElementAttr}]`)
+            )
+
+            for (const element of this.#getElements(shadowRoot, selector)) {
+              if (newElements.has(element)) this.#addEvent(element, handler, method)
+
+              element.removeAttribute(this.#newElementAttr)
+            }
+          }
+        }
 
       console.log(fics)
     }
@@ -755,14 +751,10 @@ export default class FiCsElement<D extends object, P extends object> {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
-
-              const shadowRoot: ShadowRoot = that.#getShadowRoot(this)
-              that.#addHtml(shadowRoot)
-              that.#addCss(shadowRoot)
-
+              that.#addHtml(that.#getShadowRoot(this))
+              that.#addCss(that.#getShadowRoot(this))
               that.#addActions(this)
               that.#callback('connectedCallback')
-
               this.setAttribute(that.#ficsIdAttr, that.#ficsId)
               that.#component = this
               this.#isRendered = true
