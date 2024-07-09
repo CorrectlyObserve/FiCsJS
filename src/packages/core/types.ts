@@ -53,15 +53,10 @@ export type Html<D extends object, P extends object> =
       }
     ) => Symbolized<(Descendant | string)[]>)
 
-export interface Hooks<D, P> {
-  connectedCallback?: HooksCallback<D, P>
-  disconnectedCallback?: HooksCallback<D, P>
-  adoptedCallback?: HooksCallback<D, P>
-}
-
-export type HooksCallback<D, P> = (
-  params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void }
-) => void
+export type Hooks<D, P> = Record<
+  'connect' | 'disconnect' | 'adopt',
+  (params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void }) => void
+>
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
