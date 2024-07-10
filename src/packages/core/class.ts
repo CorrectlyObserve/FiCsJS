@@ -26,7 +26,6 @@ const generator: Generator<number> = generate()
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true }
   readonly #ficsId: string
-  readonly #newElementAttr: string = ''
   readonly #name: string
   readonly #tagName: string
   readonly #isImmutable: boolean = false
@@ -51,6 +50,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
+  readonly #newElements: Set<Element> = new Set()
   #isReflecting: boolean = false
 
   constructor({
@@ -72,7 +72,6 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = ficsId ?? `fics${generator.next().value}`
-      this.#newElementAttr = `${this.#ficsId}-new-element`
       this.#name = this.#toKebabCase(name)
       this.#tagName = `f-${this.#name}`
 
@@ -333,7 +332,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#name)
   }
 
-  #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+  #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): Set<Element> | void {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
     const oldChildNodes: ChildNode[] = getChildNodes(shadowRoot)
@@ -346,7 +345,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const ficsId: string = curr.#ficsId
             children[ficsId] = curr
 
-            return `${prev}<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
+            curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
           }
 
           return `${prev}${curr}`
@@ -389,17 +388,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return undefined
       }
-      const newElementAttr: string = this.#newElementAttr
 
       function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
-        if (oldChildNode instanceof Element && newChildNode instanceof Element) {
-          const isFiCsElement: boolean =
-            getFicsId(oldChildNode) === getFicsId(newChildNode) && isVarTag(newChildNode)
-
-          return isFiCsElement || (isSameNode && getKey(oldChildNode) === getKey(newChildNode))
-        }
+        if (oldChildNode instanceof Element && newChildNode instanceof Element)
+          return (
+            (getFicsId(oldChildNode) === getFicsId(newChildNode) && isVarTag(newChildNode)) ||
+            (isSameNode && getKey(oldChildNode) === getKey(newChildNode))
+          )
 
         return isSameNode
       }
@@ -435,21 +432,27 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
+      const that: FiCsElement<D, P> = this
+
       function insertBefore(
         parentNode: ShadowRoot | ChildNode,
-        childNode: ChildNode | HTMLElement,
+        childNode: ChildNode,
         before: ChildNode | null
       ): void {
-        if (childNode instanceof Element && isVarTag(childNode)) {
-          const ficsId: string | null = getFicsId(childNode)
+        if (childNode instanceof Element) that.#newElements.add(childNode)
+        const applyCache = <T>(childNode: T): T => {
+          if (childNode instanceof Element && isVarTag(childNode)) {
+            const ficsId: string | null = getFicsId(childNode)
+            const component: HTMLElement | undefined = children[ficsId ?? ''].#component
 
-          if (ficsId && children[ficsId].#component)
-            parentNode.insertBefore(children[ficsId].#component, before)
-          else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
-        } else {
-          if (childNode instanceof Element) childNode.toggleAttribute(newElementAttr)
-          parentNode.insertBefore(childNode, before)
+            if (component) return component as T
+            else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+          }
+
+          return childNode
         }
+
+        parentNode.insertBefore(applyCache(childNode), applyCache(before))
       }
 
       function updateChildNodes(
@@ -491,7 +494,7 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             const keyMap: Record<string, number> = {}
 
-            if (headKey === undefined)
+            if (headKey === undefined && tailKey === undefined)
               for (let index = oldHead; index <= oldTail; ++index) {
                 const childNode: ChildNode = oldChildNodes[index]
 
@@ -513,13 +516,12 @@ export default class FiCsElement<D extends object, P extends object> {
             } else if (tailKey === undefined) {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
-            } else {
+            } else if (headKey !== tailKey) {
               const targetNode: ChildNode = oldChildNodes[headKey]
 
-              if (targetNode.nodeName === newHeadNode.nodeName) {
+              if (targetNode.nodeName === newHeadNode.nodeName)
                 patchChildNode(targetNode, newHeadNode)
-                insertBefore(parentNode, targetNode, oldHeadNode)
-              } else {
+              else {
                 insertBefore(parentNode, newHeadNode, oldHeadNode)
                 parentNode.removeChild(targetNode)
               }
@@ -533,20 +535,11 @@ export default class FiCsElement<D extends object, P extends object> {
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode = newChildNodes[newHead]
 
-            if (childNode) {
-              const before: ChildNode | undefined = oldChildNodes.find(childNode =>
-                childNode.isEqualNode(newChildNodes[newTail + 1])
-              )
-              insertBefore(parentNode, childNode, before ?? null)
-            }
+            if (childNode) insertBefore(parentNode, childNode, newChildNodes[newTail + 1] ?? null)
           }
 
         if (oldHead <= oldTail)
-          for (; oldHead <= oldTail; ++oldHead) {
-            const childNode: ChildNode = oldChildNodes[oldHead]
-
-            if (childNode) parentNode.removeChild(childNode)
-          }
+          for (; oldHead <= oldTail; ++oldHead) oldChildNodes[oldHead]?.remove()
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
@@ -672,19 +665,12 @@ export default class FiCsElement<D extends object, P extends object> {
           const { handler, selector, method }: Action<D, P> = this.#actions[index]
 
           if (selector) {
-            const newElements: Set<Element> = new Set(
-              this.#getElements(shadowRoot, `*[${this.#newElementAttr}]`)
-            )
-
-            for (const element of this.#getElements(shadowRoot, selector)) {
-              if (newElements.has(element)) this.#addEvent(element, handler, method)
-
-              element.removeAttribute(this.#newElementAttr)
-            }
+            for (const element of this.#getElements(shadowRoot, selector))
+              if (this.#newElements.has(element)) this.#addEvent(element, handler, method)
           }
         }
 
-      console.log(fics)
+      this.#newElements.clear()
     }
   }
 
