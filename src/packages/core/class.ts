@@ -332,7 +332,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#name)
   }
 
-  #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): Set<Element> | void {
+  #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
     const oldChildNodes: ChildNode[] = getChildNodes(shadowRoot)
@@ -380,8 +380,7 @@ export default class FiCsElement<D extends object, P extends object> {
           else
             for (const element of Array.from(childNode.querySelectorAll(varTag))) replace(element)
       }
-    } else if (newChildNodes.length === 0)
-      for (const childNode of oldChildNodes) shadowRoot.removeChild(childNode)
+    } else if (newChildNodes.length === 0) for (const childNode of oldChildNodes) childNode.remove()
     else {
       const getKey = (childNode: ChildNode): string | undefined => {
         if (childNode instanceof Element) return childNode.getAttribute('key') ?? undefined
@@ -392,11 +391,13 @@ export default class FiCsElement<D extends object, P extends object> {
       function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
-        if (oldChildNode instanceof Element && newChildNode instanceof Element)
-          return (
-            (getFicsId(oldChildNode) === getFicsId(newChildNode) && isVarTag(newChildNode)) ||
-            (isSameNode && getKey(oldChildNode) === getKey(newChildNode))
-          )
+        if (oldChildNode instanceof Element && newChildNode instanceof Element) {
+          const isFiCsElement: boolean =
+            getFicsId(oldChildNode) === getFicsId(newChildNode) && isVarTag(newChildNode)
+          const isSameKey: boolean = isSameNode && getKey(oldChildNode) === getKey(newChildNode)
+
+          return isFiCsElement || isSameKey
+        }
 
         return isSameNode
       }
@@ -440,6 +441,7 @@ export default class FiCsElement<D extends object, P extends object> {
         before: ChildNode | null
       ): void {
         if (childNode instanceof Element) that.#newElements.add(childNode)
+
         const applyCache = <T>(childNode: T): T => {
           if (childNode instanceof Element && isVarTag(childNode)) {
             const ficsId: string | null = getFicsId(childNode)
@@ -464,7 +466,6 @@ export default class FiCsElement<D extends object, P extends object> {
         let oldTail: number = oldChildNodes.length - 1
         let oldHeadNode: ChildNode = oldChildNodes[oldHead]
         let oldTailNode: ChildNode = oldChildNodes[oldTail]
-
         let newHead: number = 0
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
@@ -495,7 +496,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const keyMap: Record<string, number> = {}
 
             if (headKey === undefined && tailKey === undefined)
-              for (let index = oldHead; index <= oldTail; ++index) {
+              for (let index = oldHead; index <= oldTail; index++) {
                 const childNode: ChildNode = oldChildNodes[index]
 
                 if (!(childNode instanceof Element)) continue
@@ -523,7 +524,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 patchChildNode(targetNode, newHeadNode)
               else {
                 insertBefore(parentNode, newHeadNode, oldHeadNode)
-                parentNode.removeChild(targetNode)
+                targetNode.remove()
               }
 
               newHeadNode = newChildNodes[++newHead]
@@ -531,15 +532,26 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        if (newHead <= newTail)
+        if (newHead <= newTail) {
+          console.log('add')
+
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode = newChildNodes[newHead]
+            const newChildNode: ChildNode | undefined = newChildNodes[newTail + 1] ?? undefined
+            let before: ChildNode | undefined = undefined
 
-            if (childNode) insertBefore(parentNode, childNode, newChildNodes[newTail + 1] ?? null)
+            if (newChildNode)
+              for (const oldChildNode of oldChildNodes)
+                if (!before && newChildNode.isEqualNode(oldChildNode)) before = oldChildNode
+
+            if (childNode) insertBefore(parentNode, childNode, before ?? null)
           }
+        }
 
-        if (oldHead <= oldTail)
+        if (oldHead <= oldTail) {
+          console.log('delete')
           for (; oldHead <= oldTail; ++oldHead) oldChildNodes[oldHead]?.remove()
+        }
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
