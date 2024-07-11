@@ -36,10 +36,6 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   html: Html<D, P>
   css?: Css<D, P>
-  slots?: {
-    name: string
-    html: Slot<D, P>
-  }[]
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
 }
@@ -92,20 +88,11 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
 
-export type Slot<D extends object, P extends object> = (
-  params: DataProps<D, P> & {
-    template: (templates: TemplateStringsArray, ...variables: unknown[]) => Symbolized<string[]>
-    html: (templates: TemplateStringsArray, ...variables: unknown[]) => string[]
-    i18n: ({ json, lang, keys }: I18n) => string
-  }
-) => Symbolized<string[]>
-
 export interface Style<D, P> {
   selector?: string
   style:
     | Record<string, string | number>
     | ((params: DataProps<D, P>) => Record<string, string | number>)
-  slot?: string
 }
 
 export type Symbolized<V> = Record<symbol, V>
