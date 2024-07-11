@@ -308,6 +308,26 @@ export default class FiCsElement<D extends object, P extends object> {
   #getClassName = (): string | undefined =>
     typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
 
+  #setSlot = (slot: Slot<D, P>): string => {
+    const template = (
+      templates: TemplateStringsArray,
+      ...variables: unknown[]
+    ): Symbolized<string[]> =>
+      this.#sanitize({ symbol: slotSymbol, isSanitized: true, templates, variables })
+
+    const html = (templates: TemplateStringsArray, ...variables: unknown[]): string[] =>
+      this.#sanitize<string[]>({ symbol: slotSymbol, isSanitized: false, templates, variables })[
+        slotSymbol
+      ]
+
+    const i18n = ({ json, lang, keys }: I18n): string =>
+      this.#internationalize({ json, lang, keys })
+
+    const contents: string[] = slot({ ...this.#setDataProps(), template, html, i18n })[slotSymbol]
+
+    return contents.reduce((prev, curr) => prev + curr, '')
+  }
+
   #getSlots = (): string => {
     if (this.#slots.length === 0) return ''
 
@@ -327,30 +347,11 @@ export default class FiCsElement<D extends object, P extends object> {
       }, '') as string
     }
 
-    const getSlot = (slot: Slot<D, P>): string => {
-      const template = (
-        templates: TemplateStringsArray,
-        ...variables: unknown[]
-      ): Symbolized<string[]> =>
-        this.#sanitize({ symbol: slotSymbol, isSanitized: true, templates, variables })
-
-      const html = (templates: TemplateStringsArray, ...variables: unknown[]): string[] =>
-        this.#sanitize<string[]>({ symbol: slotSymbol, isSanitized: false, templates, variables })[
-          slotSymbol
-        ]
-
-      const i18n = ({ json, lang, keys }: I18n): string =>
-        this.#internationalize({ json, lang, keys })
-
-      const contents: string[] = slot({ ...this.#setDataProps(), template, html, i18n })[slotSymbol]
-
-      return contents.reduce((prev, curr) => prev + curr, '')
-    }
-
     return this.#slots.reduce((prev, { name, html }) => {
       const style: string = getStyle(name) === '' ? '' : `<style>${getStyle(name)}</style>`
+      const slot: string = this.#setSlot(html)
 
-      return `${prev}<div id="${getSlotId(name)}" slot="${name}">${style}${getSlot(html)}</div>`
+      return `${prev}<div id="${getSlotId(name)}" slot="${name}">${style}${slot}</div>`
     }, '')
   }
 
@@ -386,30 +387,49 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#name)
   }
 
+  #getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
+    Array.from(parent.childNodes)
+
   #removeChildNodes = (childNodes: ChildNode[]): void => {
     for (const childNode of childNodes) childNode.remove()
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
-      Array.from(parent.childNodes)
-    const oldChildNodes: ChildNode[] = getChildNodes(shadowRoot)
+    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
-    const newChildNodes: ChildNode[] = getChildNodes(
-      document.createRange().createContextualFragment(
-        this.#getHtml().reduce((prev, curr) => {
-          if (curr instanceof FiCsElement) {
-            const ficsId: string = curr.#ficsId
-            children[ficsId] = curr
+    const createFragment = (content: string): DocumentFragment =>
+      document.createRange().createContextualFragment(content)
 
-            curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
-          }
+    const newShadowRoot: DocumentFragment = createFragment(
+      this.#getHtml().reduce((prev, curr) => {
+        if (curr instanceof FiCsElement) {
+          const ficsId: string = curr.#ficsId
+          children[ficsId] = curr
 
-          return `${prev}${curr}`
-        }, '') as string
-      )
+          curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
+        }
+
+        return `${prev}${curr}`
+      }, '') as string
     )
+
+    for (const slotElement of Array.from(newShadowRoot.querySelectorAll('slot'))) {
+      const slotName: string | null = slotElement.getAttribute('name')
+
+      if (!slotName) continue
+
+      const html: Slot<D, P> | undefined = this.#slots.find(slot => slot.name === slotName)?.html
+
+      if (!html) continue
+
+      for (const childNode of this.#getChildNodes(createFragment(this.#setSlot(html))))
+        slotElement.parentNode?.insertBefore(childNode, slotElement)
+
+      slotElement.remove()
+    }
+
+    const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const getFicsId = (element: Element): string | null => element.getAttribute(this.#ficsIdAttr)
     const isVarTag = (element: Element): boolean => element.localName === varTag
 
@@ -487,7 +507,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const name in oldAttrList) oldChildNode.removeAttribute(name)
 
-          updateChildNodes(oldChildNode, getChildNodes(oldChildNode), getChildNodes(newChildNode))
+          updateChildNodes(
+            oldChildNode,
+            that.#getChildNodes(oldChildNode),
+            that.#getChildNodes(newChildNode)
+          )
         }
       }
 
