@@ -16,13 +16,11 @@ import type {
   PropsTree,
   Reflections,
   Sanitized,
-  Slot,
   Style,
   Symbolized
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
-const slotSymbol: symbol = Symbol('slot')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -39,7 +37,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #className: ClassName<D, P> | undefined = undefined
   readonly #html: Html<D, P>
   readonly #css: Css<D, P> = new Array()
-  readonly #slots: { name: string; html: Slot<D, P> }[] = new Array()
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
@@ -68,7 +65,6 @@ export default class FiCsElement<D extends object, P extends object> {
     className,
     html,
     css,
-    slots,
     actions,
     hooks
   }: FiCs<D, P>) {
@@ -110,7 +106,6 @@ export default class FiCsElement<D extends object, P extends object> {
       if (className) this.#className = className
       this.#html = html
 
-      if (slots && slots.length > 0) this.#slots = [...slots]
       if (css && css.length > 0) this.#css = [...css]
       if (actions && actions.length > 0) this.#actions = [...actions]
       if (hooks) this.#hooks = { ...hooks }
@@ -200,45 +195,39 @@ export default class FiCsElement<D extends object, P extends object> {
       ? { data: {} as D, props: {} as P }
       : { data: { ...this.#data }, props: { ...this.#props } }
 
-  #setStyle = (param: Style<D, P>, host: string = ':host'): string => {
-    const { style, selector } = param
-    const entries: [string, unknown][] = Object.entries(
-      typeof style === 'function' ? style(this.#setDataProps()) : style
-    )
-    const content: string = entries
-      .map(([key, value]) => {
-        key = this.#toKebabCase(key)
-        if (key.startsWith('webkit')) key = `-${key}`
-
-        return `${key}: ${value};`
-      })
-      .join('\n')
-
-    return `${host} ${selector ?? ''}{${content}}`
-  }
-
-  #getStyle = (css: Css<D, P> = this.#css, host: string = ':host'): string => {
+  #getStyle = (css: Css<D, P>, host: string = ':host'): string => {
     if (css.length === 0) return ''
 
+    const createStyle = (param: Style<D, P>, host: string = ':host'): string => {
+      const { style, selector } = param
+      const entries: [string, unknown][] = Object.entries(
+        typeof style === 'function' ? style(this.#setDataProps()) : style
+      )
+      const content: string = entries
+        .map(([key, value]) => {
+          key = this.#toKebabCase(key)
+          if (key.startsWith('webkit')) key = `-${key}`
+
+          return `${key}: ${value};`
+        })
+        .join('\n')
+
+      return `${host} ${selector ?? ''}{${content}}`
+    }
+
     return css.reduce((prev, curr) => {
-      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${this.#setStyle(curr, host)}`
+      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr, host)}`
 
       return `${prev}${curr}`
     }, '') as string
   }
 
-  #sanitize = <T>({
-    symbol,
-    isSanitized,
-    templates,
-    variables
-  }: {
-    symbol: symbol
-    isSanitized: boolean
-    templates: TemplateStringsArray
+  #sanitize = (
+    isSanitized: boolean,
+    templates: TemplateStringsArray,
     variables: unknown[]
-  }): Record<symbol, T> => {
-    let result: (T | unknown)[] = new Array()
+  ): Record<symbol, Sanitized<D, P>> => {
+    let result: (Sanitized<D, P> | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
       template = template.trim()
@@ -273,7 +262,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    return { [symbol]: result as T }
+    return { [symbol]: result as Sanitized<D, P> }
   }
 
   #internationalize = ({ json, lang, keys }: I18n): string => {
@@ -293,11 +282,10 @@ export default class FiCsElement<D extends object, P extends object> {
     const template = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
-    ): Symbolized<Sanitized<D, P>> =>
-      this.#sanitize({ symbol, isSanitized: true, templates, variables })
+    ): Symbolized<Sanitized<D, P>> => this.#sanitize(true, templates, variables)
 
     const html = (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
-      this.#sanitize<Sanitized<D, P>>({ symbol, isSanitized: false, templates, variables })[symbol]
+      this.#sanitize(false, templates, variables)[symbol]
 
     const i18n = ({ json, lang, keys }: I18n): string =>
       this.#internationalize({ json, lang, keys })
@@ -308,62 +296,20 @@ export default class FiCsElement<D extends object, P extends object> {
   #getClassName = (): string | undefined =>
     typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
 
-  #setSlot = (slot: Slot<D, P>): string => {
-    const template = (
-      templates: TemplateStringsArray,
-      ...variables: unknown[]
-    ): Symbolized<string[]> =>
-      this.#sanitize({ symbol: slotSymbol, isSanitized: true, templates, variables })
-
-    const html = (templates: TemplateStringsArray, ...variables: unknown[]): string[] =>
-      this.#sanitize<string[]>({ symbol: slotSymbol, isSanitized: false, templates, variables })[
-        slotSymbol
-      ]
-
-    const i18n = ({ json, lang, keys }: I18n): string =>
-      this.#internationalize({ json, lang, keys })
-
-    const contents: string[] = slot({ ...this.#setDataProps(), template, html, i18n })[slotSymbol]
-
-    return contents.reduce((prev, curr) => prev + curr, '')
-  }
-
-  #getSlots = (): string => {
-    if (this.#slots.length === 0) return ''
-
-    const getSlotId = (name: string): string => `${this.#ficsId}-${name}`
-
-    const getStyle = (name: string): string => {
-      if (this.#css.length === 0) return ''
-
-      return this.#css.reduce((prev, curr) => {
-        if (typeof curr === 'string') return ''
-
-        const { slot }: Style<D, P> = curr
-
-        if (slot !== name) return ''
-
-        return `${prev}${this.#setStyle(curr, `#${getSlotId(name)}`)}`
-      }, '') as string
-    }
-
-    return this.#slots.reduce((prev, { name, html }) => {
-      const style: string = getStyle(name) === '' ? '' : `<style>${getStyle(name)}</style>`
-      const slot: string = this.#setSlot(html)
-
-      return `${prev}<div id="${getSlotId(name)}" slot="${name}">${style}${slot}</div>`
-    }, '')
-  }
-
   #renderOnServer = (propsChain: PropsChain<P>): string => {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
 
     this.#initProps(propsChain)
 
+    const slotId: string = `${this.#ficsId}-slot`
+    const style: string =
+      this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
+
     return `
         <${this.#tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
-          <template shadowrootmode="open">
-            ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
+          <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
+          <div id="${slotId}" slot="${this.#ficsId}">
+            ${style}
             ${this.#getHtml().reduce(
               (prev, curr) =>
                 `${prev}${
@@ -371,8 +317,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 }`,
               ''
             )}
-          </template>
-          ${this.#getSlots()}
+          </div>
         </${this.#tagName}>
       `.trim()
   }
@@ -398,38 +343,20 @@ export default class FiCsElement<D extends object, P extends object> {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
-    const createFragment = (content: string): DocumentFragment =>
-      document.createRange().createContextualFragment(content)
+    const newChildNodes: ChildNode[] = this.#getChildNodes(
+      document.createRange().createContextualFragment(
+        this.#getHtml().reduce((prev, curr) => {
+          if (curr instanceof FiCsElement) {
+            const ficsId: string = curr.#ficsId
+            children[ficsId] = curr
 
-    const newShadowRoot: DocumentFragment = createFragment(
-      this.#getHtml().reduce((prev, curr) => {
-        if (curr instanceof FiCsElement) {
-          const ficsId: string = curr.#ficsId
-          children[ficsId] = curr
+            curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
+          }
 
-          curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
-        }
-
-        return `${prev}${curr}`
-      }, '') as string
+          return `${prev}${curr}`
+        }, '') as string
+      )
     )
-
-    for (const slotElement of Array.from(newShadowRoot.querySelectorAll('slot'))) {
-      const slotName: string | null = slotElement.getAttribute('name')
-
-      if (!slotName) continue
-
-      const html: Slot<D, P> | undefined = this.#slots.find(slot => slot.name === slotName)?.html
-
-      if (!html) continue
-
-      for (const childNode of this.#getChildNodes(createFragment(this.#setSlot(html))))
-        slotElement.parentNode?.insertBefore(childNode, slotElement)
-
-      slotElement.remove()
-    }
-
-    const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const getFicsId = (element: Element): string | null => element.getAttribute(this.#ficsIdAttr)
     const isVarTag = (element: Element): boolean => element.localName === varTag
 
@@ -733,7 +660,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addActions(fics)
 
     if (!this.#component) {
-      this.#removeChildNodes(Array.from(fics.childNodes))
+      this.#removeChildNodes(this.#getChildNodes(fics))
       this.#component = fics
     }
 
@@ -830,7 +757,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addCss(that.#getShadowRoot(this))
               that.#addActions(this)
               that.#callback('connect')
-              that.#removeChildNodes(Array.from(this.childNodes))
+              that.#removeChildNodes(that.#getChildNodes(this))
               this.setAttribute(that.#ficsIdAttr, that.#ficsId)
               that.#component = this
               this.#isRendered = true
