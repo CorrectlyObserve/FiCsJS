@@ -12,7 +12,6 @@ const fics = <D extends object, P extends object>({
   className,
   html,
   css,
-  slots,
   actions,
   hooks
 }: FiCs<D, P>): FiCsElement<D, P> =>
@@ -27,7 +26,6 @@ const fics = <D extends object, P extends object>({
     className,
     html,
     css,
-    slots,
     actions,
     hooks
   })
