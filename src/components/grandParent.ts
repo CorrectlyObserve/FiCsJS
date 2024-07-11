@@ -18,14 +18,13 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
     ],
     html: ({ data: { fontSize, number, email }, template }) =>
       template`
-        <slot name="test"></slot>
+        <h2>${email}</h2>
         <p>Content is...${email}</p>
         ${parent}
         <p>人数: ${number}</p>
         <input value="${fontSize}" />
       `,
-    css: [{ slot: 'test', selector: 'h2', style: { color: 'red' } }],
-    slots: [{ name: 'test', html: ({ data: { email }, template }) => template`<h2>${email}</h2>` }],
+    css: [{ selector: 'h2', style: { color: 'red' } }],
     actions: [{ handler: 'click', method: ({ setData }) => setData('color', 'red') }]
   })
 
