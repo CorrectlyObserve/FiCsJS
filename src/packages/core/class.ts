@@ -386,6 +386,10 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#name)
   }
 
+  #removeChildNodes = (childNodes: ChildNode[]): void => {
+    for (const childNode of childNodes) childNode.remove()
+  }
+
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
     const getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       Array.from(parent.childNodes)
@@ -434,7 +438,7 @@ export default class FiCsElement<D extends object, P extends object> {
           else
             for (const element of Array.from(childNode.querySelectorAll(varTag))) replace(element)
       }
-    } else if (newChildNodes.length === 0) for (const childNode of oldChildNodes) childNode.remove()
+    } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const getKey = (childNode: ChildNode): string | undefined => {
         if (childNode instanceof Element) return childNode.getAttribute('key') ?? undefined
@@ -704,7 +708,10 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addCss(this.#getShadowRoot(fics))
     this.#addActions(fics)
 
-    if (!this.#component) this.#component = fics
+    if (!this.#component) {
+      this.#removeChildNodes(Array.from(fics.childNodes))
+      this.#component = fics
+    }
 
     return fics
   }
@@ -799,6 +806,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addCss(that.#getShadowRoot(this))
               that.#addActions(this)
               that.#callback('connect')
+              that.#removeChildNodes(Array.from(this.childNodes))
               this.setAttribute(that.#ficsIdAttr, that.#ficsId)
               that.#component = this
               this.#isRendered = true
