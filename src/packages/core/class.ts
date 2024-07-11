@@ -16,11 +16,13 @@ import type {
   PropsTree,
   Reflections,
   Sanitized,
+  Slot,
   Style,
   Symbolized
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
+const slotSymbol: symbol = Symbol('slot')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -35,8 +37,9 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #className: ClassName<D, P> | undefined = undefined
-  readonly #html: Html<D, P> = { [symbol]: new Array() }
+  readonly #html: Html<D, P>
   readonly #css: Css<D, P> = new Array()
+  readonly #slots: { name: string; html: Slot<D, P> }[] = new Array()
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
@@ -65,6 +68,7 @@ export default class FiCsElement<D extends object, P extends object> {
     className,
     html,
     css,
+    slots,
     actions,
     hooks
   }: FiCs<D, P>) {
@@ -104,9 +108,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#className = className
+      this.#html = html
 
-      this.#html = typeof html === 'function' ? html : { ...html }
-
+      if (slots && slots.length > 0) this.#slots = [...slots]
       if (css && css.length > 0) this.#css = [...css]
       if (actions && actions.length > 0) this.#actions = [...actions]
       if (hooks) this.#hooks = { ...hooks }
@@ -196,39 +200,45 @@ export default class FiCsElement<D extends object, P extends object> {
       ? { data: {} as D, props: {} as P }
       : { data: { ...this.#data }, props: { ...this.#props } }
 
-  #getStyle = (css: Css<D, P> = this.#css): string => {
+  #setStyle = (param: Style<D, P>, host: string = ':host'): string => {
+    const { style, selector } = param
+    const entries: [string, unknown][] = Object.entries(
+      typeof style === 'function' ? style(this.#setDataProps()) : style
+    )
+    const content: string = entries
+      .map(([key, value]) => {
+        key = this.#toKebabCase(key)
+        if (key.startsWith('webkit')) key = `-${key}`
+
+        return `${key}: ${value};`
+      })
+      .join('\n')
+
+    return `${host} ${selector ?? ''}{${content}}`
+  }
+
+  #getStyle = (css: Css<D, P> = this.#css, host: string = ':host'): string => {
     if (css.length === 0) return ''
 
-    const createStyle = (param: Style<D, P>): string => {
-      const { style, selector } = param
-      const entries: [string, unknown][] = Object.entries(
-        typeof style === 'function' ? style(this.#setDataProps()) : style
-      )
-      const content: string = entries
-        .map(([key, value]) => {
-          key = this.#toKebabCase(key)
-          if (key.startsWith('webkit')) key = `-${key}`
-
-          return `${key}: ${value};`
-        })
-        .join('\n')
-
-      return `:host ${selector ?? ''}{${content}}`
-    }
-
     return css.reduce((prev, curr) => {
-      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr)}`
+      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${this.#setStyle(curr, host)}`
 
       return `${prev}${curr}`
     }, '') as string
   }
 
-  #sanitize = (
-    isSanitized: boolean,
-    templates: TemplateStringsArray,
-    ...variables: unknown[]
-  ): Record<symbol, Sanitized<D, P>> => {
-    let result: (Sanitized<D, P> | unknown)[] = new Array()
+  #sanitize = <T>({
+    symbol,
+    isSanitized,
+    templates,
+    variables
+  }: {
+    symbol: symbol
+    isSanitized: boolean
+    templates: TemplateStringsArray
+    variables: unknown[]
+  }): Record<symbol, T> => {
+    let result: (T | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
       template = template.trim()
@@ -263,7 +273,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    return { [symbol]: result as Sanitized<D, P> }
+    return { [symbol]: result as T }
   }
 
   #internationalize = ({ json, lang, keys }: I18n): string => {
@@ -283,23 +293,66 @@ export default class FiCsElement<D extends object, P extends object> {
     const template = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
-    ): Symbolized<Sanitized<D, P>> => this.#sanitize(true, templates, ...variables)
+    ): Symbolized<Sanitized<D, P>> =>
+      this.#sanitize({ symbol, isSanitized: true, templates, variables })
 
     const html = (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
-      this.#sanitize(false, templates, ...variables)[symbol]
+      this.#sanitize<Sanitized<D, P>>({ symbol, isSanitized: false, templates, variables })[symbol]
 
     const i18n = ({ json, lang, keys }: I18n): string =>
       this.#internationalize({ json, lang, keys })
 
-    return (
-      typeof this.#html === 'function'
-        ? this.#html({ ...this.#setDataProps(), template, html, i18n })
-        : this.#html
-    )[symbol]
+    return this.#html({ ...this.#setDataProps(), template, html, i18n })[symbol]
   }
 
   #getClassName = (): string | undefined =>
     typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
+
+  #getSlots = (): string => {
+    if (this.#slots.length === 0) return ''
+
+    const getSlotId = (name: string): string => `${this.#ficsId}-${name}`
+
+    const getStyle = (name: string): string => {
+      if (this.#css.length === 0) return ''
+
+      return this.#css.reduce((prev, curr) => {
+        if (typeof curr === 'string') return ''
+
+        const { slot }: Style<D, P> = curr
+
+        if (slot !== name) return ''
+
+        return `${prev}${this.#setStyle(curr, `#${getSlotId(name)}`)}`
+      }, '') as string
+    }
+
+    const getSlot = (slot: Slot<D, P>): string => {
+      const template = (
+        templates: TemplateStringsArray,
+        ...variables: unknown[]
+      ): Symbolized<string[]> =>
+        this.#sanitize({ symbol: slotSymbol, isSanitized: true, templates, variables })
+
+      const html = (templates: TemplateStringsArray, ...variables: unknown[]): string[] =>
+        this.#sanitize<string[]>({ symbol: slotSymbol, isSanitized: false, templates, variables })[
+          slotSymbol
+        ]
+
+      const i18n = ({ json, lang, keys }: I18n): string =>
+        this.#internationalize({ json, lang, keys })
+
+      const contents: string[] = slot({ ...this.#setDataProps(), template, html, i18n })[slotSymbol]
+
+      return contents.reduce((prev, curr) => prev + curr, '')
+    }
+
+    return this.#slots.reduce((prev, { name, html }) => {
+      const style: string = getStyle(name) === '' ? '' : `<style>${getStyle(name)}</style>`
+
+      return `${prev}<div id="${getSlotId(name)}" slot="${name}">${style}${getSlot(html)}</div>`
+    }, '')
+  }
 
   #renderOnServer = (propsChain: PropsChain<P>): string => {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
@@ -318,6 +371,7 @@ export default class FiCsElement<D extends object, P extends object> {
               ''
             )}
           </template>
+          ${this.#getSlots()}
         </${this.#tagName}>
       `.trim()
   }
