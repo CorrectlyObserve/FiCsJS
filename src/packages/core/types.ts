@@ -100,11 +100,6 @@ export type Slot<D extends object, P extends object> = (
   }
 ) => Symbolized<string[]>
 
-export type Slots<D extends object, P extends object> = {
-  name: string
-  html: Slot<D, P>
-}[]
-
 export interface Style<D, P> {
   selector?: string
   style:
