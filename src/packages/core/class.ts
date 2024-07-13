@@ -397,11 +397,12 @@ export default class FiCsElement<D extends object, P extends object> {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element) {
-          const isFiCsElement: boolean =
+          const isFiCsElement =
             getFicsId(oldChildNode) === getFicsId(newChildNode) && isVarTag(newChildNode)
-          const isSameKey: boolean = isSameNode && getKey(oldChildNode) === getKey(newChildNode)
+          const isSameId = oldChildNode.id === newChildNode.id
+          const isSameKey = getKey(oldChildNode) === getKey(newChildNode)
 
-          return isFiCsElement || isSameKey
+          return isFiCsElement || (isSameNode && isSameId && isSameKey)
         }
 
         return isSameNode
@@ -426,8 +427,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const namespace: string | null = oldChildNode.namespaceURI
           const updateProperty = (element: Element, name: string, value: unknown): void => {
-            if (name in element && typeof (element as any)[name] !== value)
-              (element as any)[name] = value
+            if (name in element && (element as any)[name] !== value) (element as any)[name] = value
           }
 
           for (let index = 0; index < newAttrs.length; index++) {
@@ -446,11 +446,11 @@ export default class FiCsElement<D extends object, P extends object> {
             if (oldChildNode instanceof HTMLElement) oldChildNode.removeAttribute(name)
             else oldChildNode.removeAttributeNS(namespace, name)
 
-          updateChildNodes(
-            oldChildNode,
-            that.#getChildNodes(oldChildNode),
-            that.#getChildNodes(newChildNode)
-          )
+          const oldChildNodes: ChildNode[] = that.#getChildNodes(oldChildNode)
+          const newChildNodes: ChildNode[] = that.#getChildNodes(newChildNode)
+
+          if (oldChildNodes.length > 0 && newChildNodes.length > 0)
+            updateChildNodes(oldChildNode, oldChildNodes, newChildNodes)
         }
       }
 
@@ -555,25 +555,23 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        console.log(newChildNodes)
+        // if (newHead <= newTail)
+        //   for (; newHead <= newTail; ++newHead)
+        //     insertBefore(parentNode, newChildNodes[newHead], newChildNodes[newTail + 1] ?? null)
 
-        if (newHead <= newTail)
-          for (; newHead <= newTail; ++newHead)
-            insertBefore(parentNode, newChildNodes[newHead], newChildNodes[newTail + 1] ?? null)
+        if (newHead <= newTail) {
+          for (; newHead <= newTail; ++newHead) {
+            const childNode: ChildNode = newChildNodes[newHead]
+            const newChildNode: ChildNode | undefined = newChildNodes[newTail + 1] ?? undefined
+            let before: ChildNode | undefined = undefined
 
-        // if (newHead <= newTail) {
-        //   for (; newHead <= newTail; ++newHead) {
-        //     const childNode: ChildNode = newChildNodes[newHead]
-        //     const newChildNode: ChildNode | undefined = newChildNodes[newTail + 1] ?? undefined
-        //     let before: ChildNode | undefined = undefined
+            if (newChildNode)
+              for (const oldChildNode of oldChildNodes)
+                if (!before && newChildNode.isEqualNode(oldChildNode)) before = oldChildNode
 
-        //     if (newChildNode)
-        //       for (const oldChildNode of oldChildNodes)
-        //         if (!before && newChildNode.isEqualNode(oldChildNode)) before = oldChildNode
-
-        //     if (childNode) insertBefore(parentNode, childNode, before ?? null)
-        //   }
-        // }
+            if (childNode) insertBefore(parentNode, childNode, before ?? null)
+          }
+        }
 
         if (oldHead <= oldTail)
           for (; oldHead <= oldTail; ++oldHead) oldChildNodes[oldHead].remove()
