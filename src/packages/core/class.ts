@@ -494,6 +494,7 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTailNode: ChildNode = newChildNodes[newTail]
         let headKey: number | undefined = undefined
         let tailKey: number | undefined = undefined
+        const keyMap: Record<string, number> = {}
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -515,8 +516,6 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            const keyMap: Record<string, number> = {}
-
             if (headKey === undefined && tailKey === undefined)
               for (let index = oldHead; index <= oldTail; index++) {
                 const childNode: ChildNode = oldChildNodes[index]
@@ -559,55 +558,59 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        const createMapKey = (childNode: ChildNode): string => {
-          const { nodeName }: { nodeName: string } = childNode
+        if (Object.keys(keyMap).length > 0) {
+          const createMapKey = (childNode: ChildNode): string => {
+            const { nodeName }: { nodeName: string } = childNode
 
-          if (childNode instanceof Element) {
-            const ficsId: string | null = getFicsId(childNode)
-            const key: string | undefined = getKey(childNode)
+            if (childNode instanceof Element) {
+              const ficsId: string | null = getFicsId(childNode)
+              const key: string | undefined = getKey(childNode)
 
-            return nodeName + (ficsId ? `-${ficsId}` : '') + (key ? `-${key}` : '')
+              return nodeName + (ficsId ? `-${ficsId}` : '') + (key ? `-${key}` : '')
+            }
+
+            return `${nodeName}${childNode.nodeValue}`
           }
+          const setMap = (map: Map<string, ChildNode>, childNode: ChildNode): void => {
+            map.set(createMapKey(childNode), childNode)
+          }
+          const getMapKey = (
+            map: Map<string, ChildNode>,
+            childNode: ChildNode
+          ): ChildNode | undefined => map.get(createMapKey(childNode))
 
-          return `${nodeName}${childNode.nodeValue}`
-        }
-        const setMap = (map: Map<string, ChildNode>, childNode: ChildNode): void => {
-          map.set(createMapKey(childNode), childNode)
-        }
-        const getMapKey = (
-          map: Map<string, ChildNode>,
-          childNode: ChildNode
-        ): ChildNode | undefined => map.get(createMapKey(childNode))
+          if (newHead <= newTail) {
+            const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
+            const childNodeMap: Map<string, ChildNode> = new Map()
 
-        if (newHead <= newTail) {
-          const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
-          const childNodeMap: Map<string, ChildNode> = new Map()
+            for (const oldChildNode of oldChildNodes) setMap(childNodeMap, oldChildNode)
 
-          for (const oldChildNode of oldChildNodes) setMap(childNodeMap, oldChildNode)
+            for (; newHead <= newTail; ++newHead) {
+              const childNode: ChildNode | null = newChildNodes[newHead]
 
-          for (; newHead <= newTail; ++newHead) {
-            const childNode: ChildNode | null = newChildNodes[newHead]
+              if (childNode) {
+                let before: ChildNode | null = null
 
-            if (childNode) {
-              let before: ChildNode | null = null
+                if (targetChildNode) before = getMapKey(childNodeMap, targetChildNode) ?? null
 
-              if (targetChildNode) before = getMapKey(childNodeMap, targetChildNode) ?? null
-
-              insertBefore(parentNode, childNode, before)
+                insertBefore(parentNode, childNode, before)
+              }
             }
           }
-        }
 
-        if (oldHead <= oldTail) {
-          const childNodeMap: Map<string, ChildNode> = new Map()
+          if (oldHead <= oldTail) {
+            const childNodeMap: Map<string, ChildNode> = new Map()
 
-          for (const newChildNode of newChildNodes) setMap(childNodeMap, newChildNode)
+            for (const newChildNode of newChildNodes) setMap(childNodeMap, newChildNode)
 
-          for (; oldHead <= oldTail; ++oldHead) {
-            const childNode: ChildNode | null = oldChildNodes[oldHead]
+            for (; oldHead <= oldTail; ++oldHead) {
+              const childNode: ChildNode | null = oldChildNodes[oldHead]
 
-            if (childNode && !getMapKey(childNodeMap, childNode)) childNode.remove()
+              if (childNode && !getMapKey(childNodeMap, childNode)) childNode.remove()
+            }
           }
+        } else {
+          console.log('call')
         }
       }
 
