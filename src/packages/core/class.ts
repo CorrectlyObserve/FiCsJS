@@ -526,50 +526,67 @@ export default class FiCsElement<D extends object, P extends object> {
                 if (key) keyMap[key] = index
               }
 
-            const newHeadKey: string | undefined = getKey(newHeadNode)
-            const newTailKey: string | undefined = getKey(newTailNode)
+            if (Object.keys(keyMap).length > 0) {
+              const newHeadKey: string | undefined = getKey(newHeadNode)
+              const newTailKey: string | undefined = getKey(newTailNode)
 
-            if (newHeadKey) headKey = keyMap[newHeadKey]
-            if (newTailKey) tailKey = keyMap[newTailKey]
+              if (newHeadKey) headKey = keyMap[newHeadKey]
+              if (newTailKey) tailKey = keyMap[newTailKey]
 
-            if (headKey === undefined) {
-              console.log('call', newHeadNode, oldHeadNode, oldChildNodes.includes(newHeadNode))
-              insertBefore(parentNode, newHeadNode, oldHeadNode)
-              newHeadNode = newChildNodes[++newHead]
-            } else if (tailKey === undefined) {
-              insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
-              newTailNode = newChildNodes[--newTail]
-            } else if (headKey !== tailKey) {
-              const targetNode: ChildNode = oldChildNodes[headKey]
-              console.log('call2')
-
-              if (targetNode.nodeName === newHeadNode.nodeName)
-                patchChildNode(targetNode, newHeadNode)
-              else {
+              if (headKey === undefined) {
                 insertBefore(parentNode, newHeadNode, oldHeadNode)
-                targetNode.remove()
-              }
+                newHeadNode = newChildNodes[++newHead]
+              } else if (tailKey === undefined) {
+                insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
+                newTailNode = newChildNodes[--newTail]
+              } else {
+                const targetChildNode: ChildNode = oldChildNodes[headKey]
 
+                if (targetChildNode.nodeName === newHeadNode.nodeName)
+                  patchChildNode(targetChildNode, newHeadNode)
+                else {
+                  insertBefore(parentNode, newHeadNode, oldHeadNode)
+                  targetChildNode.remove()
+                }
+
+                newHeadNode = newChildNodes[++newHead]
+              }
+            } else {
+              console.log({ oldHead, oldTail, newHead, newTail })
               newHeadNode = newChildNodes[++newHead]
-            } else console.log('call3', headKey, tailKey, oldChildNodes, newChildNodes[0])
+            }
           }
         }
 
-        // if (newHead <= newTail)
-        //   for (; newHead <= newTail; ++newHead)
-        //     insertBefore(parentNode, newChildNodes[newHead], newChildNodes[newTail + 1] ?? null)
+        const createMapKey = (childNode: ChildNode): string => {
+          const { nodeName }: { nodeName: string } = childNode
+          if (childNode instanceof Element) {
+            const ficsId: string | null = getFicsId(childNode)
+            const key: string | undefined = getKey(childNode)
+
+            return nodeName + (ficsId ? `-${ficsId}` : '') + (key ? `-${key}` : '')
+          }
+
+          return `${nodeName}${childNode.nodeValue}`
+        }
 
         if (newHead <= newTail) {
+          const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
+          const childNodeMap: Map<string, ChildNode> = new Map()
+
+          for (const oldChildNode of oldChildNodes)
+            childNodeMap.set(createMapKey(oldChildNode), oldChildNode)
+
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode = newChildNodes[newHead]
-            const newChildNode: ChildNode | undefined = newChildNodes[newTail + 1] ?? undefined
-            let before: ChildNode | undefined = undefined
 
-            if (newChildNode)
-              for (const oldChildNode of oldChildNodes)
-                if (!before && newChildNode.isEqualNode(oldChildNode)) before = oldChildNode
+            if (childNode) {
+              let before: ChildNode | null = null
 
-            if (childNode) insertBefore(parentNode, childNode, before ?? null)
+              if (targetChildNode) before = childNodeMap.get(createMapKey(targetChildNode)) ?? null
+
+              insertBefore(parentNode, childNode, before)
+            }
           }
         }
 
