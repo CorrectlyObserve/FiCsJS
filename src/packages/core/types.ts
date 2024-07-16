@@ -25,7 +25,7 @@ export interface DataProps<D, P> {
 type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
-  ficsId?: string
+  isExceptional?: boolean
   name: string
   isImmutable?: boolean
   data?: () => D
@@ -51,10 +51,15 @@ export type Html<D extends object, P extends object> = (
   }
 ) => Symbolized<(Descendant | string)[]>
 
-export type Hooks<D, P> = Record<
-  'connect' | 'disconnect' | 'adopt',
-  (params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void }) => void
->
+export interface Hooks<D, P> {
+  connect?: HookContent<D, P>
+  disconnect?: HookContent<D, P>
+  adopt?: HookContent<D, P>
+}
+
+type HookContent<D, P> = (
+  params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void }
+) => void
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
