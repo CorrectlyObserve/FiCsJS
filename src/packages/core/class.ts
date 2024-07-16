@@ -24,7 +24,7 @@ const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, boolean> = { var: true }
+  readonly #reservedWords: Record<string, boolean> = { var: true, router: true }
   readonly #ficsId: string
   readonly #name: string
   readonly #tagName: string
@@ -54,7 +54,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #isReflecting: boolean = false
 
   constructor({
-    ficsId,
+    isExceptional,
     name,
     isImmutable,
     data,
@@ -68,11 +68,14 @@ export default class FiCsElement<D extends object, P extends object> {
     actions,
     hooks
   }: FiCs<D, P>) {
-    if (this.#reservedWords[this.#toKebabCase(name)])
+    this.#name = this.#toKebabCase(name)
+
+    if (isExceptional && this.#name in this.#reservedWords) delete this.#reservedWords[this.#name]
+
+    if (this.#reservedWords[this.#name])
       throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = ficsId ?? `fics${generator.next().value}`
-      this.#name = this.#toKebabCase(name)
+      this.#ficsId = `fics${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
       if (isImmutable) this.#isImmutable = isImmutable
@@ -82,16 +85,22 @@ export default class FiCsElement<D extends object, P extends object> {
           throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
         else {
           if (reflections) {
-            let hasError = false
+            if (this.#isImmutable)
+              throw new Error(
+                `${this.#tagName} is an immutable component, so it cannot define reflections...`
+              )
+            else {
+              let hasError = false
 
-            for (const key of Object.keys(reflections)) {
-              if (key in data()) continue
+              for (const key of Object.keys(reflections)) {
+                if (key in data()) continue
 
-              if (!hasError) hasError = true
-              throw new Error(`${key} is not defined in data...`)
+                if (!hasError) hasError = true
+                throw new Error(`${key} is not defined in data...`)
+              }
+
+              if (!hasError) this.#reflections = { ...reflections }
             }
-
-            if (!hasError) this.#reflections = { ...reflections }
           }
 
           for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
@@ -495,6 +504,7 @@ export default class FiCsElement<D extends object, P extends object> {
         let headKey: number | undefined = undefined
         let tailKey: number | undefined = undefined
         const keyMap: Record<string, number> = {}
+        const hasKey: boolean = Object.keys(keyMap).length > 0
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -526,7 +536,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 if (key) keyMap[key] = index
               }
 
-            if (Object.keys(keyMap).length > 0) {
+            if (hasKey) {
               const newHeadKey: string | undefined = getKey(newHeadNode)
               const newTailKey: string | undefined = getKey(newTailNode)
 
@@ -558,28 +568,28 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        if (Object.keys(keyMap).length > 0) {
-          const createMapKey = (childNode: ChildNode): string => {
-            const { nodeName }: { nodeName: string } = childNode
+        const createMapKey = (childNode: ChildNode): string => {
+          const { nodeName }: { nodeName: string } = childNode
 
-            if (childNode instanceof Element) {
-              const ficsId: string | null = getFicsId(childNode)
-              const key: string | undefined = getKey(childNode)
+          if (childNode instanceof Element) {
+            const ficsId: string | null = getFicsId(childNode)
+            const key: string | undefined = getKey(childNode)
 
-              return nodeName + (ficsId ? `-${ficsId}` : '') + (key ? `-${key}` : '')
-            }
-
-            return `${nodeName}${childNode.nodeValue}`
+            return nodeName + (ficsId ? `-${ficsId}` : '') + (key ? `-${key}` : '')
           }
-          const setMap = (map: Map<string, ChildNode>, childNode: ChildNode): void => {
-            map.set(createMapKey(childNode), childNode)
-          }
-          const getMapKey = (
-            map: Map<string, ChildNode>,
-            childNode: ChildNode
-          ): ChildNode | undefined => map.get(createMapKey(childNode))
 
-          if (newHead <= newTail) {
+          return `${nodeName}${childNode.nodeValue}`
+        }
+        const setMap = (map: Map<string, ChildNode>, childNode: ChildNode): void => {
+          map.set(createMapKey(childNode), childNode)
+        }
+        const getMapKey = (
+          map: Map<string, ChildNode>,
+          childNode: ChildNode
+        ): ChildNode | undefined => map.get(createMapKey(childNode))
+
+        if (newHead <= newTail) {
+          if (hasKey) {
             const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
             const childNodeMap: Map<string, ChildNode> = new Map()
 
@@ -596,9 +606,12 @@ export default class FiCsElement<D extends object, P extends object> {
                 insertBefore(parentNode, childNode, before)
               }
             }
+          } else {
           }
+        }
 
-          if (oldHead <= oldTail) {
+        if (oldHead <= oldTail) {
+          if (hasKey) {
             const childNodeMap: Map<string, ChildNode> = new Map()
 
             for (const newChildNode of newChildNodes) setMap(childNodeMap, newChildNode)
@@ -610,7 +623,6 @@ export default class FiCsElement<D extends object, P extends object> {
             }
           }
         } else {
-          console.log('call')
         }
       }
 
