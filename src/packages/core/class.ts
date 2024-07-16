@@ -90,16 +90,10 @@ export default class FiCsElement<D extends object, P extends object> {
                 `${this.#tagName} is an immutable component, so it cannot define reflections...`
               )
             else {
-              let hasError = false
+              for (const key of Object.keys(reflections))
+                if (!(key in data())) throw new Error(`${key} is not defined in data...`)
 
-              for (const key of Object.keys(reflections)) {
-                if (key in data()) continue
-
-                if (!hasError) hasError = true
-                throw new Error(`${key} is not defined in data...`)
-              }
-
-              if (!hasError) this.#reflections = { ...reflections }
+              this.#reflections = { ...reflections }
             }
           }
 
