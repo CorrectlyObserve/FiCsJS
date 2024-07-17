@@ -8,6 +8,7 @@ import type {
   DataProps,
   FiCs,
   Html,
+  HtmlContents,
   Hooks,
   Inheritances,
   I18n,
@@ -15,7 +16,7 @@ import type {
   PropsChain,
   PropsTree,
   Reflections,
-  Sanitized,
+  Sanitize,
   Style,
   Symbolized
 } from './types'
@@ -228,8 +229,8 @@ export default class FiCsElement<D extends object, P extends object> {
     isSanitized: boolean,
     templates: TemplateStringsArray,
     variables: unknown[]
-  ): Record<symbol, Sanitized<D, P>> => {
-    let result: (Sanitized<D, P> | unknown)[] = new Array()
+  ): Record<symbol, HtmlContents<D, P>> => {
+    let result: (HtmlContents<D, P> | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
       template = template.trim()
@@ -249,7 +250,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (index === 0 && template === '') result.push(variable)
         else {
           const { length } = result
-          const last: Sanitized<D, P> | unknown = result[length - 1] ?? ''
+          const last: HtmlContents<D, P> | unknown = result[length - 1] ?? ''
           const isFiCsElement: boolean = variable instanceof FiCsElement
 
           if (last instanceof FiCsElement)
@@ -264,7 +265,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    return { [symbol]: result as Sanitized<D, P> }
+    return { [symbol]: result as HtmlContents<D, P> }
   }
 
   #internationalize = ({ json, lang, keys }: I18n): string => {
@@ -280,14 +281,16 @@ export default class FiCsElement<D extends object, P extends object> {
     } else throw new Error(`${lang}.json does not exist...`)
   }
 
-  #getHtml = (): Sanitized<D, P> => {
-    const template = (
+  #getHtml = (): HtmlContents<D, P> => {
+    const template: Sanitize<D, P, true> = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
-    ): Symbolized<Sanitized<D, P>> => this.#sanitize(true, templates, variables)
+    ): Symbolized<HtmlContents<D, P>> => this.#sanitize(true, templates, variables)
 
-    const html = (templates: TemplateStringsArray, ...variables: unknown[]): Sanitized<D, P> =>
-      this.#sanitize(false, templates, variables)[symbol]
+    const html: Sanitize<D, P, false> = (
+      templates: TemplateStringsArray,
+      ...variables: unknown[]
+    ): HtmlContents<D, P> => this.#sanitize(false, templates, variables)[symbol]
 
     const i18n = ({ json, lang, keys }: I18n): string =>
       this.#internationalize({ json, lang, keys })
