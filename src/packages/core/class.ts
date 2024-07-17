@@ -72,8 +72,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (isExceptional && this.#name in this.#reservedWords) delete this.#reservedWords[this.#name]
 
-    if (this.#reservedWords[this.#name])
-      throw new Error(`${name} is a reserved word in FiCsJS...`)
+    if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
       this.#tagName = `f-${this.#name}`
@@ -430,6 +429,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const namespace: string | null = oldChildNode.namespaceURI
           const updateProperty = (element: Element, name: string, value: unknown): void => {
+            name = name.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
             if (name in element && (element as any)[name] !== value) (element as any)[name] = value
           }
 
@@ -601,6 +601,22 @@ export default class FiCsElement<D extends object, P extends object> {
               }
             }
           } else {
+            const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
+            const childNodeMap: Map<string, ChildNode> = new Map()
+
+            for (const oldChildNode of oldChildNodes) setMap(childNodeMap, oldChildNode)
+
+            for (; newHead <= newTail; ++newHead) {
+              const childNode: ChildNode | null = newChildNodes[newHead]
+
+              if (childNode) {
+                let before: ChildNode | null = null
+
+                if (targetChildNode) before = getMapKey(childNodeMap, targetChildNode) ?? null
+
+                insertBefore(parentNode, childNode, before)
+              }
+            }
           }
         }
 
@@ -617,6 +633,15 @@ export default class FiCsElement<D extends object, P extends object> {
             }
           }
         } else {
+          const childNodeMap: Map<string, ChildNode> = new Map()
+
+          for (const newChildNode of newChildNodes) setMap(childNodeMap, newChildNode)
+
+          for (; oldHead <= oldTail; ++oldHead) {
+            const childNode: ChildNode | null = oldChildNodes[oldHead]
+
+            if (childNode && !getMapKey(childNodeMap, childNode)) childNode.remove()
+          }
         }
       }
 
