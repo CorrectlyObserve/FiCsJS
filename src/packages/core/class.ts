@@ -347,23 +347,26 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
+    const deleteNewLines = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
+      this.#getChildNodes(parent).filter(
+        ({ nodeType, textContent }) => !(nodeType === Node.TEXT_NODE && !textContent?.trim())
+      )
+    const oldChildNodes: ChildNode[] = deleteNewLines(shadowRoot)
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
-    const newChildNodes: ChildNode[] = this.#getChildNodes(
-      document.createRange().createContextualFragment(
-        this.#getHtml().reduce((prev, curr) => {
-          if (curr instanceof FiCsElement) {
-            const ficsId: string = curr.#ficsId
-            children[ficsId] = curr
+    const newShadowRoot: DocumentFragment = document.createRange().createContextualFragment(
+      this.#getHtml().reduce((prev, curr) => {
+        if (curr instanceof FiCsElement) {
+          const ficsId: string = curr.#ficsId
+          children[ficsId] = curr
 
-            curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
-          }
+          curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
+        }
 
-          return `${prev}${curr}`
-        }, '') as string
-      )
+        return `${prev}${curr}`
+      }, '') as string
     )
+    const newChildNodes: ChildNode[] = deleteNewLines(newShadowRoot)
     const getFicsId = (element: Element): string | null => element.getAttribute(this.#ficsIdAttr)
     const isVarTag = (element: Element): boolean => element.localName === varTag
 
@@ -434,8 +437,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const namespace: string | null = oldChildNode.namespaceURI
           const updateProperty = (element: Element, name: string, value: unknown): void => {
-            name = name.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
-            if (name in element && (element as any)[name] !== value) (element as any)[name] = value
+            const anyElement: any = element as any
+            name = name.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+
+            if (name in element && anyElement[name] !== value) anyElement[name] = value
           }
 
           for (let index = 0; index < newAttrs.length; index++) {
@@ -455,11 +460,7 @@ export default class FiCsElement<D extends object, P extends object> {
             if (oldChildNode instanceof HTMLElement) oldChildNode.removeAttribute(name)
             else oldChildNode.removeAttributeNS(namespace, name)
 
-          const oldChildNodes: ChildNode[] = that.#getChildNodes(oldChildNode)
-          const newChildNodes: ChildNode[] = that.#getChildNodes(newChildNode)
-
-          if (oldChildNodes.length > 0 && newChildNodes.length > 0)
-            updateChildNodes(oldChildNode, oldChildNodes, newChildNodes)
+          updateChildNodes(oldChildNode, deleteNewLines(oldChildNode), deleteNewLines(newChildNode))
         }
       }
 
@@ -503,7 +504,6 @@ export default class FiCsElement<D extends object, P extends object> {
         let headKey: number | undefined = undefined
         let tailKey: number | undefined = undefined
         const keyMap: Record<string, number> = {}
-        const hasKey: boolean = Object.keys(keyMap).length > 0
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -525,7 +525,7 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            if (headKey === undefined && tailKey === undefined)
+            if (Object.keys(keyMap).length > 0)
               for (let index = oldHead; index <= oldTail; index++) {
                 const childNode: ChildNode = oldChildNodes[index]
 
@@ -535,119 +535,42 @@ export default class FiCsElement<D extends object, P extends object> {
                 if (key) keyMap[key] = index
               }
 
-            if (hasKey) {
-              const newHeadKey: string | undefined = getKey(newHeadNode)
-              const newTailKey: string | undefined = getKey(newTailNode)
+            const newHeadKey: string | undefined = getKey(newHeadNode)
+            const newTailKey: string | undefined = getKey(newTailNode)
 
-              if (newHeadKey) headKey = keyMap[newHeadKey]
-              if (newTailKey) tailKey = keyMap[newTailKey]
+            if (newHeadKey) headKey = keyMap[newHeadKey]
+            if (newTailKey) tailKey = keyMap[newTailKey]
 
-              if (headKey === undefined) {
-                insertBefore(parentNode, newHeadNode, oldHeadNode)
-                newHeadNode = newChildNodes[++newHead]
-              } else if (tailKey === undefined) {
-                insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
-                newTailNode = newChildNodes[--newTail]
-              } else {
-                const targetChildNode: ChildNode = oldChildNodes[headKey]
-
-                if (targetChildNode.nodeName === newHeadNode.nodeName)
-                  patchChildNode(targetChildNode, newHeadNode)
-                else {
-                  insertBefore(parentNode, newHeadNode, oldHeadNode)
-                  targetChildNode.remove()
-                }
-
-                newHeadNode = newChildNodes[++newHead]
-              }
+            if (headKey === undefined) {
+              insertBefore(parentNode, newHeadNode, oldHeadNode)
+              newHeadNode = newChildNodes[++newHead]
+            } else if (tailKey === undefined) {
+              insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
+              newTailNode = newChildNodes[--newTail]
             } else {
-              console.log({ oldHead, oldTail, newHead, newTail })
+              const targetChildNode: ChildNode = oldChildNodes[headKey]
+
+              if (targetChildNode.nodeName === newHeadNode.nodeName)
+                patchChildNode(targetChildNode, newHeadNode)
+              else {
+                insertBefore(parentNode, newHeadNode, oldHeadNode)
+                targetChildNode.remove()
+              }
+
               newHeadNode = newChildNodes[++newHead]
             }
           }
         }
 
-        const createMapKey = (childNode: ChildNode): string => {
-          const { nodeName }: { nodeName: string } = childNode
+        if (newHead <= newTail)
+          for (; newHead <= newTail; ++newHead) {
+            const childNode: ChildNode | null = newChildNodes[newHead]
 
-          if (childNode instanceof Element) {
-            const ficsId: string | null = getFicsId(childNode)
-            const key: string | undefined = getKey(childNode)
-
-            return nodeName + (ficsId ? `-${ficsId}` : '') + (key ? `-${key}` : '')
+            if (childNode) insertBefore(parentNode, childNode, newChildNodes[newTail + 1] ?? null)
           }
 
-          return `${nodeName}${childNode.nodeValue}`
-        }
-        const setMap = (map: Map<string, ChildNode>, childNode: ChildNode): void => {
-          map.set(createMapKey(childNode), childNode)
-        }
-        const getMapKey = (
-          map: Map<string, ChildNode>,
-          childNode: ChildNode
-        ): ChildNode | undefined => map.get(createMapKey(childNode))
-
-        if (newHead <= newTail) {
-          if (hasKey) {
-            const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
-            const childNodeMap: Map<string, ChildNode> = new Map()
-
-            for (const oldChildNode of oldChildNodes) setMap(childNodeMap, oldChildNode)
-
-            for (; newHead <= newTail; ++newHead) {
-              const childNode: ChildNode | null = newChildNodes[newHead]
-
-              if (childNode) {
-                let before: ChildNode | null = null
-
-                if (targetChildNode) before = getMapKey(childNodeMap, targetChildNode) ?? null
-
-                insertBefore(parentNode, childNode, before)
-              }
-            }
-          } else {
-            const targetChildNode: ChildNode | null = newChildNodes[newTail + 1] ?? null
-            const childNodeMap: Map<string, ChildNode> = new Map()
-
-            for (const oldChildNode of oldChildNodes) setMap(childNodeMap, oldChildNode)
-
-            for (; newHead <= newTail; ++newHead) {
-              const childNode: ChildNode | null = newChildNodes[newHead]
-
-              if (childNode) {
-                let before: ChildNode | null = null
-
-                if (targetChildNode) before = getMapKey(childNodeMap, targetChildNode) ?? null
-
-                insertBefore(parentNode, childNode, before)
-              }
-            }
-          }
-        }
-
-        if (oldHead <= oldTail) {
-          if (hasKey) {
-            const childNodeMap: Map<string, ChildNode> = new Map()
-
-            for (const newChildNode of newChildNodes) setMap(childNodeMap, newChildNode)
-
-            for (; oldHead <= oldTail; ++oldHead) {
-              const childNode: ChildNode | null = oldChildNodes[oldHead]
-
-              if (childNode && !getMapKey(childNodeMap, childNode)) childNode.remove()
-            }
-          }
-        } else {
-          const childNodeMap: Map<string, ChildNode> = new Map()
-
-          for (const newChildNode of newChildNodes) setMap(childNodeMap, newChildNode)
-
-          for (; oldHead <= oldTail; ++oldHead) {
-            const childNode: ChildNode | null = oldChildNodes[oldHead]
-
-            if (childNode && !getMapKey(childNodeMap, childNode)) childNode.remove()
-          }
-        }
+        if (oldHead <= oldTail)
+          for (; oldHead <= oldTail; ++oldHead) oldChildNodes[oldHead].remove()
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
