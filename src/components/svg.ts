@@ -19,7 +19,7 @@ export const Svg = ({ size, path, color, click }: Arg) =>
         style: {
           width: size,
           height: size,
-          maskImage: `url("../icons/${path}.svg")`,
+          maskImage: `url("./../../icons/${path}.svg")`,
           background: color,
           border: 'none',
           cursor: 'pointer'
