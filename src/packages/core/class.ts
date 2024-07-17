@@ -78,32 +78,34 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#ficsId = `fics${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
-      if (isImmutable) this.#isImmutable = isImmutable
+      if (isImmutable) {
+        if (data)
+          throw new Error(
+            `${this.#tagName} is the immutable component, so it cannot define data...`
+          )
+
+        if (props)
+          throw new Error(
+            `${this.#tagName} is the immutable component, so it cannot receive props...`
+          )
+
+        this.#isImmutable = isImmutable
+      }
 
       if (data) {
-        if (this.#isImmutable)
-          throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
-        else {
-          if (reflections) {
-            if (this.#isImmutable)
-              throw new Error(
-                `${this.#tagName} is an immutable component, so it cannot define reflections...`
-              )
-            else {
-              for (const key of Object.keys(reflections))
-                if (!(key in data())) throw new Error(`${key} is not defined in data...`)
+        if (reflections) {
+          for (const key of Object.keys(reflections))
+            if (!(key in data())) throw new Error(`${key} is not defined in data...`)
 
-              this.#reflections = { ...reflections }
-            }
-          }
-
-          for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+          this.#reflections = { ...reflections }
         }
+
+        for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
       }
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
 
-      if (!this.#isImmutable && props) this.#props = { ...props } as P
+      if (props) this.#props = { ...props } as P
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#className = className
