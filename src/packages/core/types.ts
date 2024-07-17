@@ -42,14 +42,13 @@ export interface FiCs<D extends object, P extends object> {
 
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
-    template: (
-      templates: TemplateStringsArray,
-      ...variables: unknown[]
-    ) => Symbolized<Sanitized<D, P>>
-    html: (templates: TemplateStringsArray, ...variables: unknown[]) => Sanitized<D, P>
+    template: Sanitize<D, P, true>
+    html: Sanitize<D, P, false>
     i18n: ({ json, lang, keys }: I18n) => string
   }
 ) => Symbolized<(Descendant | string)[]>
+
+export type HtmlContents<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
 
 export interface Hooks<D, P> {
   connect?: HookContent<D, P>
@@ -91,7 +90,10 @@ export interface Queue {
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
-export type Sanitized<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
+export type Sanitize<D extends object, P extends object, B> = (
+  templates: TemplateStringsArray,
+  ...variables: unknown[]
+) => B extends true ? Symbolized<HtmlContents<D, P>> : HtmlContents<D, P>
 
 export interface Style<D, P> {
   selector?: string
