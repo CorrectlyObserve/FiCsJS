@@ -346,6 +346,11 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const childNode of childNodes) childNode.remove()
   }
 
+  #editProperty = <V>(element: Element | HTMLElement, attr: string, value: V): void => {
+    attr = attr.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+    ;(element as any)[attr] = value
+  }
+
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
     const deleteNewLines = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
       this.#getChildNodes(parent).filter(
@@ -367,14 +372,15 @@ export default class FiCsElement<D extends object, P extends object> {
       }, '') as string
     )
     const newChildNodes: ChildNode[] = deleteNewLines(newShadowRoot)
-    const getFicsId = (element: Element): string | null => element.getAttribute(this.#ficsIdAttr)
+    const getFicsId = (element: Element, isAttr?: boolean): string | null =>
+      isAttr ? element.getAttribute(this.#ficsIdAttr) : (element as any)[this.#ficsIdAttr]
     const isVarTag = (element: Element): boolean => element.localName === varTag
 
     if (!isRerendering || oldChildNodes.length === 0) {
       this.#bindings.html = typeof this.#html === 'function'
 
       const replace = (element: Element): void => {
-        const ficsId: string | null = getFicsId(element)
+        const ficsId: string | null = getFicsId(element, true)
 
         if (ficsId) {
           const child: FiCsElement<D, P> = children[ficsId]
@@ -418,6 +424,8 @@ export default class FiCsElement<D extends object, P extends object> {
         return isSameNode
       }
 
+      const that: FiCsElement<D, P> = this
+
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
         if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
           oldChildNode.nodeValue = newChildNode.nodeValue
@@ -436,12 +444,6 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           const namespace: string | null = oldChildNode.namespaceURI
-          const updateProperty = (element: Element, name: string, value: unknown): void => {
-            const anyElement: any = element as any
-            name = name.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
-
-            if (name in element && anyElement[name] !== value) anyElement[name] = value
-          }
 
           for (let index = 0; index < newAttrs.length; index++) {
             const { name, value } = newAttrs[index]
@@ -449,7 +451,7 @@ export default class FiCsElement<D extends object, P extends object> {
             if (oldAttrList[name] !== value) {
               if (oldChildNode instanceof HTMLElement) {
                 oldChildNode.setAttribute(name, value)
-                updateProperty(oldChildNode, name, value)
+                if (name !== that.#ficsIdAttr) that.#editProperty(oldChildNode, name, value)
               } else oldChildNode.setAttributeNS(namespace, name, value)
             }
 
@@ -463,8 +465,6 @@ export default class FiCsElement<D extends object, P extends object> {
           updateChildNodes(oldChildNode, deleteNewLines(oldChildNode), deleteNewLines(newChildNode))
         }
       }
-
-      const that: FiCsElement<D, P> = this
 
       function insertBefore(
         parentNode: ShadowRoot | ChildNode,
@@ -661,7 +661,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
 
     const fics = document.createElement(this.#tagName)
-    fics.setAttribute(this.#ficsIdAttr, this.#ficsId)
+    this.#editProperty(fics, this.#ficsIdAttr, this.#ficsId)
     this.#initProps(propsChain)
     this.#addClassName(fics)
     this.#addHtml(this.#getShadowRoot(fics))
@@ -767,7 +767,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addActions(this)
               that.#callback('connect')
               that.#removeChildNodes(that.#getChildNodes(this))
-              this.setAttribute(that.#ficsIdAttr, that.#ficsId)
+              that.#editProperty(this, that.#ficsIdAttr, that.#ficsId)
               that.#component = this
               this.#isRendered = true
             }
