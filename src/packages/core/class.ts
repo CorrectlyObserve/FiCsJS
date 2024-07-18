@@ -22,7 +22,7 @@ import type {
 } from './types'
 
 const symbol: symbol = Symbol('sanitized')
-const generator: Generator<number> = generate()
+const ficsIdGenerator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, boolean> = { var: true, router: true }
@@ -47,7 +47,8 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
-  readonly #ficsIdAttr: string = 'fics-id'
+  readonly #ficsIdName: string = 'fics-id'
+  readonly #ficsPropertyGenerator: Generator<number> = generate()
   readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
@@ -75,7 +76,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = `fics${generator.next().value}`
+      this.#ficsId = `fics${ficsIdGenerator.next().value}`
       this.#tagName = `f-${this.#name}`
 
       if (isImmutable) {
@@ -346,9 +347,11 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const childNode of childNodes) childNode.remove()
   }
 
+  #toCamelCase = (str: string) =>
+    str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+
   #editProperty = <V>(element: Element | HTMLElement, attr: string, value: V): void => {
-    attr = attr.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
-    ;(element as any)[attr] = value
+    ;(element as any)[this.#toCamelCase(attr)] = value
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
@@ -365,66 +368,71 @@ export default class FiCsElement<D extends object, P extends object> {
           const ficsId: string = curr.#ficsId
           children[ficsId] = curr
 
-          curr = `<${varTag} ${this.#ficsIdAttr}="${ficsId}"></${varTag}>`
+          curr = `<${varTag} ${this.#ficsIdName}="${ficsId}"></${varTag}>`
         }
 
         return `${prev}${curr}`
       }, '') as string
     )
-    const newChildNodes: ChildNode[] = deleteNewLines(newShadowRoot)
-    const getFicsId = (element: Element, isAttr?: boolean): string | null =>
-      isAttr ? element.getAttribute(this.#ficsIdAttr) : (element as any)[this.#ficsIdAttr]
     const isVarTag = (element: Element): boolean => element.localName === varTag
+    const getProperty = (
+      element: ChildNode,
+      property: string = this.#ficsIdName
+    ): string | null => {
+      if (element instanceof Element) return (element as any)[this.#toCamelCase(property)]
+
+      throw new Error(`The ${element} is ChildNode...`)
+    }
+    const ficsProperty: string = 'fics-property'
+    const getNewProperty = (): string =>
+      `${ficsProperty}-${this.#ficsPropertyGenerator.next().value}`
 
     if (!isRerendering || oldChildNodes.length === 0) {
       this.#bindings.html = typeof this.#html === 'function'
 
-      const replace = (element: Element): void => {
-        const ficsId: string | null = getFicsId(element, true)
+      for (const element of Array.from(newShadowRoot.querySelectorAll('*'))) {
+        if (!(element instanceof Element)) continue
 
-        if (ficsId) {
-          const child: FiCsElement<D, P> = children[ficsId]
+        if (isVarTag(element)) {
+          const ficsId: string | null = element.getAttribute(this.#ficsIdName)
 
-          element.replaceWith(
-            child.#isImmutable && child.#component
-              ? child.#component
-              : child.#render(this.#propsChain)
-          )
-        } else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+          if (ficsId) {
+            const child: FiCsElement<D, P> = children[ficsId]
+
+            element.replaceWith(
+              child.#isImmutable && child.#component
+                ? child.#component
+                : child.#render(this.#propsChain)
+            )
+          } else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+        } else
+          this.#editProperty(element, ficsProperty, getNewProperty())
       }
 
-      for (const childNode of newChildNodes) {
-        shadowRoot.append(childNode)
-
-        if (childNode instanceof HTMLElement)
-          if (isVarTag(childNode)) replace(childNode)
-          else
-            for (const element of Array.from(childNode.querySelectorAll(varTag))) replace(element)
-      }
-    } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
+      for (const childNode of deleteNewLines(newShadowRoot)) shadowRoot.append(childNode)
+    } else if (deleteNewLines(newShadowRoot).length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const getKey = (childNode: ChildNode): string | undefined => {
         if (childNode instanceof Element) return childNode.getAttribute('key') ?? undefined
 
         return undefined
       }
+      const that: FiCsElement<D, P> = this
+      const newChildNodes: ChildNode[] = deleteNewLines(newShadowRoot)
 
       function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element) {
-          const isFiCsElement =
-            getFicsId(oldChildNode) === getFicsId(newChildNode) && isVarTag(newChildNode)
-          const isSameId = oldChildNode.id === newChildNode.id
-          const isSameKey = getKey(oldChildNode) === getKey(newChildNode)
+          const isFiCsElement: boolean =
+            getProperty(oldChildNode) === getProperty(newChildNode) && isVarTag(newChildNode)
+          const isSameKey: boolean = getKey(oldChildNode) === getKey(newChildNode)
 
-          return isFiCsElement || (isSameNode && isSameId && isSameKey)
+          return isFiCsElement || (isSameNode && isSameKey)
         }
 
         return isSameNode
       }
-
-      const that: FiCsElement<D, P> = this
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
         if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
@@ -446,12 +454,12 @@ export default class FiCsElement<D extends object, P extends object> {
           const namespace: string | null = oldChildNode.namespaceURI
 
           for (let index = 0; index < newAttrs.length; index++) {
-            const { name, value } = newAttrs[index]
+            const { name, value }: { name: string; value: string } = newAttrs[index]
 
             if (oldAttrList[name] !== value) {
               if (oldChildNode instanceof HTMLElement) {
                 oldChildNode.setAttribute(name, value)
-                if (name !== that.#ficsIdAttr) that.#editProperty(oldChildNode, name, value)
+                if (name !== that.#ficsIdName) that.#editProperty(oldChildNode, name, value)
               } else oldChildNode.setAttributeNS(namespace, name, value)
             }
 
@@ -475,7 +483,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const applyCache = <T>(childNode: T): T => {
           if (childNode instanceof Element && isVarTag(childNode)) {
-            const ficsId: string | null = getFicsId(childNode)
+            const ficsId: string | null = childNode.getAttribute(that.#ficsIdName)
             const component: HTMLElement | undefined = children[ficsId ?? ''].#component
 
             if (component) return component as T
@@ -561,6 +569,42 @@ export default class FiCsElement<D extends object, P extends object> {
             }
           }
         }
+
+        const childrenMap: Map<string, { element: Element; property: string; isGotten: boolean }> =
+          new Map()
+
+        for (const oldChildNode of oldChildNodes)
+          if (oldChildNode instanceof Element) {
+            const property: string | null = getProperty(oldChildNode, ficsProperty)
+
+            if (!property) continue
+
+            childrenMap.set(property, { element: oldChildNode, property, isGotten: false })
+          }
+
+        for (const newChildNode of newChildNodes) {
+          if (!(newChildNode instanceof Element)) continue
+
+          const targetChildNode: ChildNode | undefined = oldChildNodes.find(oldChildNode =>
+            newChildNode.isEqualNode(oldChildNode)
+          )
+
+          if (targetChildNode) {
+            const property: string | null = getProperty(targetChildNode, ficsProperty)
+
+            if (!property || !childrenMap.get(property)) continue
+
+            const { isGotten }: { isGotten: boolean } = childrenMap.get(property)!
+
+            if (isGotten) that.#editProperty(newChildNode, ficsProperty, getNewProperty())
+            else {
+              that.#editProperty(newChildNode, ficsProperty, property)
+              childrenMap.get(property)!.isGotten = true
+            }
+          } else that.#editProperty(newChildNode, ficsProperty, getNewProperty())
+        }
+
+        for(const newChildNode of newChildNodes) console.log(newChildNode, getProperty(newChildNode, ficsProperty))
 
         if (newHead <= newTail)
           for (; newHead <= newTail; ++newHead) {
@@ -661,7 +705,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
 
     const fics = document.createElement(this.#tagName)
-    this.#editProperty(fics, this.#ficsIdAttr, this.#ficsId)
+    this.#editProperty(fics, this.#ficsIdName, this.#ficsId)
     this.#initProps(propsChain)
     this.#addClassName(fics)
     this.#addHtml(this.#getShadowRoot(fics))
@@ -767,7 +811,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addActions(this)
               that.#callback('connect')
               that.#removeChildNodes(that.#getChildNodes(this))
-              that.#editProperty(this, that.#ficsIdAttr, that.#ficsId)
+              that.#editProperty(this, that.#ficsIdName, that.#ficsId)
               that.#component = this
               this.#isRendered = true
             }
