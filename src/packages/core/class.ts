@@ -422,7 +422,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element) {
           const isFiCsElement: boolean =
-            getFiCsId(oldChildNode) === getFiCsId(newChildNode) && isVarTag(newChildNode)
+            getFiCsId(oldChildNode) === getFiCsId(newChildNode, true) && isVarTag(newChildNode)
           const isSameProperty: boolean =
             getFiCsProperty(oldChildNode) === getFiCsProperty(newChildNode)
 
