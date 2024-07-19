@@ -6,7 +6,7 @@ const states: Map<string, unknown> = new Map()
 const observers: Map<string, () => void> = new Map()
 
 export const createState = <S>(value: S, isReadonly: boolean = false): string => {
-  const key: string = `state${generator.next().value}`
+  const key: string = `state-${generator.next().value}`
 
   isReadonly ? uneditableStates.set(key, value) : states.set(key, value)
 
