@@ -1,4 +1,4 @@
-const importJson = async ({
+const json = async ({
   langs,
   directory
 }: {
@@ -12,4 +12,4 @@ const importJson = async ({
   return json
 }
 
-export default importJson
+export default json
