@@ -49,6 +49,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsPropertyGenerator: Generator<number> = generate()
+  readonly #childNodeMap: Map<string, ChildNode> = new Map()
   readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
@@ -331,9 +332,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addClassName = (fics: HTMLElement, isRerendering?: boolean): void => {
-    isRerendering
-      ? fics.classList.remove(...Array.from(fics.classList))
-      : (this.#bindings.className = typeof this.#className === 'function')
+    if (isRerendering) fics.classList.remove(...Array.from(fics.classList))
+    else if (!this.#isImmutable) this.#bindings.className = typeof this.#className === 'function'
 
     this.#className
       ? fics.setAttribute('class', `${this.#name} ${this.#getClassName()}`)
@@ -347,10 +347,10 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const childNode of childNodes) childNode.remove()
   }
 
-  #toCamelCase = (str: string) =>
+  #toCamelCase = (str: string): string =>
     str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
 
-  #setProperty = <V>(element: Element | HTMLElement, attr: string, value: V): void => {
+  #setProperty = <V>(element: ChildNode, attr: string, value: V): void => {
     ;(element as any)[this.#toCamelCase(attr)] = value
   }
 
@@ -374,46 +374,79 @@ export default class FiCsElement<D extends object, P extends object> {
         return `${prev}${curr}`
       }, '') as string
     )
-    const isVarTag = (element: Element): boolean => element.localName === varTag
-    const getProperty = (element: Element, property: string): string | null =>
-      (element as any)[this.#toCamelCase(property)]
-    const getFiCsId = (element: Element, isAttr?: boolean): string | null =>
-      isAttr ? element.getAttribute(this.#ficsIdName) : getProperty(element, this.#ficsIdName)
-
     const ficsProperty: string = 'fics-property'
-    const getFiCsProperty = (childNode: ChildNode): string | null => {
-      if (childNode instanceof Element) return getProperty(childNode, ficsProperty)
-
-      throw new Error(`The ${childNode.nodeName} is ChildNode...`)
-    }
-
     const getNewProperty = (): string =>
       `${ficsProperty}-${this.#ficsPropertyGenerator.next().value}`
 
+    const getProperty = (childNode: ChildNode, property: string): string | null =>
+      (childNode as any)[this.#toCamelCase(property)]
+
+    const getFiCsId = (element: Element, isAttr?: boolean): string | null =>
+      isAttr ? element.getAttribute(this.#ficsIdName) : getProperty(element, this.#ficsIdName)
+
+    const getFiCsProperty = (childNode: ChildNode): string | null =>
+      getProperty(childNode, ficsProperty)
+    const isVarTag = (element: Element): boolean => element.localName === varTag
+
     if (!isRerendering || oldChildNodes.length === 0) {
-      this.#bindings.html = typeof this.#html === 'function'
+      if (!this.#isImmutable) this.#bindings.html = typeof this.#html === 'function'
 
-      for (const element of Array.from(newShadowRoot.querySelectorAll('*'))) {
-        if (!(element instanceof Element)) continue
+      const saveToMap = (childNode: ChildNode): void => {
+        const isBreak: boolean =
+          childNode.nodeType === Node.TEXT_NODE && !childNode.nodeValue?.trim()
+        const isFiCsElement: boolean = childNode instanceof Element && !!getFiCsId(childNode)
 
-        if (isVarTag(element)) {
-          const ficsId: string | null = getFiCsId(element, true)
+        if (!this.#isImmutable && !isBreak && !isFiCsElement) {
+          const property: string = getNewProperty()
+          this.#childNodeMap.set(property, childNode)
+          this.#setProperty(childNode, ficsProperty, property)
+        }
+      }
+      const getAllChildNodes = (element: ChildNode): void => {
+        if (element instanceof Element) {
+          if (isVarTag(element)) {
+            const ficsId: string | null = getFiCsId(element, true)
+
+            if (ficsId) {
+              const child: FiCsElement<D, P> = children[ficsId]
+
+              element.replaceWith(
+                child.#isImmutable && child.#component
+                  ? child.#component
+                  : child.#render(this.#propsChain)
+              )
+            } else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+          } else
+            for (const childNode of this.#getChildNodes(element)) {
+              saveToMap(childNode)
+              getAllChildNodes(childNode)
+            }
+        }
+      }
+
+      for (const childNode of this.#getChildNodes(newShadowRoot)) {
+        if (childNode instanceof Element && isVarTag(childNode)) {
+          const ficsId: string | null = getFiCsId(childNode, true)
 
           if (ficsId) {
             const child: FiCsElement<D, P> = children[ficsId]
 
-            element.replaceWith(
+            shadowRoot.append(
               child.#isImmutable && child.#component
                 ? child.#component
                 : child.#render(this.#propsChain)
             )
           } else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
-        } else this.#setProperty(element, ficsProperty, getNewProperty())
+        } else {
+          saveToMap(childNode)
+          getAllChildNodes(childNode)
+          shadowRoot.append(childNode)
+        }
       }
-
-      for (const childNode of deleteNewLines(newShadowRoot)) shadowRoot.append(childNode)
-    } else if (deleteNewLines(newShadowRoot).length === 0) this.#removeChildNodes(oldChildNodes)
-    else {
+    } else if (deleteNewLines(newShadowRoot).length === 0) {
+      this.#removeChildNodes(oldChildNodes)
+      this.#childNodeMap.clear()
+    } else {
       const that: FiCsElement<D, P> = this
       const newChildNodes: ChildNode[] = deleteNewLines(newShadowRoot)
 
@@ -507,27 +540,16 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
-        let mapHead: { element: Element; isGotten: boolean } | undefined = undefined
-        const childrenMap: Map<string, { element: Element; isGotten: boolean }> = new Map()
-
-        for (const oldChildNode of oldChildNodes)
-          if (oldChildNode instanceof Element) {
-            const property: string | null = getFiCsProperty(oldChildNode)
-
-            if (!property) continue
-
-            childrenMap.set(property, { element: oldChildNode, isGotten: false })
-          }
+        let mapHead: ChildNode | undefined = undefined
+        const propertySet: Set<string> = new Set()
 
         for (const newChildNode of newChildNodes) {
-          if (!(newChildNode instanceof Element)) continue
-
           let targetChildNode: ChildNode | undefined = undefined
 
           for (const oldChildNode of oldChildNodes) {
-            if (targetChildNode || !(oldChildNode instanceof Element)) continue
+            if (targetChildNode) continue
 
-            const clonedChildNode: Element = oldChildNode.cloneNode(true) as Element
+            const clonedChildNode: ChildNode = oldChildNode.cloneNode(true) as ChildNode
             delete (clonedChildNode as any)[ficsProperty]
 
             if (matchChildNode(newChildNode, clonedChildNode)) targetChildNode = oldChildNode
@@ -535,22 +557,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (targetChildNode) {
             const property: string | null = getFiCsProperty(targetChildNode)
+            const childNode: ChildNode | undefined = that.#childNodeMap.get(property ?? '')
 
-            if (!property || !childrenMap.get(property)) continue
+            if (!property || !childNode) continue
 
-            const { isGotten }: { isGotten: boolean } = childrenMap.get(property)!
-
-            if (isGotten) that.#setProperty(newChildNode, ficsProperty, getNewProperty())
-            else {
-              that.#setProperty(newChildNode, ficsProperty, property)
-              childrenMap.get(property)!.isGotten = true
-            }
+            if (propertySet.has(property)) {
+              that.#setProperty(newChildNode, ficsProperty, getNewProperty())
+              propertySet.add(property)
+            } else that.#setProperty(newChildNode, ficsProperty, property)
           } else that.#setProperty(newChildNode, ficsProperty, getNewProperty())
         }
-
-        for (const newChildNode of newChildNodes)
-          if (newChildNode instanceof Element)
-            console.log(childrenMap, newChildNode, getFiCsProperty(newChildNode))
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -572,26 +588,24 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            const newHeadKey: string | null =
-              newHeadNode instanceof Element ? getFiCsProperty(newHeadNode) : null
-            const newTailKey: string | null =
-              newTailNode instanceof Element ? getFiCsProperty(newTailNode) : null
+            const newHeadKey: string | null = getFiCsProperty(newHeadNode)
+            const newTailKey: string | null = getFiCsProperty(newTailNode)
 
-            if (newHeadKey) mapHead = childrenMap.get(newHeadKey)
+            if (newHeadKey) mapHead = that.#childNodeMap.get(newHeadKey)
 
             if (mapHead === undefined) {
               insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
-            } else if ((newTailKey ? childrenMap.get(newTailKey) : undefined) === undefined) {
+            } else if (
+              (newTailKey ? that.#childNodeMap.get(newTailKey) : undefined) === undefined
+            ) {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
-              const { element }: { element: Element } = mapHead
-
-              if (element.nodeName === newHeadNode.nodeName) patchChildNode(element, newHeadNode)
+              if (mapHead.nodeName === newHeadNode.nodeName) patchChildNode(mapHead, newHeadNode)
               else {
                 insertBefore(parentNode, newHeadNode, oldHeadNode)
-                element.remove()
+                mapHead.remove()
               }
 
               newHeadNode = newChildNodes[++newHead]
@@ -617,7 +631,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #addCss = (shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void => {
     if (this.#css.length === 0) return
 
-    if (css.length === 0)
+    if (!this.#isImmutable && css.length === 0)
       for (const [index, content] of this.#css.entries())
         if (typeof content !== 'string' && typeof content.style === 'function')
           this.#bindings.css.push(index)
@@ -653,7 +667,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#actions.forEach((action, index) => {
         const { handler, selector, method }: Action<D, P> = action
 
-        if (selector) {
+        if (!this.#isImmutable && selector) {
           this.#bindings.actions.push(index)
 
           for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
