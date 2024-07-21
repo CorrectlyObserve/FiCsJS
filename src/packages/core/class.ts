@@ -49,7 +49,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsPropertyGenerator: Generator<number> = generate()
-  readonly #childNodeMap: Map<string, ChildNode> = new Map()
+  readonly #childNodeMap: Map<ChildNode, { childNode: ChildNode; property: string }> = new Map()
   readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
@@ -398,8 +398,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (!this.#isImmutable && !isBreak && !isFiCsElement) {
           const property: string = getNewProperty()
-          this.#childNodeMap.set(property, childNode)
           this.#setProperty(childNode, ficsProperty, property)
+          this.#childNodeMap.set(childNode, { childNode, property })
         }
       }
       const getAllChildNodes = (element: ChildNode): void => {
@@ -540,33 +540,9 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
-        let mapHead: ChildNode | undefined = undefined
-        const propertySet: Set<string> = new Set()
+        let mapHead: { childNode: ChildNode; property: string } | undefined = undefined
 
-        for (const newChildNode of newChildNodes) {
-          let targetChildNode: ChildNode | undefined = undefined
-
-          for (const oldChildNode of oldChildNodes) {
-            if (targetChildNode) continue
-
-            const clonedChildNode: ChildNode = oldChildNode.cloneNode(true) as ChildNode
-            delete (clonedChildNode as any)[ficsProperty]
-
-            if (matchChildNode(newChildNode, clonedChildNode)) targetChildNode = oldChildNode
-          }
-
-          if (targetChildNode) {
-            const property: string | null = getFiCsProperty(targetChildNode)
-            const childNode: ChildNode | undefined = that.#childNodeMap.get(property ?? '')
-
-            if (!property || !childNode) continue
-
-            if (propertySet.has(property)) {
-              that.#setProperty(newChildNode, ficsProperty, getNewProperty())
-              propertySet.add(property)
-            } else that.#setProperty(newChildNode, ficsProperty, property)
-          } else that.#setProperty(newChildNode, ficsProperty, getNewProperty())
-        }
+        console.log(oldChildNodes, newChildNodes)
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -588,24 +564,21 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            const newHeadKey: string | null = getFiCsProperty(newHeadNode)
-            const newTailKey: string | null = getFiCsProperty(newTailNode)
-
-            if (newHeadKey) mapHead = that.#childNodeMap.get(newHeadKey)
+            mapHead = that.#childNodeMap.get(newHeadNode)
 
             if (mapHead === undefined) {
               insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
-            } else if (
-              (newTailKey ? that.#childNodeMap.get(newTailKey) : undefined) === undefined
-            ) {
+            } else if (that.#childNodeMap.get(newTailNode) === undefined) {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
-              if (mapHead.nodeName === newHeadNode.nodeName) patchChildNode(mapHead, newHeadNode)
+              const { childNode }: { childNode: ChildNode } = mapHead
+              if (childNode.nodeName === newHeadNode.nodeName)
+                patchChildNode(childNode, newHeadNode)
               else {
                 insertBefore(parentNode, newHeadNode, oldHeadNode)
-                mapHead.remove()
+                childNode.remove()
               }
 
               newHeadNode = newChildNodes[++newHead]
