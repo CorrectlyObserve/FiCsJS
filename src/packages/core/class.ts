@@ -675,12 +675,14 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics = document.createElement(this.#tagName)
+    const fics: HTMLElement = document.createElement(this.#tagName)
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
+
     this.#setProperty(fics, this.#ficsIdName, this.#ficsId)
     this.#initProps(propsChain)
     this.#addClassName(fics)
-    this.#addHtml(this.#getShadowRoot(fics))
-    this.#addCss(this.#getShadowRoot(fics))
+    this.#addHtml(shadowRoot)
+    this.#addCss(shadowRoot)
     this.#addActions(fics)
 
     if (!this.#component) {
@@ -777,8 +779,8 @@ export default class FiCsElement<D extends object, P extends object> {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
-              that.#addHtml(that.#getShadowRoot(this))
-              that.#addCss(that.#getShadowRoot(this))
+              that.#addHtml(this.shadowRoot)
+              that.#addCss(this.shadowRoot)
               that.#addActions(this)
               that.#callback('connect')
               that.#removeChildNodes(that.#getChildNodes(this))
