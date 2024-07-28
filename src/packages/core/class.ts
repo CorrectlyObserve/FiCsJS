@@ -369,10 +369,10 @@ export default class FiCsElement<D extends object, P extends object> {
         return `${prev}${curr}`
       }, '') as string
     )
-    const getFiCsId = (element: Element, isAttr?: boolean): string | null =>
-      isAttr
-        ? element.getAttribute(this.#ficsIdName)
-        : (element as any)[this.#toCamelCase(this.#ficsIdName)]
+    const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
+      isProperty
+        ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
+        : element.getAttribute(this.#ficsIdName)
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
 
@@ -380,7 +380,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (!this.#isImmutable) this.#bindings.html = typeof this.#html === 'function'
 
       const loadChild = (element: Element): void => {
-        const ficsId: string | null = getFiCsId(element, true)
+        const ficsId: string | null = getFiCsId(element)
 
         if (ficsId) {
           const fics: FiCsElement<D, P> = children[ficsId]
@@ -410,7 +410,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element)
           return (
-            (getFiCsId(oldChildNode) === getFiCsId(newChildNode, true) && isVarTag(newChildNode)) ||
+            (getFiCsId(oldChildNode, true) === getFiCsId(newChildNode) && isVarTag(newChildNode)) ||
             (isSameNode && getKey(oldChildNode) === getKey(newChildNode))
           )
 
@@ -470,7 +470,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const applyCache = <T>(childNode: T): T => {
           if (childNode instanceof Element && isVarTag(childNode)) {
-            const ficsId: string | null = getFiCsId(childNode, true)
+            const ficsId: string | null = getFiCsId(childNode)
             const component: HTMLElement | undefined = children[ficsId ?? ''].#component
 
             if (component) return component as T
@@ -506,7 +506,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         for (const oldChildNode of oldChildNodes) {
-          if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode)) continue
+          if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
           const key: string = getMapKey(oldChildNode)
           const data: MapValue | undefined = oldElementsMap.get(key)
