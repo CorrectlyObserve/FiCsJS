@@ -596,9 +596,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (oldHead <= oldTail)
           for (; oldHead <= oldTail; ++oldHead) {
-            const childNode: ChildNode = oldChildNodes[oldHead]
             console.log(7)
-            childNode.remove()
+            oldChildNodes[oldHead].remove()
           }
       }
 
