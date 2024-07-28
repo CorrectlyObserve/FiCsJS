@@ -401,10 +401,11 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
-      const getKey = (element: Element): string | null => element.getAttribute('key')
-      const that: FiCsElement<D, P> = this
+      console.log(0, oldChildNodes)
 
-      function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
+      const getKey = (element: Element): string | null => element.getAttribute('key')
+
+      const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element)
@@ -416,7 +417,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return isSameNode
       }
 
-      function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
+      const patchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): void => {
         if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (
@@ -441,7 +442,8 @@ export default class FiCsElement<D extends object, P extends object> {
             if (oldAttrList[name] !== value) {
               if (oldChildNode instanceof HTMLElement) {
                 oldChildNode.setAttribute(name, value)
-                if (name !== that.#ficsIdName) that.#setProperty(oldChildNode, name, value)
+
+                if (name !== this.#ficsIdName) this.#setProperty(oldChildNode, name, value)
               } else oldChildNode.setAttributeNS(namespaceURI, name, value)
             }
 
@@ -454,26 +456,25 @@ export default class FiCsElement<D extends object, P extends object> {
 
           updateChildNodes(
             oldChildNode,
-            that.#getChildNodes(oldChildNode),
-            that.#getChildNodes(newChildNode)
+            this.#getChildNodes(oldChildNode),
+            this.#getChildNodes(newChildNode)
           )
         }
       }
 
-      function insertBefore(
+      const insertBefore = (
         parentNode: ShadowRoot | ChildNode,
         childNode: ChildNode,
         before: ChildNode | null
-      ): void {
-        if (childNode instanceof Element) that.#newElements.add(childNode)
+      ): void => {
+        if (childNode instanceof Element) this.#newElements.add(childNode)
 
         const applyCache = <T>(childNode: T): T => {
           if (childNode instanceof Element && isVarTag(childNode)) {
             const ficsId: string | null = getFiCsId(childNode)
-            const component: HTMLElement | undefined = children[ficsId ?? ''].#component
 
-            if (component) return component as T
-            else throw new Error(`The child FiCsElement has ${ficsId} does not exist...`)
+            if (ficsId) return children[ficsId].#component as T
+            else throw new Error(`The child FiCsElement has FiCsId does not exist...`)
           }
 
           return childNode
@@ -482,16 +483,16 @@ export default class FiCsElement<D extends object, P extends object> {
         parentNode.insertBefore(applyCache(childNode), applyCache(before))
       }
 
-      function updateChildNodes(
+      const updateChildNodes = (
         parentNode: ShadowRoot | ChildNode,
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
-      ): void {
+      ): void => {
         interface MapValue {
           childNodes: ChildNode[]
           getIndex: () => number
         }
-        const oldElementsMap: Map<string, MapValue> = new Map()
+        const childNodesMap: Map<string, MapValue> = new Map()
         const getMapKey = (childNode: ChildNode): string => {
           if (childNode instanceof Element)
             return childNode
@@ -508,15 +509,16 @@ export default class FiCsElement<D extends object, P extends object> {
           if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
           const key: string = getMapKey(oldChildNode)
-          const data: MapValue | undefined = oldElementsMap.get(key)
+          const data: MapValue | undefined = childNodesMap.get(key)
           const childNode: ChildNode = oldChildNode.cloneNode(true) as ChildNode
 
           if (data) {
             const { childNodes, getIndex }: MapValue = data
-            oldElementsMap.set(key, { childNodes: [...childNodes, childNode], getIndex })
+            childNodesMap.set(key, { childNodes: [...childNodes, childNode], getIndex })
           } else {
             const generator: Generator<number> = generate()
-            oldElementsMap.set(key, {
+
+            childNodesMap.set(key, {
               childNodes: [childNode],
               getIndex: () => --generator.next().value
             })
@@ -532,13 +534,9 @@ export default class FiCsElement<D extends object, P extends object> {
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
         const getChildNodeInMap = (childNode: ChildNode): ChildNode | undefined => {
-          const data: MapValue | undefined = oldElementsMap.get(getMapKey(childNode))
+          const data: MapValue | undefined = childNodesMap.get(getMapKey(childNode))
 
-          if (!data) return undefined
-
-          const { childNodes, getIndex }: MapValue = data
-
-          return childNodes[getIndex()]
+          return data?.childNodes[data.getIndex()] ?? undefined
         }
 
         while (oldHead <= oldTail && newHead <= newTail) {
@@ -548,7 +546,7 @@ export default class FiCsElement<D extends object, P extends object> {
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
           } else if (matchChildNode(oldTailNode, newTailNode)) {
-            console.log(2, oldElementsMap, oldTailNode, newTailNode)
+            console.log(2)
             patchChildNode(oldTailNode, newTailNode)
             oldTailNode = oldChildNodes[--oldTail]
             newTailNode = newChildNodes[--newTail]
@@ -587,11 +585,13 @@ export default class FiCsElement<D extends object, P extends object> {
         if (newHead <= newTail)
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode | null = newChildNodes[newHead]
-            const last: ChildNode | null = newChildNodes[newTail + 1]
+            const last: ChildNode | undefined = getChildNodeInMap(newChildNodes[newTail + 1])
 
-            console.log(6, getChildNodeInMap(last))
+            console.log(6, { childNode, last, newHead, newTail })
 
-            if (childNode) insertBefore(parentNode, childNode, last)
+            if (childNode)
+              if (last) insertBefore(parentNode, childNode, last)
+              else parentNode.appendChild(childNode)
           }
 
         if (oldHead <= oldTail)
