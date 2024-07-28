@@ -394,11 +394,10 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of newChildNodes) {
         shadowRoot.append(childNode)
 
-        if (childNode instanceof HTMLElement) {
+        if (childNode instanceof HTMLElement)
           if (isVarTag(childNode)) loadChild(childNode)
           else
             for (const element of Array.from(childNode.querySelectorAll(varTag))) loadChild(element)
-        }
       }
     } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
@@ -532,8 +531,15 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
+        const getChildNodeInMap = (childNode: ChildNode): ChildNode | undefined => {
+          const data: MapValue | undefined = oldElementsMap.get(getMapKey(childNode))
 
-        console.log('map', oldElementsMap)
+          if (!data) return undefined
+
+          const { childNodes, getIndex }: MapValue = data
+
+          return childNodes[getIndex()]
+        }
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -559,15 +565,6 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            const getChildNodeInMap = (childNode: ChildNode): ChildNode | undefined => {
-              const data: MapValue | undefined = oldElementsMap.get(getMapKey(childNode))
-
-              if (!data) return undefined
-
-              const { childNodes, getIndex }: MapValue = data
-
-              return childNodes[getIndex()]
-            }
             const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode)
 
             console.log(5, mapHead)
@@ -592,7 +589,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const childNode: ChildNode | null = newChildNodes[newHead]
             const last: ChildNode | null = newChildNodes[newTail + 1]
 
-            console.log(6)
+            console.log(6, getChildNodeInMap(last))
 
             if (childNode) insertBefore(parentNode, childNode, last)
           }
@@ -600,6 +597,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (oldHead <= oldTail)
           for (; oldHead <= oldTail; ++oldHead) {
             const childNode: ChildNode = oldChildNodes[oldHead]
+            console.log(7)
             childNode.remove()
           }
       }
