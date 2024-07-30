@@ -52,6 +52,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
+  #dom: ChildNode[] = new Array()
   #isReflecting: boolean = false
 
   constructor({
@@ -341,9 +342,13 @@ export default class FiCsElement<D extends object, P extends object> {
   #getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
     Array.from(parent.childNodes)
 
-  #removeChildNodes = (param: HTMLElement | ChildNode[]): void => {
-    for (const childNode of param instanceof HTMLElement ? this.#getChildNodes(param) : param)
-      childNode.remove()
+  #removeChildNodes = (param: ShadowRoot | HTMLElement | ChildNode[]): void => {
+    const childNodes: ChildNode[] =
+      param instanceof ShadowRoot || param instanceof HTMLElement
+        ? this.#getChildNodes(param)
+        : param
+
+    for (const childNode of childNodes) childNode.remove()
   }
 
   #toCamelCase = (str: string): string =>
@@ -354,7 +359,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
     const newShadowRoot: DocumentFragment = document.createRange().createContextualFragment(
@@ -376,7 +380,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
 
-    if (!isRerendering || oldChildNodes.length === 0) {
+    if (!isRerendering || this.#getChildNodes(shadowRoot).length === 0) {
       if (!this.#isImmutable) this.#bindings.html = typeof this.#html === 'function'
 
       const loadChild = (element: Element): void => {
@@ -398,14 +402,15 @@ export default class FiCsElement<D extends object, P extends object> {
           if (isVarTag(childNode)) loadChild(childNode)
           else
             for (const element of Array.from(childNode.querySelectorAll(varTag))) loadChild(element)
+
+        this.#dom.push(childNode)
       }
-    } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
+    } else if (newChildNodes.length === 0) this.#removeChildNodes(shadowRoot)
     else {
-      console.log(0, oldChildNodes)
-
       const getKey = (element: Element): string | null => element.getAttribute('key')
+      const that: FiCsElement<D, P> = this
 
-      const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
+      function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element)
@@ -417,7 +422,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return isSameNode
       }
 
-      const patchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): void => {
+      function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
         if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (
@@ -443,7 +448,7 @@ export default class FiCsElement<D extends object, P extends object> {
               if (oldChildNode instanceof HTMLElement) {
                 oldChildNode.setAttribute(name, value)
 
-                if (name !== this.#ficsIdName) this.#setProperty(oldChildNode, name, value)
+                if (name !== that.#ficsIdName) that.#setProperty(oldChildNode, name, value)
               } else oldChildNode.setAttributeNS(namespaceURI, name, value)
             }
 
@@ -456,18 +461,18 @@ export default class FiCsElement<D extends object, P extends object> {
 
           updateChildNodes(
             oldChildNode,
-            this.#getChildNodes(oldChildNode),
-            this.#getChildNodes(newChildNode)
+            that.#getChildNodes(oldChildNode),
+            that.#getChildNodes(newChildNode)
           )
         }
       }
 
-      const insertBefore = (
+      function insertBefore(
         parentNode: ShadowRoot | ChildNode,
         childNode: ChildNode,
         before: ChildNode | null
-      ): void => {
-        if (childNode instanceof Element) this.#newElements.add(childNode)
+      ): void {
+        if (childNode instanceof Element) that.#newElements.add(childNode)
 
         const applyCache = <T>(childNode: T): T => {
           if (childNode instanceof Element && isVarTag(childNode)) {
@@ -483,11 +488,11 @@ export default class FiCsElement<D extends object, P extends object> {
         parentNode.insertBefore(applyCache(childNode), applyCache(before))
       }
 
-      const updateChildNodes = (
+      function updateChildNodes(
         parentNode: ShadowRoot | ChildNode,
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
-      ): void => {
+      ): void {
         interface MapValue {
           childNodes: ChildNode[]
           getIndex: () => number
@@ -525,6 +530,8 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
+        console.log('map', childNodesMap)
+
         let oldHead: number = 0
         let oldTail: number = oldChildNodes.length - 1
         let oldHeadNode: ChildNode = oldChildNodes[oldHead]
@@ -546,8 +553,9 @@ export default class FiCsElement<D extends object, P extends object> {
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
           } else if (matchChildNode(oldTailNode, newTailNode)) {
-            console.log(2)
+            console.log(2, oldTailNode, (oldTailNode as Element).getAttribute('id'))
             patchChildNode(oldTailNode, newTailNode)
+            console.log(2, oldTailNode, (oldTailNode as Element).getAttribute('id'))
             oldTailNode = oldChildNodes[--oldTail]
             newTailNode = newChildNodes[--newTail]
           } else if (matchChildNode(oldHeadNode, newTailNode)) {
@@ -601,7 +609,8 @@ export default class FiCsElement<D extends object, P extends object> {
           }
       }
 
-      updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
+      updateChildNodes(shadowRoot, this.#dom, newChildNodes)
+      this.#dom = [...this.#getChildNodes(shadowRoot)]
     }
   }
 
