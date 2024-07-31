@@ -355,6 +355,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
+    const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
+      isProperty
+        ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
+        : element.getAttribute(this.#ficsIdName)
+
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
     const newShadowRoot: DocumentFragment = document.createRange().createContextualFragment(
@@ -369,12 +374,8 @@ export default class FiCsElement<D extends object, P extends object> {
         return `${prev}${curr}`
       }, '') as string
     )
-    const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
-      isProperty
-        ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
-        : element.getAttribute(this.#ficsIdName)
-    const isVarTag = (element: Element): boolean => element.localName === varTag
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
+    const isVarTag = (element: Element): boolean => element.localName === varTag
 
     if (!isRerendering || oldChildNodes.length === 0) {
       if (!this.#isImmutable) this.#bindings.html = typeof this.#html === 'function'
