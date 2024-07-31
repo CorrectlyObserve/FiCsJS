@@ -52,7 +52,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
-  #dom: ChildNode[] = new Array()
   #isReflecting: boolean = false
 
   constructor({
@@ -342,13 +341,9 @@ export default class FiCsElement<D extends object, P extends object> {
   #getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
     Array.from(parent.childNodes)
 
-  #removeChildNodes = (param: ShadowRoot | HTMLElement | ChildNode[]): void => {
-    const childNodes: ChildNode[] =
-      param instanceof ShadowRoot || param instanceof HTMLElement
-        ? this.#getChildNodes(param)
-        : param
-
-    for (const childNode of childNodes) childNode.remove()
+  #removeChildNodes = (param: HTMLElement | ChildNode[]): void => {
+    for (const childNode of param instanceof HTMLElement ? this.#getChildNodes(param) : param)
+      childNode.remove()
   }
 
   #toCamelCase = (str: string): string =>
@@ -359,6 +354,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const children: Record<string, FiCsElement<D, P>> = {}
     const varTag: string = 'f-var'
     const newShadowRoot: DocumentFragment = document.createRange().createContextualFragment(
@@ -380,7 +376,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
 
-    if (!isRerendering || this.#getChildNodes(shadowRoot).length === 0) {
+    if (!isRerendering || oldChildNodes.length === 0) {
       if (!this.#isImmutable) this.#bindings.html = typeof this.#html === 'function'
 
       const loadChild = (element: Element): void => {
@@ -402,10 +398,8 @@ export default class FiCsElement<D extends object, P extends object> {
           if (isVarTag(childNode)) loadChild(childNode)
           else
             for (const element of Array.from(childNode.querySelectorAll(varTag))) loadChild(element)
-
-        this.#dom.push(childNode)
       }
-    } else if (newChildNodes.length === 0) this.#removeChildNodes(shadowRoot)
+    } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const getKey = (element: Element): string | null => element.getAttribute('key')
       const that: FiCsElement<D, P> = this
@@ -609,8 +603,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
       }
 
-      updateChildNodes(shadowRoot, this.#dom, newChildNodes)
-      this.#dom = [...this.#getChildNodes(shadowRoot)]
+      updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
     }
   }
 
