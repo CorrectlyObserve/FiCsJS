@@ -538,7 +538,10 @@ export default class FiCsElement<D extends object, P extends object> {
         const getChildNodeInMap = (childNode: ChildNode): ChildNode | undefined => {
           const data: MapValue | undefined = childNodesMap.get(getMapKey(childNode))
 
-          return data?.childNodes[data.getIndex()] ?? undefined
+          if (!data) return undefined
+
+          const { childNodes, getIndex }: MapValue = data
+          return childNodes[getIndex()]
         }
 
         while (oldHead <= oldTail && newHead <= newTail) {
