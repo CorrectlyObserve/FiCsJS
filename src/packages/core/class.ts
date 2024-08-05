@@ -488,19 +488,13 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        interface MapValue {
-          childNodes: ChildNode[]
-          getIndex: () => number
-        }
-        const childNodesMap: Map<string, MapValue> = new Map()
+        const childNodesMap: Map<string, ChildNode[]> = new Map()
         const getMapKey = (childNode: ChildNode): string => {
-          if (childNode instanceof Element)
-            return childNode
-              .getAttributeNames()
-              .reduce(
-                (prev, curr) => `${prev}-${curr === 'key' ? getKey(childNode) : curr}`,
-                childNode.localName
-              )
+          if (childNode instanceof Element) {
+            const key: string | null = getKey(childNode)
+
+            return `${childNode.localName}${key ? `-${key}` : ''}`
+          }
 
           return childNode.nodeName
         }
@@ -509,20 +503,10 @@ export default class FiCsElement<D extends object, P extends object> {
           if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
           const key: string = getMapKey(oldChildNode)
-          const data: MapValue | undefined = childNodesMap.get(key)
+          const childNodes: ChildNode[] | undefined = childNodesMap.get(key)
           const childNode: ChildNode = oldChildNode.cloneNode(true) as ChildNode
 
-          if (data) {
-            const { childNodes, getIndex }: MapValue = data
-            childNodesMap.set(key, { childNodes: [...childNodes, childNode], getIndex })
-          } else {
-            const generator: Generator<number> = generate()
-
-            childNodesMap.set(key, {
-              childNodes: [childNode],
-              getIndex: () => --generator.next().value
-            })
-          }
+          childNodesMap.set(key, childNodes ? [...childNodes, childNode] : [childNode])
         }
 
         console.log('map', childNodesMap)
@@ -535,14 +519,10 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
-        const getChildNodeInMap = (childNode: ChildNode): ChildNode | undefined => {
-          const data: MapValue | undefined = childNodesMap.get(getMapKey(childNode))
-
-          if (!data) return undefined
-
-          const { childNodes, getIndex }: MapValue = data
-          return childNodes[getIndex()]
-        }
+        const getChildNodeInMap = (
+          childNode: ChildNode,
+          method: 'shift' | 'pop'
+        ): ChildNode | undefined => childNodesMap.get(getMapKey(childNode))?.[method]()
 
         while (oldHead <= oldTail && newHead <= newTail) {
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -569,14 +549,14 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode)
+            const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode, 'shift')
 
             console.log(5, mapHead)
 
             if (mapHead === undefined) {
               insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
-            } else if (getChildNodeInMap(newTailNode) === undefined) {
+            } else if (getChildNodeInMap(newTailNode, 'pop') === undefined) {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
@@ -591,13 +571,17 @@ export default class FiCsElement<D extends object, P extends object> {
         if (newHead <= newTail)
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode | null = newChildNodes[newHead]
-            const last: ChildNode | undefined = getChildNodeInMap(newChildNodes[newTail + 1])
+            const last: ChildNode | undefined = getChildNodeInMap(newChildNodes[newTail + 1], 'pop')
 
-            console.log(6, { childNode, last, newHead, newTail })
+            console.log(6, { childNode, oldTail, last: oldChildNodes[oldTail], newHead, newTail })
 
             if (childNode)
-              if (last) insertBefore(parentNode, childNode, last)
-              else parentNode.appendChild(childNode)
+              insertBefore(
+                parentNode,
+                childNode,
+                oldChildNodes[oldTail < 0 ? oldChildNodes.length - 1 : oldTail]
+              )
+            // else parentNode.appendChild(childNode)
           }
 
         if (oldHead <= oldTail)
