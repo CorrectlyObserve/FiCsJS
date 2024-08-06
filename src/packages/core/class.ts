@@ -107,16 +107,18 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
-
       if (props) this.#props = { ...props } as P
 
       if (isOnlyCsr) this.#isOnlyCsr = true
-      if (className) this.#className = className
+
+      if (className)
+        this.#className =
+          typeof className === 'function' ? className(this.#setDataProps()) : className
+
       if (attributes)
-        this.#attributes =
-          typeof attributes === 'function'
-            ? { ...attributes(this.#setDataProps()) }
-            : { ...attributes }
+        this.#attributes = {
+          ...(typeof attributes === 'function' ? attributes(this.#setDataProps()) : attributes)
+        }
 
       this.#html = html
 
@@ -309,15 +311,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({ ...this.#setDataProps(), template, html, i18n })[symbol]
   }
 
-  #getClassName = (): string | undefined =>
-    typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
-
   #getAttributes = (): string | undefined => {
     if (!this.#attributes) return
 
     return Object.entries(this.#attributes).reduce(
       (prev, curr) => `${prev} ${this.#toKebabCase(curr[0])}="${curr[1]}"`,
-      ' '
+      ''
     )
   }
 
@@ -326,13 +325,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#initProps(propsChain)
 
-    const attrs: string = this.#getAttributes() ?? ''
+    const classNames: string = `class="${this.#name}${this.#className ? ` ${this.#className}` : ''}"`
     const slotId: string = `${this.#ficsId}-slot`
     const style: string =
       this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
 
     return `
-        <${this.#tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}"${attrs}>
+        <${[this.#tagName, classNames, this.#getAttributes() ?? ''].join(' ').trim()}>
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${slotId}" slot="${this.#ficsId}">
             ${style}
@@ -353,7 +352,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!this.#isImmutable) this.#bindings.className = typeof this.#className === 'function'
 
     this.#className
-      ? fics.setAttribute('class', `${this.#name} ${this.#getClassName()}`)
+      ? fics.setAttribute('class', `${this.#name} ${this.#className}`)
       : fics.classList.add(this.#name)
   }
 
