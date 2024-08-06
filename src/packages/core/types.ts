@@ -4,6 +4,7 @@ export interface Action<D, P> {
   handler: string
   selector?: string
   method: Method<D, P>
+  isEnterEnabled?: boolean
 }
 
 type ArrowFuncOrValue<V, D, P> = V | ((params: DataProps<D, P>) => V)
@@ -62,9 +63,7 @@ export interface Hooks<D, P> {
   adopt?: HookContent<D, P>
 }
 
-type HookContent<D, P> = (
-  params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void }
-) => void
+type HookContent<D, P> = (params: Param<D, P>) => void
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
@@ -77,9 +76,11 @@ export interface I18n {
   keys: string | string[]
 }
 
-export type Method<D, P> = (
-  params: DataProps<D, P> & { setData: (key: keyof D, value: D[typeof key]) => void; event: Event }
-) => void
+export type Method<D, P> = (params: Param<D, P> & { event: Event }) => void
+
+export type Param<D, P> = DataProps<D, P> & {
+  setData: (key: keyof D, value: D[typeof key]) => void
+}
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
