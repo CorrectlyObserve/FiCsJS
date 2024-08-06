@@ -12,6 +12,7 @@ export type Attributes<D, P> = ArrowFuncOrValue<Record<string, string>, D, P>
 
 export interface Bindings {
   className: boolean
+  attributes: boolean
   html: boolean
   css: number[]
   actions: number[]
