@@ -427,17 +427,19 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
-      const getKey = (element: Element): string | null => element.getAttribute('key')
       const that: FiCsElement<D, P> = this
 
       function matchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): boolean {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
-        if (oldChildNode instanceof Element && newChildNode instanceof Element)
-          return (
-            (getFiCsId(oldChildNode, true) === getFiCsId(newChildNode) && isVarTag(newChildNode)) ||
-            (isSameNode && getKey(oldChildNode) === getKey(newChildNode))
-          )
+        if (oldChildNode instanceof Element && newChildNode instanceof Element) {
+          const isSameFiCsId: boolean =
+            isVarTag(newChildNode) && getFiCsId(oldChildNode, true) === getFiCsId(newChildNode)
+          const isSameKey: boolean =
+            oldChildNode.getAttribute('key') === newChildNode.getAttribute('key')
+
+          return isSameFiCsId || (isSameNode && isSameKey)
+        }
 
         return isSameNode
       }
@@ -516,7 +518,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const childNodesMap: Map<string, ChildNode[]> = new Map()
         const getMapKey = (childNode: ChildNode): string => {
           if (childNode instanceof Element) {
-            const key: string | null = getKey(childNode)
+            const key: string | null = childNode.getAttribute('key')
 
             return `${childNode.localName}${key ? `-${key}` : ''}`
           }
@@ -534,8 +536,6 @@ export default class FiCsElement<D extends object, P extends object> {
           childNodesMap.set(key, childNodes ? [...childNodes, childNode] : [childNode])
         }
 
-        console.log('map', childNodesMap)
-
         let oldHead: number = 0
         let oldTail: number = oldChildNodes.length - 1
         let oldHeadNode: ChildNode = oldChildNodes[oldHead]
@@ -549,26 +549,22 @@ export default class FiCsElement<D extends object, P extends object> {
           method: 'shift' | 'pop'
         ): ChildNode | undefined => childNodesMap.get(getMapKey(childNode))?.[method]()
 
-        while (oldHead <= oldTail && newHead <= newTail) {
+        while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
-            console.log(1)
+            console.log(1, oldHeadNode, newHeadNode, oldTailNode, newTailNode)
             patchChildNode(oldHeadNode, newHeadNode)
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
           } else if (matchChildNode(oldTailNode, newTailNode)) {
-            console.log(2, oldTailNode, (oldTailNode as Element).getAttribute('id'))
             patchChildNode(oldTailNode, newTailNode)
-            console.log(2, oldTailNode, (oldTailNode as Element).getAttribute('id'))
             oldTailNode = oldChildNodes[--oldTail]
             newTailNode = newChildNodes[--newTail]
           } else if (matchChildNode(oldHeadNode, newTailNode)) {
-            console.log(3)
             patchChildNode(oldHeadNode, newTailNode)
             insertBefore(parentNode, oldHeadNode, newTailNode.nextSibling)
             oldHeadNode = oldChildNodes[++oldHead]
             newTailNode = newChildNodes[--newTail]
           } else if (matchChildNode(oldTailNode, newHeadNode)) {
-            console.log(4)
             patchChildNode(oldTailNode, newHeadNode)
             insertBefore(parentNode, oldTailNode, oldHeadNode)
             oldTailNode = oldChildNodes[--oldTail]
@@ -576,9 +572,8 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode, 'shift')
 
-            console.log(5, mapHead)
-
             if (mapHead === undefined) {
+              console.log(5, parentNode, newHeadNode, oldHeadNode)
               insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
             } else if (getChildNodeInMap(newTailNode, 'pop') === undefined) {
@@ -591,29 +586,18 @@ export default class FiCsElement<D extends object, P extends object> {
               newHeadNode = newChildNodes[++newHead]
             }
           }
-        }
 
         if (newHead <= newTail)
           for (; newHead <= newTail; ++newHead) {
             const childNode: ChildNode | null = newChildNodes[newHead]
-            const last: ChildNode | undefined = getChildNodeInMap(newChildNodes[newTail + 1], 'pop')
+            const before: ChildNode =
+              oldChildNodes[oldTail < 0 ? oldChildNodes.length - 1 : oldTail]
 
-            console.log(6, { childNode, oldTail, last: oldChildNodes[oldTail], newHead, newTail })
-
-            if (childNode)
-              insertBefore(
-                parentNode,
-                childNode,
-                oldChildNodes[oldTail < 0 ? oldChildNodes.length - 1 : oldTail]
-              )
-            // else parentNode.appendChild(childNode)
+            if (childNode) insertBefore(parentNode, childNode, before)
           }
 
         if (oldHead <= oldTail)
-          for (; oldHead <= oldTail; ++oldHead) {
-            console.log(7)
-            oldChildNodes[oldHead].remove()
-          }
+          for (; oldHead <= oldTail; ++oldHead) oldChildNodes[oldHead].remove()
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
@@ -758,11 +742,10 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const index of actions) {
           const { handler, selector, method, isEnterEnabled }: Action<D, P> = this.#actions[index]
 
-          if (selector) {
+          if (selector)
             for (const element of this.#getElements(shadowRoot, selector))
               if (this.#newElements.has(element))
                 this.#addEventListener(element, handler, method, isEnterEnabled)
-          }
         }
 
       this.#newElements.clear()
