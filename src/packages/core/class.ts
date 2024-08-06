@@ -311,27 +311,22 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({ ...this.#setDataProps(), template, html, i18n })[symbol]
   }
 
-  #getAttributes = (): string | undefined => {
-    if (!this.#attributes) return
-
-    return Object.entries(this.#attributes).reduce(
-      (prev, curr) => `${prev} ${this.#toKebabCase(curr[0])}="${curr[1]}"`,
-      ''
-    )
-  }
-
   #renderOnServer = (propsChain: PropsChain<P>): string => {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
 
     this.#initProps(propsChain)
 
     const classNames: string = `class="${this.#name}${this.#className ? ` ${this.#className}` : ''}"`
+    const attrs: string = Object.entries(this.#attributes ?? []).reduce(
+      (prev, [key, value]) => `${prev} ${this.#toKebabCase(key)}="${value}"`,
+      ''
+    )
     const slotId: string = `${this.#ficsId}-slot`
     const style: string =
       this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
 
     return `
-        <${[this.#tagName, classNames, this.#getAttributes() ?? ''].join(' ').trim()}>
+        <${[this.#tagName, classNames, attrs].join(' ').trim()}>
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${slotId}" slot="${this.#ficsId}">
             ${style}
@@ -372,7 +367,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
-    console.log('aa', this.#getAttributes())
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
       isProperty
