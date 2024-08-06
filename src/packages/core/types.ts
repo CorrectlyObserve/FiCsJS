@@ -6,6 +6,10 @@ export interface Action<D, P> {
   method: Method<D, P>
 }
 
+type ArrowFuncOrValue<V, D, P> = V | ((params: DataProps<D, P>) => V)
+
+export type Attributes<D, P> = ArrowFuncOrValue<Record<string, string>, D, P>
+
 export interface Bindings {
   className: boolean
   html: boolean
@@ -13,7 +17,7 @@ export interface Bindings {
   actions: number[]
 }
 
-export type ClassName<D, P> = string | ((params: DataProps<D, P>) => string)
+export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
 export type Css<D, P> = (string | Style<D, P>)[]
 
@@ -34,6 +38,7 @@ export interface FiCs<D extends object, P extends object> {
   props?: P
   isOnlyCsr?: boolean
   className?: ClassName<D, P>
+  attributes?: Attributes<D, P>
   html: Html<D, P>
   css?: Css<D, P>
   actions?: Action<D, P>[]
@@ -97,9 +102,7 @@ export type Sanitize<D extends object, P extends object, B> = (
 
 export interface Style<D, P> {
   selector?: string
-  style:
-    | Record<string, string | number>
-    | ((params: DataProps<D, P>) => Record<string, string | number>)
+  style: ArrowFuncOrValue<Record<string, string | number>, D, P>
 }
 
 export type Symbolized<V> = Record<symbol, V>
