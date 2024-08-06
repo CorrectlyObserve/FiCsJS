@@ -45,6 +45,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
   readonly #bindings: Bindings = {
     className: false,
+    attributes: false,
     html: false,
     css: new Array(),
     actions: new Array()
@@ -329,13 +330,12 @@ export default class FiCsElement<D extends object, P extends object> {
         <${[this.#tagName, classNames, attrs].join(' ').trim()}>
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${slotId}" slot="${this.#ficsId}">
-            ${style}
             ${this.#getHtml().reduce(
               (prev, curr) =>
                 `${prev}${
                   curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr
                 }`,
-              ''
+              style
             )}
           </div>
         </${this.#tagName}>
@@ -349,6 +349,17 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#className
       ? fics.setAttribute('class', `${this.#name} ${this.#className}`)
       : fics.classList.add(this.#name)
+  }
+
+  #addAttributes = (fics: HTMLElement, isRerendering?: boolean): void => {
+    if (this.#attributes) {
+      if (isRerendering)
+        for (const { name } of Array.from(fics.attributes)) fics.removeAttribute(name)
+      else if (!this.#isImmutable)
+        this.#bindings.attributes = typeof this.#attributes === 'function'
+
+      for (const [key, value] of Object.entries(this.#attributes)) fics.setAttribute(key, value)
+    }
   }
 
   #getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
@@ -697,6 +708,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#setProperty(fics, this.#ficsIdName, this.#ficsId)
     this.#initProps(propsChain)
     this.#addClassName(fics)
+    this.#addAttributes(fics)
     this.#addHtml(shadowRoot)
     this.#addCss(shadowRoot)
     this.#addActions(fics)
@@ -713,10 +725,12 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
-      const { className, html, css, actions }: Bindings = this.#bindings
+      const { className, attributes, html, css, actions }: Bindings = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
       if (className) this.#addClassName(fics, true)
+
+      if (attributes) this.#addAttributes(fics, true)
 
       if (html) this.#addHtml(shadowRoot, true)
 
@@ -795,6 +809,7 @@ export default class FiCsElement<D extends object, P extends object> {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
+              that.#addAttributes(this)
               that.#addHtml(this.shadowRoot)
               that.#addCss(this.shadowRoot)
               that.#addActions(this)
