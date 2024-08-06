@@ -14,6 +14,7 @@ import type {
   Inheritances,
   I18n,
   Method,
+  Param,
   PropsChain,
   PropsTree,
   Reflections,
@@ -641,14 +642,27 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addEvent = (element: Element, handler: string, method: Method<D, P>): void =>
-    element.addEventListener(handler, (event: Event) =>
-      method({
-        ...this.#setDataProps(),
-        setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-        event
+  #addEventListener = (
+    element: Element,
+    handler: string,
+    method: Method<D, P>,
+    isEnterEnabled?: boolean
+  ): void => {
+    const getMethodParam = (event: Event): Param<D, P> & { event: Event } => ({
+      ...this.#setDataProps(),
+      setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      event
+    })
+
+    element.addEventListener(handler, (event: Event) => method(getMethodParam(event)))
+
+    if (handler === 'click' && isEnterEnabled)
+      element.addEventListener('keydown', (event: Event) => {
+        const { key }: { key: string } = event as KeyboardEvent
+
+        if (key === 'Enter') method(getMethodParam(event))
       })
-    )
+  }
 
   #getElements = (shadowRoot: ShadowRoot, selector: string): Element[] =>
     Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
@@ -656,14 +670,14 @@ export default class FiCsElement<D extends object, P extends object> {
   #addActions = (fics: HTMLElement): void => {
     if (this.#actions.length > 0)
       this.#actions.forEach((action, index) => {
-        const { handler, selector, method }: Action<D, P> = action
+        const { handler, selector, method, isEnterEnabled }: Action<D, P> = action
 
         if (!this.#isImmutable && selector) {
           this.#bindings.actions.push(index)
 
           for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
-            this.#addEvent(element, handler, method)
-        } else this.#addEvent(fics, handler, method)
+            this.#addEventListener(element, handler, method, isEnterEnabled)
+        } else this.#addEventListener(fics, handler, method, isEnterEnabled)
       })
   }
 
@@ -742,11 +756,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (actions.length > 0)
         for (const index of actions) {
-          const { handler, selector, method }: Action<D, P> = this.#actions[index]
+          const { handler, selector, method, isEnterEnabled }: Action<D, P> = this.#actions[index]
 
           if (selector) {
             for (const element of this.#getElements(shadowRoot, selector))
-              if (this.#newElements.has(element)) this.#addEvent(element, handler, method)
+              if (this.#newElements.has(element))
+                this.#addEventListener(element, handler, method, isEnterEnabled)
           }
         }
 
