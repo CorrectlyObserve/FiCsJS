@@ -2,6 +2,7 @@ import generate from './generator'
 import addQueue from './queue'
 import type {
   Action,
+  Attributes,
   Bindings,
   ClassName,
   Css,
@@ -36,6 +37,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #className: ClassName<D, P> | undefined = undefined
+  readonly #attributes: Attributes<D, P> | undefined = undefined
   readonly #html: Html<D, P>
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
@@ -64,6 +66,7 @@ export default class FiCsElement<D extends object, P extends object> {
     props,
     isOnlyCsr,
     className,
+    attributes,
     html,
     css,
     actions,
@@ -109,6 +112,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (isOnlyCsr) this.#isOnlyCsr = true
       if (className) this.#className = className
+      if (attributes)
+        this.#attributes =
+          typeof attributes === 'function'
+            ? { ...attributes(this.#setDataProps()) }
+            : { ...attributes }
+
       this.#html = html
 
       if (css && css.length > 0) this.#css = [...css]
@@ -303,17 +312,27 @@ export default class FiCsElement<D extends object, P extends object> {
   #getClassName = (): string | undefined =>
     typeof this.#className === 'function' ? this.#className(this.#setDataProps()) : this.#className
 
+  #getAttributes = (): string | undefined => {
+    if (!this.#attributes) return
+
+    return Object.entries(this.#attributes).reduce(
+      (prev, curr) => `${prev} ${this.#toKebabCase(curr[0])}="${curr[1]}"`,
+      ' '
+    )
+  }
+
   #renderOnServer = (propsChain: PropsChain<P>): string => {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
 
     this.#initProps(propsChain)
 
+    const attrs: string = this.#getAttributes() ?? ''
     const slotId: string = `${this.#ficsId}-slot`
     const style: string =
       this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
 
     return `
-        <${this.#tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}">
+        <${this.#tagName} class="${`${this.#name} ${this.#getClassName() ?? ''}`.trim()}"${attrs}>
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${slotId}" slot="${this.#ficsId}">
             ${style}
@@ -354,6 +373,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+    console.log('aa', this.#getAttributes())
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
       isProperty
