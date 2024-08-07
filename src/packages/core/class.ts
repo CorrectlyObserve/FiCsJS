@@ -551,7 +551,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
-            console.log(1, oldHeadNode, newHeadNode, oldTailNode, newTailNode)
             patchChildNode(oldHeadNode, newHeadNode)
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
@@ -573,12 +572,12 @@ export default class FiCsElement<D extends object, P extends object> {
             const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode, 'shift')
 
             if (mapHead === undefined) {
-              console.log(5, parentNode, newHeadNode, oldHeadNode)
               insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
             } else if (getChildNodeInMap(newTailNode, 'pop') === undefined) {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
+              console.log('call')
             } else {
               if (mapHead.nodeName === newHeadNode.nodeName) patchChildNode(mapHead, newHeadNode)
               else insertBefore(parentNode, newHeadNode, oldHeadNode)
@@ -587,17 +586,18 @@ export default class FiCsElement<D extends object, P extends object> {
             }
           }
 
-        if (newHead <= newTail)
-          for (; newHead <= newTail; ++newHead) {
-            const childNode: ChildNode | null = newChildNodes[newHead]
-            const before: ChildNode =
-              oldChildNodes[oldTail < 0 ? oldChildNodes.length - 1 : oldTail]
+        while (newHead <= newTail) {
+          const childNode: ChildNode | null = newChildNodes[newHead]
+          if (childNode) insertBefore(parentNode, childNode, oldChildNodes[oldTail + 1])
 
-            if (childNode) insertBefore(parentNode, childNode, before)
-          }
+          newHead++
+        }
 
-        if (oldHead <= oldTail)
-          for (; oldHead <= oldTail; ++oldHead) oldChildNodes[oldHead].remove()
+        while (oldHead <= oldTail) {
+          console.log(oldChildNodes[oldHead])
+          oldChildNodes[oldHead].remove()
+          oldHead++
+        }
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
