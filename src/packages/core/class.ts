@@ -283,19 +283,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as HtmlContents<D, P> }
   }
 
-  #internationalize = ({ json, lang, keys }: I18n): string => {
-    let texts: Record<string, string> | string = json[lang]
-
-    if (texts) {
-      for (const key of Array.isArray(keys) ? keys : [keys])
-        if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
-
-      if (typeof texts === 'string') return texts
-
-      throw new Error(`There is no applicable value in json..`)
-    } else throw new Error(`${lang}.json does not exist...`)
-  }
-
   #getHtml = (): HtmlContents<D, P> => {
     const template: Sanitize<D, P, true> = (
       templates: TemplateStringsArray,
@@ -307,8 +294,18 @@ export default class FiCsElement<D extends object, P extends object> {
       ...variables: unknown[]
     ): HtmlContents<D, P> => this.#sanitize(false, templates, variables)[symbol]
 
-    const i18n = ({ json, lang, keys }: I18n): string =>
-      this.#internationalize({ json, lang, keys })
+    const i18n = ({ json, lang, keys }: I18n): string => {
+      let texts: Record<string, string> | string = json[lang]
+
+      if (texts) {
+        for (const key of Array.isArray(keys) ? keys : [keys])
+          if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
+
+        if (typeof texts === 'string') return texts
+
+        throw new Error(`There is no applicable value in json..`)
+      } else throw new Error(`${lang}.json does not exist...`)
+    }
 
     return this.#html({ ...this.#setDataProps(), template, html, i18n })[symbol]
   }
