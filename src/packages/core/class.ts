@@ -520,6 +520,7 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
+        const domMap: Map<string, ChildNode[]> = new Map()
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -541,7 +542,6 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            const domMap: Map<string, ChildNode[]> = new Map()
             const getMapKey = (childNode: ChildNode): string => {
               if (childNode instanceof Element) {
                 const key: string | null = childNode.getAttribute('key')
@@ -551,19 +551,19 @@ export default class FiCsElement<D extends object, P extends object> {
 
               return childNode.nodeName
             }
-            const getChildNodes = (childNode: ChildNode): ChildNode[] =>
+            const getFromMap = (childNode: ChildNode): ChildNode[] =>
               domMap.get(getMapKey(childNode)) ?? []
 
             const getChildNodeInMap = (
               childNode: ChildNode,
               method: 'shift' | 'pop'
-            ): ChildNode | undefined => getChildNodes(childNode)?.[method]()
+            ): ChildNode | undefined => getFromMap(childNode)?.[method]()
 
             if (domMap.size === 0)
               for (const oldChildNode of oldChildNodes) {
                 if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
-                domMap.set(getMapKey(oldChildNode), [...getChildNodes(oldChildNode), oldChildNode])
+                domMap.set(getMapKey(oldChildNode), [...getFromMap(oldChildNode), oldChildNode])
               }
 
             const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode, 'shift')
