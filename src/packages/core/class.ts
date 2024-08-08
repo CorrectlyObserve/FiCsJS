@@ -512,27 +512,6 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        const childNodesMap: Map<string, ChildNode[]> = new Map()
-        const getMapKey = (childNode: ChildNode): string => {
-          if (childNode instanceof Element) {
-            const key: string | null = childNode.getAttribute('key')
-
-            return `${childNode.localName}${key ? `-${key}` : ''}`
-          }
-
-          return childNode.nodeName
-        }
-
-        for (const oldChildNode of oldChildNodes) {
-          if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
-
-          const key: string = getMapKey(oldChildNode)
-          const childNodes: ChildNode[] | undefined = childNodesMap.get(key)
-          const childNode: ChildNode = oldChildNode.cloneNode(true) as ChildNode
-
-          childNodesMap.set(key, childNodes ? [...childNodes, childNode] : [childNode])
-        }
-
         let oldHead: number = 0
         let oldTail: number = oldChildNodes.length - 1
         let oldHeadNode: ChildNode = oldChildNodes[oldHead]
@@ -541,10 +520,6 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
-        const getChildNodeInMap = (
-          childNode: ChildNode,
-          method: 'shift' | 'pop'
-        ): ChildNode | undefined => childNodesMap.get(getMapKey(childNode))?.[method]()
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -566,6 +541,31 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
+            const domMap: Map<string, ChildNode[]> = new Map()
+            const getMapKey = (childNode: ChildNode): string => {
+              if (childNode instanceof Element) {
+                const key: string | null = childNode.getAttribute('key')
+
+                return `${childNode.localName}${key ? `-${key}` : ''}`
+              }
+
+              return childNode.nodeName
+            }
+            const getChildNodes = (childNode: ChildNode): ChildNode[] =>
+              domMap.get(getMapKey(childNode)) ?? []
+
+            const getChildNodeInMap = (
+              childNode: ChildNode,
+              method: 'shift' | 'pop'
+            ): ChildNode | undefined => getChildNodes(childNode)?.[method]()
+
+            if (domMap.size === 0)
+              for (const oldChildNode of oldChildNodes) {
+                if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
+
+                domMap.set(getMapKey(oldChildNode), [...getChildNodes(oldChildNode), oldChildNode])
+              }
+
             const mapHead: ChildNode | undefined = getChildNodeInMap(newHeadNode, 'shift')
 
             if (mapHead === undefined) {
