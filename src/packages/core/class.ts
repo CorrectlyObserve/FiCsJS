@@ -541,7 +541,8 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const childNode of childNodes) {
             if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
 
-            map.set(getMapKey(childNode), [...(map.get(getMapKey(childNode)) ?? []), childNode])
+            const key: string = getMapKey(childNode)
+            map.set(key, [...(map.get(key) ?? []), childNode])
           }
 
           return map
@@ -571,10 +572,19 @@ export default class FiCsElement<D extends object, P extends object> {
 
             const mapHeadNode: ChildNode | undefined = domMap.get(getMapKey(newHeadNode))?.shift()
 
-            if (mapHeadNode === undefined) insertBefore(parentNode, newHeadNode, oldHeadNode)
-            else if (mapHeadNode.nodeName === newHeadNode.nodeName)
+            if (mapHeadNode === undefined) {
+              insertBefore(parentNode, newHeadNode, oldHeadNode)
+
+              if (domMap.get(getMapKey(newTailNode))?.pop()) {
+                insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
+                newTailNode = newChildNodes[--newTail]
+              }
+            } else if (mapHeadNode.nodeName === newHeadNode.nodeName)
               patchChildNode(mapHeadNode, newHeadNode)
-            else insertBefore(parentNode, newHeadNode, oldHeadNode)
+            else {
+              insertBefore(parentNode, newHeadNode, oldHeadNode)
+              oldHeadNode.remove()
+            }
 
             newHeadNode = newChildNodes[++newHead]
           }
