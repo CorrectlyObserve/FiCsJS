@@ -37,6 +37,12 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #inheritances: Inheritances<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
+  readonly #bindings: Bindings = {
+    className: false,
+    attributes: false,
+    css: new Array(),
+    actions: new Array()
+  }
   readonly #className: ClassName<D, P> | undefined = undefined
   readonly #attributes: Attributes<D, P> | undefined = undefined
   readonly #html: Html<D, P>
@@ -44,13 +50,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
-  readonly #bindings: Bindings = {
-    className: false,
-    attributes: false,
-    html: false,
-    css: new Array(),
-    actions: new Array()
-  }
   readonly #ficsIdName: string = 'fics-id'
   readonly #newElements: Set<Element> = new Set()
 
@@ -113,14 +112,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (isOnlyCsr) this.#isOnlyCsr = true
 
-      if (className)
-        this.#className =
-          typeof className === 'function' ? className(this.#setDataProps()) : className
+      if (className) {
+        if (!this.#isImmutable && typeof className === 'function') this.#bindings.className = true
+        this.#className = className
+      }
 
-      if (attributes)
-        this.#attributes = {
-          ...(typeof attributes === 'function' ? attributes(this.#setDataProps()) : attributes)
-        }
+      if (attributes) {
+        if (!this.#isImmutable && typeof attributes === 'function') this.#bindings.attributes = true
+        this.#attributes = attributes
+      }
 
       this.#html = html
 
@@ -212,6 +212,24 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#isImmutable
       ? { data: {} as D, props: {} as P }
       : { data: { ...this.#data }, props: { ...this.#props } }
+
+  #getClassName = (): string => {
+    if (!this.#className) return this.#name
+
+    const className: string =
+      typeof this.#className === 'function'
+        ? this.#className(this.#setDataProps())
+        : this.#className
+
+    return `${this.#name} ${className}`
+  }
+
+  #getAttributes = (): [string, string][] =>
+    Object.entries(
+      typeof this.#attributes === 'function'
+        ? this.#attributes(this.#setDataProps())
+        : (this.#attributes ?? [])
+    )
 
   #getStyle = (css: Css<D, P>, host: string = ':host'): string => {
     if (css.length === 0) return ''
@@ -315,8 +333,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#initProps(propsChain)
 
-    const classNames: string = `class="${this.#name}${this.#className ? ` ${this.#className}` : ''}"`
-    const attrs: string = Object.entries(this.#attributes ?? []).reduce(
+    const attrs: string = this.#getAttributes().reduce(
       (prev, [key, value]) => `${prev} ${this.#toKebabCase(key)}="${value}"`,
       ''
     )
@@ -325,7 +342,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
 
     return `
-        <${[this.#tagName, classNames, attrs].join(' ').trim()}>
+        <${[this.#tagName, `class="${this.#getClassName()}"`, attrs].join(' ').trim()}>
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${slotId}" slot="${this.#ficsId}">
             ${this.#getHtml().reduce(
@@ -340,24 +357,14 @@ export default class FiCsElement<D extends object, P extends object> {
       `.trim()
   }
 
-  #addClassName = (fics: HTMLElement, isRerendering?: boolean): void => {
-    if (isRerendering) fics.classList.remove(...Array.from(fics.classList))
-    else if (!this.#isImmutable) this.#bindings.className = typeof this.#className === 'function'
-
+  #addClassName = (fics: HTMLElement): void =>
     this.#className
-      ? fics.setAttribute('class', `${this.#name} ${this.#className}`)
+      ? fics.setAttribute('class', this.#getClassName())
       : fics.classList.add(this.#name)
-  }
 
-  #addAttributes = (fics: HTMLElement, isRerendering?: boolean): void => {
-    if (this.#attributes) {
-      if (isRerendering)
-        for (const { name } of Array.from(fics.attributes)) fics.removeAttribute(name)
-      else if (!this.#isImmutable)
-        this.#bindings.attributes = typeof this.#attributes === 'function'
-
-      for (const [key, value] of Object.entries(this.#attributes)) fics.setAttribute(key, value)
-    }
+  #addAttributes = (fics: HTMLElement): void => {
+    for (const [key, value] of this.#getAttributes())
+      fics.setAttribute(this.#toKebabCase(key), value)
   }
 
   #getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
@@ -375,7 +382,7 @@ export default class FiCsElement<D extends object, P extends object> {
     ;(element as any)[this.#toCamelCase(property)] = value
   }
 
-  #addHtml(shadowRoot: ShadowRoot, isRerendering?: boolean): void {
+  #addHtml(shadowRoot: ShadowRoot): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
       isProperty
@@ -399,9 +406,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const isVarTag = (element: Element): boolean => element.localName === varTag
 
-    if (!isRerendering || oldChildNodes.length === 0) {
-      if (!this.#isImmutable) this.#bindings.html = typeof this.#html === 'function'
-
+    if (oldChildNodes.length === 0) {
       const loadChild = (element: Element): void => {
         const ficsId: string | null = getFiCsId(element)
 
@@ -715,14 +720,17 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
-      const { className, attributes, html, css, actions }: Bindings = this.#bindings
+      const { className, attributes, css, actions }: Bindings = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
-      if (className) this.#addClassName(fics, true)
+      if (className) {
+        fics.classList.remove(...Array.from(fics.classList))
+        this.#addClassName(fics)
+      }
 
-      if (attributes) this.#addAttributes(fics, true)
+      if (attributes) this.#addAttributes(fics)
 
-      if (html) this.#addHtml(shadowRoot, true)
+      this.#addHtml(shadowRoot)
 
       if (css.length > 0)
         this.#addCss(
