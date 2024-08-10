@@ -528,9 +528,10 @@ export default class FiCsElement<D extends object, P extends object> {
         let domMap: Map<string, ChildNode[]> = new Map()
         const getMapKey = (childNode: ChildNode): string => {
           if (childNode instanceof Element) {
+            const id: string = childNode.id
             const key: string | null = childNode.getAttribute('key')
 
-            return `${childNode.localName}${key ? `-${key}` : ''}`
+            return `${childNode.localName}${id !== '' ? `-${id}` : ''}${key ? `-${key}` : ''}`
           }
 
           return childNode.nodeName
