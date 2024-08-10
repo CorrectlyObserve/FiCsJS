@@ -558,9 +558,9 @@ export default class FiCsElement<D extends object, P extends object> {
         const getFromMap = (
           map: Map<string, ChildNode[]>,
           childNode: ChildNode,
-          isDescending?: boolean
+          isTail?: boolean
         ): ChildNode | undefined =>
-          (map.get(getMapKey(childNode)) ?? [])[isDescending ? 'pop' : 'shift']()
+          (map.get(getMapKey(childNode)) ?? [])[isTail ? 'pop' : 'shift']()
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
