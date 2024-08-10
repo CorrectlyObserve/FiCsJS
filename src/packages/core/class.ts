@@ -526,12 +526,12 @@ export default class FiCsElement<D extends object, P extends object> {
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
         let domMap: Map<string, ChildNode[]> = new Map()
+
         const getMapKey = (childNode: ChildNode): string => {
           if (childNode instanceof Element) {
-            const id: string = childNode.id
             const key: string | null = childNode.getAttribute('key')
 
-            return `${childNode.localName}${id !== '' ? `-${id}` : ''}${key ? `-${key}` : ''}`
+            return `${childNode.localName}${key ? `-${key}` : ''}`
           }
 
           return childNode.nodeName
@@ -548,6 +548,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
           return map
         }
+        const getFromMap = (
+          map: Map<string, ChildNode[]>,
+          childNode: ChildNode,
+          isDescending?: boolean
+        ): ChildNode | undefined =>
+          (map.get(getMapKey(childNode)) ?? [])[isDescending ? 'pop' : 'shift']()
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -571,12 +577,12 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             if (domMap.size === 0) domMap = createMap(oldChildNodes)
 
-            const mapHeadNode: ChildNode | undefined = domMap.get(getMapKey(newHeadNode))?.shift()
+            const mapHeadNode: ChildNode | undefined = getFromMap(domMap, newHeadNode)
 
             if (mapHeadNode === undefined) {
               insertBefore(parentNode, newHeadNode, oldHeadNode)
 
-              if (domMap.get(getMapKey(newTailNode))?.pop()) {
+              if (getFromMap(domMap, newTailNode, true)) {
                 insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
                 newTailNode = newChildNodes[--newTail]
               }
@@ -603,7 +609,7 @@ export default class FiCsElement<D extends object, P extends object> {
           for (; oldHead <= oldTail; ++oldHead) {
             const childNode: ChildNode = oldChildNodes[oldHead]
 
-            if (!newDomMap.get(getMapKey(childNode))?.shift()) childNode.remove()
+            if (!getFromMap(newDomMap, childNode)) childNode.remove()
           }
         }
       }
