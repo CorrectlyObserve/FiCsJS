@@ -130,9 +130,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #toKebabCase = (str: string): string => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  #toKebabCase(str: string): string {
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  }
 
-  #setProps = (key: keyof P, value: P[typeof key]): void => {
+  #setProps(key: keyof P, value: P[typeof key]): void {
     if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
@@ -140,7 +142,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #initProps = (propsChain: PropsChain<P>): void => {
+  #initProps(propsChain: PropsChain<P>): void {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
@@ -208,12 +210,13 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #setDataProps = (): DataProps<D, P> =>
-    this.#isImmutable
+  #setDataProps(): DataProps<D, P> {
+    return this.#isImmutable
       ? { data: {} as D, props: {} as P }
       : { data: { ...this.#data }, props: { ...this.#props } }
+  }
 
-  #getClassName = (): string => {
+  #getClassName(): string {
     if (!this.#className) return this.#name
 
     const className: string =
@@ -224,14 +227,15 @@ export default class FiCsElement<D extends object, P extends object> {
     return `${this.#name} ${className}`
   }
 
-  #getAttributes = (): [string, string][] =>
-    Object.entries(
+  #getAttributes(): [string, string][] {
+    return Object.entries(
       typeof this.#attributes === 'function'
         ? this.#attributes(this.#setDataProps())
         : (this.#attributes ?? [])
     )
+  }
 
-  #getStyle = (css: Css<D, P>, host: string = ':host'): string => {
+  #getStyle(css: Css<D, P>, host: string = ':host'): string {
     if (css.length === 0) return ''
 
     const createStyle = (param: Style<D, P>, host: string = ':host'): string => {
@@ -258,11 +262,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #sanitize = (
+  #sanitize(
     isSanitized: boolean,
     templates: TemplateStringsArray,
     variables: unknown[]
-  ): Record<symbol, HtmlContents<D, P>> => {
+  ): Record<symbol, HtmlContents<D, P>> {
     let result: (HtmlContents<D, P> | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
@@ -301,7 +305,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return { [symbol]: result as HtmlContents<D, P> }
   }
 
-  #getHtml = (): HtmlContents<D, P> => {
+  #getHtml(): HtmlContents<D, P> {
     const template: Sanitize<D, P, true> = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
@@ -328,7 +332,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({ ...this.#setDataProps(), template, html, i18n })[symbol]
   }
 
-  #renderOnServer = (propsChain: PropsChain<P>): string => {
+  #renderOnServer(propsChain: PropsChain<P>): string {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
 
     this.#initProps(propsChain)
@@ -357,28 +361,31 @@ export default class FiCsElement<D extends object, P extends object> {
       `.trim()
   }
 
-  #addClassName = (fics: HTMLElement): void =>
+  #addClassName(fics: HTMLElement): void {
     this.#className
       ? fics.setAttribute('class', this.#getClassName())
       : fics.classList.add(this.#name)
+  }
 
-  #addAttributes = (fics: HTMLElement): void => {
+  #addAttributes(fics: HTMLElement): void {
     for (const [key, value] of this.#getAttributes())
       fics.setAttribute(this.#toKebabCase(key), value)
   }
 
-  #getChildNodes = (parent: ShadowRoot | DocumentFragment | Element): ChildNode[] =>
-    Array.from(parent.childNodes)
+  #getChildNodes(parent: ShadowRoot | DocumentFragment | Element): ChildNode[] {
+    return Array.from(parent.childNodes)
+  }
 
-  #removeChildNodes = (param: HTMLElement | ChildNode[]): void => {
+  #removeChildNodes(param: HTMLElement | ChildNode[]): void {
     for (const childNode of param instanceof HTMLElement ? this.#getChildNodes(param) : param)
       childNode.remove()
   }
 
-  #toCamelCase = (str: string): string =>
-    str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+  #toCamelCase(str: string): string {
+    return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+  }
 
-  #setProperty = <V>(element: HTMLElement, property: string, value: V): void => {
+  #setProperty<V>(element: HTMLElement, property: string, value: V): void {
     ;(element as any)[this.#toCamelCase(property)] = value
   }
 
@@ -618,7 +625,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss = (shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void => {
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
     if (this.#css.length === 0) return
 
     if (!this.#isImmutable && css.length === 0)
@@ -634,18 +641,18 @@ export default class FiCsElement<D extends object, P extends object> {
     stylesheet.replaceSync(this.#getStyle(style))
   }
 
-  #getShadowRoot = (fics: HTMLElement): ShadowRoot => {
+  #getShadowRoot(fics: HTMLElement): ShadowRoot {
     if (fics.shadowRoot) return fics.shadowRoot
 
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addEventListener = (
+  #addEventListener(
     element: Element,
     handler: string,
     method: Method<D, P>,
     isEnterEnabled?: boolean
-  ): void => {
+  ): void {
     const getMethodParam = (event: Event): Param<D, P> & { event: Event } => ({
       ...this.#setDataProps(),
       setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
@@ -662,10 +669,11 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
-  #getElements = (shadowRoot: ShadowRoot, selector: string): Element[] =>
-    Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
+  #getElements(shadowRoot: ShadowRoot, selector: string): Element[] {
+    return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
+  }
 
-  #addActions = (fics: HTMLElement): void => {
+  #addActions(fics: HTMLElement): void {
     if (this.#actions.length > 0)
       this.#actions.forEach((action, index) => {
         const { handler, selector, method, isEnterEnabled }: Action<D, P> = action
@@ -679,14 +687,14 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
-  #callback = (key: keyof Hooks<D, P>): void => {
+  #callback(key: keyof Hooks<D, P>): void {
     this.#hooks[key]?.({
       ...this.#setDataProps(),
       setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
     })
   }
 
-  #render = (propsChain: PropsChain<P>): HTMLElement => {
+  #render(propsChain: PropsChain<P>): HTMLElement {
     const that: FiCsElement<D, P> = this
 
     if (!customElements.get(that.#tagName))
@@ -733,7 +741,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return fics
   }
 
-  #reRender = (): void => {
+  #reRender(): void {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
@@ -769,13 +777,13 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  getData = <K extends keyof D>(key: K): D[typeof key] => {
+  getData<K extends keyof D>(key: K): D[typeof key] {
     if (key in this.#data) return this.#data[key]
 
     throw new Error(`${key as string} is not defined in data...`)
   }
 
-  setData = (key: keyof D, value: D[typeof key]): void => {
+  setData(key: keyof D, value: D[typeof key]): void {
     if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
@@ -793,7 +801,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  ssr = (parent?: HTMLElement | string): void => {
+  ssr(parent?: HTMLElement | string): void {
     const component: string = this.#renderOnServer(this.#propsChain)
 
     if (parent instanceof HTMLElement) parent.setHTMLUnsafe(component)
@@ -805,7 +813,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  define = (parent?: HTMLElement | string): void => {
+  define(parent?: HTMLElement | string): void {
     if (!customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
