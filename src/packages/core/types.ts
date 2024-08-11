@@ -12,8 +12,8 @@ type ArrowFuncOrValue<V, D, P> = V | ((params: DataProps<D, P>) => V)
 export type Attributes<D, P> = ArrowFuncOrValue<Record<string, string>, D, P>
 
 export interface Bindings {
-  className: boolean
-  attributes: boolean
+  isClassName: boolean
+  isAttr: boolean
   css: number[]
   actions: number[]
 }
