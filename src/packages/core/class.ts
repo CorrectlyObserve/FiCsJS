@@ -38,8 +38,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #bindings: Bindings = {
-    className: false,
-    attributes: false,
+    isClassName: false,
+    isAttr: false,
     css: new Array(),
     actions: new Array()
   }
@@ -113,12 +113,12 @@ export default class FiCsElement<D extends object, P extends object> {
       if (isOnlyCsr) this.#isOnlyCsr = true
 
       if (className) {
-        if (!this.#isImmutable && typeof className === 'function') this.#bindings.className = true
+        if (!this.#isImmutable && typeof className === 'function') this.#bindings.isClassName = true
         this.#className = className
       }
 
       if (attributes) {
-        if (!this.#isImmutable && typeof attributes === 'function') this.#bindings.attributes = true
+        if (!this.#isImmutable && typeof attributes === 'function') this.#bindings.isAttr = true
         this.#attributes = attributes
       }
 
@@ -568,6 +568,7 @@ export default class FiCsElement<D extends object, P extends object> {
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
           } else if (matchChildNode(oldTailNode, newTailNode)) {
+            console.log(2)
             patchChildNode(oldTailNode, newTailNode)
             oldTailNode = oldChildNodes[--oldTail]
             newTailNode = newChildNodes[--newTail]
@@ -613,8 +614,12 @@ export default class FiCsElement<D extends object, P extends object> {
         if (oldHead <= oldTail) {
           const newDomMap: Map<string, ChildNode[]> = createMap(newChildNodes)
 
+          console.log(oldTail)
+
           for (; oldHead <= oldTail; ++oldHead) {
             const childNode: ChildNode = oldChildNodes[oldHead]
+
+            console.log(childNode)
 
             if (!getFromMap(newDomMap, childNode)) childNode.remove()
           }
@@ -745,15 +750,15 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement | undefined = this.#component
 
     if (fics) {
-      const { className, attributes, css, actions }: Bindings = this.#bindings
+      const { isClassName, isAttr, css, actions }: Bindings = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
-      if (className) {
+      if (isClassName) {
         fics.classList.remove(...Array.from(fics.classList))
         this.#addClassName(fics)
       }
 
-      if (attributes) this.#addAttributes(fics)
+      if (isAttr) this.#addAttributes(fics)
 
       this.#addHtml(shadowRoot)
 
