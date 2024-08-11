@@ -8,7 +8,7 @@ export const Sample = () =>
       template`
         ${value !== '' ? template`<p>${value}</p>` : ''}
         <input type="text" value="${value}" />
-        ${value !== '' ? template`<input id="1"  type="text" value="${value}" />` : ''}
+        ${value !== '' ? template`<input type="text" value="${value}" />` : ''}
       `,
     css: [{ style: { color: 'white' } }],
     actions: [
@@ -22,4 +22,4 @@ export const Sample = () =>
     ]
   })
 
-export type SvgType = ReturnType<typeof Sample>
+export type SampleType = ReturnType<typeof Sample>
