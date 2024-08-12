@@ -27,7 +27,7 @@ const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, boolean> = { var: true, router: true }
+  readonly #reservedWords: Record<string, true> = { var: true, router: true }
   readonly #ficsId: string
   readonly #name: string
   readonly #tagName: string
