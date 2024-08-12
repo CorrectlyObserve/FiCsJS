@@ -568,7 +568,7 @@ export default class FiCsElement<D extends object, P extends object> {
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
           } else if (matchChildNode(oldTailNode, newTailNode)) {
-            console.log(2)
+            console.log(2, oldTailNode, newTailNode)
             patchChildNode(oldTailNode, newTailNode)
             oldTailNode = oldChildNodes[--oldTail]
             newTailNode = newChildNodes[--newTail]
@@ -605,10 +605,8 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
         while (newHead <= newTail) {
-          const childNode: ChildNode | null = newChildNodes[newHead]
+          const childNode: ChildNode | null = newChildNodes[newHead++]
           if (childNode) insertBefore(parentNode, childNode, oldChildNodes[oldTail + 1])
-
-          newHead++
         }
 
         if (oldHead <= oldTail) {
@@ -617,11 +615,10 @@ export default class FiCsElement<D extends object, P extends object> {
           console.log(oldTail)
 
           for (; oldHead <= oldTail; ++oldHead) {
-            const childNode: ChildNode = oldChildNodes[oldHead]
+            const oldHeadNode: ChildNode = oldChildNodes[oldHead]
+            const newChildNode: ChildNode | undefined = getFromMap(newDomMap, oldHeadNode)
 
-            console.log(childNode)
-
-            if (!getFromMap(newDomMap, childNode)) childNode.remove()
+            newChildNode ? patchChildNode(oldHeadNode, newChildNode) : oldHeadNode.remove()
           }
         }
       }
