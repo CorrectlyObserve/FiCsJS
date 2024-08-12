@@ -409,7 +409,7 @@ export default class FiCsElement<D extends object, P extends object> {
     )
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const isVarTag = (element: Element): boolean => element.localName === varTag
-    const getChildComponent = (element: Element): HTMLElement => {
+    const getChild = (element: Element): HTMLElement => {
       const ficsId: string | null = getFiCsId(element)
 
       if (ficsId) {
@@ -426,10 +426,10 @@ export default class FiCsElement<D extends object, P extends object> {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement)
-          if (isVarTag(childNode)) childNode.replaceWith(getChildComponent(childNode))
+          if (isVarTag(childNode)) childNode.replaceWith(getChild(childNode))
           else
             for (const element of Array.from(childNode.querySelectorAll(varTag)))
-              element.replaceWith(getChildComponent(element))
+              element.replaceWith(getChild(element))
       }
     else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
@@ -503,9 +503,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (childNode instanceof Element) that.#newElements.add(childNode)
 
         const applyCache = <T>(childNode: T): HTMLElement | T =>
-          childNode instanceof Element && isVarTag(childNode)
-            ? getChildComponent(childNode)
-            : childNode
+          childNode instanceof Element && isVarTag(childNode) ? getChild(childNode) : childNode
 
         parentNode.insertBefore(applyCache(childNode), applyCache(before))
       }
@@ -643,7 +641,7 @@ export default class FiCsElement<D extends object, P extends object> {
     element: Element,
     handler: string,
     method: Method<D, P>,
-    isEnterEnabled?: boolean
+    enterKey?: boolean
   ): void {
     const getMethodParam = (event: Event): Param<D, P> & { event: Event } => ({
       ...this.#setDataProps(),
@@ -653,7 +651,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     element.addEventListener(handler, (event: Event) => method(getMethodParam(event)))
 
-    if (handler === 'click' && isEnterEnabled)
+    if (handler === 'click' && enterKey)
       element.addEventListener('keydown', (event: Event) => {
         const { key }: { key: string } = event as KeyboardEvent
 
@@ -668,14 +666,14 @@ export default class FiCsElement<D extends object, P extends object> {
   #addActions(fics: HTMLElement): void {
     if (this.#actions.length > 0)
       this.#actions.forEach((action, index) => {
-        const { handler, selector, method, isEnterEnabled }: Action<D, P> = action
+        const { handler, selector, method, enterKey }: Action<D, P> = action
 
         if (!this.#isImmutable && selector) {
           this.#bindings.actions.push(index)
 
           for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
-            this.#addEventListener(element, handler, method, isEnterEnabled)
-        } else this.#addEventListener(fics, handler, method, isEnterEnabled)
+            this.#addEventListener(element, handler, method, enterKey)
+        } else this.#addEventListener(fics, handler, method, enterKey)
       })
   }
 
@@ -757,12 +755,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (actions.length > 0)
         for (const index of actions) {
-          const { handler, selector, method, isEnterEnabled }: Action<D, P> = this.#actions[index]
+          const { handler, selector, method, enterKey }: Action<D, P> = this.#actions[index]
 
           if (selector)
             for (const element of this.#getElements(shadowRoot, selector))
               if (this.#newElements.has(element))
-                this.#addEventListener(element, handler, method, isEnterEnabled)
+                this.#addEventListener(element, handler, method, enterKey)
         }
 
       this.#newElements.clear()
