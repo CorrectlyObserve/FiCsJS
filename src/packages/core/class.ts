@@ -2,7 +2,7 @@ import generate from './generator'
 import addQueue from './queue'
 import type {
   Action,
-  Attributes,
+  Attrs,
   Bindings,
   ClassName,
   Css,
@@ -44,7 +44,7 @@ export default class FiCsElement<D extends object, P extends object> {
     actions: new Array()
   }
   readonly #className: ClassName<D, P> | undefined = undefined
-  readonly #attributes: Attributes<D, P> | undefined = undefined
+  readonly #attrs: Attrs<D, P> | undefined = undefined
   readonly #html: Html<D, P>
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
@@ -119,7 +119,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (attributes) {
         if (!this.#isImmutable && typeof attributes === 'function') this.#bindings.isAttr = true
-        this.#attributes = attributes
+        this.#attrs = attributes
       }
 
       this.#html = html
@@ -227,11 +227,9 @@ export default class FiCsElement<D extends object, P extends object> {
     return `${this.#name} ${className}`
   }
 
-  #getAttributes(): [string, string][] {
+  #getAttrs(): [string, string][] {
     return Object.entries(
-      typeof this.#attributes === 'function'
-        ? this.#attributes(this.#setDataProps())
-        : (this.#attributes ?? [])
+      typeof this.#attrs === 'function' ? this.#attrs(this.#setDataProps()) : (this.#attrs ?? [])
     )
   }
 
@@ -337,7 +335,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#initProps(propsChain)
 
-    const attrs: string = this.#getAttributes().reduce(
+    const attrs: string = this.#getAttrs().reduce(
       (prev, [key, value]) => `${prev} ${this.#toKebabCase(key)}="${value}"`,
       ''
     )
@@ -367,9 +365,8 @@ export default class FiCsElement<D extends object, P extends object> {
       : fics.classList.add(this.#name)
   }
 
-  #addAttributes(fics: HTMLElement): void {
-    for (const [key, value] of this.#getAttributes())
-      fics.setAttribute(this.#toKebabCase(key), value)
+  #addAttrs(fics: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs()) fics.setAttribute(this.#toKebabCase(key), value)
   }
 
   #getChildNodes(parent: ShadowRoot | DocumentFragment | Element): ChildNode[] {
@@ -729,7 +726,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#setProperty(fics, this.#ficsIdName, this.#ficsId)
     this.#initProps(propsChain)
     this.#addClassName(fics)
-    this.#addAttributes(fics)
+    this.#addAttrs(fics)
     this.#addHtml(shadowRoot)
     this.#addCss(shadowRoot)
     this.#addActions(fics)
@@ -754,7 +751,7 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#addClassName(fics)
       }
 
-      if (isAttr) this.#addAttributes(fics)
+      if (isAttr) this.#addAttrs(fics)
 
       this.#addHtml(shadowRoot)
 
@@ -833,7 +830,7 @@ export default class FiCsElement<D extends object, P extends object> {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
-              that.#addAttributes(this)
+              that.#addAttrs(this)
               that.#addHtml(this.shadowRoot)
               that.#addCss(this.shadowRoot)
               that.#addActions(this)
