@@ -9,7 +9,7 @@ export interface Action<D, P> {
 
 type ArrowFuncOrValue<V, D, P> = V | ((params: DataProps<D, P>) => V)
 
-export type Attributes<D, P> = ArrowFuncOrValue<Record<string, string>, D, P>
+export type Attrs<D, P> = ArrowFuncOrValue<Record<string, string>, D, P>
 
 export interface Bindings {
   isClassName: boolean
@@ -39,7 +39,7 @@ export interface FiCs<D extends object, P extends object> {
   props?: P
   isOnlyCsr?: boolean
   className?: ClassName<D, P>
-  attributes?: Attributes<D, P>
+  attributes?: Attrs<D, P>
   html: Html<D, P>
   css?: Css<D, P>
   actions?: Action<D, P>[]
