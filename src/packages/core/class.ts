@@ -409,29 +409,29 @@ export default class FiCsElement<D extends object, P extends object> {
     )
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const isVarTag = (element: Element): boolean => element.localName === varTag
+    const getChildComponent = (element: Element): HTMLElement => {
+      const ficsId: string | null = getFiCsId(element)
 
-    if (oldChildNodes.length === 0) {
-      const loadChild = (element: Element): void => {
-        const ficsId: string | null = getFiCsId(element)
+      if (ficsId) {
+        const fics: FiCsElement<D, P> = children[ficsId]
 
-        if (ficsId) {
-          const fics: FiCsElement<D, P> = children[ficsId]
+        return fics.#isImmutable && fics.#component
+          ? fics.#component
+          : fics.#render(this.#propsChain)
+      } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
+    }
 
-          element.replaceWith(
-            fics.#isImmutable && fics.#component ? fics.#component : fics.#render(this.#propsChain)
-          )
-        } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
-      }
-
+    if (oldChildNodes.length === 0)
       for (const childNode of newChildNodes) {
         shadowRoot.append(childNode)
 
         if (childNode instanceof HTMLElement)
-          if (isVarTag(childNode)) loadChild(childNode)
+          if (isVarTag(childNode)) childNode.replaceWith(getChildComponent(childNode))
           else
-            for (const element of Array.from(childNode.querySelectorAll(varTag))) loadChild(element)
+            for (const element of Array.from(childNode.querySelectorAll(varTag)))
+              element.replaceWith(getChildComponent(element))
       }
-    } else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
+    else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const that: FiCsElement<D, P> = this
 
@@ -502,16 +502,10 @@ export default class FiCsElement<D extends object, P extends object> {
       ): void {
         if (childNode instanceof Element) that.#newElements.add(childNode)
 
-        const applyCache = <T>(childNode: T): T => {
-          if (childNode instanceof Element && isVarTag(childNode)) {
-            const ficsId: string | null = getFiCsId(childNode)
-
-            if (ficsId) return children[ficsId].#component as T
-            else throw new Error(`The child FiCsElement has FiCsId does not exist...`)
-          }
-
-          return childNode
-        }
+        const applyCache = <T>(childNode: T): HTMLElement | T =>
+          childNode instanceof Element && isVarTag(childNode)
+            ? getChildComponent(childNode)
+            : childNode
 
         parentNode.insertBefore(applyCache(childNode), applyCache(before))
       }
