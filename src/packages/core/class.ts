@@ -568,7 +568,6 @@ export default class FiCsElement<D extends object, P extends object> {
             oldHeadNode = oldChildNodes[++oldHead]
             newHeadNode = newChildNodes[++newHead]
           } else if (matchChildNode(oldTailNode, newTailNode)) {
-            console.log(2, oldTailNode, newTailNode)
             patchChildNode(oldTailNode, newTailNode)
             oldTailNode = oldChildNodes[--oldTail]
             newTailNode = newChildNodes[--newTail]
@@ -612,13 +611,13 @@ export default class FiCsElement<D extends object, P extends object> {
         if (oldHead <= oldTail) {
           const newDomMap: Map<string, ChildNode[]> = createMap(newChildNodes)
 
-          console.log(oldTail)
-
           for (; oldHead <= oldTail; ++oldHead) {
             const oldHeadNode: ChildNode = oldChildNodes[oldHead]
             const newChildNode: ChildNode | undefined = getFromMap(newDomMap, oldHeadNode)
 
-            newChildNode ? patchChildNode(oldHeadNode, newChildNode) : oldHeadNode.remove()
+            newChildNode && oldHeadNode.isEqualNode(newChildNode)
+              ? patchChildNode(oldHeadNode, newChildNode)
+              : oldHeadNode.remove()
           }
         }
       }
