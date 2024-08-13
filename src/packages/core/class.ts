@@ -212,8 +212,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #setDataProps(): DataProps<D, P> {
     return this.#isImmutable
-      ? { data: {} as D, props: {} as P }
-      : { data: { ...this.#data }, props: { ...this.#props } }
+      ? { $data: {} as D, $props: {} as P }
+      : { $data: { ...this.#data }, $props: { ...this.#props } }
   }
 
   #getClassName(): string {
@@ -304,17 +304,17 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getHtml(): HtmlContents<D, P> {
-    const template: Sanitize<D, P, true> = (
+    const $template: Sanitize<D, P, true> = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
     ): Symbolized<HtmlContents<D, P>> => this.#sanitize(true, templates, variables)
 
-    const html: Sanitize<D, P, false> = (
+    const $html: Sanitize<D, P, false> = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
     ): HtmlContents<D, P> => this.#sanitize(false, templates, variables)[symbol]
 
-    const i18n = ({ json, lang, keys }: I18n): string => {
+    const $i18n = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
 
       if (texts) {
@@ -327,7 +327,7 @@ export default class FiCsElement<D extends object, P extends object> {
       } else throw new Error(`${lang}.json does not exist...`)
     }
 
-    return this.#html({ ...this.#setDataProps(), template, html, i18n })[symbol]
+    return this.#html({ ...this.#setDataProps(), $template, $html, $i18n })[symbol]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
@@ -643,10 +643,10 @@ export default class FiCsElement<D extends object, P extends object> {
     method: Method<D, P>,
     enterKey?: boolean
   ): void {
-    const getMethodParam = (event: Event): Param<D, P> & { event: Event } => ({
+    const getMethodParam = (event: Event): Param<D, P> & { $event: Event } => ({
       ...this.#setDataProps(),
-      setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-      event
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $event: event
     })
 
     element.addEventListener(handler, (event: Event) => method(getMethodParam(event)))
@@ -680,7 +680,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: keyof Hooks<D, P>): void {
     this.#hooks[key]?.({
       ...this.#setDataProps(),
-      setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
     })
   }
 
