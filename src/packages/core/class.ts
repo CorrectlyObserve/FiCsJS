@@ -527,7 +527,8 @@ export default class FiCsElement<D extends object, P extends object> {
           if (childNode instanceof Element) {
             const key: string | null = childNode.getAttribute('key')
 
-            return `${childNode.localName}${key ? `-${key}` : ''}`
+            if (!key) return childNode.localName
+            return `${childNode.localName}-${key}`
           }
 
           return childNode.nodeName
