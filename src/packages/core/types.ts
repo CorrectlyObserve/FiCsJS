@@ -23,8 +23,8 @@ export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 export type Css<D, P> = (string | Style<D, P>)[]
 
 export interface DataProps<D, P> {
-  data: D
-  props: P
+  $data: D
+  $props: P
 }
 
 type Descendant = FiCsElement<any, any>
@@ -48,9 +48,9 @@ export interface FiCs<D extends object, P extends object> {
 
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
-    template: Sanitize<D, P, true>
-    html: Sanitize<D, P, false>
-    i18n: ({ json, lang, keys }: I18n) => string
+    $template: Sanitize<D, P, true>
+    $html: Sanitize<D, P, false>
+    $i18n: ({ json, lang, keys }: I18n) => string
   }
 ) => Symbolized<(Descendant | string)[]>
 
@@ -75,10 +75,10 @@ export interface I18n {
   keys: string | string[]
 }
 
-export type Method<D, P> = (params: Param<D, P> & { event: Event }) => void
+export type Method<D, P> = (params: Param<D, P> & { $event: Event }) => void
 
 export type Param<D, P> = DataProps<D, P> & {
-  setData: (key: keyof D, value: D[typeof key]) => void
+  $setData: (key: keyof D, value: D[typeof key]) => void
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
