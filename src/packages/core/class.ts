@@ -505,7 +505,11 @@ export default class FiCsElement<D extends object, P extends object> {
         const applyCache = <T>(childNode: T): HTMLElement | T =>
           childNode instanceof Element && isVarTag(childNode) ? getChild(childNode) : childNode
 
-        parentNode.insertBefore(applyCache(childNode), applyCache(before))
+        childNode = applyCache(childNode)
+        parentNode.insertBefore(childNode, applyCache(before))
+
+        if (childNode instanceof HTMLElement && shadowRoot.activeElement?.isEqualNode(childNode))
+          childNode.focus()
       }
 
       function updateChildNodes(
@@ -566,27 +570,19 @@ export default class FiCsElement<D extends object, P extends object> {
             newHeadNode = newChildNodes[++newHead]
           } else {
             if (domMap.size === 0) domMap = createMap(oldChildNodes)
-
             const mapHeadNode: ChildNode | undefined = domMap.get(getMapKey(newHeadNode))
-            const mapTailNode: ChildNode | undefined = domMap.get(getMapKey(newTailNode))
 
             if (mapHeadNode === undefined) {
-              if (mapTailNode === undefined) {
-                insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
-                newTailNode = newChildNodes[--newTail]
-              }
               insertBefore(parentNode, newHeadNode, oldHeadNode)
               newHeadNode = newChildNodes[++newHead]
-            } else if (mapTailNode === undefined) {
+            } else if (domMap.get(getMapKey(newTailNode)) === undefined) {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
-              if (mapHeadNode.nodeName === newHeadNode.nodeName)
+              if (mapHeadNode.nodeName === newHeadNode.nodeName) {
                 patchChildNode(mapHeadNode, newHeadNode)
-              else {
-                insertBefore(parentNode, newHeadNode, oldHeadNode)
-                oldHeadNode.remove()
               }
+              else insertBefore(parentNode, newHeadNode, oldHeadNode)
 
               newHeadNode = newChildNodes[++newHead]
             }
@@ -600,7 +596,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
           while (oldHead <= oldTail) {
             const oldHeadNode: ChildNode = oldChildNodes[oldHead++]
-            if (!newDomMap.get(getMapKey(oldHeadNode))) oldHeadNode.remove()
+            if (!newDomMap.get(getMapKey(oldHeadNode)))
+              oldHeadNode.remove()
           }
         }
       }
