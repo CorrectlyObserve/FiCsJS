@@ -435,8 +435,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else {
       type DomMap = Map<string, ChildNode>
       const that: FiCsElement<D, P> = this
-      const { activeElement }: { activeElement: Element | null } = shadowRoot
-      const hasFocused: boolean = false
+      let { activeElement }: { activeElement: Element | null } = shadowRoot
 
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
@@ -512,10 +511,11 @@ export default class FiCsElement<D extends object, P extends object> {
         parentNode.insertBefore(childNode, applyCache(before))
 
         if (
-          !hasFocused &&
+          activeElement &&
           childNode instanceof HTMLElement &&
-          childNode.isEqualNode(activeElement)
+          matchChildNode(childNode, activeElement)
         ) {
+          activeElement = null
           childNode.focus()
 
           if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
@@ -590,9 +590,12 @@ export default class FiCsElement<D extends object, P extends object> {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
-              mapHeadNode.nodeName === newHeadNode.nodeName
-                ? patchChildNode(mapHeadNode, newHeadNode)
-                : insertBefore(parentNode, newHeadNode, oldHeadNode)
+              if (mapHeadNode.nodeName === newHeadNode.nodeName)
+                patchChildNode(mapHeadNode, newHeadNode)
+              else {
+                insertBefore(parentNode, newHeadNode, oldHeadNode)
+                oldHeadNode.remove()
+              }
 
               newHeadNode = newChildNodes[++newHead]
             }
