@@ -521,36 +521,29 @@ export default class FiCsElement<D extends object, P extends object> {
         let newTail: number = newChildNodes.length - 1
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
-        let domMap: Map<string, ChildNode[]> = new Map()
+        type DomMap = Map<string, ChildNode>
+        let domMap: DomMap = new Map()
 
         const getMapKey = (childNode: ChildNode): string => {
-          if (childNode instanceof Element) {
-            const key: string | null = childNode.getAttribute('key')
+          if (!(childNode instanceof Element)) return ''
 
-            if (!key) return childNode.localName
-            return `${childNode.localName}-${key}`
-          }
-
-          return childNode.nodeName
+          const key: string | null = childNode.getAttribute('key')
+          return key ? `${childNode.localName}-${key}` : ''
         }
-        const createMap = (childNodes: ChildNode[]): Map<string, ChildNode[]> => {
-          const map: Map<string, ChildNode[]> = new Map()
+        const createMap = (childNodes: ChildNode[]): DomMap => {
+          const map: DomMap = new Map()
+          let start = oldHead
 
-          for (const childNode of childNodes) {
+          while (start <= oldTail) {
+            const childNode = childNodes[start++]
             if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
 
             const key: string = getMapKey(childNode)
-            map.set(key, [...(map.get(key) ?? []), childNode])
+            if (key !== '') map.set(key, childNode)
           }
 
           return map
         }
-        const getFromMap = (
-          map: Map<string, ChildNode[]>,
-          childNode: ChildNode,
-          isTail?: boolean
-        ): ChildNode | undefined =>
-          (map.get(getMapKey(childNode)) ?? [])[isTail ? 'pop' : 'shift']()
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -574,40 +567,40 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             if (domMap.size === 0) domMap = createMap(oldChildNodes)
 
-            const mapHeadNode: ChildNode | undefined = getFromMap(domMap, newHeadNode)
+            const mapHeadNode: ChildNode | undefined = domMap.get(getMapKey(newHeadNode))
+            const mapTailNode: ChildNode | undefined = domMap.get(getMapKey(newTailNode))
 
             if (mapHeadNode === undefined) {
-              insertBefore(parentNode, newHeadNode, oldHeadNode)
-
-              if (getFromMap(domMap, newTailNode, true)) {
+              if (mapTailNode === undefined) {
                 insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
                 newTailNode = newChildNodes[--newTail]
               }
-            } else if (mapHeadNode.nodeName === newHeadNode.nodeName)
-              patchChildNode(mapHeadNode, newHeadNode)
-            else {
               insertBefore(parentNode, newHeadNode, oldHeadNode)
-              oldHeadNode.remove()
-            }
+              newHeadNode = newChildNodes[++newHead]
+            } else if (mapTailNode === undefined) {
+              insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
+              newTailNode = newChildNodes[--newTail]
+            } else {
+              if (mapHeadNode.nodeName === newHeadNode.nodeName)
+                patchChildNode(mapHeadNode, newHeadNode)
+              else {
+                insertBefore(parentNode, newHeadNode, oldHeadNode)
+                oldHeadNode.remove()
+              }
 
-            newHeadNode = newChildNodes[++newHead]
+              newHeadNode = newChildNodes[++newHead]
+            }
           }
 
-        while (newHead <= newTail) {
-          const childNode: ChildNode | null = newChildNodes[newHead++]
-          if (childNode) insertBefore(parentNode, childNode, oldChildNodes[oldTail + 1])
-        }
+        while (newHead <= newTail)
+          insertBefore(parentNode, newChildNodes[newHead++], oldChildNodes[oldTail + 1])
 
         if (oldHead <= oldTail) {
-          const newDomMap: Map<string, ChildNode[]> = createMap(newChildNodes)
+          const newDomMap: DomMap = createMap(newChildNodes)
 
-          for (; oldHead <= oldTail; ++oldHead) {
-            const oldHeadNode: ChildNode = oldChildNodes[oldHead]
-            const newChildNode: ChildNode | undefined = getFromMap(newDomMap, oldHeadNode)
-
-            newChildNode && oldHeadNode.isEqualNode(newChildNode)
-              ? patchChildNode(oldHeadNode, newChildNode)
-              : oldHeadNode.remove()
+          while (oldHead <= oldTail) {
+            const oldHeadNode: ChildNode = oldChildNodes[oldHead++]
+            if (!newDomMap.get(getMapKey(oldHeadNode))) oldHeadNode.remove()
           }
         }
       }
