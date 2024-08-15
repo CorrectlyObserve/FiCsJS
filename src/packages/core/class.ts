@@ -573,10 +573,7 @@ export default class FiCsElement<D extends object, P extends object> {
             } else {
               if (mapStartNode.nodeName === newStartNode.nodeName)
                 patchChildNode(mapStartNode, newStartNode)
-              else {
-                insertBefore(parentNode, newStartNode, oldStartNode)
-                oldStartNode.remove()
-              }
+              else insertBefore(parentNode, newStartNode, oldStartNode)
 
               newStartNode = newChildNodes[++newStartIndex]
             }
