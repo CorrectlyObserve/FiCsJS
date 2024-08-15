@@ -433,9 +433,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
-      type DomMap = Map<string, ChildNode>
       const that: FiCsElement<D, P> = this
-      let { activeElement }: { activeElement: Element | null } = shadowRoot
 
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
@@ -502,31 +500,15 @@ export default class FiCsElement<D extends object, P extends object> {
         childNode: ChildNode,
         before: ChildNode | null
       ): void => {
-        if (childNode instanceof Element) that.#newElements.add(childNode)
-
-        const applyCache = <T>(childNode: T): HTMLElement | T =>
-          childNode instanceof Element && isVarTag(childNode) ? getChild(childNode) : childNode
-
-        childNode = applyCache(childNode)
-        before = applyCache(before)
-
-        before?.parentNode?.isEqualNode(parentNode)
-          ? parentNode.insertBefore(childNode, before)
-          : parentNode.appendChild(childNode)
-
-        if (
-          activeElement &&
-          childNode instanceof HTMLElement &&
-          matchChildNode(childNode, activeElement)
-        ) {
-          activeElement = null
-          childNode.focus()
-
-          if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
-            const { length }: { length: number } = childNode.value
-            if (length > 1) childNode.setSelectionRange(length, length)
-          }
+        if (childNode instanceof Element) {
+          if (isVarTag(childNode)) childNode = getChild(childNode)
+          else that.#newElements.add(childNode)
         }
+
+        parentNode.insertBefore(
+          childNode,
+          before?.parentNode?.isEqualNode(parentNode) ? before : null
+        )
       }
 
       const getMapKey = (childNode: ChildNode): string => {
@@ -541,41 +523,40 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        let oldHead: number = 0
-        let oldTail: number = oldChildNodes.length - 1
-        let oldHeadNode: ChildNode = oldChildNodes[oldHead]
-        let oldTailNode: ChildNode = oldChildNodes[oldTail]
-        let newHead: number = 0
-        let newTail: number = newChildNodes.length - 1
-        let newHeadNode: ChildNode = newChildNodes[newHead]
-        let newTailNode: ChildNode = newChildNodes[newTail]
-        let dom: DomMap = new Map()
-        let patchedMap: DomMap = new Map()
+        let oldStartIndex: number = 0
+        let oldEndIndex: number = oldChildNodes.length - 1
+        let oldStartNode: ChildNode = oldChildNodes[oldStartIndex]
+        let oldEndNode: ChildNode = oldChildNodes[oldEndIndex]
+        let newStartIndex: number = 0
+        let newEndIndex: number = newChildNodes.length - 1
+        let newStartNode: ChildNode = newChildNodes[newStartIndex]
+        let newEndNode: ChildNode = newChildNodes[newEndIndex]
+        const dom: Map<string, ChildNode> = new Map()
 
-        while (oldHead <= oldTail && newHead <= newTail)
-          if (matchChildNode(oldHeadNode, newHeadNode)) {
-            patchChildNode(oldHeadNode, newHeadNode)
-            oldHeadNode = oldChildNodes[++oldHead]
-            newHeadNode = newChildNodes[++newHead]
-          } else if (matchChildNode(oldTailNode, newTailNode)) {
-            patchChildNode(oldTailNode, newTailNode)
-            oldTailNode = oldChildNodes[--oldTail]
-            newTailNode = newChildNodes[--newTail]
-          } else if (matchChildNode(oldHeadNode, newTailNode)) {
-            patchChildNode(oldHeadNode, newTailNode)
-            insertBefore(parentNode, oldHeadNode, newTailNode.nextSibling)
-            oldHeadNode = oldChildNodes[++oldHead]
-            newTailNode = newChildNodes[--newTail]
-          } else if (matchChildNode(oldTailNode, newHeadNode)) {
-            patchChildNode(oldTailNode, newHeadNode)
-            insertBefore(parentNode, oldTailNode, oldHeadNode)
-            oldTailNode = oldChildNodes[--oldTail]
-            newHeadNode = newChildNodes[++newHead]
+        while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
+          if (matchChildNode(oldStartNode, newStartNode)) {
+            patchChildNode(oldStartNode, newStartNode)
+            oldStartNode = oldChildNodes[++oldStartIndex]
+            newStartNode = newChildNodes[++newStartIndex]
+          } else if (matchChildNode(oldEndNode, newEndNode)) {
+            patchChildNode(oldEndNode, newEndNode)
+            oldEndNode = oldChildNodes[--oldEndIndex]
+            newEndNode = newChildNodes[--newEndIndex]
+          } else if (matchChildNode(oldStartNode, newEndNode)) {
+            patchChildNode(oldStartNode, newEndNode)
+            insertBefore(parentNode, oldStartNode, newEndNode.nextSibling)
+            oldStartNode = oldChildNodes[++oldStartIndex]
+            newEndNode = newChildNodes[--newEndIndex]
+          } else if (matchChildNode(oldEndNode, newStartNode)) {
+            patchChildNode(oldEndNode, newStartNode)
+            insertBefore(parentNode, oldEndNode, oldStartNode)
+            oldEndNode = oldChildNodes[--oldEndIndex]
+            newStartNode = newChildNodes[++newStartIndex]
           } else {
             if (dom.size === 0) {
-              let start: number = oldHead
+              let start: number = oldStartIndex
 
-              while (start <= oldTail) {
+              while (start <= oldEndIndex) {
                 const childNode: ChildNode = oldChildNodes[start++]
                 if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
 
@@ -584,31 +565,28 @@ export default class FiCsElement<D extends object, P extends object> {
               }
             }
 
-            const mapHeadNode: ChildNode | undefined = dom.get(getMapKey(newHeadNode))
+            const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))
 
-            if (mapHeadNode === undefined) {
-              insertBefore(parentNode, newHeadNode, oldHeadNode)
-              newHeadNode = newChildNodes[++newHead]
-            } else if (dom.get(getMapKey(newTailNode)) === undefined) {
-              insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
-              newTailNode = newChildNodes[--newTail]
+            if (mapStartNode === undefined) {
+              insertBefore(parentNode, newStartNode, oldStartNode)
+              newStartNode = newChildNodes[++newStartIndex]
+            } else if (dom.get(getMapKey(newEndNode)) === undefined) {
+              insertBefore(parentNode, newEndNode, oldEndNode.nextSibling)
+              newEndNode = newChildNodes[--newEndIndex]
             } else {
-              if (mapHeadNode.nodeName === newHeadNode.nodeName) {
-                patchChildNode(mapHeadNode, newHeadNode)
-                patchedMap.set(getMapKey(mapHeadNode), mapHeadNode)
-              } else insertBefore(parentNode, newHeadNode, oldHeadNode)
+              if (mapStartNode.nodeName === newStartNode.nodeName) {
+                patchChildNode(mapStartNode, newStartNode)
+                dom.get(getMapKey(newStartNode))?.remove()
+              } else insertBefore(parentNode, newStartNode, oldStartNode)
 
-              newHeadNode = newChildNodes[++newHead]
+              newStartNode = newChildNodes[++newStartIndex]
             }
           }
 
-        while (newHead <= newTail)
-          insertBefore(parentNode, newChildNodes[newHead++], oldChildNodes[oldTail + 1])
+        while (newStartIndex <= newEndIndex)
+          insertBefore(parentNode, newChildNodes[newStartIndex++], oldChildNodes[newEndIndex + 1])
 
-        while (oldHead <= oldTail) {
-          const oldHeadNode: ChildNode = oldChildNodes[oldHead++]
-          if (!patchedMap.get(getMapKey(oldHeadNode))) oldHeadNode.remove()
-        }
+        while (oldStartIndex <= oldEndIndex) oldChildNodes[oldStartIndex++].remove()
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
