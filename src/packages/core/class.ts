@@ -553,17 +553,14 @@ export default class FiCsElement<D extends object, P extends object> {
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
-            if (dom.size === 0) {
-              let start: number = oldStartIndex
-
-              while (start <= oldEndIndex) {
-                const childNode: ChildNode = oldChildNodes[start++]
+            if (dom.size === 0)
+              for (let i = oldStartIndex; i <= oldEndIndex; i++) {
+                const childNode: ChildNode = oldChildNodes[i]
                 if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
 
                 const key: string = getMapKey(childNode)
-                if (key !== '') dom.set(key, childNode)
+                if (key !== '') dom.set(getMapKey(childNode), childNode)
               }
-            }
 
             const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))
 
@@ -574,10 +571,12 @@ export default class FiCsElement<D extends object, P extends object> {
               insertBefore(parentNode, newEndNode, oldEndNode.nextSibling)
               newEndNode = newChildNodes[--newEndIndex]
             } else {
-              if (mapStartNode.nodeName === newStartNode.nodeName) {
+              if (mapStartNode.nodeName === newStartNode.nodeName)
                 patchChildNode(mapStartNode, newStartNode)
-                dom.get(getMapKey(newStartNode))?.remove()
-              } else insertBefore(parentNode, newStartNode, oldStartNode)
+              else {
+                insertBefore(parentNode, newStartNode, oldStartNode)
+                oldStartNode.remove()
+              }
 
               newStartNode = newChildNodes[++newStartIndex]
             }
