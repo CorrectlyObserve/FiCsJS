@@ -524,7 +524,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
             const { length }: { length: number } = childNode.value
-            childNode.setSelectionRange(length, length)
+            if (length > 1) childNode.setSelectionRange(length, length)
           }
         }
       }
@@ -534,19 +534,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const key: string | null = childNode.getAttribute('key')
         return key ? `${childNode.localName}-${key}` : ''
-      }
-      const createMap = (childNodes: ChildNode[], oldHead: number, oldTail: number): DomMap => {
-        const map: DomMap = new Map()
-
-        while (oldHead <= oldTail) {
-          const childNode = childNodes[oldHead++]
-          if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
-
-          const key: string = getMapKey(childNode)
-          if (key !== '') map.set(key, childNode)
-        }
-
-        return map
       }
 
       function updateChildNodes(
@@ -563,6 +550,7 @@ export default class FiCsElement<D extends object, P extends object> {
         let newHeadNode: ChildNode = newChildNodes[newHead]
         let newTailNode: ChildNode = newChildNodes[newTail]
         let dom: DomMap = new Map()
+        let patchedMap: DomMap = new Map()
 
         while (oldHead <= oldTail && newHead <= newTail)
           if (matchChildNode(oldHeadNode, newHeadNode)) {
@@ -584,7 +572,18 @@ export default class FiCsElement<D extends object, P extends object> {
             oldTailNode = oldChildNodes[--oldTail]
             newHeadNode = newChildNodes[++newHead]
           } else {
-            if (dom.size === 0) dom = createMap(oldChildNodes, oldHead, oldTail)
+            if (dom.size === 0) {
+              let start: number = oldHead
+
+              while (start <= oldTail) {
+                const childNode: ChildNode = oldChildNodes[start++]
+                if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
+
+                const key: string = getMapKey(childNode)
+                if (key !== '') dom.set(key, childNode)
+              }
+            }
+
             const mapHeadNode: ChildNode | undefined = dom.get(getMapKey(newHeadNode))
 
             if (mapHeadNode === undefined) {
@@ -594,12 +593,10 @@ export default class FiCsElement<D extends object, P extends object> {
               insertBefore(parentNode, newTailNode, oldTailNode.nextSibling)
               newTailNode = newChildNodes[--newTail]
             } else {
-              if (mapHeadNode.nodeName === newHeadNode.nodeName)
+              if (mapHeadNode.nodeName === newHeadNode.nodeName) {
                 patchChildNode(mapHeadNode, newHeadNode)
-              else {
-                insertBefore(parentNode, newHeadNode, oldHeadNode)
-                oldHeadNode.remove()
-              }
+                patchedMap.set(getMapKey(mapHeadNode), mapHeadNode)
+              } else insertBefore(parentNode, newHeadNode, oldHeadNode)
 
               newHeadNode = newChildNodes[++newHead]
             }
@@ -608,14 +605,9 @@ export default class FiCsElement<D extends object, P extends object> {
         while (newHead <= newTail)
           insertBefore(parentNode, newChildNodes[newHead++], oldChildNodes[oldTail + 1])
 
-        if (oldHead <= oldTail) {
-          const newDom: DomMap = createMap(newChildNodes, oldHead, oldTail)
-
-          while (oldHead <= oldTail) {
-            const oldHeadNode: ChildNode = oldChildNodes[oldHead++]
-
-            if (!newDom.get(getMapKey(oldHeadNode))) oldHeadNode.remove()
-          }
+        while (oldHead <= oldTail) {
+          const oldHeadNode: ChildNode = oldChildNodes[oldHead++]
+          if (!patchedMap.get(getMapKey(oldHeadNode))) oldHeadNode.remove()
         }
       }
 
