@@ -508,7 +508,11 @@ export default class FiCsElement<D extends object, P extends object> {
           childNode instanceof Element && isVarTag(childNode) ? getChild(childNode) : childNode
 
         childNode = applyCache(childNode)
-        parentNode.insertBefore(childNode, applyCache(before))
+        before = applyCache(before)
+
+        before?.parentNode?.isEqualNode(parentNode)
+          ? parentNode.insertBefore(childNode, before)
+          : parentNode.appendChild(childNode)
 
         if (
           activeElement &&
