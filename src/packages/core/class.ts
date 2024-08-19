@@ -529,9 +529,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (before instanceof Element && isVarTag(before)) before = getChild(before)
 
-          if (before?.parentNode?.isEqualNode(parentNode))
-            parentNode.insertBefore(childNode, before)
-          else parentNode.insertBefore(childNode, oldChildNodes[oldStartIndex])
+          parentNode.insertBefore(
+            childNode,
+            before && !before.parentNode?.isEqualNode(parentNode) ? oldStartNode : before
+          )
         }
 
         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
@@ -576,9 +577,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 patchChildNode(mapStartNode, newStartNode)
                 insertBefore(parentNode, mapStartNode, oldStartNode)
                 oldStartNode.remove()
-              } else {
-                insertBefore(parentNode, newStartNode, oldStartNode)
-              }
+              } else insertBefore(parentNode, newStartNode, oldStartNode)
 
               newStartNode = newChildNodes[++newStartIndex]
             }
