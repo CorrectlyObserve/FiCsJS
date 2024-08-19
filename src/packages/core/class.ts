@@ -495,22 +495,6 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      const insertBefore = (
-        parentNode: ShadowRoot | ChildNode,
-        childNode: ChildNode,
-        before: ChildNode | null
-      ): void => {
-        if (childNode instanceof Element) {
-          if (isVarTag(childNode)) childNode = getChild(childNode)
-          else that.#newElements.add(childNode)
-        }
-
-        parentNode.insertBefore(
-          childNode,
-          before?.parentNode?.isEqualNode(parentNode) ? before : null
-        )
-      }
-
       const getMapKey = (childNode: ChildNode): string => {
         if (!(childNode instanceof Element)) return ''
 
@@ -532,6 +516,23 @@ export default class FiCsElement<D extends object, P extends object> {
         let newStartNode: ChildNode = newChildNodes[newStartIndex]
         let newEndNode: ChildNode = newChildNodes[newEndIndex]
         const dom: Map<string, ChildNode> = new Map()
+
+        const insertBefore = (
+          parentNode: ShadowRoot | ChildNode,
+          childNode: ChildNode,
+          before: ChildNode | null
+        ): void => {
+          if (childNode instanceof Element) {
+            if (isVarTag(childNode)) childNode = getChild(childNode)
+            else that.#newElements.add(childNode)
+          }
+
+          if (before instanceof Element && isVarTag(before)) before = getChild(before)
+
+          if (before?.parentNode?.isEqualNode(parentNode))
+            parentNode.insertBefore(childNode, before)
+          else parentNode.insertBefore(childNode, oldChildNodes[oldStartIndex])
+        }
 
         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
           if (matchChildNode(oldStartNode, newStartNode)) {
@@ -559,7 +560,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
 
                 const key: string = getMapKey(childNode)
-                if (key !== '') dom.set(getMapKey(childNode), childNode)
+                if (key !== '') dom.set(key, childNode)
               }
 
             const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))
@@ -571,16 +572,20 @@ export default class FiCsElement<D extends object, P extends object> {
               insertBefore(parentNode, newEndNode, oldEndNode.nextSibling)
               newEndNode = newChildNodes[--newEndIndex]
             } else {
-              if (mapStartNode.nodeName === newStartNode.nodeName)
+              if (mapStartNode.nodeName === newStartNode.nodeName) {
                 patchChildNode(mapStartNode, newStartNode)
-              else insertBefore(parentNode, newStartNode, oldStartNode)
+                insertBefore(parentNode, mapStartNode, oldStartNode)
+                oldStartNode.remove()
+              } else {
+                insertBefore(parentNode, newStartNode, oldStartNode)
+              }
 
               newStartNode = newChildNodes[++newStartIndex]
             }
           }
 
         while (newStartIndex <= newEndIndex)
-          insertBefore(parentNode, newChildNodes[newStartIndex++], oldChildNodes[newEndIndex + 1])
+          insertBefore(parentNode, newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1])
 
         while (oldStartIndex <= oldEndIndex) oldChildNodes[oldStartIndex++].remove()
       }
