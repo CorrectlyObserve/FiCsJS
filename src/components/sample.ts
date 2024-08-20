@@ -7,7 +7,7 @@ export const Sample = () =>
     html: ({ $data: { value }, $template }) =>
       $template`
         ${value !== '' ? $template`<p>${value}</p>` : ''}
-        <input key="1" type="text" value="${value}" />
+        <input type="text" value="${value}" />
         ${value !== '' ? $template`<input type="text" value="${value}" />` : ''}
       `,
     css: [{ style: { color: 'white' } }],
