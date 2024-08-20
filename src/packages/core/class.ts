@@ -434,6 +434,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const that: FiCsElement<D, P> = this
+      let { activeElement }: { activeElement: Element | null } = shadowRoot
 
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
@@ -448,6 +449,22 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         return isSameNode
+      }
+
+      const focus = (childNode: ChildNode): void => {
+        if (
+          childNode instanceof HTMLElement &&
+          activeElement &&
+          matchChildNode(childNode, activeElement)
+        ) {
+          activeElement = null
+          childNode.focus()
+
+          if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
+            const { length }: { length: number } = childNode.value
+            childNode.setSelectionRange(length, length)
+          }
+        }
       }
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
@@ -516,6 +533,7 @@ export default class FiCsElement<D extends object, P extends object> {
         let newStartNode: ChildNode = newChildNodes[newStartIndex]
         let newEndNode: ChildNode = newChildNodes[newEndIndex]
         const dom: Map<string, ChildNode> = new Map()
+        const keyChildNodes: Map<string, ChildNode> = new Map()
 
         const insertBefore = (
           parentNode: ShadowRoot | ChildNode,
@@ -533,6 +551,8 @@ export default class FiCsElement<D extends object, P extends object> {
             childNode,
             before && !before.parentNode?.isEqualNode(parentNode) ? oldStartNode : before
           )
+
+          focus(childNode)
         }
 
         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
@@ -576,7 +596,7 @@ export default class FiCsElement<D extends object, P extends object> {
               if (mapStartNode.nodeName === newStartNode.nodeName) {
                 patchChildNode(mapStartNode, newStartNode)
                 insertBefore(parentNode, mapStartNode, oldStartNode)
-                oldStartNode.remove()
+                keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
               } else insertBefore(parentNode, newStartNode, oldStartNode)
 
               newStartNode = newChildNodes[++newStartIndex]
@@ -586,7 +606,12 @@ export default class FiCsElement<D extends object, P extends object> {
         while (newStartIndex <= newEndIndex)
           insertBefore(parentNode, newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1])
 
-        while (oldStartIndex <= oldEndIndex) oldChildNodes[oldStartIndex++].remove()
+        while (oldStartIndex <= oldEndIndex) {
+          const childNode: ChildNode = oldChildNodes[oldStartIndex++]
+
+          if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
+          focus(childNode)
+        }
       }
 
       updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
