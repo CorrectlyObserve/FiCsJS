@@ -1,110 +1,144 @@
 import generate from './generator'
 import addQueue from './queue'
-import symbol from './symbol'
-import {
+import type {
   Action,
+  Attrs,
+  Bindings,
   ClassName,
   Css,
+  DataProps,
   FiCs,
   Html,
-  Props,
+  HtmlContents,
+  Hooks,
+  Inheritances,
+  I18n,
+  Method,
+  Param,
   PropsChain,
+  PropsTree,
   Reflections,
-  Sanitized,
-  Value
+  Sanitize,
+  Style,
+  Symbolized
 } from './types'
 
+const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, boolean> = {}
+  readonly #reservedWords: Record<string, true> = { var: true, router: true }
   readonly #ficsId: string
   readonly #name: string
-  readonly #data: D = <D>{}
+  readonly #tagName: string
+  readonly #isImmutable: boolean = false
+  readonly #data: D = {} as D
   readonly #reflections: Reflections<D> | undefined = undefined
-  readonly #inheritances: Props<D> = []
-  readonly #props: P = <P>{}
+  readonly #inheritances: Inheritances<D> = new Array()
+  readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
-  readonly #className: ClassName<D, P> | undefined = undefined
-  readonly #html: Html<D, P> = { [symbol]: [] }
-  readonly #css: Css<D, P> = []
-  readonly #actions: Action<D, P>[] = []
-
-  readonly #propsTrees: {
-    descendantId: string
-    dataKey: string
-    propsKey: keyof P
-    setProps: (value: P[keyof P]) => void
-  }[] = []
-  readonly #dataBindings: { className: boolean; html: boolean; css: number[]; actions: number[] } = {
-    className: false,
-    html: false,
-    css: [],
-    actions: []
+  readonly #bindings: Bindings = {
+    isClassName: false,
+    isAttr: false,
+    css: new Array(),
+    actions: new Array()
   }
+  readonly #className: ClassName<D, P> | undefined = undefined
+  readonly #attrs: Attrs<D, P> | undefined = undefined
+  readonly #html: Html<D, P>
+  readonly #css: Css<D, P> = new Array()
+  readonly #actions: Action<D, P>[] = new Array()
+  readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
+  readonly #propsTrees: PropsTree<D, P>[] = new Array()
+  readonly #ficsIdName: string = 'fics-id'
+  readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
   #component: HTMLElement | undefined = undefined
   #isReflecting: boolean = false
 
   constructor({
+    isExceptional,
     name,
+    isImmutable,
     data,
     reflections,
+    inheritances,
     props,
     isOnlyCsr,
     className,
+    attributes,
     html,
     css,
-    actions
+    actions,
+    hooks
   }: FiCs<D, P>) {
-    if (this.#reservedWords[name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
+    this.#name = this.#toKebabCase(name)
+
+    if (isExceptional && this.#name in this.#reservedWords) delete this.#reservedWords[this.#name]
+
+    if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = `fics${generator.next().value}`
-      this.#name = name
+      this.#tagName = `f-${this.#name}`
+
+      if (isImmutable) {
+        if (data)
+          throw new Error(
+            `${this.#tagName} is the immutable component, so it cannot define data...`
+          )
+
+        if (props)
+          throw new Error(
+            `${this.#tagName} is the immutable component, so it cannot receive props...`
+          )
+
+        this.#isImmutable = isImmutable
+      }
 
       if (data) {
         if (reflections) {
-          let hasError = false
+          for (const key of Object.keys(reflections))
+            if (!(key in data())) throw new Error(`${key} is not defined in data...`)
 
-          for (const key of Object.keys(reflections)) {
-            if (key in data()) continue
-
-            if (!hasError) hasError = true
-            throw new Error(`${key} is not defined in data...`)
-          }
-
-          if (!hasError) this.#reflections = { ...reflections }
+          this.#reflections = { ...reflections }
         }
 
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
       }
 
-      if (props && props.length > 0) this.#inheritances = [...props]
+      if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
+      if (props) this.#props = { ...props } as P
 
       if (isOnlyCsr) this.#isOnlyCsr = true
-      if (className) this.#className = className
 
-      this.#html = typeof html === 'function' ? html : { ...html }
+      if (className) {
+        if (!this.#isImmutable && typeof className === 'function') this.#bindings.isClassName = true
+        this.#className = className
+      }
+
+      if (attributes) {
+        if (!this.#isImmutable && typeof attributes === 'function') this.#bindings.isAttr = true
+        this.#attrs = attributes
+      }
+
+      this.#html = html
 
       if (css && css.length > 0) this.#css = [...css]
       if (actions && actions.length > 0) this.#actions = [...actions]
+      if (hooks) this.#hooks = { ...hooks }
     }
   }
 
-  #toKebabCase(str: string = this.#name): string {
+  #toKebabCase(str: string): string {
     return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-  }
-
-  #getTagName(): string {
-    return `f-${this.#toKebabCase()}`
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
     if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: () => this.#reRender() })
+      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
     }
   }
 
@@ -112,11 +146,17 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#inheritances.length > 0)
       for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          let dataKey: string = ''
+          if (descendant.#isImmutable)
+            throw new Error(
+              `${this.#tagName} is an immutable component, so it cannot receive props...`
+            )
+
+          let dataKey: keyof D = '' as keyof D
           const data: [string, P][] = Object.entries({
             ...values((key: keyof D) => {
-              dataKey = <string>key
-              return this.getData(key)
+              dataKey = key
+
+              return this.getData(dataKey)
             })
           })
           const descendantId: string = descendant.#ficsId
@@ -124,18 +164,43 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const [key, value] of data) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (!(key in chain) || !propsChain.has(descendantId)) {
-              propsChain.set(descendantId, { ...chain, [key]: value })
+            if (key in chain && propsChain.has(descendantId)) continue
 
-              const propsKey = key as keyof P
+            const numberId: number = parseInt(descendantId.replace('fics', ''))
 
-              this.#propsTrees.push({
-                descendantId,
-                dataKey,
-                propsKey,
-                setProps: (value: P[keyof P]) => descendant.#setProps(propsKey, value)
-              })
-            } else continue
+            propsChain.set(descendantId, { ...chain, [key]: value })
+
+            const { length }: { length: number } = this.#propsTrees
+            const tree: PropsTree<D, P> = {
+              numberId,
+              dataKey,
+              setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
+            }
+
+            switch (length) {
+              case 0:
+                this.#propsTrees.push(tree)
+                break
+
+              case 1:
+                this.#propsTrees[0].numberId > tree.numberId
+                  ? this.#propsTrees.push(tree)
+                  : this.#propsTrees.unshift(tree)
+                break
+
+              default:
+                let min: number = 0
+                let max: number = length - 1
+
+                while (min <= max) {
+                  const mid: number = Math.floor((min + max) / 2)
+
+                  if (this.#propsTrees[mid].numberId <= tree.numberId) max = mid - 1
+                  else min = mid + 1
+                }
+
+                this.#propsTrees.splice(min, 0, tree)
+            }
           }
         }
 
@@ -145,111 +210,428 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
   }
 
-  #getProperty<D, P>(property: Value<unknown, D, P>) {
-    return typeof property === 'function'
-      ? property({ data: { ...this.#data }, props: { ...this.#props } })
-      : property
+  #setDataProps(): DataProps<D, P> {
+    return this.#isImmutable
+      ? { $data: {} as D, $props: {} as P }
+      : { $data: { ...this.#data }, $props: { ...this.#props } }
   }
 
-  #getStyle(css: Css<D, P> = this.#css): string {
-    if (css.length > 0) return <string>css.reduce((prev, curr) => {
-        if (typeof curr !== 'string' && curr.selector && 'style' in curr) {
-          const style =
-            '{' +
-            Object.entries(this.#getProperty(curr.style))
-              .map(([key, value]) => `${this.#toKebabCase(key)}: ${value};`)
-              .join('\n') +
-            '}'
+  #getClassName(): string {
+    if (!this.#className) return this.#name
 
-          return `${prev}${curr.selector}${style}`
-        }
+    const className: string =
+      typeof this.#className === 'function'
+        ? this.#className(this.#setDataProps())
+        : this.#className
 
-        return `${prev}${curr}`
-      }, '')
-
-    return ''
+    return `${this.#name} ${className}`
   }
 
-  #renderOnServer(propsChain: PropsChain<P>): string {
-    const tagName: string = this.#getTagName()
-
-    if (this.#isOnlyCsr) return `<${tagName}></${tagName}>`
-
-    this.#initProps(propsChain)
-
-    const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
-
-    if (elements) {
-      const className: string = this.#className ? ` ${this.#getProperty(this.#className)}` : ''
-
-      return `
-        <${tagName} class="${this.#toKebabCase()}${className}">
-          <template shadowrootmode="open">
-            ${this.#css.length > 0 ? `<style>${this.#getStyle()}</style>` : ''}
-            ${elements.reduce(
-              (prev, curr) =>
-                prev +
-                (curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr),
-              ''
-            )}
-          </template>
-        </${tagName}>
-      `.trim()
-    }
-
-    throw new Error(
-      `${this.#name} has to use html function (tagged template literal) in html argument.`
+  #getAttrs(): [string, string][] {
+    return Object.entries(
+      typeof this.#attrs === 'function' ? this.#attrs(this.#setDataProps()) : (this.#attrs ?? [])
     )
   }
 
-  #addClassName(fics: HTMLElement, isReset?: boolean): void {
-    if (isReset) fics.classList.remove(...Array.from(fics.classList))
-    else if (typeof this.#className === 'function') this.#dataBindings.className = true
+  #getStyle(css: Css<D, P>, host: string = ':host'): string {
+    if (css.length === 0) return ''
 
-    this.#className
-      ? fics.setAttribute('class', `${this.#toKebabCase()} ${this.#getProperty(this.#className)}`)
-      : fics.classList.add(this.#toKebabCase())
-  }
-
-  #addHtml(shadowRoot: ShadowRoot, isReset?: boolean): void {
-    if (isReset) shadowRoot.innerHTML = ''
-    else this.#dataBindings.html = typeof this.#html === 'function'
-
-    const elements: Sanitized<D, P> | undefined = this.#getProperty(this.#html)[symbol]
-
-    if (elements)
-      for (const element of elements)
-        shadowRoot.appendChild(
-          element instanceof FiCsElement
-            ? element.#component ?? element.#render(this.#propsChain)
-            : document.createRange().createContextualFragment(element)
-        )
-    else
-      throw new Error(
-        `${this.#name} has to use html function (tagged template literal) in html argument.`
+    const createStyle = (param: Style<D, P>, host: string = ':host'): string => {
+      const { style, selector } = param
+      const entries: [string, unknown][] = Object.entries(
+        typeof style === 'function' ? style(this.#setDataProps()) : style
       )
+      const content: string = entries
+        .map(([key, value]) => {
+          key = this.#toKebabCase(key)
+          if (key.startsWith('webkit')) key = `-${key}`
+
+          return `${key}: ${value};`
+        })
+        .join('\n')
+
+      return `${host} ${selector ?? ''}{${content}}`
+    }
+
+    return css.reduce((prev, curr) => {
+      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr, host)}`
+
+      return `${prev}${curr}`
+    }, '') as string
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): string | void {
-    if (this.#css.length > 0) {
-      if (css.length === 0)
-        for (const [index, content] of this.#css.entries()) {
-          if (
-            typeof content !== 'string' &&
-            'style' in content &&
-            typeof content.style === 'function'
-          )
-            this.#dataBindings.css.push(index)
-          else continue
+  #sanitize(
+    isSanitized: boolean,
+    templates: TemplateStringsArray,
+    variables: unknown[]
+  ): Record<symbol, HtmlContents<D, P>> {
+    let result: (HtmlContents<D, P> | unknown)[] = new Array()
+
+    for (let [index, template] of templates.entries()) {
+      template = template.trim()
+      let variable: any = variables[index]
+
+      if (variable && typeof variable === 'object' && symbol in variable) {
+        if (typeof variable[symbol][0] === 'string')
+          variable[symbol][0] = template + variable[symbol][0]
+        else variable[symbol].unshift(template)
+
+        result = [...result, ...variable[symbol]]
+      } else {
+        if (isSanitized && typeof variable === 'string')
+          variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        else if (variable === undefined) variable = ''
+
+        if (index === 0 && template === '') result.push(variable)
+        else {
+          const { length } = result
+          const last: HtmlContents<D, P> | unknown = result[length - 1] ?? ''
+          const isFiCsElement: boolean = variable instanceof FiCsElement
+
+          if (last instanceof FiCsElement)
+            isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+          else {
+            const inserted: string = `${last}${template}` + `${isFiCsElement ? '' : variable}`
+            result.splice(length - 1, 1, inserted)
+
+            if (isFiCsElement) result.push(variable)
+          }
+        }
+      }
+    }
+
+    return { [symbol]: result as HtmlContents<D, P> }
+  }
+
+  #getHtml(): HtmlContents<D, P> {
+    const $template: Sanitize<D, P, true> = (
+      templates: TemplateStringsArray,
+      ...variables: unknown[]
+    ): Symbolized<HtmlContents<D, P>> => this.#sanitize(true, templates, variables)
+
+    const $html: Sanitize<D, P, false> = (
+      templates: TemplateStringsArray,
+      ...variables: unknown[]
+    ): HtmlContents<D, P> => this.#sanitize(false, templates, variables)[symbol]
+
+    const $i18n = ({ json, lang, keys }: I18n): string => {
+      let texts: Record<string, string> | string = json[lang]
+
+      if (texts) {
+        for (const key of Array.isArray(keys) ? keys : [keys])
+          if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
+
+        if (typeof texts === 'string') return texts
+
+        throw new Error(`There is no applicable value in json..`)
+      } else throw new Error(`${lang}.json does not exist...`)
+    }
+
+    return this.#html({ ...this.#setDataProps(), $template, $html, $i18n })[symbol]
+  }
+
+  #renderOnServer(propsChain: PropsChain<P>): string {
+    if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
+
+    this.#initProps(propsChain)
+
+    const attrs: string = this.#getAttrs().reduce(
+      (prev, [key, value]) => `${prev} ${this.#toKebabCase(key)}="${value}"`,
+      ''
+    )
+    const slotId: string = `${this.#ficsId}-slot`
+    const style: string =
+      this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
+
+    return `
+        <${[this.#tagName, `class="${this.#getClassName()}"`, attrs].join(' ').trim()}>
+          <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
+          <div id="${slotId}" slot="${this.#ficsId}">
+            ${this.#getHtml().reduce(
+              (prev, curr) =>
+                `${prev}${
+                  curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr
+                }`,
+              style
+            )}
+          </div>
+        </${this.#tagName}>
+      `.trim()
+  }
+
+  #addClassName(fics: HTMLElement): void {
+    this.#className
+      ? fics.setAttribute('class', this.#getClassName())
+      : fics.classList.add(this.#name)
+  }
+
+  #addAttrs(fics: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs()) fics.setAttribute(this.#toKebabCase(key), value)
+  }
+
+  #getChildNodes(parent: ShadowRoot | DocumentFragment | Element): ChildNode[] {
+    return Array.from(parent.childNodes)
+  }
+
+  #removeChildNodes(param: HTMLElement | ChildNode[]): void {
+    for (const childNode of param instanceof HTMLElement ? this.#getChildNodes(param) : param)
+      childNode.remove()
+  }
+
+  #toCamelCase(str: string): string {
+    return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+  }
+
+  #setProperty<V>(element: HTMLElement, property: string, value: V): void {
+    ;(element as any)[this.#toCamelCase(property)] = value
+  }
+
+  #addHtml(shadowRoot: ShadowRoot): void {
+    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
+    const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
+      isProperty
+        ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
+        : element.getAttribute(this.#ficsIdName)
+
+    const children: Record<string, FiCsElement<D, P>> = {}
+    const varTag: string = 'f-var'
+    const newShadowRoot: DocumentFragment = document.createRange().createContextualFragment(
+      this.#getHtml().reduce((prev, curr) => {
+        if (curr instanceof FiCsElement) {
+          const ficsId: string = curr.#ficsId
+          children[ficsId] = curr
+
+          curr = `<${varTag} ${this.#ficsIdName}="${ficsId}"></${varTag}>`
         }
 
-      const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-      const style: Css<D, P> | undefined =
-        css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : undefined
+        return `${prev}${curr}`
+      }, '') as string
+    )
+    const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
+    const isVarTag = (element: Element): boolean => element.localName === varTag
+    const getChild = (element: Element): HTMLElement => {
+      const ficsId: string | null = getFiCsId(element)
 
-      shadowRoot.adoptedStyleSheets = [stylesheet]
-      stylesheet.replaceSync(this.#getStyle(style))
+      if (ficsId) {
+        const fics: FiCsElement<D, P> = children[ficsId]
+
+        return fics.#isImmutable && fics.#component
+          ? fics.#component
+          : fics.#render(this.#propsChain)
+      } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
     }
+
+    if (oldChildNodes.length === 0)
+      for (const childNode of newChildNodes) {
+        shadowRoot.append(childNode)
+
+        if (childNode instanceof HTMLElement)
+          if (isVarTag(childNode)) childNode.replaceWith(getChild(childNode))
+          else
+            for (const element of Array.from(childNode.querySelectorAll(varTag)))
+              element.replaceWith(getChild(element))
+      }
+    else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
+    else {
+      const that: FiCsElement<D, P> = this
+      let { activeElement }: { activeElement: Element | null } = shadowRoot
+
+      const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
+        const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
+
+        if (oldChildNode instanceof Element && newChildNode instanceof Element) {
+          const isSameFiCsId: boolean =
+            isVarTag(newChildNode) && getFiCsId(oldChildNode, true) === getFiCsId(newChildNode)
+          const isSameKey: boolean =
+            oldChildNode.getAttribute('key') === newChildNode.getAttribute('key')
+
+          return isSameFiCsId || (isSameNode && isSameKey)
+        }
+
+        return isSameNode
+      }
+
+      const focus = (childNode: ChildNode): void => {
+        if (
+          childNode instanceof HTMLElement &&
+          activeElement &&
+          matchChildNode(childNode, activeElement)
+        ) {
+          activeElement = null
+          childNode.focus()
+
+          if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
+            const { length }: { length: number } = childNode.value
+            childNode.setSelectionRange(length, length)
+          }
+        }
+      }
+
+      function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
+        if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
+          oldChildNode.nodeValue = newChildNode.nodeValue
+        else if (
+          oldChildNode instanceof Element &&
+          newChildNode instanceof Element &&
+          !isVarTag(newChildNode)
+        ) {
+          const oldAttrs: NamedNodeMap = oldChildNode.attributes
+          const newAttrs: NamedNodeMap = newChildNode.attributes
+          const oldAttrList: Record<string, string> = {}
+
+          for (let index = 0; index < oldAttrs.length; index++) {
+            const { name, value } = oldAttrs[index]
+            oldAttrList[name] = value
+          }
+
+          const { namespaceURI }: { namespaceURI: string | null } = oldChildNode
+
+          for (let index = 0; index < newAttrs.length; index++) {
+            const { name, value }: { name: string; value: string } = newAttrs[index]
+
+            if (oldAttrList[name] !== value) {
+              if (oldChildNode instanceof HTMLElement) {
+                oldChildNode.setAttribute(name, value)
+
+                if (name !== that.#ficsIdName) that.#setProperty(oldChildNode, name, value)
+              } else oldChildNode.setAttributeNS(namespaceURI, name, value)
+            }
+
+            delete oldAttrList[name]
+          }
+
+          for (const name in oldAttrList)
+            if (oldChildNode instanceof HTMLElement) oldChildNode.removeAttribute(name)
+            else oldChildNode.removeAttributeNS(namespaceURI, name)
+
+          updateChildNodes(
+            oldChildNode,
+            that.#getChildNodes(oldChildNode),
+            that.#getChildNodes(newChildNode)
+          )
+        }
+      }
+
+      const getMapKey = (childNode: ChildNode): string => {
+        if (!(childNode instanceof Element)) return ''
+
+        const key: string | null = childNode.getAttribute('key')
+        return key ? `${childNode.localName}-${key}` : ''
+      }
+
+      function updateChildNodes(
+        parentNode: ShadowRoot | ChildNode,
+        oldChildNodes: ChildNode[],
+        newChildNodes: ChildNode[]
+      ): void {
+        let oldStartIndex: number = 0
+        let oldEndIndex: number = oldChildNodes.length - 1
+        let oldStartNode: ChildNode = oldChildNodes[oldStartIndex]
+        let oldEndNode: ChildNode = oldChildNodes[oldEndIndex]
+        let newStartIndex: number = 0
+        let newEndIndex: number = newChildNodes.length - 1
+        let newStartNode: ChildNode = newChildNodes[newStartIndex]
+        let newEndNode: ChildNode = newChildNodes[newEndIndex]
+        const dom: Map<string, ChildNode> = new Map()
+        const keyChildNodes: Map<string, ChildNode> = new Map()
+
+        const insertBefore = (
+          parentNode: ShadowRoot | ChildNode,
+          childNode: ChildNode,
+          before: ChildNode | null
+        ): void => {
+          if (childNode instanceof Element) {
+            if (isVarTag(childNode)) childNode = getChild(childNode)
+            else that.#newElements.add(childNode)
+          }
+
+          if (before instanceof Element && isVarTag(before)) before = getChild(before)
+
+          parentNode.insertBefore(
+            childNode,
+            before && !before.parentNode?.isEqualNode(parentNode) ? oldStartNode : before
+          )
+
+          focus(childNode)
+        }
+
+        while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
+          if (matchChildNode(oldStartNode, newStartNode)) {
+            patchChildNode(oldStartNode, newStartNode)
+            oldStartNode = oldChildNodes[++oldStartIndex]
+            newStartNode = newChildNodes[++newStartIndex]
+          } else if (matchChildNode(oldEndNode, newEndNode)) {
+            patchChildNode(oldEndNode, newEndNode)
+            oldEndNode = oldChildNodes[--oldEndIndex]
+            newEndNode = newChildNodes[--newEndIndex]
+          } else if (matchChildNode(oldStartNode, newEndNode)) {
+            patchChildNode(oldStartNode, newEndNode)
+            insertBefore(parentNode, oldStartNode, newEndNode.nextSibling)
+            oldStartNode = oldChildNodes[++oldStartIndex]
+            newEndNode = newChildNodes[--newEndIndex]
+          } else if (matchChildNode(oldEndNode, newStartNode)) {
+            patchChildNode(oldEndNode, newStartNode)
+            insertBefore(parentNode, oldEndNode, oldStartNode)
+            oldEndNode = oldChildNodes[--oldEndIndex]
+            newStartNode = newChildNodes[++newStartIndex]
+          } else {
+            if (dom.size === 0)
+              for (let i = oldStartIndex; i <= oldEndIndex; i++) {
+                const childNode: ChildNode = oldChildNodes[i]
+                if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
+
+                const key: string = getMapKey(childNode)
+                if (key !== '') dom.set(key, childNode)
+              }
+
+            const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))
+
+            if (mapStartNode === undefined) {
+              insertBefore(parentNode, newStartNode, oldStartNode)
+              newStartNode = newChildNodes[++newStartIndex]
+            } else if (dom.get(getMapKey(newEndNode)) === undefined) {
+              insertBefore(parentNode, newEndNode, oldEndNode.nextSibling)
+              newEndNode = newChildNodes[--newEndIndex]
+            } else {
+              if (mapStartNode.nodeName === newStartNode.nodeName) {
+                patchChildNode(mapStartNode, newStartNode)
+                insertBefore(parentNode, mapStartNode, oldStartNode)
+                keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
+              } else insertBefore(parentNode, newStartNode, oldStartNode)
+
+              newStartNode = newChildNodes[++newStartIndex]
+            }
+          }
+
+        while (newStartIndex <= newEndIndex)
+          insertBefore(parentNode, newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1])
+
+        while (oldStartIndex <= oldEndIndex) {
+          const childNode: ChildNode = oldChildNodes[oldStartIndex++]
+
+          if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
+          focus(childNode)
+        }
+      }
+
+      updateChildNodes(shadowRoot, oldChildNodes, newChildNodes)
+    }
+  }
+
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
+    if (this.#css.length === 0) return
+
+    if (!this.#isImmutable && css.length === 0)
+      for (const [index, content] of this.#css.entries())
+        if (typeof content !== 'string' && typeof content.style === 'function')
+          this.#bindings.css.push(index)
+
+    const stylesheet: CSSStyleSheet = new CSSStyleSheet()
+    const style: Css<D, P> =
+      css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : this.#css
+
+    shadowRoot.adoptedStyleSheets = [stylesheet]
+    stylesheet.replaceSync(this.#getStyle(style))
   }
 
   #getShadowRoot(fics: HTMLElement): ShadowRoot {
@@ -258,74 +640,59 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #addEvent(fics: HTMLElement, action: Action<D, P>, isReset?: boolean): void {
-    const { handler, selector, method } = action
+  #addEventListener(
+    element: Element,
+    handler: string,
+    method: Method<D, P>,
+    enterKey?: boolean
+  ): void {
+    const getMethodParam = (event: Event): Param<D, P> & { $event: Event } => ({
+      ...this.#setDataProps(),
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $event: event
+    })
 
-    if (selector) {
-      const getSelectors = (selector: string): Element[] =>
-        Array.from((<ShadowRoot>fics.shadowRoot).querySelectorAll(`:host ${selector}`))
-      const elements: Element[] = []
+    element.addEventListener(handler, (event: Event) => method(getMethodParam(event)))
 
-      if (/^.+(\.|#).+$/.test(selector)) {
-        const prefix = selector.startsWith('.') ? '.' : '#'
-        const [tag, attr] = selector.split(prefix)
+    if (handler === 'click' && enterKey)
+      element.addEventListener('keydown', (event: Event) => {
+        const { key }: { key: string } = event as KeyboardEvent
 
-        elements.push(
-          ...getSelectors(tag).filter(
-            element => element.getAttribute(prefix === '.' ? 'class' : 'id') === attr
-          )
-        )
-      } else elements.push(...getSelectors(selector))
+        if (key === 'Enter') method(getMethodParam(event))
+      })
+  }
 
-      if (elements.length > 0)
-        for (const element of elements) {
-          const methodFunc = (event: Event): void =>
-            method(
-              {
-                data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                props: { ...this.#props }
-              },
-              event
-            )
-
-          if (isReset) element.removeEventListener(handler, (event: Event) => methodFunc(event))
-
-          element.addEventListener(handler, (event: Event) => methodFunc(event))
-        }
-      else
-        console.error(`:host ${selector} does not exist or is not applicable in ${this.#name}...`)
-    }
+  #getElements(shadowRoot: ShadowRoot, selector: string): Element[] {
+    return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
   }
 
   #addActions(fics: HTMLElement): void {
     if (this.#actions.length > 0)
-      this.#actions.forEach((event, index) => {
-        const { handler, selector, method } = event
+      this.#actions.forEach((action, index) => {
+        const { handler, selector, method, enterKey }: Action<D, P> = action
 
-        if (selector) {
-          this.#dataBindings.actions.push(index)
-          this.#addEvent(fics, event)
-        } else
-          fics.addEventListener(handler, (event: Event) =>
-            method(
-              {
-                data: { ...this.#data },
-                setData: (key: keyof D, value: D[typeof key]) => this.setData(key, value),
-                props: { ...this.#props }
-              },
-              event
-            )
-          )
+        if (!this.#isImmutable && selector) {
+          this.#bindings.actions.push(index)
+
+          for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
+            this.#addEventListener(element, handler, method, enterKey)
+        } else this.#addEventListener(fics, handler, method, enterKey)
       })
   }
 
-  #render(propsChain: PropsChain<P>): HTMLElement {
-    const tagName: string = this.#getTagName()
+  #callback(key: keyof Hooks<D, P>): void {
+    this.#hooks[key]?.({
+      ...this.#setDataProps(),
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
+    })
+  }
 
-    if (!customElements.get(tagName))
+  #render(propsChain: PropsChain<P>): HTMLElement {
+    const that: FiCsElement<D, P> = this
+
+    if (!customElements.get(that.#tagName))
       customElements.define(
-        tagName,
+        that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
 
@@ -333,42 +700,73 @@ export default class FiCsElement<D extends object, P extends object> {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
           }
+
+          connectedCallback(): void {
+            that.#callback('connect')
+          }
+
+          disconnectedCallback(): void {
+            that.#callback('disconnect')
+          }
+
+          adoptedCallback(): void {
+            that.#callback('adopt')
+          }
         }
       )
 
-    const fics = this.#component ?? document.createElement(tagName)
+    const fics: HTMLElement = document.createElement(this.#tagName)
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
+    this.#setProperty(fics, this.#ficsIdName, this.#ficsId)
     this.#initProps(propsChain)
     this.#addClassName(fics)
-    this.#addHtml(this.#getShadowRoot(fics))
-    this.#addCss(this.#getShadowRoot(fics))
+    this.#addAttrs(fics)
+    this.#addHtml(shadowRoot)
+    this.#addCss(shadowRoot)
     this.#addActions(fics)
 
-    if (!this.#component) this.#component = fics
+    if (!this.#component) {
+      this.#removeChildNodes(fics)
+      this.#component = fics
+    }
 
-    return this.#component
+    return fics
   }
 
   #reRender(): void {
-    if (this.#component) {
-      const { className, html, css, actions } = this.#dataBindings
+    const fics: HTMLElement | undefined = this.#component
 
-      if (className) this.#addClassName(this.#component, true)
+    if (fics) {
+      const { isClassName, isAttr, css, actions }: Bindings = this.#bindings
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
 
-      if (html) this.#addHtml(this.#getShadowRoot(this.#component), true)
+      if (isClassName) {
+        fics.classList.remove(...Array.from(fics.classList))
+        this.#addClassName(fics)
+      }
+
+      if (isAttr) this.#addAttrs(fics)
+
+      this.#addHtml(shadowRoot)
 
       if (css.length > 0)
         this.#addCss(
-          this.#getShadowRoot(this.#component),
+          shadowRoot,
           css.map(index => this.#css[index])
         )
 
       if (actions.length > 0)
         for (const index of actions) {
-          const { selector } = this.#actions[index]
+          const { handler, selector, method, enterKey }: Action<D, P> = this.#actions[index]
 
-          if (selector) this.#addEvent(this.#component, this.#actions[index], true)
+          if (selector)
+            for (const element of this.#getElements(shadowRoot, selector))
+              if (this.#newElements.has(element))
+                this.#addEventListener(element, handler, method, enterKey)
         }
+
+      this.#newElements.clear()
     }
   }
 
@@ -383,28 +781,37 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: () => this.#reRender() })
+      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
 
-      this.#propsTrees.find(tree => tree.dataKey === key)?.setProps(value as unknown as P[keyof P])
+      for (const { dataKey, setProps } of this.#propsTrees)
+        if (dataKey === key) setProps(value as unknown as P[keyof P])
 
       if (this.#reflections && key in this.#reflections) {
         this.#isReflecting = true
-        this.#reflections[key](this.#data[key])
+        this.#reflections[key]?.(this.#data[key])
         this.#isReflecting = false
       }
     }
   }
 
-  ssr(): string {
-    return this.#renderOnServer(this.#propsChain)
+  ssr(parent?: HTMLElement | string): void {
+    const component: string = this.#renderOnServer(this.#propsChain)
+
+    if (parent instanceof HTMLElement) parent.setHTMLUnsafe(component)
+    else if (typeof parent === 'string') {
+      const parentElement: HTMLElement | null = document.getElementById(parent)
+
+      if (parentElement) parentElement.setHTMLUnsafe(component)
+      else throw new Error(`The HTMLElement has #${parent} does not exist...`)
+    }
   }
 
-  define(): void {
-    if (!customElements.get(this.#getTagName())) {
-      const that = this
+  define(parent?: HTMLElement | string): void {
+    if (!customElements.get(this.#tagName)) {
+      const that: FiCsElement<D, P> = this
 
       customElements.define(
-        this.#getTagName(),
+        that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           #isRendered: boolean = false
@@ -418,16 +825,39 @@ export default class FiCsElement<D extends object, P extends object> {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
-              that.#addHtml(that.#getShadowRoot(this))
-              that.#addCss(that.#getShadowRoot(this))
+              that.#addAttrs(this)
+              that.#addHtml(this.shadowRoot)
+              that.#addCss(this.shadowRoot)
               that.#addActions(this)
-
+              that.#callback('connect')
+              that.#removeChildNodes(this)
+              that.#setProperty(this, that.#ficsIdName, that.#ficsId)
               that.#component = this
               this.#isRendered = true
             }
           }
+
+          disconnectedCallback(): void {
+            that.#callback('disconnect')
+          }
+
+          adoptedCallback(): void {
+            that.#callback('adopt')
+          }
         }
       )
+
+      if (parent) {
+        const component = document.createElement(this.#tagName)
+
+        if (parent instanceof HTMLElement) parent.append(component)
+        else {
+          const parentElement: HTMLElement | null = document.getElementById(parent)
+
+          if (parentElement) parentElement.append(component)
+          else throw new Error(`The HTMLElement has #${parent} does not exist...`)
+        }
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-import { fics, html } from '../packages/core/fics'
+import fics from '../packages/core/fics'
 import { ChildType } from './child'
 
 export const Parent = (child: ChildType) => {
@@ -17,19 +17,17 @@ export const Parent = (child: ChildType) => {
 
   return fics({
     name: 'parent',
-    data: () => ({
-      color: 'blue',
-      click: (message: string) => console.log(message)
-    }),
-    props: [
+    data: () => ({ color: 'blue', click: (message: string) => console.log(message) }),
+    inheritances: [
       {
         descendants: child,
         values: getData => ({ color: getData('color'), click: getData('click') })
       }
     ],
+    props: {} as { propsColor: string },
     className: 'test',
-    html: ({ props: { propsColor } }: { props: { propsColor: string } }) =>
-      html`${child}
+    html: ({ $props: { propsColor }, $template }) =>
+      $template`${child}
         <p>propsColor: ${propsColor}</p>`
   })
 }
