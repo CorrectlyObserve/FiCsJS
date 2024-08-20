@@ -11,7 +11,7 @@ export const Svg = ({ size, path, color, click }: Arg) =>
   fics({
     name: 'svg',
     isImmutable: true,
-    html: ({ template }) => template`<button />`,
+    html: ({ $template }) => $template`<button />`,
     css: [
       { style: { display: 'flex' } },
       {
