@@ -48,8 +48,8 @@ export interface FiCs<D extends object, P extends object> {
 
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
-    $template: Sanitize<D, P, true>
-    $html: Sanitize<D, P, false>
+    $template: Sanitize<D, P>
+    $html?: Sanitize<D, P>
     $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
@@ -97,10 +97,10 @@ export interface Queue {
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
-export type Sanitize<D extends object, P extends object, B> = (
+export type Sanitize<D extends object, P extends object> = (
   templates: TemplateStringsArray,
   ...variables: unknown[]
-) => B extends true ? Symbolized<HtmlContents<D, P>> : HtmlContents<D, P>
+) => Symbolized<HtmlContents<D, P>>
 
 export interface Style<D, P> {
   selector?: string
