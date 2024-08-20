@@ -261,7 +261,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #sanitize(
-    isSanitized: boolean,
     templates: TemplateStringsArray,
     variables: unknown[]
   ): Record<symbol, HtmlContents<D, P>> {
@@ -278,7 +277,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         result = [...result, ...variable[symbol]]
       } else {
-        if (isSanitized && typeof variable === 'string')
+        if (typeof variable === 'string')
           variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         else if (variable === undefined) variable = ''
 
@@ -304,15 +303,15 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getHtml(): HtmlContents<D, P> {
-    const $template: Sanitize<D, P, true> = (
+    const $template: Sanitize<D, P> = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
-    ): Symbolized<HtmlContents<D, P>> => this.#sanitize(true, templates, variables)
+    ): Symbolized<HtmlContents<D, P>> => this.#sanitize(templates, variables)
 
-    const $html: Sanitize<D, P, false> = (
-      templates: TemplateStringsArray,
-      ...variables: unknown[]
-    ): HtmlContents<D, P> => this.#sanitize(false, templates, variables)[symbol]
+    // const $html: Sanitize<D, P> = (
+    //   templates: TemplateStringsArray,
+    //   ...variables: unknown[]
+    // ): HtmlContents<D, P> => this.#sanitize(templates, variables)[symbol]
 
     const $show = (condition: boolean): string => (condition ? '' : ' style="display:none;"')
 
@@ -329,7 +328,7 @@ export default class FiCsElement<D extends object, P extends object> {
       } else throw new Error(`${lang}.json does not exist...`)
     }
 
-    return this.#html({ ...this.#setDataProps(), $template, $html, $show, $i18n })[symbol]
+    return this.#html({ ...this.#setDataProps(), $template, $show, $i18n })[symbol]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
