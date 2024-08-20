@@ -50,6 +50,7 @@ export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
     $template: Sanitize<D, P, true>
     $html: Sanitize<D, P, false>
+    $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
 ) => Symbolized<(Descendant | string)[]>
