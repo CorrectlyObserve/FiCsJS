@@ -1,17 +1,14 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
-
-const root = 'src'
+import { glob } from 'glob'
 
 export default defineConfig({
-  root,
+  root: resolve(__dirname, 'src'),
   build: {
+    emptyOutDir: true,
     outDir: '../dist',
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, root, 'index.html'),
-        privacy: resolve(__dirname, root, 'todo/index.html')
-      }
-    }
-  }
+    rollupOptions: { input: glob.sync('src/*.html') },
+    minify: true
+  },
+  server: { hmr: true }
 })

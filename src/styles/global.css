@@ -1,0 +1,14 @@
+:root {
+  --sm: 0.5rem;
+  --md: 1rem;
+  --lg: 2rem;
+  --black: #2b2b2b;
+  --red: #b7282e;
+}
+
+body {
+  background: var(--black);
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}

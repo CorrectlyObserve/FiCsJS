@@ -1,28 +1,25 @@
-import { Queue } from './types'
+import type { Queue } from './types'
 
-const queue: Queue[] = []
+const queues: Queue[] = new Array()
 const ids: Record<string, boolean> = {}
 let hasQueue: boolean = false
 
-const processQueue = async (): Promise<void> => {
-  while (queue.length > 0) {
-    const queueEl: Queue = queue.shift()!
-
-    delete ids[queueEl.ficsId]
-    queueEl.reRender()
-  }
-
-  hasQueue = false
-}
-
-const addQueue = (queueEl: Queue): void => {
-  if (!ids[queueEl.ficsId]) {
-    queue.push(queueEl)
-    ids[queueEl.ficsId] = true
+const addQueue = (queue: Queue): void => {
+  if (!ids[queue.ficsId]) {
+    queues.push(queue)
+    ids[queue.ficsId] = true
 
     if (!hasQueue) {
       hasQueue = true
-      processQueue()
+
+      while (queues.length > 0) {
+        const queue: Queue = queues.shift()!
+
+        delete ids[queue.ficsId]
+        queue.reRender
+      }
+
+      hasQueue = false
     }
   }
 }
