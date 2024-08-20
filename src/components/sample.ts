@@ -4,10 +4,10 @@ export const Sample = () =>
   fics({
     name: 'sample',
     data: () => ({ value: '' }),
-    html: ({ $data: { value }, $template }) =>
+    html: ({ $data: { value }, $template, $show }) =>
       $template`
-        ${value !== '' ? $template`<p>${value}</p>` : ''}
-        <input type="text" value="${value}" />
+        <p ${$show(value !== '')}>${'value: ' + value}</p>
+        <input key="1" type="text" value="${value}" />
         ${value !== '' ? $template`<input type="text" value="${value}" />` : ''}
       `,
     css: [{ style: { color: 'white' } }],
