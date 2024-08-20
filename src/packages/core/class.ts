@@ -314,6 +314,8 @@ export default class FiCsElement<D extends object, P extends object> {
       ...variables: unknown[]
     ): HtmlContents<D, P> => this.#sanitize(false, templates, variables)[symbol]
 
+    const $show = (condition: boolean): string => (condition ? '' : ' style="display:none;"')
+
     const $i18n = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
 
@@ -327,7 +329,7 @@ export default class FiCsElement<D extends object, P extends object> {
       } else throw new Error(`${lang}.json does not exist...`)
     }
 
-    return this.#html({ ...this.#setDataProps(), $template, $html, $i18n })[symbol]
+    return this.#html({ ...this.#setDataProps(), $template, $html, $show, $i18n })[symbol]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
