@@ -16,8 +16,8 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
         values: getData => ({ propsColor: getData('color') + '2' })
       }
     ],
-    html: ({ data: { fontSize, number, email }, template }) =>
-      template`
+    html: ({ $data: { fontSize, number, email }, $template }) =>
+      $template`
         <h2>${email}</h2>
         <p>Content is...${email}</p>
         ${parent}
@@ -25,7 +25,7 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
         <input value="${fontSize}" />
       `,
     css: [{ selector: 'h2', style: { color: 'red' } }],
-    actions: [{ handler: 'click', method: ({ setData }) => setData('color', 'red') }]
+    actions: [{ handler: 'click', method: ({ $setData }) => $setData('color', 'red') }]
   })
 
 export default GrandParent
