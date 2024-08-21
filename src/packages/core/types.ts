@@ -49,7 +49,7 @@ export interface FiCs<D extends object, P extends object> {
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
     $template: Sanitize<D, P>
-    $html?: Sanitize<D, P>
+    $html: (str: string) => Symbolized<string>
     $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
