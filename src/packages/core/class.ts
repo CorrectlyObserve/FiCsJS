@@ -23,7 +23,6 @@ import type {
   Symbolized
 } from './types'
 
-const symbol: symbol = Symbol('sanitized')
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -45,6 +44,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #className: ClassName<D, P> | undefined = undefined
   readonly #attrs: Attrs<D, P> | undefined = undefined
+  readonly #symbol: symbol
   readonly #html: Html<D, P>
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
@@ -122,6 +122,7 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#attrs = attributes
       }
 
+      this.#symbol = Symbol(`${this.#ficsId}-sanitize`)
       this.#html = html
 
       if (css && css.length > 0) this.#css = [...css]
@@ -260,18 +261,24 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
+  #getTaggedTemplateLiteral(templates: TemplateStringsArray, variables: unknown[]) {
+    return { templates, variables }
+  }
+
   #sanitize(
     templates: TemplateStringsArray,
     variables: (HtmlContents<D, P> | Symbolized<string> | unknown)[]
   ): Record<symbol, HtmlContents<D, P>> {
     const sanitized: (HtmlContents<D, P> | unknown)[] = new Array()
+    const sanitize = (str: string): string =>
+      str.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
 
     for (let [index, template] of templates.entries()) {
       template = template.trim()
       let variable: any = variables[index]
 
-      if (variable && typeof variable === 'object' && symbol in variable) {
-        variable = variable[symbol]
+      if (variable && typeof variable === 'object' && this.#symbol in variable) {
+        variable = variable[this.#symbol]
 
         if (Array.isArray(variable)) {
           if (typeof variable[0] === 'string') variable[0] = template + variable[0]
@@ -280,14 +287,23 @@ export default class FiCsElement<D extends object, P extends object> {
           sanitized.push(...variable)
         } else if (typeof variable === 'string') sanitized.push(variable)
         else throw new Error(`The type of the variable in $template is not the expected one.`)
+      } else if (Array.isArray(variable)) {
+        const template: HTMLElement = document.createElement('f-var')
+
+        for (const childVar of variable)
+          if (childVar instanceof FiCsElement) sanitized.push(childVar)
+          else {
+            console.log(this.#getTaggedTemplateLiteral`${childVar}`)
+            template.innerHTML = typeof childVar === 'string' ? sanitize(childVar).trim() : childVar
+            sanitized.push(template.firstChild!.textContent)
+          }
       } else {
-        if (typeof variable === 'string')
-          variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+        if (typeof variable === 'string') variable = sanitize(variable)
         else if (variable === undefined) variable = ''
 
         if (index === 0 && template === '') sanitized.push(variable)
         else {
-          const { length } = sanitized
+          const { length }: { length: number } = sanitized
           const last: HtmlContents<D, P> | unknown = sanitized[length - 1] ?? ''
           const isFiCsElement: boolean = variable instanceof FiCsElement
 
@@ -304,7 +320,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    return { [symbol]: sanitized as HtmlContents<D, P> }
+    return { [this.#symbol]: sanitized as HtmlContents<D, P> }
   }
 
   #getHtml(): HtmlContents<D, P> {
@@ -329,10 +345,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({
       ...this.#setDataProps(),
       $template,
-      $html: (str: string): Symbolized<string> => ({ [symbol]: str }),
+      $html: (str: string): Symbolized<string> => ({ [this.#symbol]: str }),
       $show: (condition: boolean): string => (condition ? '' : ' style="display:none;"'),
       $i18n
-    })[symbol]
+    })[this.#symbol]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
