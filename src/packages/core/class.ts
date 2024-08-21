@@ -262,44 +262,49 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #sanitize(
     templates: TemplateStringsArray,
-    variables: unknown[]
+    variables: (HtmlContents<D, P> | Symbolized<string> | unknown)[]
   ): Record<symbol, HtmlContents<D, P>> {
-    let result: (HtmlContents<D, P> | unknown)[] = new Array()
+    const sanitized: (HtmlContents<D, P> | unknown)[] = new Array()
 
     for (let [index, template] of templates.entries()) {
       template = template.trim()
       let variable: any = variables[index]
 
       if (variable && typeof variable === 'object' && symbol in variable) {
-        if (typeof variable[symbol][0] === 'string')
-          variable[symbol][0] = template + variable[symbol][0]
-        else variable[symbol].unshift(template)
+        variable = variable[symbol]
 
-        result = [...result, ...variable[symbol]]
+        if (Array.isArray(variable)) {
+          if (typeof variable[0] === 'string') variable[0] = template + variable[0]
+          else variable.unshift(template)
+
+          sanitized.push(...variable)
+        } else if (typeof variable === 'string') sanitized.push(variable)
+        else throw new Error(`The type of the variable in $template is not the expected one.`)
       } else {
         if (typeof variable === 'string')
           variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         else if (variable === undefined) variable = ''
 
-        if (index === 0 && template === '') result.push(variable)
+        if (index === 0 && template === '') sanitized.push(variable)
         else {
-          const { length } = result
-          const last: HtmlContents<D, P> | unknown = result[length - 1] ?? ''
+          const { length } = sanitized
+          const last: HtmlContents<D, P> | unknown = sanitized[length - 1] ?? ''
           const isFiCsElement: boolean = variable instanceof FiCsElement
 
           if (last instanceof FiCsElement)
-            isFiCsElement ? result.push(template, variable) : result.push(`${template}${variable}`)
+            isFiCsElement
+              ? sanitized.push(template, variable)
+              : sanitized.push(`${template}${variable}`)
           else {
-            const inserted: string = `${last}${template}` + `${isFiCsElement ? '' : variable}`
-            result.splice(length - 1, 1, inserted)
+            sanitized.splice(length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
 
-            if (isFiCsElement) result.push(variable)
+            if (isFiCsElement) sanitized.push(variable)
           }
         }
       }
     }
 
-    return { [symbol]: result as HtmlContents<D, P> }
+    return { [symbol]: sanitized as HtmlContents<D, P> }
   }
 
   #getHtml(): HtmlContents<D, P> {
@@ -308,14 +313,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ...variables: unknown[]
     ): Symbolized<HtmlContents<D, P>> => this.#sanitize(templates, variables)
 
-    // const $html: Sanitize<D, P> = (
-    //   templates: TemplateStringsArray,
-    //   ...variables: unknown[]
-    // ): HtmlContents<D, P> => this.#sanitize(templates, variables)[symbol]
-
-    const $show = (condition: boolean): string => (condition ? '' : ' style="display:none;"')
-
-    const $i18n = ({ json, lang, keys }: I18n): string => {
+    const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
 
       if (texts) {
@@ -328,7 +326,13 @@ export default class FiCsElement<D extends object, P extends object> {
       } else throw new Error(`${lang}.json does not exist...`)
     }
 
-    return this.#html({ ...this.#setDataProps(), $template, $show, $i18n })[symbol]
+    return this.#html({
+      ...this.#setDataProps(),
+      $template,
+      $html: (str: string): Symbolized<string> => ({ [symbol]: str }),
+      $show: (condition: boolean): string => (condition ? '' : ' style="display:none;"'),
+      $i18n
+    })[symbol]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
@@ -596,7 +600,7 @@ export default class FiCsElement<D extends object, P extends object> {
             } else {
               if (mapStartNode.nodeName === newStartNode.nodeName) {
                 patchChildNode(mapStartNode, newStartNode)
-                insertBefore(parentNode, mapStartNode, oldStartNode)
+                // insertBefore(parentNode, mapStartNode, oldStartNode)
                 keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
               } else insertBefore(parentNode, newStartNode, oldStartNode)
 
