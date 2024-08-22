@@ -342,7 +342,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ...this.#setDataProps(),
       $template,
       $html: (str: string): Symbolized<string> => ({ [this.#symbol]: str }),
-      $show: (condition: boolean): string => (condition ? '' : ' style="display:none;"'),
+      $show: (condition: boolean): string => (condition ? '' : 'style="display:none !important;"'),
       $i18n
     })[this.#symbol]
   }
