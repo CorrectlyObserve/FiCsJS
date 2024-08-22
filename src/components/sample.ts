@@ -7,7 +7,7 @@ export const Sample = () =>
     html: ({ $data: { value }, $template, $html, $show }) =>
       $template`
         ${[1, 2, 3].map(num => `<p>${num}</p>`)}
-        <p ${$show(value !== '')} style="display: block;">value: ${value}</p>
+        <p style="display: block;" ${$show(value !== '')}>value: ${value}</p>
         ${$html(`<p>${value}</p>`)}
         <input key="1" type="text" value="${value}" />
         ${value !== '' ? $template`<input type="text" value="${value}" />` : ''}
