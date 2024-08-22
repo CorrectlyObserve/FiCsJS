@@ -53,9 +53,12 @@ export type Html<D extends object, P extends object> = (
     $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
-) => Symbolized<(Descendant | string)[]>
+) => Symbolized<HtmlContents>
 
-export type HtmlContents<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
+export type HtmlContents<D extends object = any, P extends object = any> = (
+  | ([D, P] extends [any, any] ? Descendant : FiCsElement<D, P>)
+  | string
+)[]
 
 export interface Hooks<D, P> {
   connect?: HookContent<D, P>
