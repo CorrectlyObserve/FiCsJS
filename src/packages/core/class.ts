@@ -261,10 +261,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #getTaggedTemplateLiteral(templates: TemplateStringsArray, variables: unknown[]) {
-    return { templates, variables }
-  }
-
   #sanitize(
     templates: TemplateStringsArray,
     variables: (HtmlContents<D, P> | Symbolized<string> | unknown)[]
@@ -273,12 +269,12 @@ export default class FiCsElement<D extends object, P extends object> {
     const sanitize = (str: string): string =>
       str.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
 
-    for (let [index, template] of templates.entries()) {
-      template = template.trim()
-      let variable: any = variables[index]
+    for (const [index, template] of templates.entries()) {
+      let variable: HtmlContents<D, P> | Symbolized<HtmlContents | string> | unknown =
+        variables[index]
 
       if (variable && typeof variable === 'object' && this.#symbol in variable) {
-        variable = variable[this.#symbol]
+        variable = (variable as Symbolized<HtmlContents | string>)[this.#symbol]
 
         if (Array.isArray(variable)) {
           if (typeof variable[0] === 'string') variable[0] = template + variable[0]
@@ -293,7 +289,7 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const childVar of variable)
           if (childVar instanceof FiCsElement) sanitized.push(childVar)
           else {
-            console.log(this.#getTaggedTemplateLiteral`${childVar}`)
+            console.log(childVar, variable)
             template.innerHTML = typeof childVar === 'string' ? sanitize(childVar).trim() : childVar
             sanitized.push(template.firstChild!.textContent)
           }
@@ -616,7 +612,6 @@ export default class FiCsElement<D extends object, P extends object> {
             } else {
               if (mapStartNode.nodeName === newStartNode.nodeName) {
                 patchChildNode(mapStartNode, newStartNode)
-                // insertBefore(parentNode, mapStartNode, oldStartNode)
                 keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
               } else insertBefore(parentNode, newStartNode, oldStartNode)
 
