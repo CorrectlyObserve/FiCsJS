@@ -46,6 +46,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #attrs: Attrs<D, P> | undefined = undefined
   readonly #symbol: symbol
   readonly #html: Html<D, P>
+  readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
@@ -124,6 +125,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#symbol = Symbol(`${this.#ficsId}-sanitize`)
       this.#html = html
+      this.#showAttr = `${this.#ficsId}-show-syntax`
 
       if (css && css.length > 0) this.#css = [...css]
       if (actions && actions.length > 0) this.#actions = [...actions]
@@ -270,8 +272,7 @@ export default class FiCsElement<D extends object, P extends object> {
       str.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
 
     for (const [index, template] of templates.entries()) {
-      let variable: HtmlContents<D, P> | Symbolized<HtmlContents | string> | unknown =
-        variables[index]
+      let variable: unknown = variables[index]
 
       if (variable && typeof variable === 'object' && this.#symbol in variable) {
         variable = (variable as Symbolized<HtmlContents | string>)[this.#symbol]
@@ -342,7 +343,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ...this.#setDataProps(),
       $template,
       $html: (str: string): Symbolized<string> => ({ [this.#symbol]: str }),
-      $show: (condition: boolean): string => (condition ? '' : 'style="display:none !important;"'),
+      $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
     })[this.#symbol]
   }
@@ -424,6 +425,12 @@ export default class FiCsElement<D extends object, P extends object> {
         return `${prev}${curr}`
       }, '') as string
     )
+
+    for (const element of Array.from(newShadowRoot.querySelectorAll(`*[${this.#showAttr}]`))) {
+      (element as HTMLElement).style.display = 'none'
+      element.removeAttribute(this.#showAttr)
+    }
+
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const getChild = (element: Element): HTMLElement => {
