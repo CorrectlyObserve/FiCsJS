@@ -220,14 +220,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getClassName(): string {
-    if (!this.#className) return this.#name
-
-    const className: string =
-      typeof this.#className === 'function'
-        ? this.#className(this.#setDataProps())
-        : this.#className
-
-    return `${this.#name} ${className}`
+    return typeof this.#className === 'function'
+      ? this.#className(this.#setDataProps())
+      : (this.#className ?? '')
   }
 
   #getAttrs(): [string, string][] {
@@ -353,6 +348,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#initProps(propsChain)
 
+    const className: string = this.#className ? `class="${this.#getClassName()}"` : ''
     const attrs: string = this.#getAttrs().reduce(
       (prev, [key, value]) => `${prev} ${this.#toKebabCase(key)}="${value}"`,
       ''
@@ -362,7 +358,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
 
     return `
-        <${[this.#tagName, `class="${this.#getClassName()}"`, attrs].join(' ').trim()}>
+        <${[this.#tagName, className, attrs].join(' ').trim()}>
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${slotId}" slot="${this.#ficsId}">
             ${this.#getHtml().reduce(
@@ -378,9 +374,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addClassName(fics: HTMLElement): void {
-    this.#className
-      ? fics.setAttribute('class', this.#getClassName())
-      : fics.classList.add(this.#name)
+    if (this.#className) fics.setAttribute('class', this.#getClassName())
   }
 
   #addAttrs(fics: HTMLElement): void {
@@ -427,7 +421,7 @@ export default class FiCsElement<D extends object, P extends object> {
     )
 
     for (const element of Array.from(newShadowRoot.querySelectorAll(`*[${this.#showAttr}]`))) {
-      (element as HTMLElement).style.display = 'none'
+      ;(element as HTMLElement).style.display = 'none'
       element.removeAttribute(this.#showAttr)
     }
 
