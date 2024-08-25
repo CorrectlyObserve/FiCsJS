@@ -13,7 +13,6 @@ import type {
   Hooks,
   Inheritances,
   I18n,
-  MapKey,
   Method,
   Param,
   PropsChain,
@@ -267,7 +266,8 @@ export default class FiCsElement<D extends object, P extends object> {
     const sanitize = (str: string): string =>
       str.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
 
-    for (const [index, template] of templates.entries()) {
+    for (let [index, template] of templates.entries()) {
+      template = template.trimStart()
       let variable: unknown = variables[index]
 
       if (variable && typeof variable === 'object' && this.#symbol in variable) {
@@ -515,13 +515,11 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      const getMapKey = (childNode: ChildNode): MapKey => {
-        if (!(childNode instanceof Element)) return { key: childNode.nodeName, hasKeyAttr: false }
+      const createMapKey = (childNode: ChildNode): { name: string; key: string | null } => {
+        const key: string | null =
+          childNode instanceof Element ? childNode.getAttribute('key') : null
 
-        const key: string | null = childNode.getAttribute('key')
-
-        if (key) return { key: `${childNode.localName}-${key}`, hasKeyAttr: true }
-        return { key: childNode.localName, hasKeyAttr: false }
+        return { name: childNode.nodeName, key }
       }
 
       function updateChildNodes(
@@ -537,36 +535,44 @@ export default class FiCsElement<D extends object, P extends object> {
         let newEndIndex: number = newChildNodes.length - 1
         let newStartNode: ChildNode = newChildNodes[newStartIndex]
         let newEndNode: ChildNode = newChildNodes[newEndIndex]
-        const dom: Map<string, ChildNode[]> = new Map()
+        const dom: Map<string, { childNode: ChildNode; index: number }[]> = new Map()
+        const keys: Record<string, true> = {}
         const newDom: Map<string, ChildNode[]> = new Map()
         const keyChildNodes: Map<string, ChildNode> = new Map()
 
-        for (const oldChildNode of oldChildNodes) {
+        const getMapKey = (childNode: ChildNode): string => {
+          const { name, key }: { name: string; key: string | null } = createMapKey(childNode)
+
+          return key ? `${name}-${key}` : name
+        }
+
+        for (let i = oldStartIndex; i < oldEndIndex; i++) {
+          const oldChildNode: ChildNode = oldChildNodes[i]
+
           if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
-          const { key }: { key: string } = getMapKey(oldChildNode)
-          dom.set(key, [...(dom.get(key) ?? []), oldChildNode])
+          const mapKey: string = getMapKey(oldChildNode)
+          dom.set(mapKey, [...(dom.get(mapKey) ?? []), { childNode: oldChildNode, index: i }])
+
+          const { key }: { key: string | null } = createMapKey(oldChildNode)
+          if (key)
+            keys[key] ? console.warn(`The key name "${key}" is duplicated...`) : (keys[key] = true)
         }
 
         for (const newChildNode of newChildNodes) {
           if (newChildNode instanceof Element && isVarTag(newChildNode)) continue
 
-          const { key, hasKeyAttr }: MapKey = getMapKey(newChildNode)
+          const { name, key }: { name: string; key: string | null } = createMapKey(newChildNode)
 
-          if (!hasKeyAttr) newDom.set(key, [...(newDom.get(key) ?? []), newChildNode])
+          if (!key) newDom.set(name, [...(newDom.get(name) ?? []), newChildNode])
         }
-
-        const getChildNodes = (
-          childNode: ChildNode,
-          map: Map<string, ChildNode[]> = dom
-        ): ChildNode[] | undefined => map.get(getMapKey(childNode).key)
 
         const focusNode = (childNode: ChildNode): void => {
           if (
             childNode instanceof HTMLElement &&
             activeElement &&
             matchChildNode(childNode, activeElement) &&
-            getChildNodes(childNode)?.length !== getChildNodes(childNode, newDom)?.length
+            dom.get(getMapKey(childNode))?.length !== newDom.get(getMapKey(childNode))?.length
           ) {
             activeElement = null
             childNode.focus()
@@ -620,27 +626,26 @@ export default class FiCsElement<D extends object, P extends object> {
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
-            const getChildNode = (childNode: ChildNode, isEnd?: boolean): ChildNode | undefined =>
-              getChildNodes(childNode)?.[isEnd ? 'pop' : 'shift']()
+            const childNodes: { childNode: ChildNode; index: number }[] = dom.get(
+              getMapKey(newStartNode)
+            ) ?? [{ childNode: newStartNode, index: -1 }]
+            let mapStartNode: ChildNode | undefined = undefined
 
-            const mapStartNode: ChildNode | undefined = getChildNode(newStartNode)
+            while (!mapStartNode && childNodes.length > 0) {
+              const { childNode, index } = childNodes.shift()!
 
-            if (mapStartNode === undefined) {
+              if (index > oldStartIndex) mapStartNode = childNode
+            }
+
+            if (mapStartNode?.nodeName === newStartNode.nodeName) {
+              patchChildNode(mapStartNode, newStartNode)
+              keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
+            } else {
               insertBefore(parentNode, newStartNode, oldStartNode)
               focusNode(newStartNode)
-              newStartNode = newChildNodes[++newStartIndex]
-            } else if (getChildNode(newEndNode, true) === undefined) {
-              insertBefore(parentNode, newEndNode, oldEndNode.nextSibling)
-              focusNode(newEndNode)
-              newEndNode = newChildNodes[--newEndIndex]
-            } else {
-              if (mapStartNode.nodeName === newStartNode.nodeName) {
-                patchChildNode(mapStartNode, newStartNode)
-                keyChildNodes.set(getMapKey(mapStartNode).key, mapStartNode)
-              } else insertBefore(parentNode, newStartNode, oldStartNode)
-
-              newStartNode = newChildNodes[++newStartIndex]
             }
+
+            newStartNode = newChildNodes[++newStartIndex]
           }
 
         while (newStartIndex <= newEndIndex)
@@ -649,8 +654,7 @@ export default class FiCsElement<D extends object, P extends object> {
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
 
-          if (!keyChildNodes.get(getMapKey(childNode).key)) childNode.remove()
-          focusNode(childNode)
+          if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
         }
       }
 
