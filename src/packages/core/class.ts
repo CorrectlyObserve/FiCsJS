@@ -13,6 +13,7 @@ import type {
   Hooks,
   Inheritances,
   I18n,
+  MapKey,
   Method,
   Param,
   PropsChain,
@@ -469,22 +470,6 @@ export default class FiCsElement<D extends object, P extends object> {
         return isSameNode
       }
 
-      const focus = (childNode: ChildNode): void => {
-        if (
-          childNode instanceof HTMLElement &&
-          activeElement &&
-          matchChildNode(childNode, activeElement)
-        ) {
-          activeElement = null
-          childNode.focus()
-
-          if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
-            const { length }: { length: number } = childNode.value
-            childNode.setSelectionRange(length, length)
-          }
-        }
-      }
-
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
         if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
           oldChildNode.nodeValue = newChildNode.nodeValue
@@ -530,11 +515,13 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      const getMapKey = (childNode: ChildNode): string => {
-        if (!(childNode instanceof Element)) return ''
+      const getMapKey = (childNode: ChildNode): MapKey => {
+        if (!(childNode instanceof Element)) return { key: childNode.nodeName, hasKeyAttr: false }
 
         const key: string | null = childNode.getAttribute('key')
-        return key ? `${childNode.localName}-${key}` : ''
+
+        if (key) return { key: `${childNode.localName}-${key}`, hasKeyAttr: true }
+        return { key: childNode.localName, hasKeyAttr: false }
       }
 
       function updateChildNodes(
@@ -550,8 +537,46 @@ export default class FiCsElement<D extends object, P extends object> {
         let newEndIndex: number = newChildNodes.length - 1
         let newStartNode: ChildNode = newChildNodes[newStartIndex]
         let newEndNode: ChildNode = newChildNodes[newEndIndex]
-        const dom: Map<string, ChildNode> = new Map()
+        const dom: Map<string, ChildNode[]> = new Map()
+        const newDom: Map<string, ChildNode[]> = new Map()
         const keyChildNodes: Map<string, ChildNode> = new Map()
+
+        for (const oldChildNode of oldChildNodes) {
+          if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
+
+          const { key }: { key: string } = getMapKey(oldChildNode)
+          dom.set(key, [...(dom.get(key) ?? []), oldChildNode])
+        }
+
+        for (const newChildNode of newChildNodes) {
+          if (newChildNode instanceof Element && isVarTag(newChildNode)) continue
+
+          const { key, hasKeyAttr }: MapKey = getMapKey(newChildNode)
+
+          if (!hasKeyAttr) newDom.set(key, [...(newDom.get(key) ?? []), newChildNode])
+        }
+
+        const getChildNodes = (
+          childNode: ChildNode,
+          map: Map<string, ChildNode[]> = dom
+        ): ChildNode[] | undefined => map.get(getMapKey(childNode).key)
+
+        const focusNode = (childNode: ChildNode): void => {
+          if (
+            childNode instanceof HTMLElement &&
+            activeElement &&
+            matchChildNode(childNode, activeElement) &&
+            getChildNodes(childNode)?.length !== getChildNodes(childNode, newDom)?.length
+          ) {
+            activeElement = null
+            childNode.focus()
+
+            if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
+              const { length }: { length: number } = childNode.value
+              childNode.setSelectionRange(length, length)
+            }
+          }
+        }
 
         const insertBefore = (
           parentNode: ShadowRoot | ChildNode,
@@ -569,51 +594,49 @@ export default class FiCsElement<D extends object, P extends object> {
             childNode,
             before && !before.parentNode?.isEqualNode(parentNode) ? oldStartNode : before
           )
-
-          focus(childNode)
         }
 
         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
           if (matchChildNode(oldStartNode, newStartNode)) {
             patchChildNode(oldStartNode, newStartNode)
+            focusNode(oldStartNode)
             oldStartNode = oldChildNodes[++oldStartIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else if (matchChildNode(oldEndNode, newEndNode)) {
             patchChildNode(oldEndNode, newEndNode)
             oldEndNode = oldChildNodes[--oldEndIndex]
             newEndNode = newChildNodes[--newEndIndex]
+            focusNode(oldEndNode)
           } else if (matchChildNode(oldStartNode, newEndNode)) {
             patchChildNode(oldStartNode, newEndNode)
             insertBefore(parentNode, oldStartNode, newEndNode.nextSibling)
+            focusNode(oldStartNode)
             oldStartNode = oldChildNodes[++oldStartIndex]
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldEndNode, newStartNode)) {
             patchChildNode(oldEndNode, newStartNode)
             insertBefore(parentNode, oldEndNode, oldStartNode)
+            focusNode(oldEndNode)
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
-            if (dom.size === 0)
-              for (let i = oldStartIndex; i <= oldEndIndex; i++) {
-                const childNode: ChildNode = oldChildNodes[i]
-                if (childNode instanceof Element && !!getFiCsId(childNode, true)) continue
+            const getChildNode = (childNode: ChildNode, isEnd?: boolean): ChildNode | undefined =>
+              getChildNodes(childNode)?.[isEnd ? 'pop' : 'shift']()
 
-                const key: string = getMapKey(childNode)
-                if (key !== '') dom.set(key, childNode)
-              }
-
-            const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))
+            const mapStartNode: ChildNode | undefined = getChildNode(newStartNode)
 
             if (mapStartNode === undefined) {
               insertBefore(parentNode, newStartNode, oldStartNode)
+              focusNode(newStartNode)
               newStartNode = newChildNodes[++newStartIndex]
-            } else if (dom.get(getMapKey(newEndNode)) === undefined) {
+            } else if (getChildNode(newEndNode, true) === undefined) {
               insertBefore(parentNode, newEndNode, oldEndNode.nextSibling)
+              focusNode(newEndNode)
               newEndNode = newChildNodes[--newEndIndex]
             } else {
               if (mapStartNode.nodeName === newStartNode.nodeName) {
                 patchChildNode(mapStartNode, newStartNode)
-                keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
+                keyChildNodes.set(getMapKey(mapStartNode).key, mapStartNode)
               } else insertBefore(parentNode, newStartNode, oldStartNode)
 
               newStartNode = newChildNodes[++newStartIndex]
@@ -626,8 +649,8 @@ export default class FiCsElement<D extends object, P extends object> {
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
 
-          if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
-          focus(childNode)
+          if (!keyChildNodes.get(getMapKey(childNode).key)) childNode.remove()
+          focusNode(childNode)
         }
       }
 
