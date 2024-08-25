@@ -79,6 +79,11 @@ export interface I18n {
   keys: string | string[]
 }
 
+export interface MapKey {
+  key: string
+  hasKeyAttr: boolean
+}
+
 export type Method<D, P> = (params: Param<D, P> & { $event: Event }) => void
 
 export type Param<D, P> = DataProps<D, P> & {
