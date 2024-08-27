@@ -27,6 +27,7 @@ const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #reservedWords: Record<string, true> = { var: true, router: true }
+  readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
   readonly #name: string
   readonly #tagName: string
@@ -51,7 +52,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
-  readonly #ficsIdName: string = 'fics-id'
   readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
@@ -80,7 +80,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = `fics${generator.next().value}`
+      this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
       if (isImmutable) {
@@ -169,41 +169,28 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            const numberId: number = parseInt(descendantId.replace('fics', ''))
-
             propsChain.set(descendantId, { ...chain, [key]: value })
 
-            const { length }: { length: number } = this.#propsTrees
+            const last: number = this.#propsTrees.length - 1
             const tree: PropsTree<D, P> = {
-              numberId,
+              numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
               dataKey,
-              setProps: (value: P[keyof P]) => descendant.#setProps(key, value)
+              setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
             }
+            const isLargerNumberId = (index: number): boolean =>
+              this.#propsTrees[index].numberId >= tree.numberId
 
-            switch (length) {
-              case 0:
-                this.#propsTrees.push(tree)
-                break
+            if (last > 2) {
+              let min: number = 0
+              let max: number = last
 
-              case 1:
-                this.#propsTrees[0].numberId > tree.numberId
-                  ? this.#propsTrees.push(tree)
-                  : this.#propsTrees.unshift(tree)
-                break
+              while (min <= max) {
+                const mid: number = Math.floor((min + max) / 2)
+                isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+              }
 
-              default:
-                let min: number = 0
-                let max: number = length - 1
-
-                while (min <= max) {
-                  const mid: number = Math.floor((min + max) / 2)
-
-                  if (this.#propsTrees[mid].numberId <= tree.numberId) max = mid - 1
-                  else min = mid + 1
-                }
-
-                this.#propsTrees.splice(min, 0, tree)
-            }
+              this.#propsTrees.splice(min, 0, tree)
+            } else this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
           }
         }
 
@@ -676,10 +663,10 @@ export default class FiCsElement<D extends object, P extends object> {
       $event: event
     })
 
-    element.addEventListener(handler, (event: Event) => method(getMethodParam(event)))
+    element.addEventListener(handler, (event: Event): void => method(getMethodParam(event)))
 
     if (handler === 'click' && enterKey)
-      element.addEventListener('keydown', (event: Event) => {
+      element.addEventListener('keydown', (event: Event): void => {
         const { key }: { key: string } = event as KeyboardEvent
 
         if (key === 'Enter') method(getMethodParam(event))
