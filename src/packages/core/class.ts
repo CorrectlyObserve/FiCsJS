@@ -679,7 +679,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addActions(fics: HTMLElement): void {
     if (this.#actions.length > 0)
-      this.#actions.forEach((action, index) => {
+      for (const [index, action] of this.#actions.entries()) {
         const { handler, selector, method, enterKey }: Action<D, P> = action
 
         if (!this.#isImmutable && selector) {
@@ -688,7 +688,7 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
             this.#addEventListener(element, handler, method, enterKey)
         } else this.#addEventListener(fics, handler, method, enterKey)
-      })
+      }
   }
 
   #callback(key: keyof Hooks<D, P>): void {
