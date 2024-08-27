@@ -260,17 +260,32 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #sanitize(
     templates: TemplateStringsArray,
-    variables: (HtmlContents<D, P> | Symbolized<string> | unknown)[]
+    variables: unknown[]
   ): Record<symbol, HtmlContents<D, P>> {
-    const sanitized: (HtmlContents<D, P> | unknown)[] = new Array()
+    const isSymbolObj = (param: unknown): boolean =>
+      !!(param && typeof param === 'object' && this.#symbol in param)
+    const template: HTMLElement = document.createElement('f-var')
+    const sanitized: (HtmlContents<D, P> | string | unknown)[] = new Array()
+
     const sanitize = (str: string): string =>
       str.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+
+    const processArray = (arr: unknown[]): void => {
+      for (const value of arr)
+        if (isSymbolObj(value))
+          processArray((value as Symbolized<HtmlContents<D, P>>)[this.#symbol])
+        else if (value instanceof FiCsElement) sanitized.push(value)
+        else if (value !== '') {
+          template.innerHTML = `${typeof value === 'string' ? sanitize(value).trim() : value}`
+          sanitized.push(template.firstChild!.textContent)
+        }
+    }
 
     for (let [index, template] of templates.entries()) {
       template = template.trimStart()
       let variable: unknown = variables[index]
 
-      if (variable && typeof variable === 'object' && this.#symbol in variable) {
+      if (isSymbolObj(variable)) {
         variable = (variable as Symbolized<HtmlContents | string>)[this.#symbol]
 
         if (Array.isArray(variable)) {
@@ -280,17 +295,8 @@ export default class FiCsElement<D extends object, P extends object> {
           sanitized.push(...variable)
         } else if (typeof variable === 'string') sanitized.push(variable)
         else throw new Error(`The type of the variable in $template is not the expected one.`)
-      } else if (Array.isArray(variable)) {
-        const template: HTMLElement = document.createElement('f-var')
-
-        for (const childVar of variable)
-          if (childVar instanceof FiCsElement) sanitized.push(childVar)
-          else {
-            console.log(childVar, variable)
-            template.innerHTML = typeof childVar === 'string' ? sanitize(childVar).trim() : childVar
-            sanitized.push(template.firstChild!.textContent)
-          }
-      } else {
+      } else if (Array.isArray(variable)) processArray(variable)
+      else {
         if (typeof variable === 'string') variable = sanitize(variable)
         else if (variable === undefined) variable = ''
 
