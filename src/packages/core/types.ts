@@ -30,9 +30,9 @@ export interface DataProps<D, P> {
 type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
-  isExceptional?: boolean
-  cloneId?: string
   name: string
+  isExceptional?: boolean
+  ficsId?: string
   isImmutable?: boolean
   data?: () => D
   reflections?: Reflections<D>
