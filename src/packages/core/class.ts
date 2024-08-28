@@ -26,14 +26,15 @@ import type {
 const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
+  readonly #name: string
+  readonly #isExceptional: boolean = false
   readonly #reservedWords: Record<string, true> = { var: true, router: true }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
-  readonly #name: string
   readonly #tagName: string
   readonly #isImmutable: boolean = false
   readonly #data: D = {} as D
-  readonly #reflections: Reflections<D> | undefined = undefined
+  readonly #reflections: Reflections<D> | undefined
   readonly #inheritances: Inheritances<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
@@ -43,8 +44,8 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
-  readonly #className: ClassName<D, P> | undefined = undefined
-  readonly #attrs: Attrs<D, P> | undefined = undefined
+  readonly #className: ClassName<D, P> | undefined
+  readonly #attrs: Attrs<D, P> | undefined
   readonly #symbol: symbol
   readonly #html: Html<D, P>
   readonly #showAttr: string
@@ -52,15 +53,17 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
+  readonly #clones: FiCsElement<D, P>[] = []
   readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
-  #component: HTMLElement | undefined = undefined
+  #component: HTMLElement | undefined
   #isReflecting: boolean = false
 
   constructor({
-    isExceptional,
     name,
+    isExceptional,
+    ficsId,
     isImmutable,
     data,
     reflections,
@@ -76,11 +79,14 @@ export default class FiCsElement<D extends object, P extends object> {
   }: FiCs<D, P>) {
     this.#name = this.#toKebabCase(name)
 
-    if (isExceptional && this.#name in this.#reservedWords) delete this.#reservedWords[this.#name]
+    if (isExceptional) this.#isExceptional = isExceptional
+
+    if (this.#isExceptional && this.#name in this.#reservedWords)
+      delete this.#reservedWords[this.#name]
 
     if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
+      this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
       if (isImmutable) {
@@ -421,16 +427,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const isVarTag = (element: Element): boolean => element.localName === varTag
-    const getChild = (element: Element): HTMLElement => {
+    const getChild = (element: Element): Element => {
       const ficsId: string | null = getFiCsId(element)
 
-      if (ficsId) {
-        const fics: FiCsElement<D, P> = children[ficsId]
-
-        return fics.#isImmutable && fics.#component
-          ? fics.#component
-          : fics.#render(this.#propsChain)
-      } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
+      if (ficsId) return children[ficsId].#component ?? children[ficsId].#render(this.#propsChain)
+      else throw new Error(`The child FiCsElement has ficsId does not exist...`)
     }
 
     if (oldChildNodes.length === 0)
@@ -698,8 +699,31 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
+  #clone() {
+    const cloned: FiCsElement<D, P> = new FiCsElement({
+      isExceptional: this.#isExceptional,
+      name: this.#name,
+      // ficsId: this.#ficsId,
+      isImmutable: this.#isImmutable,
+      data: this.#isImmutable ? undefined : () => this.#data,
+      reflections: this.#reflections,
+      inheritances: this.#inheritances,
+      props: this.#isImmutable ? undefined : this.#props,
+      isOnlyCsr: this.#isOnlyCsr,
+      className: this.#className,
+      attributes: this.#attrs,
+      html: this.#html,
+      css: this.#css,
+      actions: this.#actions,
+      hooks: this.#hooks
+    })
+
+    this.#clones.push(cloned)
+    return cloned
+  }
+
   #render(propsChain: PropsChain<P>): HTMLElement {
-    const that: FiCsElement<D, P> = this
+    const that: FiCsElement<D, P> = this.#clone()
 
     if (!customElements.get(that.#tagName))
       customElements.define(
@@ -726,23 +750,23 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics: HTMLElement = document.createElement(this.#tagName)
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
+    const fics: HTMLElement = document.createElement(that.#tagName)
+    const shadowRoot: ShadowRoot = that.#getShadowRoot(fics)
 
-    this.#setProperty(fics, this.#ficsIdName, this.#ficsId)
-    this.#initProps(propsChain)
-    this.#addClassName(fics)
-    this.#addAttrs(fics)
-    this.#addHtml(shadowRoot)
-    this.#addCss(shadowRoot)
-    this.#addActions(fics)
+    that.#setProperty(fics, that.#ficsIdName, that.#ficsId)
+    that.#initProps(propsChain)
+    that.#addClassName(fics)
+    that.#addAttrs(fics)
+    that.#addHtml(shadowRoot)
+    that.#addCss(shadowRoot)
+    that.#addActions(fics)
 
-    if (!this.#component) {
-      this.#removeChildNodes(fics)
-      this.#component = fics
+    if (!that.#component) {
+      that.#removeChildNodes(fics)
+      that.#component = fics
     }
 
-    return fics
+    return that.#component
   }
 
   #reRender(): void {
@@ -858,17 +882,10 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-      if (parent) {
-        const component = document.createElement(this.#tagName)
-
-        if (parent instanceof HTMLElement) parent.append(component)
-        else {
-          const parentElement: HTMLElement | null = document.getElementById(parent)
-
-          if (parentElement) parentElement.append(component)
-          else throw new Error(`The HTMLElement has #${parent} does not exist...`)
-        }
-      }
+      if (this.#component && parent)
+        (parent instanceof HTMLElement ? parent : document.getElementById(parent))?.append(
+          this.#component
+        )
     }
   }
 }
