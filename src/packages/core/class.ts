@@ -371,12 +371,12 @@ export default class FiCsElement<D extends object, P extends object> {
       `.trim()
   }
 
-  #addClassName(fics: HTMLElement): void {
-    if (this.#className) fics.setAttribute('class', this.#getClassName())
+  #addClassName(component: HTMLElement): void {
+    if (this.#className) component.setAttribute('class', this.#getClassName())
   }
 
-  #addAttrs(fics: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs()) fics.setAttribute(this.#toKebabCase(key), value)
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs()) component.setAttribute(this.#toKebabCase(key), value)
   }
 
   #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
@@ -419,6 +419,7 @@ export default class FiCsElement<D extends object, P extends object> {
     )
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
+
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (const childNode of childNodes) {
         if (childNode.nodeName === '#text' && childNode.nodeValue) {
@@ -438,15 +439,14 @@ export default class FiCsElement<D extends object, P extends object> {
         if (childNode.hasChildNodes()) convertChildNodes(this.#getChildNodes(childNode))
       }
     }
-
-    convertChildNodes(newChildNodes)
-
     const getChild = (element: Element): Element => {
       const ficsId: string | null = getFiCsId(element)
 
       if (ficsId) return children[ficsId].#render(this.#propsChain)
       else throw new Error(`The child FiCsElement has ficsId does not exist...`)
     }
+
+    convertChildNodes(newChildNodes)
 
     if (oldChildNodes.length === 0)
       for (const childNode of newChildNodes) {
@@ -661,8 +661,8 @@ export default class FiCsElement<D extends object, P extends object> {
     stylesheet.replaceSync(this.#getStyle(style))
   }
 
-  #getShadowRoot(fics: HTMLElement): ShadowRoot {
-    if (fics.shadowRoot) return fics.shadowRoot
+  #getShadowRoot(component: HTMLElement): ShadowRoot {
+    if (component.shadowRoot) return component.shadowRoot
 
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
@@ -693,7 +693,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
   }
 
-  #addActions(fics: HTMLElement): void {
+  #addActions(component: HTMLElement): void {
     if (this.#actions.length > 0)
       for (const [index, action] of this.#actions.entries()) {
         const { handler, selector, method, enterKey }: Action<D, P> = action
@@ -701,9 +701,9 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!this.#isImmutable && selector) {
           this.#bindings.actions.push(index)
 
-          for (const element of this.#getElements(this.#getShadowRoot(fics), selector))
+          for (const element of this.#getElements(this.#getShadowRoot(component), selector))
             this.#addEventListener(element, handler, method, enterKey)
-        } else this.#addEventListener(fics, handler, method, enterKey)
+        } else this.#addEventListener(component, handler, method, enterKey)
       }
   }
 
@@ -742,20 +742,20 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const fics: HTMLElement = document.createElement(that.#tagName)
-    const shadowRoot: ShadowRoot = that.#getShadowRoot(fics)
+    const component: HTMLElement = document.createElement(that.#tagName)
+    const shadowRoot: ShadowRoot = that.#getShadowRoot(component)
 
     that.#initProps(propsChain)
-    that.#addClassName(fics)
-    that.#addAttrs(fics)
+    that.#addClassName(component)
+    that.#addAttrs(component)
     that.#addHtml(shadowRoot)
     that.#addCss(shadowRoot)
-    that.#addActions(fics)
-    that.#removeChildNodes(fics)
-    that.#setProperty(fics, that.#ficsIdName, that.#ficsId)
-    that.#components.push(fics)
+    that.#addActions(component)
+    that.#removeChildNodes(component)
+    that.#setProperty(component, that.#ficsIdName, that.#ficsId)
+    that.#components.push(component)
 
-    return fics
+    return component
   }
 
   #reRender(): void {
