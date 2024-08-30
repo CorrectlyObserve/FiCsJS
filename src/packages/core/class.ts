@@ -417,23 +417,30 @@ export default class FiCsElement<D extends object, P extends object> {
         return `${prev}${curr}`
       }, '') as string
     )
-
-    const convertToDOM = (node: DocumentFragment | Node): void => {
-      if (node.nodeName === '#text' && node.nodeValue) node.nodeValue = node.nodeValue.trim()
-      else {
-        if (node instanceof Element && node.hasAttribute(this.#showAttr)) {
-          ;(node as HTMLElement).style.display = 'none'
-          node.removeAttribute(this.#showAttr)
+    const isVarTag = (element: Element): boolean => element.localName === varTag
+    const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
+    const convertChildNodes = (childNodes: ChildNode[]): void => {
+      for (const childNode of childNodes) {
+        if (childNode.nodeName === '#text' && childNode.nodeValue) {
+          childNode.nodeValue = childNode.nodeValue.trim()
+          continue
         }
 
-        if (node.hasChildNodes()) this.#getChildNodes(node as ChildNode).forEach(convertToDOM)
+        if (childNode instanceof Element) {
+          if (isVarTag(childNode)) continue
+
+          if (childNode.hasAttribute(this.#showAttr)) {
+            ;(childNode as HTMLElement).style.display = 'none'
+            childNode.removeAttribute(this.#showAttr)
+          }
+        }
+
+        if (childNode.hasChildNodes()) convertChildNodes(this.#getChildNodes(childNode))
       }
     }
 
-    convertToDOM(newShadowRoot)
+    convertChildNodes(newChildNodes)
 
-    const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
-    const isVarTag = (element: Element): boolean => element.localName === varTag
     const getChild = (element: Element): Element => {
       const ficsId: string | null = getFiCsId(element)
 
