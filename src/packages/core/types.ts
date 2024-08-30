@@ -54,7 +54,7 @@ export type Html<D extends object, P extends object> = (
     $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
-) => Sanitized<D, P>
+) => Record<symbol, HtmlContent<D, P>[]>
 
 export type HtmlContent<D extends object = any, P extends object = any> =
   | ([D, P] extends [any, any] ? Descendant : FiCsElement<D, P>)
@@ -101,9 +101,7 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 export type Sanitize<D extends object, P extends object> = (
   templates: TemplateStringsArray,
   ...variables: unknown[]
-) => Sanitized<D, P>
-
-export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
+) => Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
   selector?: string
