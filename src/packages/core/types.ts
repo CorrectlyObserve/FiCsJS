@@ -50,11 +50,11 @@ export interface FiCs<D extends object, P extends object> {
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
     $template: Sanitize<D, P>
-    $html: (str: string) => Symbolized<string>
+    $html: (str: string) => Record<symbol, string>
     $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
-) => Symbolized<HtmlContents>
+) => Sanitized<D, P>
 
 export type HtmlContents<D extends object = any, P extends object = any> = (
   | ([D, P] extends [any, any] ? Descendant : FiCsElement<D, P>)
@@ -104,11 +104,11 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 export type Sanitize<D extends object, P extends object> = (
   templates: TemplateStringsArray,
   ...variables: unknown[]
-) => Symbolized<HtmlContents<D, P>>
+) => Sanitized<D, P>
 
 export interface Style<D, P> {
   selector?: string
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
 }
 
-export type Symbolized<V> = Record<symbol, V>
+export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContents<D, P>>
