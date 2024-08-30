@@ -19,8 +19,7 @@ import type {
   PropsTree,
   Reflections,
   Sanitize,
-  Style,
-  Sanitized
+  Style
 } from './types'
 
 const generator: Generator<number> = generate()
@@ -262,7 +261,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const sanitize = (index: number, template: string, variable: unknown) => {
       if (isSymbol(variable, this.$template))
-        sanitized.push(...(variable as Sanitized<D, P>)[this.$template])
+        sanitized.push(...(variable as Record<symbol, HtmlContent<D, P>[]>)[this.$template])
       else if (Array.isArray(variable))
         for (const child of variable) sanitize(index, template, child)
       else if (isSymbol(variable, this.#$html))
@@ -299,7 +298,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const $template: Sanitize<D, P> = (
       templates: TemplateStringsArray,
       ...variables: (HtmlContent<D, P> | unknown)[]
-    ): Sanitized<D, P> => ({ [this.$template]: this.#sanitize(templates, variables) })
+    ): Record<symbol, HtmlContent<D, P>[]> => ({
+      [this.$template]: this.#sanitize(templates, variables)
+    })
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
