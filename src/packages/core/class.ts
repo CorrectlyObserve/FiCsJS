@@ -53,8 +53,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
-  readonly #components: HTMLElement[] = new Array()
   readonly #newElements: Set<Element> = new Set()
+  readonly #components: Set<HTMLElement> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
   #isReflecting: boolean = false
@@ -376,7 +376,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs()) component.setAttribute(this.#toKebabCase(key), value)
+    for (const [key, value] of this.#getAttrs())
+      component.setAttribute(this.#toKebabCase(key), value)
   }
 
   #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
@@ -422,7 +423,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (const childNode of childNodes) {
-        if (childNode.nodeName === '#text' && childNode.nodeValue) {
+        if (childNode instanceof Text && childNode.nodeValue) {
           childNode.nodeValue = childNode.nodeValue.trim()
           continue
         }
@@ -479,7 +480,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
-        if (oldChildNode.nodeName === '#text' && newChildNode.nodeName === '#text')
+        if (oldChildNode instanceof Text && newChildNode instanceof Text)
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (
           oldChildNode instanceof Element &&
@@ -753,7 +754,7 @@ export default class FiCsElement<D extends object, P extends object> {
     that.#addActions(component)
     that.#removeChildNodes(component)
     that.#setProperty(component, that.#ficsIdName, that.#ficsId)
-    that.#components.push(component)
+    that.#components.add(component)
 
     return component
   }
@@ -854,7 +855,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#callback('connect')
               that.#removeChildNodes(this)
               that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-              that.#components.push(this)
+              that.#components.add(this)
               this.#isRendered = true
             }
           }
