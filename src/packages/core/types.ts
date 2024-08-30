@@ -56,10 +56,9 @@ export type Html<D extends object, P extends object> = (
   }
 ) => Sanitized<D, P>
 
-export type HtmlContents<D extends object = any, P extends object = any> = (
+export type HtmlContent<D extends object = any, P extends object = any> =
   | ([D, P] extends [any, any] ? Descendant : FiCsElement<D, P>)
   | string
-)[]
 
 export interface Hooks<D, P> {
   connect?: HookContent<D, P>
@@ -106,7 +105,7 @@ export type Sanitize<D extends object, P extends object> = (
   ...variables: unknown[]
 ) => Sanitized<D, P>
 
-export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContents<D, P>>
+export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
   selector?: string
