@@ -53,11 +53,10 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
-  readonly #clones: FiCsElement<D, P>[] = []
+  readonly #components: HTMLElement[] = new Array()
   readonly #newElements: Set<Element> = new Set()
 
   #propsChain: PropsChain<P> = new Map()
-  #component: HTMLElement | undefined
   #isReflecting: boolean = false
 
   constructor({
@@ -274,8 +273,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
     }
 
-    for (let [index, template] of templates.entries()) {
-      template = template.trimStart()
+    for (const [index, template] of templates.entries()) {
       let variable: unknown = variables[index]
 
       if (isSymbolObj(variable)) {
@@ -338,7 +336,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ...this.#setDataProps(),
       $template,
       $html: (str: string): Symbolized<string> => ({ [this.#symbol]: str }),
-      $show: (condition: boolean): string => (condition ? '' : `${this.#showAttr} `),
+      $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
     })[this.#symbol]
   }
@@ -381,7 +379,7 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const [key, value] of this.#getAttrs()) fics.setAttribute(this.#toKebabCase(key), value)
   }
 
-  #getChildNodes(parent: ShadowRoot | DocumentFragment | Element): ChildNode[] {
+  #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
     return Array.from(parent.childNodes)
   }
 
@@ -420,17 +418,26 @@ export default class FiCsElement<D extends object, P extends object> {
       }, '') as string
     )
 
-    for (const element of Array.from(newShadowRoot.querySelectorAll(`*[${this.#showAttr}]`))) {
-      ;(element as HTMLElement).style.display = 'none'
-      element.removeAttribute(this.#showAttr)
+    const convertToDOM = (node: DocumentFragment | Node): void => {
+      if (node.nodeName === '#text' && node.nodeValue) node.nodeValue = node.nodeValue.trim()
+      else {
+        if (node instanceof Element && node.hasAttribute(this.#showAttr)) {
+          ;(node as HTMLElement).style.display = 'none'
+          node.removeAttribute(this.#showAttr)
+        }
+
+        if (node.hasChildNodes()) this.#getChildNodes(node as ChildNode).forEach(convertToDOM)
+      }
     }
+
+    convertToDOM(newShadowRoot)
 
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const getChild = (element: Element): Element => {
       const ficsId: string | null = getFiCsId(element)
 
-      if (ficsId) return children[ficsId].#component ?? children[ficsId].#render(this.#propsChain)
+      if (ficsId) return children[ficsId].#render(this.#propsChain)
       else throw new Error(`The child FiCsElement has ficsId does not exist...`)
     }
 
@@ -526,9 +533,9 @@ export default class FiCsElement<D extends object, P extends object> {
         const keyChildNodes: Map<string, ChildNode> = new Map()
 
         const insertBefore = (
-          parentNode: ShadowRoot | ChildNode,
           childNode: ChildNode,
-          before: ChildNode | null
+          before: ChildNode | null,
+          isFocused?: boolean
         ): void => {
           if (childNode instanceof Element) {
             if (isVarTag(childNode)) childNode = getChild(childNode)
@@ -543,6 +550,7 @@ export default class FiCsElement<D extends object, P extends object> {
           )
 
           if (
+            isFocused &&
             activeElement &&
             childNode instanceof HTMLElement &&
             matchChildNode(childNode, activeElement)
@@ -576,12 +584,12 @@ export default class FiCsElement<D extends object, P extends object> {
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldStartNode, newEndNode)) {
             patchChildNode(oldStartNode, newEndNode)
-            insertBefore(parentNode, oldStartNode, newEndNode.nextSibling)
+            insertBefore(oldStartNode, newEndNode.nextSibling, true)
             oldStartNode = oldChildNodes[++oldStartIndex]
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldEndNode, newStartNode)) {
             patchChildNode(oldEndNode, newStartNode)
-            insertBefore(parentNode, oldEndNode, oldStartNode)
+            insertBefore(oldEndNode, oldStartNode, true)
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
@@ -611,13 +619,13 @@ export default class FiCsElement<D extends object, P extends object> {
             if (mapStartNode?.nodeName === newStartNode.nodeName) {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
-            } else insertBefore(parentNode, newStartNode, oldStartNode)
+            } else insertBefore(newStartNode, oldStartNode, true)
 
             newStartNode = newChildNodes[++newStartIndex]
           }
 
         while (newStartIndex <= newEndIndex)
-          insertBefore(parentNode, newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1])
+          insertBefore(newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1], false)
 
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
@@ -699,31 +707,8 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #clone() {
-    const cloned: FiCsElement<D, P> = new FiCsElement({
-      isExceptional: this.#isExceptional,
-      name: this.#name,
-      // ficsId: this.#ficsId,
-      isImmutable: this.#isImmutable,
-      data: this.#isImmutable ? undefined : () => this.#data,
-      reflections: this.#reflections,
-      inheritances: this.#inheritances,
-      props: this.#isImmutable ? undefined : this.#props,
-      isOnlyCsr: this.#isOnlyCsr,
-      className: this.#className,
-      attributes: this.#attrs,
-      html: this.#html,
-      css: this.#css,
-      actions: this.#actions,
-      hooks: this.#hooks
-    })
-
-    this.#clones.push(cloned)
-    return cloned
-  }
-
   #render(propsChain: PropsChain<P>): HTMLElement {
-    const that: FiCsElement<D, P> = this.#clone()
+    const that: FiCsElement<D, P> = this
 
     if (!customElements.get(that.#tagName))
       customElements.define(
@@ -753,35 +738,30 @@ export default class FiCsElement<D extends object, P extends object> {
     const fics: HTMLElement = document.createElement(that.#tagName)
     const shadowRoot: ShadowRoot = that.#getShadowRoot(fics)
 
-    that.#setProperty(fics, that.#ficsIdName, that.#ficsId)
     that.#initProps(propsChain)
     that.#addClassName(fics)
     that.#addAttrs(fics)
     that.#addHtml(shadowRoot)
     that.#addCss(shadowRoot)
     that.#addActions(fics)
+    that.#removeChildNodes(fics)
+    that.#setProperty(fics, that.#ficsIdName, that.#ficsId)
+    that.#components.push(fics)
 
-    if (!that.#component) {
-      that.#removeChildNodes(fics)
-      that.#component = fics
-    }
-
-    return that.#component
+    return fics
   }
 
   #reRender(): void {
-    const fics: HTMLElement | undefined = this.#component
-
-    if (fics) {
+    for (const component of this.#components) {
       const { isClassName, isAttr, css, actions }: Bindings = this.#bindings
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(fics)
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
       if (isClassName) {
-        fics.classList.remove(...Array.from(fics.classList))
-        this.#addClassName(fics)
+        component.classList.remove(...Array.from(component.classList))
+        this.#addClassName(component)
       }
 
-      if (isAttr) this.#addAttrs(fics)
+      if (isAttr) this.#addAttrs(component)
 
       this.#addHtml(shadowRoot)
 
@@ -867,7 +847,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#callback('connect')
               that.#removeChildNodes(this)
               that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-              that.#component = this
+              that.#components.push(this)
               this.#isRendered = true
             }
           }
@@ -882,10 +862,17 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-      if (this.#component && parent)
-        (parent instanceof HTMLElement ? parent : document.getElementById(parent))?.append(
-          this.#component
-        )
+      if (parent) {
+        const component = document.createElement(this.#tagName).cloneNode(true)
+
+        if (parent instanceof HTMLElement) parent.append(component)
+        else {
+          const parentElement: HTMLElement | null = document.getElementById(parent)
+
+          if (parentElement) parentElement.append(component)
+          else throw new Error(`The HTMLElement has #${parent} does not exist...`)
+        }
+      }
     }
   }
 }
