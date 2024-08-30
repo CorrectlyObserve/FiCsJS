@@ -9,7 +9,7 @@ import type {
   DataProps,
   FiCs,
   Html,
-  HtmlContents,
+  HtmlContent,
   Hooks,
   Inheritances,
   I18n,
@@ -252,10 +252,13 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #sanitize(templates: TemplateStringsArray, variables: unknown[]): HtmlContents<D, P> {
+  #sanitize(
+    templates: TemplateStringsArray,
+    variables: (HtmlContent<D, P> | unknown)[]
+  ): HtmlContent<D, P>[] {
     const isSymbol = (param: unknown, symbol: symbol): boolean =>
       !!(param && typeof param === 'object' && symbol in param)
-    const sanitized: unknown[] = new Array()
+    const sanitized: HtmlContent<D, P>[] = new Array()
 
     const sanitize = (index: number, template: string, variable: unknown) => {
       if (isSymbol(variable, this.$template))
@@ -269,33 +272,33 @@ export default class FiCsElement<D extends object, P extends object> {
           variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         else if (variable === undefined) variable = ''
 
-        if (index === 0 && template === '') sanitized.push(variable)
+        if (index === 0 && template === '') sanitized.push(variable as HtmlContent<D, P>)
         else {
           const { length }: { length: number } = sanitized
-          const last: HtmlContents<D, P> | unknown = sanitized[length - 1] ?? ''
+          const last: FiCsElement<D, P> | string = sanitized[length - 1] ?? ''
           const isFiCsElement: boolean = variable instanceof FiCsElement
 
           if (last instanceof FiCsElement)
             isFiCsElement
-              ? sanitized.push(template, variable)
+              ? sanitized.push(template, variable as FiCsElement<D, P>)
               : sanitized.push(`${template}${variable}`)
           else {
             sanitized.splice(length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
 
-            if (isFiCsElement) sanitized.push(variable)
+            if (isFiCsElement) sanitized.push(variable as FiCsElement<D, P>)
           }
         }
       }
     }
 
     for (const [index, template] of templates.entries()) sanitize(index, template, variables[index])
-    return sanitized as HtmlContents
+    return sanitized as HtmlContent[]
   }
 
-  #getHtml(): HtmlContents<D, P> {
+  #getHtml(): HtmlContent<D, P>[] {
     const $template: Sanitize<D, P> = (
       templates: TemplateStringsArray,
-      ...variables: unknown[]
+      ...variables: (HtmlContent<D, P> | unknown)[]
     ): Sanitized<D, P> => ({ [this.$template]: this.#sanitize(templates, variables) })
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
