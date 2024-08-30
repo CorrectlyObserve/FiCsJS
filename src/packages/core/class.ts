@@ -20,7 +20,7 @@ import type {
   Reflections,
   Sanitize,
   Style,
-  Symbolized
+  Sanitized
 } from './types'
 
 const generator: Generator<number> = generate()
@@ -46,7 +46,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #className: ClassName<D, P> | undefined
   readonly #attrs: Attrs<D, P> | undefined
-  readonly #symbol: symbol
+  readonly $template: symbol
+  readonly #$html: symbol
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
@@ -128,7 +129,8 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#attrs = attributes
       }
 
-      this.#symbol = Symbol(`${this.#ficsId}-sanitize`)
+      this.$template = Symbol(`${this.#ficsId}-sanitized`)
+      this.#$html = Symbol(`${this.#ficsId}-unsanitized`)
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
 
@@ -250,45 +252,21 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #sanitize(
-    templates: TemplateStringsArray,
-    variables: unknown[]
-  ): Record<symbol, HtmlContents<D, P>> {
-    const isSymbolObj = (param: unknown): boolean =>
-      !!(param && typeof param === 'object' && this.#symbol in param)
-    const template: HTMLElement = document.createElement('f-var')
-    const sanitized: (HtmlContents<D, P> | string | unknown)[] = new Array()
+  #sanitize(templates: TemplateStringsArray, variables: unknown[]): HtmlContents<D, P> {
+    const isSymbol = (param: unknown, symbol: symbol): boolean =>
+      !!(param && typeof param === 'object' && symbol in param)
+    const sanitized: unknown[] = new Array()
 
-    const sanitize = (str: string): string =>
-      str.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-
-    const processArray = (arr: unknown[]): void => {
-      for (const value of arr)
-        if (isSymbolObj(value))
-          processArray((value as Symbolized<HtmlContents<D, P>>)[this.#symbol])
-        else if (value instanceof FiCsElement) sanitized.push(value)
-        else if (value !== '') {
-          template.innerHTML = `${typeof value === 'string' ? sanitize(value).trim() : value}`
-          sanitized.push(template.firstChild!.textContent)
-        }
-    }
-
-    for (const [index, template] of templates.entries()) {
-      let variable: unknown = variables[index]
-
-      if (isSymbolObj(variable)) {
-        variable = (variable as Symbolized<HtmlContents | string>)[this.#symbol]
-
-        if (Array.isArray(variable)) {
-          if (typeof variable[0] === 'string') variable[0] = template + variable[0]
-          else variable.unshift(template)
-
-          sanitized.push(...variable)
-        } else if (typeof variable === 'string') sanitized.push(variable)
-        else throw new Error(`The type of the variable in $template is not the expected one.`)
-      } else if (Array.isArray(variable)) processArray(variable)
+    const sanitize = (index: number, template: string, variable: unknown) => {
+      if (isSymbol(variable, this.$template))
+        sanitized.push(...(variable as Sanitized<D, P>)[this.$template])
+      else if (Array.isArray(variable))
+        for (const child of variable) sanitize(index, template, child)
+      else if (isSymbol(variable, this.#$html))
+        sanitized.push((variable as Record<symbol, string>)[this.#$html])
       else {
-        if (typeof variable === 'string') variable = sanitize(variable)
+        if (typeof variable === 'string')
+          variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
         else if (variable === undefined) variable = ''
 
         if (index === 0 && template === '') sanitized.push(variable)
@@ -310,14 +288,15 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    return { [this.#symbol]: sanitized as HtmlContents<D, P> }
+    for (const [index, template] of templates.entries()) sanitize(index, template, variables[index])
+    return sanitized as HtmlContents
   }
 
   #getHtml(): HtmlContents<D, P> {
     const $template: Sanitize<D, P> = (
       templates: TemplateStringsArray,
       ...variables: unknown[]
-    ): Symbolized<HtmlContents<D, P>> => this.#sanitize(templates, variables)
+    ): Sanitized<D, P> => ({ [this.$template]: this.#sanitize(templates, variables) })
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
@@ -335,10 +314,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({
       ...this.#setDataProps(),
       $template,
-      $html: (str: string): Symbolized<string> => ({ [this.#symbol]: str }),
+      $html: (str: string): Record<symbol, string> => ({ [this.#$html]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
-    })[this.#symbol]
+    })[this.$template]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
