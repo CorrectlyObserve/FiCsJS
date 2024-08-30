@@ -61,12 +61,10 @@ export type HtmlContent<D extends object = any, P extends object = any> =
   | string
 
 export interface Hooks<D, P> {
-  connect?: HookContent<D, P>
-  disconnect?: HookContent<D, P>
-  adopt?: HookContent<D, P>
+  connect?: (params: Param<D, P>) => void
+  disconnect?: (params: Param<D, P>) => void
+  adopt?: (params: Param<D, P>) => void
 }
-
-type HookContent<D, P> = (params: Param<D, P>) => void
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
