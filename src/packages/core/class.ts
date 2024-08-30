@@ -261,32 +261,24 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const sanitize = (index: number, template: string, variable: unknown) => {
       if (isSymbol(variable, this.$template))
-        sanitized.push(...(variable as Record<symbol, HtmlContent<D, P>[]>)[this.$template])
-      else if (Array.isArray(variable))
-        for (const child of variable) sanitize(index, template, child)
-      else if (isSymbol(variable, this.#$html))
-        sanitized.push((variable as Record<symbol, string>)[this.#$html])
+        sanitized.push(
+          template,
+          ...(variable as Record<symbol, HtmlContent<D, P>[]>)[this.$template]
+        )
+      else if (Array.isArray(variable)) {
+        sanitized.push(template)
+        for (const child of variable) sanitize(index, '', child)
+      } else if (isSymbol(variable, this.#$html))
+        sanitized.push(template, (variable as Record<symbol, string>)[this.#$html])
       else {
-        if (typeof variable === 'string')
-          variable = variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-        else if (variable === undefined) variable = ''
+        if (template !== '') sanitized.push(template)
 
-        if (index === 0 && template === '') sanitized.push(variable as HtmlContent<D, P>)
-        else {
-          const { length }: { length: number } = sanitized
-          const last: FiCsElement<D, P> | string = sanitized[length - 1] ?? ''
-          const isFiCsElement: boolean = variable instanceof FiCsElement
+        variable =
+          typeof variable === 'string'
+            ? variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+            : (variable ?? '')
 
-          if (last instanceof FiCsElement)
-            isFiCsElement
-              ? sanitized.push(template, variable as FiCsElement<D, P>)
-              : sanitized.push(`${template}${variable}`)
-          else {
-            sanitized.splice(length - 1, 1, `${last}${template}${isFiCsElement ? '' : variable}`)
-
-            if (isFiCsElement) sanitized.push(variable as FiCsElement<D, P>)
-          }
-        }
+        sanitized.push(variable as HtmlContent<D, P>)
       }
     }
 
@@ -420,7 +412,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        if (childNode.hasChildNodes()) convertChildNodes(this.#getChildNodes(childNode))
+        convertChildNodes(this.#getChildNodes(childNode))
       }
     }
     const getChild = (element: Element): Element => {
@@ -512,6 +504,7 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
+        console.log(oldChildNodes, newChildNodes)
         let oldStartIndex: number = 0
         let oldEndIndex: number = oldChildNodes.length - 1
         let oldStartNode: ChildNode = oldChildNodes[oldStartIndex]
