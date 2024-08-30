@@ -106,9 +106,9 @@ export type Sanitize<D extends object, P extends object> = (
   ...variables: unknown[]
 ) => Sanitized<D, P>
 
+export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContents<D, P>>
+
 export interface Style<D, P> {
   selector?: string
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
 }
-
-export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContents<D, P>>
