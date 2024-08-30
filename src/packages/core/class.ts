@@ -535,7 +535,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const insertBefore = (
           childNode: ChildNode,
           before: ChildNode | null,
-          isFocused?: boolean
+          isUnFocused?: boolean
         ): void => {
           if (childNode instanceof Element) {
             if (isVarTag(childNode)) childNode = getChild(childNode)
@@ -550,7 +550,7 @@ export default class FiCsElement<D extends object, P extends object> {
           )
 
           if (
-            isFocused &&
+            !isUnFocused &&
             activeElement &&
             childNode instanceof HTMLElement &&
             matchChildNode(childNode, activeElement)
@@ -584,12 +584,12 @@ export default class FiCsElement<D extends object, P extends object> {
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldStartNode, newEndNode)) {
             patchChildNode(oldStartNode, newEndNode)
-            insertBefore(oldStartNode, newEndNode.nextSibling, true)
+            insertBefore(oldStartNode, newEndNode.nextSibling)
             oldStartNode = oldChildNodes[++oldStartIndex]
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldEndNode, newStartNode)) {
             patchChildNode(oldEndNode, newStartNode)
-            insertBefore(oldEndNode, oldStartNode, true)
+            insertBefore(oldEndNode, oldStartNode)
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
@@ -619,13 +619,13 @@ export default class FiCsElement<D extends object, P extends object> {
             if (mapStartNode?.nodeName === newStartNode.nodeName) {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
-            } else insertBefore(newStartNode, oldStartNode, true)
+            } else insertBefore(newStartNode, oldStartNode)
 
             newStartNode = newChildNodes[++newStartIndex]
           }
 
         while (newStartIndex <= newEndIndex)
-          insertBefore(newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1], false)
+          insertBefore(newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1], true)
 
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
