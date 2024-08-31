@@ -395,11 +395,13 @@ export default class FiCsElement<D extends object, P extends object> {
     )
     const isVarTag = (element: Element): boolean => element.localName === varTag
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
+    const blankTexts: Text[] = new Array()
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (const childNode of childNodes) {
         if (childNode instanceof Text && childNode.nodeValue) {
           childNode.nodeValue = childNode.nodeValue.trim()
+          if (childNode.nodeValue === '') blankTexts.push(childNode)
           continue
         }
 
@@ -504,7 +506,14 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        console.log(oldChildNodes, newChildNodes)
+        oldChildNodes = oldChildNodes.filter(
+          oldChildNode => !(oldChildNode instanceof Text && oldChildNode.nodeValue === '')
+        )
+
+        const set: Set<ChildNode> = new Set(newChildNodes)
+        for (const blankText of blankTexts) set.delete(blankText)
+        newChildNodes = Array.from(set)
+
         let oldStartIndex: number = 0
         let oldEndIndex: number = oldChildNodes.length - 1
         let oldStartNode: ChildNode = oldChildNodes[oldStartIndex]
@@ -516,15 +525,10 @@ export default class FiCsElement<D extends object, P extends object> {
         const dom: Map<string, ChildNode[]> = new Map()
         const keyChildNodes: Map<string, ChildNode> = new Map()
 
-        const insertBefore = (
-          childNode: ChildNode,
-          before: ChildNode | null,
-          isUnFocused?: boolean
-        ): void => {
-          if (childNode instanceof Element) {
+        const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
+          if (childNode instanceof Element)
             if (isVarTag(childNode)) childNode = getChild(childNode)
             else that.#newElements.add(childNode)
-          }
 
           if (before instanceof Element && isVarTag(before)) before = getChild(before)
 
@@ -532,9 +536,10 @@ export default class FiCsElement<D extends object, P extends object> {
             childNode,
             before && !before.parentNode?.isEqualNode(parentNode) ? oldStartNode : before
           )
+        }
 
+        const focusNode = (childNode: ChildNode): void => {
           if (
-            !isUnFocused &&
             activeElement &&
             childNode instanceof HTMLElement &&
             matchChildNode(childNode, activeElement)
@@ -569,11 +574,13 @@ export default class FiCsElement<D extends object, P extends object> {
           } else if (matchChildNode(oldStartNode, newEndNode)) {
             patchChildNode(oldStartNode, newEndNode)
             insertBefore(oldStartNode, newEndNode.nextSibling)
+            focusNode(oldStartNode)
             oldStartNode = oldChildNodes[++oldStartIndex]
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldEndNode, newStartNode)) {
             patchChildNode(oldEndNode, newStartNode)
             insertBefore(oldEndNode, oldStartNode)
+            focusNode(oldEndNode)
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
@@ -603,18 +610,22 @@ export default class FiCsElement<D extends object, P extends object> {
             if (mapStartNode?.nodeName === newStartNode.nodeName) {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
-            } else insertBefore(newStartNode, oldStartNode)
+            } else {
+              insertBefore(newStartNode, oldStartNode)
+              focusNode(newStartNode)
+            }
 
             newStartNode = newChildNodes[++newStartIndex]
           }
 
         while (newStartIndex <= newEndIndex)
-          insertBefore(newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1], true)
+          insertBefore(newChildNodes[newStartIndex++], newChildNodes[newEndIndex + 1])
 
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
 
           if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
+          focusNode(childNode)
         }
       }
 
