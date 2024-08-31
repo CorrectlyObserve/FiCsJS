@@ -1,5 +1,5 @@
 import generate from './generator'
-import addQueue from './queue'
+import addToQueue from './queue'
 import type {
   Action,
   Attrs,
@@ -147,7 +147,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
     }
   }
 
@@ -791,7 +791,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
