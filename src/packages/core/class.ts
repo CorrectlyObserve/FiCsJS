@@ -277,7 +277,7 @@ export default class FiCsElement<D extends object, P extends object> {
             ? variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
             : (variable ?? '')
 
-        sanitized.push(variable as HtmlContent<D, P>)
+        if (variable !== '') sanitized.push(variable as HtmlContent<D, P>)
       }
     }
 
