@@ -100,7 +100,7 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
 export type Sanitize<D extends object, P extends object> = (
   templates: TemplateStringsArray,
-  ...variables: unknown[]
+  ...variables: (HtmlContent<D, P> | unknown)[]
 ) => Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
