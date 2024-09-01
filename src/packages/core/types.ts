@@ -30,8 +30,9 @@ export interface DataProps<D, P> {
 type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
-  isExceptional?: boolean
   name: string
+  isExceptional?: boolean
+  ficsId?: string
   isImmutable?: boolean
   data?: () => D
   reflections?: Reflections<D>
@@ -48,21 +49,22 @@ export interface FiCs<D extends object, P extends object> {
 
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & {
-    $template: Sanitize<D, P, true>
-    $html: Sanitize<D, P, false>
+    $template: Sanitize<D, P>
+    $html: (str: string) => Record<symbol, string>
+    $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
-) => Symbolized<(Descendant | string)[]>
+) => Record<symbol, HtmlContent<D, P>[]>
 
-export type HtmlContents<D extends object, P extends object> = (FiCsElement<D, P> | string)[]
+export type HtmlContent<D extends object = any, P extends object = any> =
+  | ([D, P] extends [any, any] ? Descendant : FiCsElement<D, P>)
+  | string
 
 export interface Hooks<D, P> {
-  connect?: HookContent<D, P>
-  disconnect?: HookContent<D, P>
-  adopt?: HookContent<D, P>
+  connect?: (params: Param<D, P>) => void
+  disconnect?: (params: Param<D, P>) => void
+  adopt?: (params: Param<D, P>) => void
 }
-
-type HookContent<D, P> = (params: Param<D, P>) => void
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
@@ -96,14 +98,12 @@ export interface Queue {
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
-export type Sanitize<D extends object, P extends object, B> = (
+export type Sanitize<D extends object, P extends object> = (
   templates: TemplateStringsArray,
   ...variables: unknown[]
-) => B extends true ? Symbolized<HtmlContents<D, P>> : HtmlContents<D, P>
+) => Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
   selector?: string
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
 }
-
-export type Symbolized<V> = Record<symbol, V>
