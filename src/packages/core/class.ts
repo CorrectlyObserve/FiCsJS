@@ -55,7 +55,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
-
   #propsChain: PropsChain<P> = new Map()
   #isReflecting: boolean = false
 
@@ -283,7 +282,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     for (const [index, template] of templates.entries()) sanitize(index, template, variables[index])
-    return sanitized as HtmlContent[]
+    return sanitized as HtmlContent<D, P>[]
   }
 
   #getHtml(): HtmlContent<D, P>[] {
