@@ -45,8 +45,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #className: ClassName<D, P> | undefined
   readonly #attrs: Attrs<D, P> | undefined
-  readonly $template: symbol
-  readonly #$html: symbol
+  readonly #sanitized: symbol
+  readonly #unsanitized: symbol
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
@@ -127,8 +127,8 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#attrs = attributes
       }
 
-      this.$template = Symbol(`${this.#ficsId}-sanitized`)
-      this.#$html = Symbol(`${this.#ficsId}-unsanitized`)
+      this.#sanitized = Symbol(`${this.#ficsId}-sanitized`)
+      this.#unsanitized = Symbol(`${this.#ficsId}-unsanitized`)
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
 
@@ -259,16 +259,16 @@ export default class FiCsElement<D extends object, P extends object> {
     const sanitized: HtmlContent<D, P>[] = new Array()
 
     const sanitize = (index: number, template: string, variable: unknown) => {
-      if (isSymbol(variable, this.$template))
+      if (isSymbol(variable, this.#sanitized))
         sanitized.push(
           template,
-          ...(variable as Record<symbol, HtmlContent<D, P>[]>)[this.$template]
+          ...(variable as Record<symbol, HtmlContent<D, P>[]>)[this.#sanitized]
         )
       else if (Array.isArray(variable)) {
         sanitized.push(template)
         for (const child of variable) sanitize(index, '', child)
-      } else if (isSymbol(variable, this.#$html))
-        sanitized.push(template, (variable as Record<symbol, string>)[this.#$html])
+      } else if (isSymbol(variable, this.#unsanitized))
+        sanitized.push(template, (variable as Record<symbol, string>)[this.#unsanitized])
       else {
         if (template !== '') sanitized.push(template)
 
@@ -290,7 +290,7 @@ export default class FiCsElement<D extends object, P extends object> {
       templates: TemplateStringsArray,
       ...variables: (HtmlContent<D, P> | unknown)[]
     ): Record<symbol, HtmlContent<D, P>[]> => ({
-      [this.$template]: this.#sanitize(templates, variables)
+      [this.#sanitized]: this.#sanitize(templates, variables)
     })
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
@@ -309,10 +309,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({
       ...this.#setDataProps(),
       $template,
-      $html: (str: string): Record<symbol, string> => ({ [this.#$html]: str }),
+      $html: (str: string): Record<symbol, string> => ({ [this.#unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
-    })[this.$template]
+    })[this.#sanitized]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
