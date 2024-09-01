@@ -27,7 +27,7 @@ export interface DataProps<D, P> {
   $props: P
 }
 
-type Descendant = FiCsElement<any, any>
+export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
@@ -56,8 +56,8 @@ export type Html<D extends object, P extends object> = (
   }
 ) => Record<symbol, HtmlContent<D, P>[]>
 
-export type HtmlContent<D extends object = any, P extends object = any> =
-  | ([D, P] extends [any, any] ? Descendant : FiCsElement<D, P>)
+export type HtmlContent<D extends object, P extends object> =
+  | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
   | string
 
 export interface Hooks<D, P> {
@@ -68,7 +68,7 @@ export interface Hooks<D, P> {
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
-  values: (getData: (key: keyof D) => D[typeof key]) => any
+  values: (getData: (key: keyof D) => D[typeof key]) => object
 }[]
 
 export interface I18n {
