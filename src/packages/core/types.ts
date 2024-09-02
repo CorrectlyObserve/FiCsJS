@@ -32,7 +32,6 @@ type Descendant = FiCsElement<any, any>
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
-  ficsId?: string
   isImmutable?: boolean
   data?: () => D
   reflections?: Reflections<D>
