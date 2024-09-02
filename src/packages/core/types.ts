@@ -27,7 +27,7 @@ export interface DataProps<D, P> {
   $props: P
 }
 
-export type Descendant = FiCsElement<any, any>
+type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
@@ -54,7 +54,7 @@ export type Html<D extends object, P extends object> = (
     $show: (condition: boolean) => string
     $i18n: ({ json, lang, keys }: I18n) => string
   }
-) => Record<symbol, HtmlContent<D, P>[]>
+) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
   | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
@@ -101,7 +101,9 @@ export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 export type Sanitize<D extends object, P extends object> = (
   templates: TemplateStringsArray,
   ...variables: (HtmlContent<D, P> | unknown)[]
-) => Record<symbol, HtmlContent<D, P>[]>
+) => Sanitized<D, P>
+
+export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
   selector?: string
