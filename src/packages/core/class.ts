@@ -61,7 +61,6 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     name,
     isExceptional,
-    ficsId,
     isImmutable,
     data,
     reflections,
@@ -80,7 +79,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && this.#reservedWords[this.#name])
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
+      this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
       if (isImmutable) {
