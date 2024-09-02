@@ -77,7 +77,9 @@ export interface I18n {
   keys: string | string[]
 }
 
-export type Method<D, P> = (params: Param<D, P> & { $event: Event }) => void
+export type Method<D, P> = (
+  params: Param<D, P> & { $getData: (key: keyof D) => D[typeof key]; $event: Event }
+) => void
 
 export type Param<D, P> = DataProps<D, P> & {
   $setData: (key: keyof D, value: D[typeof key]) => void
