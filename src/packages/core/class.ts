@@ -27,7 +27,6 @@ const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
-  readonly #isExceptional: boolean = false
   readonly #reservedWords: Record<string, true> = { var: true, router: true, link: true }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
@@ -78,12 +77,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }: FiCs<D, P>) {
     this.#name = this.#toKebabCase(name)
 
-    if (isExceptional) this.#isExceptional = isExceptional
-
-    if (this.#isExceptional && this.#name in this.#reservedWords)
-      delete this.#reservedWords[this.#name]
-
-    if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
+    if (!isExceptional && this.#reservedWords[this.#name])
+      throw new Error(`"${name}" is a reserved word in FiCsJS...`)
     else {
       this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
       this.#tagName = `f-${this.#name}`
