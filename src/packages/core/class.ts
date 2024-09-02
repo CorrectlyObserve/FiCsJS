@@ -656,9 +656,12 @@ export default class FiCsElement<D extends object, P extends object> {
     method: Method<D, P>,
     enterKey?: boolean
   ): void {
-    const getMethodParam = (event: Event): Param<D, P> & { $event: Event } => ({
+    const getMethodParam = (
+      event: Event
+    ): Param<D, P> & { $getData: (key: keyof D) => D[typeof key]; $event: Event } => ({
       ...this.#setDataProps(),
       $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $getData: (key: keyof D): D[typeof key] => this.getData(key),
       $event: event
     })
 
