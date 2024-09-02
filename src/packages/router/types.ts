@@ -1,23 +1,48 @@
+import FiCsElement from '../core/class'
 import type {
+  Action,
   Attrs,
   ClassName,
   Css,
-  Descendant,
+  HtmlContent,
   Hooks,
   Inheritances,
-  Reflections
+  Reflections,
+  Sanitize,
+  Sanitized
 } from '../core/types'
 
-export interface Data {
-  pathname: string
+export interface FiCsLink extends LinkData {
+  href: string
+  router: FiCsElement<RouterData, {}>
+  reflections?: Reflections<LinkData>
+  inheritances?: Inheritances<LinkData>
+  isOnlyCsr?: boolean
+  className?: ClassName<LinkData, {}>
+  attributes?: Attrs<LinkData, {}>
+  css?: Css<LinkData, {}>
+  actions?: Action<LinkData, {}>[]
+  hooks?: Hooks<LinkData, {}>
 }
 
-export interface Router<P> extends Data {
-  pages: Record<string, string | Descendant>
-  reflections?: Reflections<Data>
-  inheritances?: Inheritances<Data>
-  className?: ClassName<Data, P>
-  attributes?: Attrs<Data, P>
-  css?: Css<Data, P>
-  hooks?: Hooks<Data, P>
+export interface FiCsRouter {
+  pages: ($template: Sanitize<RouterData, {}>) => Record<string, RouterContent<RouterData>>
+  reflections?: Reflections<RouterData>
+  inheritances?: Inheritances<RouterData>
+  isOnlyCsr?: boolean
+  className?: ClassName<RouterData, {}>
+  attributes?: Attrs<RouterData, {}>
+  css?: Css<RouterData, {}>
+  actions?: Action<RouterData, {}>[]
+  hooks?: Hooks<RouterData, {}>
+}
+
+export interface LinkData {
+  anchor: RouterContent<LinkData>
+}
+
+export type RouterContent<D extends object> = HtmlContent<D, {}> | Sanitized<D, {}>
+
+export interface RouterData {
+  pathname: string
 }
