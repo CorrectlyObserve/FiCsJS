@@ -831,13 +831,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
+              that.#callback('connect')
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
               that.#addAttrs(this)
               that.#addHtml(this.shadowRoot)
               that.#addCss(this.shadowRoot)
               that.#addActions(this)
-              that.#callback('connect')
               that.#removeChildNodes(this)
               that.#setProperty(this, that.#ficsIdName, that.#ficsId)
               that.#components.add(this)
