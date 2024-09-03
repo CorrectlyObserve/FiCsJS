@@ -154,14 +154,9 @@ export default class FiCsElement<D extends object, P extends object> {
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
 
-          let dataKey: keyof D = '' as keyof D
-          const data: [string, P][] = Object.entries({
-            ...values((key: keyof D) => {
-              dataKey = key
-
-              return this.getData(dataKey)
-            })
-          })
+          const data: [string, P][] = Object.entries(
+            values({ $getData: (key: keyof D) => this.getData(key) })
+          )
           const descendantId: string = descendant.#ficsId
 
           for (const [key, value] of data) {
@@ -174,7 +169,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const last: number = this.#propsTrees.length - 1
             const tree: PropsTree<D, P> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-              dataKey,
+              dataKey: key as keyof D,
               setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
             }
             const isLargerNumberId = (index: number): boolean =>
@@ -650,9 +645,7 @@ export default class FiCsElement<D extends object, P extends object> {
     method: Method<D, P>,
     enterKey?: boolean
   ): void {
-    const getMethodParam = (
-      event: Event
-    ): Param<D, P> & { $getData: (key: keyof D) => D[typeof key]; $event: Event } => ({
+    const getMethodParam = (event: Event): Param<D, P> & { $event: Event } => ({
       ...this.#setDataProps(),
       $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
       $getData: (key: keyof D): D[typeof key] => this.getData(key),
@@ -690,7 +683,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: keyof Hooks<D, P>): void {
     this.#hooks[key]?.({
       ...this.#setDataProps(),
-      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $getData: (key: keyof D): D[typeof key] => this.getData(key)
     })
   }
 
