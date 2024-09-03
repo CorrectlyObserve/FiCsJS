@@ -39,7 +39,7 @@ export const Link = ({
         selector: 'a',
         method: ({ $event }) => {
           $event.preventDefault()
-          window.history.pushState(null, '', href)
+          window.history.pushState({}, '', href)
           router.setData('pathname', href)
         }
       }
@@ -67,10 +67,9 @@ export const Router = ({
     className,
     attributes,
     html: ({ $data: { pathname }, $template }) => {
-      const contents: Record<string, RouterContent<RouterData>> = { ...pages({ $template }) }
+      for (const { path, content } of pages({ $template }))
+        if (path === pathname || path === '404') return setContent(content, $template)
 
-      if (pathname in contents) return setContent(contents[pathname], $template)
-      if ('404' in contents) return setContent(contents['404'], $template)
       throw new Error(`The ${pathname} does not exist on the pages...`)
     },
     css,
@@ -78,9 +77,9 @@ export const Router = ({
     hooks: {
       ...(hooks ?? {}),
       connect: ({ $setData }) => {
-        const { pathname }: { pathname: string } = location
+        const { pathname }: { pathname: string } = window.location
         $setData('pathname', pathname)
-        addEventListener('popstate', () => $setData('pathname', pathname))
+        window.addEventListener('popstate', () => $setData('pathname', pathname))
       }
     }
   })
