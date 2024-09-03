@@ -1,6 +1,13 @@
 import FiCsElement from '../core/class'
 import type { Sanitize, Sanitized } from '../core/types'
-import type { FiCsLink, FiCsRouter, LinkData, RouterContent, RouterData } from './types'
+import type {
+  FiCsLink,
+  FiCsRouter,
+  LinkData,
+  PageContent,
+  RouterContent,
+  RouterData
+} from './types'
 
 const setContent = <D extends LinkData | RouterData>(
   content: RouterContent<D>,
@@ -49,8 +56,8 @@ export const Link = ({
 
 export const Router = ({
   pages,
+  notFound,
   reflections,
-  inheritances,
   className,
   attributes,
   css,
@@ -61,25 +68,41 @@ export const Router = ({
     name: 'router',
     isExceptional: true,
     data: () => ({ pathname: '' }),
-    reflections,
-    inheritances,
+    reflections: { ...reflections, pathname: () => {} },
     isOnlyCsr: true,
     className,
     attributes,
     html: ({ $data: { pathname }, $template }) => {
-      for (const { path, content } of pages({ $template }))
-        if (path === pathname || path === '404') return setContent(content, $template)
+      const setPageContent = (): Sanitized<RouterData, {}> => {
+        const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
+          if (redirect) {
+            pathname = redirect({})
+            window.history.replaceState({}, '', pathname)
+            return setPageContent()
+          }
 
-      throw new Error(`The ${pathname} does not exist on the pages...`)
+          return setContent(content, $template)
+        }
+
+        for (const { path, content, redirect } of pages({ $template }))
+          if (pathname === path) return resolveContent({ content, redirect })
+
+        if (notFound) return resolveContent(notFound({ $template }))
+
+        throw new Error(`The ${pathname} does not exist on the pages...`)
+      }
+
+      return setPageContent()
     },
     css,
     actions,
     hooks: {
       ...(hooks ?? {}),
       connect: ({ $setData }) => {
-        const { pathname }: { pathname: string } = window.location
-        $setData('pathname', pathname)
-        window.addEventListener('popstate', () => $setData('pathname', pathname))
+        $setData('pathname', window.location.pathname)
+        window.addEventListener('popstate', () => {
+          $setData('pathname', window.location.pathname)
+        })
       }
     }
   })
