@@ -17,7 +17,6 @@ export interface FiCsLink extends LinkData {
   router: FiCsElement<RouterData, {}>
   reflections?: Reflections<LinkData>
   inheritances?: Inheritances<LinkData>
-  isOnlyCsr?: boolean
   className?: ClassName<LinkData, {}>
   attributes?: Attrs<LinkData, {}>
   css?: Css<LinkData, {}>
@@ -26,10 +25,9 @@ export interface FiCsLink extends LinkData {
 }
 
 export interface FiCsRouter {
-  pages: ($template: Sanitize<RouterData, {}>) => Record<string, RouterContent<RouterData>>
+  pages: ({ $template }: Template) => Record<string, RouterContent<RouterData>>
   reflections?: Reflections<RouterData>
   inheritances?: Inheritances<RouterData>
-  isOnlyCsr?: boolean
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
   css?: Css<RouterData, {}>
@@ -38,11 +36,15 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  anchor: RouterContent<LinkData>
+  anchor: ({ $template }: Template) => RouterContent<LinkData>
 }
 
 export type RouterContent<D extends object> = HtmlContent<D, {}> | Sanitized<D, {}>
 
 export interface RouterData {
   pathname: string
+}
+
+interface Template {
+  $template: Sanitize<RouterData, {}>
 }
