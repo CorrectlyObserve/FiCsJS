@@ -21,7 +21,7 @@ export const Parent = (child: ChildType) => {
     inheritances: [
       {
         descendants: child,
-        values: getData => ({ color: getData('color'), click: getData('click') })
+        values: ({ $getData }) => ({ color: $getData('color'), click: $getData('click') })
       }
     ],
     props: {} as { propsColor: string },
