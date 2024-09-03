@@ -1,15 +1,14 @@
-const json = async ({
-  langs,
-  directory
-}: {
-  langs: string[]
-  directory: string
-}): Promise<Record<string, string>> => {
+import type { LangJson } from './types'
+
+export default async ({ langs, directory }: LangJson): Promise<Record<string, string>> => {
   const json: Record<string, string> = {}
 
-  for (const lang of langs) json[lang] = await import(`${directory}/${lang}.json`)
+  for (const lang of langs)
+    try {
+      json[lang] = await import(`${directory}/${lang}.json`)
+    } catch (error) {
+      throw new Error(`${error}`)
+    }
 
   return json
 }
-
-export default json
