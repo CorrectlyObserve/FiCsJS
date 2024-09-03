@@ -7,14 +7,8 @@ const GrandParent = (color: string, child: ChildType, parent: ParentType) =>
     name: 'grandParent',
     data: () => ({ color, fontSize: 24, number: 12, email: 'sss' }),
     inheritances: [
-      {
-        descendants: child,
-        values: getData => ({ color: getData('color') })
-      },
-      {
-        descendants: parent,
-        values: getData => ({ propsColor: getData('color') + '2' })
-      }
+      { descendants: child, values: ({ $getData }) => ({ color: $getData('color') }) },
+      { descendants: parent, values: ({ $getData }) => ({ propsColor: $getData('color') + '2' }) }
     ],
     html: ({ $data: { fontSize, number, email }, $template }) =>
       $template`
