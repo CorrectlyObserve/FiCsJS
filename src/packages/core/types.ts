@@ -67,7 +67,7 @@ export interface Hooks<D, P> {
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
-  values: (getData: (key: keyof D) => D[typeof key]) => object
+  values: ({ $getData }: { $getData: (key: keyof D) => D[typeof key] }) => object
 }[]
 
 export interface I18n {
@@ -76,12 +76,11 @@ export interface I18n {
   keys: string | string[]
 }
 
-export type Method<D, P> = (
-  params: Param<D, P> & { $getData: (key: keyof D) => D[typeof key]; $event: Event }
-) => void
+export type Method<D, P> = (params: Param<D, P> & { $event: Event }) => void
 
 export type Param<D, P> = DataProps<D, P> & {
   $setData: (key: keyof D, value: D[typeof key]) => void
+  $getData: (key: keyof D) => D[typeof key]
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
