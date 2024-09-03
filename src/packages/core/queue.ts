@@ -4,7 +4,7 @@ const ficsIds: Record<string, boolean> = {}
 const queues: Queue[] = new Array()
 let isProcessing: boolean = false
 
-const addToQueue = (queue: Queue): void => {
+export default (queue: Queue): void => {
   if (!ficsIds[queue.ficsId]) {
     queues.push(queue)
     ficsIds[queue.ficsId] = true
@@ -23,5 +23,3 @@ const addToQueue = (queue: Queue): void => {
     }
   }
 }
-
-export default addToQueue
