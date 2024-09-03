@@ -154,8 +154,14 @@ export default class FiCsElement<D extends object, P extends object> {
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
 
+          let dataKey: keyof D = '' as keyof D
           const data: [string, P][] = Object.entries(
-            values({ $getData: (key: keyof D) => this.getData(key) })
+            values({
+              $getData: (key: keyof D) => {
+                dataKey = key
+                return this.getData(dataKey)
+              }
+            })
           )
           const descendantId: string = descendant.#ficsId
 
@@ -169,7 +175,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const last: number = this.#propsTrees.length - 1
             const tree: PropsTree<D, P> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-              dataKey: key as keyof D,
+              dataKey,
               setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
             }
             const isLargerNumberId = (index: number): boolean =>
