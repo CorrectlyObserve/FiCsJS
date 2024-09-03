@@ -25,7 +25,11 @@ export interface FiCsLink extends LinkData {
 }
 
 export interface FiCsRouter {
-  pages: ({ $template }: Template) => Page[]
+  pages: ({ $template }: Template) => {
+    path: string
+    content: RouterContent<RouterData>
+    redirect?: ({}) => string
+  }[]
   reflections?: Reflections<RouterData>
   inheritances?: Inheritances<RouterData>
   className?: ClassName<RouterData, {}>
@@ -37,12 +41,6 @@ export interface FiCsRouter {
 
 export interface LinkData {
   anchor: ({ $template }: Template) => RouterContent<LinkData>
-}
-
-interface Page {
-  path: string
-  content: RouterContent<RouterData>
-  redirect?: ({}) => string
 }
 
 export type RouterContent<D extends object> = HtmlContent<D, {}> | Sanitized<D, {}>
