@@ -1,7 +1,7 @@
 import FiCsElement from './class'
 import type { FiCs } from './types'
 
-const fics = <D extends object, P extends object>({
+export default <D extends object, P extends object>({
   name,
   isImmutable,
   data,
@@ -31,5 +31,3 @@ const fics = <D extends object, P extends object>({
     actions,
     hooks
   })
-
-export default fics
