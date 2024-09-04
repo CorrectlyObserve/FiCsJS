@@ -8,8 +8,8 @@ import type {
   Hooks,
   Inheritances,
   Reflections,
-  Sanitize,
-  Sanitized
+  Sanitized,
+  Syntax
 } from '../core/types'
 
 export interface FiCsLink extends LinkData {
@@ -25,8 +25,8 @@ export interface FiCsLink extends LinkData {
 }
 
 export interface FiCsRouter {
-  pages: ({ $template }: Template) => (PageContent & { path: string })[]
-  notFound?: ({ $template }: Template) => PageContent
+  pages: (syntax: Syntax<RouterData, {}>) => (PageContent & { path: string })[]
+  notFound?: ({ $template, $html, $show, $i18n }: Syntax<RouterData, {}>) => PageContent
   reflections?: Reflections<RouterData>
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
@@ -36,7 +36,7 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  anchor: ({ $template }: Template) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
+  anchor: (syntax: Syntax<RouterData, {}>) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
 }
 
 export interface PageContent {
@@ -46,8 +46,4 @@ export interface PageContent {
 
 export interface RouterData {
   pathname: string
-}
-
-interface Template {
-  $template: Sanitize<RouterData, {}>
 }
