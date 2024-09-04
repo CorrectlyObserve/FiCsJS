@@ -51,7 +51,7 @@ export const Router = ({
     name: 'router',
     isExceptional: true,
     data: () => ({ pathname: '' }),
-    reflections: { ...reflections, pathname: () => {} },
+    reflections,
     isOnlyCsr: true,
     className,
     attributes,
