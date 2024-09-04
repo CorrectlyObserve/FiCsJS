@@ -1,13 +1,13 @@
 import fics from '../packages/core/fics'
 
-interface Arg {
+interface Svg {
   size: string
   path: string
   color: string
   click: () => void
 }
 
-export const Svg = ({ size, path, color, click }: Arg) =>
+const Svg = ({ size, path, color, click }: Svg) =>
   fics({
     name: 'svg',
     isImmutable: true,
@@ -29,4 +29,11 @@ export const Svg = ({ size, path, color, click }: Arg) =>
     actions: [{ handler: 'click', method: click }]
   })
 
-export type SvgType = ReturnType<typeof Svg>
+const svg = Svg({
+  size: '2rem',
+  path: 'add',
+  color: 'red',
+  click: () => console.log('aaa')
+})
+
+export default svg
