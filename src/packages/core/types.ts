@@ -47,12 +47,7 @@ export interface FiCs<D extends object, P extends object> {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P> & {
-    $template: Sanitize<D, P>
-    $html: (str: string) => Record<symbol, string>
-    $show: (condition: boolean) => string
-    $i18n: ({ json, lang, keys }: I18n) => string
-  }
+  params: DataProps<D, P> & Syntax<D, P>
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -113,4 +108,11 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 export interface Style<D, P> {
   selector?: string
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
+}
+
+export interface Syntax<D extends object, P extends object> {
+  $template: Sanitize<D, P>
+  $html: (str: string) => Record<symbol, string>
+  $show: (condition: boolean) => string
+  $i18n: ({ json, lang, keys }: I18n) => string
 }
