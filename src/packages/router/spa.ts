@@ -23,7 +23,8 @@ export const Link = ({
     isOnlyCsr: true,
     className,
     attributes,
-    html: ({ $data, $template }) => $template`<a href="${href}">${$data.anchor({ $template })}</a>`,
+    html: ({ $data, $template, $html, $show, $i18n }) =>
+      $template`<a href="${href}">${$data.anchor({ $template, $html, $show, $i18n })}</a>`,
     css,
     actions: [
       ...(actions ?? []),
@@ -58,7 +59,7 @@ export const Router = ({
     isOnlyCsr: true,
     className,
     attributes,
-    html: ({ $data: { pathname }, $template }) => {
+    html: ({ $data: { pathname }, $template, $html, $show, $i18n }) => {
       const setContent = (): Sanitized<RouterData, {}> => {
         const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
           if (redirect) {
@@ -72,10 +73,10 @@ export const Router = ({
             : content
         }
 
-        for (const { path, content, redirect } of pages({ $template }))
+        for (const { path, content, redirect } of pages({ $template, $html, $show, $i18n }))
           if (pathname === path) return resolveContent({ content, redirect })
 
-        if (notFound) return resolveContent(notFound({ $template }))
+        if (notFound) return resolveContent(notFound({ $template, $html, $show, $i18n }))
 
         throw new Error(`The ${pathname} does not exist on the pages...`)
       }
@@ -87,10 +88,10 @@ export const Router = ({
     hooks: {
       ...(hooks ?? {}),
       connect: ({ $setData }) => {
-        $setData('pathname', window.location.pathname)
-        window.addEventListener('popstate', () => {
-          $setData('pathname', window.location.pathname)
-        })
+        const setPathname = (): void => $setData('pathname', window.location.pathname)
+
+        setPathname()
+        window.addEventListener('popstate', setPathname)
       }
     }
   })
