@@ -36,15 +36,13 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  anchor: ({ $template }: Template) => RouterContent<LinkData>
+  anchor: ({ $template }: Template) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
 }
 
 export interface PageContent {
-  content: RouterContent<RouterData>
+  content: HtmlContent<RouterData, {}> | Sanitized<RouterData, {}>
   redirect?: ({}) => string
 }
-
-export type RouterContent<D extends object> = HtmlContent<D, {}> | Sanitized<D, {}>
 
 export interface RouterData {
   pathname: string
