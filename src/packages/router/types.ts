@@ -6,7 +6,6 @@ import type {
   Css,
   HtmlContent,
   Hooks,
-  Inheritances,
   Reflections,
   Sanitized,
   Syntax
@@ -15,8 +14,6 @@ import type {
 export interface FiCsLink extends LinkData {
   href: string
   router: FiCsElement<RouterData, {}>
-  reflections?: Reflections<LinkData>
-  inheritances?: Inheritances<LinkData>
   className?: ClassName<LinkData, {}>
   attributes?: Attrs<LinkData, {}>
   css?: Css<LinkData, {}>
