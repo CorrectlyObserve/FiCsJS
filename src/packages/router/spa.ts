@@ -1,19 +1,6 @@
 import FiCsElement from '../core/class'
-import type { Sanitize, Sanitized } from '../core/types'
-import type {
-  FiCsLink,
-  FiCsRouter,
-  LinkData,
-  PageContent,
-  RouterContent,
-  RouterData
-} from './types'
-
-const setContent = <D extends LinkData | RouterData>(
-  content: RouterContent<D>,
-  sanitize: Sanitize<D, {}>
-): Sanitized<D, {}> =>
-  typeof content === 'string' || content instanceof FiCsElement ? sanitize`${content}` : content
+import type { Sanitized } from '../core/types'
+import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './types'
 
 export const Link = ({
   href,
@@ -36,8 +23,7 @@ export const Link = ({
     isOnlyCsr: true,
     className,
     attributes,
-    html: ({ $data, $template }) =>
-      setContent($template`<a href="${href}">${$data.anchor({ $template })}</a>`, $template),
+    html: ({ $data, $template }) => $template`<a href="${href}">${$data.anchor({ $template })}</a>`,
     css,
     actions: [
       ...(actions ?? []),
@@ -73,15 +59,17 @@ export const Router = ({
     className,
     attributes,
     html: ({ $data: { pathname }, $template }) => {
-      const setPageContent = (): Sanitized<RouterData, {}> => {
+      const setContent = (): Sanitized<RouterData, {}> => {
         const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
           if (redirect) {
             pathname = redirect({})
             window.history.replaceState({}, '', pathname)
-            return setPageContent()
+            return setContent()
           }
 
-          return setContent(content, $template)
+          return typeof content === 'string' || content instanceof FiCsElement
+            ? $template`${content}`
+            : content
         }
 
         for (const { path, content, redirect } of pages({ $template }))
@@ -92,7 +80,7 @@ export const Router = ({
         throw new Error(`The ${pathname} does not exist on the pages...`)
       }
 
-      return setPageContent()
+      return setContent()
     },
     css,
     actions,
