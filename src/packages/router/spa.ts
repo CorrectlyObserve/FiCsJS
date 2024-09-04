@@ -6,8 +6,6 @@ export const Link = ({
   href,
   anchor,
   router,
-  reflections,
-  inheritances,
   className,
   attributes,
   css,
@@ -17,14 +15,12 @@ export const Link = ({
   new FiCsElement<LinkData, {}>({
     name: 'link',
     isExceptional: true,
-    data: () => ({ anchor }),
-    reflections,
-    inheritances,
+    isImmutable: true,
     isOnlyCsr: true,
     className,
     attributes,
-    html: ({ $data, $template, $html, $show, $i18n }) =>
-      $template`<a href="${href}">${$data.anchor({ $template, $html, $show, $i18n })}</a>`,
+    html: ({ $template, $html, $show, $i18n }) =>
+      $template`<a href="${href}">${anchor({ $template, $html, $show, $i18n })}</a>`,
     css,
     actions: [
       ...(actions ?? []),
