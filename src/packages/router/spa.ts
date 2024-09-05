@@ -74,7 +74,7 @@ export const Router = ({
 
         if (notFound) return resolveContent(notFound({ $template, $html, $show, $i18n }))
 
-        throw new Error(`The ${pathname} does not exist on the pages...`)
+        throw new Error(`The "${pathname}" does not exist on the pages...`)
       }
 
       return setContent()
