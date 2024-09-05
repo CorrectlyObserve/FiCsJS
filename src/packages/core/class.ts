@@ -99,7 +99,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (data) {
         if (reflections) {
           for (const key of Object.keys(reflections))
-            if (!(key in data())) throw new Error(`${key} is not defined in data...`)
+            if (!(key in data())) throw new Error(`"${key}" is not defined in data...`)
 
           this.#reflections = { ...reflections }
         }
@@ -138,7 +138,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
+    if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
       addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
@@ -642,7 +642,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getShadowRoot(component: HTMLElement): ShadowRoot {
     if (component.shadowRoot) return component.shadowRoot
 
-    throw new Error(`${this.#name} does not have shadowRoot...`)
+    throw new Error(`${this.#tagName} does not have shadowRoot...`)
   }
 
   #addEventListener(
@@ -775,12 +775,12 @@ export default class FiCsElement<D extends object, P extends object> {
   getData<K extends keyof D>(key: K): D[typeof key] {
     if (key in this.#data) return this.#data[key]
 
-    throw new Error(`${key as string} is not defined in data...`)
+    throw new Error(`"${key as string}" is not defined in data...`)
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
-    if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
-    else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
+    if (this.#isReflecting) throw new Error(`"${key as string}" is not changed in reflections...`)
+    else if (!(key in this.#data)) throw new Error(`"${key as string}" is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
       addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
