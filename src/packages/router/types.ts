@@ -33,13 +33,15 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  content: (syntax: Syntax<RouterData, {}>) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
+  content: (syntax: Syntax<LinkData, {}>) => RouterContent<LinkData>
 }
 
 export interface PageContent {
-  content: HtmlContent<RouterData, {}> | Sanitized<RouterData, {}>
+  content: RouterContent<RouterData>
   redirect?: string
 }
+
+type RouterContent<D extends object> = HtmlContent<D, {}> | Sanitized<D, {}>
 
 export interface RouterData {
   pathname: string
