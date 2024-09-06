@@ -37,7 +37,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #inheritances: Inheritances<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
-  readonly #bindings: Bindings = {
+  readonly #bindings: Bindings<D, P> = {
     isClassName: false,
     isAttr: false,
     css: new Array(),
@@ -674,11 +674,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addActions(component: HTMLElement): void {
     if (this.#actions.length > 0)
-      for (const [index, action] of this.#actions.entries()) {
+      for (const action of this.#actions) {
         const { handler, selector, method, enterKey }: Action<D, P> = action
 
         if (!this.#isImmutable && selector) {
-          this.#bindings.actions.push(index)
+          this.#bindings.actions.push(action)
 
           for (const element of this.#getElements(this.#getShadowRoot(component), selector))
             this.#addEventListener(element, handler, method, enterKey)
@@ -740,7 +740,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #reRender(): void {
     for (const component of this.#components) {
-      const { isClassName, isAttr, css, actions }: Bindings = this.#bindings
+      const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
       if (isClassName) {
@@ -759,8 +759,8 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
       if (actions.length > 0)
-        for (const index of actions) {
-          const { handler, selector, method, enterKey }: Action<D, P> = this.#actions[index]
+        for (const action of actions) {
+          const { handler, selector, method, enterKey }: Action<D, P> = action
 
           if (selector)
             for (const element of this.#getElements(shadowRoot, selector))
