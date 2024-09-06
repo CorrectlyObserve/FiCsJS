@@ -84,7 +84,7 @@ export const Router = ({
     hooks: {
       ...(hooks ?? {}),
       connect: ({ $setData }) => {
-        if (!window) if (!window) throw new Error('window is not defined...')
+        if (!window) throw new Error('window is not defined...')
 
         const setPathname = (): void => $setData('pathname', window.location.pathname)
 
