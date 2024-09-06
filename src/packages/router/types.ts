@@ -38,9 +38,11 @@ export interface LinkData {
 
 type PageContent = HtmlContent<RouterData, {}> | Sanitized<RouterData, {}>
 
+export type Params = Record<string, string | number>
+
 export interface RouterContent<B extends boolean> {
-  content: B extends true ? () => PageContent : PageContent
-  redirect?: (params: Record<string, string | number>) => string
+  content: B extends true ? (params: Params) => PageContent : PageContent
+  redirect?: (params: Params) => string
 }
 
 export interface RouterData {
