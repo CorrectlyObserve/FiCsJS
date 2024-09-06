@@ -22,8 +22,8 @@ export interface FiCsLink extends LinkData {
 }
 
 export interface FiCsRouter {
-  pages: (syntax: Syntax<RouterData, {}>) => (RouterContent<true> & { path: string })[]
-  notFound?: ({ $template, $html, $show, $i18n }: Syntax<RouterData, {}>) => RouterContent<false>
+  pages: (params: Syntax<RouterData, {}>) => (PageContent & { path: string })[]
+  notFound?: (params: Syntax<RouterData, {}>) => PageContent
   reflections?: Reflections<RouterData>
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
@@ -36,13 +36,9 @@ export interface LinkData {
   anchor: (syntax: Syntax<RouterData, {}>) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
 }
 
-type PageContent = HtmlContent<RouterData, {}> | Sanitized<RouterData, {}>
-
-export type Params = Record<string, string | number>
-
-export interface RouterContent<B extends boolean> {
-  content: B extends true ? (params: Params) => PageContent : PageContent
-  redirect?: (params: Params) => string
+export interface PageContent {
+  content: HtmlContent<RouterData, {}> | Sanitized<RouterData, {}>
+  redirect?: string
 }
 
 export interface RouterData {
