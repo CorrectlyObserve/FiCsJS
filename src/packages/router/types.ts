@@ -33,7 +33,7 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  anchor: (syntax: Syntax<RouterData, {}>) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
+  content: (syntax: Syntax<RouterData, {}>) => HtmlContent<LinkData, {}> | Sanitized<LinkData, {}>
 }
 
 export interface PageContent {
