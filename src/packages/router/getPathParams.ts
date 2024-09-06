@@ -3,7 +3,7 @@ export default (path: string): Record<string, string> => {
 
   const pathParam: RegExp = /\/:[^\/]+/g
   const regExps: string[] | null = new RegExp(
-    `^${path.replaceAll(pathParam, `\/([^/]+?)`)}/?$`
+    `^${path.replaceAll(pathParam, `\/([^/]+?)`)}\/?$`
   ).exec(window.location.pathname)
   const pathParams: Record<string, string> = {}
 
