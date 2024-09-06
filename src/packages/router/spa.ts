@@ -4,7 +4,7 @@ import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './
 
 export const Link = ({
   href,
-  anchor,
+  content,
   router,
   className,
   attributes,
@@ -20,7 +20,7 @@ export const Link = ({
     className,
     attributes,
     html: ({ $template, $html, $show, $i18n }) =>
-      $template`<a href="${href}">${anchor({ $template, $html, $show, $i18n })}</a>`,
+      $template`<a href="${href}">${content({ $template, $html, $show, $i18n })}</a>`,
     css,
     actions: [
       ...(actions ?? []),
@@ -84,6 +84,8 @@ export const Router = ({
     hooks: {
       ...(hooks ?? {}),
       connect: ({ $setData }) => {
+        if (!window) if (!window) throw new Error('window is not defined...')
+
         const setPathname = (): void => $setData('pathname', window.location.pathname)
 
         setPathname()
