@@ -1,21 +1,19 @@
-export default (path: string, pathname: string): Record<string, string> => {
-  const customParam: RegExp = /\/:[^\/]+/g
-  const optional: RegExp = /\?$/
-  const regExp: string = path.replaceAll(
-    customParam,
-    (str: string) => `\/([^/]+?)${optional.test(str) ? '?' : ''}`
-  )
-  const regExps: string[] | null = new RegExp(`^${regExp}/?$`).exec(pathname)
-  const params: Record<string, string> = {}
+export default (path: string): Record<string, string> => {
+  if (!window) throw new Error('window is not defined...')
+
+  const pathParam: RegExp = /\/:[^\/]+/g
+  const regExps: string[] | null = new RegExp(
+    `^${path.replaceAll(pathParam, `\/([^/]+?)`)}/?$`
+  ).exec(window.location.pathname)
+  const pathParams: Record<string, string> = {}
 
   if (regExps && regExps.length > 0) {
-    const names: string[] = (path.match(customParam) ?? []).map(param =>
-      param.replace(optional, '').replace(/^\/:/, '')
-    )
+    const names: string[] = (path.match(pathParam) ?? []).map(param => param.replace(/^\/:/, ''))
 
     if (names.length > 0)
-      for (const [index, value] of regExps.slice(1).entries()) params[names[index]] = value ?? ''
+      for (const [index, value] of regExps.slice(1).entries())
+        pathParams[names[index]] = value ?? ''
   }
 
-  return params
+  return pathParams
 }
