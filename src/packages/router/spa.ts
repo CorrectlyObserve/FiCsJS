@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import type { Sanitized } from '../core/types'
-import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './types'
+import type { FiCsLink, FiCsRouter, LinkData, RouterData, RouterContent } from './types'
 
 export const Link = ({
   href,
@@ -57,12 +57,17 @@ export const Router = ({
     attributes,
     html: ({ $data: { pathname }, $template, $html, $show, $i18n }) => {
       const setContent = (): Sanitized<RouterData, {}> => {
-        const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
+        const resolveContent = (
+          isArrowFunc: boolean,
+          { content, redirect }: RouterContent<typeof isArrowFunc>
+        ): Sanitized<RouterData, {}> => {
           if (redirect) {
             pathname = redirect({})
             window.history.replaceState({}, '', pathname)
             return setContent()
           }
+
+          if (typeof content === 'function') content = content()
 
           return typeof content === 'string' || content instanceof FiCsElement
             ? $template`${content}`
@@ -70,9 +75,9 @@ export const Router = ({
         }
 
         for (const { path, content, redirect } of pages({ $template, $html, $show, $i18n }))
-          if (pathname === path) return resolveContent({ content, redirect })
+          if (pathname === path) return resolveContent(true, { content, redirect })
 
-        if (notFound) return resolveContent(notFound({ $template, $html, $show, $i18n }))
+        if (notFound) return resolveContent(false, notFound({ $template, $html, $show, $i18n }))
 
         throw new Error(`The "${pathname}" does not exist on the pages...`)
       }
