@@ -8,13 +8,13 @@ export default (path: string, pathname: string): Record<string, string> => {
   const regExps: string[] | null = new RegExp(`^${regExp}/?$`).exec(pathname)
   const params: Record<string, string> = {}
 
-  if (regExps && regExps.slice(1).length > 0) {
+  if (regExps && regExps.length > 0) {
     const names: string[] = (path.match(customParam) ?? []).map(param =>
       param.replace(optional, '').replace(/^\/:/, '')
     )
 
     if (names.length > 0)
-      for (const [index, value] of regExps.entries()) params[names[index]] = value ?? ''
+      for (const [index, value] of regExps.slice(1).entries()) params[names[index]] = value ?? ''
   }
 
   return params
