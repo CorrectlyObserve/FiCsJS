@@ -1,21 +1,21 @@
-export default (pattern: string, path: string): Map<string, string> => {
+export default (path: string, pathname: string): Record<string, string> => {
   const customParam: RegExp = /\/:[^\/]+/g
   const optional: RegExp = /\?$/
-  const regExp: string = pattern.replaceAll(
+  const regExp: string = path.replaceAll(
     customParam,
     (str: string) => `\/([^/]+?)${optional.test(str) ? '?' : ''}`
   )
-  const params: string[] = new RegExp(`^${regExp}/?$`).exec(path)?.slice(1) ?? []
-  const paramMap: Map<string, string> = new Map()
+  const regExps: string[] | null = new RegExp(`^${regExp}/?$`).exec(pathname)
+  const params: Record<string, string> = {}
 
-  if (params.length > 0) {
-    const names: string[] = (pattern.match(customParam) ?? []).map(param =>
+  if (regExps && regExps.slice(1).length > 0) {
+    const names: string[] = (path.match(customParam) ?? []).map(param =>
       param.replace(optional, '').replace(/^\/:/, '')
     )
 
     if (names.length > 0)
-      for (const [index, value] of params.entries()) paramMap.set(names[index], value ?? '')
+      for (const [index, value] of regExps.entries()) params[names[index]] = value ?? ''
   }
 
-  return paramMap
+  return params
 }
