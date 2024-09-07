@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import type { Sanitized } from '../core/types'
-import { getRegExp } from './pathParam'
+import { getRegExp, pathParam } from './pathParam'
 import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './types'
 
 export const Link = ({
@@ -12,16 +12,29 @@ export const Link = ({
   css,
   actions,
   hooks
-}: FiCsLink) =>
-  new FiCsElement<LinkData, {}>({
+}: FiCsLink) => {
+  if (typeof href === 'function') {
+    const $setPathParams = (path: string, params: Record<string, string>): string =>
+      path.replace(pathParam, (key: string) => {
+        key = key.slice(2)
+
+        if (key in params) return `/${params[key]}`
+        else throw new Error(`"${key}" is not defined in params...`)
+      })
+
+    href = href($setPathParams)
+  }
+
+  return new FiCsElement<LinkData, {}>({
     name: 'link',
     isExceptional: true,
     isImmutable: true,
     isOnlyCsr: true,
     className,
     attributes,
-    html: ({ $template, $html, $show, $i18n }) =>
-      $template`<a href="${href}">${content({ $template, $html, $show, $i18n })}</a>`,
+    html: ({ $template, $html, $show, $i18n }) => $template`<a href="${href}">
+        ${typeof content === 'function' ? content({ $template, $html, $show, $i18n }) : content}
+      </a>`,
     css,
     actions: [
       ...(actions ?? []),
@@ -37,6 +50,7 @@ export const Link = ({
     ],
     hooks
   })
+}
 
 export const Router = ({
   pages,
@@ -70,11 +84,16 @@ export const Router = ({
             : content
         }
 
-        for (const { path, content, redirect } of pages({ $template, $html, $show, $i18n }))
+        if (typeof pages === 'function') pages = pages({ $template, $html, $show, $i18n })
+
+        for (const { path, content, redirect } of pages)
           if (pathname === path || getRegExp(path).test(pathname))
             return resolveContent({ content, redirect })
 
-        if (notFound) return resolveContent(notFound({ $template, $html, $show, $i18n }))
+        if (notFound)
+          return resolveContent(
+            typeof notFound === 'function' ? notFound({ $template, $html, $show, $i18n }) : notFound
+          )
 
         throw new Error(`The "${pathname}" does not exist on the pages...`)
       }
