@@ -1,5 +1,6 @@
 import FiCsElement from '../core/class'
 import type { Sanitized } from '../core/types'
+import { getRegExp } from './pathParam'
 import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './types'
 
 export const Link = ({
@@ -70,7 +71,8 @@ export const Router = ({
         }
 
         for (const { path, content, redirect } of pages({ $template, $html, $show, $i18n }))
-          if (pathname === path) return resolveContent({ content, redirect })
+          if (pathname === path || getRegExp(path).test(pathname))
+            return resolveContent({ content, redirect })
 
         if (notFound) return resolveContent(notFound({ $template, $html, $show, $i18n }))
 
