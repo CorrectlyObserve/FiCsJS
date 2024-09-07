@@ -1,10 +1,9 @@
+import { getRegExp, pathParam } from './pathParam'
+
 export default (path: string): Record<string, string> => {
   if (!window) throw new Error('window is not defined...')
 
-  const pathParam: RegExp = /\/:[^\/]+/g
-  const regExps: string[] | null = new RegExp(
-    `^${path.replaceAll(pathParam, `\/([^/]+?)`)}\/?$`
-  ).exec(window.location.pathname)
+  const regExps: string[] | null = getRegExp(path).exec(window.location.pathname)
   const pathParams: Record<string, string> = {}
 
   if (regExps && regExps.length > 0) {
