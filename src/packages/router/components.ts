@@ -79,12 +79,8 @@ export const Router = ({
             return setContent()
           }
 
-          return typeof content === 'string' || content instanceof FiCsElement
-            ? $template`${content}`
-            : content
+          return $template`${content({ $template, $html, $show, $i18n })}`
         }
-
-        if (typeof pages === 'function') pages = pages({ $template, $html, $show, $i18n })
 
         for (const { path, content, redirect } of pages)
           if (pathname === path || getRegExp(path).test(pathname))
