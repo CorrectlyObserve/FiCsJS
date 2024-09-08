@@ -11,8 +11,6 @@ import type {
   Syntax
 } from '../core/types'
 
-type ArrowFuncOrValue<V, D extends object> = V | ((params: Syntax<D, {}>) => V)
-
 export interface FiCsLink extends LinkData {
   href:
     | string
@@ -26,8 +24,8 @@ export interface FiCsLink extends LinkData {
 }
 
 export interface FiCsRouter {
-  pages: ArrowFuncOrValue<(PageContent & { path: string })[], RouterData>
-  notFound?: ArrowFuncOrValue<PageContent, RouterData>
+  pages: (PageContent & { path: string })[]
+  notFound?: PageContent | ((params: Syntax<RouterData, {}>) => PageContent)
   reflections?: Reflections<RouterData>
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
@@ -37,11 +35,11 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  content: ArrowFuncOrValue<RouterContent<{}>, {}>
+  content: RouterContent<{}> | ((params: Syntax<{}, {}>) => RouterContent<{}>)
 }
 
 export interface PageContent {
-  content: RouterContent<RouterData>
+  content: (params: Syntax<RouterData, {}>) => RouterContent<RouterData>
   redirect?: string
 }
 
