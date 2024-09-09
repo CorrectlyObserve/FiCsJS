@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import type { Sanitized } from '../core/types'
-import { getRegExp, pathParam } from './pathParam'
+import { getRegExp } from './pathParam'
 import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './types'
 
 export const Link = ({
@@ -12,20 +12,8 @@ export const Link = ({
   css,
   actions,
   hooks
-}: FiCsLink) => {
-  if (typeof href === 'function') {
-    const $setPathParams = (path: string, params: Record<string, string>): string =>
-      path.replace(pathParam, (key: string) => {
-        key = key.slice(2)
-
-        if (key in params) return `/${params[key]}`
-        else throw new Error(`"${key}" is not defined in params...`)
-      })
-
-    href = href($setPathParams)
-  }
-
-  return new FiCsElement<LinkData, {}>({
+}: FiCsLink) =>
+  new FiCsElement<LinkData, {}>({
     name: 'link',
     isExceptional: true,
     isImmutable: true,
@@ -50,7 +38,6 @@ export const Link = ({
     ],
     hooks
   })
-}
 
 export const Router = ({
   pages,
