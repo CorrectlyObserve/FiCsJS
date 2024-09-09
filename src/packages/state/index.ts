@@ -1,4 +1,4 @@
-import generate from './generator'
+import generate from '../core/generator'
 
 const generator: Generator<number> = generate()
 const uneditableStates: Map<string, unknown> = new Map()
