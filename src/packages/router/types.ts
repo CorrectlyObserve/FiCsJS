@@ -12,9 +12,7 @@ import type {
 } from '../core/types'
 
 export interface FiCsLink extends LinkData {
-  href:
-    | string
-    | (($setPathParams: (path: string, params: Record<string, string>) => string) => string)
+  href: string
   router: FiCsElement<RouterData, {}>
   className?: ClassName<LinkData, {}>
   attributes?: Attrs<LinkData, {}>
