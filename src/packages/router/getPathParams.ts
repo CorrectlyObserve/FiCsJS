@@ -1,4 +1,4 @@
-import { getRegExp, pathParam } from './pathParam'
+import { getRegExp, pathParam } from './dynamicParam'
 
 export default (path: string): Record<string, string> => {
   if (!window) throw new Error('window is not defined...')
