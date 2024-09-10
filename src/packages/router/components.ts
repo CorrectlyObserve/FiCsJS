@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import type { Sanitized } from '../core/types'
-import { getRegExp } from './pathParam'
+import { getRegExp } from './dynamicParam'
 import type { FiCsLink, FiCsRouter, LinkData, PageContent, RouterData } from './types'
 
 export const Link = ({
