@@ -512,6 +512,23 @@ export default class FiCsElement<D extends object, P extends object> {
         let newEndIndex: number = newChildNodes.length - 1
         let newStartNode: ChildNode = newChildNodes[newStartIndex]
         let newEndNode: ChildNode = newChildNodes[newEndIndex]
+        const keys: Record<string, true> = {}
+
+        for (const newChildNode of newChildNodes) {
+          if (!(newChildNode instanceof Element) || isVarTag(newChildNode)) continue
+
+          const { localName }: { localName: string } = newChildNode
+          const key: string = newChildNode.getAttribute('key') ?? localName
+
+          if (keys[key])
+            console.warn(
+              newChildNode.hasAttribute('key')
+                ? `The key "${key}" in multiple ${localName} elements are duplicated...`
+                : `There are multiple ${localName} elements don't have keys...`
+            )
+          else keys[key] = true
+        }
+
         const dom: Map<string, ChildNode[]> = new Map()
         const keyChildNodes: Map<string, ChildNode> = new Map()
 
@@ -574,25 +591,12 @@ export default class FiCsElement<D extends object, P extends object> {
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
-            const keys: Record<string, true> = {}
-
             if (dom.size === 0)
-              for (let i = oldStartIndex; i < oldEndIndex; i++) {
-                const oldChildNode: ChildNode = oldChildNodes[i]
-
+              for (const oldChildNode of oldChildNodes) {
                 if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
                 const mapKey: string = getMapKey(oldChildNode)
                 dom.set(mapKey, [...(dom.get(mapKey) ?? []), oldChildNode])
-
-                const key: string | null =
-                  oldChildNode instanceof Element ? oldChildNode.getAttribute('key') : null
-
-                if (!key) continue
-
-                keys[key]
-                  ? console.warn(`The key name "${key}" is duplicated...`)
-                  : (keys[key] = true)
               }
 
             const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))?.shift()
