@@ -4,7 +4,6 @@ import type {
   Attrs,
   ClassName,
   Css,
-  HtmlContent,
   Hooks,
   Reflections,
   Sanitized,
@@ -23,7 +22,7 @@ export interface FiCsLink extends LinkData {
 
 export interface FiCsRouter {
   pages: (PageContent & { path: string })[]
-  notFound?: PageContent | ((params: Syntax<RouterData, {}>) => PageContent)
+  notFound?: PageContent
   reflections?: Reflections<RouterData>
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
@@ -33,16 +32,15 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  content: RouterContent<{}> | ((params: Syntax<{}, {}>) => RouterContent<{}>)
+  content: (params: Syntax<{}, {}>) => RouterContent
 }
 
-export interface PageContent {
-  content: (params: Syntax<RouterData, {}>) => RouterContent<RouterData>
+export interface PageContent extends LinkData {
   redirect?: string
 }
 
-type RouterContent<D extends object> = HtmlContent<D, {}> | Sanitized<D, {}>
+export type RouterContent = FiCsElement<{}, {}> | Sanitized<{}, {}>
 
-export interface RouterData {
+interface RouterData {
   pathname: string
 }
