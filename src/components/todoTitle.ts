@@ -13,13 +13,13 @@ export const TodoTitle = () =>
   fics<Data, Props>({
     name: 'todo-title',
     data: () => ({ md: 'var(--md)' }),
-    html: ({ props: { length }, template }) => template`<p>Remaining tasks: ${length}</p>`,
+    html: ({ $props: { length }, $template }) => $template`<p>Remaining tasks: ${length}</p>`,
     css: [
       css,
-      { style: ({ data: { md } }) => ({ display: 'block', marginBottom: `calc(${md} * 2)` }) },
+      { style: ({ $data: { md } }) => ({ display: 'block', marginBottom: `calc(${md} * 2)` }) },
       {
         selector: 'p',
-        style: ({ data: { md } }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
+        style: ({ $data: { md } }) => ({ fontSize: md, color: '#fff', textAlign: 'center' })
       }
     ]
   })
