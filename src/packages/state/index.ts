@@ -1,4 +1,4 @@
-import generate from './generator'
+import generate from '../core/generator'
 
 const generator: Generator<number> = generate()
 const uneditableStates: Map<string, unknown> = new Map()
@@ -16,7 +16,7 @@ export const getState = (key: string, isReadonly: boolean = false): unknown => {
   const stateMap: Map<string, unknown> = isReadonly ? uneditableStates : states
 
   if (stateMap.has(key)) return stateMap.get(key)
-  throw new Error(`${key} is not defined in states...`)
+  throw new Error(`"${key}" is not defined in states...`)
 }
 
 export const setState = <S>(key: string, value: S): void => {
@@ -30,5 +30,5 @@ export const subscribeState = (key: string, value: () => void): void => {
 
 export const unsubscribeState = (key: string): void => {
   if (observers.has(key)) observers.delete(key)
-  else throw new Error(`${key} is not defined in observers...`)
+  else throw new Error(`"${key}" is not defined in observers...`)
 }
