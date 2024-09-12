@@ -19,6 +19,7 @@ import type {
   PropsTree,
   Reflections,
   Sanitize,
+  Sanitized,
   Style
 } from './types'
 
@@ -26,8 +27,7 @@ const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
-  readonly #isExceptional: boolean = false
-  readonly #reservedWords: Record<string, true> = { var: true, router: true }
+  readonly #reservedWords: Record<string, true> = { var: true, router: true, link: true }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
   readonly #tagName: string
@@ -37,7 +37,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #inheritances: Inheritances<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
-  readonly #bindings: Bindings = {
+  readonly #bindings: Bindings<D, P> = {
     isClassName: false,
     isAttr: false,
     css: new Array(),
@@ -45,8 +45,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #className: ClassName<D, P> | undefined
   readonly #attrs: Attrs<D, P> | undefined
-  readonly $template: symbol
-  readonly #$html: symbol
+  readonly #sanitized: symbol
+  readonly #unsanitized: symbol
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
@@ -55,14 +55,12 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
-
   #propsChain: PropsChain<P> = new Map()
   #isReflecting: boolean = false
 
   constructor({
     name,
     isExceptional,
-    ficsId,
     isImmutable,
     data,
     reflections,
@@ -78,14 +76,10 @@ export default class FiCsElement<D extends object, P extends object> {
   }: FiCs<D, P>) {
     this.#name = this.#toKebabCase(name)
 
-    if (isExceptional) this.#isExceptional = isExceptional
-
-    if (this.#isExceptional && this.#name in this.#reservedWords)
-      delete this.#reservedWords[this.#name]
-
-    if (this.#reservedWords[this.#name]) throw new Error(`${name} is a reserved word in FiCsJS...`)
+    if (!isExceptional && this.#reservedWords[this.#name])
+      throw new Error(`"${name}" is a reserved word in FiCsJS...`)
     else {
-      this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
+      this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
       if (isImmutable) {
@@ -105,7 +99,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (data) {
         if (reflections) {
           for (const key of Object.keys(reflections))
-            if (!(key in data())) throw new Error(`${key} is not defined in data...`)
+            if (!(key in data())) throw new Error(`"${key}" is not defined in data...`)
 
           this.#reflections = { ...reflections }
         }
@@ -128,8 +122,8 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#attrs = attributes
       }
 
-      this.$template = Symbol(`${this.#ficsId}-sanitized`)
-      this.#$html = Symbol(`${this.#ficsId}-unsanitized`)
+      this.#sanitized = Symbol(`${this.#ficsId}-sanitized`)
+      this.#unsanitized = Symbol(`${this.#ficsId}-unsanitized`)
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
 
@@ -144,7 +138,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (!(key in this.#props)) throw new Error(`${key as string} is not defined in props...`)
+    if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
       addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
@@ -161,13 +155,14 @@ export default class FiCsElement<D extends object, P extends object> {
             )
 
           let dataKey: keyof D = '' as keyof D
-          const data: [string, P][] = Object.entries({
-            ...values((key: keyof D) => {
-              dataKey = key
-
-              return this.getData(dataKey)
+          const data: [string, P][] = Object.entries(
+            values({
+              $getData: (key: keyof D) => {
+                dataKey = key
+                return this.getData(dataKey)
+              }
             })
-          })
+          )
           const descendantId: string = descendant.#ficsId
 
           for (const [key, value] of data) {
@@ -260,16 +255,13 @@ export default class FiCsElement<D extends object, P extends object> {
     const sanitized: HtmlContent<D, P>[] = new Array()
 
     const sanitize = (index: number, template: string, variable: unknown) => {
-      if (isSymbol(variable, this.$template))
-        sanitized.push(
-          template,
-          ...(variable as Record<symbol, HtmlContent<D, P>[]>)[this.$template]
-        )
+      if (isSymbol(variable, this.#sanitized))
+        sanitized.push(template, ...(variable as Sanitized<D, P>)[this.#sanitized])
       else if (Array.isArray(variable)) {
         sanitized.push(template)
         for (const child of variable) sanitize(index, '', child)
-      } else if (isSymbol(variable, this.#$html))
-        sanitized.push(template, (variable as Record<symbol, string>)[this.#$html])
+      } else if (isSymbol(variable, this.#unsanitized))
+        sanitized.push(template, (variable as Record<symbol, string>)[this.#unsanitized])
       else {
         if (template !== '') sanitized.push(template)
 
@@ -278,21 +270,19 @@ export default class FiCsElement<D extends object, P extends object> {
             ? variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
             : (variable ?? '')
 
-        sanitized.push(variable as HtmlContent<D, P>)
+        if (variable !== '') sanitized.push(variable as HtmlContent<D, P>)
       }
     }
 
     for (const [index, template] of templates.entries()) sanitize(index, template, variables[index])
-    return sanitized as HtmlContent[]
+    return sanitized as HtmlContent<D, P>[]
   }
 
   #getHtml(): HtmlContent<D, P>[] {
     const $template: Sanitize<D, P> = (
       templates: TemplateStringsArray,
       ...variables: (HtmlContent<D, P> | unknown)[]
-    ): Record<symbol, HtmlContent<D, P>[]> => ({
-      [this.$template]: this.#sanitize(templates, variables)
-    })
+    ): Sanitized<D, P> => ({ [this.#sanitized]: this.#sanitize(templates, variables) })
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
@@ -310,10 +300,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#html({
       ...this.#setDataProps(),
       $template,
-      $html: (str: string): Record<symbol, string> => ({ [this.#$html]: str }),
+      $html: (str: string): Record<symbol, string> => ({ [this.#unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
-    })[this.$template]
+    })[this.#sanitized]
   }
 
   #renderOnServer(propsChain: PropsChain<P>): string {
@@ -522,6 +512,24 @@ export default class FiCsElement<D extends object, P extends object> {
         let newEndIndex: number = newChildNodes.length - 1
         let newStartNode: ChildNode = newChildNodes[newStartIndex]
         let newEndNode: ChildNode = newChildNodes[newEndIndex]
+        const keys: Record<string, true> = {}
+
+        for (const newChildNode of newChildNodes) {
+          if (!(newChildNode instanceof Element) || isVarTag(newChildNode)) continue
+
+          const { localName }: { localName: string } = newChildNode
+          const key: string = newChildNode.getAttribute('key') ?? localName
+
+          if (keys[key])
+            console.warn(
+              (newChildNode.hasAttribute('key')
+                ? `The key "${key}" in multiple ${localName} elements are duplicated.`
+                : `There are multiple ${localName} elements that don't have keys.`) +
+                ' therefore, the difference detection might not be working correctly...'
+            )
+          else keys[key] = true
+        }
+
         const dom: Map<string, ChildNode[]> = new Map()
         const keyChildNodes: Map<string, ChildNode> = new Map()
 
@@ -584,25 +592,12 @@ export default class FiCsElement<D extends object, P extends object> {
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
-            const keys: Record<string, true> = {}
-
             if (dom.size === 0)
-              for (let i = oldStartIndex; i < oldEndIndex; i++) {
-                const oldChildNode: ChildNode = oldChildNodes[i]
-
+              for (const oldChildNode of oldChildNodes) {
                 if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
 
                 const mapKey: string = getMapKey(oldChildNode)
                 dom.set(mapKey, [...(dom.get(mapKey) ?? []), oldChildNode])
-
-                const key: string | null =
-                  oldChildNode instanceof Element ? oldChildNode.getAttribute('key') : null
-
-                if (!key) continue
-
-                keys[key]
-                  ? console.warn(`The key name "${key}" is duplicated...`)
-                  : (keys[key] = true)
               }
 
             const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))?.shift()
@@ -652,7 +647,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getShadowRoot(component: HTMLElement): ShadowRoot {
     if (component.shadowRoot) return component.shadowRoot
 
-    throw new Error(`${this.#name} does not have shadowRoot...`)
+    throw new Error(`${this.#tagName} does not have shadowRoot...`)
   }
 
   #addEventListener(
@@ -664,6 +659,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const getMethodParam = (event: Event): Param<D, P> & { $event: Event } => ({
       ...this.#setDataProps(),
       $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $getData: (key: keyof D): D[typeof key] => this.getData(key),
       $event: event
     })
 
@@ -683,11 +679,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addActions(component: HTMLElement): void {
     if (this.#actions.length > 0)
-      for (const [index, action] of this.#actions.entries()) {
+      for (const action of this.#actions) {
         const { handler, selector, method, enterKey }: Action<D, P> = action
 
         if (!this.#isImmutable && selector) {
-          this.#bindings.actions.push(index)
+          this.#bindings.actions.push(action)
 
           for (const element of this.#getElements(this.#getShadowRoot(component), selector))
             this.#addEventListener(element, handler, method, enterKey)
@@ -698,7 +694,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: keyof Hooks<D, P>): void {
     this.#hooks[key]?.({
       ...this.#setDataProps(),
-      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value)
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $getData: (key: keyof D): D[typeof key] => this.getData(key)
     })
   }
 
@@ -748,7 +745,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #reRender(): void {
     for (const component of this.#components) {
-      const { isClassName, isAttr, css, actions }: Bindings = this.#bindings
+      const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
       if (isClassName) {
@@ -767,8 +764,8 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
       if (actions.length > 0)
-        for (const index of actions) {
-          const { handler, selector, method, enterKey }: Action<D, P> = this.#actions[index]
+        for (const action of actions) {
+          const { handler, selector, method, enterKey }: Action<D, P> = action
 
           if (selector)
             for (const element of this.#getElements(shadowRoot, selector))
@@ -783,12 +780,12 @@ export default class FiCsElement<D extends object, P extends object> {
   getData<K extends keyof D>(key: K): D[typeof key] {
     if (key in this.#data) return this.#data[key]
 
-    throw new Error(`${key as string} is not defined in data...`)
+    throw new Error(`"${key as string}" is not defined in data...`)
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
-    if (this.#isReflecting) throw new Error(`${key as string} is not changed in reflections...`)
-    else if (!(key in this.#data)) throw new Error(`${key as string} is not defined in data...`)
+    if (this.#isReflecting) throw new Error(`"${key as string}" is not changed in reflections...`)
+    else if (!(key in this.#data)) throw new Error(`"${key as string}" is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
       addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
@@ -833,13 +830,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
+              that.#callback('connect')
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
               that.#addAttrs(this)
               that.#addHtml(this.shadowRoot)
               that.#addCss(this.shadowRoot)
               that.#addActions(this)
-              that.#callback('connect')
               that.#removeChildNodes(this)
               that.#setProperty(this, that.#ficsIdName, that.#ficsId)
               that.#components.add(this)
