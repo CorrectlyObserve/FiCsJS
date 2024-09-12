@@ -1,29 +1,33 @@
 import FiCsElement from './class'
-import { FiCs } from './types'
+import type { FiCs } from './types'
 
-const fics = <D extends object, P extends object>({
+export default <D extends object, P extends object>({
   name,
+  isImmutable,
   data,
   reflections,
   inheritances,
   props,
   isOnlyCsr,
   className,
+  attributes,
   html,
   css,
-  actions
+  actions,
+  hooks
 }: FiCs<D, P>): FiCsElement<D, P> =>
   new FiCsElement({
     name,
+    isImmutable,
     data,
     reflections,
     inheritances,
     props,
     isOnlyCsr,
     className,
+    attributes,
     html,
     css,
-    actions
+    actions,
+    hooks
   })
-
-export default fics
