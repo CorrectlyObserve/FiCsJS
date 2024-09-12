@@ -522,9 +522,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (keys[key])
             console.warn(
-              newChildNode.hasAttribute('key')
-                ? `The key "${key}" in multiple ${localName} elements are duplicated...`
-                : `There are multiple ${localName} elements don't have keys...`
+              (newChildNode.hasAttribute('key')
+                ? `The key "${key}" in multiple ${localName} elements are duplicated.`
+                : `There are multiple ${localName} elements that don't have keys.`) +
+                ' therefore, the difference detection might not be working correctly...'
             )
           else keys[key] = true
         }
