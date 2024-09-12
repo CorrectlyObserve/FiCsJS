@@ -21,13 +21,13 @@ export const Parent = (child: ChildType) => {
     inheritances: [
       {
         descendants: child,
-        values: getData => ({ color: getData('color'), click: getData('click') })
+        values: ({ $getData }) => ({ color: $getData('color'), click: $getData('click') })
       }
     ],
     props: {} as { propsColor: string },
     className: 'test',
-    html: ({ props: { propsColor }, template }) =>
-      template`${child}
+    html: ({ $props: { propsColor }, $template }) =>
+      $template`${child}
         <p>propsColor: ${propsColor}</p>`
   })
 }

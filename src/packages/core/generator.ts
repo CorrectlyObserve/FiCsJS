@@ -1,4 +1,4 @@
-const generate = function* (): Generator<number> {
+export default function* (): Generator<number> {
   let n = 1
 
   while (true) {
@@ -6,5 +6,3 @@ const generate = function* (): Generator<number> {
     n++
   }
 }
-
-export default generate

@@ -1,3 +1,5 @@
+formatOnSave: true
+formatOnType: false
 arrowParens: 'avoid'
 singleQuote: true
 semi: false

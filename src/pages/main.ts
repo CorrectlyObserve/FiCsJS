@@ -1,6 +1,6 @@
-import { Child } from './components/child'
-import { Parent } from './components/parent'
-import GrandParent from './components/grandParent'
+import { Child } from './../components/child'
+import { Parent } from './../components/parent'
+import GrandParent from './../components/grandParent'
 
 const child = Child('Good bye!')
 const parent = Parent(child)
@@ -10,7 +10,7 @@ fetch('https://jsonplaceholder.typicode.com/comments/1')
   .then(response => response.json())
   .then(json => grandParent.setData('email', json.email))
 
-console.log(grandParent.ssr())
+grandParent.ssr('app')
 
-Child().define()
+Child().define(document.body)
 grandParent.define()
