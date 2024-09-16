@@ -18,7 +18,8 @@
       "@ficsjs": ["./../../packages/core/index"],
       "@ficsjs/router": ["./../../packages/router/index"],
       "@ficsjs/state": ["./../../packages/state/index"],
+      "@": ["./src"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "main.ts"]
 }
