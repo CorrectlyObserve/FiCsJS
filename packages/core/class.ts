@@ -801,8 +801,10 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  ssr(parent?: HTMLElement | string): void {
-    const component: string = this.#renderOnServer(this.#propsChain)
+  getSeverComponent = (): string => this.#renderOnServer(this.#propsChain)
+
+  ssr(parent: HTMLElement | string): void {
+    const component: string = this.getSeverComponent()
 
     if (parent instanceof HTMLElement) parent.setHTMLUnsafe(component)
     else if (typeof parent === 'string') {
