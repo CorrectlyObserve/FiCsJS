@@ -1,24 +1,22 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
-const packages: string = './../../packages'
+const getPackage = (directory: string) => `./../../packages/${directory}/index`
 
 export default defineConfig({
-  root: resolve(__dirname, 'src'),
   resolve: {
     alias: {
-      '@ficsjs': resolve(__dirname, `${packages}/core/index`),
-      '@ficsjs/router': resolve(__dirname, `${packages}/router/index`),
-      '@ficsjs/state': resolve(__dirname, `${packages}/state/index`),
+      '@ficsjs': resolve(__dirname, getPackage('core')),
+      '@ficsjs/router': resolve(__dirname, getPackage('router')),
+      '@ficsjs/state': resolve(__dirname, getPackage('state')),
+      '@': '/src'
     }
   },
   build: {
-    outDir: resolve(__dirname, 'dist'),
+    outDir: 'dist',
     emptyOutDir: true,
-    rollupOptions: {
-      input: resolve(__dirname, 'src', 'index.html')
-    },
-    minify: true,
+    rollupOptions: { input: 'index.html' },
+    minify: true
   },
   server: { hmr: true }
 })
