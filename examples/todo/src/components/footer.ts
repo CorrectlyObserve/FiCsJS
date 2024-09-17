@@ -1,9 +1,9 @@
 import fics from '@ficsjs'
 
-const copyright = '&copy; 2024 Masami Ogasawara'
+const Footer = (css: string) => {
+  const copyright = '&copy; 2024 Masami Ogasawara'
 
-const Footer = (css: string) =>
-  fics({
+  return fics({
     name: 'footer',
     isImmutable: true,
     html: ({ $template }) => $template`<footer><p>${copyright}</p></footer>`,
@@ -16,5 +16,6 @@ const Footer = (css: string) =>
       }
     ]
   })
+}
 
 export default Footer
