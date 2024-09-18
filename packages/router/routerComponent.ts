@@ -1,29 +1,19 @@
 import FiCsElement from '../core/class'
 import type { Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
-import type { FiCsRouter, PageContent, RouterContent } from './types'
+import type { FiCsRouter, PageContent, RouterContent, RouterData } from './types'
 
-const Router = ({
-  pages,
-  notFound,
-  reflections,
-  className,
-  attributes,
-  css,
-  actions,
-  hooks
-}: FiCsRouter) =>
+const Router = ({ pages, notFound, className, attributes, css, actions, hooks }: FiCsRouter) =>
   new FiCsElement<{ pathname: string }, {}>({
     name: 'router',
     isExceptional: true,
     data: () => ({ pathname: '' }),
-    reflections,
     isOnlyCsr: true,
     className,
     attributes,
     html: ({ $data: { pathname }, $template, $html, $show, $i18n }) => {
-      const setContent = (): Sanitized<{}, {}> => {
-        const resolveContent = ({ content, redirect }: PageContent): Sanitized<{}, {}> => {
+      const setContent = (): Sanitized<RouterData, {}> => {
+        const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
           if (redirect) {
             pathname = redirect
             window.history.replaceState({}, '', pathname)
@@ -50,7 +40,7 @@ const Router = ({
     actions,
     hooks: {
       ...(hooks ?? {}),
-      connect: ({ $setData }) => {
+      mounted: ({ $setData }) => {
         if (!window) throw new Error('window is not defined...')
 
         const setPathname = (): void => $setData('pathname', window.location.pathname)
