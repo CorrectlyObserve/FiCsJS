@@ -296,6 +296,10 @@ export default class FiCsElement<D extends object, P extends object> {
     })[this.#sanitized]
   }
 
+  #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
+    return Array.from(parent.childNodes)
+  }
+
   #renderOnServer(propsChain: PropsChain<P>): string {
     if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
 
@@ -307,23 +311,43 @@ export default class FiCsElement<D extends object, P extends object> {
       ''
     )
     const slotId: string = `${this.#ficsId}-slot`
+
+    const div: HTMLDivElement = document.createElement('div')
+    div.appendChild(
+      document
+        .createRange()
+        .createContextualFragment(
+          this.#getHtml().reduce(
+            (prev, curr) =>
+              `${prev}${curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr}`,
+            ''
+          ) as string
+        )
+        .cloneNode(true)
+    )
+
+    const applyShowAttr = (childNodes: ChildNode[]): void => {
+      for (const childNode of childNodes) {
+        if (childNode instanceof Element && childNode.hasAttribute(this.#showAttr)) {
+          ;(childNode as HTMLElement).style.display = 'none'
+          childNode.removeAttribute(this.#showAttr)
+        }
+
+        applyShowAttr(this.#getChildNodes(childNode))
+      }
+    }
+
+    applyShowAttr(this.#getChildNodes(div))
+
     const style: string =
       this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
 
     return `
-        <${[this.#tagName, className, attrs].join(' ').trim()}>
-          <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
-          <div id="${slotId}" slot="${this.#ficsId}">
-            ${this.#getHtml().reduce(
-              (prev, curr) =>
-                `${prev}${
-                  curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr
-                }`,
-              style
-            )}
-          </div>
-        </${this.#tagName}>
-      `.trim()
+      <${[this.#tagName, className, attrs].join(' ').trim()}>
+        <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
+        <div id="${slotId}" slot="${this.#ficsId}">${div.innerHTML.trim()}${style}</div>
+      </${this.#tagName}>
+    `.trim()
   }
 
   #addClassName(component: HTMLElement): void {
@@ -333,10 +357,6 @@ export default class FiCsElement<D extends object, P extends object> {
   #addAttrs(component: HTMLElement): void {
     for (const [key, value] of this.#getAttrs())
       component.setAttribute(this.#toKebabCase(key), value)
-  }
-
-  #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
-    return Array.from(parent.childNodes)
   }
 
   #removeChildNodes(param: HTMLElement | ChildNode[]): void {
@@ -377,7 +397,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
     const blankTexts: Text[] = new Array()
 
-    const convertChildNodes = (childNodes: ChildNode[]): void => {
+    const applyShowAttr = (childNodes: ChildNode[]): void => {
       for (const childNode of childNodes) {
         if (childNode instanceof Text && childNode.nodeValue) {
           childNode.nodeValue = childNode.nodeValue.trim()
@@ -394,7 +414,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        convertChildNodes(this.#getChildNodes(childNode))
+        applyShowAttr(this.#getChildNodes(childNode))
       }
     }
     const getChild = (element: Element): Element => {
@@ -404,7 +424,7 @@ export default class FiCsElement<D extends object, P extends object> {
       else throw new Error(`The child FiCsElement has ficsId does not exist...`)
     }
 
-    convertChildNodes(newChildNodes)
+    applyShowAttr(newChildNodes)
 
     if (oldChildNodes.length === 0)
       for (const childNode of newChildNodes) {
