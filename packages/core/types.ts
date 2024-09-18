@@ -55,9 +55,9 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  connect?: (params: Param<D, P>) => void
-  disconnect?: (params: Param<D, P>) => void
-  adopt?: (params: Param<D, P>) => void
+  connect?: (params: Params<D, P>) => void
+  disconnect?: (params: Params<D, P>) => void
+  adopt?: (params: Params<D, P>) => void
 }
 
 export type Inheritances<D> = {
@@ -76,9 +76,15 @@ export interface LangJson {
   directory: string
 }
 
-export type Method<D, P> = (params: Param<D, P> & { $event: Event }) => void
+export type Method<D, P> = (params: MethodParams<D, P>) => void
 
-export type Param<D, P> = DataProps<D, P> & {
+export interface MethodParams<D, P> extends Params<D, P> {
+  $event: Event
+  $attributes: Record<string, string>
+  $value?: string
+}
+
+type Params<D, P> = DataProps<D, P> & {
   $setData: (key: keyof D, value: D[typeof key]) => void
   $getData: (key: keyof D) => D[typeof key]
 }
