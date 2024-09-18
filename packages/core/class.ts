@@ -14,7 +14,7 @@ import type {
   Inheritances,
   I18n,
   Method,
-  Param,
+  MethodParams,
   PropsChain,
   PropsTree,
   Reflections,
@@ -656,20 +656,37 @@ export default class FiCsElement<D extends object, P extends object> {
     method: Method<D, P>,
     enterKey?: boolean
   ): void {
-    const getMethodParam = (event: Event): Param<D, P> & { $event: Event } => ({
+    const attrs: Record<string, string> = {}
+
+    for (let index = 0; index < element.attributes.length; index++) {
+      const { name, value } = element.attributes[index]
+      attrs[name] = value
+    }
+
+    const getMethodParams = (event: Event): MethodParams<D, P> => ({
       ...this.#setDataProps(),
       $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
       $getData: (key: keyof D): D[typeof key] => this.getData(key),
-      $event: event
+      $event: event,
+      $attributes: attrs,
+      $value:
+        element instanceof
+        (HTMLInputElement ||
+          HTMLTextAreaElement ||
+          HTMLOptionElement ||
+          HTMLProgressElement ||
+          HTMLMeterElement)
+          ? element.value
+          : undefined
     })
 
-    element.addEventListener(handler, (event: Event): void => method(getMethodParam(event)))
+    element.addEventListener(handler, (event: Event): void => method(getMethodParams(event)))
 
     if (handler === 'click' && enterKey)
       element.addEventListener('keydown', (event: Event): void => {
         const { key }: { key: string } = event as KeyboardEvent
 
-        if (key === 'Enter') method(getMethodParam(event))
+        if (key === 'Enter') method(getMethodParams(event))
       })
   }
 
