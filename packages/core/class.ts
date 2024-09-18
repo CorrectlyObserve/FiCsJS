@@ -17,7 +17,6 @@ import type {
   MethodParams,
   PropsChain,
   PropsTree,
-  Reflections,
   Sanitize,
   Sanitized,
   Style
@@ -33,7 +32,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #tagName: string
   readonly #isImmutable: boolean = false
   readonly #data: D = {} as D
-  readonly #reflections: Reflections<D> | undefined
   readonly #inheritances: Inheritances<D> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
@@ -63,7 +61,6 @@ export default class FiCsElement<D extends object, P extends object> {
     isExceptional,
     isImmutable,
     data,
-    reflections,
     inheritances,
     props,
     isOnlyCsr,
@@ -96,16 +93,8 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#isImmutable = isImmutable
       }
 
-      if (data) {
-        if (reflections) {
-          for (const key of Object.keys(reflections))
-            if (!(key in data())) throw new Error(`"${key}" is not defined in data...`)
-
-          this.#reflections = { ...reflections }
-        }
-
+      if (data)
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
-      }
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
       if (props) this.#props = { ...props } as P
@@ -157,6 +146,7 @@ export default class FiCsElement<D extends object, P extends object> {
           let dataKey: keyof D = '' as keyof D
           const data: [string, P][] = Object.entries(
             values({
+              $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
               $getData: (key: keyof D) => {
                 dataKey = key
                 return this.getData(dataKey)
@@ -708,7 +698,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
   }
 
-  #callback(key: keyof Hooks<D, P>): void {
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     this.#hooks[key]?.({
       ...this.#setDataProps(),
       $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
@@ -731,15 +721,15 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           connectedCallback(): void {
-            that.#callback('connect')
+            that.#callback('mounted')
           }
 
           disconnectedCallback(): void {
-            that.#callback('disconnect')
+            that.#callback('destroyed')
           }
 
           adoptedCallback(): void {
-            that.#callback('adopt')
+            that.#callback('adopted')
           }
         }
       )
@@ -810,9 +800,15 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
 
-      if (this.#reflections && key in this.#reflections) {
+      if (this.#hooks.updated) {
+        if (!(key in this.#data)) throw new Error(`"${String(key)}" is not defined in data...`)
+
         this.#isReflecting = true
-        this.#reflections[key]?.(this.#data[key])
+        this.#hooks.updated[key]?.({
+          $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+          $getData: (key: keyof D): D[typeof key] => this.getData(key),
+          $dataValue: this.#data[key]
+        })
         this.#isReflecting = false
       }
     }
@@ -849,7 +845,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
-              that.#callback('connect')
+              that.#callback('mounted')
               that.#initProps(that.#propsChain)
               that.#addClassName(this)
               that.#addAttrs(this)
@@ -864,11 +860,11 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           disconnectedCallback(): void {
-            that.#callback('disconnect')
+            that.#callback('destroyed')
           }
 
           adoptedCallback(): void {
-            that.#callback('adopt')
+            that.#callback('adopted')
           }
         }
       )
