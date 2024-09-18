@@ -15,9 +15,9 @@
     "noImplicitReturns": true,
     "baseUrl": "./",
     "paths": {
-      "@ficsjs": ["./../../packages/core/index"],
       "@ficsjs/router": ["./../../packages/router/index"],
       "@ficsjs/state": ["./../../packages/state/index"],
+      "@ficsjs": ["./../../packages/core/index"],
       "@/*": ["./src/*"]
     }
   },

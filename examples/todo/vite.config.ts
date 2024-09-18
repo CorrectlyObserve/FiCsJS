@@ -6,9 +6,9 @@ const getPackage = (directory: string) => `./../../packages/${directory}/index`
 export default defineConfig({
   resolve: {
     alias: {
-      '@ficsjs': resolve(__dirname, getPackage('core')),
       '@ficsjs/router': resolve(__dirname, getPackage('router')),
       '@ficsjs/state': resolve(__dirname, getPackage('state')),
+      '@ficsjs': resolve(__dirname, getPackage('core')),
       '@': '/src'
     }
   },
