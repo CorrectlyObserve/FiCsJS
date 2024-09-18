@@ -1,14 +1,5 @@
 import FiCsElement from '../core/class'
-import type {
-  Action,
-  Attrs,
-  ClassName,
-  Css,
-  Hooks,
-  Reflections,
-  Sanitized,
-  Syntax
-} from '../core/types'
+import type { Action, Attrs, ClassName, Css, Hooks, Sanitized, Syntax } from '../core/types'
 
 export interface FiCsLink extends LinkData {
   href: string
@@ -23,7 +14,6 @@ export interface FiCsLink extends LinkData {
 export interface FiCsRouter {
   pages: (PageContent & { path: string })[]
   notFound?: PageContent
-  reflections?: Reflections<RouterData>
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
   css?: Css<RouterData, {}>
@@ -32,15 +22,15 @@ export interface FiCsRouter {
 }
 
 export interface LinkData {
-  content: (params: Syntax<{}, {}>) => RouterContent
+  content: (params: Syntax<RouterData, {}>) => RouterContent
 }
 
 export interface PageContent extends LinkData {
   redirect?: string
 }
 
-export type RouterContent = FiCsElement<{}, {}> | Sanitized<{}, {}>
+export type RouterContent = FiCsElement<RouterData, {}> | Sanitized<RouterData, {}>
 
-interface RouterData {
+export interface RouterData {
   pathname: string
 }
