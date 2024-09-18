@@ -1,21 +1,18 @@
 import fics from '@ficsjs'
+import resetCss from '@/styles/resetCss'
 
-const Footer = (css: string) => {
-  const copyright = '&copy; 2024 Masami Ogasawara'
-
-  return fics({
-    name: 'footer',
-    isImmutable: true,
-    html: ({ $template }) => $template`<footer><p>${copyright}</p></footer>`,
-    css: [
-      css,
-      { selector: 'footer', style: { padding: 'var(--md) 0' } },
-      {
-        selector: 'footer p',
-        style: { fontSize: 'var(--sm)', color: '#fff', textAlign: 'center', lineHeight: '100%' }
-      }
-    ]
-  })
-}
+const Footer = fics({
+  name: 'footer',
+  isImmutable: true,
+  html: ({ $template }) => $template`<footer><p>&copy; 2024 Masami Ogasawara</p></footer>`,
+  css: [
+    resetCss,
+    { selector: 'footer', style: { padding: 'var(--md) 0' } },
+    {
+      selector: 'footer p',
+      style: { fontSize: 'var(--sm)', color: '#fff', textAlign: 'center', lineHeight: '100%' }
+    }
+  ]
+})
 
 export default Footer
