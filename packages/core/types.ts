@@ -22,6 +22,11 @@ export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
 export type Css<D, P> = (string | Style<D, P>)[]
 
+interface DataMethod<D> {
+  $setData: (key: keyof D, value: D[typeof key]) => void
+  $getData: (key: keyof D) => D[typeof key]
+}
+
 export interface DataProps<D, P> {
   $data: D
   $props: P
@@ -34,7 +39,6 @@ export interface FiCs<D extends object, P extends object> {
   isExceptional?: boolean
   isImmutable?: boolean
   data?: () => D
-  reflections?: Reflections<D>
   inheritances?: Inheritances<D>
   props?: P
   isOnlyCsr?: boolean
@@ -55,14 +59,15 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  connect?: (params: Params<D, P>) => void
-  disconnect?: (params: Params<D, P>) => void
-  adopt?: (params: Params<D, P>) => void
+  mounted?: (params: Params<D, P>) => void
+  updated?: { [K in keyof Partial<D>]: (params: DataMethod<D> & { $dataValue?: D[K] }) => void }
+  destroyed?: (params: Params<D, P>) => void
+  adopted?: (params: Params<D, P>) => void
 }
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
-  values: ({ $getData }: { $getData: (key: keyof D) => D[typeof key] }) => object
+  values: (params: DataMethod<D>) => object
 }[]
 
 export interface I18n {
@@ -84,10 +89,7 @@ export interface MethodParams<D, P> extends Params<D, P> {
   $value?: string
 }
 
-type Params<D, P> = DataProps<D, P> & {
-  $setData: (key: keyof D, value: D[typeof key]) => void
-  $getData: (key: keyof D) => D[typeof key]
-}
+type Params<D, P> = DataProps<D, P> & DataMethod<D>
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
