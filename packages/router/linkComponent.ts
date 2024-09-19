@@ -1,17 +1,8 @@
 import FiCsElement from '../core/class'
-import type { FiCsLink, LinkData, RouterContent } from './types'
+import type { FiCsLink, RouterContent } from './types'
 
-const Link = ({
-  href,
-  content,
-  router,
-  className,
-  attributes,
-  css,
-  actions,
-  hooks
-}: FiCsLink) =>
-  new FiCsElement<LinkData, {}>({
+const Link = ({ href, content, router, className, attributes, css, actions, hooks }: FiCsLink) =>
+  new FiCsElement<{}, {}>({
     name: 'link',
     isExceptional: true,
     isImmutable: true,
