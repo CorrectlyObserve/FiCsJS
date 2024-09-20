@@ -106,11 +106,6 @@ export interface Queue {
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
 
-export type Sanitize<D extends object, P extends object> = (
-  templates: TemplateStringsArray,
-  ...variables: (HtmlContent<D, P> | unknown)[]
-) => Sanitized<D, P>
-
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
@@ -119,7 +114,10 @@ export interface Style<D, P> {
 }
 
 export interface Syntax<D extends object, P extends object> {
-  $template: Sanitize<D, P>
+  $template: (
+    templates: TemplateStringsArray,
+    ...variables: (HtmlContent<D, P> | unknown)[]
+  ) => Sanitized<D, P>
   $html: (str: string) => Record<symbol, string>
   $show: (condition: boolean) => string
   $i18n: ({ json, lang, keys }: I18n) => string
