@@ -51,6 +51,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
+  readonly #descendants: Record<string, FiCsElement<D, P>> = {}
+  readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
   #propsChain: PropsChain<P> = new Map()
@@ -197,43 +199,21 @@ export default class FiCsElement<D extends object, P extends object> {
       : { $data: { ...this.#data }, $props: { ...this.#props } }
   }
 
-  #getClassName(): string {
-    return typeof this.#className === 'function'
-      ? this.#className(this.#setDataProps())
-      : (this.#className ?? '')
-  }
-
-  #getAttrs(): [string, string][] {
-    return Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#setDataProps()) : (this.#attrs ?? [])
-    )
-  }
-
-  #getStyle(css: Css<D, P>, host: string = ':host'): string {
-    if (css.length === 0) return ''
-
-    const createStyle = (param: Style<D, P>, host: string = ':host'): string => {
-      const { style, selector } = param
-      const entries: [string, unknown][] = Object.entries(
-        typeof style === 'function' ? style(this.#setDataProps()) : style
+  #addClassName(component: HTMLElement): void {
+    if (this.#className)
+      component.setAttribute(
+        'class',
+        typeof this.#className === 'function'
+          ? this.#className(this.#setDataProps())
+          : (this.#className ?? '')
       )
-      const content: string = entries
-        .map(([key, value]) => {
-          key = this.#toKebabCase(key)
-          if (key.startsWith('webkit')) key = `-${key}`
+  }
 
-          return `${key}: ${value};`
-        })
-        .join('\n')
-
-      return `${host} ${selector ?? ''}{${content}}`
-    }
-
-    return css.reduce((prev, curr) => {
-      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr, host)}`
-
-      return `${prev}${curr}`
-    }, '') as string
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of Object.entries(
+      typeof this.#attrs === 'function' ? this.#attrs(this.#setDataProps()) : (this.#attrs ?? [])
+    ))
+      component.setAttribute(this.#toKebabCase(key), value)
   }
 
   #sanitize(
@@ -268,7 +248,15 @@ export default class FiCsElement<D extends object, P extends object> {
     return sanitized as HtmlContent<D, P>[]
   }
 
-  #getHtml(): HtmlContent<D, P>[] {
+  #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
+    return Array.from(parent.childNodes)
+  }
+
+  #isVarTag(element: Element) {
+    return element.localName === this.#varTag
+  }
+
+  #getHtml(doc: Document = document): ChildNode[] {
     const $template: Sanitize<D, P> = (
       templates: TemplateStringsArray,
       ...variables: (HtmlContent<D, P> | unknown)[]
@@ -287,76 +275,138 @@ export default class FiCsElement<D extends object, P extends object> {
       } else throw new Error(`${lang}.json does not exist...`)
     }
 
-    return this.#html({
+    const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#setDataProps(),
       $template,
       $html: (str: string): Record<symbol, string> => ({ [this.#unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
     })[this.#sanitized]
-  }
 
-  #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
-    return Array.from(parent.childNodes)
-  }
+    const html: string = contents.reduce((prev, curr) => {
+      if (curr instanceof FiCsElement) {
+        if (!(curr.#ficsId in this.#descendants)) this.#descendants[curr.#ficsId] = curr
+        curr = `<${this.#varTag} ${this.#ficsIdName}="${curr.#ficsId}"></${this.#varTag}>`
+      }
 
-  #renderOnServer(propsChain: PropsChain<P>): string {
-    if (this.#isOnlyCsr) return `<${this.#tagName}></${this.#tagName}>`
-
-    this.#initProps(propsChain)
-
-    const className: string = this.#className ? `class="${this.#getClassName()}"` : ''
-    const attrs: string = this.#getAttrs().reduce(
-      (prev, [key, value]) => `${prev} ${this.#toKebabCase(key)}="${value}"`,
-      ''
-    )
-    const slotId: string = `${this.#ficsId}-slot`
-
-    const div: HTMLDivElement = document.createElement('div')
-    div.appendChild(
-      document
-        .createRange()
-        .createContextualFragment(
-          this.#getHtml().reduce(
-            (prev, curr) =>
-              `${prev}${curr instanceof FiCsElement ? curr.#renderOnServer(this.#propsChain) : curr}`,
-            ''
-          ) as string
-        )
-        .cloneNode(true)
+      return `${prev}${curr}`
+    }, '') as string
+    const childNodes: ChildNode[] = this.#getChildNodes(
+      doc.createRange().createContextualFragment(html)
     )
 
     const applyShowAttr = (childNodes: ChildNode[]): void => {
-      for (const childNode of childNodes) {
-        if (childNode instanceof Element && childNode.hasAttribute(this.#showAttr)) {
-          ;(childNode as HTMLElement).style.display = 'none'
-          childNode.removeAttribute(this.#showAttr)
+      for (let index = 0; index < childNodes.length; index++) {
+        const childNode: ChildNode = childNodes[index]
+
+        if (childNode instanceof Text && (childNode.nodeValue ?? '').trim() === '') {
+          childNode.parentNode?.removeChild(childNode)
+          childNodes.splice(index, 1)
+          index--
+          continue
+        }
+
+        if (childNode instanceof Element) {
+          if (this.#isVarTag(childNode)) continue
+
+          if (childNode.hasAttribute(this.#showAttr)) {
+            ;(childNode as HTMLElement).style.display = 'none'
+            childNode.removeAttribute(this.#showAttr)
+          }
         }
 
         applyShowAttr(this.#getChildNodes(childNode))
       }
     }
 
-    applyShowAttr(this.#getChildNodes(div))
-
-    const style: string =
-      this.#css.length > 0 ? `<style>${this.#getStyle(this.#css, `#${slotId}`)}</style>` : ''
-
-    return `
-      <${[this.#tagName, className, attrs].join(' ').trim()}>
-        <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
-        <div id="${slotId}" slot="${this.#ficsId}">${div.innerHTML.trim()}${style}</div>
-      </${this.#tagName}>
-    `.trim()
+    applyShowAttr(childNodes)
+    return childNodes
   }
 
-  #addClassName(component: HTMLElement): void {
-    if (this.#className) component.setAttribute('class', this.#getClassName())
+  #getFiCsId(element: Element, isProperty?: boolean): string | null {
+    return isProperty
+      ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
+      : element.getAttribute(this.#ficsIdName)
   }
 
-  #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs())
-      component.setAttribute(this.#toKebabCase(key), value)
+  #getDescendant = (element: Element, doc?: Document): Element => {
+    const ficsId: string | null = this.#getFiCsId(element)
+
+    if (ficsId) {
+      if (doc) return this.#descendants[ficsId].#renderOnServer(this.#propsChain, doc)
+
+      return this.#descendants[ficsId].#render(this.#propsChain)
+    } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
+  }
+
+  #replaceDescendant(element: HTMLElement, doc?: Document): void {
+    if (this.#isVarTag(element)) element.replaceWith(this.#getDescendant(element, doc))
+    else
+      for (const child of Array.from(element.querySelectorAll(this.#varTag)))
+        child.replaceWith(this.#getDescendant(child, doc))
+  }
+
+  #getStyle(css: Css<D, P>, host: string = ':host'): string {
+    if (css.length === 0) return ''
+
+    const createStyle = (param: Style<D, P>, host: string = ':host'): string => {
+      const { style, selector } = param
+      const entries: [string, unknown][] = Object.entries(
+        typeof style === 'function' ? style(this.#setDataProps()) : style
+      )
+      const content: string = entries
+        .map(([key, value]) => {
+          key = this.#toKebabCase(key)
+          if (key.startsWith('webkit')) key = `-${key}`
+
+          return `${key}: ${value};`
+        })
+        .join('\n')
+
+      return `${host} ${selector ?? ''}{${content}}`
+    }
+
+    return css.reduce((prev, curr) => {
+      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr, host)}`
+
+      return `${prev}${curr}`
+    }, '') as string
+  }
+
+  #renderOnServer(propsChain: PropsChain<P>, doc: Document): HTMLElement {
+    const component: HTMLElement = doc.createElement(this.#tagName)
+
+    if (this.#isOnlyCsr) return component
+
+    this.#initProps(propsChain)
+    this.#addClassName(component)
+    this.#addAttrs(component)
+
+    const template: HTMLTemplateElement = doc.createElement('template')
+    template.shadowRootMode = 'open'
+    component.append(template)
+
+    const slot: HTMLSlotElement = document.createElement('slot')
+    slot.name = this.#ficsId
+    template.append(slot)
+
+    const div: HTMLElement = doc.createElement('div')
+    div.id = this.#ficsId
+    div.slot = this.#ficsId
+
+    for (const childNode of this.#getHtml(doc)) {
+      if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode, doc)
+      div.append(childNode)
+    }
+    component.append(div)
+
+    if (this.#css.length > 0) {
+      const style: HTMLStyleElement = doc.createElement('style')
+      style.innerHTML = this.#getStyle(this.#css, `div#${this.#ficsId}`)
+      component.append(style)
+    }
+
+    return component
   }
 
   #removeChildNodes(param: HTMLElement | ChildNode[]): void {
@@ -374,67 +424,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addHtml(shadowRoot: ShadowRoot): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
-    const getFiCsId = (element: Element, isProperty?: boolean): string | null =>
-      isProperty
-        ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
-        : element.getAttribute(this.#ficsIdName)
-
-    const children: Record<string, FiCsElement<D, P>> = {}
-    const varTag: string = 'f-var'
-    const newShadowRoot: DocumentFragment = document.createRange().createContextualFragment(
-      this.#getHtml().reduce((prev, curr) => {
-        if (curr instanceof FiCsElement) {
-          const ficsId: string = curr.#ficsId
-          children[ficsId] = curr
-
-          curr = `<${varTag} ${this.#ficsIdName}="${ficsId}"></${varTag}>`
-        }
-
-        return `${prev}${curr}`
-      }, '') as string
-    )
-    const isVarTag = (element: Element): boolean => element.localName === varTag
-    const newChildNodes: ChildNode[] = this.#getChildNodes(newShadowRoot)
-    const blankTexts: Text[] = new Array()
-
-    const applyShowAttr = (childNodes: ChildNode[]): void => {
-      for (const childNode of childNodes) {
-        if (childNode instanceof Text && childNode.nodeValue) {
-          childNode.nodeValue = childNode.nodeValue.trim()
-          if (childNode.nodeValue === '') blankTexts.push(childNode)
-          continue
-        }
-
-        if (childNode instanceof Element) {
-          if (isVarTag(childNode)) continue
-
-          if (childNode.hasAttribute(this.#showAttr)) {
-            ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(this.#showAttr)
-          }
-        }
-
-        applyShowAttr(this.#getChildNodes(childNode))
-      }
-    }
-    const getChild = (element: Element): Element => {
-      const ficsId: string | null = getFiCsId(element)
-
-      if (ficsId) return children[ficsId].#render(this.#propsChain)
-      else throw new Error(`The child FiCsElement has ficsId does not exist...`)
-    }
-
-    applyShowAttr(newChildNodes)
+    const newChildNodes: ChildNode[] = this.#getHtml()
 
     if (oldChildNodes.length === 0)
       for (const childNode of newChildNodes) {
+        if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode)
         shadowRoot.append(childNode)
-
-        if (childNode instanceof HTMLElement)
-          if (isVarTag(childNode)) childNode.replaceWith(getChild(childNode))
-          else
-            for (const element of Array.from(childNode.querySelectorAll(varTag)))
-              element.replaceWith(getChild(element))
       }
     else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
@@ -446,7 +441,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (oldChildNode instanceof Element && newChildNode instanceof Element) {
           const isSameFiCsId: boolean =
-            isVarTag(newChildNode) && getFiCsId(oldChildNode, true) === getFiCsId(newChildNode)
+            this.#isVarTag(newChildNode) &&
+            this.#getFiCsId(oldChildNode, true) === this.#getFiCsId(newChildNode)
           const isSameKey: boolean =
             oldChildNode.getAttribute('key') === newChildNode.getAttribute('key')
 
@@ -462,7 +458,7 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (
           oldChildNode instanceof Element &&
           newChildNode instanceof Element &&
-          !isVarTag(newChildNode)
+          !that.#isVarTag(newChildNode)
         ) {
           const oldAttrs: NamedNodeMap = oldChildNode.attributes
           const newAttrs: NamedNodeMap = newChildNode.attributes
@@ -506,14 +502,6 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        oldChildNodes = oldChildNodes.filter(
-          oldChildNode => !(oldChildNode instanceof Text && oldChildNode.nodeValue === '')
-        )
-
-        const set: Set<ChildNode> = new Set(newChildNodes)
-        for (const blankText of blankTexts) set.delete(blankText)
-        newChildNodes = Array.from(set)
-
         let oldStartIndex: number = 0
         let oldEndIndex: number = oldChildNodes.length - 1
         let oldStartNode: ChildNode = oldChildNodes[oldStartIndex]
@@ -525,7 +513,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const keys: Record<string, true> = {}
 
         for (const newChildNode of newChildNodes) {
-          if (!(newChildNode instanceof Element) || isVarTag(newChildNode)) continue
+          if (!(newChildNode instanceof Element) || that.#isVarTag(newChildNode)) continue
 
           const { localName }: { localName: string } = newChildNode
           const key: string = newChildNode.getAttribute('key') ?? localName
@@ -545,10 +533,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
           if (childNode instanceof Element)
-            if (isVarTag(childNode)) childNode = getChild(childNode)
+            if (that.#isVarTag(childNode)) childNode = that.#getDescendant(childNode)
             else that.#newElements.add(childNode)
 
-          if (before instanceof Element && isVarTag(before)) before = getChild(before)
+          if (before instanceof Element && that.#isVarTag(before))
+            before = that.#getDescendant(before)
 
           parentNode.insertBefore(
             childNode,
@@ -604,7 +593,8 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             if (dom.size === 0)
               for (const oldChildNode of oldChildNodes) {
-                if (oldChildNode instanceof Element && !!getFiCsId(oldChildNode, true)) continue
+                if (oldChildNode instanceof Element && !!that.#getFiCsId(oldChildNode, true))
+                  continue
 
                 const mapKey: string = getMapKey(oldChildNode)
                 dom.set(mapKey, [...(dom.get(mapKey) ?? []), oldChildNode])
@@ -834,21 +824,15 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  getSeverComponent = (): string => this.#renderOnServer(this.#propsChain)
-
-  ssr(parent: HTMLElement | string): void {
-    const component: string = this.getSeverComponent()
-
-    if (parent instanceof HTMLElement) parent.setHTMLUnsafe(component)
-    else if (typeof parent === 'string') {
-      const parentElement: HTMLElement | null = document.getElementById(parent)
-
-      if (parentElement) parentElement.setHTMLUnsafe(component)
-      else throw new Error(`The HTMLElement has #${parent} does not exist...`)
-    }
+  getSeverComponent(doc: Document = document): string {
+    return this.#renderOnServer(this.#propsChain, doc).outerHTML
   }
 
-  define(parent?: HTMLElement | string): void {
+  ssr(parent: HTMLElement, doc: Document = document): void {
+    parent.append(this.#renderOnServer(this.#propsChain, doc))
+  }
+
+  define(parent?: HTMLElement): void {
     if (!customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
@@ -889,17 +873,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-      if (parent) {
-        const component = document.createElement(this.#tagName).cloneNode(true)
-
-        if (parent instanceof HTMLElement) parent.append(component)
-        else {
-          const parentElement: HTMLElement | null = document.getElementById(parent)
-
-          if (parentElement) parentElement.append(component)
-          else throw new Error(`The HTMLElement has #${parent} does not exist...`)
-        }
-      }
+      if (parent) parent.append(document.createElement(this.#tagName))
     }
   }
 }
