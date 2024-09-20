@@ -32,7 +32,7 @@ export interface DataProps<D, P> {
   $props: P
 }
 
-type Descendant = FiCsElement<any, any>
+export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
