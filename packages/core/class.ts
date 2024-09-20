@@ -232,7 +232,7 @@ export default class FiCsElement<D extends object, P extends object> {
         !!(param && typeof param === 'object' && symbol in param)
       const converted: HtmlContent<D, P>[] = new Array()
 
-      const sanitize = (index: number, template: string, variable: unknown) => {
+      const sanitize = (index: number, template: string, variable: unknown): void => {
         if (isSymbol(variable, sanitized))
           converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
         else if (Array.isArray(variable)) {
