@@ -334,7 +334,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const ficsId: string | null = this.#getFiCsId(element)
 
     if (ficsId) {
-      if (doc) return this.#descendants[ficsId].#renderOnServer(this.#propsChain, doc)
+      if (doc) return this.#descendants[ficsId].#renderOnServer(doc, this.#propsChain)
 
       return this.#descendants[ficsId].#render(this.#propsChain)
     } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
@@ -374,7 +374,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #renderOnServer(propsChain: PropsChain<P>, doc: Document): HTMLElement {
+  #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
 
     if (this.#isOnlyCsr) return component
@@ -822,11 +822,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   getSeverComponent(doc: Document = document): string {
-    return this.#renderOnServer(this.#propsChain, doc).outerHTML
+    return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
   ssr(parent: HTMLElement, doc: Document = document): void {
-    parent.append(this.#renderOnServer(this.#propsChain, doc))
+    parent.append(this.#renderOnServer(doc, this.#propsChain))
   }
 
   define(parent?: HTMLElement): void {
