@@ -17,7 +17,6 @@ import type {
   MethodParams,
   PropsChain,
   PropsTree,
-  Sanitize,
   Sanitized,
   Style
 } from './types'
@@ -43,8 +42,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #className: ClassName<D, P> | undefined
   readonly #attrs: Attrs<D, P> | undefined
-  readonly #sanitized: symbol
-  readonly #unsanitized: symbol
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
@@ -113,8 +110,6 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#attrs = attributes
       }
 
-      this.#sanitized = Symbol(`${this.#ficsId}-sanitized`)
-      this.#unsanitized = Symbol(`${this.#ficsId}-unsanitized`)
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
 
@@ -217,38 +212,6 @@ export default class FiCsElement<D extends object, P extends object> {
       component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
-  #sanitize(
-    templates: TemplateStringsArray,
-    variables: (HtmlContent<D, P> | unknown)[]
-  ): HtmlContent<D, P>[] {
-    const isSymbol = (param: unknown, symbol: symbol): boolean =>
-      !!(param && typeof param === 'object' && symbol in param)
-    const sanitized: HtmlContent<D, P>[] = new Array()
-
-    const sanitize = (index: number, template: string, variable: unknown) => {
-      if (isSymbol(variable, this.#sanitized))
-        sanitized.push(template, ...(variable as Sanitized<D, P>)[this.#sanitized])
-      else if (Array.isArray(variable)) {
-        sanitized.push(template)
-        for (const child of variable) sanitize(index, '', child)
-      } else if (isSymbol(variable, this.#unsanitized))
-        sanitized.push(template, (variable as Record<symbol, string>)[this.#unsanitized])
-      else {
-        if (template !== '') sanitized.push(template)
-
-        variable =
-          typeof variable === 'string'
-            ? variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-            : (variable ?? '')
-
-        if (variable !== '') sanitized.push(variable as HtmlContent<D, P>)
-      }
-    }
-
-    for (const [index, template] of templates.entries()) sanitize(index, template, variables[index])
-    return sanitized as HtmlContent<D, P>[]
-  }
-
   #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
     return Array.from(parent.childNodes)
   }
@@ -258,10 +221,42 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getHtml(doc: Document = document): ChildNode[] {
-    const $template: Sanitize<D, P> = (
+    const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
+    const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
+
+    const convertTemplate = (
       templates: TemplateStringsArray,
-      ...variables: (HtmlContent<D, P> | unknown)[]
-    ): Sanitized<D, P> => ({ [this.#sanitized]: this.#sanitize(templates, variables) })
+      variables: (HtmlContent<D, P> | unknown)[]
+    ): HtmlContent<D, P>[] => {
+      const isSymbol = (param: unknown, symbol: symbol): boolean =>
+        !!(param && typeof param === 'object' && symbol in param)
+      const converted: HtmlContent<D, P>[] = new Array()
+
+      const sanitize = (index: number, template: string, variable: unknown) => {
+        if (isSymbol(variable, sanitized))
+          converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
+        else if (Array.isArray(variable)) {
+          converted.push(template)
+          for (const child of variable) sanitize(index, '', child)
+        } else if (isSymbol(variable, unsanitized))
+          converted.push(template, (variable as Record<symbol, string>)[unsanitized])
+        else {
+          if (template !== '') converted.push(template)
+
+          variable =
+            typeof variable === 'string'
+              ? variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+              : (variable ?? '')
+
+          if (variable !== '') converted.push(variable as HtmlContent<D, P>)
+        }
+      }
+
+      for (const [index, template] of templates.entries())
+        sanitize(index, template, variables[index])
+
+      return converted as HtmlContent<D, P>[]
+    }
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
@@ -276,13 +271,16 @@ export default class FiCsElement<D extends object, P extends object> {
       } else throw new Error(`${lang}.json does not exist...`)
     }
 
-    const contents: HtmlContent<D, P>[] = this.#html({
+    const contents = this.#html({
       ...this.#setDataProps(),
-      $template,
-      $html: (str: string): Record<symbol, string> => ({ [this.#unsanitized]: str }),
+      $template: (
+        templates: TemplateStringsArray,
+        ...variables: (HtmlContent<D, P> | unknown)[]
+      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
+      $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
-    })[this.#sanitized]
+    })[sanitized]
 
     const html: string = contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
