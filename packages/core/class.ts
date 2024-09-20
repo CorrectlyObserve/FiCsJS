@@ -73,7 +73,7 @@ export default class FiCsElement<D extends object, P extends object> {
     actions,
     hooks
   }: FiCs<D, P>) {
-    this.#name = this.#toKebabCase(name)
+    this.#name = this.#convertStr(name, 'kebab')
 
     if (!isExceptional && this.#reservedWords[this.#name])
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
@@ -124,8 +124,9 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #toKebabCase(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  #convertStr(str: string, type: 'kebab' | 'camel'): string {
+    if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+    return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -213,7 +214,7 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const [key, value] of Object.entries(
       typeof this.#attrs === 'function' ? this.#attrs(this.#setDataProps()) : (this.#attrs ?? [])
     ))
-      component.setAttribute(this.#toKebabCase(key), value)
+      component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
   #sanitize(
@@ -325,7 +326,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getFiCsId(element: Element, isProperty?: boolean): string | null {
     return isProperty
-      ? (element as any)[this.#toCamelCase(this.#ficsIdName)]
+      ? (element as any)[this.#convertStr(this.#ficsIdName, 'camel')]
       : element.getAttribute(this.#ficsIdName)
   }
 
@@ -356,7 +357,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
       const content: string = entries
         .map(([key, value]) => {
-          key = this.#toKebabCase(key)
+          key = this.#convertStr(key, 'kebab')
           if (key.startsWith('webkit')) key = `-${key}`
 
           return `${key}: ${value};`
@@ -414,12 +415,8 @@ export default class FiCsElement<D extends object, P extends object> {
       childNode.remove()
   }
 
-  #toCamelCase(str: string): string {
-    return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
-  }
-
   #setProperty<V>(element: HTMLElement, property: string, value: V): void {
-    ;(element as any)[this.#toCamelCase(property)] = value
+    ;(element as any)[this.#convertStr(property, 'camel')] = value
   }
 
   #addHtml(shadowRoot: ShadowRoot): void {
