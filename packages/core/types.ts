@@ -22,7 +22,7 @@ export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
 export type Css<D, P> = (string | Style<D, P>)[]
 
-interface DataMethod<D> {
+export interface DataMethod<D> {
   $setData: (key: keyof D, value: D[typeof key]) => void
   $getData: (key: keyof D) => D[typeof key]
 }
