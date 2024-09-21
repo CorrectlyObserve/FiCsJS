@@ -6,6 +6,7 @@ import type {
   Bindings,
   ClassName,
   Css,
+  DataMethod,
   DataProps,
   FiCs,
   Html,
@@ -124,7 +125,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
-
+  #setDataParams(): DataMethod<D> {
+    return {
+      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
+      $getData: (key: keyof D): D[typeof key] => this.getData(key)
+    }
+  }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
     if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
@@ -143,15 +149,9 @@ export default class FiCsElement<D extends object, P extends object> {
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
 
-          const data: [string, P][] = Object.entries(
-            values({
-              $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-              $getData: (key: keyof D): D[typeof key] => this.getData(key)
-            })
-          )
           const descendantId: string = descendant.#ficsId
 
-          for (const [key, value] of data) {
+          for (const [key, value] of Object.entries(values({ ...this.#setDataParams() }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
@@ -658,8 +658,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const getMethodParams = (event: Event): MethodParams<D, P> => ({
       ...this.#setDataProps(),
-      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-      $getData: (key: keyof D): D[typeof key] => this.getData(key),
+      ...this.#setDataParams(),
       $event: event,
       $attributes: attrs,
       $value:
@@ -702,11 +701,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
-    this.#hooks[key]?.({
-      ...this.#setDataProps(),
-      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-      $getData: (key: keyof D): D[typeof key] => this.getData(key)
-    })
+    this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataParams() })
   }
 
   #render(propsChain: PropsChain<P>): HTMLElement {
@@ -807,11 +802,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!(key in this.#data)) throw new Error(`"${String(key)}" is not defined in data...`)
 
         this.#isReflecting = true
-        this.#hooks.updated[key]?.({
-          $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-          $getData: (key: keyof D): D[typeof key] => this.getData(key),
-          $dataValue: this.#data[key]
-        })
+        this.#hooks.updated[key]?.({ ...this.#setDataParams(), $dataValue: this.#data[key] })
         this.#isReflecting = false
       }
     }
