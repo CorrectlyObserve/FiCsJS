@@ -22,7 +22,7 @@ export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
 export type Css<D, P> = (string | Style<D, P>)[]
 
-export interface DataMethod<D> {
+export interface DataMethods<D> {
   $setData: (key: keyof D, value: D[typeof key]) => void
   $getData: (key: keyof D) => D[typeof key]
 }
@@ -60,14 +60,14 @@ export type HtmlContent<D extends object, P extends object> =
 
 export interface Hooks<D, P> {
   mounted?: (params: Params<D, P>) => void
-  updated?: { [K in keyof Partial<D>]: (params: DataMethod<D> & { $dataValue?: D[K] }) => void }
+  updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
   destroyed?: (params: Params<D, P>) => void
   adopted?: (params: Params<D, P>) => void
 }
 
 export type Inheritances<D> = {
   descendants: Descendant | Descendant[]
-  values: (params: DataMethod<D>) => object
+  values: (params: DataMethods<D>) => object
 }[]
 
 export interface I18n {
@@ -89,7 +89,7 @@ export interface MethodParams<D, P> extends Params<D, P> {
   $value?: string
 }
 
-type Params<D, P> = DataProps<D, P> & DataMethod<D>
+type Params<D, P> = DataProps<D, P> & DataMethods<D>
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
