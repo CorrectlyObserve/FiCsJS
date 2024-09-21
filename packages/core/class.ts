@@ -6,7 +6,7 @@ import type {
   Bindings,
   ClassName,
   Css,
-  DataMethod,
+  DataMethods,
   DataProps,
   FiCs,
   Html,
@@ -125,7 +125,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
-  #setDataParams(): DataMethod<D> {
+  #setDataMethods(): DataMethods<D> {
     return {
       $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
       $getData: (key: keyof D): D[typeof key] => this.getData(key)
@@ -151,7 +151,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const descendantId: string = descendant.#ficsId
 
-          for (const [key, value] of Object.entries(values({ ...this.#setDataParams() }))) {
+          for (const [key, value] of Object.entries(values({ ...this.#setDataMethods() }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
@@ -658,7 +658,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const getMethodParams = (event: Event): MethodParams<D, P> => ({
       ...this.#setDataProps(),
-      ...this.#setDataParams(),
+      ...this.#setDataMethods(),
       $event: event,
       $attributes: attrs,
       $value:
@@ -701,7 +701,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
-    this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataParams() })
+    this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
   }
 
   #render(propsChain: PropsChain<P>): HTMLElement {
@@ -802,7 +802,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!(key in this.#data)) throw new Error(`"${String(key)}" is not defined in data...`)
 
         this.#isReflecting = true
-        this.#hooks.updated[key]?.({ ...this.#setDataParams(), $dataValue: this.#data[key] })
+        this.#hooks.updated[key]?.({ ...this.#setDataMethods(), $dataValue: this.#data[key] })
         this.#isReflecting = false
       }
     }
