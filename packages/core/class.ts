@@ -808,12 +808,12 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  getSeverComponent(doc: Document = document): string {
+  getServerComponent(doc: Document = document): string {
     return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
   ssr(parent: HTMLElement, position?: 'before' | 'after', doc: Document = document): void {
-    const component: string = this.getSeverComponent(doc)
+    const component: string = this.getServerComponent(doc)
 
     if (position === 'before') parent.setHTMLUnsafe(component + parent.innerHTML)
     else if (position === 'after') parent.setHTMLUnsafe(parent.innerHTML + component)
