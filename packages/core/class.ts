@@ -378,13 +378,10 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#addClassName(component)
       this.#addAttrs(component)
 
-      const template: HTMLTemplateElement = doc.createElement('template')
-      template.shadowRootMode = 'open'
-      component.append(template)
-
-      const slot: HTMLSlotElement = document.createElement('slot')
-      slot.name = this.#ficsId
-      template.content.append(slot)
+      component.insertAdjacentHTML(
+        'beforeend',
+        `<template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>`
+      )
 
       const div: HTMLElement = doc.createElement('div')
       div.id = this.#ficsId
@@ -396,11 +393,11 @@ export default class FiCsElement<D extends object, P extends object> {
       }
       component.append(div)
 
-      if (this.#css.length > 0) {
-        const style: HTMLStyleElement = doc.createElement('style')
-        style.innerHTML = this.#getStyle(this.#css, `#${this.#ficsId}`)
-        component.append(style)
-      }
+      if (this.#css.length > 0)
+        div.insertAdjacentHTML(
+          'beforeend',
+          `<style>${this.#getStyle(this.#css, `#${this.#ficsId}`)}</style>`
+        )
     }
 
     return component
@@ -808,15 +805,20 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  getServerComponent(doc: Document = document): string {
+  getServerComponent(doc: Document): string {
     return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
-  ssr(parent: HTMLElement, position?: 'before' | 'after', doc: Document = document): void {
-    const component: string = this.getServerComponent(doc)
+  ssr(parent: HTMLElement, position: 'before' | 'after'): void {
+    const temporary: HTMLElement = document.createElement(this.#varTag)
+    temporary.setHTMLUnsafe(this.getServerComponent(document))
 
-    if (position === 'before') parent.setHTMLUnsafe(component + parent.innerHTML)
-    else if (position === 'after') parent.setHTMLUnsafe(parent.innerHTML + component)
+    parent.insertBefore(
+      temporary,
+      position === 'before' ? parent.firstChild : (parent.lastChild?.nextSibling ?? null)
+    )
+    parent.insertBefore(temporary.firstChild!, temporary)
+    temporary.remove()
   }
 
   define(parent?: HTMLElement): void {
