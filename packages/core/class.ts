@@ -373,34 +373,34 @@ export default class FiCsElement<D extends object, P extends object> {
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
 
-    if (this.#isOnlyCsr) return component
+    if (!this.#isOnlyCsr) {
+      this.#initProps(propsChain)
+      this.#addClassName(component)
+      this.#addAttrs(component)
 
-    this.#initProps(propsChain)
-    this.#addClassName(component)
-    this.#addAttrs(component)
+      const template: HTMLTemplateElement = doc.createElement('template')
+      template.shadowRootMode = 'open'
+      component.append(template)
 
-    const template: HTMLTemplateElement = doc.createElement('template')
-    template.shadowRootMode = 'open'
-    component.append(template)
+      const slot: HTMLSlotElement = document.createElement('slot')
+      slot.name = this.#ficsId
+      template.content.append(slot)
 
-    const slot: HTMLSlotElement = document.createElement('slot')
-    slot.name = this.#ficsId
-    template.append(slot)
+      const div: HTMLElement = doc.createElement('div')
+      div.id = this.#ficsId
+      div.slot = this.#ficsId
 
-    const div: HTMLElement = doc.createElement('div')
-    div.id = this.#ficsId
-    div.slot = this.#ficsId
+      for (const childNode of this.#getHtml(doc)) {
+        if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode, doc)
+        div.append(childNode)
+      }
+      component.append(div)
 
-    for (const childNode of this.#getHtml(doc)) {
-      if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode, doc)
-      div.append(childNode)
-    }
-    component.append(div)
-
-    if (this.#css.length > 0) {
-      const style: HTMLStyleElement = doc.createElement('style')
-      style.innerHTML = this.#getStyle(this.#css, `div#${this.#ficsId}`)
-      component.append(style)
+      if (this.#css.length > 0) {
+        const style: HTMLStyleElement = doc.createElement('style')
+        style.innerHTML = this.#getStyle(this.#css, `#${this.#ficsId}`)
+        component.append(style)
+      }
     }
 
     return component
@@ -812,8 +812,11 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
-  ssr(parent: HTMLElement, doc: Document = document): void {
-    parent.append(this.#renderOnServer(doc, this.#propsChain))
+  ssr(parent: HTMLElement, position?: 'before' | 'after', doc: Document = document): void {
+    const component: string = this.getSeverComponent(doc)
+
+    if (position === 'before') parent.setHTMLUnsafe(component + parent.innerHTML)
+    else if (position === 'after') parent.setHTMLUnsafe(parent.innerHTML + component)
   }
 
   define(parent?: HTMLElement): void {
