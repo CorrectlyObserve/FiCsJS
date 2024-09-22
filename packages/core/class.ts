@@ -258,15 +258,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
+      if (!texts) throw new Error(`${lang}.json does not exist...`)
 
-      if (texts) {
-        for (const key of Array.isArray(keys) ? keys : [keys])
-          if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
+      for (const key of Array.isArray(keys) ? keys : [keys])
+        if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
 
-        if (typeof texts === 'string') return texts
-
-        throw new Error(`There is no applicable value in json..`)
-      } else throw new Error(`${lang}.json does not exist...`)
+      if (typeof texts === 'string') return texts
+      throw new Error(`There is no applicable value in json..`)
     }
 
     const contents = this.#html({
@@ -328,12 +326,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getDescendant = (element: Element, doc?: Document): Element => {
     const ficsId: string | null = this.#getFiCsId(element)
+    if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
 
-    if (ficsId) {
-      if (doc) return this.#descendants[ficsId].#renderOnServer(doc, this.#propsChain)
-
-      return this.#descendants[ficsId].#render(this.#propsChain)
-    } else throw new Error(`The child FiCsElement has ficsId does not exist...`)
+    const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+    return doc
+      ? descendant.#renderOnServer(doc, this.#propsChain)
+      : descendant.#render(this.#propsChain)
   }
 
   #replaceDescendant(element: HTMLElement, doc?: Document): void {
@@ -386,12 +384,12 @@ export default class FiCsElement<D extends object, P extends object> {
       const div: HTMLElement = doc.createElement('div')
       div.id = this.#ficsId
       div.slot = this.#ficsId
+      component.append(div)
 
       for (const childNode of this.#getHtml(doc)) {
         if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode, doc)
         div.append(childNode)
       }
-      component.append(div)
 
       if (this.#css.length > 0)
         div.insertAdjacentHTML(
