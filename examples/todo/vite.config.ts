@@ -15,7 +15,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    rollupOptions: { input: 'index.html' },
+    rollupOptions: { input: { en: 'index.html', ja: 'ja.html' } },
     minify: true
   },
   server: { hmr: true }
