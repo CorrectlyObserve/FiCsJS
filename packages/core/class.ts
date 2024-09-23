@@ -214,7 +214,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(parent.childNodes)
   }
 
-  #isVarTag(element: Element) {
+  #isVarTag(element: Element):boolean {
     return element.localName === this.#varTag
   }
 
@@ -376,9 +376,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#initProps(propsChain)
       this.#addClassName(component)
       this.#addAttrs(component)
-
-      component.insertAdjacentHTML(
-        'beforeend',
+      component.setHTMLUnsafe(
         `<template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>`
       )
 
