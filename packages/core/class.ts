@@ -341,13 +341,14 @@ export default class FiCsElement<D extends object, P extends object> {
         child.replaceWith(this.#getDescendant(child, doc))
   }
 
-  #getStyle(css: Css<D, P>, host: string = ':host'): string {
+  #getCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
-    const createStyle = (param: Style<D, P>, host: string = ':host'): string => {
-      const { style, selector } = param
+    const createCss = (param: Style<D, P>): string => {
+      if (param[mode] === false) return ''
+
       const entries: [string, unknown][] = Object.entries(
-        typeof style === 'function' ? style(this.#setDataProps()) : style
+        typeof param.style === 'function' ? param.style(this.#setDataProps()) : param.style
       )
       const content: string = entries
         .map(([key, value]) => {
@@ -358,11 +359,11 @@ export default class FiCsElement<D extends object, P extends object> {
         })
         .join('\n')
 
-      return `${host} ${selector ?? ''}{${content}}`
+      return `${host} ${param.selector ?? ''}{${content}}`
     }
 
     return css.reduce((prev, curr) => {
-      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createStyle(curr, host)}`
+      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createCss(curr)}`
 
       return `${prev}${curr}`
     }, '') as string
@@ -394,7 +395,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (this.#css.length > 0)
         div.insertAdjacentHTML(
           'beforeend',
-          `<style>${this.#getStyle(this.#css, `#${this.#ficsId}`)}</style>`
+          `<style>${this.#getCss({ css: this.#css, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
         )
     }
 
@@ -625,11 +626,14 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#bindings.css.push(index)
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-    const style: Css<D, P> =
-      css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : this.#css
-
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#getStyle(style))
+    stylesheet.replaceSync(
+      this.#getCss({
+        css: css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : this.#css,
+        host: ':host',
+        mode: 'csr'
+      })
+    )
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
