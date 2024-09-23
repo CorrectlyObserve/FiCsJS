@@ -1,6 +1,6 @@
 import getPathParams from './getPathParams'
 import getQueryParams from './getQueryParams'
-import Link from './linkComponent'
-import Router from './routerComponent'
+import ficsLink from './link'
+import ficsRouter from './router'
 
-export { getPathParams, getQueryParams, Link, Router }
+export { ficsLink, ficsRouter, getPathParams, getQueryParams }
