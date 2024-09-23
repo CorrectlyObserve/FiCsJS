@@ -111,6 +111,8 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 export interface Style<D, P> {
   selector?: string
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
+  csr?: boolean
+  ssr?: boolean
 }
 
 export interface Syntax<D extends object, P extends object> {
