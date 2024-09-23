@@ -3,13 +3,13 @@ import type { Action, Attrs, ClassName, Css, Hooks, Sanitized, Syntax } from '..
 
 export interface FiCsLink {
   href: string
-  content: (params: Syntax<{}, {}>) => RouterContent
+  content: (params: Syntax<RouterData, {}>) => RouterContent
   router: FiCsElement<RouterData, {}>
   className?: ClassName<{}, {}>
   attributes?: Attrs<{}, {}>
   css?: Css<{}, {}>
-  actions?: Action<{}, {}>[]
-  hooks?: Hooks<{}, {}>
+  actions?: Action<RouterData, {}>[]
+  hooks?: Hooks<RouterData, {}>
 }
 
 export interface FiCsRouter {
