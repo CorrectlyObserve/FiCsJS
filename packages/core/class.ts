@@ -809,7 +809,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
-  ssr(parent: HTMLElement, position: 'before' | 'after'): void {
+  ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): void {
     const temporary: HTMLElement = document.createElement(this.#varTag)
     this.#callback('created')
     temporary.setHTMLUnsafe(this.getServerComponent(document))
