@@ -214,7 +214,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(parent.childNodes)
   }
 
-  #isVarTag(element: Element):boolean {
+  #isVarTag(element: Element): boolean {
     return element.localName === this.#varTag
   }
 
@@ -811,6 +811,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   ssr(parent: HTMLElement, position: 'before' | 'after'): void {
     const temporary: HTMLElement = document.createElement(this.#varTag)
+    this.#callback('created')
     temporary.setHTMLUnsafe(this.getServerComponent(document))
 
     parent.insertBefore(
@@ -862,7 +863,10 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-      if (parent) parent.append(document.createElement(this.#tagName))
+      if (parent) {
+        parent.append(document.createElement(this.#tagName))
+        this.#callback('created')
+      }
     }
   }
 }
