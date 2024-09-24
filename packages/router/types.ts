@@ -5,6 +5,7 @@ export interface FiCsLink {
   href: string
   content: (params: Syntax<RouterData, {}>) => RouterContent
   router: FiCsElement<RouterData, {}>
+  isOnlyCsr?: boolean
   className?: ClassName<{}, {}>
   attributes?: Attrs<{}, {}>
   css?: Css<{}, {}>
@@ -15,6 +16,7 @@ export interface FiCsLink {
 export interface FiCsRouter {
   pages: (PageContent & { path: string })[]
   notFound?: PageContent
+  isOnlyCsr?: boolean
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
   css?: Css<RouterData, {}>
