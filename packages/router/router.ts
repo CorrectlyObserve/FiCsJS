@@ -1,14 +1,23 @@
 import FiCsElement from '../core/class'
-import type { Sanitized } from '../core/types'
+import type { Params, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import type { FiCsRouter, PageContent, RouterContent, RouterData } from './types'
 
-const Router = ({ pages, notFound, className, attributes, css, actions, hooks }: FiCsRouter) =>
-  new FiCsElement<{ pathname: string }, {}>({
+const Router = ({
+  pages,
+  notFound,
+  isOnlyCsr,
+  className,
+  attributes,
+  css,
+  actions,
+  hooks
+}: FiCsRouter) =>
+  new FiCsElement<RouterData, {}>({
     name: 'router',
     isExceptional: true,
     data: () => ({ pathname: '' }),
-    isOnlyCsr: true,
+    isOnlyCsr,
     className,
     attributes,
     html: ({ $data: { pathname }, $template, $html, $show, $i18n }) => {
@@ -21,7 +30,6 @@ const Router = ({ pages, notFound, className, attributes, css, actions, hooks }:
           }
 
           const returned: RouterContent = content({ $template, $html, $show, $i18n })
-
           return returned instanceof FiCsElement ? $template`${returned}` : returned
         }
 
@@ -39,15 +47,23 @@ const Router = ({ pages, notFound, className, attributes, css, actions, hooks }:
     css,
     actions,
     hooks: {
-      ...(hooks ?? {}),
-      mounted: ({ $setData }) => {
+      created: (params: Params<RouterData, {}>) => {
         if (!window) throw new Error('window is not defined...')
 
-        const setPathname = (): void => $setData('pathname', window.location.pathname)
+        params.$setData('pathname', window.location.pathname)
+        hooks?.created?.(params)
+      },
+      mounted: (params: Params<RouterData, {}>) => {
+        if (!window) throw new Error('window is not defined...')
 
-        setPathname()
-        window.addEventListener('popstate', setPathname)
-      }
+        window.addEventListener('popstate', () =>
+          params.$setData('pathname', window.location.pathname)
+        )
+        hooks?.mounted?.(params)
+      },
+      updated: hooks?.updated,
+      destroyed: (params: Params<RouterData, {}>) => hooks?.destroyed?.(params),
+      adopted: (params: Params<RouterData, {}>) => hooks?.adopted?.(params)
     }
   })
 
