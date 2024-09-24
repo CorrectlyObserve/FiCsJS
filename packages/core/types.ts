@@ -59,6 +59,7 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
+  created?: (params: Params<D, P>) => void
   mounted?: (params: Params<D, P>) => void
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
   destroyed?: (params: Params<D, P>) => void
@@ -89,7 +90,7 @@ export interface MethodParams<D, P> extends Params<D, P> {
   $value?: string
 }
 
-type Params<D, P> = DataProps<D, P> & DataMethods<D>
+export type Params<D, P> = DataProps<D, P> & DataMethods<D>
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
