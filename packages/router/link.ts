@@ -1,12 +1,22 @@
 import FiCsElement from '../core/class'
 import type { FiCsLink, RouterContent, RouterData } from './types'
 
-const Link = ({ href, content, router, className, attributes, css, actions, hooks }: FiCsLink) =>
+const Link = ({
+  href,
+  content,
+  router,
+  isOnlyCsr,
+  className,
+  attributes,
+  css,
+  actions,
+  hooks
+}: FiCsLink) =>
   new FiCsElement<RouterData, {}>({
     name: 'link',
     isExceptional: true,
     isImmutable: true,
-    isOnlyCsr: true,
+    isOnlyCsr,
     className,
     attributes,
     html: ({ $template, $html, $show, $i18n }) => {
