@@ -2,7 +2,14 @@
   "name": "fics.js",
   "author": "Masami Ogasawara",
   "description": "FiCsJS: The Framework-independent Components Framework",
-  "keywords": [],
+  "keywords": [
+    "FiCsJS",
+    "Developer Experience",
+    "Framework",
+    "OSS",
+    "TypeScript",
+    "Web Components"
+  ],
   "license": "MIT",
   "version": "0.0.1",
   "type": "module",
@@ -12,7 +19,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "workspaces": ["examples/*"],
+  "workspaces": [
+    "examples/*"
+  ],
   "dependencies": {
     "fics_todo": "workspace:*"
   },
