@@ -29,7 +29,7 @@ export interface PageContent {
   redirect?: string
 }
 
-export type RouterContent = FiCsElement<RouterData, {}> | Sanitized<RouterData, {}>
+export type RouterContent = FiCsElement<{}, {}> | Sanitized<RouterData, {}>
 
 export interface RouterData {
   pathname: string
