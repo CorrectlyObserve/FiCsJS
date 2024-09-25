@@ -806,12 +806,12 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   getServerComponent(doc: Document): string {
+    this.#callback('created')
     return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
   ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): void {
     const temporary: HTMLElement = document.createElement(this.#varTag)
-    this.#callback('created')
     temporary.setHTMLUnsafe(this.getServerComponent(document))
 
     parent.insertBefore(
