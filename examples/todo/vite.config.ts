@@ -12,6 +12,17 @@ export default defineConfig({
       '@': '/src'
     }
   },
+  plugins: [
+    {
+      name: 'ja',
+      configureServer(server) {
+        server.middlewares.use((req, _, next) => {
+          if (req.url?.startsWith('/ja/')) req.url = './ja.html'
+          next()
+        })
+      }
+    }
+  ],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
