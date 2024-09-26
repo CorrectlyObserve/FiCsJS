@@ -12,7 +12,9 @@ const Lang = fics({
         ${langs.map(
           _lang => $template`
             <span class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
-              <a href="/${_lang == 'en' ? '' : _lang}">${_lang.toUpperCase()}</a>
+              <a href="/${_lang === 'en' ? '' : _lang}${window.location.pathname.substring(lang === 'en' ? 1 : 3)}">
+                ${_lang.toUpperCase()}
+              </a>
             </span>
           `
         )}
