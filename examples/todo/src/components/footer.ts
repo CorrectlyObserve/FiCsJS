@@ -1,7 +1,7 @@
 import fics from '@ficsjs'
 import resetCss from '@/styles/resetCss'
 
-const Footer = fics({
+const Footer = () => fics({
   name: 'footer',
   isImmutable: true,
   html: ({ $template }) => $template`<footer><p>&copy; 2024 Masami Ogasawara</p></footer>`,
