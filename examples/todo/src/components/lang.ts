@@ -4,15 +4,15 @@ import css from '@/styles/lang.css?inline'
 const Lang = fics({
   name: 'lang',
   data: () => ({ langs: ['en', 'ja'], isShown: false }),
-  props: {} as { lang: string; switchLang: (lang: string) => void },
-  html: ({ $data: { langs, isShown }, $props: { lang }, $template, $show }) => $template`
+  props: {} as { lang: string; pathname: string; switchLang: (lang: string) => void },
+  html: ({ $data: { langs, isShown }, $props: { lang, pathname }, $template, $show }) => $template`
     <div class="container">
       <span class="lang">${lang.toUpperCase()}</span>
       <div class="langs${!isShown ? ' hidden' : ''}" ${$show(isShown)}>
         ${langs.map(
           _lang => $template`
             <span class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
-              <a href="/${_lang === 'en' ? '' : _lang}${window.location.pathname.substring(lang === 'en' ? 1 : 3)}">
+              <a href="/${_lang === 'en' ? '' : _lang + '/'}${pathname}">
                 ${_lang.toUpperCase()}
               </a>
             </span>
