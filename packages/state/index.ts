@@ -3,7 +3,7 @@ import { Descendant } from '../core/types'
 
 const generator: Generator<number> = generate()
 const uneditableStates: Map<string, unknown> = new Map()
-const states: Map<string, any> = new Map()
+const states: Map<string, unknown> = new Map()
 const syncs: Map<string, Map<Descendant, Set<string>>> = new Map()
 const observers: Map<string, () => void> = new Map()
 
@@ -15,9 +15,9 @@ export const createState = <S>(value: S, isReadonly: boolean = false): string =>
 }
 
 export const getState = <S>(key: string, isReadonly: boolean = false): S => {
-  const stateMap: Map<string, any> = isReadonly ? uneditableStates : states
+  const stateMap: Map<string, unknown> = isReadonly ? uneditableStates : states
 
-  if (stateMap.has(key)) return stateMap.get(key)
+  if (stateMap.has(key)) return stateMap.get(key) as S
   throw new Error(`"${key}" is not defined in states...`)
 }
 
