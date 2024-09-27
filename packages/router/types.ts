@@ -14,7 +14,7 @@ export interface FiCsLink {
 }
 
 export interface FiCsRouter {
-  pages: (PageContent & { path: string })[]
+  pages: (PageContent & { paths: string | string[] })[]
   notFound?: PageContent
   isOnlyCsr?: boolean
   className?: ClassName<RouterData, {}>
