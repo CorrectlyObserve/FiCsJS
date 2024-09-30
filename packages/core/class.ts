@@ -218,6 +218,22 @@ export default class FiCsElement<D extends object, P extends object> {
     return element.localName === this.#varTag
   }
 
+  #getFiCsId(element: Element, isProperty?: boolean): string | null {
+    return isProperty
+      ? (element as any)[this.#convertStr(this.#ficsIdName, 'camel')]
+      : element.getAttribute(this.#ficsIdName)
+  }
+
+  #getDescendant = (element: Element, doc?: Document): Element => {
+    const ficsId: string | null = this.#getFiCsId(element)
+    if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
+
+    const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+    return doc
+      ? descendant.#renderOnServer(doc, this.#propsChain)
+      : descendant.#render(this.#propsChain)
+  }
+
   #getHtml(doc: Document = document): ChildNode[] {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
@@ -280,8 +296,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const html: string = contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
-        if (this.#name === 'router') console.log(curr)
-
         if (!(curr.#ficsId in this.#descendants)) this.#descendants[curr.#ficsId] = curr
         curr = `<${this.#varTag} ${this.#ficsIdName}="${curr.#ficsId}"></${this.#varTag}>`
       }
@@ -292,7 +306,7 @@ export default class FiCsElement<D extends object, P extends object> {
       doc.createRange().createContextualFragment(html)
     )
 
-    const applyShowAttr = (childNodes: ChildNode[]): void => {
+    const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
 
@@ -304,7 +318,11 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         if (childNode instanceof Element) {
-          if (this.#isVarTag(childNode)) continue
+          if (this.#isVarTag(childNode)) {
+            childNodes.splice(index, 1, this.#getDescendant(childNode, doc))
+            index--
+            continue
+          }
 
           if (childNode.hasAttribute(this.#showAttr)) {
             ;(childNode as HTMLElement).style.display = 'none'
@@ -312,28 +330,12 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        applyShowAttr(this.#getChildNodes(childNode))
+        convertChildNodes(this.#getChildNodes(childNode))
       }
     }
 
-    applyShowAttr(childNodes)
+    convertChildNodes(childNodes)
     return childNodes
-  }
-
-  #getFiCsId(element: Element, isProperty?: boolean): string | null {
-    return isProperty
-      ? (element as any)[this.#convertStr(this.#ficsIdName, 'camel')]
-      : element.getAttribute(this.#ficsIdName)
-  }
-
-  #getDescendant = (element: Element, doc?: Document): Element => {
-    const ficsId: string | null = this.#getFiCsId(element)
-    if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
-
-    const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-    return doc
-      ? descendant.#renderOnServer(doc, this.#propsChain)
-      : descendant.#render(this.#propsChain)
   }
 
   #replaceDescendant(element: HTMLElement, doc?: Document): void {
