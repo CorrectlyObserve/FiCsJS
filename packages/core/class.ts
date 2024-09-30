@@ -280,6 +280,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const html: string = contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
+        if (this.#name === 'router') console.log(curr)
+
         if (!(curr.#ficsId in this.#descendants)) this.#descendants[curr.#ficsId] = curr
         curr = `<${this.#varTag} ${this.#ficsIdName}="${curr.#ficsId}"></${this.#varTag}>`
       }
@@ -423,6 +425,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const that: FiCsElement<D, P> = this
       let { activeElement }: { activeElement: Element | null } = shadowRoot
 
+      const getKey = (element: Element): string | null => element.getAttribute('key')
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
@@ -430,8 +433,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const isSameFiCsId: boolean =
             this.#isVarTag(newChildNode) &&
             this.#getFiCsId(oldChildNode, true) === this.#getFiCsId(newChildNode)
-          const isSameKey: boolean =
-            oldChildNode.getAttribute('key') === newChildNode.getAttribute('key')
+          const isSameKey: boolean = getKey(oldChildNode) === getKey(newChildNode)
 
           return isSameFiCsId || (isSameNode && isSameKey)
         }
@@ -503,7 +505,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!(newChildNode instanceof Element) || that.#isVarTag(newChildNode)) continue
 
           const { localName }: { localName: string } = newChildNode
-          const key: string = newChildNode.getAttribute('key') ?? localName
+          const key: string = getKey(newChildNode) ?? localName
 
           if (keys[key])
             console.warn(
@@ -550,8 +552,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const getMapKey = (childNode: ChildNode): string => {
           const { nodeName }: { nodeName: string } = childNode
-          const key: string | null =
-            childNode instanceof Element ? childNode.getAttribute('key') : null
+          const key: string | null = childNode instanceof Element ? getKey(childNode) : null
 
           return key ? `${nodeName}-${key}` : nodeName
         }
