@@ -210,7 +210,7 @@ export default class FiCsElement<D extends object, P extends object> {
       component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
-  #getChildNodes(parent: ShadowRoot | DocumentFragment | ChildNode): ChildNode[] {
+  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
     return Array.from(parent.childNodes)
   }
 
@@ -224,7 +224,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : element.getAttribute(this.#ficsIdName)
   }
 
-  #getDescendant = (element: Element, doc?: Document): Element => {
+  #getDescendant = (element: Element, doc?: Document): HTMLElement => {
     const ficsId: string | null = this.#getFiCsId(element)
     if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
 
@@ -234,7 +234,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : descendant.#render(this.#propsChain)
   }
 
-  #getHtml(doc: Document = document): ChildNode[] {
+  #getHtml(doc?: Document): ChildNode[] {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
@@ -303,7 +303,7 @@ export default class FiCsElement<D extends object, P extends object> {
       return `${prev}${curr}`
     }, '') as string
     const childNodes: ChildNode[] = this.#getChildNodes(
-      doc.createRange().createContextualFragment(html)
+      (doc ?? document).createRange().createContextualFragment(html)
     )
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
@@ -319,7 +319,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (childNode instanceof Element) {
           if (this.#isVarTag(childNode)) {
-            childNodes.splice(index, 1, this.#getDescendant(childNode, doc))
+            const element: HTMLElement = this.#getDescendant(childNode, doc)
+            childNode.replaceWith(element)
+            childNodes.splice(index, 1, element)
             index--
             continue
           }
@@ -336,13 +338,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     convertChildNodes(childNodes)
     return childNodes
-  }
-
-  #replaceDescendant(element: HTMLElement, doc?: Document): void {
-    if (this.#isVarTag(element)) element.replaceWith(this.#getDescendant(element, doc))
-    else
-      for (const child of Array.from(element.querySelectorAll(this.#varTag)))
-        child.replaceWith(this.#getDescendant(child, doc))
   }
 
   #getCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
@@ -389,10 +384,7 @@ export default class FiCsElement<D extends object, P extends object> {
       div.slot = this.#ficsId
       component.append(div)
 
-      for (const childNode of this.#getHtml(doc)) {
-        if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode, doc)
-        div.append(childNode)
-      }
+      for (const childNode of this.#getHtml(doc)) div.append(childNode)
 
       if (this.#css.length > 0)
         div.insertAdjacentHTML(
@@ -418,10 +410,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const newChildNodes: ChildNode[] = this.#getHtml()
 
     if (oldChildNodes.length === 0)
-      for (const childNode of newChildNodes) {
-        if (childNode instanceof HTMLElement) this.#replaceDescendant(childNode)
-        shadowRoot.append(childNode)
-      }
+      for (const childNode of newChildNodes) shadowRoot.append(childNode)
     else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const that: FiCsElement<D, P> = this
