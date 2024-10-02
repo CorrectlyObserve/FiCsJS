@@ -283,7 +283,7 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`There is no applicable value in json..`)
     }
 
-    const contents = this.#html({
+    const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#setDataProps(),
       $template: (
         templates: TemplateStringsArray,
