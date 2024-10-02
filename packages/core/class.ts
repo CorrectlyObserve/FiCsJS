@@ -224,7 +224,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : element.getAttribute(this.#ficsIdName)
   }
 
-  #getDescendant = (element: Element, doc?: Document): HTMLElement => {
+  #renderDescendant = (element: Element, doc?: Document): HTMLElement => {
     const ficsId: string | null = this.#getFiCsId(element)
     if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
 
@@ -319,7 +319,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (childNode instanceof Element) {
           if (this.#isVarTag(childNode)) {
-            const element: HTMLElement = this.#getDescendant(childNode, doc)
+            const element: HTMLElement = this.#renderDescendant(childNode, doc)
             childNode.replaceWith(element)
             childNodes.splice(index, 1, element)
             index--
@@ -513,11 +513,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
           if (childNode instanceof Element)
-            if (that.#isVarTag(childNode)) childNode = that.#getDescendant(childNode)
+            if (that.#isVarTag(childNode)) childNode = that.#renderDescendant(childNode)
             else that.#newElements.add(childNode)
 
           if (before instanceof Element && that.#isVarTag(before))
-            before = that.#getDescendant(before)
+            before = that.#renderDescendant(before)
 
           parentNode.insertBefore(
             childNode,
@@ -814,7 +814,7 @@ export default class FiCsElement<D extends object, P extends object> {
     temporary.remove()
   }
 
-  define(parent?: HTMLElement): void {
+  describe(parent?: HTMLElement): void {
     if (!customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
