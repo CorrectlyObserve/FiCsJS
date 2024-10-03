@@ -229,9 +229,11 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
 
     const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-    return doc
-      ? descendant.#renderOnServer(doc, this.#propsChain)
-      : descendant.#render(this.#propsChain)
+
+    if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
+
+    this.#define(this.#propsChain)
+    return this.#getComponent()
   }
 
   #getHtml(doc?: Document): ChildNode[] {
@@ -694,13 +696,16 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getComponent(): HTMLElement {
-    return document.createElement(this.#tagName)
+    const component: HTMLElement = document.createElement(this.#tagName)
+    this.#callback('created')
+
+    return component
   }
 
-  #render(propsChain: PropsChain<P>): HTMLElement {
-    const that: FiCsElement<D, P> = this
+  #define(propsChain: PropsChain<P>): void {
+    if (!customElements.get(this.#tagName)) {
+      const that: FiCsElement<D, P> = this
 
-    if (!customElements.get(that.#tagName))
       customElements.define(
         that.#tagName,
         class extends HTMLElement {
@@ -733,8 +738,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
       )
-
-    return this.#getComponent()
+    }
   }
 
   #reRender(): void {
@@ -815,46 +819,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    if (!customElements.get(this.#tagName)) {
-      const that: FiCsElement<D, P> = this
+    this.#define(this.#propsChain)
 
-      customElements.define(
-        that.#tagName,
-        class extends HTMLElement {
-          readonly shadowRoot: ShadowRoot
-
-          constructor() {
-            super()
-            this.shadowRoot = this.attachShadow({ mode: 'open' })
-            that.#initProps(that.#propsChain)
-            that.#addClassName(this)
-            that.#addAttrs(this)
-            that.#addHtml(this.shadowRoot)
-            that.#addCss(this.shadowRoot)
-            that.#addActions(this)
-            that.#removeChildNodes(this)
-            that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-            that.#components.add(this)
-          }
-
-          connectedCallback(): void {
-            that.#callback('mounted')
-          }
-
-          disconnectedCallback(): void {
-            that.#callback('destroyed')
-          }
-
-          adoptedCallback(): void {
-            that.#callback('adopted')
-          }
-        }
-      )
-
-      if (parent) {
-        parent.append(this.#getComponent())
-        this.#callback('created')
-      }
-    }
+    if (parent) parent.append(this.#getComponent())
   }
 }
