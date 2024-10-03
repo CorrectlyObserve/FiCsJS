@@ -230,7 +230,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
 
-    if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
+    if (doc) return descendant.#render(doc, this.#propsChain)
 
     this.#define(this.#propsChain)
     return this.#getComponent()
@@ -370,7 +370,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
+  #render(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
 
     if (!this.#isOnlyCsr) {
@@ -775,6 +775,29 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  getServerComponent(doc: Document): string {
+    this.#callback('created')
+    return this.#render(doc, this.#propsChain).outerHTML
+  }
+
+  ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): void {
+    const temporary: HTMLElement = document.createElement(this.#varTag)
+    temporary.setHTMLUnsafe(this.getServerComponent(document))
+
+    parent.insertBefore(
+      temporary,
+      position === 'before' ? parent.firstChild : (parent.lastChild?.nextSibling ?? null)
+    )
+    parent.insertBefore(temporary.firstChild!, temporary)
+    temporary.remove()
+  }
+
+  describe(parent?: HTMLElement): void {
+    this.#define(this.#propsChain)
+
+    if (parent) parent.append(this.#getComponent())
+  }
+
   getData = <K extends keyof D>(key: K): D[typeof key] => {
     if (key in this.#data) return this.#data[key]
 
@@ -799,28 +822,5 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#isReflecting = false
       }
     }
-  }
-
-  getServerComponent(doc: Document): string {
-    this.#callback('created')
-    return this.#renderOnServer(doc, this.#propsChain).outerHTML
-  }
-
-  ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): void {
-    const temporary: HTMLElement = document.createElement(this.#varTag)
-    temporary.setHTMLUnsafe(this.getServerComponent(document))
-
-    parent.insertBefore(
-      temporary,
-      position === 'before' ? parent.firstChild : (parent.lastChild?.nextSibling ?? null)
-    )
-    parent.insertBefore(temporary.firstChild!, temporary)
-    temporary.remove()
-  }
-
-  describe(parent?: HTMLElement): void {
-    this.#define(this.#propsChain)
-
-    if (parent) parent.append(this.#getComponent())
   }
 }
