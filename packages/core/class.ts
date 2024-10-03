@@ -633,6 +633,10 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#tagName} does not have shadowRoot...`)
   }
 
+  #getElements(shadowRoot: ShadowRoot, selector: string): Element[] {
+    return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
+  }
+
   #addEventListener(
     element: Element,
     handler: string,
@@ -672,24 +676,6 @@ export default class FiCsElement<D extends object, P extends object> {
       })
   }
 
-  #getElements(shadowRoot: ShadowRoot, selector: string): Element[] {
-    return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
-  }
-
-  #addActions(component: HTMLElement): void {
-    if (this.#actions.length > 0)
-      for (const action of this.#actions) {
-        const { handler, selector, method, enterKey }: Action<D, P> = action
-
-        if (!this.#isImmutable && selector) {
-          this.#bindings.actions.push(action)
-
-          for (const element of this.#getElements(this.#getShadowRoot(component), selector))
-            this.#addEventListener(element, handler, method, enterKey)
-        } else this.#addEventListener(component, handler, method, enterKey)
-      }
-  }
-
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
   }
@@ -702,10 +688,10 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #define(propsChain: PropsChain<P>): void {
-    if (!customElements.get(this.#tagName)) {
+    if (!window.customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
-      customElements.define(
+      window.customElements.define(
         that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
@@ -718,7 +704,19 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#addAttrs(this)
             that.#addHtml(this.shadowRoot)
             that.#addCss(this.shadowRoot)
-            that.#addActions(this)
+
+            if (that.#actions.length > 0)
+              for (const action of that.#actions) {
+                const { handler, selector, method, enterKey }: Action<D, P> = action
+
+                if (!that.#isImmutable && selector) {
+                  that.#bindings.actions.push(action)
+
+                  for (const element of that.#getElements(that.#getShadowRoot(this), selector))
+                    that.#addEventListener(element, handler, method, enterKey)
+                } else that.#addEventListener(this, handler, method, enterKey)
+              }
+
             that.#removeChildNodes(this)
             that.#setProperty(this, that.#ficsIdName, that.#ficsId)
             that.#components.add(this)
