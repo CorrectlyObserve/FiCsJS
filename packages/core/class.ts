@@ -224,16 +224,16 @@ export default class FiCsElement<D extends object, P extends object> {
       : element.getAttribute(this.#ficsIdName)
   }
 
-  #renderDescendant = (element: Element, doc?: Document): HTMLElement => {
+  #render = (element: Element, doc?: Document): HTMLElement => {
     const ficsId: string | null = this.#getFiCsId(element)
     if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
 
     const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
 
-    if (doc) return descendant.#render(doc, this.#propsChain)
+    if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    this.#define(this.#propsChain)
-    return this.#getComponent()
+    descendant.#define(this.#propsChain)
+    return descendant.#getComponent()
   }
 
   #getHtml(doc?: Document): ChildNode[] {
@@ -321,9 +321,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (childNode instanceof Element) {
           if (this.#isVarTag(childNode)) {
-            const element: HTMLElement = this.#renderDescendant(childNode, doc)
-            childNode.replaceWith(element)
-            childNodes.splice(index, 1, element)
+            const component: HTMLElement = this.#render(childNode, doc)
+            childNode.replaceWith(component)
+            childNodes.splice(index, 1, component)
             index--
             continue
           }
@@ -370,7 +370,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #render(doc: Document, propsChain: PropsChain<P>): HTMLElement {
+  #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
 
     if (!this.#isOnlyCsr) {
@@ -515,11 +515,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
           if (childNode instanceof Element)
-            if (that.#isVarTag(childNode)) childNode = that.#renderDescendant(childNode)
+            if (that.#isVarTag(childNode)) childNode = that.#render(childNode)
             else that.#newElements.add(childNode)
 
-          if (before instanceof Element && that.#isVarTag(before))
-            before = that.#renderDescendant(before)
+          if (before instanceof Element && that.#isVarTag(before)) before = that.#render(before)
 
           parentNode.insertBefore(
             childNode,
@@ -777,7 +776,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   getServerComponent(doc: Document): string {
     this.#callback('created')
-    return this.#render(doc, this.#propsChain).outerHTML
+    return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
   ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): void {
