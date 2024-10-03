@@ -13,10 +13,10 @@ export default (queue: Queue): void => {
       isProcessing = true
 
       while (queues.length > 0) {
-        const { ficsId, reRender }: Queue = queues.shift()!
+        const { ficsId, func }: Queue = queues.shift()!
 
         delete ficsIds[ficsId]
-        reRender
+        func
       }
 
       isProcessing = false
