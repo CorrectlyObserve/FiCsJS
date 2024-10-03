@@ -136,7 +136,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, func: this.#reRender() })
     }
   }
 
@@ -693,6 +693,10 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
   }
 
+  #getComponent(): HTMLElement {
+    return document.createElement(this.#tagName)
+  }
+
   #render(propsChain: PropsChain<P>): HTMLElement {
     const that: FiCsElement<D, P> = this
 
@@ -705,6 +709,15 @@ export default class FiCsElement<D extends object, P extends object> {
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
+            that.#initProps(propsChain)
+            that.#addClassName(this)
+            that.#addAttrs(this)
+            that.#addHtml(this.shadowRoot)
+            that.#addCss(this.shadowRoot)
+            that.#addActions(this)
+            that.#removeChildNodes(this)
+            that.#setProperty(this, that.#ficsIdName, that.#ficsId)
+            that.#components.add(this)
           }
 
           connectedCallback(): void {
@@ -721,20 +734,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       )
 
-    const component: HTMLElement = document.createElement(that.#tagName)
-    const shadowRoot: ShadowRoot = that.#getShadowRoot(component)
-
-    that.#initProps(propsChain)
-    that.#addClassName(component)
-    that.#addAttrs(component)
-    that.#addHtml(shadowRoot)
-    that.#addCss(shadowRoot)
-    that.#addActions(component)
-    that.#removeChildNodes(component)
-    that.#setProperty(component, that.#ficsIdName, that.#ficsId)
-    that.#components.add(component)
-
-    return component
+    return this.#getComponent()
   }
 
   #reRender(): void {
@@ -782,7 +782,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`"${key as string}" is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addToQueue({ ficsId: this.#ficsId, reRender: this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, func: this.#reRender() })
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
@@ -822,27 +822,23 @@ export default class FiCsElement<D extends object, P extends object> {
         that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
-          #isRendered: boolean = false
 
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
+            that.#initProps(that.#propsChain)
+            that.#addClassName(this)
+            that.#addAttrs(this)
+            that.#addHtml(this.shadowRoot)
+            that.#addCss(this.shadowRoot)
+            that.#addActions(this)
+            that.#removeChildNodes(this)
+            that.#setProperty(this, that.#ficsIdName, that.#ficsId)
+            that.#components.add(this)
           }
 
           connectedCallback(): void {
-            if (!this.#isRendered && this.shadowRoot.innerHTML.trim() === '') {
-              that.#callback('mounted')
-              that.#initProps(that.#propsChain)
-              that.#addClassName(this)
-              that.#addAttrs(this)
-              that.#addHtml(this.shadowRoot)
-              that.#addCss(this.shadowRoot)
-              that.#addActions(this)
-              that.#removeChildNodes(this)
-              that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-              that.#components.add(this)
-              this.#isRendered = true
-            }
+            that.#callback('mounted')
           }
 
           disconnectedCallback(): void {
@@ -856,7 +852,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
 
       if (parent) {
-        parent.append(document.createElement(this.#tagName))
+        parent.append(this.#getComponent())
         this.#callback('created')
       }
     }
