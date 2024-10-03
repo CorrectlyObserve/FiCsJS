@@ -1,7 +1,8 @@
 import { getRegExp, pathParam } from './dynamicParam'
+import throwWindowError from './utility'
 
 export default (path: string): Record<string, string> => {
-  if (!window) throw new Error('window is not defined...')
+  throwWindowError()
 
   const regExps: string[] | null = getRegExp(path).exec(window.location.pathname)
   const pathParams: Record<string, string> = {}
