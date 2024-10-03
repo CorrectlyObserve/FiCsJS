@@ -2,6 +2,7 @@ import FiCsElement from '../core/class'
 import type { Params, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import type { FiCsRouter, PageContent, RouterContent, RouterData } from './types'
+import throwWindowError from './utility'
 
 const Router = ({
   pages,
@@ -49,13 +50,13 @@ const Router = ({
     actions,
     hooks: {
       created: (params: Params<RouterData, {}>) => {
-        if (!window) throw new Error('window is not defined...')
+        throwWindowError()
 
         params.$setData('pathname', window.location.pathname)
         hooks?.created?.(params)
       },
       mounted: (params: Params<RouterData, {}>) => {
-        if (!window) throw new Error('window is not defined...')
+        throwWindowError()
 
         window.addEventListener('popstate', () =>
           params.$setData('pathname', window.location.pathname)
