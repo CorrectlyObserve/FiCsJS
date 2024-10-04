@@ -1,5 +1,5 @@
 import generate from './generator'
-import addToQueue from './queue'
+import { addToQueue } from './queue'
 import type {
   Action,
   Attrs,
@@ -21,6 +21,7 @@ import type {
   Sanitized,
   Style
 } from './types'
+import throwWindowError from './utils'
 
 const generator: Generator<number> = generate()
 
@@ -136,7 +137,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addToQueue({ ficsId: this.#ficsId, func: this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, func: () => this.#reRender() })
     }
   }
 
@@ -232,7 +233,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    descendant.#define(this.#propsChain)
+    addToQueue({ ficsId: descendant.#ficsId, func: () => descendant.#define(this.#propsChain) })
     return descendant.#getComponent()
   }
 
@@ -371,6 +372,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
+    addToQueue({ ficsId: this.#ficsId, func: () => this.#define() })
     const component: HTMLElement = doc.createElement(this.#tagName)
 
     if (!this.#isOnlyCsr) {
@@ -687,7 +689,9 @@ export default class FiCsElement<D extends object, P extends object> {
     return component
   }
 
-  #define(propsChain: PropsChain<P>): void {
+  #define(propsChain?: PropsChain<P>): void {
+    throwWindowError()
+
     if (!window.customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
 
@@ -699,7 +703,7 @@ export default class FiCsElement<D extends object, P extends object> {
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
-            that.#initProps(propsChain)
+            that.#initProps(propsChain ?? that.#propsChain)
             that.#addClassName(this)
             that.#addAttrs(this)
             that.#addHtml(this.shadowRoot)
@@ -790,7 +794,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    this.#define(this.#propsChain)
+    addToQueue({ ficsId: this.#ficsId, func: () => this.#define() })
 
     if (parent) parent.append(this.#getComponent())
   }
@@ -806,7 +810,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`"${key as string}" is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addToQueue({ ficsId: this.#ficsId, func: this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, func: () => this.#reRender() })
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
