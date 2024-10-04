@@ -1,4 +1,4 @@
-import fics from '@ficsjs'
+import { fics } from '@ficsjs'
 import css from '@/styles/lang.css?inline'
 
 const Langs = () =>
