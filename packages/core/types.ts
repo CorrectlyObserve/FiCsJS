@@ -105,8 +105,6 @@ export interface Queue {
   func: () => void
 }
 
-export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
-
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Style<D, P> {
