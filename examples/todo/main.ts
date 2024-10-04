@@ -1,8 +1,11 @@
+import { useClient } from '@ficsjs'
 import { getState, setState, syncState } from '@ficsjs/state'
 import Header from '@/components/header'
 import Router from '@/components/router'
 import Footer from '@/components/footer'
 import { lang } from '@/store'
+
+useClient()
 
 const {
   body,
@@ -15,20 +18,11 @@ setState(lang, _lang || 'en')
 if (pathname.split('/')[0] === getState(lang)) pathname = pathname.slice(3)
 
 const header = Header({ lang: getState(lang), pathname })
-const router = Router(getState(lang))
-const footer = Footer()
-
 header.ssr(body, 'before')
 
 const main = document.querySelector('main')
-if (main) router.ssr(main)
+if (main) Router(getState(lang)).ssr(main)
 
-footer.ssr(body)
+Footer().ssr(body)
 
 syncState({ state: lang, data: [{ fics: header, key: 'lang' }] })
-
-window.addEventListener('load', () => {
-  header.define()
-  router.define()
-  footer.define()
-})
