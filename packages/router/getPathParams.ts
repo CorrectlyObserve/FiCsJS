@@ -1,5 +1,5 @@
+import throwWindowError from '../core/utils'
 import { getRegExp, pathParam } from './dynamicParam'
-import throwWindowError from './utility'
 
 export default (path: string): Record<string, string> => {
   throwWindowError()
