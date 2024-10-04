@@ -102,7 +102,7 @@ export interface PropsTree<D, P> {
 
 export interface Queue {
   ficsId: string
-  func: void
+  func: () => void
 }
 
 export type Reflections<D> = { [K in keyof Partial<D>]: (data: D[K]) => void }
