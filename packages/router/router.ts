@@ -1,8 +1,8 @@
 import FiCsElement from '../core/class'
 import type { Params, Sanitized } from '../core/types'
+import throwWindowError from '../core/utils'
 import { getRegExp } from './dynamicParam'
 import type { FiCsRouter, PageContent, RouterContent, RouterData } from './types'
-import throwWindowError from './utility'
 
 const Router = ({
   pages,
