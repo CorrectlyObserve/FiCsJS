@@ -237,11 +237,11 @@ export default class FiCsElement<D extends object, P extends object> {
     return descendant.#getComponent()
   }
 
-  #getHtml(doc?: Document): ChildNode[] {
+  #convertTemplate(doc?: Document): ChildNode[] {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
-    const convertTemplate = (
+    const convertSyntaxes = (
       templates: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
@@ -291,7 +291,7 @@ export default class FiCsElement<D extends object, P extends object> {
       $template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
+      ): Sanitized<D, P> => ({ [sanitized]: convertSyntaxes(templates, variables) }),
       $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       $i18n
@@ -386,9 +386,8 @@ export default class FiCsElement<D extends object, P extends object> {
       const div: HTMLElement = doc.createElement('div')
       div.id = this.#ficsId
       div.slot = this.#ficsId
+      for (const childNode of this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
-
-      for (const childNode of this.#getHtml(doc)) div.append(childNode)
 
       if (this.#css.length > 0)
         div.insertAdjacentHTML(
@@ -411,7 +410,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addHtml(shadowRoot: ShadowRoot): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
-    const newChildNodes: ChildNode[] = this.#getHtml()
+    const newChildNodes: ChildNode[] = this.#convertTemplate()
 
     if (oldChildNodes.length === 0)
       for (const childNode of newChildNodes) shadowRoot.append(childNode)
