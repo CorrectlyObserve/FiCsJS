@@ -143,7 +143,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #initProps = (propsChain: PropsChain<P>): void => {
     if (this.#inheritances.length > 0)
-      for (const { descendant, values } of this.#inheritances)
+      for (const { descendant, props } of this.#inheritances)
         for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
           if (_descendant.#isImmutable)
             throw new Error(
@@ -152,7 +152,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const descendantId: string = _descendant.#ficsId
 
-          for (const [key, value] of Object.entries(values({ ...this.#setDataMethods() }))) {
+          for (const [key, value] of Object.entries(props({ ...this.#setDataMethods() }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
