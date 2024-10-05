@@ -698,6 +698,7 @@ export default class FiCsElement<D extends object, P extends object> {
         that.#tagName,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
+          isRendered: boolean = false
 
           constructor() {
             super()
@@ -726,7 +727,10 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           connectedCallback(): void {
-            that.#callback('mounted')
+            if (!this.isRendered) {
+              that.#callback('mounted')
+              this.isRendered = true
+            }
           }
 
           disconnectedCallback(): void {
