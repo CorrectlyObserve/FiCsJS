@@ -67,14 +67,14 @@ export interface Hooks<D, P> {
 }
 
 export type Inheritances<D> = {
-  descendants: Descendant | Descendant[]
+  descendant: Descendant | Descendant[]
   values: (params: DataMethods<D>) => object
 }[]
 
 export interface I18n {
   json: Record<string, string>
   lang: string
-  keys: string | string[]
+  key: string | string[]
 }
 
 export interface LangJson {
@@ -121,5 +121,5 @@ export interface Syntax<D extends object, P extends object> {
   ) => Sanitized<D, P>
   $html: (str: string) => Record<symbol, string>
   $show: (condition: boolean) => string
-  $i18n: ({ json, lang, keys }: I18n) => string
+  $i18n: (params: I18n) => string
 }
