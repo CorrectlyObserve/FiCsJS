@@ -1,5 +1,14 @@
 import FiCsElement from '../core/class'
-import type { Action, Attrs, ClassName, Css, Hooks, Sanitized, Syntax } from '../core/types'
+import type {
+  Action,
+  Attrs,
+  ClassName,
+  Css,
+  Descendant,
+  Hooks,
+  Sanitized,
+  Syntax
+} from '../core/types'
 
 export interface FiCsLink {
   href: string
@@ -29,7 +38,7 @@ export interface PageContent {
   redirect?: string
 }
 
-export type RouterContent = FiCsElement<{}, {}> | Sanitized<RouterData, {}>
+export type RouterContent = Descendant | Sanitized<RouterData, {}>
 
 export interface RouterData {
   pathname: string
