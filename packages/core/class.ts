@@ -143,14 +143,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #initProps = (propsChain: PropsChain<P>): void => {
     if (this.#inheritances.length > 0)
-      for (const { descendants, values } of this.#inheritances)
-        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          if (descendant.#isImmutable)
+      for (const { descendant, values } of this.#inheritances)
+        for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
+          if (_descendant.#isImmutable)
             throw new Error(
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
 
-          const descendantId: string = descendant.#ficsId
+          const descendantId: string = _descendant.#ficsId
 
           for (const [key, value] of Object.entries(values({ ...this.#setDataMethods() }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
@@ -163,7 +163,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const tree: PropsTree<D, P> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
               dataKey: key as keyof D,
-              setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
+              setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
             }
             const isLargerNumberId = (index: number): boolean =>
               this.#propsTrees[index].numberId >= tree.numberId
@@ -275,12 +275,12 @@ export default class FiCsElement<D extends object, P extends object> {
       return converted as HtmlContent<D, P>[]
     }
 
-    const $i18n: ({ json, lang, keys }: I18n) => string = ({ json, lang, keys }: I18n): string => {
+    const $i18n: ({ json, lang, key }: I18n) => string = ({ json, lang, key }: I18n): string => {
       let texts: Record<string, string> | string = json[lang]
       if (!texts) throw new Error(`${lang}.json does not exist...`)
 
-      for (const key of Array.isArray(keys) ? keys : [keys])
-        if (typeof texts === 'object' && texts !== null && key in texts) texts = texts[key]
+      for (const _key of Array.isArray(key) ? key : [key])
+        if (typeof texts === 'object' && texts !== null && _key in texts) texts = texts[_key]
 
       if (typeof texts === 'string') return texts
       throw new Error(`There is no applicable value in json..`)
