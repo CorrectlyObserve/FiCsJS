@@ -50,6 +50,11 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
 }
 
+export type GlobalCss = (
+  | { selector: SingleOrArray<string>; style: Record<string, string | number> }
+  | string
+)[]
+
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & Syntax<D, P>
 ) => Sanitized<D, P>
@@ -67,14 +72,14 @@ export interface Hooks<D, P> {
 }
 
 export type Inheritances<D> = {
-  descendant: Descendant | Descendant[]
-  values: (params: DataMethods<D>) => object
+  descendant: SingleOrArray<Descendant>
+  props: (params: DataMethods<D>) => object
 }[]
 
 export interface I18n {
   json: Record<string, string>
   lang: string
-  key: string | string[]
+  key: SingleOrArray<string>
 }
 
 export interface LangJson {
@@ -113,6 +118,8 @@ export interface Style<D, P> {
   csr?: boolean
   ssr?: boolean
 }
+
+type SingleOrArray<T> = T | T[]
 
 export interface Syntax<D extends object, P extends object> {
   $template: (
