@@ -1,10 +1,11 @@
-import type { Queue } from './types'
+import type { GlobalCss, Queue } from './types'
 import throwWindowError from './utils'
 
 const ficsIds: Record<string, boolean> = {}
 const queues: Queue[] = new Array()
 let hasLoaded: boolean = false
 let isProcessing: boolean = false
+let css: GlobalCss | undefined = undefined
 
 export const addToQueue = (queue: Queue): void => {
   if (!ficsIds[queue.ficsId]) {
@@ -18,7 +19,7 @@ export const addToQueue = (queue: Queue): void => {
         const { ficsId, func }: Queue = queues.shift()!
 
         delete ficsIds[ficsId]
-        func()
+        func(css)
       }
 
       isProcessing = false
@@ -26,12 +27,13 @@ export const addToQueue = (queue: Queue): void => {
   }
 }
 
-export const useClient = () => {
+export const useClient = ({ globalCss }: { globalCss?: GlobalCss } = {}) => {
   throwWindowError()
   if (typeof document === 'undefined') throw new Error('document is not defined...')
 
   const completeLoading = (): void => {
     hasLoaded = true
+    if (globalCss && globalCss.length > 0) css = [...globalCss]
   }
   const controlEventListener = (type: 'add' | 'remove'): void => {
     window[`${type}EventListener`]('DOMContentLoaded', completeLoading)
