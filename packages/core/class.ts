@@ -356,16 +356,24 @@ export default class FiCsElement<D extends object, P extends object> {
       const entries: [string, unknown][] = Object.entries(
         typeof param.style === 'function' ? param.style(this.#setDataProps()) : param.style
       )
-      const content: string = entries
-        .map(([key, value]) => {
-          key = this.#convertStr(key, 'kebab')
-          if (key.startsWith('webkit')) key = `-${key}`
+      const content: string = `{
+        ${entries
+          .map(([key, value]) => {
+            key = this.#convertStr(key, 'kebab')
 
-          return `${key}: ${value};`
-        })
-        .join('\n')
+            if (key.startsWith(':host'))
+              console.warn(`The ':host' selector might not be necessary in ${key}...`)
+            else if (key.startsWith('webkit')) key = `-${key}`
 
-      return `${host} ${param.selector ?? ''}{${content}}`
+            return `${key}: ${value};`
+          })
+          .join('\n')}
+      }`
+
+      if (Array.isArray(param.selector))
+        return param.selector.reduce((prev, curr) => `${prev} ${host} ${curr}${content}`, '')
+
+      return `${host} ${param.selector ?? ''}${content}`
     }
 
     return css.reduce((prev, curr) => {
