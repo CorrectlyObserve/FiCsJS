@@ -53,7 +53,7 @@ export interface FiCs<D extends object, P extends object> {
 export type GlobalCss = (GlobalStyle | string)[]
 
 export interface GlobalStyle {
-  selector: string
+  selector: SingleOrArray<string>
   style: Record<string, string | number>
 }
 
@@ -114,14 +114,14 @@ export interface Queue {
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
+export type SingleOrArray<T> = T | T[]
+
 export interface Style<D, P> {
-  selector?: string
+  selector?: SingleOrArray<string>
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
   csr?: boolean
   ssr?: boolean
 }
-
-export type SingleOrArray<T> = T | T[]
 
 export interface Syntax<D extends object, P extends object> {
   $template: (
