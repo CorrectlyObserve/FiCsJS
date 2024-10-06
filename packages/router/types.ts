@@ -7,6 +7,7 @@ import type {
   Descendant,
   Hooks,
   Sanitized,
+  SingleOrArray,
   Syntax
 } from '../core/types'
 
@@ -23,7 +24,7 @@ export interface FiCsLink {
 }
 
 export interface FiCsRouter {
-  pages: (PageContent & { paths: string | string[] })[]
+  pages: (PageContent & { path: SingleOrArray<string> })[]
   notFound?: PageContent
   isOnlyCsr?: boolean
   className?: ClassName<RouterData, {}>
