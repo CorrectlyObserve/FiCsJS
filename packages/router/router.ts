@@ -34,9 +34,9 @@ const Router = ({
           return returned instanceof FiCsElement ? $template`${returned}` : returned
         }
 
-        for (const { paths, content, redirect } of pages)
-          for (const path of Array.isArray(paths) ? paths : [paths])
-            if (pathname === path || getRegExp(path).test(pathname))
+        for (const { path, content, redirect } of pages)
+          for (const _path of Array.isArray(path) ? path : [path])
+            if (pathname === _path || getRegExp(_path).test(pathname))
               return resolveContent({ content, redirect })
 
         if (notFound) return resolveContent(notFound)
