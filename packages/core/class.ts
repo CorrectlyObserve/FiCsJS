@@ -9,6 +9,7 @@ import type {
   DataMethods,
   DataProps,
   FiCs,
+  GlobalCss,
   Html,
   HtmlContent,
   Hooks,
@@ -233,7 +234,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    addToQueue({ ficsId: descendant.#ficsId, func: () => descendant.#define(this.#propsChain) })
+    addToQueue({
+      ficsId: descendant.#ficsId,
+      func: (css?: GlobalCss) => descendant.#define({ propsChain: this.#propsChain, css })
+    })
     return descendant.#getComponent()
   }
 
@@ -372,7 +376,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
-    addToQueue({ ficsId: this.#ficsId, func: () => this.#define() })
+    addToQueue({ ficsId: this.#ficsId, func: (css?: GlobalCss) => this.#define({ css }) })
     const component: HTMLElement = doc.createElement(this.#tagName)
 
     if (!this.#isOnlyCsr) {
@@ -609,7 +613,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = new Array()): void {
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P>): void {
     if (this.#css.length === 0) return
 
     if (!this.#isImmutable && css.length === 0)
@@ -620,11 +624,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
     stylesheet.replaceSync(
-      this.#getCss({
-        css: css.length > 0 ? Array.from(new Set([...this.#css, ...css])) : this.#css,
-        host: ':host',
-        mode: 'csr'
-      })
+      this.#getCss({ css: Array.from(new Set([...this.#css, ...css])), host: ':host', mode: 'csr' })
     )
   }
 
@@ -688,8 +688,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return component
   }
 
-  #define(propsChain?: PropsChain<P>): void {
+  #define({ propsChain, css }: { propsChain?: PropsChain<P>; css?: GlobalCss }): void {
     throwWindowError()
+
+    console.log(this.#name, css)
 
     if (!window.customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
@@ -707,7 +709,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#addClassName(this)
             that.#addAttrs(this)
             that.#addHtml(this.shadowRoot)
-            that.#addCss(this.shadowRoot)
+            that.#addCss(this.shadowRoot, css ?? [])
 
             if (that.#actions.length > 0)
               for (const action of that.#actions) {
@@ -797,7 +799,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    addToQueue({ ficsId: this.#ficsId, func: () => this.#define() })
+    addToQueue({ ficsId: this.#ficsId, func: (css?: GlobalCss) => this.#define({ css }) })
 
     if (parent) parent.append(this.#getComponent())
   }
