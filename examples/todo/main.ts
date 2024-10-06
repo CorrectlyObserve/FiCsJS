@@ -4,8 +4,9 @@ import Header from '@/components/header'
 import Router from '@/components/router'
 import Footer from '@/components/footer'
 import { lang } from '@/store'
+import globalCss from '@/styles/globalCss'
 
-useClient()
+useClient({ globalCss })
 
 const {
   body,
