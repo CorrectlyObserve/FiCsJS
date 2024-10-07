@@ -1,14 +1,14 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
-const getPackage = (directory: string) => `./../../packages/${directory}/index`
+const getPackage = (directory: string) => resolve(__dirname, `./../../packages/${directory}/index`)
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@ficsjs/router': resolve(__dirname, getPackage('router')),
-      '@ficsjs/state': resolve(__dirname, getPackage('state')),
-      '@ficsjs': resolve(__dirname, getPackage('core')),
+      'ficsjs/router': getPackage('router'),
+      'ficsjs/state': getPackage('state'),
+      ficsjs: getPackage('core'),
       '@': '/src'
     }
   },
