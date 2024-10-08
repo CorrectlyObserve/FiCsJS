@@ -56,6 +56,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
   #propsChain: PropsChain<P> = new Map()
+  #globalCss: GlobalCss = new Array()
   #isReflecting: boolean = false
 
   constructor({
@@ -138,7 +139,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
     else if (this.#props[key] !== value) {
       this.#props[key] = value
-      addToQueue({ ficsId: this.#ficsId, func: () => this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, process: (): void => this.#reRender() })
     }
   }
 
@@ -236,7 +237,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     addToQueue({
       ficsId: descendant.#ficsId,
-      func: (css?: GlobalCss) => descendant.#define({ propsChain: this.#propsChain, css })
+      process: ({ globalCss }: { globalCss?: GlobalCss }) => {
+        if (globalCss && globalCss.length > 0) descendant.#globalCss = [...globalCss]
+        descendant.#define(this.#propsChain)
+      }
     })
     return descendant.#getComponent()
   }
@@ -383,8 +387,17 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
+  #addToDefine(): void {
+    addToQueue({
+      ficsId: this.#ficsId,
+      process: ({ globalCss }: { globalCss?: GlobalCss }): void => {
+        if (globalCss && globalCss.length > 0) this.#globalCss = [...globalCss]
+        this.#define(this.#propsChain)
+      }
+    })
+  }
+
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
-    addToQueue({ ficsId: this.#ficsId, func: (css?: GlobalCss) => this.#define({ css }) })
     const component: HTMLElement = doc.createElement(this.#tagName)
 
     if (!this.#isOnlyCsr) {
@@ -408,6 +421,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
     }
 
+    this.#addToDefine()
     return component
   }
 
@@ -621,8 +635,10 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P>): void {
-    if (this.#css.length === 0) return
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): void {
+    const baseCss: Css<D, P> | GlobalCss = [...this.#globalCss, ...this.#css]
+
+    if (baseCss.length === 0) return
 
     if (!this.#isImmutable && css.length === 0)
       for (const [index, content] of this.#css.entries())
@@ -632,7 +648,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
     stylesheet.replaceSync(
-      this.#getCss({ css: Array.from(new Set([...this.#css, ...css])), host: ':host', mode: 'csr' })
+      this.#getCss({ css: Array.from(new Set([...baseCss, ...css])), host: ':host', mode: 'csr' })
     )
   }
 
@@ -696,10 +712,8 @@ export default class FiCsElement<D extends object, P extends object> {
     return component
   }
 
-  #define({ propsChain, css }: { propsChain?: PropsChain<P>; css?: GlobalCss }): void {
+  #define(propsChain?: PropsChain<P>): void {
     throwWindowError()
-
-    console.log(this.#name, css)
 
     if (!window.customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
@@ -717,7 +731,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#addClassName(this)
             that.#addAttrs(this)
             that.#addHtml(this.shadowRoot)
-            that.#addCss(this.shadowRoot, css ?? [])
+            that.#addCss(this.shadowRoot)
 
             if (that.#actions.length > 0)
               for (const action of that.#actions) {
@@ -807,8 +821,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    addToQueue({ ficsId: this.#ficsId, func: (css?: GlobalCss) => this.#define({ css }) })
-
+    this.#addToDefine()
     if (parent) parent.append(this.#getComponent())
   }
 
@@ -823,7 +836,7 @@ export default class FiCsElement<D extends object, P extends object> {
     else if (!(key in this.#data)) throw new Error(`"${key as string}" is not defined in data...`)
     else if (this.#data[key] !== value) {
       this.#data[key] = value
-      addToQueue({ ficsId: this.#ficsId, func: () => this.#reRender() })
+      addToQueue({ ficsId: this.#ficsId, process: (): void => this.#reRender() })
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
