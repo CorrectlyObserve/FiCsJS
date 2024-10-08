@@ -20,7 +20,7 @@ export interface Bindings<D, P> {
 
 export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
-export type Css<D, P> = (string | GlobalStyle | Style<D, P>)[]
+export type Css<D, P> = (string | Style<D, P>)[]
 
 export interface DataMethods<D> {
   $setData: (key: keyof D, value: D[typeof key]) => void
@@ -50,12 +50,13 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
 }
 
-export type GlobalCss = (GlobalStyle | string)[]
-
-export interface GlobalStyle {
-  selector: SingleOrArray<string>
-  style: Record<string, string | number>
-}
+export type GlobalCss = (
+  | {
+      selector: SingleOrArray<string>
+      style: Record<string, string | number>
+    }
+  | string
+)[]
 
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & Syntax<D, P>
@@ -109,7 +110,7 @@ export interface PropsTree<D, P> {
 
 export interface Queue {
   ficsId: string
-  func: (css?: GlobalCss) => void
+  process: ({ globalCss }: { globalCss?: GlobalCss }) => void
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
