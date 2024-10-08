@@ -1,4 +1,4 @@
-import { fics } from '@ficsjs'
+import { fics } from 'ficsjs'
 import css from '@/styles/lang.css?inline'
 
 const Langs = () =>
@@ -12,21 +12,21 @@ const Langs = () =>
       $template,
       $show
     }) => $template`
-    <div class="container">
-      <span class="lang">${lang.toUpperCase()}</span>
-      <div class="langs${!isShown ? ' hidden' : ''}" ${$show(isShown)}>
-        ${langs.map(
-          _lang => $template`
-            <span class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
-              <a href="/${_lang === 'en' ? '' : _lang + '/'}${pathname}">
-                ${_lang.toUpperCase()}
-              </a>
-            </span>
-          `
-        )}
+      <div class="container">
+        <span class="lang">${lang.toUpperCase()}</span>
+        <div class="langs${!isShown ? ' hidden' : ''}" ${$show(isShown)}>
+          ${langs.map(
+            _lang => $template`
+              <span class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
+                <a href="/${_lang === 'en' ? '' : _lang + '/'}${pathname}">
+                  ${_lang.toUpperCase()}
+                </a>
+              </span>
+            `
+          )}
+        </div>
       </div>
-    </div>
-  `,
+    `,
     css: [css],
     actions: [
       {

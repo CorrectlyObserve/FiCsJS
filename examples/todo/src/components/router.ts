@@ -1,4 +1,4 @@
-import { ficsRouter } from '@ficsjs/router'
+import { ficsRouter } from 'ficsjs/router'
 import TopPage from '@/components/topPage'
 import NotFound from '@/components/notFound'
 
