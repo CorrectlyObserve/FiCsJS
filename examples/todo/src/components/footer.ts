@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 
-const Footer = () =>
+export default () =>
   fics({
     name: 'footer',
     isImmutable: true,
@@ -13,5 +13,3 @@ const Footer = () =>
       }
     ]
   })
-
-export default Footer

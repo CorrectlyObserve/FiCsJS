@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import css from '@/styles/lang.css?inline'
 
-const Langs = () =>
+export default () =>
   fics({
     name: 'langs',
     data: () => ({ langs: ['en', 'ja'], isShown: false }),
@@ -41,5 +41,3 @@ const Langs = () =>
       }
     ]
   })
-
-export default Langs
