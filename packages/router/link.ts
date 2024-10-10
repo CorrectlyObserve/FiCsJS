@@ -1,7 +1,8 @@
 import FiCsElement from '../core/class'
+import { getGlobalCss } from '../core/globalCss'
 import type { FiCsLink, RouterContent, RouterData } from './types'
 
-const Link = ({
+export default ({
   href,
   content,
   router,
@@ -11,7 +12,7 @@ const Link = ({
   css,
   actions,
   hooks
-}: FiCsLink) =>
+}: FiCsLink): FiCsElement<RouterData, {}> =>
   new FiCsElement<RouterData, {}>({
     name: 'link',
     isExceptional: true,
@@ -21,11 +22,9 @@ const Link = ({
     attributes,
     html: ({ $template, $html, $show, $i18n }) => {
       const returned: RouterContent = content({ $template, $html, $show, $i18n })
-      return $template`
-        <a href="${href}">${returned instanceof FiCsElement ? $template`${returned}` : returned}</a>
-      `
+      return $template`<a href="${href}">${returned instanceof FiCsElement ? $template`${returned}` : returned}</a>`
     },
-    css,
+    css: css ? [...getGlobalCss(), ...css] : getGlobalCss(),
     actions: [
       ...(actions ?? []),
       {
@@ -40,5 +39,3 @@ const Link = ({
     ],
     hooks
   })
-
-export default Link
