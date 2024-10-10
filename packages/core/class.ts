@@ -356,7 +356,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const content: string = `{
         ${entries
           .map(([key, value]) => {
-            if (!value) return ''
+            if (value === undefined) return ''
 
             key = this.#convertStr(key, 'kebab')
 
