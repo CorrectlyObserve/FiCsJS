@@ -1,4 +1,5 @@
 import generate from './generator'
+import { getGlobalCss } from './globalCss'
 import addToQueue from './queue'
 import type {
   Action,
@@ -115,7 +116,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
-
       if (css && css.length > 0) this.#css = [...css]
       if (actions && actions.length > 0) this.#actions = [...actions]
       if (hooks) this.#hooks = { ...hooks }
@@ -344,7 +344,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return childNodes
   }
 
-  #getCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
+  #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
     const createCss = (param: GlobalCssContent | CssContent<D, P>): string => {
@@ -382,6 +382,10 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
+  #overwriteCss(css?: Css<D, P>): Css<D, P> {
+    return [...getGlobalCss(), ...this.#css, ...(css ?? [])]
+  }
+
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
 
@@ -399,10 +403,12 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
 
-      if (this.#css.length > 0)
+      const allCss: Css<D, P> = this.#overwriteCss()
+
+      if (allCss.length > 0)
         div.insertAdjacentHTML(
           'beforeend',
-          `<style>${this.#getCss({ css: this.#css, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
+          `<style>${this.#convertCss({ css: allCss, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
         )
     }
 
@@ -621,7 +627,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addCss(shadowRoot: ShadowRoot, css: Css<D, P>): void {
-    if (this.#css.length === 0) return
+    const allCss: Css<D, P> = this.#overwriteCss()
+
+    if (allCss.length === 0) return
 
     if (!this.#isImmutable && css.length === 0)
       for (const [index, content] of this.#css.entries())
@@ -630,9 +638,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(
-      this.#getCss({ css: Array.from(new Set([...this.#css, ...css])), host: ':host', mode: 'csr' })
-    )
+    stylesheet.replaceSync(this.#convertCss({ css: allCss, host: ':host', mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
