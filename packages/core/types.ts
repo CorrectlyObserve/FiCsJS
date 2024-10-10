@@ -20,7 +20,17 @@ export interface Bindings<D, P> {
 
 export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
-export type Css<D, P> = (string | Style<D, P>)[]
+export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
+
+export interface CssContent<D, P> extends CssSelector {
+  style: ArrowFuncOrValue<Record<string, string | number>, D, P>
+}
+
+interface CssSelector {
+  selector?: SingleOrArray<string>
+  csr?: boolean
+  ssr?: boolean
+}
 
 export interface DataMethods<D> {
   $setData: (key: keyof D, value: D[typeof key]) => void
@@ -50,13 +60,11 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
 }
 
-export type GlobalCss = (
-  | {
-      selector: SingleOrArray<string>
-      style: Record<string, string | number>
-    }
-  | string
-)[]
+export type GlobalCss = (GlobalCssContent | string)[]
+
+export interface GlobalCssContent extends CssSelector {
+  style: Record<string, string | number | undefined>
+}
 
 export type Html<D extends object, P extends object> = (
   params: DataProps<D, P> & Syntax<D, P>
@@ -110,19 +118,12 @@ export interface PropsTree<D, P> {
 
 export interface Queue {
   ficsId: string
-  process: ({ globalCss }: { globalCss?: GlobalCss }) => void
+  process: () => void
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export type SingleOrArray<T> = T | T[]
-
-export interface Style<D, P> {
-  selector?: SingleOrArray<string>
-  style: ArrowFuncOrValue<Record<string, string | number>, D, P>
-  csr?: boolean
-  ssr?: boolean
-}
 
 export interface Syntax<D extends object, P extends object> {
   $template: (
