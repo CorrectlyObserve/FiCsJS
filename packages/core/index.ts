@@ -1,4 +1,5 @@
+import { globalCss } from './globalCss'
 import fics from './fics'
-import { useClient } from './queue'
+import { useClient } from './useClient'
 
-export { fics, useClient }
+export { globalCss, fics, useClient }
