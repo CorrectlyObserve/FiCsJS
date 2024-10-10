@@ -1,15 +1,16 @@
 import generate from './generator'
-import { addToQueue } from './queue'
+import addToQueue from './queue'
 import type {
   Action,
   Attrs,
   Bindings,
   ClassName,
   Css,
+  CssContent,
   DataMethods,
   DataProps,
   FiCs,
-  GlobalCss,
+  GlobalCssContent,
   Html,
   HtmlContent,
   Hooks,
@@ -19,8 +20,7 @@ import type {
   MethodParams,
   PropsChain,
   PropsTree,
-  Sanitized,
-  Style
+  Sanitized
 } from './types'
 import throwWindowError from './utils'
 
@@ -56,7 +56,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
   #propsChain: PropsChain<P> = new Map()
-  #globalCss: GlobalCss = new Array()
   #isReflecting: boolean = false
 
   constructor({
@@ -235,13 +234,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    addToQueue({
-      ficsId: descendant.#ficsId,
-      process: ({ globalCss }: { globalCss?: GlobalCss }) => {
-        if (globalCss && globalCss.length > 0) descendant.#globalCss = [...globalCss]
-        descendant.#define(this.#propsChain)
-      }
-    })
+    addToQueue({ ficsId: descendant.#ficsId, process: () => descendant.#define(this.#propsChain) })
     return descendant.#getComponent()
   }
 
@@ -354,7 +347,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
-    const createCss = (param: Style<D, P>): string => {
+    const createCss = (param: GlobalCssContent | CssContent<D, P>): string => {
       if (param[mode] === false) return ''
 
       const entries: [string, unknown][] = Object.entries(
@@ -363,6 +356,8 @@ export default class FiCsElement<D extends object, P extends object> {
       const content: string = `{
         ${entries
           .map(([key, value]) => {
+            if (!value) return ''
+
             key = this.#convertStr(key, 'kebab')
 
             if (key.startsWith(':host'))
@@ -385,16 +380,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return `${prev}${curr}`
     }, '') as string
-  }
-
-  #addToDefine(): void {
-    addToQueue({
-      ficsId: this.#ficsId,
-      process: ({ globalCss }: { globalCss?: GlobalCss }): void => {
-        if (globalCss && globalCss.length > 0) this.#globalCss = [...globalCss]
-        this.#define(this.#propsChain)
-      }
-    })
   }
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
@@ -421,7 +406,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
     }
 
-    this.#addToDefine()
+    addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
     return component
   }
 
@@ -635,10 +620,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P> = []): void {
-    const baseCss: Css<D, P> | GlobalCss = [...this.#globalCss, ...this.#css]
-
-    if (baseCss.length === 0) return
+  #addCss(shadowRoot: ShadowRoot, css: Css<D, P>): void {
+    if (this.#css.length === 0) return
 
     if (!this.#isImmutable && css.length === 0)
       for (const [index, content] of this.#css.entries())
@@ -648,7 +631,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
     stylesheet.replaceSync(
-      this.#getCss({ css: Array.from(new Set([...baseCss, ...css])), host: ':host', mode: 'csr' })
+      this.#getCss({ css: Array.from(new Set([...this.#css, ...css])), host: ':host', mode: 'csr' })
     )
   }
 
@@ -731,7 +714,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#addClassName(this)
             that.#addAttrs(this)
             that.#addHtml(this.shadowRoot)
-            that.#addCss(this.shadowRoot)
+            that.#addCss(this.shadowRoot, [])
 
             if (that.#actions.length > 0)
               for (const action of that.#actions) {
@@ -821,7 +804,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    this.#addToDefine()
+    addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
     if (parent) parent.append(this.#getComponent())
   }
 
