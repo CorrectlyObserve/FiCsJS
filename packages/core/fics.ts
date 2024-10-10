@@ -1,5 +1,4 @@
 import FiCsElement from './class'
-import { getGlobalCss } from './globalCss'
 import type { FiCs } from './types'
 
 export default <D extends object, P extends object>({
@@ -26,7 +25,7 @@ export default <D extends object, P extends object>({
     className,
     attributes,
     html,
-    css: css ? [...getGlobalCss(), ...css] : getGlobalCss(),
+    css,
     actions,
     hooks
   })

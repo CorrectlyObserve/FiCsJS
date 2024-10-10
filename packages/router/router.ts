@@ -1,5 +1,4 @@
 import FiCsElement from '../core/class'
-import { getGlobalCss } from '../core/globalCss'
 import type { Params, Sanitized } from '../core/types'
 import throwWindowError from '../core/utils'
 import { getRegExp } from './dynamicParam'
@@ -47,7 +46,7 @@ export default ({
 
       return setContent()
     },
-    css: css ? [...getGlobalCss(), ...css] : getGlobalCss(),
+    css,
     actions,
     hooks: {
       created: (params: Params<RouterData, {}>) => {
