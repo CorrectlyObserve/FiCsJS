@@ -1,10 +1,11 @@
 import FiCsElement from '../core/class'
+import { getGlobalCss } from '../core/globalCss'
 import type { Params, Sanitized } from '../core/types'
 import throwWindowError from '../core/utils'
 import { getRegExp } from './dynamicParam'
 import type { FiCsRouter, PageContent, RouterContent, RouterData } from './types'
 
-const Router = ({
+export default ({
   pages,
   notFound,
   isOnlyCsr,
@@ -13,7 +14,7 @@ const Router = ({
   css,
   actions,
   hooks
-}: FiCsRouter) =>
+}: FiCsRouter): FiCsElement<RouterData, {}> =>
   new FiCsElement<RouterData, {}>({
     name: 'router',
     isExceptional: true,
@@ -46,7 +47,7 @@ const Router = ({
 
       return setContent()
     },
-    css,
+    css: css ? [...getGlobalCss(), ...css] : getGlobalCss(),
     actions,
     hooks: {
       created: (params: Params<RouterData, {}>) => {
@@ -68,5 +69,3 @@ const Router = ({
       adopted: (params: Params<RouterData, {}>) => hooks?.adopted?.(params)
     }
   })
-
-export default Router
