@@ -1,0 +1,38 @@
+div.container {
+  color: #fff;
+
+  span {
+    display: block;
+    font-size: var(--md);
+    padding: var(--ex-sm) var(--md);
+    text-align: center;
+    transition: 0.2s ease-out;
+
+    &.lang {
+      cursor: pointer;
+    }
+
+    &.selected {
+      color: var(--red);
+    }
+
+    &:hover {
+      opacity: 0.5;
+    }
+  }
+
+  div {
+    position: absolute;
+    padding-block: var(--md);
+    opacity: 1;
+    transition: 0.2s ease-in-out allow-discrete;
+
+    @starting-style {
+      opacity: 0;
+    }
+
+    &.hidden {
+      opacity: 0;
+    }
+  }
+}
