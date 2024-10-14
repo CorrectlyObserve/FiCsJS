@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import css from '@/styles/lang.css?inline'
+import css from '@/styles/langs.css?inline'
 
 export default () =>
   fics({
