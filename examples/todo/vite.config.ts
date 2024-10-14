@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
-const getPackage = (directory: string) => resolve(__dirname, `./../../packages/${directory}/index`)
+const getPackage = (directory: string): string =>
+  resolve(__dirname, `./../../packages/${directory}/index`)
 
 export default defineConfig({
   resolve: {
