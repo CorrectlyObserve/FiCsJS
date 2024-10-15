@@ -21,7 +21,8 @@ import type {
   MethodParams,
   PropsChain,
   PropsTree,
-  Sanitized
+  Sanitized,
+  SingleOrArray
 } from './types'
 import throwWindowError from './utils'
 
@@ -369,10 +370,17 @@ export default class FiCsElement<D extends object, P extends object> {
           .join('\n')}
       }`
 
-      if (Array.isArray(param.selector))
-        return param.selector.reduce((prev, curr) => `${prev} ${host} ${curr}${content}`, '')
+      const { selector }: { selector?: SingleOrArray<string> } = param
+      const processPseudoClass = (selector: string): string =>
+        selector.startsWith('&:') ? selector.slice(1) : ` ${selector}`
 
-      return `${host} ${param.selector ?? ''}${content}`
+      if (Array.isArray(selector))
+        return selector.reduce(
+          (prev, curr) => `${prev} ${host}${processPseudoClass(curr)}${content}`,
+          ''
+        )
+
+      return `${host}${processPseudoClass(selector ?? '')}${content}`
     }
 
     return css.reduce((prev, curr) => {
@@ -386,8 +394,13 @@ export default class FiCsElement<D extends object, P extends object> {
     return [...getGlobalCss(), ...this.#css, ...(css ?? [])]
   }
 
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+    this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
+  }
+
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
+    this.#callback('created')
 
     if (!this.#isOnlyCsr) {
       this.#initProps(propsChain)
@@ -634,7 +647,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!this.#isImmutable && css.length === 0)
       for (const [index, content] of this.#css.entries())
         if (typeof content !== 'string' && typeof content.style === 'function')
-          this.#bindings.css.push(index)
+          this.#bindings.css.push({ index })
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
@@ -688,10 +701,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (key === 'Enter') method(getMethodParams(event))
       })
-  }
-
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
-    this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
   }
 
   #getComponent(): HTMLElement {
@@ -775,7 +784,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (this.#bindings.css.length > 0)
         this.#addCss(
           shadowRoot,
-          css.map(index => this.#css[index])
+          css.map(({ index }) => this.#css[index])
         )
 
       if (actions.length > 0)
@@ -793,7 +802,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   getServerComponent(doc: Document): string {
-    this.#callback('created')
     return this.#renderOnServer(doc, this.#propsChain).outerHTML
   }
 
