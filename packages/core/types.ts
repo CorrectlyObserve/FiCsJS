@@ -22,11 +22,11 @@ export type ClassName<D, P> = ArrowFuncOrValue<string, D, P>
 
 export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
 
-type CssBinding = {index: number, nested?: CssBinding }[]
+type CssBinding = { index: number; nested?: CssBinding }[]
 
 export interface CssContent<D, P> extends CssSelector {
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
-  nested?: Css<D, P>
+  nested?: CssContent<D, P>[]
 }
 
 interface CssSelector {
@@ -66,8 +66,8 @@ export interface FiCs<D extends object, P extends object> {
 export type GlobalCss = (GlobalCssContent | string)[]
 
 export interface GlobalCssContent extends CssSelector {
-  style: Record<string, string | number | undefined>,
-  nested?: GlobalCss
+  style: Record<string, string | number | undefined>
+  nested?: GlobalCssContent[]
 }
 
 export type Html<D extends object, P extends object> = (
