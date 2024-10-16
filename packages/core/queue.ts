@@ -1,7 +1,7 @@
 import type { Queue } from './types'
 import { getHasLoaded } from './useClient'
 
-const ficsIds: Record<string, boolean> = {}
+const ficsIds: Record<string, true> = {}
 const queues: Queue[] = new Array()
 let isProcessing: boolean = false
 
