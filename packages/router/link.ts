@@ -1,4 +1,5 @@
 import FiCsElement from '../core/class'
+import goto from './goto'
 import type { FiCsLink, FiCsRouterElement, RouterContent, RouterData } from './types'
 
 export default ({
@@ -33,7 +34,7 @@ export default ({
         selector: 'a',
         method: ({ $event }) => {
           $event.preventDefault()
-          window.history.pushState({}, '', href)
+          goto(href, { history: true, reload: false })
           router.setData('pathname', href)
         }
       }
