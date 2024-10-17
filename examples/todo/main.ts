@@ -19,11 +19,13 @@ setState(lang, _lang || 'en')
 
 if (pathname.split('/')[0] === getState(lang)) pathname = pathname.slice(3)
 
-const header = Header({ lang: getState(lang), pathname })
+const header = await Header({ lang: getState(lang), pathname })
 header.ssr(body, 'before')
 
-const main = document.querySelector('main')
-if (main) Router(getState(lang)).ssr(main)
+Router(getState(lang)).then(component => {
+  const main = document.querySelector('main')
+  if (main) component.ssr(main)
+})
 
 Footer().ssr(body)
 
