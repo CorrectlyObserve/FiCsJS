@@ -92,14 +92,9 @@ export type Inheritances<D> = {
 }[]
 
 export interface I18n {
-  json: Record<string, string>
+  directory: string
   lang: string
   key: SingleOrArray<string>
-}
-
-export interface LangJson {
-  langs: string[]
-  directory: string
 }
 
 export type Method<D, P> = (params: MethodParams<D, P>) => void
@@ -136,5 +131,4 @@ export interface Syntax<D extends object, P extends object> {
   ) => Sanitized<D, P>
   $html: (str: string) => Record<symbol, string>
   $show: (condition: boolean) => string
-  $i18n: (params: I18n) => string
 }
