@@ -1,4 +1,4 @@
-import throwWindowError from '../core/utils'
+import { throwWindowError } from '../core/errors'
 import { getRegExp, pathParam } from './dynamicParam'
 
 export default (path: string): Record<string, string> => {
