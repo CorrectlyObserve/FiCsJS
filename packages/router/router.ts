@@ -1,7 +1,8 @@
 import FiCsElement from '../core/class'
+import { throwWindowError } from '../core/errors'
 import type { Params, Sanitized } from '../core/types'
-import throwWindowError from '../core/utils'
 import { getRegExp } from './dynamicParam'
+import goto from './goto'
 import type { FiCsRouter, FiCsRouterElement, PageContent, RouterContent, RouterData } from './types'
 
 export default ({
@@ -28,7 +29,7 @@ export default ({
         const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
           if (redirect) {
             pathname = redirect
-            window.history.replaceState({}, '', pathname)
+            goto(pathname, { history: false, reload: false })
             return setContent()
           }
 
@@ -43,7 +44,7 @@ export default ({
 
         if (notFound) return resolveContent(notFound)
 
-        throw new Error(`The "${pathname}" does not exist on the pages...`)
+        throw new Error(`The "${pathname}" does not exist on pages...`)
       }
 
       return setContent()
