@@ -9,12 +9,12 @@ import type {
   Inheritances,
   Sanitized,
   SingleOrArray,
-  Syntax
+  Syntaxes
 } from '../core/types'
 
 export interface FiCsLink {
   href: string
-  content: (params: Syntax<RouterData, {}>) => RouterContent
+  content: (params: Syntaxes<RouterData, {}>) => RouterContent
   router: FiCsRouterElement
   inheritances?: Inheritances<RouterData>
   isOnlyCsr?: boolean
@@ -40,7 +40,7 @@ export interface FiCsRouter {
 export type FiCsRouterElement = FiCsElement<RouterData, {}>
 
 export interface PageContent {
-  content: (params: Syntax<RouterData, {}>) => RouterContent
+  content: (params: Syntaxes<RouterData, {}>) => RouterContent
   redirect?: string
 }
 
