@@ -16,7 +16,6 @@ import type {
   HtmlContent,
   Hooks,
   Inheritances,
-  I18n,
   Method,
   MethodParams,
   PropsChain,
@@ -277,17 +276,6 @@ export default class FiCsElement<D extends object, P extends object> {
       return converted as HtmlContent<D, P>[]
     }
 
-    const $i18n: ({ json, lang, key }: I18n) => string = ({ json, lang, key }: I18n): string => {
-      let texts: Record<string, string> | string = json[lang]
-      if (!texts) throw new Error(`${lang}.json does not exist...`)
-
-      for (const _key of Array.isArray(key) ? key : [key])
-        if (typeof texts === 'object' && texts !== null && _key in texts) texts = texts[_key]
-
-      if (typeof texts === 'string') return texts
-      throw new Error(`There is no applicable value in json..`)
-    }
-
     const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#setDataProps(),
       $template: (
@@ -295,8 +283,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ...variables: (HtmlContent<D, P> | unknown)[]
       ): Sanitized<D, P> => ({ [sanitized]: convertSyntaxes(templates, variables) }),
       $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
-      $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
-      $i18n
+      $show: (condition: boolean): string => (condition ? '' : this.#showAttr)
     })[sanitized]
 
     const html: string = contents.reduce((prev, curr) => {
@@ -307,6 +294,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return `${prev}${curr}`
     }, '') as string
+
     const childNodes: ChildNode[] = this.#getChildNodes(
       (doc ?? document).createRange().createContextualFragment(html)
     )
