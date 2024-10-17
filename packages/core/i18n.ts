@@ -1,14 +1,17 @@
-import type { LangJson } from './types'
+import type { I18n } from './types'
 
-export default async ({ langs, directory }: LangJson): Promise<Record<string, string>> => {
-  const json: Record<string, string> = {}
+export default async ({ directory, lang, key }: I18n): Promise<string> =>
+  await fetch(`${directory}/${lang}.json`)
+    .then(res => res.json())
+    .then(json => {
+      if (!Array.isArray(key)) key = [key]
+      const text: string | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
 
-  for (const lang of langs)
-    try {
-      json[lang] = await import(`${directory}/${lang}.json`)
-    } catch (error) {
+      if (text === undefined)
+        throw new Error(`${key.join('.')} does not exist in ${directory}/${lang}.json...`)
+
+      return text
+    })
+    .catch(error => {
       throw new Error(`${error}`)
-    }
-
-  return json
-}
+    })
