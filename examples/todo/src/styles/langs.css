@@ -6,7 +6,7 @@ div.container {
     font-size: var(--md);
     padding: var(--ex-sm) var(--md);
     text-align: center;
-    transition: 0.2s ease-out;
+    transition: var(--transition);
 
     &.lang {
       cursor: pointer;
