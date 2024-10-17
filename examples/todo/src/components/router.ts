@@ -1,4 +1,4 @@
-import { ficsRouter } from 'ficsjs/router'
+import { ficsRouter, goto } from 'ficsjs/router'
 import TopPage from '@/components/topPage'
 import TodoApp from '@/components/todoApp'
 import TodoDetail from '@/components/todoDetail'
@@ -15,12 +15,7 @@ export default async (lang: string) => {
     ],
     notFound: { content: () => notFound },
     inheritances: [
-      {
-        descendant: notFound,
-        props: () => ({
-          back: () => (window.location.pathname = lang === 'en' ? '' : lang)
-        })
-      }
+      { descendant: notFound, props: () => ({ back: () => goto(`/${lang === 'en' ? '' : lang}`) }) }
     ]
   })
 }
