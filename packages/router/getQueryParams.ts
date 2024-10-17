@@ -1,4 +1,4 @@
-import throwWindowError from '../core/utils'
+import { throwWindowError } from '../core/errors'
 
 export default (): Record<string, string> => {
   throwWindowError()

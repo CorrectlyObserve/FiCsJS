@@ -1,4 +1,4 @@
-import throwWindowError from './utils'
+import { throwWindowError } from './errors'
 
 let hasLoaded: boolean = false
 
