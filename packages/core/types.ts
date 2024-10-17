@@ -71,7 +71,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P> & Syntax<D, P>
+  params: DataProps<D, P> & Syntaxes<D, P>
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -124,7 +124,7 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 
 export type SingleOrArray<T> = T | T[]
 
-export interface Syntax<D extends object, P extends object> {
+export interface Syntaxes<D extends object, P extends object> {
   $template: (
     templates: TemplateStringsArray,
     ...variables: (HtmlContent<D, P> | unknown)[]
