@@ -15,7 +15,7 @@ import type {
 export interface FiCsLink {
   href: string
   content: (params: Syntax<RouterData, {}>) => RouterContent
-  router: FiCsElement<RouterData, {}>
+  router: FiCsRouterElement
   inheritances?: Inheritances<RouterData>
   isOnlyCsr?: boolean
   className?: ClassName<{}, {}>
@@ -36,6 +36,8 @@ export interface FiCsRouter {
   actions?: Action<RouterData, {}>[]
   hooks?: Hooks<RouterData, {}>
 }
+
+export type FiCsRouterElement = FiCsElement<RouterData, {}>
 
 export interface PageContent {
   content: (params: Syntax<RouterData, {}>) => RouterContent
