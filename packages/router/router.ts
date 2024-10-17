@@ -2,26 +2,28 @@ import FiCsElement from '../core/class'
 import type { Params, Sanitized } from '../core/types'
 import throwWindowError from '../core/utils'
 import { getRegExp } from './dynamicParam'
-import type { FiCsRouter, PageContent, RouterContent, RouterData } from './types'
+import type { FiCsRouter, FiCsRouterElement, PageContent, RouterContent, RouterData } from './types'
 
 export default ({
   pages,
   notFound,
+  inheritances,
   isOnlyCsr,
   className,
   attributes,
   css,
   actions,
   hooks
-}: FiCsRouter): FiCsElement<RouterData, {}> =>
+}: FiCsRouter): FiCsRouterElement =>
   new FiCsElement<RouterData, {}>({
     name: 'router',
     isExceptional: true,
     data: () => ({ pathname: '' }),
+    inheritances,
     isOnlyCsr,
     className,
     attributes,
-    html: ({ $data: { pathname }, $template, $html, $show, $i18n }) => {
+    html: ({ $data: { pathname }, $template, $html, $show }) => {
       const setContent = (): Sanitized<RouterData, {}> => {
         const resolveContent = ({ content, redirect }: PageContent): Sanitized<RouterData, {}> => {
           if (redirect) {
@@ -30,7 +32,7 @@ export default ({
             return setContent()
           }
 
-          const returned: RouterContent = content({ $template, $html, $show, $i18n })
+          const returned: RouterContent = content({ $template, $html, $show })
           return returned instanceof FiCsElement ? $template`${returned}` : returned
         }
 
