@@ -6,6 +6,7 @@ import type {
   Css,
   Descendant,
   Hooks,
+  Inheritances,
   Sanitized,
   SingleOrArray,
   Syntax
@@ -15,6 +16,7 @@ export interface FiCsLink {
   href: string
   content: (params: Syntax<RouterData, {}>) => RouterContent
   router: FiCsElement<RouterData, {}>
+  inheritances?: Inheritances<RouterData>
   isOnlyCsr?: boolean
   className?: ClassName<{}, {}>
   attributes?: Attrs<{}, {}>
@@ -26,6 +28,7 @@ export interface FiCsLink {
 export interface FiCsRouter {
   pages: (PageContent & { path: SingleOrArray<string> })[]
   notFound?: PageContent
+  inheritances?: Inheritances<RouterData>
   isOnlyCsr?: boolean
   className?: ClassName<RouterData, {}>
   attributes?: Attrs<RouterData, {}>
