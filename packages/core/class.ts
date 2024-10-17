@@ -1,3 +1,4 @@
+import { throwDataPropsError, throwWindowError } from './errors'
 import generate from './generator'
 import { getGlobalCss } from './globalCss'
 import addToQueue from './queue'
@@ -23,7 +24,6 @@ import type {
   Sanitized,
   SingleOrArray
 } from './types'
-import throwWindowError from './utils'
 
 const generator: Generator<number> = generate()
 
@@ -84,13 +84,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (isImmutable) {
         if (data)
-          throw new Error(
-            `${this.#tagName} is the immutable component, so it cannot define data...`
-          )
+          throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
 
         if (props)
           throw new Error(
-            `${this.#tagName} is the immutable component, so it cannot receive props...`
+            `${this.#tagName} is an immutable component, so it cannot receive props...`
           )
 
         this.#isImmutable = isImmutable
@@ -135,8 +133,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (!(key in this.#props)) throw new Error(`"${key as string}" is not defined in props...`)
-    else if (this.#props[key] !== value) {
+    throwDataPropsError(this.#props, key, this.#tagName)
+
+    if (this.#props[key] !== value) {
       this.#props[key] = value
       addToQueue({ ficsId: this.#ficsId, process: (): void => this.#reRender() })
     }
@@ -228,7 +227,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #render = (element: Element, doc?: Document): HTMLElement => {
     const ficsId: string | null = this.#getFiCsId(element)
-    if (!ficsId) throw new Error(`The child FiCsElement has ficsId does not exist...`)
+    if (!ficsId)
+      throw new Error(`The ${element} has ficsId does not exist in ${this.#tagName}...`)
 
     const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
 
@@ -810,16 +810,20 @@ export default class FiCsElement<D extends object, P extends object> {
     if (parent) parent.append(this.#getComponent())
   }
 
-  getData = <K extends keyof D>(key: K): D[typeof key] => {
-    if (key in this.#data) return this.#data[key]
-
-    throw new Error(`"${key as string}" is not defined in data...`)
+  getData = (key: keyof D): D[typeof key] => {
+    throwDataPropsError(this.#data, key, this.#tagName)
+    return this.#data[key]
   }
 
   setData(key: keyof D, value: D[typeof key]): void {
-    if (this.#isReflecting) throw new Error(`"${key as string}" is not changed in reflections...`)
-    else if (!(key in this.#data)) throw new Error(`"${key as string}" is not defined in data...`)
-    else if (this.#data[key] !== value) {
+    if (this.#isReflecting)
+      throw new Error(
+        `"${key as string}" cannot be not changed in updated hook of ${this.#tagName}...`
+      )
+
+    throwDataPropsError(this.#data, key, this.#tagName)
+
+    if (this.#data[key] !== value) {
       this.#data[key] = value
       addToQueue({ ficsId: this.#ficsId, process: (): void => this.#reRender() })
 
@@ -827,8 +831,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (dataKey === key) setProps(value as unknown as P[keyof P])
 
       if (this.#hooks.updated) {
-        if (!(key in this.#data)) throw new Error(`"${String(key)}" is not defined in data...`)
-
+        throwDataPropsError(this.#data, key, this.#tagName)
         this.#isReflecting = true
         this.#hooks.updated[key]?.({ ...this.#setDataMethods(), $dataValue: this.#data[key] })
         this.#isReflecting = false
