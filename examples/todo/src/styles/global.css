@@ -6,9 +6,16 @@
   --black: #2b2b2b;
   --red: #b7282e;
   --gradation: linear-gradient(30deg, var(--red) 20%, #e198b4);
+  --transition: 0.2s ease-out;
 }
 
 body {
   background: var(--black);
   margin: 0;
+
+  main {
+    --header-hight: var(--lg) * 1.5 + var(--md) * 2 + var(--lg);
+    --footer-height: var(--md) + var(--md) * 2;
+    min-height: calc(100vh - (var(--header-hight)) - (var(--footer-height)));
+  }
 }
