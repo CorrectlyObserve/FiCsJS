@@ -1,26 +1,28 @@
 import FiCsElement from '../core/class'
-import type { FiCsLink, RouterContent, RouterData } from './types'
+import type { FiCsLink, FiCsRouterElement, RouterContent, RouterData } from './types'
 
 export default ({
   href,
   content,
   router,
+  inheritances,
   isOnlyCsr,
   className,
   attributes,
   css,
   actions,
   hooks
-}: FiCsLink): FiCsElement<RouterData, {}> =>
+}: FiCsLink): FiCsRouterElement =>
   new FiCsElement<RouterData, {}>({
     name: 'link',
     isExceptional: true,
     isImmutable: true,
+    inheritances,
     isOnlyCsr,
     className,
     attributes,
-    html: ({ $template, $html, $show, $i18n }) => {
-      const returned: RouterContent = content({ $template, $html, $show, $i18n })
+    html: ({ $template, $html, $show }) => {
+      const returned: RouterContent = content({ $template, $html, $show })
       return $template`<a href="${href}">${returned instanceof FiCsElement ? $template`${returned}` : returned}</a>`
     },
     css,
