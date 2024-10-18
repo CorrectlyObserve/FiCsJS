@@ -1,10 +1,12 @@
 import { fics, i18n } from 'ficsjs'
+import { goto } from 'ficsjs/router'
 
 export default async (lang: string) => {
   const back = await i18n({ directory: '/i18n', lang, key: 'back' })
 
   return fics({
     name: 'not-found',
+    isImmutable: true,
     html: ({ $template }) => $template`<h2>404 Not Found...</h2><button>${back}</button>`,
     css: [
       {
@@ -19,11 +21,7 @@ export default async (lang: string) => {
       }
     ],
     actions: [
-      {
-        handler: 'click',
-        selector: 'button',
-        method: ({ $props: { back } }: { $props: { back: () => void } }) => back()
-      }
+      { handler: 'click', selector: 'button', method: () => goto(`/${lang === 'en' ? '' : lang}`) }
     ]
   })
 }
