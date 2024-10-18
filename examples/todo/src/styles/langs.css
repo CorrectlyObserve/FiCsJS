@@ -4,11 +4,11 @@ div.container {
   span {
     display: block;
     font-size: var(--md);
-    padding: var(--ex-sm) var(--md);
     text-align: center;
     transition: var(--transition);
 
     &.lang {
+      padding: var(--ex-sm) var(--md);
       cursor: pointer;
     }
 
@@ -23,7 +23,6 @@ div.container {
 
   div {
     position: absolute;
-    padding-block: var(--md);
     opacity: 1;
     transition: 0.2s ease-in-out allow-discrete;
 
@@ -33,6 +32,10 @@ div.container {
 
     &.hidden {
       opacity: 0;
+    }
+
+    a {
+      padding: var(--ex-sm) var(--md);
     }
   }
 }
