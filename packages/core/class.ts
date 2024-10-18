@@ -21,8 +21,7 @@ import type {
   MethodParams,
   PropsChain,
   PropsTree,
-  Sanitized,
-  SingleOrArray
+  Sanitized
 } from './types'
 
 const generator: Generator<number> = generate()
@@ -335,57 +334,55 @@ export default class FiCsElement<D extends object, P extends object> {
   #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
-    const createCss = (cssContent: GlobalCssContent | CssContent<D, P>): string => {
+    const createCssContent = (
+      cssContent: GlobalCssContent | CssContent<D, P>,
+      host: string
+    ): string => {
       if (cssContent[mode] === false) return ''
 
-      const {
-        style,
-        selector,
-        nested
-      }: {
-        style:
-          | Record<string, string | number | undefined>
-          | ((params: DataProps<D, P>) => Record<string, string | number>)
-        selector?: SingleOrArray<string>
-        nested?: (GlobalCssContent | CssContent<D, P>)[]
-      } = cssContent
-
-      const entries: [string, unknown][] = Object.entries(
-        typeof style === 'function' ? style(this.#setDataProps()) : style
+      const entries: [string, string | number | undefined][] = Object.entries(
+        typeof cssContent.style === 'function'
+          ? cssContent.style(this.#setDataProps())
+          : cssContent.style
       )
-      const content: string = `{
-        ${entries
-          .map(([key, value]) => {
-            if (value === undefined) return ''
+      const content: string = entries
+        .map(([key, value]) => {
+          if (value === undefined) return ''
 
-            key = this.#convertStr(key, 'kebab')
+          key = this.#convertStr(key, 'kebab')
 
-            if (key.startsWith(':host'))
-              console.warn(`The ':host' selector might not be necessary in ${key}...`)
-            else if (key.startsWith('webkit')) key = `-${key}`
+          if (key.startsWith(':host'))
+            console.warn(`The ':host' selector might not be necessary in ${key}...`)
+          else if (key.startsWith('webkit')) key = `-${key}`
 
-            return `${key}: ${value};`
-          })
-          .join('\n')}
-      }`
-
+          return `${key}: ${value};`
+        })
+        .join('\n')
       const processPseudoClass = (selector: string): string =>
-        selector.startsWith('&:') ? selector.slice(1) : ` ${selector}`
+        selector.startsWith(':') ? selector : ` ${selector}`
 
-      if (Array.isArray(selector))
-        return selector.reduce(
-          (prev, curr) => `${prev} ${host}${processPseudoClass(curr)}${content}`,
+      if (Array.isArray(cssContent.selector))
+        return cssContent.selector.reduce(
+          (prev, curr) => `${prev} ${host}${processPseudoClass(curr)}{${content}}`,
           ''
         )
 
-      return `${host}${processPseudoClass(selector ?? '')}${content}`
+      return `${host}${processPseudoClass(cssContent.selector ?? '')}{${content}}`
     }
 
-    return css.reduce((prev, curr) => {
-      if (typeof curr !== 'string' && 'style' in curr) curr = ` ${createCss(curr)}`
+    const createCss = (css: Css<D, P>, host: string): string => {
+      return css.reduce((prev, curr) => {
+        if (typeof curr === 'string') return `${prev}${curr}`
 
-      return `${prev}${curr}`
-    }, '') as string
+        const css: string = `${prev} ${createCssContent(curr, host)}`
+
+        if (!curr.nested || curr.nested.length === 0) return `${prev} ${css}`
+
+        return `${prev} ${css}${createCss(curr.nested, `${host} ${curr.selector ?? ''}`)}`
+      }, '') as string
+    }
+
+    return createCss(css, host)
   }
 
   #overwriteCss(css?: Css<D, P>): Css<D, P> {
