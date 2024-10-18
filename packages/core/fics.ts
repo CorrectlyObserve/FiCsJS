@@ -15,7 +15,7 @@ export default <D extends object, P extends object>({
   actions,
   hooks
 }: FiCs<D, P>): FiCsElement<D, P> =>
-  new FiCsElement({
+  new FiCsElement<D, P>({
     name,
     isImmutable,
     data,
