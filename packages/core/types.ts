@@ -24,7 +24,7 @@ export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
 
 type CssBinding = { index: number; nested?: CssBinding }[]
 
-export interface CssContent<D, P> extends CssSelector {
+interface CssContent<D, P> extends CssSelector {
   style: ArrowFuncOrValue<Record<string, string | number>, D, P>
   nested?: CssContent<D, P>[]
 }
@@ -65,7 +65,7 @@ export interface FiCs<D extends object, P extends object> {
 
 export type GlobalCss = (GlobalCssContent | string)[]
 
-export interface GlobalCssContent extends CssSelector {
+interface GlobalCssContent extends CssSelector {
   style: Record<string, string | number | undefined>
   nested?: GlobalCssContent[]
 }
