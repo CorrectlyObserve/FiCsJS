@@ -2,7 +2,7 @@ import { ficsRouter } from 'ficsjs/router'
 import TopPage from '@/components/topPage'
 import TodoApp from '@/components/todoApp'
 import TodoDetail from '@/components/todoDetail'
-import NotFound from '@/components/notFound'
+import NotFound from '@/components/presentations/notFound'
 
 export default async (lang: string) => {
   const notFound = await NotFound(lang)
