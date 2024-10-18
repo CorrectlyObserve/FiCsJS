@@ -8,11 +8,9 @@ import type {
   Bindings,
   ClassName,
   Css,
-  CssContent,
   DataMethods,
   DataProps,
   FiCs,
-  GlobalCssContent,
   Html,
   HtmlContent,
   Hooks,
@@ -21,7 +19,8 @@ import type {
   MethodParams,
   PropsChain,
   PropsTree,
-  Sanitized
+  Sanitized,
+  SingleOrArray
 } from './types'
 
 const generator: Generator<number> = generate()
@@ -334,51 +333,48 @@ export default class FiCsElement<D extends object, P extends object> {
   #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
-    const createCssContent = (
-      cssContent: GlobalCssContent | CssContent<D, P>,
-      host: string
-    ): string => {
-      if (cssContent[mode] === false) return ''
-
-      const entries: [string, string | number | undefined][] = Object.entries(
-        typeof cssContent.style === 'function'
-          ? cssContent.style(this.#setDataProps())
-          : cssContent.style
-      )
-      const content: string = entries
-        .map(([key, value]) => {
-          if (value === undefined) return ''
-
-          key = this.#convertStr(key, 'kebab')
-
-          if (key.startsWith(':host'))
-            console.warn(`The ':host' selector might not be necessary in ${key}...`)
-          else if (key.startsWith('webkit')) key = `-${key}`
-
-          return `${key}: ${value};`
-        })
-        .join('\n')
-      const processPseudoClass = (selector: string): string =>
-        selector.startsWith(':') ? selector : ` ${selector}`
-
-      if (Array.isArray(cssContent.selector))
-        return cssContent.selector.reduce(
-          (prev, curr) => `${prev} ${host}${processPseudoClass(curr)}{${content}}`,
-          ''
-        )
-
-      return `${host}${processPseudoClass(cssContent.selector ?? '')}{${content}}`
-    }
-
     const createCss = (css: Css<D, P>, host: string): string => {
       return css.reduce((prev, curr) => {
         if (typeof curr === 'string') return `${prev}${curr}`
 
-        const css: string = `${prev} ${createCssContent(curr, host)}`
+        const selector: SingleOrArray<string> = curr.selector ?? ''
 
-        if (!curr.nested || curr.nested.length === 0) return `${prev} ${css}`
+        const createCssContent = (host: string): string => {
+          if (curr[mode] === false) return ''
 
-        return `${prev} ${css}${createCss(curr.nested, `${host} ${curr.selector ?? ''}`)}`
+          const entries: [string, string | number | undefined][] = Object.entries(
+            typeof curr.style === 'function' ? curr.style(this.#setDataProps()) : curr.style
+          )
+          const content: string = entries
+            .map(([key, value]) => {
+              if (value === undefined) return ''
+
+              key = this.#convertStr(key, 'kebab')
+
+              if (key.startsWith(':host'))
+                console.warn(`The ':host' selector might not be necessary in ${key}...`)
+              else if (key.startsWith('webkit')) key = `-${key}`
+
+              return `${key}: ${value};`
+            })
+            .join('\n')
+
+          const processPseudoClass = (selector: string): string =>
+            selector.startsWith(':') ? selector : ` ${selector}`
+
+          if (Array.isArray(selector))
+            return selector.reduce(
+              (prev, curr) => `${prev} ${host}${processPseudoClass(curr)}{${content}}`,
+              ''
+            )
+
+          return `${host}${processPseudoClass(selector)}{${content}}`
+        }
+        const css: string = `${prev} ${createCssContent(host)}`
+
+        if (!curr.nested || curr.nested.length === 0) return css
+
+        return css + createCss(curr.nested, `${host} ${selector}`)
       }, '') as string
     }
 
