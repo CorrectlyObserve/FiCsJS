@@ -17,5 +17,6 @@ body {
     --header-hight: var(--lg) * 1.5 + var(--md) * 2 + var(--lg);
     --footer-height: var(--md) + var(--md) * 2;
     min-height: calc(100vh - (var(--header-hight)) - (var(--footer-height)));
+    padding-inline: var(--lg);
   }
 }
