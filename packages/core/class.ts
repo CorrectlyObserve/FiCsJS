@@ -227,8 +227,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #render = (element: Element, doc?: Document): HTMLElement => {
     const ficsId: string | null = this.#getFiCsId(element)
-    if (!ficsId)
-      throw new Error(`The ${element} has ficsId does not exist in ${this.#tagName}...`)
+    if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#tagName}...`)
 
     const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
 
@@ -246,8 +245,8 @@ export default class FiCsElement<D extends object, P extends object> {
       templates: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
-      const isSymbol = (param: unknown, symbol: symbol): boolean =>
-        !!(param && typeof param === 'object' && symbol in param)
+      const isSymbol = (variable: unknown, symbol: symbol): boolean =>
+        !!(variable && typeof variable === 'object' && symbol in variable)
       const converted: HtmlContent<D, P>[] = new Array()
 
       const sanitize = (index: number, template: string, variable: unknown): void => {
@@ -336,11 +335,23 @@ export default class FiCsElement<D extends object, P extends object> {
   #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
-    const createCss = (param: GlobalCssContent | CssContent<D, P>): string => {
-      if (param[mode] === false) return ''
+    const createCss = (cssContent: GlobalCssContent | CssContent<D, P>): string => {
+      if (cssContent[mode] === false) return ''
+
+      const {
+        style,
+        selector,
+        nested
+      }: {
+        style:
+          | Record<string, string | number | undefined>
+          | ((params: DataProps<D, P>) => Record<string, string | number>)
+        selector?: SingleOrArray<string>
+        nested?: (GlobalCssContent | CssContent<D, P>)[]
+      } = cssContent
 
       const entries: [string, unknown][] = Object.entries(
-        typeof param.style === 'function' ? param.style(this.#setDataProps()) : param.style
+        typeof style === 'function' ? style(this.#setDataProps()) : style
       )
       const content: string = `{
         ${entries
@@ -358,7 +369,6 @@ export default class FiCsElement<D extends object, P extends object> {
           .join('\n')}
       }`
 
-      const { selector }: { selector?: SingleOrArray<string> } = param
       const processPseudoClass = (selector: string): string =>
         selector.startsWith('&:') ? selector.slice(1) : ` ${selector}`
 
@@ -417,8 +427,8 @@ export default class FiCsElement<D extends object, P extends object> {
     return component
   }
 
-  #removeChildNodes(param: HTMLElement | ChildNode[]): void {
-    for (const childNode of param instanceof HTMLElement ? this.#getChildNodes(param) : param)
+  #removeChildNodes(target: HTMLElement | ChildNode[]): void {
+    for (const childNode of target instanceof HTMLElement ? this.#getChildNodes(target) : target)
       childNode.remove()
   }
 
