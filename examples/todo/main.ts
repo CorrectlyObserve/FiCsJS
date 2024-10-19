@@ -1,10 +1,10 @@
 import { globalCss, useClient } from 'ficsjs'
 import { getState, setState, syncState } from 'ficsjs/state'
-import Header from '@/components/header'
-import Router from '@/components/router'
-import Footer from '@/components/footer'
+import Header from '@/components/containers/header'
+import Router from '@/components/containers/router'
+import footer from '@/components/presentations/footer'
+import resetCss from '@/resetCss'
 import { lang } from '@/store'
-import resetCss from '@/styles/resetCss'
 
 useClient()
 globalCss(resetCss)
@@ -27,6 +27,6 @@ Router(getState(lang)).then(component => {
   if (main) component.ssr(main)
 })
 
-Footer().ssr(body)
+footer.ssr(body)
 
 syncState({ state: lang, data: [{ fics: header, key: 'lang' }] })
