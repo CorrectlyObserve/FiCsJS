@@ -1,8 +1,9 @@
 import FiCsElement from '../core/class'
+import type { Descendant, Sanitized } from '../core/types'
 import goto from './goto'
-import type { FiCsLink, FiCsRouterElement, RouterContent, RouterData } from './types'
+import type { FiCsLink, FiCsRouterElement } from './types'
 
-export default ({
+export default <D extends object>({
   href,
   content,
   router,
@@ -13,8 +14,8 @@ export default ({
   css,
   actions,
   hooks
-}: FiCsLink): FiCsRouterElement =>
-  new FiCsElement<RouterData, {}>({
+}: FiCsLink<D>): FiCsRouterElement<D> =>
+  new FiCsElement<D, {}>({
     name: 'link',
     isExceptional: true,
     isImmutable: true,
@@ -23,7 +24,7 @@ export default ({
     className,
     attributes,
     html: ({ $template, $html, $show }) => {
-      const returned: RouterContent = content({ $template, $html, $show })
+      const returned: Descendant | Sanitized<D, {}> = content({ $template, $html, $show })
       return $template`<a href="${href}">${returned instanceof FiCsElement ? $template`${returned}` : returned}</a>`
     },
     css,
@@ -35,7 +36,7 @@ export default ({
         method: ({ $event }) => {
           $event.preventDefault()
           goto(href, { history: true, reload: false })
-          router.setData('pathname', href)
+          router.setData('pathname' as keyof D, href as D[keyof D])
         }
       }
     ],
