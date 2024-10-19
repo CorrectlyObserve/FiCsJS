@@ -1,23 +1,16 @@
 div.container {
-  color: #fff;
+  button {
+    width: calc(var(--md) * 3);
+    background: none;
+    padding-block: var(--ex-sm);
 
-  span {
-    display: block;
-    font-size: var(--md);
-    text-align: center;
-    transition: var(--transition);
-
-    &.lang {
-      padding: var(--ex-sm) var(--md);
-      cursor: pointer;
+    &.lang:focus {
+      transform: scale(1);
+      opacity: 0.5;
     }
 
     &.selected {
       color: var(--red);
-    }
-
-    &:hover {
-      opacity: 0.5;
     }
   }
 
@@ -32,10 +25,6 @@ div.container {
 
     &.hidden {
       opacity: 0;
-    }
-
-    a {
-      padding: var(--ex-sm) var(--md);
     }
   }
 }
