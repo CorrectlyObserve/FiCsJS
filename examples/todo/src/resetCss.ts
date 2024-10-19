@@ -13,10 +13,10 @@ export default [
   { selector: ['button', 'a'], style: { cursor: 'pointer' } },
   {
     selector: 'button',
-    style: { border: 'none', outline: 'none' },
+    style: { transition: 'var(--transition)', border: 'none', outline: 'none' },
     nested: [
-      { selector: ':hover', style: { opacity: '0.5' } },
-      { selector: ':focus', style: { outline: '2px #fff solid' } }
+      { selector: ':hover', style: { opacity: 0.5 } },
+      { selector: ':focus', style: { transform: 'scale(0.8)' } }
     ]
   },
   { selector: ['span', 'a'], style: { color: 'inherit', lineHeight: 'inherit' } },
