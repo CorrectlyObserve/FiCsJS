@@ -1,21 +1,28 @@
 import { fics } from 'ficsjs'
 import css from './style.css?inline'
 
-export default fics({
+interface Data {
+  langs: string[]
+  isShown: boolean
+}
+
+interface Props {
+  lang: string
+  switchLang: (lang: string) => void
+}
+
+export default fics<Data, Props>({
   name: 'langs',
   data: () => ({ langs: ['en', 'ja'], isShown: false }),
-  props: {} as { lang: string; pathname: string; switchLang: (lang: string) => void },
-  html: ({ $data: { langs, isShown }, $props: { lang, pathname }, $template, $show }) => $template`
+  html: ({ $data: { langs, isShown }, $props: { lang }, $template, $show }) => $template`
       <div class="container">
-        <span class="lang">${lang.toUpperCase()}</span>
+        <button class="lang">${lang.toUpperCase()}</button>
         <div class="langs${!isShown ? ' hidden' : ''}" ${$show(isShown)}>
           ${langs.map(
             _lang => $template`
-              <span class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
-                <a href="/${_lang === 'en' ? '' : _lang + '/'}${pathname}">
-                  ${_lang.toUpperCase()}
-                </a>
-              </span>
+              <button class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
+                ${_lang.toUpperCase()}
+              </button>
             `
           )}
         </div>
@@ -25,12 +32,12 @@ export default fics({
   actions: [
     {
       handler: 'click',
-      selector: 'span.lang',
+      selector: 'button.lang',
       method: ({ $setData, $getData }) => $setData('isShown', !$getData('isShown'))
     },
     {
       handler: 'click',
-      selector: 'span[key]',
+      selector: 'button[key]',
       method: ({ $props: { switchLang }, $attributes }) => switchLang($attributes['key'])
     }
   ]
