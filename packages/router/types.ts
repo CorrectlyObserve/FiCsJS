@@ -12,40 +12,37 @@ import type {
   Syntaxes
 } from '../core/types'
 
-export interface FiCsLink {
+export interface FiCsLink<D extends object> {
   href: string
-  content: (params: Syntaxes<RouterData, {}>) => RouterContent
-  router: FiCsRouterElement
-  inheritances?: Inheritances<RouterData>
+  content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  router: FiCsRouterElement<D>
+  inheritances?: Inheritances<D>
   isOnlyCsr?: boolean
-  className?: ClassName<{}, {}>
+  className?: ClassName<D, {}>
   attributes?: Attrs<{}, {}>
-  css?: Css<{}, {}>
-  actions?: Action<RouterData, {}>[]
-  hooks?: Hooks<RouterData, {}>
+  css?: Css<D, {}>
+  actions?: Action<D, {}>[]
+  hooks?: Hooks<D, {}>
 }
 
-export interface FiCsRouter {
-  pages: (PageContent & { path: SingleOrArray<string> })[]
-  notFound?: PageContent
-  inheritances?: Inheritances<RouterData>
+export interface FiCsRouter<D extends object> {
+  pages: (PageContent<D> & { path: SingleOrArray<string> })[]
+  notFound?: PageContent<D>
+  data?: () => D
+  inheritances?: Inheritances<D>
   isOnlyCsr?: boolean
-  className?: ClassName<RouterData, {}>
-  attributes?: Attrs<RouterData, {}>
-  css?: Css<RouterData, {}>
-  actions?: Action<RouterData, {}>[]
-  hooks?: Hooks<RouterData, {}>
+  className?: ClassName<D, {}>
+  attributes?: Attrs<D, {}>
+  css?: Css<D, {}>
+  actions?: Action<D, {}>[]
+  hooks?: Hooks<D, {}>
 }
 
-export type FiCsRouterElement = FiCsElement<RouterData, {}>
+export type FiCsRouterElement<D extends object> = FiCsElement<D, {}>
 
-export interface PageContent {
-  content: (params: Syntaxes<RouterData, {}>) => RouterContent
+export interface PageContent<D extends object> {
+  content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   redirect?: string
 }
 
-export type RouterContent = Descendant | Sanitized<RouterData, {}>
-
-export interface RouterData {
-  pathname: string
-}
+export type RouterContent<D extends object> = Descendant | Sanitized<D, {}>
