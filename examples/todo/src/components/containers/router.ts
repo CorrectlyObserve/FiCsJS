@@ -1,11 +1,14 @@
-import { ficsRouter } from 'ficsjs/router'
-import TopPage from '@/components/topPage'
+import { i18n } from 'ficsjs'
+import { ficsRouter, goto } from 'ficsjs/router'
+import TopPage from '@/components/presentations/topPage'
 import TodoApp from '@/components/todoApp'
 import TodoDetail from '@/components/todoDetail'
-import NotFound from '@/components/presentations/notFound'
+import notFound from '@/components/presentations/notFound'
+import button from '@/components/presentations/button'
 
 export default async (lang: string) => {
-  const notFound = await NotFound(lang)
+  const error404 = await i18n({ directory: '/i18n', lang, key: ['notFound', '404'] })
+  const btnText = await i18n({ directory: '/i18n', lang, key: ['notFound', 'back'] })
 
   return ficsRouter({
     pages: [
@@ -13,6 +16,13 @@ export default async (lang: string) => {
       { path: ['/todo', `/${lang}/todo`], content: () => TodoApp() },
       { path: ['/todo/:id', `/${lang}/todo/:id`], content: () => TodoDetail() }
     ],
-    notFound: { content: () => notFound }
+    notFound: { content: () => notFound },
+    inheritances: [
+      { descendant: notFound, props: () => ({ error404 }) },
+      {
+        descendant: button,
+        props: () => ({ btnText, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
+      }
+    ]
   })
 }
