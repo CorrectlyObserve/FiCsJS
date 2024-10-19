@@ -1,5 +1,6 @@
 import { fics, i18n } from 'ficsjs'
-import { setState } from 'ficsjs/state'
+import { goto } from 'ficsjs/router'
+import { setState, getState } from 'ficsjs/state'
 import langs from '@/components/presentations/langs/'
 
 export default async ({ lang, pathname }: { lang: string; pathname: string }) => {
@@ -13,8 +14,10 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
         descendant: langs,
         props: ({ $getData }) => ({
           lang: $getData('lang'),
-          pathname: $getData('pathname'),
-          switchLang: (_lang: string) => setState(lang, _lang)
+          switchLang: (_lang: string) => {
+            setState(lang, _lang)
+            goto(`/${getState(lang) === 'en' ? '' : getState(lang) + '/'}${$getData('pathname')}`)
+          }
         })
       }
     ],
