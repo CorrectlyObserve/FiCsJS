@@ -33,7 +33,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #tagName: string
   readonly #isImmutable: boolean = false
   readonly #data: D = {} as D
-  readonly #inheritances: Inheritances<D> = new Array()
+  readonly #inheritances: Inheritances<D, P> = new Array()
   readonly #props: P = {} as P
   readonly #isOnlyCsr: boolean = false
   readonly #bindings: Bindings<D, P> = {
@@ -140,6 +140,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #initProps = (propsChain: PropsChain<P>): void => {
+    for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
+      this.#props[key as keyof P] = value as P[keyof P]
+
     if (this.#inheritances.length > 0)
       for (const { descendant, props } of this.#inheritances)
         for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
@@ -150,7 +153,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const descendantId: string = _descendant.#ficsId
 
-          for (const [key, value] of Object.entries(props({ ...this.#setDataMethods() }))) {
+          for (const [key, value] of Object.entries(
+            props({ ...this.#setDataMethods(), $props: { ...this.#props } })
+          )) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
@@ -181,9 +186,6 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
     this.#propsChain = new Map(propsChain)
-
-    for (const [key, value] of Object.entries(this.#propsChain.get(this.#ficsId) ?? {}))
-      this.#props[key as keyof P] = value as P[keyof P]
   }
 
   #setDataProps(): DataProps<D, P> {
