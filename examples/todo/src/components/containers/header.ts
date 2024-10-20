@@ -35,7 +35,7 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
         },
         nested: [
           {
-            selector: 'h1',
+            selector: '> h1',
             style: {
               background: 'var(--gradation)',
               backgroundClip: 'text',
@@ -43,7 +43,7 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
             }
           },
           {
-            selector: 'div',
+            selector: '> div',
             style: {
               position: 'absolute',
               top: '50%',
