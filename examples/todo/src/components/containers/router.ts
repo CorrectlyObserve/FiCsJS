@@ -5,7 +5,6 @@ import todoPost from '@/components/presentations/todoPost'
 import todoList from '@/components/presentations/todoList'
 import todoDetail from '@/components/presentations/todoDetail'
 import notFound from '@/components/presentations/notFound'
-import button from '@/components/presentations/button'
 
 export default async (lang: string) => {
   const error404 = await i18n({ directory: '/i18n', lang, key: ['notFound', '404'] })
@@ -27,14 +26,13 @@ export default async (lang: string) => {
         descendant: todoPost,
         props: ({ $getData }) => ({
           length: $getData('tasks')!.length,
-          keydown: (value: string) => console.log(value)
+          addNewTask: (value: string) => console.log(value)
         })
       },
       { descendant: todoList, props: ({ $getData }) => ({ tasks: $getData('tasks') }) },
-      { descendant: notFound, props: () => ({ error404 }) },
       {
-        descendant: button,
-        props: () => ({ btnText, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
+        descendant: notFound,
+        props: () => ({ error404, btnText, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
       }
     ]
   })
