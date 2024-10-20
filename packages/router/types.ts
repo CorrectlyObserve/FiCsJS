@@ -16,10 +16,10 @@ export interface FiCsLink<D extends object> {
   href: string
   content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   router: FiCsRouterElement<D>
-  inheritances?: Inheritances<D>
+  inheritances?: Inheritances<D, {}>
   isOnlyCsr?: boolean
   className?: ClassName<D, {}>
-  attributes?: Attrs<{}, {}>
+  attributes?: Attrs<D, {}>
   css?: Css<D, {}>
   actions?: Action<D, {}>[]
   hooks?: Hooks<D, {}>
@@ -29,7 +29,7 @@ export interface FiCsRouter<D extends object> {
   pages: (PageContent<D> & { path: SingleOrArray<string> })[]
   notFound?: PageContent<D>
   data?: () => D
-  inheritances?: Inheritances<D>
+  inheritances?: Inheritances<D, {}>
   isOnlyCsr?: boolean
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
