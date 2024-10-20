@@ -27,6 +27,14 @@ export default ({ icon, click, isLarge, isAlert }: Svg) => {
         }
       }
     ],
-    actions: [{ handler: 'click', method: () => click() }]
+    actions: [
+      {
+        handler: 'click',
+        method: ({ $event: { target } }) => {
+          click()
+          ;(target as HTMLButtonElement).blur()
+        }
+      }
+    ]
   })
 }
