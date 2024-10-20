@@ -52,7 +52,7 @@ export interface FiCs<D extends object, P extends object> {
   isExceptional?: boolean
   isImmutable?: boolean
   data?: () => D
-  inheritances?: Inheritances<D>
+  inheritances?: Inheritances<D, P>
   props?: P
   isOnlyCsr?: boolean
   className?: ClassName<D, P>
@@ -86,9 +86,9 @@ export interface Hooks<D, P> {
   adopted?: (params: Params<D, P>) => void
 }
 
-export type Inheritances<D> = {
+export type Inheritances<D, P> = {
   descendant: SingleOrArray<Descendant>
-  props: (params: DataMethods<D>) => object
+  props: (params: DataMethods<D> & { $props: P }) => object
 }[]
 
 export interface I18n {
