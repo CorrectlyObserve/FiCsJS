@@ -38,7 +38,10 @@ export default fics<Data, Props>({
     {
       handler: 'click',
       selector: 'button[key]',
-      method: ({ $props: { switchLang }, $attributes }) => switchLang($attributes['key'])
+      method: ({ $props: { switchLang }, $event: { target }, $attributes }) => {
+        switchLang($attributes['key'])
+        ;(target as HTMLButtonElement).blur()
+      }
     }
   ]
 })
