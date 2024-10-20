@@ -15,5 +15,13 @@ export default fics<{}, { btnText: string; click: () => void }>({
       }
     }
   ],
-  actions: [{ handler: 'click', selector: 'button', method: ({ $props: { click } }) => click() }]
+  actions: [
+    {
+      handler: 'click',
+      method: ({ $props: { click }, $event: { target } }) => {
+        click()
+        ;(target as HTMLButtonElement).blur()
+      }
+    }
+  ]
 })
