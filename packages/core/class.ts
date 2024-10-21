@@ -471,7 +471,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const oldAttrList: Record<string, string> = {}
 
           for (let index = 0; index < oldAttrs.length; index++) {
-            const { name, value } = oldAttrs[index]
+            const { name, value }: { name: string; value: string } = oldAttrs[index]
             oldAttrList[name] = value
           }
 
@@ -666,7 +666,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const attrs: Record<string, string> = {}
 
     for (let index = 0; index < element.attributes.length; index++) {
-      const { name, value } = element.attributes[index]
+      const { name, value }: { name: string; value: string } = element.attributes[index]
       attrs[name] = value
     }
 
