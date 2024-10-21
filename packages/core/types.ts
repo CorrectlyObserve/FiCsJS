@@ -30,7 +30,7 @@ interface CssContent<D, P> extends CssSelector {
 }
 
 interface CssSelector {
-  selector?: SingleOrArray<string>
+  selector?: SingleOrArray
   csr?: boolean
   ssr?: boolean
 }
@@ -91,12 +91,6 @@ export type Inheritances<D, P> = {
   props: (params: DataMethods<D> & { $props: P }) => object
 }[]
 
-export interface I18n {
-  directory: string
-  lang: string
-  key: SingleOrArray<string>
-}
-
 export type Method<D, P> = (params: MethodParams<D, P>) => void
 
 export interface MethodParams<D, P> extends Params<D, P> {
@@ -122,7 +116,7 @@ export interface Queue {
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
-export type SingleOrArray<T> = T | T[]
+export type SingleOrArray<T = string> = T | T[]
 
 export interface Syntaxes<D extends object, P extends object> {
   $template: (
