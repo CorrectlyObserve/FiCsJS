@@ -1,4 +1,5 @@
-import { fics, i18n } from 'ficsjs'
+import { fics } from 'ficsjs'
+import i18n from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
 import langs from '@/components/presentations/langs/'

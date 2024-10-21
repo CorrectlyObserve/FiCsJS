@@ -1,4 +1,4 @@
-import { i18n } from 'ficsjs'
+import i18n from 'ficsjs/i18n'
 import { ficsRouter, goto } from 'ficsjs/router'
 import topPage from '@/components/presentations/topPage'
 import todoPost from '@/components/presentations/todoPost'
