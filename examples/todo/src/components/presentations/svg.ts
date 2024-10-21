@@ -1,40 +1,38 @@
 import { fics } from 'ficsjs'
 
-interface Svg {
+interface Props {
   icon: string
   click: () => void
   isLarge?: boolean
   isAlert?: boolean
 }
 
-export default ({ icon, click, isLarge, isAlert }: Svg) => {
-  const size = `var(--${isLarge ? 'lg' : 'md'})`
-  const color = isAlert ? 'var(--red)' : '#fff'
+export default fics<{}, Props>({
+  name: 'svg',
+  html: ({ $template }) => $template`<button />`,
+  css: [
+    { style: { display: 'flex' } },
+    {
+      selector: 'button',
+      style: ({ $props: { icon, isLarge, isAlert } }) => {
+        const size = `var(--${isLarge ? 'lg' : 'md'})`
 
-  return fics({
-    name: 'svg',
-    isImmutable: true,
-    html: ({ $template }) => $template`<button />`,
-    css: [
-      { style: { display: 'flex' } },
-      {
-        selector: 'button',
-        style: {
+        return {
           width: size,
           height: size,
           maskImage: `url("/icons/${icon}.svg")`,
-          background: color
+          background: isAlert ? 'var(--red)' : '#fff'
         }
       }
-    ],
-    actions: [
-      {
-        handler: 'click',
-        method: ({ $event: { target } }) => {
-          click()
-          ;(target as HTMLButtonElement).blur()
-        }
+    }
+  ],
+  actions: [
+    {
+      handler: 'click',
+      method: ({ $props: { click }, $event: { target } }) => {
+        click()
+        ;(target as HTMLButtonElement).blur()
       }
-    ]
-  })
-}
+    }
+  ]
+})
