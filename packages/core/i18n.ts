@@ -1,6 +1,14 @@
-import type { I18n } from './types'
+import type { SingleOrArray } from './types'
 
-export default async ({ directory, lang, key }: I18n): Promise<string> =>
+export default async ({
+  directory,
+  lang,
+  key
+}: {
+  directory: string
+  lang: string
+  key: SingleOrArray
+}): Promise<SingleOrArray> =>
   await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
@@ -13,5 +21,5 @@ export default async ({ directory, lang, key }: I18n): Promise<string> =>
       return text
     })
     .catch(error => {
-      throw new Error(`${error}`)
+      throw new Error(error)
     })
