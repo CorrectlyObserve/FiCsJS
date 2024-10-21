@@ -1,4 +1,4 @@
-import type { SingleOrArray } from './types'
+import type { SingleOrArray } from '../core/types'
 
 export default async ({
   directory,
