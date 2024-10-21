@@ -1,6 +1,11 @@
 import { fics } from 'ficsjs'
 
-export default fics<{}, { btnText: string; click: () => void }>({
+interface Props {
+  btnText: string
+  click: () => void
+}
+
+export default fics<{}, Props>({
   name: 'button',
   html: ({ $props: { btnText }, $template }) => $template`<button>${btnText}</button>`,
   css: [
