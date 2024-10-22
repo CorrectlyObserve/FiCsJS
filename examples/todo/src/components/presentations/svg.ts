@@ -26,13 +26,5 @@ export default fics<{}, Props>({
       }
     }
   ],
-  actions: [
-    {
-      handler: 'click',
-      method: ({ $props: { click }, $event: { target } }) => {
-        click()
-        ;(target as HTMLButtonElement).blur()
-      }
-    }
-  ]
+  actions: [{ handler: 'click', method: ({ $props: { click } }) => click(), blur: true }]
 })
