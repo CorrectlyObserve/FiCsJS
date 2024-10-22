@@ -4,7 +4,7 @@ export interface Action<D, P> {
   handler: string
   selector?: string
   method: Method<D, P>
-  enterKey?: boolean
+  blur?: boolean
 }
 
 type ArrowFuncOrValue<V, D, P> = V | ((params: DataProps<D, P>) => V)
