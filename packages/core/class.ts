@@ -657,12 +657,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
   }
 
-  #addEventListener(
-    element: Element,
-    handler: string,
-    method: Method<D, P>,
-    enterKey?: boolean
-  ): void {
+  #addEventListener(element: Element, handler: string, method: Method<D, P>, blur?: boolean): void {
     const attrs: Record<string, string> = {}
 
     for (let index = 0; index < element.attributes.length; index++) {
@@ -686,14 +681,13 @@ export default class FiCsElement<D extends object, P extends object> {
           : undefined
     })
 
-    element.addEventListener(handler, (event: Event): void => method(getMethodParams(event)))
+    element.addEventListener(handler, (event: Event): void => {
+      method(getMethodParams(event))
 
-    if (handler === 'click' && enterKey)
-      element.addEventListener('keydown', (event: Event): void => {
-        const { key }: { key: string } = event as KeyboardEvent
-
-        if (key === 'Enter') method(getMethodParams(event))
-      })
+      if (blur)
+        if (handler === 'click') (event.target as HTMLElement).blur()
+        else console.warn('The "blur" is enabled only if the handler is click...')
+    })
   }
 
   #getComponent(): HTMLElement {
@@ -726,14 +720,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (that.#actions.length > 0)
               for (const action of that.#actions) {
-                const { handler, selector, method, enterKey }: Action<D, P> = action
+                const { handler, selector, method, blur }: Action<D, P> = action
 
                 if (!that.#isImmutable && selector) {
                   that.#bindings.actions.push(action)
 
                   for (const element of that.#getElements(that.#getShadowRoot(this), selector))
-                    that.#addEventListener(element, handler, method, enterKey)
-                } else that.#addEventListener(this, handler, method, enterKey)
+                    that.#addEventListener(element, handler, method, blur)
+                } else that.#addEventListener(this, handler, method, blur)
               }
 
             that.#removeChildNodes(this)
@@ -782,12 +776,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (actions.length > 0)
         for (const action of actions) {
-          const { handler, selector, method, enterKey }: Action<D, P> = action
+          const { handler, selector, method, blur }: Action<D, P> = action
 
           if (selector)
             for (const element of this.#getElements(shadowRoot, selector))
               if (this.#newElements.has(element))
-                this.#addEventListener(element, handler, method, enterKey)
+                this.#addEventListener(element, handler, method, blur)
         }
 
       this.#newElements.clear()
