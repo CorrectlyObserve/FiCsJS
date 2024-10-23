@@ -4,7 +4,7 @@ let hasLoaded: boolean = false
 
 export const getHasLoaded = (): boolean => hasLoaded
 
-export const useClient = (): void => {
+export const ficsInit = (): void => {
   throwWindowError()
   if (typeof document === 'undefined') throw new Error('document is not defined...')
 
