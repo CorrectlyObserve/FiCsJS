@@ -2,7 +2,7 @@ import type { SingleOrArray } from '../core/types'
 
 type I18n = SingleOrArray | { [key: string]: I18n }
 
-export default async({
+export default async <T>({
   directory,
   lang,
   key
@@ -10,7 +10,7 @@ export default async({
   directory: string
   lang: string
   key: SingleOrArray
-}): Promise<I18n> =>
+}): Promise<T> =>
   await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
@@ -20,11 +20,7 @@ export default async({
       if (i18n === undefined)
         throw new Error(`${key.join('.')} does not exist in ${directory}/${lang}.json...`)
 
-      if (typeof i18n === 'string') return i18n as string
-
-      if (Array.isArray(i18n)) return i18n as string[]
-
-      return i18n
+      return i18n as T
     })
     .catch(error => {
       throw new Error(error)
