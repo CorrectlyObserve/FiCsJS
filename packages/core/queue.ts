@@ -1,5 +1,5 @@
 import type { Queue } from './types'
-import { getHasLoaded } from './useClient'
+import { getHasLoaded } from './init'
 
 const ficsIds: Record<string, true> = {}
 const queues: Queue[] = new Array()
