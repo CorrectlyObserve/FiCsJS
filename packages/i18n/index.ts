@@ -1,6 +1,8 @@
 import type { SingleOrArray } from '../core/types'
 
-export default async ({
+type I18n = SingleOrArray | { [key: string]: I18n }
+
+export default async({
   directory,
   lang,
   key
@@ -8,17 +10,21 @@ export default async ({
   directory: string
   lang: string
   key: SingleOrArray
-}): Promise<SingleOrArray> =>
+}): Promise<I18n> =>
   await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
       if (!Array.isArray(key)) key = [key]
-      const text: string | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
+      const i18n: I18n | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
 
-      if (text === undefined)
+      if (i18n === undefined)
         throw new Error(`${key.join('.')} does not exist in ${directory}/${lang}.json...`)
 
-      return text
+      if (typeof i18n === 'string') return i18n as string
+
+      if (Array.isArray(i18n)) return i18n as string[]
+
+      return i18n
     })
     .catch(error => {
       throw new Error(error)
