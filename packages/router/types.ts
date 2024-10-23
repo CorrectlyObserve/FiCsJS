@@ -12,10 +12,12 @@ import type {
   Syntaxes
 } from '../core/types'
 
+export type Content<D extends object> = Descendant | Sanitized<D, {}>
+
 export interface FiCsLink<D extends object> {
   href: string
-  content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
-  router: FiCsRouterElement<D>
+  content: (params: Syntaxes<D, {}>) => Content<D>
+  router: FiCsElement<D, {}>
   inheritances?: Inheritances<D, {}>
   isOnlyCsr?: boolean
   className?: ClassName<D, {}>
@@ -38,11 +40,7 @@ export interface FiCsRouter<D extends object> {
   hooks?: Hooks<D, {}>
 }
 
-export type FiCsRouterElement<D extends object> = FiCsElement<D, {}>
-
 export interface PageContent<D extends object> {
-  content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  content: (params: Syntaxes<D, {}>) => Content<D>
   redirect?: string
 }
-
-export type RouterContent<D extends object> = Descendant | Sanitized<D, {}>
