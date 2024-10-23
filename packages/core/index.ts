@@ -1,5 +1,5 @@
 import fics from './fics'
-import { globalCss } from './globalCss'
-import { useClient } from './useClient'
+import { ficsCss } from './globalCss'
+import { ficsInit } from './init'
 
-export { fics, globalCss, useClient }
+export { fics, ficsCss, ficsInit }
