@@ -1,4 +1,4 @@
-import { globalCss, useClient } from 'ficsjs'
+import { ficsCss, ficsInit } from 'ficsjs'
 import { getState, setState, syncState } from 'ficsjs/state'
 import Header from '@/components/containers/header'
 import Router from '@/components/containers/router'
@@ -6,8 +6,8 @@ import footer from '@/components/presentations/footer'
 import resetCss from '@/resetCss'
 import { lang } from '@/store'
 
-useClient()
-globalCss(resetCss)
+ficsInit()
+ficsCss(resetCss)
 
 const {
   body,
