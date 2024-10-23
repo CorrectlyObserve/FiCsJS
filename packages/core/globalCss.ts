@@ -4,6 +4,6 @@ let _globalCss: GlobalCss = new Array()
 
 export const getGlobalCss = (): GlobalCss => _globalCss
 
-export const globalCss = (globalCss: GlobalCss): void => {
+export const ficsCss = (globalCss: GlobalCss): void => {
   _globalCss = [...globalCss]
 }
