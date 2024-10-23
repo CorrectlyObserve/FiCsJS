@@ -7,8 +7,8 @@ import todoDetail from '@/components/presentations/todoDetail'
 import notFound from '@/components/presentations/notFound'
 
 export default async (lang: string) => {
-  const error404 = await i18n({ directory: '/i18n', lang, key: ['notFound', '404'] })
-  const btnText = await i18n({ directory: '/i18n', lang, key: ['notFound', 'back'] })
+  const error404 = await i18n<string>({ directory: '/i18n', lang, key: ['notFound', '404'] })
+  const btnText = await i18n<string>({ directory: '/i18n', lang, key: ['notFound', 'back'] })
 
   return ficsRouter({
     pages: [
