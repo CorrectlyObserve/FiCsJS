@@ -1,9 +1,9 @@
 import FiCsElement from '../core/class'
 import { throwWindowError } from '../core/errors'
-import type { Descendant, Params, Sanitized } from '../core/types'
+import type { Params, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
-import type { FiCsRouter, FiCsRouterElement, PageContent } from './types'
+import type { Content, FiCsRouter, PageContent } from './types'
 
 export default <D extends object>({
   pages,
@@ -16,7 +16,7 @@ export default <D extends object>({
   css,
   actions,
   hooks
-}: FiCsRouter<D>): FiCsRouterElement<D> =>
+}: FiCsRouter<D>): FiCsElement<D, {}> =>
   new FiCsElement<D, {}>({
     name: 'router',
     isExceptional: true,
@@ -39,7 +39,7 @@ export default <D extends object>({
             return setContent()
           }
 
-          const returned: Descendant | Sanitized<D, {}> = content({ $template, $html, $show })
+          const returned: Content<D> = content({ $template, $html, $show })
           return returned instanceof FiCsElement ? $template`${returned}` : returned
         }
 
