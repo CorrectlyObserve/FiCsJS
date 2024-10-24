@@ -53,7 +53,7 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => D
-  inheritances?: Inheritances<D, P>
+  inheritances?: SingleOrArray<Inheritance<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
@@ -86,10 +86,10 @@ export interface Hooks<D, P> {
   adopted?: (params: Params<D, P>) => void
 }
 
-export type Inheritances<D, P> = {
+export type Inheritance<D, P> = {
   descendant: SingleOrArray<Descendant>
   props: (params: DataMethods<D> & { $props: P }) => object
-}[]
+}
 
 export interface MethodParams<D, P> extends Params<D, P> {
   $event: Event
