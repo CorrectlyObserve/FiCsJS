@@ -10,12 +10,12 @@ export default <D extends object>({
   notFound,
   data,
   inheritances,
-  isOnlyCsr,
   className,
   attributes,
   css,
   actions,
-  hooks
+  hooks,
+  options
 }: FiCsRouter<D>): FiCsElement<D, {}> =>
   new FiCsElement<D, {}>({
     name: 'router',
@@ -26,7 +26,6 @@ export default <D extends object>({
       return { ...(data?.() ?? {}), pathname: '' } as D
     },
     inheritances,
-    isOnlyCsr,
     className,
     attributes,
     html: ({ $data, $template, $html, $show }) => {
@@ -75,5 +74,6 @@ export default <D extends object>({
       updated: hooks?.updated,
       destroyed: (params: Params<D, {}>) => hooks?.destroyed?.(params),
       adopted: (params: Params<D, {}>) => hooks?.adopted?.(params)
-    }
+    },
+    options: { ...(options ?? {}), immutable: false }
   })
