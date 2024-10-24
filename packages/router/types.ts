@@ -23,7 +23,7 @@ export interface FiCsLink<D extends object> {
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
   css?: SingleOrArray<IndividualCssContent<D, {}>>
-  actions?: Action<D, {}>[]
+  actions?: SingleOrArray<Action<D, {}>>
   hooks?: Hooks<D, {}>
   options?: Exclude<Options, { immutable: boolean }>
 }
@@ -36,7 +36,7 @@ export interface FiCsRouter<D extends object> {
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
   css?: SingleOrArray<IndividualCssContent<D, {}>>
-  actions?: Action<D, {}>[]
+  actions?: SingleOrArray<Action<D, {}>>
   hooks?: Hooks<D, {}>
   options?: Exclude<Options, { immutable: boolean }>
 }
