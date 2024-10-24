@@ -8,9 +8,11 @@ import type {
   Bindings,
   ClassName,
   Css,
+  CssContent,
   DataMethods,
   DataProps,
   FiCs,
+  GlobalCssContent,
   Html,
   HtmlContent,
   Hooks,
@@ -335,7 +337,6 @@ export default class FiCsElement<D extends object, P extends object> {
         if (typeof curr === 'string') return `${prev}${curr}`
 
         const selector: SingleOrArray = curr.selector ?? ''
-
         const createCssContent = (host: string): string => {
           if (curr[mode] === false) return ''
 
@@ -367,11 +368,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
           return `${host}${processPseudoClass(selector)}{${content}}`
         }
+        const { nested }: { nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent> } = curr
         const css: string = `${prev} ${createCssContent(host)}`
 
-        if (!curr.nested || curr.nested.length === 0) return css
+        if (!nested) return css
 
-        return css + createCss(curr.nested, `${host} ${selector}`)
+        return (
+          css + createCss(Array.isArray(nested) ? nested : [{ ...nested }], `${host} ${selector}`)
+        )
       }, '') as string
     }
 
