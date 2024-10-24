@@ -7,6 +7,7 @@ import type {
   Descendant,
   Hooks,
   Inheritances,
+  Options,
   Sanitized,
   SingleOrArray,
   Syntaxes
@@ -19,12 +20,12 @@ export interface FiCsLink<D extends object> {
   content: (params: Syntaxes<D, {}>) => Content<D>
   router: FiCsElement<D, {}>
   inheritances?: Inheritances<D, {}>
-  isOnlyCsr?: boolean
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
   css?: Css<D, {}>
   actions?: Action<D, {}>[]
   hooks?: Hooks<D, {}>
+  options?: Exclude<Options, { immutable: boolean }>
 }
 
 export interface FiCsRouter<D extends object> {
@@ -32,12 +33,12 @@ export interface FiCsRouter<D extends object> {
   notFound?: PageContent<D>
   data?: () => D
   inheritances?: Inheritances<D, {}>
-  isOnlyCsr?: boolean
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
   css?: Css<D, {}>
   actions?: Action<D, {}>[]
   hooks?: Hooks<D, {}>
+  options?: Exclude<Options, { immutable: boolean }>
 }
 
 export interface PageContent<D extends object> {
