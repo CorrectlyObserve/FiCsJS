@@ -686,13 +686,19 @@ export default class FiCsElement<D extends object, P extends object> {
           : undefined
     })
 
-    element.addEventListener(handler, (event: Event): void => {
-      method(getMethodParams(event))
+    const { blur, once }: { blur?: boolean; once?: boolean } = options ?? {}
 
-      if (options?.blur)
-        if (handler === 'click') (event.target as HTMLElement).blur()
-        else console.warn('The "blur" is enabled only if the handler is click...')
-    })
+    element.addEventListener(
+      handler,
+      (event: Event): void => {
+        method(getMethodParams(event))
+
+        if (blur)
+          if (handler === 'click') (event.target as HTMLElement).blur()
+          else console.warn('The "blur" is enabled only if the handler is click...')
+      },
+      { once }
+    )
   }
 
   #getComponent(): HTMLElement {
