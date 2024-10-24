@@ -12,7 +12,7 @@ export const ficsInit = (): void => {
     hasLoaded = true
   }
   const controlEventListener = (type: 'add' | 'remove'): void => {
-    window[`${type}EventListener`]('DOMContentLoaded', completeLoading)
+    window[`${type}EventListener`]('DOMContentLoaded', completeLoading, { once: true })
   }
 
   if (document.readyState === 'loading') controlEventListener('add')
