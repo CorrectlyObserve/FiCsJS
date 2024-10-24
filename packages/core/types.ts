@@ -24,11 +24,11 @@ export type Css<D, P> = (IndividualCssContent<D, P> | GlobalCssContent)[]
 
 type CssBinding = { index: number; nested?: CssBinding }[]
 
-interface CssContent<D, P> extends CssSelector {
+export interface CssContent<D, P> extends CssSelector {
   style:
     | Record<string, string | number>
     | ((params: DataProps<D, P>) => Record<string, string | number>)
-  nested?: CssContent<D, P>[]
+  nested?: SingleOrArray<CssContent<D, P>>
 }
 
 interface CssSelector {
@@ -65,9 +65,9 @@ export interface FiCs<D extends object, P extends object> {
 
 export type GlobalCss = (GlobalCssContent | string)[]
 
-interface GlobalCssContent extends CssSelector {
+export interface GlobalCssContent extends CssSelector {
   style: Record<string, string | number | undefined>
-  nested?: GlobalCssContent[]
+  nested?: SingleOrArray<GlobalCssContent>
 }
 
 export type Html<D extends object, P extends object> = (
