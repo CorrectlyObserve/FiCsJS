@@ -106,7 +106,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
-      if (css && css.length > 0) this.#css = [...css]
+      if (css)
+        this.#css = Array.isArray(css) ? [...css] : [typeof css === 'string' ? css : { ...css }]
       if (actions) this.#actions = Array.isArray(actions) ? [...actions] : [{ ...actions }]
       if (hooks) this.#hooks = { ...hooks }
     }
