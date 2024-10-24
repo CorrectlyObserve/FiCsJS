@@ -26,5 +26,7 @@ export default fics<{}, Props>({
       }
     }
   ],
-  actions: [{ handler: 'click', method: ({ $props: { click } }) => click(), blur: true }]
+  actions: [
+    { handler: 'click', method: ({ $props: { click } }) => click(), options: { blur: true } }
+  ]
 })
