@@ -28,7 +28,7 @@ export default fics<Data, Props>({
         </div>
       </div>
     `,
-  css: [css],
+  css,
   actions: [
     {
       handler: 'click',
