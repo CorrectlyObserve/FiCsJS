@@ -57,7 +57,7 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: Css<D, P>
+  css?: SingleOrArray<string | CssContent<D, P>>
   actions?: SingleOrArray<Action<D, P>>
   hooks?: Hooks<D, P>
   options?: Partial<Options>
