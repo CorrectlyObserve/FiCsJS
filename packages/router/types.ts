@@ -3,10 +3,10 @@ import type {
   Action,
   Attrs,
   ClassName,
-  Css,
   Descendant,
   Hooks,
   Inheritance,
+  IndividualCssContent,
   Options,
   Sanitized,
   SingleOrArray,
@@ -22,7 +22,7 @@ export interface FiCsLink<D extends object> {
   inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
-  css?: Css<D, {}>
+  css?: SingleOrArray<IndividualCssContent<D, {}>>
   actions?: Action<D, {}>[]
   hooks?: Hooks<D, {}>
   options?: Exclude<Options, { immutable: boolean }>
@@ -35,7 +35,7 @@ export interface FiCsRouter<D extends object> {
   inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
-  css?: Css<D, {}>
+  css?: SingleOrArray<IndividualCssContent<D, {}>>
   actions?: Action<D, {}>[]
   hooks?: Hooks<D, {}>
   options?: Exclude<Options, { immutable: boolean }>
