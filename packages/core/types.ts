@@ -54,7 +54,6 @@ export interface FiCs<D extends object, P extends object> {
   isExceptional?: boolean
   data?: () => D
   inheritances?: Inheritances<D, P>
-  props?: P
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
