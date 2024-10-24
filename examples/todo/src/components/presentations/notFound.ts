@@ -9,8 +9,9 @@ interface Props {
 
 export default fics<{}, Props>({
   name: 'not-found',
-  inheritances: [
-    { descendant: button, props: ({ $props: { btnText, click } }) => ({ btnText, click }) }
-  ],
+  inheritances: {
+    descendant: button,
+    props: ({ $props: { btnText, click } }) => ({ btnText, click })
+  },
   html: ({ $props: { error404 }, $template }) => $template`<h2>404 ${error404}</h2>${button}`
 })

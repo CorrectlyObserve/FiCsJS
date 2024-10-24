@@ -10,18 +10,16 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
   return fics({
     name: 'header',
     data: () => ({ lang, pathname }),
-    inheritances: [
-      {
-        descendant: langs,
-        props: ({ $getData }) => ({
-          lang: $getData('lang'),
-          switchLang: (_lang: string) => {
-            setState(lang, _lang)
-            goto(`/${getState(lang) === 'en' ? '' : getState(lang) + '/'}${$getData('pathname')}`)
-          }
-        })
-      }
-    ],
+    inheritances: {
+      descendant: langs,
+      props: ({ $getData }) => ({
+        lang: $getData('lang'),
+        switchLang: (_lang: string) => {
+          setState(lang, _lang)
+          goto(`/${getState(lang) === 'en' ? '' : getState(lang) + '/'}${$getData('pathname')}`)
+        }
+      })
+    },
     html: ({ $template }) => $template`<header><h1>${title}</h1><div>${langs}</div></header>`,
     css: [
       { style: { display: 'block', marginBottom: 'var(--lg)' } },
