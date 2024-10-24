@@ -7,19 +7,17 @@ export default <D extends object>({
   content,
   router,
   inheritances,
-  isOnlyCsr,
   className,
   attributes,
   css,
   actions,
-  hooks
+  hooks,
+  options
 }: FiCsLink<D>): FiCsElement<D, {}> =>
   new FiCsElement<D, {}>({
     name: 'link',
     isExceptional: true,
-    isImmutable: true,
     inheritances,
-    isOnlyCsr,
     className,
     attributes,
     html: ({ $template, $html, $show }) => {
@@ -39,5 +37,6 @@ export default <D extends object>({
         }
       }
     ],
-    hooks
+    hooks,
+    options: { ...(options ?? {}), immutable: true }
   })
