@@ -3,8 +3,8 @@ import FiCsElement from './class'
 export interface Action<D, P> {
   handler: string
   selector?: string
-  method: Method<D, P>
-  blur?: boolean
+  method: (params: MethodParams<D, P>) => void
+  options?: { blur?: boolean; once?: boolean }
 }
 
 type ArrowFuncOrValue<V, D, P> = V | ((params: DataProps<D, P>) => V)
@@ -90,8 +90,6 @@ export type Inheritances<D, P> = {
   props: (params: DataMethods<D> & { $props: P }) => object
 }[]
 
-export type Method<D, P> = (params: MethodParams<D, P>) => void
-
 export interface MethodParams<D, P> extends Params<D, P> {
   $event: Event
   $attributes: Record<string, string>
@@ -103,7 +101,7 @@ export interface Options {
   ssr: boolean
 }
 
-export type Params<D, P> = DataProps<D, P> & DataMethods<D>
+type Params<D, P> = DataProps<D, P> & DataMethods<D>
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
