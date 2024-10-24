@@ -50,17 +50,16 @@ export type Descendant = FiCsElement<any, any>
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
-  isImmutable?: boolean
   data?: () => D
   inheritances?: Inheritances<D, P>
   props?: P
-  isOnlyCsr?: boolean
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
   css?: Css<D, P>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
+  options?: Partial<Options>
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
@@ -97,6 +96,11 @@ export interface MethodParams<D, P> extends Params<D, P> {
   $event: Event
   $attributes: Record<string, string>
   $value?: string
+}
+
+export interface Options {
+  immutable: boolean
+  ssr: boolean
 }
 
 export type Params<D, P> = DataProps<D, P> & DataMethods<D>
