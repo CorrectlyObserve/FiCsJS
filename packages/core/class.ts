@@ -61,7 +61,6 @@ export default class FiCsElement<D extends object, P extends object> {
     isExceptional,
     data,
     inheritances,
-    props,
     className,
     attributes,
     html,
@@ -82,11 +81,6 @@ export default class FiCsElement<D extends object, P extends object> {
         if (data)
           throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
 
-        if (props)
-          throw new Error(
-            `${this.#tagName} is an immutable component, so it cannot receive props...`
-          )
-
         this.#options.immutable = options.immutable
       }
 
@@ -94,7 +88,6 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
 
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
-      if (props) this.#props = { ...props } as P
 
       if (options?.ssr === false) this.#options.ssr = false
 
