@@ -103,7 +103,7 @@ export interface Options {
   ssr: boolean
 }
 
-type Params<D, P> = DataProps<D, P> & DataMethods<D>
+export type Params<D, P> = DataProps<D, P> & DataMethods<D>
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
