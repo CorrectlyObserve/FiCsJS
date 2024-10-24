@@ -17,6 +17,7 @@ import type {
   Inheritances,
   Method,
   MethodParams,
+  Options,
   PropsChain,
   PropsTree,
   Sanitized,
@@ -31,11 +32,9 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
   readonly #tagName: string
-  readonly #isImmutable: boolean = false
   readonly #data: D = {} as D
   readonly #inheritances: Inheritances<D, P> = new Array()
   readonly #props: P = {} as P
-  readonly #isOnlyCsr: boolean = false
   readonly #bindings: Bindings<D, P> = {
     isClassName: false,
     isAttr: false,
@@ -49,6 +48,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
+  readonly #options: Options = { immutable: false, ssr: true }
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
@@ -60,17 +60,16 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     name,
     isExceptional,
-    isImmutable,
     data,
     inheritances,
     props,
-    isOnlyCsr,
     className,
     attributes,
     html,
     css,
     actions,
-    hooks
+    hooks,
+    options
   }: FiCs<D, P>) {
     this.#name = this.#convertStr(name, 'kebab')
 
@@ -80,7 +79,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
       this.#tagName = `f-${this.#name}`
 
-      if (isImmutable) {
+      if (options?.immutable) {
         if (data)
           throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
 
@@ -89,7 +88,7 @@ export default class FiCsElement<D extends object, P extends object> {
             `${this.#tagName} is an immutable component, so it cannot receive props...`
           )
 
-        this.#isImmutable = isImmutable
+        this.#options.immutable = options.immutable
       }
 
       if (data)
@@ -98,15 +97,17 @@ export default class FiCsElement<D extends object, P extends object> {
       if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
       if (props) this.#props = { ...props } as P
 
-      if (isOnlyCsr) this.#isOnlyCsr = true
+      if (options?.ssr === false) this.#options.ssr = false
 
       if (className) {
-        if (!this.#isImmutable && typeof className === 'function') this.#bindings.isClassName = true
+        if (!this.#options.immutable && typeof className === 'function')
+          this.#bindings.isClassName = true
         this.#className = className
       }
 
       if (attributes) {
-        if (!this.#isImmutable && typeof attributes === 'function') this.#bindings.isAttr = true
+        if (!this.#options.immutable && typeof attributes === 'function')
+          this.#bindings.isAttr = true
         this.#attrs = attributes
       }
 
@@ -146,7 +147,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#inheritances.length > 0)
       for (const { descendant, props } of this.#inheritances)
         for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
-          if (_descendant.#isImmutable)
+          if (_descendant.#options.immutable)
             throw new Error(
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
@@ -189,7 +190,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setDataProps(): DataProps<D, P> {
-    return this.#isImmutable
+    return this.#options.immutable
       ? { $data: {} as D, $props: {} as P }
       : { $data: { ...this.#data }, $props: { ...this.#props } }
   }
@@ -395,7 +396,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const component: HTMLElement = doc.createElement(this.#tagName)
     this.#callback('created')
 
-    if (!this.#isOnlyCsr) {
+    if (!this.#options.ssr) {
       this.#initProps(propsChain)
       this.#addClassName(component)
       this.#addAttrs(component)
@@ -637,7 +638,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (allCss.length === 0) return
 
-    if (!this.#isImmutable && css.length === 0)
+    if (!this.#options.immutable && css.length === 0)
       for (const [index, content] of this.#css.entries())
         if (typeof content !== 'string' && typeof content.style === 'function')
           this.#bindings.css.push({ index })
@@ -722,7 +723,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const action of that.#actions) {
                 const { handler, selector, method, blur }: Action<D, P> = action
 
-                if (!that.#isImmutable && selector) {
+                if (!that.#options.immutable && selector) {
                   that.#bindings.actions.push(action)
 
                   for (const element of that.#getElements(that.#getShadowRoot(this), selector))
