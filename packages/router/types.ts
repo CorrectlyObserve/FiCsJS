@@ -6,7 +6,7 @@ import type {
   Css,
   Descendant,
   Hooks,
-  Inheritances,
+  Inheritance,
   Options,
   Sanitized,
   SingleOrArray,
@@ -19,7 +19,7 @@ export interface FiCsLink<D extends object> {
   href: string
   content: (params: Syntaxes<D, {}>) => Content<D>
   router: FiCsElement<D, {}>
-  inheritances?: Inheritances<D, {}>
+  inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
   css?: Css<D, {}>
@@ -32,7 +32,7 @@ export interface FiCsRouter<D extends object> {
   pages: (PageContent<D> & { path: SingleOrArray })[]
   notFound?: PageContent<D>
   data?: () => D
-  inheritances?: Inheritances<D, {}>
+  inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
   css?: Css<D, {}>
