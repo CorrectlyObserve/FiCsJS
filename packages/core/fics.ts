@@ -3,29 +3,27 @@ import type { FiCs } from './types'
 
 export default <D extends object, P extends object>({
   name,
-  isImmutable,
   data,
   inheritances,
   props,
-  isOnlyCsr,
   className,
   attributes,
   html,
   css,
   actions,
-  hooks
+  hooks,
+  options
 }: FiCs<D, P>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
-    isImmutable,
     data,
     inheritances,
     props,
-    isOnlyCsr,
     className,
     attributes,
     html,
     css,
     actions,
-    hooks
+    hooks,
+    options
   })
