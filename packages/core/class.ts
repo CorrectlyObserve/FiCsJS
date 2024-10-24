@@ -14,7 +14,7 @@ import type {
   Html,
   HtmlContent,
   Hooks,
-  Inheritances,
+  Inheritance,
   MethodParams,
   Options,
   PropsChain,
@@ -32,7 +32,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #tagName: string
   readonly #data: D = {} as D
-  readonly #inheritances: Inheritances<D, P> = new Array()
+  readonly #inheritances: Inheritance<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings<D, P> = {
     isClassName: false,
@@ -87,7 +87,8 @@ export default class FiCsElement<D extends object, P extends object> {
       if (data)
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
 
-      if (inheritances && inheritances.length > 0) this.#inheritances = [...inheritances]
+      if (inheritances)
+        this.#inheritances = Array.isArray(inheritances) ? [...inheritances] : [{ ...inheritances }]
 
       if (options?.ssr === false) this.#options.ssr = false
 
