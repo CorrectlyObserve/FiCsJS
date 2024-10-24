@@ -6,8 +6,6 @@ export default (
 ): void => {
   throwWindowError()
 
-  if (history) {
-    if (reload) window.location.href = href
-    else window.history.pushState({}, '', href)
-  } else window.history.replaceState({}, '', href)
+  if (history) reload ? (window.location.href = href) : window.history.pushState({}, '', href)
+  else window.history.replaceState({}, '', href)
 }
