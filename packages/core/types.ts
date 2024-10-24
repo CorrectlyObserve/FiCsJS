@@ -20,7 +20,7 @@ export interface Bindings<D, P> {
 
 export type ClassName<D, P> = string | ((params: DataProps<D, P>) => string)
 
-export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
+export type Css<D, P> = (IndividualCssContent<D, P> | GlobalCssContent)[]
 
 type CssBinding = { index: number; nested?: CssBinding }[]
 
@@ -57,7 +57,7 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<string | CssContent<D, P>>
+  css?: SingleOrArray<IndividualCssContent<D, P>>
   actions?: SingleOrArray<Action<D, P>>
   hooks?: Hooks<D, P>
   options?: Partial<Options>
@@ -90,6 +90,8 @@ export type Inheritance<D, P> = {
   descendant: SingleOrArray<Descendant>
   props: (params: DataMethods<D> & { $props: P }) => object
 }
+
+export type IndividualCssContent<D, P> = string | CssContent<D, P>
 
 export interface MethodParams<D, P> extends Params<D, P> {
   $event: Event
