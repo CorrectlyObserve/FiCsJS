@@ -15,6 +15,7 @@ export default async <T>({
     .then(res => res.json())
     .then(json => {
       if (!Array.isArray(key)) key = [key]
+
       const i18n: I18n | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
 
       if (i18n === undefined)
