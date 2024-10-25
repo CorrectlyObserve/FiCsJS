@@ -1,6 +1,7 @@
 import { throwDataPropsError, throwWindowError } from './errors'
 import generate from './generator'
 import { getGlobalCss } from './globalCss'
+import { convertToArray } from './helpers'
 import addToQueue from './queue'
 import type {
   Action,
@@ -89,28 +90,29 @@ export default class FiCsElement<D extends object, P extends object> {
       if (data)
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
 
-      if (inheritances)
-        this.#inheritances = Array.isArray(inheritances) ? [...inheritances] : [{ ...inheritances }]
+      if (inheritances) this.#inheritances = convertToArray(inheritances)
 
       if (options?.ssr === false) this.#options.ssr = false
 
       if (className) {
         if (!this.#options.immutable && typeof className === 'function')
           this.#bindings.isClassName = true
+
         this.#className = className
       }
 
       if (attributes) {
         if (!this.#options.immutable && typeof attributes === 'function')
           this.#bindings.isAttr = true
+
         this.#attrs = attributes
       }
 
       this.#html = html
       this.#showAttr = `${this.#ficsId}-show-syntax`
-      if (css)
-        this.#css = Array.isArray(css) ? [...css] : [typeof css === 'string' ? css : { ...css }]
-      if (actions) this.#actions = Array.isArray(actions) ? [...actions] : [{ ...actions }]
+
+      if (css) this.#css = convertToArray(css)
+      if (actions) this.#actions = convertToArray(actions)
       if (hooks) this.#hooks = { ...hooks }
     }
   }
@@ -141,14 +143,14 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
 
     if (this.#inheritances.length > 0)
-      for (const { descendant, props } of this.#inheritances)
-        for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
-          if (_descendant.#options.immutable)
+      for (const { descendants, props } of this.#inheritances)
+        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
+          if (descendant.#options.immutable)
             throw new Error(
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
 
-          const descendantId: string = _descendant.#ficsId
+          const descendantId: string = descendant.#ficsId
 
           for (const [key, value] of Object.entries(
             props({ ...this.#setDataMethods(), $props: { ...this.#props } })
@@ -163,7 +165,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const tree: PropsTree<D, P> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
               dataKey: key as keyof D,
-              setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
+              setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
             }
             const isLargerNumberId = (index: number): boolean =>
               this.#propsTrees[index].numberId >= tree.numberId
@@ -231,7 +233,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
     addToQueue({ ficsId: descendant.#ficsId, process: () => descendant.#define(this.#propsChain) })
-    return descendant.#getComponent()
+    return document.createElement(descendant.#tagName)
   }
 
   #convertTemplate(doc?: Document): ChildNode[] {
@@ -373,9 +375,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (!nested) return css
 
-        return (
-          css + createCss(Array.isArray(nested) ? nested : [{ ...nested }], `${host} ${selector}`)
-        )
+        return css + createCss(convertToArray(nested), `${host} ${selector}`)
       }, '') as string
     }
 
@@ -700,13 +700,6 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #getComponent(): HTMLElement {
-    const component: HTMLElement = document.createElement(this.#tagName)
-    this.#callback('created')
-
-    return component
-  }
-
   #define(propsChain?: PropsChain<P>): void {
     throwWindowError()
 
@@ -815,8 +808,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
+    this.#callback('created')
     addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
-    if (parent) parent.append(this.#getComponent())
+    if (parent) parent.append(document.createElement(this.#tagName))
   }
 
   getData = (key: keyof D): D[typeof key] => {
