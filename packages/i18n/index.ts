@@ -1,25 +1,25 @@
 import { convertToArray } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 
-type I18n = SingleOrArray | { [key: string]: I18n }
+type I18n = SingleOrArray | { [keys: string]: I18n }
 
 export default async <T>({
   directory,
   lang,
-  key
+  keys
 }: {
   directory: string
   lang: string
-  key: SingleOrArray
+  keys: SingleOrArray
 }): Promise<T> =>
   await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
-      key = convertToArray(key)
-      const i18n: I18n | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
+      keys = convertToArray(keys)
+      const i18n: I18n | undefined = keys.reduce((acc, key) => acc && acc[key], json)
 
       if (i18n === undefined)
-        throw new Error(`${key.join('.')} does not exist in ${directory}/${lang}.json...`)
+        throw new Error(`${keys.join('.')} does not exist in ${directory}/${lang}.json...`)
 
       return i18n as T
     })
