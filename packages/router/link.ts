@@ -1,4 +1,5 @@
 import FiCsElement from '../core/class'
+import { convertToArray } from '../core/helpers'
 import goto from './goto'
 import type { Content, FiCsLink } from './types'
 
@@ -26,7 +27,7 @@ export default <D extends object>({
     },
     css,
     actions: [
-      ...(actions ?? []),
+      ...(actions ? convertToArray(actions) : []),
       {
         handler: 'click',
         selector: 'a',
