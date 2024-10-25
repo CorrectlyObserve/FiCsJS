@@ -1,5 +1,6 @@
 import FiCsElement from '../core/class'
 import { throwWindowError } from '../core/errors'
+import { convertToArray } from '../core/helpers'
 import type { Params, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
@@ -42,9 +43,9 @@ export default <D extends object>({
           return returned instanceof FiCsElement ? $template`${returned}` : returned
         }
 
-        for (const { path, content, redirect } of pages)
-          for (const _path of Array.isArray(path) ? path : [path])
-            if (pathname === _path || getRegExp(_path).test(pathname!))
+        for (const { path: paths, content, redirect } of pages)
+          for (const path of convertToArray(paths))
+            if (pathname === path || getRegExp(path).test(pathname!))
               return resolveContent({ content, redirect })
 
         if (notFound) return resolveContent(notFound)
