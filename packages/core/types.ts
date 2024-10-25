@@ -87,7 +87,7 @@ export interface Hooks<D, P> {
 }
 
 export type Inheritance<D, P> = {
-  descendant: SingleOrArray<Descendant>
+  descendants: SingleOrArray<Descendant>
   props: (params: DataMethods<D> & { $props: P }) => object
 }
 
