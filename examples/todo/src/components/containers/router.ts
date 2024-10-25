@@ -5,22 +5,22 @@ import todoPost from '@/components/presentations/todoPost'
 import todoList from '@/components/presentations/todoList'
 import taskDetail from '@/components/presentations/taskDetail'
 import notFound from '@/components/presentations/notFound'
+import type { Task } from '@/types'
 
 export default async (lang: string) => {
-  const error404 = await i18n<string>({ directory: '/i18n', lang, key: ['notFound', '404'] })
-  const btnText = await i18n<string>({ directory: '/i18n', lang, key: ['notFound', 'back'] })
+  const notFoundTexts = await i18n<JSON>({ directory: '/i18n', lang, keys: 'notFound' })
 
-  return ficsRouter({
+  return ficsRouter<{ tasks: Task[] }>({
     pages: [
-      { path: ['/', `/${lang}`], content: () => topPage },
+      { paths: ['/', `/${lang}`], content: () => topPage },
       {
-        path: ['/todo', `/${lang}/todo`],
+        paths: ['/todo', `/${lang}/todo`],
         content: ({ $template }) => $template`${todoPost}${todoList}`
       },
-      { path: ['/todo/:id', `/${lang}/todo/:id`], content: () => taskDetail }
+      { paths: ['/todo/:id', `/${lang}/todo/:id`], content: () => taskDetail }
     ],
     notFound: { content: () => notFound },
-    data: () => ({ tasks: [] }),
+    data: () => ({ tasks: [{ id: 1, title: 's', description: '', created_at: 0, updated_at: 0 }] }),
     inheritances: [
       {
         descendants: todoPost,
@@ -32,7 +32,7 @@ export default async (lang: string) => {
       { descendants: todoList, props: ({ $getData }) => ({ tasks: $getData('tasks') }) },
       {
         descendants: notFound,
-        props: () => ({ error404, btnText, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
+        props: () => ({ ...notFoundTexts, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
       }
     ]
   })
