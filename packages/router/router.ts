@@ -43,7 +43,7 @@ export default <D extends object>({
           return returned instanceof FiCsElement ? $template`${returned}` : returned
         }
 
-        for (const { path: paths, content, redirect } of pages)
+        for (const { paths, content, redirect } of pages)
           for (const path of convertToArray(paths))
             if (pathname === path || getRegExp(path).test(pathname!))
               return resolveContent({ content, redirect })
