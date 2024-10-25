@@ -3,7 +3,7 @@ import { ficsRouter, goto } from 'ficsjs/router'
 import topPage from '@/components/presentations/topPage'
 import todoPost from '@/components/presentations/todoPost'
 import todoList from '@/components/presentations/todoList'
-import todoDetail from '@/components/presentations/todoDetail'
+import taskDetail from '@/components/presentations/taskDetail'
 import notFound from '@/components/presentations/notFound'
 
 export default async (lang: string) => {
@@ -17,21 +17,21 @@ export default async (lang: string) => {
         path: ['/todo', `/${lang}/todo`],
         content: ({ $template }) => $template`${todoPost}${todoList}`
       },
-      { path: ['/todo/:id', `/${lang}/todo/:id`], content: () => todoDetail }
+      { path: ['/todo/:id', `/${lang}/todo/:id`], content: () => taskDetail }
     ],
     notFound: { content: () => notFound },
     data: () => ({ tasks: [] }),
     inheritances: [
       {
-        descendant: todoPost,
+        descendants: todoPost,
         props: ({ $getData }) => ({
           length: $getData('tasks')!.length,
           addNewTask: (value: string) => console.log(value)
         })
       },
-      { descendant: todoList, props: ({ $getData }) => ({ tasks: $getData('tasks') }) },
+      { descendants: todoList, props: ({ $getData }) => ({ tasks: $getData('tasks') }) },
       {
-        descendant: notFound,
+        descendants: notFound,
         props: () => ({ error404, btnText, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
       }
     ]
