@@ -1,3 +1,4 @@
+import { convertToArray } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 
 type I18n = SingleOrArray | { [key: string]: I18n }
@@ -14,8 +15,7 @@ export default async <T>({
   await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
-      if (!Array.isArray(key)) key = [key]
-
+      key = convertToArray(key)
       const i18n: I18n | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
 
       if (i18n === undefined)
