@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import button from '@/components/presentations/button'
 
 interface Props {
-  error404: string
+  title: string
   btnText: string
   click: () => void
 }
@@ -13,5 +13,5 @@ export default fics<{}, Props>({
     descendants: button,
     props: ({ $props: { btnText, click } }) => ({ btnText, click })
   },
-  html: ({ $props: { error404 }, $template }) => $template`<h2>404 ${error404}</h2>${button}`
+  html: ({ $props: { title }, $template }) => $template`<h2>404 ${title}</h2>${button}`
 })
