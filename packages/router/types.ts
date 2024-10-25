@@ -29,7 +29,7 @@ export interface FiCsLink<D extends object> {
 }
 
 export interface FiCsRouter<D extends object> {
-  pages: (PageContent<D> & { path: SingleOrArray })[]
+  pages: (PageContent<D> & { paths: SingleOrArray })[]
   notFound?: PageContent<D>
   data?: () => D
   inheritances?: SingleOrArray<Inheritance<D, {}>>
