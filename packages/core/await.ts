@@ -1,5 +1,5 @@
 import FiCsElement from './class'
-import { template } from './helpers'
+import { sanitize } from './helpers'
 import type { FiCsAwait, DataParams } from './types'
 
 export default <D extends { isLoaded: boolean; response?: D['response'] }>({
@@ -22,7 +22,7 @@ export default <D extends { isLoaded: boolean; response?: D['response'] }>({
     data: () => ({ isLoaded: false, response: undefined }) as D,
     attributes,
     html: ({ $data: { isLoaded, response }, $template, $html, $show }) =>
-      template(
+      sanitize(
         isLoaded
           ? awaited({ $template, $html, $show, $response: response })
           : fallback({ $template, $html, $show }),
