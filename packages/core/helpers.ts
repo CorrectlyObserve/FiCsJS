@@ -6,7 +6,7 @@ export const convertToArray = <T>(params: SingleOrArray<T>): T[] =>
     ? [...params]
     : [params && typeof params === 'object' ? { ...params } : params]
 
-export const template = <D extends object>(
+export const sanitize = <D extends object>(
   param: Descendant | Sanitized<D, {}>,
   $template: Syntaxes<D, {}>['$template']
-) => (param instanceof FiCsElement ? $template`${param}` : param)
+): Sanitized<D, {}> => (param instanceof FiCsElement ? $template`${param}` : param)
