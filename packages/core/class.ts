@@ -399,7 +399,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const component: HTMLElement = doc.createElement(this.#tagName)
     this.#callback('created')
 
-    if (!this.#options.ssr) {
+    if (this.#options.ssr || this.#options.ssr === undefined) {
       this.#initProps(propsChain)
       this.#addClassName(component)
       this.#addAttrs(component)
