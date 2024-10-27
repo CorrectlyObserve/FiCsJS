@@ -4,7 +4,7 @@ import type { FiCsAwait, DataParams } from './types'
 
 export default <D extends { isLoaded: boolean; response?: D['response'] }>({
   fetch,
-  await,
+  awaited,
   fallback,
   inheritances,
   className,
@@ -24,7 +24,7 @@ export default <D extends { isLoaded: boolean; response?: D['response'] }>({
     html: ({ $data: { isLoaded, response }, $template, $html, $show }) =>
       convertContent(
         isLoaded
-          ? await({ $template, $html, $show, $response: response })
+          ? awaited({ $template, $html, $show, $response: response })
           : fallback({ $template, $html, $show }),
         $template
       ),
