@@ -67,7 +67,7 @@ export interface FiCs<D extends object, P extends object> {
 
 export interface FiCsAwait<D extends { isLoaded: boolean; response?: D['response'] }> {
   fetch: Promise<D['response']>
-  await: (params: Syntaxes<D, {}> & { $response?: D['response'] }) => Descendant | Sanitized<D, {}>
+  awaited: (params: Syntaxes<D, {}> & { $response?: D['response'] }) => Descendant | Sanitized<D, {}>
   fallback: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
