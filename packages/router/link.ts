@@ -1,7 +1,7 @@
 import FiCsElement from '../core/class'
-import { convertToArray } from '../core/helpers'
+import { convertContent, convertToArray } from '../core/helpers'
 import goto from './goto'
-import type { Content, FiCsLink } from './types'
+import type { FiCsLink } from './types'
 
 export default <D extends object>({
   href,
@@ -21,10 +21,8 @@ export default <D extends object>({
     inheritances,
     className,
     attributes,
-    html: ({ $template, $html, $show }) => {
-      const returned: Content<D> = content({ $template, $html, $show })
-      return $template`<a href="${href}">${returned instanceof FiCsElement ? $template`${returned}` : returned}</a>`
-    },
+    html: ({ $template, $html, $show }) =>
+      $template`<a href="${href}">${convertContent(content({ $template, $html, $show }), $template)}</a>`,
     css,
     actions: [
       ...(actions ? convertToArray(actions) : []),
