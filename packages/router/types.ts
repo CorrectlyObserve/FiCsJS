@@ -15,7 +15,7 @@ import type {
 
 export interface FiCsLink<D extends object> {
   href: string
-  content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  content: (syntaxes: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   router: FiCsElement<D, {}>
   inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
@@ -40,6 +40,6 @@ export interface FiCsRouter<D extends object> {
 }
 
 export interface PageContent<D extends object> {
-  content: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  content: (syntaxes: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   redirect?: string
 }
