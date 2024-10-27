@@ -14,7 +14,8 @@ interface Props {
 export default fics<Data, Props>({
   name: 'langs',
   data: () => ({ langs: ['en', 'ja'], isShown: false }),
-  html: ({ $data: { langs, isShown }, $props: { lang }, $template, $show }) => $template`
+  html: ({ $data: { langs, isShown }, $props: { lang }, $template, $show }) =>
+    $template`
       <div class="container">
         <button class="lang">${lang.toUpperCase()}</button>
         <div class="langs${!isShown ? ' hidden' : ''}" ${$show(isShown)}>
