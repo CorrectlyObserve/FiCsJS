@@ -30,7 +30,12 @@ const generator: Generator<number> = generate()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
-  readonly #reservedWords: Record<string, true> = { var: true, router: true, link: true }
+  readonly #reservedWords: Record<string, true> = {
+    var: true,
+    await: true,
+    router: true,
+    link: true
+  }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
   readonly #tagName: string
