@@ -5,13 +5,13 @@ import { setState, getState } from 'ficsjs/state'
 import langs from '@/components/presentations/langs/'
 
 export default async ({ lang, pathname }: { lang: string; pathname: string }) => {
-  const title = await i18n<string>({ directory: '/i18n', lang, key: 'title' })
+  const title = await i18n<string>({ directory: '/i18n', lang, keys: 'title' })
 
   return fics({
     name: 'header',
     data: () => ({ lang, pathname }),
     inheritances: {
-      descendant: langs,
+      descendants: langs,
       props: ({ $getData }) => ({
         lang: $getData('lang'),
         switchLang: (_lang: string) => {
