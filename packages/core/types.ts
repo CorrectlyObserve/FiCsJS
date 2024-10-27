@@ -3,13 +3,13 @@ import FiCsElement from './class'
 export interface Action<D, P> {
   handler: string
   selector?: string
-  method: (params: MethodParams<D, P>) => void
+  method: (methodParams: MethodParams<D, P>) => void
   options?: { blur?: boolean; once?: boolean }
 }
 
 export type Attrs<D, P> =
   | Record<string, string>
-  | ((params: DataProps<D, P>) => Record<string, string>)
+  | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
 export interface Bindings<D, P> {
   isClassName: boolean
@@ -18,7 +18,7 @@ export interface Bindings<D, P> {
   actions: Action<D, P>[]
 }
 
-export type ClassName<D, P> = string | ((params: DataProps<D, P>) => string)
+export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export type Css<D, P> = (IndividualCssContent<D, P> | GlobalCssContent)[]
 
@@ -27,7 +27,7 @@ type CssBinding = { index: number; nested?: CssBinding }[]
 export interface CssContent<D, P> extends CssSelector {
   style:
     | Record<string, string | number>
-    | ((params: DataProps<D, P>) => Record<string, string | number>)
+    | ((dataProps: DataProps<D, P>) => Record<string, string | number>)
   nested?: SingleOrArray<CssContent<D, P>>
 }
 
@@ -67,8 +67,10 @@ export interface FiCs<D extends object, P extends object> {
 
 export interface FiCsAwait<D extends { isLoaded: boolean; response?: D['response'] }> {
   fetch: Promise<D['response']>
-  awaited: (params: Syntaxes<D, {}> & { $response?: D['response'] }) => Descendant | Sanitized<D, {}>
-  fallback: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  awaited: (
+    syntaxes: Syntaxes<D, {}> & { $response?: D['response'] }
+  ) => Descendant | Sanitized<D, {}>
+  fallback: (syntaxes: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   inheritances?: SingleOrArray<Inheritance<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
@@ -94,11 +96,11 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  created?: (params: DataParams<D, P>) => void
-  mounted?: (params: DataParams<D, P>) => void
+  created?: (dataParams: DataParams<D, P>) => void
+  mounted?: (dataParams: DataParams<D, P>) => void
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
-  destroyed?: (params: DataParams<D, P>) => void
-  adopted?: (params: DataParams<D, P>) => void
+  destroyed?: (dataParams: DataParams<D, P>) => void
+  adopted?: (dataParams: DataParams<D, P>) => void
 }
 
 export type Inheritance<D, P> = {
