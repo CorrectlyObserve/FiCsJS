@@ -42,6 +42,8 @@ export interface DataMethods<D> {
   $getData: (key: keyof D) => D[typeof key]
 }
 
+export type DataParams<D, P> = DataProps<D, P> & DataMethods<D>
+
 export interface DataProps<D, P> {
   $data: D
   $props: P
@@ -63,6 +65,19 @@ export interface FiCs<D extends object, P extends object> {
   options?: Partial<Options>
 }
 
+export interface FiCsAwait<D extends { isLoaded: boolean; response?: D['response'] }> {
+  fetch: Promise<D['response']>
+  content: (params: Syntaxes<D, {}> & { $response?: D['response'] }) => Descendant | Sanitized<D, {}>
+  fallback: (params: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  inheritances?: SingleOrArray<Inheritance<D, {}>>
+  className?: ClassName<D, {}>
+  attributes?: Attrs<D, {}>
+  css?: SingleOrArray<IndividualCssContent<D, {}>>
+  actions?: SingleOrArray<Action<D, {}>>
+  hooks?: Hooks<D, {}>
+  options?: Partial<Options>
+}
+
 export type GlobalCss = (GlobalCssContent | string)[]
 
 export interface GlobalCssContent extends CssSelector {
@@ -79,11 +94,11 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  created?: (params: Params<D, P>) => void
-  mounted?: (params: Params<D, P>) => void
+  created?: (params: DataParams<D, P>) => void
+  mounted?: (params: DataParams<D, P>) => void
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
-  destroyed?: (params: Params<D, P>) => void
-  adopted?: (params: Params<D, P>) => void
+  destroyed?: (params: DataParams<D, P>) => void
+  adopted?: (params: DataParams<D, P>) => void
 }
 
 export type Inheritance<D, P> = {
@@ -93,7 +108,7 @@ export type Inheritance<D, P> = {
 
 export type IndividualCssContent<D, P> = string | CssContent<D, P>
 
-export interface MethodParams<D, P> extends Params<D, P> {
+export interface MethodParams<D, P> extends DataParams<D, P> {
   $event: Event
   $attributes: Record<string, string>
   $value?: string
@@ -103,8 +118,6 @@ export interface Options {
   immutable: boolean
   ssr: boolean
 }
-
-export type Params<D, P> = DataProps<D, P> & DataMethods<D>
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
