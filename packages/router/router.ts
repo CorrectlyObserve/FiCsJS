@@ -1,10 +1,10 @@
 import FiCsElement from '../core/class'
 import { throwWindowError } from '../core/errors'
-import { convertToArray } from '../core/helpers'
-import type { Params, Sanitized } from '../core/types'
+import { convertContent, convertToArray } from '../core/helpers'
+import type { DataParams, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
-import type { Content, FiCsRouter, PageContent } from './types'
+import type { FiCsRouter, PageContent } from './types'
 
 export default <D extends object>({
   pages,
@@ -39,8 +39,7 @@ export default <D extends object>({
             return setContent()
           }
 
-          const returned: Content<D> = content({ $template, $html, $show })
-          return returned instanceof FiCsElement ? $template`${returned}` : returned
+          return convertContent(content({ $template, $html, $show }), $template)
         }
 
         for (const { paths, content, redirect } of pages)
@@ -58,13 +57,13 @@ export default <D extends object>({
     css,
     actions,
     hooks: {
-      created: (params: Params<D, {}>) => {
+      created: (params: DataParams<D, {}>) => {
         throwWindowError()
 
         params.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
         hooks?.created?.(params)
       },
-      mounted: (params: Params<D, {}>) => {
+      mounted: (params: DataParams<D, {}>) => {
         throwWindowError()
 
         window.addEventListener('popstate', () =>
@@ -73,8 +72,8 @@ export default <D extends object>({
         hooks?.mounted?.(params)
       },
       updated: hooks?.updated,
-      destroyed: (params: Params<D, {}>) => hooks?.destroyed?.(params),
-      adopted: (params: Params<D, {}>) => hooks?.adopted?.(params)
+      destroyed: (params: DataParams<D, {}>) => hooks?.destroyed?.(params),
+      adopted: (params: DataParams<D, {}>) => hooks?.adopted?.(params)
     },
     options: { ...(options ?? {}), immutable: false }
   })
