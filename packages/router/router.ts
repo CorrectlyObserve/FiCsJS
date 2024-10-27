@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import { throwWindowError } from '../core/errors'
-import { convertToArray, template } from '../core/helpers'
+import { convertToArray, sanitize } from '../core/helpers'
 import type { DataParams, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
@@ -39,7 +39,7 @@ export default <D extends object>({
             return setContent()
           }
 
-          return template(content({ $template, $html, $show }), $template)
+          return sanitize(content({ $template, $html, $show }), $template)
         }
 
         for (const { paths, content, redirect } of pages)
