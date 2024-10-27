@@ -31,15 +31,15 @@ export default <D extends { isLoaded: boolean; response?: D['response'] }>({
     css,
     actions,
     hooks: {
-      created: async (params: DataParams<D, {}>) => {
-        params.$setData('response', await fetch)
-        params.$setData('isLoaded', true as D[keyof D])
-        hooks?.created?.(params)
+      created: async (dataParams: DataParams<D, {}>) => {
+        dataParams.$setData('response', await fetch)
+        dataParams.$setData('isLoaded', true as D[keyof D])
+        hooks?.created?.(dataParams)
       },
-      mounted: (params: DataParams<D, {}>) => hooks?.mounted?.(params),
+      mounted: (dataParams: DataParams<D, {}>) => hooks?.mounted?.(dataParams),
       updated: hooks?.updated,
-      destroyed: (params: DataParams<D, {}>) => hooks?.destroyed?.(params),
-      adopted: (params: DataParams<D, {}>) => hooks?.adopted?.(params)
+      destroyed: (dataParams: DataParams<D, {}>) => hooks?.destroyed?.(dataParams),
+      adopted: (dataParams: DataParams<D, {}>) => hooks?.adopted?.(dataParams)
     },
     options
   })
