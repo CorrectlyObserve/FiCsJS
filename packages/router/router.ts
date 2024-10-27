@@ -57,23 +57,23 @@ export default <D extends object>({
     css,
     actions,
     hooks: {
-      created: (params: DataParams<D, {}>) => {
+      created: (dataParams: DataParams<D, {}>) => {
         throwWindowError()
 
-        params.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
-        hooks?.created?.(params)
+        dataParams.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
+        hooks?.created?.(dataParams)
       },
-      mounted: (params: DataParams<D, {}>) => {
+      mounted: (dataParams: DataParams<D, {}>) => {
         throwWindowError()
 
         window.addEventListener('popstate', () =>
-          params.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
+          dataParams.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
         )
-        hooks?.mounted?.(params)
+        hooks?.mounted?.(dataParams)
       },
       updated: hooks?.updated,
-      destroyed: (params: DataParams<D, {}>) => hooks?.destroyed?.(params),
-      adopted: (params: DataParams<D, {}>) => hooks?.adopted?.(params)
+      destroyed: (dataParams: DataParams<D, {}>) => hooks?.destroyed?.(dataParams),
+      adopted: (dataParams: DataParams<D, {}>) => hooks?.adopted?.(dataParams)
     },
     options: { ...(options ?? {}), immutable: false }
   })
