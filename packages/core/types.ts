@@ -24,7 +24,7 @@ export interface Bindings<D, P> {
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
-export type Css<D, P> = (IndividualCssContent<D, P> | GlobalCssContent)[]
+export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
 
 type CssBinding = { index: number; nested?: CssBinding }[]
 
@@ -59,11 +59,11 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => D
-  inheritances?: SingleOrArray<Inheritance<D, P>>
+  props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<IndividualCssContent<D, P>>
+  css?: SingleOrArray<string | CssContent<D, P>>
   actions?: SingleOrArray<Action<D, P>>
   hooks?: Hooks<D, P>
   options?: Partial<Options>
@@ -75,10 +75,10 @@ export interface FiCsAwait {
     syntaxes: Syntaxes<AwaitedData, {}> & { $response: AwaitedData['data']['response'] }
   ) => Descendant | Sanitized<AwaitedData, {}>
   fallback: (syntaxes: Syntaxes<AwaitedData, {}>) => Descendant | Sanitized<AwaitedData, {}>
-  inheritances?: SingleOrArray<Inheritance<AwaitedData, {}>>
+  props?: SingleOrArray<Props<AwaitedData, {}>>
   className?: ClassName<AwaitedData, {}>
   attributes?: Attrs<AwaitedData, {}>
-  css?: SingleOrArray<IndividualCssContent<AwaitedData, {}>>
+  css?: SingleOrArray<string | CssContent<AwaitedData, {}>>
   actions?: SingleOrArray<Action<AwaitedData, {}>>
   hooks?: Hooks<AwaitedData, {}>
   options?: Partial<Options>
@@ -107,13 +107,6 @@ export interface Hooks<D, P> {
   adopted?: (dataParams: DataParams<D, P>) => void
 }
 
-export type Inheritance<D, P> = {
-  descendants: SingleOrArray<Descendant>
-  props: (params: DataMethods<D> & { $props: P }) => object
-}
-
-export type IndividualCssContent<D, P> = string | CssContent<D, P>
-
 export interface MethodParams<D, P> extends DataParams<D, P> {
   $event: Event
   $attributes: Record<string, string>
@@ -123,6 +116,11 @@ export interface MethodParams<D, P> extends DataParams<D, P> {
 export interface Options {
   immutable: boolean
   ssr: boolean
+}
+
+export type Props<D, P> = {
+  descendants: SingleOrArray<Descendant>
+  values: (params: DataMethods<D> & { $props: P }) => object
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
