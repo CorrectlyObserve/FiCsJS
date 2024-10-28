@@ -1,6 +1,6 @@
 import FiCsElement from './class'
 import { sanitize } from './helpers'
-import type { FiCsAwait, AwaitedData, DataParams } from './types'
+import type { AwaitedData, DataParams, FiCsAwait } from './types'
 
 export default ({
   fetch,
@@ -21,17 +21,10 @@ export default ({
     className,
     data: () => ({ data: { isLoaded: false, response: undefined } }),
     attributes,
-    html: ({
-      $data: {
-        data: { isLoaded, response }
-      },
-      $template,
-      $html,
-      $show
-    }) =>
+    html: ({ $data: { data }, $template, $html, $show }) =>
       sanitize(
-        isLoaded
-          ? awaited({ $template, $html, $show, $response: response })
+        data.isLoaded
+          ? awaited({ $template, $html, $show, $response: data.response })
           : fallback({ $template, $html, $show }),
         $template
       ),
