@@ -1,8 +1,8 @@
 import FiCsElement from './class'
 import { sanitize } from './helpers'
-import type { FiCsAwait, DataParams } from './types'
+import type { FiCsAwait, AwaitedData, DataParams } from './types'
 
-export default <D extends { isLoaded: boolean; response?: D['response'] }>({
+export default ({
   fetch,
   awaited,
   fallback,
@@ -13,15 +13,22 @@ export default <D extends { isLoaded: boolean; response?: D['response'] }>({
   actions,
   hooks,
   options
-}: FiCsAwait<D>): FiCsElement<D, {}> =>
-  new FiCsElement<D, {}>({
+}: FiCsAwait): FiCsElement<AwaitedData, {}> =>
+  new FiCsElement<AwaitedData, {}>({
     name: 'await',
     isExceptional: true,
     inheritances,
     className,
-    data: () => ({ isLoaded: false, response: undefined }) as D,
+    data: () => ({ data: { isLoaded: false, response: undefined } }),
     attributes,
-    html: ({ $data: { isLoaded, response }, $template, $html, $show }) =>
+    html: ({
+      $data: {
+        data: { isLoaded, response }
+      },
+      $template,
+      $html,
+      $show
+    }) =>
       sanitize(
         isLoaded
           ? awaited({ $template, $html, $show, $response: response })
@@ -31,15 +38,14 @@ export default <D extends { isLoaded: boolean; response?: D['response'] }>({
     css,
     actions,
     hooks: {
-      created: async (dataParams: DataParams<D, {}>) => {
-        dataParams.$setData('response', await fetch)
-        dataParams.$setData('isLoaded', true as D[keyof D])
+      created: async (dataParams: DataParams<AwaitedData, {}>) => {
+        dataParams.$setData('data', { isLoaded: true, response: await fetch })
         hooks?.created?.(dataParams)
       },
-      mounted: (dataParams: DataParams<D, {}>) => hooks?.mounted?.(dataParams),
+      mounted: (dataParams: DataParams<AwaitedData, {}>) => hooks?.mounted?.(dataParams),
       updated: hooks?.updated,
-      destroyed: (dataParams: DataParams<D, {}>) => hooks?.destroyed?.(dataParams),
-      adopted: (dataParams: DataParams<D, {}>) => hooks?.adopted?.(dataParams)
+      destroyed: (dataParams: DataParams<AwaitedData, {}>) => hooks?.destroyed?.(dataParams),
+      adopted: (dataParams: DataParams<AwaitedData, {}>) => hooks?.adopted?.(dataParams)
     },
     options
   })
