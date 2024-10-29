@@ -3,10 +3,10 @@ import type {
   Action,
   Attrs,
   ClassName,
+  CssContent,
   Descendant,
   Hooks,
-  Inheritance,
-  IndividualCssContent,
+  Props,
   Options,
   Sanitized,
   SingleOrArray,
@@ -17,26 +17,26 @@ export interface FiCsLink<D extends object> {
   href: string
   content: (syntaxes: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
   router: FiCsElement<D, {}>
-  inheritances?: SingleOrArray<Inheritance<D, {}>>
+  props?: SingleOrArray<Props<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
-  css?: SingleOrArray<IndividualCssContent<D, {}>>
+  css?: SingleOrArray<string | CssContent<D, {}>>
   actions?: SingleOrArray<Action<D, {}>>
   hooks?: Hooks<D, {}>
-  options?: Exclude<Options, { immutable: boolean }>
+  options?: Omit<Options, 'immutable'>
 }
 
 export interface FiCsRouter<D extends object> {
   pages: (PageContent<D> & { paths: SingleOrArray })[]
   notFound?: PageContent<D>
   data?: () => D
-  inheritances?: SingleOrArray<Inheritance<D, {}>>
+  props?: SingleOrArray<Props<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
-  css?: SingleOrArray<IndividualCssContent<D, {}>>
+  css?: SingleOrArray<string | CssContent<D, {}>>
   actions?: SingleOrArray<Action<D, {}>>
   hooks?: Hooks<D, {}>
-  options?: Exclude<Options, { immutable: boolean }>
+  options?: Omit<Options, 'immutable'>
 }
 
 export interface PageContent<D extends object> {
