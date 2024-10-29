@@ -7,7 +7,7 @@ export default <D extends object>({
   href,
   content,
   router,
-  inheritances,
+  props,
   className,
   attributes,
   css,
@@ -18,7 +18,7 @@ export default <D extends object>({
   new FiCsElement<D, {}>({
     name: 'link',
     isExceptional: true,
-    inheritances,
+    props,
     className,
     attributes,
     html: ({ $template, $html, $show }) =>
