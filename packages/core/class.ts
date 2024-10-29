@@ -17,9 +17,9 @@ import type {
   Html,
   HtmlContent,
   Hooks,
-  Inheritance,
   MethodParams,
   Options,
+  Props,
   PropsChain,
   PropsTree,
   Sanitized,
@@ -40,7 +40,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #tagName: string
   readonly #data: D = {} as D
-  readonly #inheritances: Inheritance<D, P>[] = new Array()
+  readonly #inheritances: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings<D, P> = {
     isClassName: false,
@@ -68,7 +68,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     isExceptional,
     data,
-    inheritances,
+    props,
     className,
     attributes,
     html,
@@ -94,9 +94,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (data)
         for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
-
-      if (inheritances) this.#inheritances = convertToArray(inheritances)
-
+      if (props) this.#inheritances = convertToArray(props)
       if (options?.ssr === false) this.#options.ssr = false
 
       if (className) {
@@ -148,7 +146,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
 
     if (this.#inheritances.length > 0)
-      for (const { descendants, props } of this.#inheritances)
+      for (const { descendants, values } of this.#inheritances)
         for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           if (descendant.#options.immutable)
             throw new Error(
@@ -158,7 +156,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const descendantId: string = descendant.#ficsId
 
           for (const [key, value] of Object.entries(
-            props({ ...this.#setDataMethods(), $props: { ...this.#props } })
+            values({ ...this.#setDataMethods(), $props: { ...this.#props } })
           )) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
