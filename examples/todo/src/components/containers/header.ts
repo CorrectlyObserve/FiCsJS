@@ -10,9 +10,9 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
   return fics({
     name: 'header',
     data: () => ({ lang, pathname }),
-    inheritances: {
+    props: {
       descendants: langs,
-      props: ({ $getData }) => ({
+      values: ({ $getData }) => ({
         lang: $getData('lang'),
         switchLang: (_lang: string) => {
           setState(lang, _lang)

@@ -20,20 +20,20 @@ export default async (lang: string) => {
       { paths: ['/todo/:id', `/${lang}/todo/:id`], content: () => taskDetail }
     ],
     notFound: { content: () => notFound },
-    data: () => ({ tasks: [{ id: 1, title: 's', description: '', created_at: 0, updated_at: 0 }] }),
-    inheritances: [
+    data: () => ({ tasks: [{ title: 's', description: '', created_at: 0, updated_at: 0 }] }),
+    props: [
       {
         descendants: todoPost,
-        props: ({ $getData }) => ({
+        values: ({ $getData }) => ({
           length: $getData('tasks')!.length,
           addNewTask: (value: string) => console.log(value)
         })
       },
-      { descendants: todoList, props: ({ $getData }) => ({ tasks: $getData('tasks') }) },
+      { descendants: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
       {
         descendants: notFound,
-        props: () => ({ ...notFoundTexts, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
+        values: () => ({ ...notFoundTexts, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
       }
-    ]
+    ],
   })
 }
