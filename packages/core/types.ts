@@ -11,10 +11,6 @@ export type Attrs<D, P> =
   | Record<string, string>
   | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
-export interface AwaitedData {
-  data: { isLoaded: boolean; response: unknown }
-}
-
 export interface Bindings<D, P> {
   isClassName: boolean
   isAttr: boolean
@@ -70,18 +66,23 @@ export interface FiCs<D extends object, P extends object> {
 }
 
 export interface FiCsAwait {
-  fetch: Promise<AwaitedData['data']['response']>
+  fetch: Promise<FiCsAwaitedData['response']>
   awaited: (
-    syntaxes: Syntaxes<AwaitedData, {}> & { $response: AwaitedData['data']['response'] }
-  ) => Descendant | Sanitized<AwaitedData, {}>
-  fallback: (syntaxes: Syntaxes<AwaitedData, {}>) => Descendant | Sanitized<AwaitedData, {}>
-  props?: SingleOrArray<Props<AwaitedData, {}>>
-  className?: ClassName<AwaitedData, {}>
-  attributes?: Attrs<AwaitedData, {}>
-  css?: SingleOrArray<string | CssContent<AwaitedData, {}>>
-  actions?: SingleOrArray<Action<AwaitedData, {}>>
-  hooks?: Hooks<AwaitedData, {}>
-  options?: Partial<Options>
+    syntaxes: Syntaxes<FiCsAwaitedData, {}> & { $response: FiCsAwaitedData['response'] }
+  ) => Descendant | Sanitized<FiCsAwaitedData, {}>
+  fallback: (syntaxes: Syntaxes<FiCsAwaitedData, {}>) => Descendant | Sanitized<FiCsAwaitedData, {}>
+  props?: SingleOrArray<Props<FiCsAwaitedData, {}>>
+  className?: ClassName<FiCsAwaitedData, {}>
+  attributes?: Attrs<FiCsAwaitedData, {}>
+  css?: SingleOrArray<string | CssContent<FiCsAwaitedData, {}>>
+  actions?: SingleOrArray<Action<FiCsAwaitedData, {}>>
+  hooks?: Hooks<FiCsAwaitedData, {}>
+  options?: Omit<Options, 'immutable'>
+}
+
+export interface FiCsAwaitedData {
+  isLoaded: boolean
+  response: unknown
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
