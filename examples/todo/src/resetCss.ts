@@ -7,21 +7,22 @@ export default [
     style: { fontSize: 'calc(var(--md) * 1.5)', color: '#fff', marginBottom: 'var(--lg)' }
   },
   {
-    selector: ['p', 'button'],
-    style: { fontSize: 'var(--md)', color: '#fff', textAlign: 'center', lineHeight: 1 }
+    selector: ['p', 'button', 'li'],
+    style: { fontSize: 'var(--md)', color: '#fff', lineHeight: 1 },
+    nested: { selector: '&:not(li)', style: { textAlign: 'center' } }
   },
-  { selector: ['button', 'a'], style: { cursor: 'pointer' } },
   {
     selector: 'button',
-    style: { transition: 'var(--transition)', border: 'none', outline: 'none' },
+    style: { transition: 'var(--transition)', cursor: 'pointer', border: 'none', outline: 'none' },
     nested: [
       { selector: ':hover', style: { opacity: 0.5 } },
       { selector: ':focus', style: { transform: 'scale(0.8)' } }
     ]
   },
+  { selector: 'ul', style: { listStyle: 'none' } },
   { selector: ['span', 'a'], style: { color: 'inherit', lineHeight: 'inherit' } },
   {
     selector: 'a',
-    style: { width: '100%', display: 'inline-block', textDecoration: 'none' }
+    style: { width: '100%', display: 'inline-block', cursor: 'pointer', textDecoration: 'none' }
   }
 ]
