@@ -1,7 +1,7 @@
 {
   "title": "FiCsJSで開発されたToDoアプリ",
   "topPage": {
-    "titles": ["このアプリについて", "FiCsJSについて"],
+    "titles": ["このアプリについて", "FiCsJSの特徴"],
     "descriptions": [
       "このアプリケーションはFiCsJSで作られており、他のJavaScriptフレームワークは使用していません。",
       "\"FiCs\"とは、Framework-independent Componentsの略で、フレームワークに依存せずにコンポーネント開発ができるフレームワークです。",

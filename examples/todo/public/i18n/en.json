@@ -1,7 +1,7 @@
 {
   "title": "ToDo App built with FiCsJS",
   "topPage": {
-    "titles": ["About this App", "About FiCsJS"],
+    "titles": ["About this App", "Features of FiCsJS"],
     "descriptions": [
       "This application is built with FiCsJS and does not use any other JavaScript frameworks.",
       "\"FiCs\"stands for Framework-independent Components. It enables the development of flexible components without dependency on any framework.",
