@@ -1,7 +1,24 @@
 {
-  "title": "ToDo App by FiCsJS",
+  "title": "ToDo App built with FiCsJS",
+  "topPage": {
+    "descriptions": [
+      "This application is built with FiCsJS and does not use any other JavaScript frameworks.",
+      "\"FiCs\"stands for Framework-independent Components. It enables the development of flexible components without dependency on any framework.",
+      "While FiCsJS is specialized for component development, it makes development of web applications entirely with FiCsJS possible, since it also provides routing and state management features."
+    ],
+    "features": {
+      "title": "FiCsJS has the following features:",
+      "list": [
+        "The ability to develop flexible components without dependency on any framework",
+        "Harmony with the JavaScript ecosystem by avoiding syntactic sugar",
+        "Browser-native due to being based on Web Components"
+      ]
+    },
+    "conversion": "Now, let's try using the ToDo App built with FiCsJS!",
+    "buttonText": "start ToDo App"
+  },
   "notFound": {
-    "404": "Not Found...",
-    "back": "Back to top page"
+    "title": "Not Found...",
+    "buttonText": "Back to top page"
   }
 }
