@@ -1,5 +1,5 @@
 import i18n from 'ficsjs/i18n'
-import { ficsRouter, goto } from 'ficsjs/router'
+import { ficsRouter } from 'ficsjs/router'
 import topPage from '@/components/presentations/topPage'
 import todoPost from '@/components/presentations/todoPost'
 import todoList from '@/components/presentations/todoList'
@@ -31,11 +31,8 @@ export default async (lang: string) => {
         })
       },
       { descendants: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
-      { descendants: topPage, values: () => ({ ...topPageTexts }) },
-      {
-        descendants: notFound,
-        values: () => ({ ...notFoundTexts, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
-      }
+      { descendants: topPage, values: () => ({ lang, ...topPageTexts }) },
+      { descendants: notFound, values: () => ({ lang, ...notFoundTexts }) }
     ]
   })
 }
