@@ -8,6 +8,7 @@ import notFound from '@/components/presentations/notFound'
 import type { Task } from '@/types'
 
 export default async (lang: string) => {
+  const topPageTexts = await i18n<JSON>({ directory: '/i18n', lang, keys: 'topPage' })
   const notFoundTexts = await i18n<JSON>({ directory: '/i18n', lang, keys: 'notFound' })
 
   return ficsRouter<{ tasks: Task[] }>({
@@ -30,10 +31,11 @@ export default async (lang: string) => {
         })
       },
       { descendants: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
+      { descendants: topPage, values: () => ({ ...topPageTexts }) },
       {
         descendants: notFound,
         values: () => ({ ...notFoundTexts, click: () => goto(`/${lang === 'en' ? '' : lang}`) })
       }
-    ],
+    ]
   })
 }
