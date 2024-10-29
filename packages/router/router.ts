@@ -10,7 +10,7 @@ export default <D extends object>({
   pages,
   notFound,
   data,
-  inheritances,
+  props,
   className,
   attributes,
   css,
@@ -26,7 +26,7 @@ export default <D extends object>({
         throw new Error('"pathname" is a reserved word in FiCsRouter...')
       return { ...(data?.() ?? {}), pathname: '' } as D
     },
-    inheritances,
+    props,
     className,
     attributes,
     html: ({ $data, $template, $html, $show }) => {
