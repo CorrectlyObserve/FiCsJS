@@ -8,8 +8,8 @@ export default [
   },
   {
     selector: ['p', 'button', 'li'],
-    style: { fontSize: 'var(--md)', color: '#fff', lineHeight: 1 },
-    nested: { selector: '&:not(li)', style: { textAlign: 'center' } }
+    style: { fontSize: 'var(--md)', color: '#fff' },
+    nested: { selector: '&:not(li)', style: { textAlign: 'center', lineHeight: 1 } }
   },
   {
     selector: 'button',
