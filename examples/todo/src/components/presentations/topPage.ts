@@ -17,12 +17,12 @@ export default fics<{}, Props>({
     descendants: button,
     values: ({ $props: { buttonText, lang } }) => ({ buttonText, click: () => goto(lang, 'todo') })
   },
-  html: ({ $props: { titles, descriptions, features, conversion }, $template, $html }) =>
+  html: ({ $props: { titles, descriptions, features, conversion }, $template }) =>
     $template`
       <h2>${titles[0]}</h2>
-      <div><ul>${descriptions.map(description => $html(`<li>${description}</li>`))}</ul></div>
+      <div><ul>${descriptions.map(description => $template`<li>${description}</li>`)}</ul></div>
       <h2>${titles[1]}</h2>
-      <div><ul>${features.map(feature => $html(`<li>${feature}</li>`))}</ul></div>
+      <div><ul>${features.map(feature => $template`<li>${feature}</li>`)}</ul></div>
       <p>${conversion}</p>
       ${button}
     `,
