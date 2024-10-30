@@ -17,7 +17,6 @@ import type {
   Html,
   HtmlContent,
   Hooks,
-  MethodParams,
   Options,
   Props,
   PropsChain,
@@ -659,6 +658,25 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
   }
 
+  #debounce<T extends (...args: any[]) => void>(
+    func: T,
+    time: number
+  ): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | undefined
+
+    return (...args: Parameters<T>): void => {
+      if (timeout) clearTimeout(timeout)
+      timeout = setTimeout(() => func(...args), time)
+    }
+  }
+
+  #throttle<T extends (...args: any[]) => void>(
+    func: T,
+    time: number
+  ): (...args: Parameters<T>) => void {
+    return (...args: Parameters<T>): void => {}
+  }
+
   #addEventListener(
     element: Element,
     handler: string,
@@ -672,34 +690,41 @@ export default class FiCsElement<D extends object, P extends object> {
       attrs[name] = value
     }
 
-    const getMethodParams = (event: Event): MethodParams<D, P> => ({
-      ...this.#setDataProps(),
-      ...this.#setDataMethods(),
-      $event: event,
-      $attributes: attrs,
-      $value:
-        element instanceof
-        (HTMLInputElement ||
-          HTMLTextAreaElement ||
-          HTMLOptionElement ||
-          HTMLProgressElement ||
-          HTMLMeterElement)
-          ? element.value
-          : undefined
-    })
+    const { debounce, throttle }: { debounce?: number; throttle?: number } = options ?? {}
 
-    const { blur, once }: { blur?: boolean; once?: boolean } = options ?? {}
+    if (debounce && throttle) throw new Error(``)
+
+    const callback = (event: Event): void => {
+      method({
+        ...this.#setDataProps(),
+        ...this.#setDataMethods(),
+        $event: event,
+        $attributes: attrs,
+        $value:
+          element instanceof
+          (HTMLInputElement ||
+            HTMLTextAreaElement ||
+            HTMLOptionElement ||
+            HTMLProgressElement ||
+            HTMLMeterElement)
+            ? element.value
+            : undefined
+      })
+
+      if (options?.blur) {
+        if (handler === 'click') (event.target as HTMLElement).blur()
+        else console.warn('The "blur" is enabled only if the handler is click...')
+      }
+    }
 
     element.addEventListener(
       handler,
-      (event: Event): void => {
-        method(getMethodParams(event))
-
-        if (blur)
-          if (handler === 'click') (event.target as HTMLElement).blur()
-          else console.warn('The "blur" is enabled only if the handler is click...')
-      },
-      { once }
+      debounce
+        ? this.#debounce(callback, debounce)
+        : throttle
+          ? this.#throttle(callback, throttle)
+          : callback,
+      { once: options?.once }
     )
   }
 
