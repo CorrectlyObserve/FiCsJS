@@ -18,7 +18,7 @@ export default fics<Data, Props>({
     $template`
       <div class="container">
         <button class="lang">${lang.toUpperCase()}</button>
-        <div class="langs${!isShown ? ' hidden' : ''}" ${$show(isShown)}>
+        <div class="${('langs ' + (!isShown ? 'hidden' : '')).trim()}" ${$show(isShown)}>
           ${langs.map(
             _lang => $template`
               <button class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
