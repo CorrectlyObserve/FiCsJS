@@ -674,7 +674,16 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    return (...args: Parameters<T>): void => {}
+    let lastTime: number = 0
+
+    return (...args: Parameters<T>): void => {
+      const now: number = Date.now()
+
+      if (now - lastTime >= time) {
+        lastTime = now
+        func(...args)
+      }
+    }
   }
 
   #addEventListener(
