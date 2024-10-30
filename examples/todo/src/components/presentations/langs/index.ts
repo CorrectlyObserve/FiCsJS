@@ -34,13 +34,14 @@ export default fics<Data, Props>({
     {
       handler: 'click',
       selector: 'button.lang',
-      method: ({ $setData, $getData }) => $setData('isShown', !$getData('isShown'))
+      method: ({ $setData, $getData }) => $setData('isShown', !$getData('isShown')),
+      options: { throttle: 500 }
     },
     {
       handler: 'click',
       selector: 'button[key]',
       method: ({ $props: { switchLang }, $attributes }) => switchLang($attributes['key']),
-      options: { blur: true }
+      options: { throttle: 500, blur: true }
     }
   ]
 })
