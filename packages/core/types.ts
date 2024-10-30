@@ -3,8 +3,14 @@ import FiCsElement from './class'
 export interface Action<D, P> {
   handler: string
   selector?: string
-  method: (methodParams: MethodParams<D, P>) => void
-  options?: { blur?: boolean; once?: boolean }
+  method: (
+    methodParams: DataParams<D, P> & {
+      $event: Event
+      $attributes: Record<string, string>
+      $value?: string
+    }
+  ) => void
+  options?: { debounce?: number; throttle?: number; blur?: boolean; once?: boolean }
 }
 
 export type Attrs<D, P> =
@@ -106,12 +112,6 @@ export interface Hooks<D, P> {
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
   destroyed?: (dataParams: DataParams<D, P>) => void
   adopted?: (dataParams: DataParams<D, P>) => void
-}
-
-export interface MethodParams<D, P> extends DataParams<D, P> {
-  $event: Event
-  $attributes: Record<string, string>
-  $value?: string
 }
 
 export interface Options {
