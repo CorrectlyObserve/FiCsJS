@@ -33,7 +33,7 @@ type CssBinding = { index: number; nested?: CssBinding }[]
 export interface CssContent<D, P> extends CssSelector {
   style:
     | Record<string, string | number>
-    | ((dataProps: DataProps<D, P>) => Record<string, string | number>)
+    | ((dataProps: DataProps<D, P>) => Record<string, string | number | never>)
   nested?: SingleOrArray<CssContent<D, P>>
 }
 
@@ -117,11 +117,13 @@ export interface Hooks<D, P> {
 export interface Options {
   immutable: boolean
   ssr: boolean
+  lazyLoad: boolean
+  rootMargin: string
 }
 
 export type Props<D, P> = {
   descendants: SingleOrArray<Descendant>
-  values: (params: DataMethods<D> & { $props: P }) => object
+  values: (params: DataMethods<D> & { $props: P }) => Record<string, any>
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
