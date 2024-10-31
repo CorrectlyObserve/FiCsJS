@@ -136,7 +136,7 @@ export interface PropsTree<D, P> {
 
 export interface Queue {
   ficsId: string
-  process: () => void
+  func: () => void
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
