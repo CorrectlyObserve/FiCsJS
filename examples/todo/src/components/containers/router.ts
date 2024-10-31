@@ -24,15 +24,15 @@ export default async (lang: string) => {
     data: () => ({ tasks: [{ title: 's', description: '', created_at: 0, updated_at: 0 }] }),
     props: [
       {
-        descendants: todoPost,
+        descendant: todoPost,
         values: ({ $getData }) => ({
           length: $getData('tasks')!.length,
           addNewTask: (value: string) => console.log(value)
         })
       },
-      { descendants: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
-      { descendants: topPage, values: () => ({ lang, ...topPageTexts }) },
-      { descendants: notFound, values: () => ({ lang, ...notFoundTexts }) }
+      { descendant: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
+      { descendant: topPage, values: () => ({ lang, ...topPageTexts }) },
+      { descendant: notFound, values: () => ({ lang, ...notFoundTexts }) }
     ]
   })
 }
