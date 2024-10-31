@@ -122,7 +122,7 @@ export interface Options {
 }
 
 export type Props<D, P> = {
-  descendants: SingleOrArray<Descendant>
+  descendant: SingleOrArray<Descendant>
   values: (params: DataMethods<D> & { $props: P }) => Record<string, any>
 }
 
