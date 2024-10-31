@@ -11,7 +11,7 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
     name: 'header',
     data: () => ({ lang, pathname }),
     props: {
-      descendants: langs,
+      descendant: langs,
       values: ({ $getData }) => ({
         lang: $getData('lang'),
         switchLang: (_lang: string) => {
