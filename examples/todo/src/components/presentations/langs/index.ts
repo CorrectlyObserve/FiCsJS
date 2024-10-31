@@ -17,7 +17,7 @@ export default fics<Data, Props>({
   html: ({ $data: { langs, isShown }, $props: { lang }, $template, $show }) =>
     $template`
       <div class="container">
-        <button class="lang">${lang.toUpperCase()}</button>
+        <button class="${('lang ' + (isShown ? 'shown' : '')).trim()}">${lang.toUpperCase()}</button>
         <div class="${('langs ' + (!isShown ? 'hidden' : '')).trim()}" ${$show(isShown)}>
           ${langs.map(
             _lang => $template`
@@ -35,7 +35,7 @@ export default fics<Data, Props>({
       handler: 'click',
       selector: 'button.lang',
       method: ({ $setData, $getData }) => $setData('isShown', !$getData('isShown')),
-      options: { throttle: 500 }
+      options: { throttle: 500, blur: true }
     },
     {
       handler: 'click',

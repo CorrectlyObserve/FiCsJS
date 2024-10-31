@@ -4,9 +4,15 @@ div.container {
     background: none;
     padding-block: var(--ex-sm);
 
-    &.lang:focus {
-      transform: scale(1);
-      opacity: 0.5;
+    &.lang {
+      &.shown {
+        opacity: 0.5;
+      }
+
+      &:focus {
+        transform: scale(1);
+        opacity: 0.5;
+      }
     }
 
     &.selected {
