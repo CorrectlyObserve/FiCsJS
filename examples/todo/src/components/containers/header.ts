@@ -5,7 +5,7 @@ import { setState, getState } from 'ficsjs/state'
 import langs from '@/components/presentations/langs/'
 
 export default async ({ lang, pathname }: { lang: string; pathname: string }) => {
-  const title = await i18n<string>({ directory: '/i18n', lang, keys: 'title' })
+  const title = await i18n<string>({ directory: '/i18n', lang, key: 'title' })
 
   return fics({
     name: 'header',

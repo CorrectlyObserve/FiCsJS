@@ -8,8 +8,8 @@ import notFound from '@/components/presentations/notFound'
 import type { Task } from '@/types'
 
 export default async (lang: string) => {
-  const topPageTexts = await i18n<JSON>({ directory: '/i18n', lang, keys: 'topPage' })
-  const notFoundTexts = await i18n<JSON>({ directory: '/i18n', lang, keys: 'notFound' })
+  const topPageTexts = await i18n<JSON>({ directory: '/i18n', lang, key: 'topPage' })
+  const notFoundTexts = await i18n<JSON>({ directory: '/i18n', lang, key: 'notFound' })
 
   return ficsRouter<{ tasks: Task[] }>({
     pages: [
