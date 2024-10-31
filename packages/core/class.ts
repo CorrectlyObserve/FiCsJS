@@ -145,12 +145,16 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #addToQueue(func: void): void {
+    addToQueue({ ficsId: this.#ficsId, func: (): void => func })
+  }
+
   #setProps(key: keyof P, value: P[typeof key]): void {
     throwDataPropsError(this.#props, key, this.#tagName)
 
     if (this.#props[key] !== value) {
       this.#props[key] = value
-      addToQueue({ ficsId: this.#ficsId, process: (): void => this.#reRender() })
+      this.#addToQueue(this.#reRender())
     }
   }
 
@@ -248,7 +252,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    addToQueue({ ficsId: descendant.#ficsId, process: () => descendant.#define(this.#propsChain) })
+    addToQueue({ ficsId: descendant.#ficsId, func: () => descendant.#define(this.#propsChain) })
     return document.createElement(descendant.#tagName)
   }
 
@@ -406,10 +410,6 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
   }
 
-  #addToQueue(): void {
-    addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
-  }
-
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
     this.#callback('created')
@@ -439,7 +439,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
     }
 
-    if (!lazyLoad) this.#addToQueue()
+    if (!lazyLoad) this.#addToQueue(this.#define())
     return component
   }
 
@@ -798,6 +798,23 @@ export default class FiCsElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.isRendered) {
+              const { lazyLoad, rootMargin }: { lazyLoad: boolean; rootMargin: string } =
+                that.#options
+
+              if (lazyLoad) {
+                const observer: IntersectionObserver = new IntersectionObserver(
+                  ([entry]) => {
+                    if (entry.isIntersecting) {
+                      that.#addToQueue(that.#define())
+                      observer.unobserve(entry.target)
+                    }
+                  },
+                  { rootMargin }
+                )
+
+                observer.observe(this)
+              }
+
               that.#callback('mounted')
               this.isRendered = true
             }
@@ -867,7 +884,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   describe(parent?: HTMLElement): void {
     this.#callback('created')
-    this.#addToQueue()
+    if (!this.#options.lazyLoad) this.#addToQueue(this.#define())
     if (parent) parent.append(document.createElement(this.#tagName))
   }
 
@@ -886,7 +903,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      addToQueue({ ficsId: this.#ficsId, process: (): void => this.#reRender() })
+      this.#addToQueue(this.#reRender())
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
