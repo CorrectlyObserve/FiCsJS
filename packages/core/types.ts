@@ -66,7 +66,7 @@ export interface FiCs<D extends object, P extends object> {
   attributes?: Attrs<D, P>
   html: Html<D, P>
   css?: SingleOrArray<string | CssContent<D, P>>
-  actions?: SingleOrArray<Action<D, P>>
+  action?: SingleOrArray<Action<D, P>>
   hooks?: Hooks<D, P>
   options?: Partial<Options>
 }
@@ -81,7 +81,7 @@ export interface FiCsAwait {
   className?: ClassName<FiCsAwaitedData, {}>
   attributes?: Attrs<FiCsAwaitedData, {}>
   css?: SingleOrArray<string | CssContent<FiCsAwaitedData, {}>>
-  actions?: SingleOrArray<Action<FiCsAwaitedData, {}>>
+  action?: SingleOrArray<Action<FiCsAwaitedData, {}>>
   hooks?: Hooks<FiCsAwaitedData, {}>
   options?: Omit<Options, 'immutable'>
 }
