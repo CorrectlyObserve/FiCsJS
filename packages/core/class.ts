@@ -163,14 +163,14 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#props[key as keyof P] = value as P[keyof P]
 
     if (this.#inheritances.length > 0)
-      for (const { descendants, values } of this.#inheritances)
-        for (const descendant of Array.isArray(descendants) ? descendants : [descendants]) {
-          if (descendant.#options.immutable)
+      for (const { descendant, values } of this.#inheritances)
+        for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
+          if (_descendant.#options.immutable)
             throw new Error(
               `${this.#tagName} is an immutable component, so it cannot receive props...`
             )
 
-          const descendantId: string = descendant.#ficsId
+          const descendantId: string = _descendant.#ficsId
 
           for (const [key, value] of Object.entries(
             values({ ...this.#setDataMethods(), $props: { ...this.#props } })
@@ -185,7 +185,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const tree: PropsTree<D, P> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
               dataKey: key as keyof D,
-              setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
+              setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
             }
             const isExLargerNumberId = (index: number): boolean =>
               this.#propsTrees[index].numberId >= tree.numberId
