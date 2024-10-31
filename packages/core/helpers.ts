@@ -1,10 +1,10 @@
 import FiCsElement from './class'
 import type { Descendant, Sanitized, SingleOrArray, Syntaxes } from './types'
 
-export const convertToArray = <T>(params: SingleOrArray<T>): T[] =>
-  Array.isArray(params)
-    ? [...params]
-    : [params && typeof params === 'object' ? { ...params } : params]
+export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
+  Array.isArray(param)
+    ? [...param]
+    : [param && typeof param === 'object' ? { ...param } : param]
 
 export const sanitize = <D extends object>(
   param: Descendant | Sanitized<D, {}>,
