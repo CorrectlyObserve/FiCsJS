@@ -54,7 +54,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
-  readonly #options: Options = { immutable: false, ssr: true }
+  readonly #options: Options = { immutable: false, ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #propsTrees: PropsTree<D, P>[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
@@ -80,43 +80,58 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!isExceptional && this.#reservedWords[this.#name])
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
-    else {
-      this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
-      this.#tagName = `f-${this.#name}`
 
-      if (options?.immutable) {
+    this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
+    this.#tagName = `f-${this.#name}`
+
+    if (options) {
+      const {
+        immutable,
+        ssr,
+        lazyLoad,
+        rootMargin
+      }: { immutable?: boolean; ssr?: boolean; lazyLoad?: boolean; rootMargin?: string } = options
+
+      if (immutable) {
         if (data)
           throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
 
-        this.#options.immutable = options.immutable
+        this.#options.immutable = immutable
       }
 
-      if (data)
-        for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
-      if (props) this.#inheritances = convertToArray(props)
-      if (options?.ssr === false) this.#options.ssr = false
+      if (ssr === false) this.#options.ssr = false
+      if (lazyLoad) this.#options.lazyLoad = true
 
-      if (className) {
-        if (!this.#options.immutable && typeof className === 'function')
-          this.#bindings.isClassName = true
+      if (rootMargin) {
+        if (!lazyLoad)
+          throw new Error(`"rootMargin" in options is enabled only if "lazyLoad" is set to true...`)
 
-        this.#className = className
+        this.#options.rootMargin = rootMargin
       }
-
-      if (attributes) {
-        if (!this.#options.immutable && typeof attributes === 'function')
-          this.#bindings.isAttr = true
-
-        this.#attrs = attributes
-      }
-
-      this.#html = html
-      this.#showAttr = `${this.#ficsId}-show-syntax`
-
-      if (css) this.#css = convertToArray(css)
-      if (actions) this.#actions = convertToArray(actions)
-      if (hooks) this.#hooks = { ...hooks }
     }
+
+    if (data) for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+    if (props) this.#inheritances = convertToArray(props)
+
+    if (className) {
+      if (!this.#options.immutable && typeof className === 'function')
+        this.#bindings.isClassName = true
+
+      this.#className = className
+    }
+
+    if (attributes) {
+      if (!this.#options.immutable && typeof attributes === 'function') this.#bindings.isAttr = true
+
+      this.#attrs = attributes
+    }
+
+    this.#html = html
+    this.#showAttr = `${this.#ficsId}-show-syntax`
+
+    if (css) this.#css = convertToArray(css)
+    if (actions) this.#actions = convertToArray(actions)
+    if (hooks) this.#hooks = { ...hooks }
   }
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
@@ -169,7 +184,7 @@ export default class FiCsElement<D extends object, P extends object> {
               dataKey: key as keyof D,
               setProps: (value: P[keyof P]): void => descendant.#setProps(key, value)
             }
-            const isLargerNumberId = (index: number): boolean =>
+            const isExLargerNumberId = (index: number): boolean =>
               this.#propsTrees[index].numberId >= tree.numberId
 
             if (last > 2) {
@@ -178,11 +193,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
               while (min <= max) {
                 const mid: number = Math.floor((min + max) / 2)
-                isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+                isExLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
               }
 
               this.#propsTrees.splice(min, 0, tree)
-            } else this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
+            } else this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
           }
         }
 
@@ -392,11 +407,17 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
   }
 
+  #addToQueue(): void {
+    addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
+  }
+
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
     this.#callback('created')
 
-    if (this.#options.ssr || this.#options.ssr === undefined) {
+    const { ssr, lazyLoad }: { ssr?: boolean; lazyLoad?: boolean } = this.#options
+
+    if (ssr !== false && !lazyLoad) {
       this.#initProps(propsChain)
       this.#addClassName(component)
       this.#addAttrs(component)
@@ -419,7 +440,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
     }
 
-    addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
+    if (!lazyLoad) this.#addToQueue()
     return component
   }
 
@@ -846,7 +867,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   describe(parent?: HTMLElement): void {
     this.#callback('created')
-    addToQueue({ ficsId: this.#ficsId, process: (): void => this.#define() })
+    this.#addToQueue()
     if (parent) parent.append(document.createElement(this.#tagName))
   }
 
