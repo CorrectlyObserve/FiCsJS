@@ -2,9 +2,9 @@ import { fics } from 'ficsjs'
 
 interface Props {
   icon: string
+  size?: string
+  color?: string
   click: () => void
-  isLarge?: boolean
-  isAlert?: boolean
 }
 
 export default fics<{}, Props>({
@@ -14,16 +14,12 @@ export default fics<{}, Props>({
     { style: { display: 'flex' } },
     {
       selector: 'button',
-      style: ({ $props: { icon, isLarge, isAlert } }) => {
-        const size = `var(--${isLarge ? 'lg' : 'md'})`
-
-        return {
-          width: size,
-          height: size,
-          maskImage: `url("/icons/${icon}.svg")`,
-          background: isAlert ? 'var(--red)' : '#fff'
-        }
-      }
+      style: ({ $props: { icon, size, color } }) => ({
+        width: size ?? 'calc(var(--lg) * 1.5)',
+        height: size ?? 'calc(var(--lg) * 1.5)',
+        maskImage: `url("/icons/${icon}.svg")`,
+        background: color ?? '#fff'
+      })
     }
   ],
   actions: {
