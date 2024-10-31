@@ -1,14 +1,14 @@
 export default [
   { selector: '*', style: { padding: 0, margin: 0, boxSizing: 'border-box' } },
   { selector: ['h1', 'h2'], style: { textAlign: 'center', lineHeight: 1.5 } },
-  { selector: 'h1', style: { fontSize: 'var(--lg)' } },
+  { selector: 'h1', style: { fontSize: 'var(--ex-lg)' } },
   {
     selector: 'h2',
-    style: { fontSize: 'calc(var(--md) * 1.5)', color: '#fff', marginBottom: 'var(--lg)' }
+    style: { fontSize: 'calc(var(--md) * 1.5)', color: '#fff', marginBottom: 'var(--ex-lg)' }
   },
   {
     selector: ['p', 'button', 'li'],
-    style: { fontSize: 'var(--md)', color: '#fff' },
+    style: { fontSize: 'var(--lg)', color: '#fff' },
     nested: { selector: '&:not(li)', style: { textAlign: 'center', lineHeight: 1 } }
   },
   {
@@ -19,7 +19,6 @@ export default [
       { selector: ':focus', style: { transform: 'scale(0.8)' } }
     ]
   },
-  { selector: 'ul', style: { listStyle: 'none' } },
   { selector: ['span', 'a'], style: { color: 'inherit', lineHeight: 'inherit' } },
   {
     selector: 'a',
