@@ -22,7 +22,7 @@ export default async ({ lang, pathname }: { lang: string; pathname: string }) =>
     },
     html: ({ $template }) => $template`<header><h1>${title}</h1><div>${langs}</div></header>`,
     css: [
-      { style: { display: 'block', marginBottom: 'var(--lg)' } },
+      { style: { display: 'block', marginBottom: 'var(--ex-lg)' } },
       {
         selector: 'header',
         style: {
