@@ -1,7 +1,6 @@
-import { throwDataPropsError, throwWindowError } from './errors'
 import generate from './generator'
 import { getGlobalCss } from './globalCss'
-import { convertToArray } from './helpers'
+import { convertToArray, throwDataPropsError, throwWindowError } from './helpers'
 import addToQueue from './queue'
 import type {
   Action,
