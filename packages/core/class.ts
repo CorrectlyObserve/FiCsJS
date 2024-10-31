@@ -722,7 +722,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const { debounce, throttle }: { debounce?: number; throttle?: number } = options ?? {}
 
-    if (debounce && throttle) throw new Error(``)
+    if (debounce && throttle)
+      throw new Error('Debounce and throttle cannot be used together in the same event handler.')
 
     const callback = (event: Event): void => {
       method({
