@@ -1,6 +1,5 @@
 import FiCsElement from '../core/class'
-import { throwWindowError } from '../core/errors'
-import { convertToArray, sanitize } from '../core/helpers'
+import { convertToArray, sanitize, throwWindowError } from '../core/helpers'
 import type { DataParams, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
