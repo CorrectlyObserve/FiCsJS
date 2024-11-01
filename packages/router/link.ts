@@ -1,5 +1,5 @@
 import FiCsElement from '../core/class'
-import { convertToArray, sanitize } from '../core/helpers'
+import { sanitize } from '../core/helpers'
 import goto from './goto'
 import type { FiCsLink } from './types'
 
@@ -25,7 +25,7 @@ export default <D extends object>({
       $template`<a href="${href}">${sanitize(content({ $template, $html, $show }), $template)}</a>`,
     css,
     actions: [
-      ...(actions ? convertToArray(actions) : []),
+      ...(actions ?? []),
       {
         handler: 'click',
         selector: 'a',
