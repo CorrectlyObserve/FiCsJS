@@ -129,7 +129,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#showAttr = `${this.#ficsId}-show-syntax`
 
     if (css) this.#css = convertToArray(css)
-    if (actions) this.#actions = convertToArray(actions)
+    if (actions) this.#actions = [...actions]
     if (hooks) this.#hooks = { ...hooks }
   }
 
@@ -354,8 +354,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
-    const createCss = (css: Css<D, P>, host: string): string => {
-      return css.reduce((prev, curr) => {
+    const createCss = (css: Css<D, P>, host: string): string =>
+      css.reduce((prev, curr) => {
         if (typeof curr === 'string') return `${prev}${curr}`
 
         const selector: SingleOrArray = curr.selector ?? ''
@@ -395,9 +395,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (!nested) return css
 
-        return css + createCss(convertToArray(nested), `${host} ${selector}`)
+        return convertToArray(selector).reduce(
+          (prev, curr) => prev + createCss(convertToArray(nested), `${host} ${curr}`),
+          css
+        )
       }, '') as string
-    }
 
     return createCss(css, host)
   }
