@@ -14,7 +14,7 @@ interface Props {
 export default fics<{}, Props>({
   name: 'top-page',
   props: {
-    descendants: button,
+    descendant: button,
     values: ({ $props: { buttonText, lang } }) => ({ buttonText, click: () => goto(lang, 'todo') })
   },
   html: ({ $props: { titles, descriptions, features, conversion }, $template }) =>
@@ -22,7 +22,7 @@ export default fics<{}, Props>({
       <h2>${titles[0]}</h2>
       <div><ul>${descriptions.map(description => $template`<li>${description}</li>`)}</ul></div>
       <h2>${titles[1]}</h2>
-      <div><ul>${features.map(feature => $template`<li>${feature}</li>`)}</ul></div>
+      <div><ol>${features.map(feature => $template`<li>${feature}</li>`)}</ol></div>
       <p>${conversion}</p>
       ${button}
     `,
@@ -31,15 +31,15 @@ export default fics<{}, Props>({
       selector: 'div',
       style: { display: 'flex', justifyContent: 'center' },
       nested: {
-        selector: 'ul',
-        style: { maxWidth: '50%' },
+        selector: ['ul', 'ol'],
+        style: { maxWidth: '60%' },
         nested: {
           selector: 'li',
           style: { marginBottom: 'var(--md)' },
-          nested: { selector: ':last-child', style: { marginBottom: 'calc(var(--lg) * 2)' } }
+          nested: { selector: ':last-child', style: { marginBottom: 'var(--ex-lg)' } }
         }
       }
     },
-    { selector: 'p', style: { marginBottom: 'var(--lg)' } }
+    { selector: 'p', style: { marginBlock: 'var(--ex-lg)' } }
   ]
 })
