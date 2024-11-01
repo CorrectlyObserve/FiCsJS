@@ -22,9 +22,9 @@ export default fics<{}, Props>({
       })
     }
   ],
-  actions: {
+  actions: [{
     handler: 'click',
     method: ({ $props: { click } }) => click(),
     options: { throttle: 500, blur: true }
-  }
+  }]
 })
