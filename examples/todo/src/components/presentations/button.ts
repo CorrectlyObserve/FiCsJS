@@ -18,9 +18,11 @@ export default fics<{}, Props>({
       borderRadius: 'var(--ex-sm)'
     }
   },
-  actions: {
-    handler: 'click',
-    method: ({ $props: { click } }) => click(),
-    options: { throttle: 500, blur: true }
-  }
+  actions: [
+    {
+      handler: 'click',
+      method: ({ $props: { click } }) => click(),
+      options: { throttle: 500, blur: true }
+    }
+  ]
 })
