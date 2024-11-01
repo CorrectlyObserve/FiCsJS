@@ -1,7 +1,7 @@
 import generate from './generator'
 import { getGlobalCss } from './globalCss'
 import { convertToArray, throwDataPropsError, throwWindowError } from './helpers'
-import addToQueue from './queue'
+import enqueue from './queue'
 import type {
   Action,
   Attrs,
@@ -145,8 +145,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addToQueue(func: void): void {
-    addToQueue({ ficsId: this.#ficsId, func: (): void => func })
+  #enqueue(func: void): void {
+    enqueue({ ficsId: this.#ficsId, func: (): void => func })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -154,7 +154,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#props[key] !== value) {
       this.#props[key] = value
-      this.#addToQueue(this.#reRender())
+      this.#enqueue(this.#reRender())
     }
   }
 
@@ -252,7 +252,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    addToQueue({ ficsId: descendant.#ficsId, func: () => descendant.#define(this.#propsChain) })
+    enqueue({ ficsId: descendant.#ficsId, func: () => descendant.#define(this.#propsChain) })
     return document.createElement(descendant.#tagName)
   }
 
@@ -441,7 +441,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
     }
 
-    if (!lazyLoad) this.#addToQueue(this.#define())
+    if (!lazyLoad) this.#enqueue(this.#define())
     return component
   }
 
@@ -807,7 +807,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 const observer: IntersectionObserver = new IntersectionObserver(
                   ([entry]) => {
                     if (entry.isIntersecting) {
-                      that.#addToQueue(that.#define())
+                      that.#enqueue(that.#define())
                       observer.unobserve(entry.target)
                     }
                   },
@@ -886,7 +886,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   describe(parent?: HTMLElement): void {
     this.#callback('created')
-    if (!this.#options.lazyLoad) this.#addToQueue(this.#define())
+    if (!this.#options.lazyLoad) this.#enqueue(this.#define())
     if (parent) parent.append(document.createElement(this.#tagName))
   }
 
@@ -905,7 +905,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      this.#addToQueue(this.#reRender())
+      this.#enqueue(this.#reRender())
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
