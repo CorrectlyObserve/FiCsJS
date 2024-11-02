@@ -76,7 +76,7 @@ export interface FiCsAwait {
   awaited: (
     syntaxes: Syntaxes<FiCsAwaitedData, {}> & { $response: FiCsAwaitedData['response'] }
   ) => Descendant | Sanitized<FiCsAwaitedData, {}>
-  fallback: (syntaxes: Syntaxes<FiCsAwaitedData, {}>) => Descendant | Sanitized<FiCsAwaitedData, {}>
+  fallback?: (syntaxes: Syntaxes<FiCsAwaitedData, {}>) => Descendant | Sanitized<FiCsAwaitedData, {}>
   props?: SingleOrArray<Props<FiCsAwaitedData, {}>>
   className?: ClassName<FiCsAwaitedData, {}>
   attributes?: Attrs<FiCsAwaitedData, {}>
