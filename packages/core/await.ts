@@ -25,7 +25,7 @@ export default ({
       sanitize(
         isLoaded
           ? awaited({ $template, $html, $show, $response: response })
-          : fallback({ $template, $html, $show }),
+          : (fallback?.({ $template, $html, $show }) ?? ''),
         $template
       ),
     css,
