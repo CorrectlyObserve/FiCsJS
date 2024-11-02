@@ -2,14 +2,12 @@ import FiCsElement from './class'
 import type { Descendant, Sanitized, SingleOrArray, Syntaxes } from './types'
 
 export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
-  Array.isArray(param)
-    ? [...param]
-    : [param && typeof param === 'object' ? { ...param } : param]
+  Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
 
 export const sanitize = <D extends object>(
-  param: Descendant | Sanitized<D, {}>,
+  param: Descendant | Sanitized<D, {}> | '',
   $template: Syntaxes<D, {}>['$template']
-): Sanitized<D, {}> => (param instanceof FiCsElement ? $template`${param}` : param)
+): Sanitized<D, {}> => (param === '' || param instanceof FiCsElement ? $template`${param}` : param)
 
 export const throwDataPropsError = <T extends object, P>(
   object: T,
