@@ -154,7 +154,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#props[key] !== value) {
       this.#props[key] = value
-      this.#enqueue(this.#reRender())
+      Promise.resolve().then(() => this.#enqueue(this.#reRender()))
     }
   }
 
@@ -835,6 +835,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #reRender(): void {
+    if (this.#name === 'await') console.log(this.#name, this.#ficsId)
     for (const component of this.#components) {
       const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
@@ -905,7 +906,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      this.#enqueue(this.#reRender())
+      Promise.resolve().then(() => this.#enqueue(this.#reRender()))
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
