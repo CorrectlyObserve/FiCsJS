@@ -4,18 +4,17 @@ import type {
   Attrs,
   ClassName,
   CssContent,
-  Descendant,
   Hooks,
-  Props,
   Options,
-  Sanitized,
+  Props,
+  ResultContent,
   SingleOrArray,
   Syntaxes
 } from '../core/types'
 
 export interface FiCsLink<D extends object> {
   href: string
-  content: (syntaxes: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  content: (syntaxes: Syntaxes<D, {}>) => ResultContent<D>
   router: FiCsElement<D, {}>
   props?: SingleOrArray<Props<D, {}>>
   className?: ClassName<D, {}>
@@ -40,6 +39,6 @@ export interface FiCsRouter<D extends object> {
 }
 
 export interface PageContent<D extends object> {
-  content: (syntaxes: Syntaxes<D, {}>) => Descendant | Sanitized<D, {}>
+  content: (syntaxes: Syntaxes<D, {}>) => ResultContent<D>
   redirect?: string
 }
