@@ -32,7 +32,7 @@ export default fics<{}, Props>({
       style: { display: 'flex', justifyContent: 'center' },
       nested: {
         selector: ['ul', 'ol'],
-        style: { maxWidth: '60%' },
+        style: { minWidth: '60%', maxWidth: '80%' },
         nested: {
           selector: 'li',
           style: { marginBottom: 'var(--md)' },
