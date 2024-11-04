@@ -75,8 +75,8 @@ export interface FiCsAwait {
   fetch: Promise<FiCsAwaitedData['response']>
   awaited: (
     syntaxes: Syntaxes<FiCsAwaitedData, {}> & { $response: FiCsAwaitedData['response'] }
-  ) => Descendant | Sanitized<FiCsAwaitedData, {}>
-  fallback?: (syntaxes: Syntaxes<FiCsAwaitedData, {}>) => Descendant | Sanitized<FiCsAwaitedData, {}>
+  ) => ResultContent<FiCsAwaitedData>
+  fallback?: (syntaxes: Syntaxes<FiCsAwaitedData, {}>) => ResultContent<FiCsAwaitedData>
   props?: SingleOrArray<Props<FiCsAwaitedData, {}>>
   className?: ClassName<FiCsAwaitedData, {}>
   attributes?: Attrs<FiCsAwaitedData, {}>
@@ -138,6 +138,8 @@ export interface Queue {
   ficsId: string
   func: () => void
 }
+
+export type ResultContent<D extends object> = Descendant | Sanitized<D, {}>
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
