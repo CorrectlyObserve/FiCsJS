@@ -9,7 +9,10 @@ export default [
   {
     selector: ['p', 'button', 'li'],
     style: { fontSize: 'var(--lg)', color: '#fff' },
-    nested: { selector: ':not(li)', style: { textAlign: 'center', lineHeight: 1 } }
+    nested: [
+      { selector: ':is(li)', style: { lineHeight: 1.8 } },
+      { selector: ':not(li)', style: { textAlign: 'center', lineHeight: 1 } }
+    ]
   },
   {
     selector: 'button',
