@@ -1,11 +1,11 @@
 import FiCsElement from './class'
-import type { Descendant, Sanitized, SingleOrArray, Syntaxes } from './types'
+import type { ResultContent, Sanitized, SingleOrArray, Syntaxes } from './types'
 
 export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
 
 export const sanitize = <D extends object>(
-  param: Descendant | Sanitized<D, {}> | '',
+  param: ResultContent<D> | '',
   $template: Syntaxes<D, {}>['$template']
 ): Sanitized<D, {}> => (param === '' || param instanceof FiCsElement ? $template`${param}` : param)
 
