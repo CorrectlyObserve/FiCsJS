@@ -14,5 +14,6 @@ export default fics<{}, Props>({
     descendant: button,
     values: ({ $props: { buttonText, lang } }) => ({ buttonText, click: () => goto(lang) })
   },
-  html: ({ $props: { title }, $template }) => $template`<h2>404 ${title}</h2>${button}`
+  html: ({ $props: { title }, $template }) => $template`<h2>404 ${title}</h2>${button}`,
+  options: { lazyLoad: true }
 })
