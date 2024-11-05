@@ -4,20 +4,23 @@ import { getHasLoaded } from './init'
 const ficsIds: Record<string, true> = {}
 const queues: Queue[] = new Array()
 let isProcessing: boolean = false
+const getQueueId = (queue: Queue): string => `${queue.ficsId}-${queue.key}`
+const dequeue = (queue: Queue): void => {
+  queue.func()
+  if (queue.key !== 'define') delete ficsIds[getQueueId(queue)]
+}
 
 export default (queue: Queue): void => {
-  if (!ficsIds[queue.ficsId]) {
+  if (!ficsIds[getQueueId(queue)]) {
+    ficsIds[getQueueId(queue)] = true
     queues.push(queue)
-    ficsIds[queue.ficsId] = true
 
     if (getHasLoaded() && !isProcessing) {
       isProcessing = true
 
       while (queues.length > 0) {
-        const { ficsId, process }: Queue = queues.shift()!
-
-        delete ficsIds[ficsId]
-        process()
+        const queue: Queue = queues.shift()!
+        queue.key === 're-render' ? setTimeout(() => dequeue(queue), 0) : dequeue(queue)
       }
 
       isProcessing = false
