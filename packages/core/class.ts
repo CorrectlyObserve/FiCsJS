@@ -20,6 +20,7 @@ import type {
   Props,
   PropsChain,
   PropsTree,
+  Queue,
   Sanitized,
   SingleOrArray
 } from './types'
@@ -59,6 +60,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
+  #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
   #isReflecting: boolean = false
 
@@ -145,8 +147,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #enqueue(func: void): void {
-    enqueue({ ficsId: this.#ficsId, func: (): void => func })
+  #enqueue(func: () => void, key: Queue['key']): void {
+    enqueue({ ficsId: this.#ficsId, func, key })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -154,57 +156,61 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#props[key] !== value) {
       this.#props[key] = value
-      Promise.resolve().then(() => this.#enqueue(this.#reRender()))
+      this.#enqueue(() => this.#reRender(), 're-render')
     }
   }
 
   #initProps = (propsChain: PropsChain<P>): void => {
-    for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
-      this.#props[key as keyof P] = value as P[keyof P]
+    if (!this.#isInitialized) {
+      for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
+        this.#props[key as keyof P] = value as P[keyof P]
 
-    if (this.#inheritances.length > 0)
-      for (const { descendant, values } of this.#inheritances)
-        for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
-          if (_descendant.#options.immutable)
-            throw new Error(
-              `${this.#tagName} is an immutable component, so it cannot receive props...`
-            )
+      if (this.#inheritances.length > 0)
+        for (const { descendant, values } of this.#inheritances)
+          for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
+            if (_descendant.#options.immutable)
+              throw new Error(
+                `${this.#tagName} is an immutable component, so it cannot receive props...`
+              )
 
-          const descendantId: string = _descendant.#ficsId
+            const descendantId: string = _descendant.#ficsId
 
-          for (const [key, value] of Object.entries(
-            values({ ...this.#setDataMethods(), $props: { ...this.#props } })
-          )) {
-            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
+            for (const [key, value] of Object.entries(
+              values({ ...this.#setDataMethods(), $props: { ...this.#props } })
+            )) {
+              const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
-            if (key in chain && propsChain.has(descendantId)) continue
+              if (key in chain && propsChain.has(descendantId)) continue
 
-            propsChain.set(descendantId, { ...chain, [key]: value })
+              propsChain.set(descendantId, { ...chain, [key]: value })
 
-            const last: number = this.#propsTrees.length - 1
-            const tree: PropsTree<D, P> = {
-              numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-              dataKey: key as keyof D,
-              setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
-            }
-            const isExLargerNumberId = (index: number): boolean =>
-              this.#propsTrees[index].numberId >= tree.numberId
-
-            if (last > 2) {
-              let min: number = 0
-              let max: number = last
-
-              while (min <= max) {
-                const mid: number = Math.floor((min + max) / 2)
-                isExLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+              const last: number = this.#propsTrees.length - 1
+              const tree: PropsTree<D, P> = {
+                numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                dataKey: key as keyof D,
+                setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
               }
+              const isExLargerNumberId = (index: number): boolean =>
+                this.#propsTrees[index].numberId >= tree.numberId
 
-              this.#propsTrees.splice(min, 0, tree)
-            } else this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
+              if (last > 2) {
+                let min: number = 0
+                let max: number = last
+
+                while (min <= max) {
+                  const mid: number = Math.floor((min + max) / 2)
+                  isExLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+                }
+
+                this.#propsTrees.splice(min, 0, tree)
+              } else
+                this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
+            }
           }
-        }
 
-    this.#propsChain = new Map(propsChain)
+      this.#propsChain = new Map(propsChain)
+      this.#isInitialized = true
+    }
   }
 
   #setDataProps(): DataProps<D, P> {
@@ -252,7 +258,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
-    enqueue({ ficsId: descendant.#ficsId, func: () => descendant.#define(this.#propsChain) })
+    descendant.#enqueue(() => descendant.#define(this.#propsChain), 'define')
     return document.createElement(descendant.#tagName)
   }
 
@@ -414,12 +420,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
     const component: HTMLElement = doc.createElement(this.#tagName)
+    this.#initProps(propsChain)
     this.#callback('created')
 
-    const { ssr, lazyLoad }: { ssr?: boolean; lazyLoad?: boolean } = this.#options
+    const { ssr, lazyLoad }: { ssr: boolean; lazyLoad: boolean } = this.#options
 
     if (ssr !== false && !lazyLoad) {
-      this.#initProps(propsChain)
       this.#addClassName(component)
       this.#addAttrs(component)
       component.setHTMLUnsafe(
@@ -441,7 +447,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
     }
 
-    if (!lazyLoad) this.#enqueue(this.#define())
+    this.#enqueue(() => this.#define(), 'define')
     return component
   }
 
@@ -765,6 +771,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!window.customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
+      const {
+        immutable,
+        lazyLoad,
+        rootMargin
+      }: { immutable: boolean; lazyLoad: boolean; rootMargin: string } = that.#options
 
       window.customElements.define(
         that.#tagName,
@@ -775,6 +786,10 @@ export default class FiCsElement<D extends object, P extends object> {
           constructor() {
             super()
             this.shadowRoot = this.attachShadow({ mode: 'open' })
+            if (!lazyLoad) this.#init()
+          }
+
+          #init() {
             that.#initProps(propsChain ?? that.#propsChain)
             that.#addClassName(this)
             that.#addAttrs(this)
@@ -785,7 +800,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const action of that.#actions) {
                 const { handler, selector, method, options }: Action<D, P> = action
 
-                if (!that.#options.immutable && selector) {
+                if (!immutable && selector) {
                   that.#bindings.actions.push(action)
 
                   for (const element of that.#getElements(that.#getShadowRoot(this), selector))
@@ -800,14 +815,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
           connectedCallback(): void {
             if (!this.isRendered) {
-              const { lazyLoad, rootMargin }: { lazyLoad: boolean; rootMargin: string } =
-                that.#options
-
               if (lazyLoad) {
                 const observer: IntersectionObserver = new IntersectionObserver(
                   ([entry]) => {
                     if (entry.isIntersecting) {
-                      that.#enqueue(that.#define())
+                      that.#enqueue(() => this.#init(), 'init')
                       observer.unobserve(entry.target)
                     }
                   },
@@ -835,7 +847,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #reRender(): void {
-    if (this.#name === 'await') console.log(this.#name, this.#ficsId)
+    console.log('re-render', this.#name, this.#ficsId)
     for (const component of this.#components) {
       const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
@@ -887,7 +899,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   describe(parent?: HTMLElement): void {
     this.#callback('created')
-    if (!this.#options.lazyLoad) this.#enqueue(this.#define())
+    this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#tagName))
   }
 
@@ -906,7 +918,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      Promise.resolve().then(() => this.#enqueue(this.#reRender()))
+      console.log('set-data', this.#name, this.#ficsId, key)
+      this.#enqueue(() => this.#reRender(), 're-render')
 
       for (const { dataKey, setProps } of this.#propsTrees)
         if (dataKey === key) setProps(value as unknown as P[keyof P])
