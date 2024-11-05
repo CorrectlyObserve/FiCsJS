@@ -3,7 +3,7 @@ import { sanitize } from '../core/helpers'
 import goto from './goto'
 import type { FiCsLink } from './types'
 
-export default <D extends object>({
+export default <D extends object, P extends object>({
   href,
   content,
   router,
@@ -14,15 +14,15 @@ export default <D extends object>({
   actions,
   hooks,
   options
-}: FiCsLink<D>): FiCsElement<D, {}> =>
-  new FiCsElement<D, {}>({
+}: FiCsLink<D, P>): FiCsElement<D, P> =>
+  new FiCsElement<D, P>({
     name: 'link',
     isExceptional: true,
     props,
     className,
     attributes,
-    html: ({ $template, $html, $show }) =>
-      $template`<a href="${href}">${sanitize(content({ $template, $html, $show }), $template)}</a>`,
+    html: ({ $props, $template, $html, $show }) =>
+      $template`<a href="${href}">${sanitize(content({ $props, $template, $html, $show }), $template)}</a>`,
     css,
     actions: [
       ...(actions ?? []),
