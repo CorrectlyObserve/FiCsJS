@@ -137,6 +137,7 @@ export interface PropsTree<D, P> {
 export interface Queue {
   ficsId: string
   func: () => void
+  key: 'define' | 'init' | 're-render'
 }
 
 export type ResultContent<D extends object> = Descendant | Sanitized<D, {}>
