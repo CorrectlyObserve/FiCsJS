@@ -160,7 +160,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #initProps = (propsChain: PropsChain<P>): void => {
+  #initProps(propsChain: PropsChain<P>): void {
     if (!this.#isInitialized) {
       for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
         this.#props[key as keyof P] = value as P[keyof P]
@@ -250,7 +250,7 @@ export default class FiCsElement<D extends object, P extends object> {
       : element.getAttribute(this.#ficsIdName)
   }
 
-  #render = (element: Element, doc?: Document): HTMLElement => {
+  #render(element: Element, doc?: Document): HTMLElement {
     const ficsId: string | null = this.#getFiCsId(element)
     if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#tagName}...`)
 
@@ -903,7 +903,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (parent) parent.append(document.createElement(this.#tagName))
   }
 
-  getData = (key: keyof D): D[typeof key] => {
+  getData(key: keyof D): D[typeof key] {
     throwDataPropsError(this.#data, key, this.#tagName)
     return this.#data[key]
   }
