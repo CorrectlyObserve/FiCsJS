@@ -32,9 +32,8 @@ export default ({
     actions,
     hooks: {
       created: async (dataParams: DataParams<FiCsAwaitedData, {}>) => {
-        const res: unknown = await fetch
         dataParams.$setData('isLoaded', true)
-        dataParams.$setData('response', res)
+        dataParams.$setData('response', await fetch)
         hooks?.created?.(dataParams)
       },
       mounted: (dataParams: DataParams<FiCsAwaitedData, {}>) => hooks?.mounted?.(dataParams),
