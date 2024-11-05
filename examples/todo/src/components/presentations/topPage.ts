@@ -29,15 +29,11 @@ export default fics<{}, Props>({
   css: [
     {
       selector: 'div',
-      style: { display: 'flex', justifyContent: 'center' },
+      style: { width: '60%', display: 'flex', justifyContent: 'center', marginInline: 'auto' },
       nested: {
-        selector: ['ul', 'ol'],
-        style: { minWidth: '60%', maxWidth: '80%' },
-        nested: {
-          selector: 'li',
-          style: { marginBottom: 'var(--md)' },
-          nested: { selector: ':last-child', style: { marginBottom: 'var(--ex-lg)' } }
-        }
+        selector: 'li',
+        style: { marginBottom: 'var(--md)' },
+        nested: { selector: ':last-child', style: { marginBottom: 'var(--ex-lg)' } }
       }
     },
     { selector: 'p', style: { marginBlock: 'var(--ex-lg)' } }
