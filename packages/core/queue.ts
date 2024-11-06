@@ -1,5 +1,5 @@
-import type { Queue } from './types'
 import { getHasLoaded } from './init'
+import type { Queue } from './types'
 
 const ficsIds: Record<string, true> = {}
 const queues: Queue[] = new Array()
