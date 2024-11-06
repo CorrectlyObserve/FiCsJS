@@ -71,18 +71,18 @@ export interface FiCs<D extends object, P extends object> {
   options?: Partial<Options>
 }
 
-export interface FiCsAwait {
-  fetch: Promise<FiCsAwaitedData['response']>
+export interface FiCsAwait<P extends object> {
+  fetch: ({ $props }: { $props: P }) => Promise<FiCsAwaitedData['response']>
   awaited: (
-    syntaxes: Syntaxes<FiCsAwaitedData, {}> & { $response: FiCsAwaitedData['response'] }
-  ) => ResultContent<FiCsAwaitedData>
-  fallback?: (syntaxes: Syntaxes<FiCsAwaitedData, {}>) => ResultContent<FiCsAwaitedData>
-  props?: SingleOrArray<Props<FiCsAwaitedData, {}>>
-  className?: ClassName<FiCsAwaitedData, {}>
-  attributes?: Attrs<FiCsAwaitedData, {}>
-  css?: SingleOrArray<string | CssContent<FiCsAwaitedData, {}>>
-  actions?: Action<FiCsAwaitedData, {}>[]
-  hooks?: Hooks<FiCsAwaitedData, {}>
+    syntaxes: Syntaxes<FiCsAwaitedData, P> & { $response: FiCsAwaitedData['response'] }
+  ) => ResultContent<FiCsAwaitedData, P>
+  fallback?: (syntaxes: Syntaxes<FiCsAwaitedData, P>) => ResultContent<FiCsAwaitedData, P>
+  props?: SingleOrArray<Props<FiCsAwaitedData, P>>
+  className?: ClassName<FiCsAwaitedData, P>
+  attributes?: Attrs<FiCsAwaitedData, P>
+  css?: SingleOrArray<string | CssContent<FiCsAwaitedData, P>>
+  actions?: Action<FiCsAwaitedData, P>[]
+  hooks?: Hooks<FiCsAwaitedData, P>
   options?: Omit<Options, 'immutable'>
 }
 
@@ -99,7 +99,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P> & Syntaxes<D, P>
+  params: DataProps<D, P> & Omit<Syntaxes<D, P>, '$props'>
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -140,13 +140,14 @@ export interface Queue {
   key: 'define' | 'init' | 're-render'
 }
 
-export type ResultContent<D extends object> = Descendant | Sanitized<D, {}>
+export type ResultContent<D extends object, P extends object> = Descendant | Sanitized<D, P>
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export type SingleOrArray<T = string> = T | T[]
 
 export interface Syntaxes<D extends object, P extends object> {
+  $props: P
   $template: (
     templates: TemplateStringsArray,
     ...variables: (HtmlContent<D, P> | unknown)[]
