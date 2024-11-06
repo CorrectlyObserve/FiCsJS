@@ -107,11 +107,11 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  created?: (dataParams: DataParams<D, P>) => void
-  mounted?: (dataParams: DataParams<D, P>) => void
+  created?: (params: DataParams<D, P>) => void
+  mounted?: (params: DataParams<D, P>) => void
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
-  destroyed?: (dataParams: DataParams<D, P>) => void
-  adopted?: (dataParams: DataParams<D, P>) => void
+  destroyed?: (params: DataParams<D, P>) => void
+  adopted?: (params: DataParams<D, P>) => void
 }
 
 export interface Options {
