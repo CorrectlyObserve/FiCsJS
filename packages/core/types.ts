@@ -108,7 +108,11 @@ export type HtmlContent<D extends object, P extends object> =
 
 export interface Hooks<D, P> {
   created?: (params: DataParams<D, P>) => void
-  mounted?: (params: DataParams<D, P>) => void
+  mounted?: (
+    params: DataParams<D, P> & {
+      $poll: (func: ({ $times }: { $times: number }) => void, options: PollingOptions) => void
+    }
+  ) => void
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
   destroyed?: (params: DataParams<D, P>) => void
   adopted?: (params: DataParams<D, P>) => void
@@ -119,6 +123,12 @@ export interface Options {
   ssr: boolean
   lazyLoad: boolean
   rootMargin: string
+}
+
+export interface PollingOptions {
+  interval: number
+  max?: number
+  exit?: () => boolean
 }
 
 export type Props<D, P> = {
