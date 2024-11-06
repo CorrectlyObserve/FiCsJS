@@ -17,6 +17,7 @@ import type {
   HtmlContent,
   Hooks,
   Options,
+  PollingOptions,
   Props,
   PropsChain,
   PropsTree,
@@ -417,8 +418,28 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     const params: DataParams<D, P> = { ...this.#setDataProps(), ...this.#setDataMethods() }
 
-    if (key === 'mounted') this.#hooks[key]?.(params)
-    else this.#hooks[key]?.(params)
+    if (key !== 'mounted') this.#hooks[key]?.(params)
+    else {
+      const poll = (
+        func: ({ $times }: { $times: number }) => void,
+        { interval, max, exit }: PollingOptions
+      ): void => {
+        let times = 0
+
+        const execute: NodeJS.Timeout = setTimeout(function run() {
+          if ((max && times >= max) || (exit && exit())) {
+            clearTimeout(execute)
+            return
+          }
+
+          func({ $times: times })
+          times++
+          setTimeout(run, interval)
+        }, interval)
+      }
+
+      this.#hooks[key]?.({ ...params, $poll: poll })
+    }
   }
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
@@ -817,21 +838,21 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           connectedCallback(): void {
+            if (lazyLoad) {
+              const observer: IntersectionObserver = new IntersectionObserver(
+                ([entry]) => {
+                  if (entry.isIntersecting) {
+                    that.#enqueue(() => this.#init(), 'init')
+                    observer.unobserve(entry.target)
+                  }
+                },
+                { rootMargin }
+              )
+
+              observer.observe(this)
+            }
+
             if (!this.isRendered) {
-              if (lazyLoad) {
-                const observer: IntersectionObserver = new IntersectionObserver(
-                  ([entry]) => {
-                    if (entry.isIntersecting) {
-                      that.#enqueue(() => this.#init(), 'init')
-                      observer.unobserve(entry.target)
-                    }
-                  },
-                  { rootMargin }
-                )
-
-                observer.observe(this)
-              }
-
               that.#callback('mounted')
               this.isRendered = true
             }
