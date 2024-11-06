@@ -1,6 +1,5 @@
-import generate from './generator'
 import { getGlobalCss } from './globalCss'
-import { convertToArray, throwDataPropsError, throwWindowError } from './helpers'
+import { convertToArray, generateUid, throwDataPropsError, throwWindowError } from './helpers'
 import enqueue from './queue'
 import type {
   Action,
@@ -10,6 +9,7 @@ import type {
   Css,
   CssContent,
   DataMethods,
+  DataParams,
   DataProps,
   FiCs,
   GlobalCssContent,
@@ -25,7 +25,7 @@ import type {
   SingleOrArray
 } from './types'
 
-const generator: Generator<number> = generate()
+const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
@@ -415,7 +415,10 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
-    this.#hooks[key]?.({ ...this.#setDataProps(), ...this.#setDataMethods() })
+    const params: DataParams<D, P> = { ...this.#setDataProps(), ...this.#setDataMethods() }
+
+    if (key === 'mounted') this.#hooks[key]?.(params)
+    else this.#hooks[key]?.(params)
   }
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
@@ -720,6 +723,9 @@ export default class FiCsElement<D extends object, P extends object> {
     method: Action<D, P>['method'],
     options?: Action<D, P>['options']
   ): void {
+    if (handler !== 'click' && options?.blur)
+      throw new Error('The "blur" is enabled only if the handler is click...')
+
     const attrs: Record<string, string> = {}
 
     for (let index = 0; index < element.attributes.length; index++) {
@@ -749,10 +755,7 @@ export default class FiCsElement<D extends object, P extends object> {
             : undefined
       })
 
-      if (options?.blur) {
-        if (handler === 'click') (event.target as HTMLElement).blur()
-        else console.warn('The "blur" is enabled only if the handler is click...')
-      }
+      if (options?.blur) (event.target as HTMLElement).blur()
     }
 
     element.addEventListener(
@@ -847,7 +850,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #reRender(): void {
-    console.log('re-render', this.#name, this.#ficsId)
     for (const component of this.#components) {
       const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
