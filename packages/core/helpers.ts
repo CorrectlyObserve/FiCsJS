@@ -4,6 +4,15 @@ import type { ResultContent, Sanitized, SingleOrArray, Syntaxes } from './types'
 export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
 
+export function* generateUid(): Generator<number> {
+  let n = 1
+
+  while (true) {
+    yield n
+    n++
+  }
+}
+
 export const sanitize = <D extends object, P extends object>(
   param: ResultContent<D, P> | '',
   $template: Syntaxes<D, P>['$template']
