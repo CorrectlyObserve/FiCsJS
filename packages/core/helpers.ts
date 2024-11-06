@@ -4,10 +4,10 @@ import type { ResultContent, Sanitized, SingleOrArray, Syntaxes } from './types'
 export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
 
-export const sanitize = <D extends object>(
-  param: ResultContent<D> | '',
-  $template: Syntaxes<D, {}>['$template']
-): Sanitized<D, {}> => (param === '' || param instanceof FiCsElement ? $template`${param}` : param)
+export const sanitize = <D extends object, P extends object>(
+  param: ResultContent<D, P> | '',
+  $template: Syntaxes<D, P>['$template']
+): Sanitized<D, P> => (param === '' || param instanceof FiCsElement ? $template`${param}` : param)
 
 export const throwDataPropsError = <T extends object, P>(
   object: T,
