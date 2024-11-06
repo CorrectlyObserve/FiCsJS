@@ -1,7 +1,7 @@
-import generate from '../core/generator'
+import { generateUid } from '../core/helpers'
 import { Descendant } from '../core/types'
 
-const generator: Generator<number> = generate()
+const generator: Generator<number> = generateUid()
 const uneditableStates: Map<string, unknown> = new Map()
 const states: Map<string, unknown> = new Map()
 const syncs: Map<string, Map<Descendant, Set<string>>> = new Map()
