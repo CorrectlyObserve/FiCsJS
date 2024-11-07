@@ -9,9 +9,8 @@ import type { Task } from '@/types'
 
 export default async (lang: string) => {
   const topPageTexts = await i18n<JSON>({ directory: '/i18n', lang, key: 'topPage' })
-  const notFoundTexts = await i18n<JSON>({ directory: '/i18n', lang, key: 'notFound' })
 
-  return ficsRouter<{ tasks: Task[] }>({
+  return ficsRouter<{ tasks: Task[] }, {}>({
     pages: [
       { paths: ['/', `/${lang}`], content: () => topPage },
       {
@@ -31,8 +30,8 @@ export default async (lang: string) => {
         })
       },
       { descendant: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
-      { descendant: topPage, values: () => ({ lang, ...topPageTexts }) },
-      { descendant: notFound, values: () => ({ lang, ...notFoundTexts }) }
+      { descendant: [topPage, notFound], values: () => ({ lang }) },
+      { descendant: topPage, values: () => ({ ...topPageTexts }) }
     ]
   })
 }
