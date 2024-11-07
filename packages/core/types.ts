@@ -71,10 +71,10 @@ export interface FiCs<D extends object, P extends object> {
   options?: Partial<Options>
 }
 
-export interface FiCsAwait<D extends object, P extends object> {
+export interface FiCsAwait<D extends object, P extends object, R> {
   data?: () => D
-  fetch: (params: DataMethods<D> & { $props: P }) => Promise<any>
-  awaited: (syntaxes: Syntaxes<D, P> & { $data: D; $response: any }) => ResultContent<D, P>
+  fetch: (params: DataMethods<D> & { $props: P }) => Promise<R>
+  awaited: (syntaxes: Syntaxes<D, P> & { $data: D; $response: R }) => ResultContent<D, P>
   fallback?: (syntaxes: Syntaxes<D, P> & { $data: D }) => ResultContent<D, P>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
