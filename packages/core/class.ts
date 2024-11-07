@@ -941,7 +941,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      console.log('set-data', this.#name, this.#ficsId, key)
       this.#enqueue(() => this.#reRender(), 're-render')
 
       for (const { dataKey, setProps } of this.#propsTrees)
