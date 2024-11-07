@@ -15,5 +15,9 @@
     "conversion": "Now, let's try using the ToDo App built with FiCsJS!",
     "buttonText": "Start ToDo App"
   },
-  "notFound": { "title": "Not Found...", "buttonText": "Back to top page" }
+  "notFound": {
+    "title": "Not Found...",
+    "description": "You will be redirected to the top page in $var(seconds) seconds.",
+    "buttonText": "Back to top page"
+  }
 }
