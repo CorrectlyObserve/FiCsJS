@@ -71,24 +71,18 @@ export interface FiCs<D extends object, P extends object> {
   options?: Partial<Options>
 }
 
-export interface FiCsAwait<P extends object> {
-  fetch: ({ $props }: { $props: P }) => Promise<FiCsAwaitedData['response']>
-  awaited: (
-    syntaxes: Syntaxes<FiCsAwaitedData, P> & { $response: FiCsAwaitedData['response'] }
-  ) => ResultContent<FiCsAwaitedData, P>
-  fallback?: (syntaxes: Syntaxes<FiCsAwaitedData, P>) => ResultContent<FiCsAwaitedData, P>
-  props?: SingleOrArray<Props<FiCsAwaitedData, P>>
-  className?: ClassName<FiCsAwaitedData, P>
-  attributes?: Attrs<FiCsAwaitedData, P>
-  css?: SingleOrArray<string | CssContent<FiCsAwaitedData, P>>
-  actions?: Action<FiCsAwaitedData, P>[]
-  hooks?: Hooks<FiCsAwaitedData, P>
-  options?: Omit<Options, 'immutable'>
-}
-
-export interface FiCsAwaitedData {
-  isLoaded: boolean
-  response: unknown
+export interface FiCsAwait<D extends object, P extends object> {
+  data?: () => D
+  fetch: (params: DataMethods<D> & { $props: P }) => Promise<any>
+  awaited: (syntaxes: Syntaxes<D, P> & { $data: D; $response: any }) => ResultContent<D, P>
+  fallback?: (syntaxes: Syntaxes<D, P> & { $data: D }) => ResultContent<D, P>
+  props?: SingleOrArray<Props<D, P>>
+  className?: ClassName<D, P>
+  attributes?: Attrs<D, P>
+  css?: SingleOrArray<string | CssContent<D, P>>
+  actions?: Action<D, P>[]
+  hooks?: Hooks<D, P>
+  options?: Omit<Partial<Options>, 'immutable' | 'lazyLoad'>
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
@@ -108,11 +102,7 @@ export type HtmlContent<D extends object, P extends object> =
 
 export interface Hooks<D, P> {
   created?: (params: DataParams<D, P>) => void
-  mounted?: (
-    params: DataParams<D, P> & {
-      $poll: (func: ({ $times }: { $times: number }) => void, options: PollingOptions) => void
-    }
-  ) => void
+  mounted?: (params: DataParams<D, P> & Poll) => void
   updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
   destroyed?: (params: DataParams<D, P>) => void
   adopted?: (params: DataParams<D, P>) => void
@@ -123,6 +113,10 @@ export interface Options {
   ssr: boolean
   lazyLoad: boolean
   rootMargin: string
+}
+
+export interface Poll {
+  $poll: (func: ({ $times }: { $times: number }) => void, options: PollingOptions) => void
 }
 
 export interface PollingOptions {
