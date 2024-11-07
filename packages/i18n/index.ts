@@ -18,18 +18,23 @@ export default async <T>({ directory, lang, key, variables }: I18nParams): Promi
 
       if (!i18n) throw new Error(`${key.join('.')} does not exist in ${directory}/${lang}.json...`)
 
-      if (variables) {
-        if (typeof i18n !== 'string')
-          throw new Error(
-            `The "variables" options are enabled only if the JSON value is of type string...`
-          )
+      const replaceText = (str: string, key: string, value: string | number): string =>
+        str.replaceAll(`$var(${key})`, `${value}`)
 
+      const replaceI18n = (i18n: I18n, variables: Record<string, string | number>): void => {
         for (const [key, value] of Object.entries(variables))
-          i18n = i18n.replaceAll(`$var(${key})`, `${value}`)
-
-        return i18n as T
+          if (typeof i18n === 'string') i18n = replaceText(i18n, key, value)
+          else if (Array.isArray(i18n))
+            for (let i = 0; i < i18n.length; i++)
+              if (typeof i18n[i] === 'string') i18n[i] = replaceText(i18n[i], key, value)
+              else replaceI18n(i18n[i], variables)
+          else
+            for (const _key of Object.keys(i18n))
+              if (typeof i18n[_key] === 'string') i18n[_key] = replaceText(i18n[_key], key, value)
+              else replaceI18n(i18n[_key], variables)
       }
 
+      if (variables) replaceI18n(i18n, variables)
       return i18n as T
     })
     .catch(error => {
