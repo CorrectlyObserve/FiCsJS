@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import { convertToArray, sanitize, throwWindowError } from '../core/helpers'
-import type { DataParams, Sanitized } from '../core/types'
+import type { DataParams, Poll, Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
 import type { FiCsRouter, PageContent } from './types'
@@ -22,7 +22,7 @@ export default <D extends object, P extends object>({
     isExceptional: true,
     data: () => {
       if (data && 'pathname' in data())
-        throw new Error('"pathname" is a reserved word in FiCsRouter...')
+        throw new Error('"pathname" is a reserved word in f-router component...')
       return { ...(data?.() ?? {}), pathname: '' } as D
     },
     props,
@@ -62,7 +62,7 @@ export default <D extends object, P extends object>({
         params.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
         hooks?.created?.(params)
       },
-      mounted: (params: DataParams<D, P>) => {
+      mounted: (params: DataParams<D, P> & Poll) => {
         throwWindowError()
 
         window.addEventListener('popstate', () =>
