@@ -15,5 +15,9 @@
     "conversion": "それでは、実際にFiCsJSで開発されたToDoアプリを使ってみましょう！",
     "buttonText": "ToDoアプリを始める"
   },
-  "notFound": { "title": "ページが存在しません", "buttonText": "トップページへ戻る" }
+  "notFound": {
+    "title": "ページが存在しません",
+    "description": "あと$var(seconds)秒後にトップページに遷移します。",
+    "buttonText": "トップページへ戻る"
+  }
 }
