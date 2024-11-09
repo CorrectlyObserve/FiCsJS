@@ -143,8 +143,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #setDataMethods(): DataMethods<D> {
     return {
-      $setData: (key: keyof D, value: D[typeof key]): void => this.setData(key, value),
-      $getData: (key: keyof D): D[typeof key] => this.getData(key)
+      $setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
+      $getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
   }
 
@@ -926,12 +926,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (parent) parent.append(document.createElement(this.#tagName))
   }
 
-  getData(key: keyof D): D[typeof key] {
-    throwDataPropsError(this.#data, key, this.#tagName)
-    return this.#data[key]
-  }
-
-  setData(key: keyof D, value: D[typeof key]): void {
+  setData<K extends keyof D>(key: K, value: D[K]): void {
     if (this.#isReflecting)
       throw new Error(
         `"${key as string}" cannot be not changed in updated hook of ${this.#tagName}...`
@@ -953,5 +948,10 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#isReflecting = false
       }
     }
+  }
+
+  getData<K extends keyof D>(key: K): D[K] {
+    throwDataPropsError(this.#data, key, this.#tagName)
+    return this.#data[key]
   }
 }
