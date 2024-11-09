@@ -44,8 +44,8 @@ interface CssSelector {
 }
 
 export interface DataMethods<D> {
-  $setData: (key: keyof D, value: D[typeof key]) => void
-  $getData: (key: keyof D) => D[typeof key]
+  $setData: <K extends keyof D>(key: K, value: D[K]) => void
+  $getData: <K extends keyof D>(key: K) => D[K]
 }
 
 export type DataParams<D, P> = DataProps<D, P> & DataMethods<D>
