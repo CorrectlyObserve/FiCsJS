@@ -1,22 +1,23 @@
 import { convertToArray } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 
-interface I18nParams {
+type I18n = SingleOrArray | { [keys: string]: I18n }
+
+export default async <T>(params: {
   directory: string
   lang: string
   key: SingleOrArray
   variables?: Record<string, string | number>
-}
-type I18n = SingleOrArray | { [keys: string]: I18n }
+}): Promise<T> => {
+  const path: string = `${params.directory}/${params.lang}.json`
 
-export default async <T>({ directory, lang, key, variables }: I18nParams): Promise<T> =>
-  await fetch(`${directory}/${lang}.json`)
+  return await fetch(path)
     .then(res => res.json())
     .then(json => {
-      key = convertToArray(key)
-      let i18n: I18n | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
+      const keys: string[] = convertToArray(params.key)
+      let i18n: I18n | undefined = keys.reduce((acc, key) => acc && acc[key], json)
 
-      if (!i18n) throw new Error(`${key.join('.')} does not exist in ${directory}/${lang}.json...`)
+      if (!i18n) throw new Error(`${keys.join('.')} does not exist in ${path}...`)
 
       const replaceText = (str: string, key: string, value: string | number): string =>
         str.replaceAll(`$var(${key})`, `${value}`)
@@ -34,9 +35,10 @@ export default async <T>({ directory, lang, key, variables }: I18nParams): Promi
               else replaceI18n(i18n[_key], variables)
       }
 
-      if (variables) replaceI18n(i18n, variables)
+      if (params.variables) replaceI18n(i18n, params.variables)
       return i18n as T
     })
     .catch(error => {
       throw new Error(error)
     })
+}
