@@ -411,10 +411,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return createCss(css, host)
   }
 
-  #overwriteCss(css?: Css<D, P>): Css<D, P> {
-    return [...getGlobalCss(), ...this.#css, ...(css ?? [])]
-  }
-
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     const params: DataParams<D, P> = { ...this.#setDataProps(), ...this.#setDataMethods() }
 
@@ -462,7 +458,7 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
 
-      const allCss: Css<D, P> = this.#overwriteCss()
+      const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
 
       if (allCss.length > 0)
         div.insertAdjacentHTML(
@@ -685,15 +681,37 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css: Css<D, P>): void {
-    const allCss: Css<D, P> = this.#overwriteCss()
+  #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>): void {
+    const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
 
     if (allCss.length === 0) return
 
-    if (!this.#options.immutable && css.length === 0)
-      for (const [index, content] of this.#css.entries())
-        if (typeof content !== 'string' && typeof content.style === 'function')
-          this.#bindings.css.push({ index })
+    if (!this.#options.immutable && !css) {
+      const bindNestedCss = (
+        parentIndex: number,
+        nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent>
+      ): void => {
+        if (nested)
+          for (const [index, content] of convertToArray(nested).entries()) {
+            if (typeof content.style === 'function') {
+              if (!this.#bindings.css[parentIndex])
+                this.#bindings.css[parentIndex] = { index: parentIndex, nested: [] }
+
+              this.#bindings.css[parentIndex].nested?.push({ index })
+            }
+
+            bindNestedCss(index, (content as CssContent<D, P>).nested)
+          }
+      }
+
+      for (const [index, content] of this.#css.entries()) {
+        if (typeof content === 'string') continue
+
+        if (typeof content.style === 'function') this.#bindings.css.push({ index })
+
+        bindNestedCss(index, content.nested)
+      }
+    }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
@@ -818,7 +836,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#addClassName(this)
             that.#addAttrs(this)
             that.#addHtml(this.shadowRoot)
-            that.#addCss(this.shadowRoot, [])
+            that.#addCss(this.shadowRoot)
 
             if (that.#actions.length > 0)
               for (const action of that.#actions) {
@@ -884,11 +902,19 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#addHtml(shadowRoot)
 
-      if (this.#bindings.css.length > 0)
-        this.#addCss(
-          shadowRoot,
-          css.map(({ index }) => this.#css[index])
-        )
+      if (css.length > 0) {
+        const renewedCss: Css<D, P> = []
+
+        const getRenewedCss = (css: Bindings<D, P>['css']): void => {
+          for (const { index, nested } of css) {
+            if (index >= 0) renewedCss.push(this.#css[index])
+            if (nested) getRenewedCss(nested)
+          }
+        }
+
+        getRenewedCss(css)
+        this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
+      }
 
       if (actions.length > 0)
         for (const action of actions) {
