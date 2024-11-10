@@ -20,15 +20,13 @@ export type Attrs<D, P> =
 export interface Bindings<D, P> {
   isClassName: boolean
   isAttr: boolean
-  css: CssBinding
+  css: { index: number; nested?: Bindings<D, P>['css'] }[]
   actions: Action<D, P>[]
 }
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
-
-type CssBinding = { index: number; nested?: CssBinding }[]
 
 export interface CssContent<D, P> extends CssSelector {
   style:
