@@ -87,12 +87,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#tagName = `f-${this.#name}`
 
     if (options) {
-      const {
-        immutable,
-        ssr,
-        lazyLoad,
-        rootMargin
-      }: { immutable?: boolean; ssr?: boolean; lazyLoad?: boolean; rootMargin?: string } = options
+      const { immutable, ssr, lazyLoad, rootMargin }: Options = options
 
       if (immutable) {
         if (data)
@@ -443,9 +438,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#initProps(propsChain)
     this.#callback('created')
 
-    const { ssr, lazyLoad }: { ssr: boolean; lazyLoad: boolean } = this.#options
-
-    if (ssr !== false && !lazyLoad) {
+    if (!this.#options.ssr && !this.#options.lazyLoad) {
       this.#addClassName(component)
       this.#addAttrs(component)
       component.setHTMLUnsafe(
@@ -813,11 +806,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!window.customElements.get(this.#tagName)) {
       const that: FiCsElement<D, P> = this
-      const {
-        immutable,
-        lazyLoad,
-        rootMargin
-      }: { immutable: boolean; lazyLoad: boolean; rootMargin: string } = that.#options
+      const { immutable, lazyLoad, rootMargin }: Options = that.#options
 
       window.customElements.define(
         that.#tagName,
