@@ -22,7 +22,7 @@ export interface FiCsLink<D extends object, P extends object> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: Omit<Partial<Options>, 'immutable'>
+  options?: Omit<Options, 'immutable'>
 }
 
 export interface FiCsRouter<D extends object, P extends object> {
@@ -35,7 +35,7 @@ export interface FiCsRouter<D extends object, P extends object> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: Omit<Partial<Options>, 'immutable'>
+  options?: Omit<Options, 'immutable'>
 }
 
 export interface PageContent<D extends object, P extends object> {
