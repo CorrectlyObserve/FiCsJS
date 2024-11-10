@@ -66,7 +66,7 @@ export interface FiCs<D extends object, P extends object> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: Partial<Options>
+  options?: Options
 }
 
 export interface FiCsAwait<D extends object, P extends object, R> {
@@ -80,7 +80,7 @@ export interface FiCsAwait<D extends object, P extends object, R> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: Omit<Partial<Options>, 'immutable' | 'lazyLoad'>
+  options?: Omit<Options, 'immutable' | 'lazyLoad'>
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
@@ -107,10 +107,10 @@ export interface Hooks<D, P> {
 }
 
 export interface Options {
-  immutable: boolean
-  ssr: boolean
-  lazyLoad: boolean
-  rootMargin: string
+  immutable?: boolean
+  ssr?: boolean
+  lazyLoad?: boolean
+  rootMargin?: string
 }
 
 export interface Poll {
