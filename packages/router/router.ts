@@ -74,5 +74,5 @@ export default <D extends object, P extends object>({
       destroyed: (params: DataParams<D, P>) => hooks?.destroyed?.(params),
       adopted: (params: DataParams<D, P>) => hooks?.adopted?.(params)
     },
-    options: { ...(options ?? {}), immutable: false }
+    options
   })
