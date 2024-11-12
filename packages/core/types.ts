@@ -80,7 +80,7 @@ export interface FiCsAwait<D extends object, P extends object, R> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: Omit<Options, 'immutable' | 'lazyLoad'>
+  options?: Omit<Options, 'immutable'>
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
