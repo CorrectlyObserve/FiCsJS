@@ -11,8 +11,10 @@ const dequeue = (queue: Queue): void => {
 }
 
 export default (queue: Queue): void => {
-  if (!ficsIds[getQueueId(queue)]) {
-    ficsIds[getQueueId(queue)] = true
+  const queueId: string = getQueueId(queue)
+
+  if (!ficsIds[queueId]) {
+    ficsIds[queueId] = true
     queues.push(queue)
 
     if (getHasLoaded() && !isProcessing) {
