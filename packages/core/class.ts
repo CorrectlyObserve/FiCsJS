@@ -438,7 +438,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#initProps(propsChain)
     this.#callback('created')
 
-    if (!this.#options.ssr && !this.#options.lazyLoad) {
+    if (this.#options.ssr && !this.#options.lazyLoad) {
       this.#addClassName(component)
       this.#addAttrs(component)
       component.setHTMLUnsafe(
