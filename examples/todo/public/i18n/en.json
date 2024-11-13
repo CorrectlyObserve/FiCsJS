@@ -17,7 +17,7 @@
   },
   "notFound": {
     "title": "Not Found...",
-    "description": "You will be redirected to the top page in $var(seconds) seconds.",
+    "descriptions": ["You will be redirected to the top page in ", " seconds."],
     "buttonText": "Back to top page"
   }
 }
