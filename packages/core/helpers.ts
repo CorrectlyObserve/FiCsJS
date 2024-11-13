@@ -1,5 +1,5 @@
 import FiCsElement from './class'
-import type { ResultContent, Sanitized, SingleOrArray, Syntaxes } from './types'
+import type { Descendant, Sanitized, SingleOrArray, Syntaxes } from './types'
 
 export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
@@ -14,7 +14,7 @@ export function* generateUid(): Generator<number> {
 }
 
 export const sanitize = <D extends object, P extends object>(
-  param: ResultContent<D, P> | '',
+  param: Descendant | Sanitized<D, P> | '',
   $template: Syntaxes<D, P>['$template']
 ): Sanitized<D, P> => (param === '' || param instanceof FiCsElement ? $template`${param}` : param)
 
