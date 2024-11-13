@@ -8,24 +8,17 @@ export default <D extends object, P extends object>({
   content,
   router,
   props,
-  className,
-  attributes,
   css,
-  actions,
-  hooks,
   options
 }: FiCsLink<D, P>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name: 'link',
     isExceptional: true,
     props,
-    className,
-    attributes,
-    html: ({ $props, $template, $html, $show }) =>
-      $template`<a href="${href}">${sanitize(content({ $props, $template, $html, $show }), $template)}</a>`,
+    html: ({ $template, ...args }) =>
+      $template`<a href="${href}">${sanitize(content({ $template, ...args }), $template)}</a>`,
     css,
     actions: [
-      ...(actions ?? []),
       {
         handler: 'click',
         selector: 'a',
@@ -36,6 +29,5 @@ export default <D extends object, P extends object>({
         }
       }
     ],
-    hooks,
-    options: { ...(options ?? {}), immutable: true }
+    options
   })
