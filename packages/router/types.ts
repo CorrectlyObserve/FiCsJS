@@ -14,14 +14,10 @@ import type {
 
 export interface FiCsLink<D extends object, P extends object> {
   href: string
-  content: (syntaxes: Syntaxes<D, P>) => ResultContent<D, P>
+  content: (syntaxes: Syntaxes<D, P> & { $props: P }) => ResultContent<D, P>
   router: FiCsElement<D, P>
   props?: SingleOrArray<Props<D, P>>
-  className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
   css?: SingleOrArray<string | CssContent<D, P>>
-  actions?: Action<D, P>[]
-  hooks?: Hooks<D, P>
   options?: { ssr?: boolean }
 }
 
@@ -39,6 +35,6 @@ export interface FiCsRouter<D extends object, P extends object> {
 }
 
 export interface PageContent<D extends object, P extends object> {
-  content: (syntaxes: Syntaxes<D, P>) => ResultContent<D, P>
+  content: (syntaxes: Syntaxes<D, P> & { $props: P }) => ResultContent<D, P>
   redirect?: string
 }
