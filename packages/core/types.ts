@@ -69,18 +69,20 @@ export interface FiCs<D extends object, P extends object> {
   options?: Options
 }
 
-export interface FiCsAwait<D extends object, P extends object, R> {
-  data?: () => D
-  fetch: (params: DataMethods<D> & { $props: P }) => Promise<R>
-  awaited: (syntaxes: Syntaxes<D, P> & { $data: D; $response: R }) => ResultContent<D, P>
-  fallback?: (syntaxes: Syntaxes<D, P> & { $data: D }) => ResultContent<D, P>
-  props?: SingleOrArray<Props<D, P>>
-  className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
-  css?: SingleOrArray<string | CssContent<D, P>>
-  actions?: Action<D, P>[]
-  hooks?: Hooks<D, P>
+export interface FiCsAwait<R, P extends object> {
+  fetch: ({ $props }: { $props: P }) => Promise<R>
+  awaited: (
+    syntaxes: Syntaxes<FicsAwaitData<R>, P> & { $response: R }
+  ) => ResultContent<FicsAwaitData<R>, P>
+  fallback?: (syntaxes: Syntaxes<FicsAwaitData<R>, P>) => ResultContent<FicsAwaitData<R>, P>
+  data?: () => FicsAwaitData<R>
+  props?: SingleOrArray<Props<FicsAwaitData<R>, P>>
   options?: Omit<Options, 'immutable'>
+}
+
+export interface FicsAwaitData<R> {
+  isLoaded: boolean
+  res: R
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
@@ -91,7 +93,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P> & Omit<Syntaxes<D, P>, '$props'>
+  params: DataProps<D, P> & Syntaxes<D, P> & { $props: P }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -149,7 +151,6 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 export type SingleOrArray<T = string> = T | T[]
 
 export interface Syntaxes<D extends object, P extends object> {
-  $props: P
   $template: (
     templates: TemplateStringsArray,
     ...variables: (HtmlContent<D, P> | unknown)[]
