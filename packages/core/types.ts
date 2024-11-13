@@ -73,8 +73,10 @@ export interface FiCsAwait<R, P extends object> {
   fetch: ({ $props }: { $props: P }) => Promise<R>
   html: (
     syntaxes: Syntaxes<FicsAwaitData<R>, P> & { $response: R }
-  ) => ResultContent<FicsAwaitData<R>, P>
-  fallback?: (syntaxes: Syntaxes<FicsAwaitData<R>, P>) => ResultContent<FicsAwaitData<R>, P>
+  ) => Descendant | Sanitized<FicsAwaitData<R>, P>
+  fallback?: (
+    syntaxes: Syntaxes<FicsAwaitData<R>, P>
+  ) => Descendant | Sanitized<FicsAwaitData<R>, P>
   data?: () => FicsAwaitData<R>
   props?: SingleOrArray<Props<FicsAwaitData<R>, P>>
   options?: Omit<Options, 'immutable'>
@@ -143,8 +145,6 @@ export interface Queue {
   func: () => void
   key: 'define' | 'init' | 're-render'
 }
-
-export type ResultContent<D extends object, P extends object> = Descendant | Sanitized<D, P>
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
