@@ -71,7 +71,7 @@ export interface FiCs<D extends object, P extends object> {
 
 export interface FiCsAwait<R, P extends object> {
   fetch: ({ $props }: { $props: P }) => Promise<R>
-  awaited: (
+  html: (
     syntaxes: Syntaxes<FicsAwaitData<R>, P> & { $response: R }
   ) => ResultContent<FicsAwaitData<R>, P>
   fallback?: (syntaxes: Syntaxes<FicsAwaitData<R>, P>) => ResultContent<FicsAwaitData<R>, P>
