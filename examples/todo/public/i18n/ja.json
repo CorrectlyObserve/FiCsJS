@@ -17,7 +17,7 @@
   },
   "notFound": {
     "title": "ページが存在しません",
-    "description": "あと$var(seconds)秒後にトップページに遷移します。",
+    "descriptions": ["あと", "秒後にトップページに遷移します。"],
     "buttonText": "トップページへ戻る"
   }
 }
