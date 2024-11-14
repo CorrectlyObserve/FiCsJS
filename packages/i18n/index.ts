@@ -3,26 +3,30 @@ import type { SingleOrArray } from '../core/types'
 
 type I18n = SingleOrArray | { [keys: string]: I18n }
 
-export default async <T>(params: {
+export default async <T>({
+  directory,
+  lang,
+  key,
+  variables
+}: {
   directory: string
   lang: string
   key: SingleOrArray
   variables?: Record<string, string | number>
-}): Promise<T> => {
-  const path: string = `${params.directory}/${params.lang}.json`
-
-  return await fetch(path)
+}): Promise<T> =>
+  await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
-      const keys: string[] = convertToArray(params.key)
-      let i18n: I18n | undefined = keys.reduce((acc, key) => acc && acc[key], json)
+      key = convertToArray(key)
+      let i18n: I18n | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
 
-      if (!i18n) throw new Error(`${keys.join('.')} does not exist in ${path}...`)
+      if (!i18n)
+        throw new Error(`${key.join('.')} does not exist in ${`${directory}/${lang}.json`}...`)
 
       const replaceText = (str: string, key: string, value: string | number): string =>
         str.replaceAll(`$var(${key})`, `${value}`)
 
-      const replaceI18n = (i18n: I18n, variables: Record<string, string | number>): void => {
+      const replaceI18n = (i18n: I18n, variables: Record<string, string | number>): I18n => {
         for (const [key, value] of Object.entries(variables))
           if (typeof i18n === 'string') i18n = replaceText(i18n, key, value)
           else if (Array.isArray(i18n))
@@ -33,12 +37,12 @@ export default async <T>(params: {
             for (const _key of Object.keys(i18n))
               if (typeof i18n[_key] === 'string') i18n[_key] = replaceText(i18n[_key], key, value)
               else replaceI18n(i18n[_key], variables)
+
+        return i18n
       }
 
-      if (params.variables) replaceI18n(i18n, params.variables)
-      return i18n as T
+      return (variables ? replaceI18n(i18n, variables) : i18n) as T
     })
     .catch(error => {
       throw new Error(error)
     })
-}
