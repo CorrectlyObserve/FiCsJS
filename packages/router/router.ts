@@ -1,38 +1,28 @@
 import FiCsElement from '../core/class'
 import { convertToArray, sanitize, throwWindowError } from '../core/helpers'
-import type { DataParams, Poll, Sanitized } from '../core/types'
+import type { Sanitized } from '../core/types'
 import { getRegExp } from './dynamicParam'
 import goto from './goto'
-import type { FiCsRouter, PageContent } from './types'
+import type { FiCsRouter, PageContent, RouterData } from './types'
 
-export default <D extends object, P extends object>({
+export default <P extends object>({
   pages,
   notFound,
-  data,
   props,
-  className,
-  attributes,
-  css,
-  actions,
-  hooks,
   options
-}: FiCsRouter<D, P>): FiCsElement<D, P> =>
-  new FiCsElement<D, P>({
+}: FiCsRouter<P>): FiCsElement<RouterData, P> =>
+  new FiCsElement<RouterData, P>({
     name: 'router',
     isExceptional: true,
-    data: () => {
-      if (data && 'pathname' in data())
-        throw new Error('"pathname" is a reserved word in f-router component...')
-      return { ...(data?.() ?? {}), pathname: '' } as D
-    },
+    data: () => ({ pathname: '' }),
     props,
-    className,
-    attributes,
-    html: ({ $data, $props, $template, $html, $show }) => {
-      let { pathname }: { pathname: string } = $data as { pathname: string }
-      const setContent = (): Sanitized<D, P> => {
-        const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
-          if (redirect && 'pathname' in $data) {
+    html: ({ $data: { pathname }, $props, $template, $html, $show }) => {
+      const setContent = (): Sanitized<RouterData, P> => {
+        const resolveContent = ({
+          content,
+          redirect
+        }: PageContent<P>): Sanitized<RouterData, P> => {
+          if (redirect) {
             pathname = redirect
             goto(pathname, { history: false, reload: false })
             return setContent()
@@ -53,26 +43,15 @@ export default <D extends object, P extends object>({
 
       return setContent()
     },
-    css,
-    actions,
     hooks: {
-      created: (params: DataParams<D, P>) => {
+      created: ({ $setData }) => {
         throwWindowError()
-
-        params.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
-        hooks?.created?.(params)
+        $setData('pathname', window.location.pathname)
       },
-      mounted: (params: DataParams<D, P> & Poll) => {
+      mounted: ({ $setData }) => {
         throwWindowError()
-
-        window.addEventListener('popstate', () =>
-          params.$setData('pathname' as keyof D, window.location.pathname as D[keyof D])
-        )
-        hooks?.mounted?.(params)
-      },
-      updated: hooks?.updated,
-      destroyed: (params: DataParams<D, P>) => hooks?.destroyed?.(params),
-      adopted: (params: DataParams<D, P>) => hooks?.adopted?.(params)
+        window.addEventListener('popstate', () => $setData('pathname', window.location.pathname))
+      }
     },
     options
   })
