@@ -1,40 +1,37 @@
 import FiCsElement from '../core/class'
 import type {
-  Action,
-  Attrs,
-  ClassName,
   CssContent,
-  Hooks,
+  Descendant,
   Options,
   Props,
-  ResultContent,
+  Sanitized,
   SingleOrArray,
   Syntaxes
 } from '../core/types'
 
-export interface FiCsLink<D extends object, P extends object> {
+export interface FiCsLink<P extends object> {
   href: string
-  content: (syntaxes: Syntaxes<D, P> & { $props: P }) => ResultContent<D, P>
-  router: FiCsElement<D, P>
-  props?: SingleOrArray<Props<D, P>>
-  css?: SingleOrArray<string | CssContent<D, P>>
+  content: (syntaxes: Syntaxes<{}, P>) => Descendant | Sanitized<{}, P>
+  router: FiCsElement<RouterData, P>
+  props?: SingleOrArray<Props<{}, P>>
+  css?: SingleOrArray<string | CssContent<{}, P>>
   options?: { ssr?: boolean }
 }
 
-export interface FiCsRouter<D extends object, P extends object> {
-  pages: (PageContent<D, P> & { paths: SingleOrArray })[]
-  notFound?: PageContent<D, P>
-  data?: () => D
-  props?: SingleOrArray<Props<D, P>>
-  className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
-  css?: SingleOrArray<string | CssContent<D, P>>
-  actions?: Action<D, P>[]
-  hooks?: Hooks<D, P>
+export interface FiCsRouter<P extends object> {
+  pages: (PageContent<P> & { paths: SingleOrArray })[]
+  notFound?: PageContent<P>
+  props?: SingleOrArray<Props<RouterData, P>>
   options?: Omit<Options, 'immutable'>
 }
 
-export interface PageContent<D extends object, P extends object> {
-  content: (syntaxes: Syntaxes<D, P> & { $props: P }) => ResultContent<D, P>
+export interface PageContent<P extends object> {
+  content: (
+    syntaxes: Syntaxes<RouterData, P>
+  ) => Descendant | Sanitized<RouterData, P>
   redirect?: string
+}
+
+export interface RouterData {
+  pathname: string
 }
