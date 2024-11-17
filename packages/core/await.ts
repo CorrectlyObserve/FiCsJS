@@ -1,18 +1,18 @@
 import FiCsElement from './class'
 import { sanitize } from './helpers'
-import type { DataParams, FiCsAwait, FicsAwaitData } from './types'
+import type { FiCsAwait, FicsAwaitData } from './types'
 
-export default <R, P extends object>({
+export default <D, P extends object>({
+  props,
   fetch,
   html,
   fallback,
-  props,
   options
-}: FiCsAwait<R, P>): FiCsElement<FicsAwaitData<R>, P> =>
-  new FiCsElement<FicsAwaitData<R>, P>({
+}: FiCsAwait<D, P>): FiCsElement<FicsAwaitData<D>, P> =>
+  new FiCsElement<FicsAwaitData<D>, P>({
     name: 'await',
     isExceptional: true,
-    data: () => ({ isLoaded: false, res: undefined }) as FicsAwaitData<R>,
+    data: () => ({ isLoaded: false, res: undefined }) as FicsAwaitData<D>,
     props,
     html: ({ $data: { isLoaded, res }, ...args }) =>
       sanitize(
@@ -20,10 +20,10 @@ export default <R, P extends object>({
         args.$template
       ),
     hooks: {
-      created: async (params: DataParams<FicsAwaitData<R>, P>) =>
-        await fetch(params).then(res => {
-          params.$setData('isLoaded', true)
-          params.$setData('res', res)
+      created: async ({ $props, $setData }) =>
+        await fetch({ $props }).then(res => {
+          $setData('isLoaded', true)
+          $setData('res', res)
         })
     },
     options
