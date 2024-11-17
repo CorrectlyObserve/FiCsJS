@@ -69,22 +69,21 @@ export interface FiCs<D extends object, P extends object> {
   options?: Options
 }
 
-export interface FiCsAwait<R, P extends object> {
-  fetch: ({ $props }: { $props: P }) => Promise<R>
+export interface FiCsAwait<D, P extends object> {
+  props?: SingleOrArray<Props<FicsAwaitData<D>, P>>
+  fetch: ({ $props }: { $props: P }) => Promise<D>
   html: (
-    syntaxes: Syntaxes<FicsAwaitData<R>, P> & { $response: R }
-  ) => Descendant | Sanitized<FicsAwaitData<R>, P>
+    syntaxes: Syntaxes<FicsAwaitData<D>, P> & { $response: D }
+  ) => Descendant | Sanitized<FicsAwaitData<D>, P>
   fallback?: (
-    syntaxes: Syntaxes<FicsAwaitData<R>, P>
-  ) => Descendant | Sanitized<FicsAwaitData<R>, P>
-  data?: () => FicsAwaitData<R>
-  props?: SingleOrArray<Props<FicsAwaitData<R>, P>>
+    syntaxes: Syntaxes<FicsAwaitData<D>, P>
+  ) => Descendant | Sanitized<FicsAwaitData<D>, P>
   options?: Omit<Options, 'immutable'>
 }
 
-export interface FicsAwaitData<R> {
+export interface FicsAwaitData<D> {
   isLoaded: boolean
-  res: R
+  res: D
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
