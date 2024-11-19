@@ -3,13 +3,15 @@ import i18n from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
 import langs from '@/components/presentations/langs/'
+import { lang } from '@/store'
 
-export default async ({ lang, pathname }: { lang: string; pathname: string }) => {
-  const title = await i18n<string>({ directory: '/i18n', lang, key: 'title' })
+export default async () => {
+  const _lang = getState<string>(lang)
+  const title = await i18n<string>({ directory: '/i18n', lang: _lang, key: 'title' })
 
   return fics({
     name: 'header',
-    data: () => ({ lang, pathname }),
+    data: () => ({ lang: _lang, pathname: '' }),
     props: {
       descendant: langs,
       values: ({ $getData }) => ({
