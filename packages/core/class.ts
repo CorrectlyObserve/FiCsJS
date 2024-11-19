@@ -142,7 +142,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #throwDataPropsError = (key: keyof (D & P), isProps?: boolean): void => {
+  #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
     if (!(key in (isProps ? this.#props : this.#data)))
       throw new Error(
         `"${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
@@ -154,7 +154,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    this.#throwDataPropsError(key, true)
+    this.#throwKeyError(key, true)
 
     if (this.#props[key] !== value) {
       this.#props[key] = value
@@ -953,7 +953,7 @@ export default class FiCsElement<D extends object, P extends object> {
         `"${key as string}" cannot be not changed in updated hook of ${this.#name}...`
       )
 
-    this.#throwDataPropsError(key)
+    this.#throwKeyError(key)
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
@@ -963,7 +963,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (dataKey === key) setProps(value as unknown as P[keyof P])
 
       if (this.#hooks.updated) {
-        this.#throwDataPropsError(key)
+        this.#throwKeyError(key)
         this.#isReflecting = true
         this.#hooks.updated[key]?.({ ...this.#setDataMethods(), $dataValue: this.#data[key] })
         this.#isReflecting = false
@@ -972,7 +972,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   getData<K extends keyof D>(key: K): D[K] {
-    this.#throwDataPropsError(key)
+    this.#throwKeyError(key)
     return this.#data[key]
   }
 }
