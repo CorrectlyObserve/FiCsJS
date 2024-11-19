@@ -1,5 +1,5 @@
 import { getGlobalCss } from './globalCss'
-import { convertToArray, generateUid, throwDataPropsError, throwWindowError } from './helpers'
+import { convertToArray, generateUid, throwWindowError } from './helpers'
 import enqueue from './queue'
 import type {
   Action,
@@ -29,7 +29,6 @@ import type {
 const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #name: string
   readonly #reservedWords: Record<string, true> = {
     var: true,
     await: true,
@@ -38,7 +37,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
-  readonly #tagName: string
+  readonly #name: string
   readonly #data: D = {} as D
   readonly #inheritances: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
@@ -78,20 +77,20 @@ export default class FiCsElement<D extends object, P extends object> {
     hooks,
     options
   }: FiCs<D, P>) {
-    this.#name = this.#convertStr(name, 'kebab')
+    name = this.#convertStr(name, 'kebab')
 
-    if (!isExceptional && this.#reservedWords[this.#name])
+    if (!isExceptional && this.#reservedWords[name])
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
-    this.#tagName = `f-${this.#name}`
+    this.#name = `f-${name}`
 
     if (options) {
       const { immutable, ssr, lazyLoad, rootMargin }: Options = options
 
       if (immutable) {
         if (data)
-          throw new Error(`${this.#tagName} is an immutable component, so it cannot define data...`)
+          throw new Error(`${this.#name} is an immutable component, so it cannot define data...`)
 
         this.#options.immutable = immutable
       }
@@ -143,12 +142,19 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #throwDataPropsError = (key: keyof (D & P), isProps?: boolean): void => {
+    if (!(key in (isProps ? this.#props : this.#data)))
+      throw new Error(
+        `"${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
+      )
+  }
+
   #enqueue(func: () => void, key: Queue['key']): void {
     enqueue({ ficsId: this.#ficsId, func, key })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    throwDataPropsError(this.#props, key, this.#tagName)
+    this.#throwDataPropsError(key, true)
 
     if (this.#props[key] !== value) {
       this.#props[key] = value
@@ -166,7 +172,7 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
             if (_descendant.#options.immutable)
               throw new Error(
-                `${this.#tagName} is an immutable component, so it cannot receive props...`
+                `${this.#name} is an immutable component, so it cannot receive props...`
               )
 
             const descendantId: string = _descendant.#ficsId
@@ -248,14 +254,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #render(element: Element, doc?: Document): HTMLElement {
     const ficsId: string | null = this.#getFiCsId(element)
-    if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#tagName}...`)
+    if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#name}...`)
 
     const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
 
     if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
 
     descendant.#enqueue(() => descendant.#define(this.#propsChain), 'define')
-    return document.createElement(descendant.#tagName)
+    return document.createElement(descendant.#name)
   }
 
   #convertTemplate(doc?: Document): ChildNode[] {
@@ -434,7 +440,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
-    const component: HTMLElement = doc.createElement(this.#tagName)
+    const component: HTMLElement = doc.createElement(this.#name)
     this.#initProps(propsChain)
     this.#callback('created')
 
@@ -714,7 +720,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getShadowRoot(component: HTMLElement): ShadowRoot {
     if (component.shadowRoot) return component.shadowRoot
 
-    throw new Error(`${this.#tagName} does not have shadowRoot...`)
+    throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
   #getElements(shadowRoot: ShadowRoot, selector: string): Element[] {
@@ -804,12 +810,12 @@ export default class FiCsElement<D extends object, P extends object> {
   #define(propsChain?: PropsChain<P>): void {
     throwWindowError()
 
-    if (!window.customElements.get(this.#tagName)) {
+    if (!window.customElements.get(this.#name)) {
       const that: FiCsElement<D, P> = this
       const { immutable, lazyLoad, rootMargin }: Options = that.#options
 
       window.customElements.define(
-        that.#tagName,
+        that.#name,
         class extends HTMLElement {
           readonly shadowRoot: ShadowRoot
           isRendered: boolean = false
@@ -938,16 +944,16 @@ export default class FiCsElement<D extends object, P extends object> {
   describe(parent?: HTMLElement): void {
     this.#callback('created')
     this.#enqueue(() => this.#define(), 'define')
-    if (parent) parent.append(document.createElement(this.#tagName))
+    if (parent) parent.append(document.createElement(this.#name))
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
     if (this.#isReflecting)
       throw new Error(
-        `"${key as string}" cannot be not changed in updated hook of ${this.#tagName}...`
+        `"${key as string}" cannot be not changed in updated hook of ${this.#name}...`
       )
 
-    throwDataPropsError(this.#data, key, this.#tagName)
+    this.#throwDataPropsError(key)
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
@@ -957,7 +963,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (dataKey === key) setProps(value as unknown as P[keyof P])
 
       if (this.#hooks.updated) {
-        throwDataPropsError(this.#data, key, this.#tagName)
+        this.#throwDataPropsError(key)
         this.#isReflecting = true
         this.#hooks.updated[key]?.({ ...this.#setDataMethods(), $dataValue: this.#data[key] })
         this.#isReflecting = false
@@ -966,7 +972,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   getData<K extends keyof D>(key: K): D[K] {
-    throwDataPropsError(this.#data, key, this.#tagName)
+    this.#throwDataPropsError(key)
     return this.#data[key]
   }
 }
