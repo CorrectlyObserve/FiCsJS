@@ -19,7 +19,8 @@ setState(lang, _lang || 'en')
 
 if (pathname.split('/')[0] === getState(lang)) pathname = pathname.slice(3)
 
-const header = await Header({ lang: getState(lang), pathname })
+const header = await Header()
+header.setData('pathname', pathname)
 header.ssr(body, 'before')
 
 Router(getState(lang)).then(component => {
