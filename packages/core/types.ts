@@ -73,17 +73,17 @@ export interface FiCsAwait<D, P extends object> {
   props?: SingleOrArray<Props<FicsAwaitData<D>, P>>
   fetch: ({ $props }: { $props: P }) => Promise<D>
   html: (
-    syntaxes: Syntaxes<FicsAwaitData<D>, P> & { $response: D }
+    syntaxes: { $data: { response?: D } } & Syntaxes<FicsAwaitData<D>, P>
   ) => Descendant | Sanitized<FicsAwaitData<D>, P>
   fallback?: (
     syntaxes: Syntaxes<FicsAwaitData<D>, P>
   ) => Descendant | Sanitized<FicsAwaitData<D>, P>
-  options?: Omit<Options, 'immutable'>
+  options?: Omit<Options, 'immutable' | 'ssr'>
 }
 
 export interface FicsAwaitData<D> {
   isLoaded: boolean
-  res: D
+  response?: D
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
