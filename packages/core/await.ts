@@ -12,19 +12,19 @@ export default <D, P extends object>({
   new FiCsElement<FicsAwaitData<D>, P>({
     name: 'await',
     isExceptional: true,
-    data: () => ({ isLoaded: false, res: undefined }) as FicsAwaitData<D>,
+    data: () => ({ isLoaded: false, response: undefined }),
     props,
-    html: ({ $data: { isLoaded, res }, ...args }) =>
+    html: ({ $data: { isLoaded, response }, ...args }) =>
       sanitize(
-        isLoaded ? html({ ...args, $response: res }) : (fallback?.({ ...args }) ?? ''),
+        isLoaded ? html({ $data: { response }, ...args }) : (fallback?.({ ...args }) ?? ''),
         args.$template
       ),
     hooks: {
       created: async ({ $props, $setData }) =>
-        await fetch({ $props }).then(res => {
+        await fetch({ $props }).then(response => {
           $setData('isLoaded', true)
-          $setData('res', res)
+          $setData('response', response)
         })
     },
-    options
+    options: { ...(options ?? {}), ssr: false }
   })
