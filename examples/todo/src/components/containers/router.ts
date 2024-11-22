@@ -1,37 +1,26 @@
 import i18n from 'ficsjs/i18n'
 import { ficsRouter } from 'ficsjs/router'
+import { getState } from 'ficsjs/state'
 import topPage from '@/components/presentations/topPage'
-import todoPost from '@/components/presentations/todoPost'
-import todoList from '@/components/presentations/todoList'
-import taskDetail from '@/components/presentations/taskDetail'
-import notFound from '@/components/presentations/notFound'
-import type { Task } from '@/types'
+import tasks from '@/components/containers/tasks'
+import taskDetail from '@/components/containers/taskDetail'
+import notFound from '@/components/presentations/notFound2'
+import { lang } from '@/store'
 
-export default async (lang: string) => {
-  const topPageTexts = await i18n<JSON>({ directory: '/i18n', lang, key: 'topPage' })
+export default async () => {
+  const _lang = getState<string>(lang)
+  const texts = await i18n<JSON>({ directory: '/i18n', lang: _lang, key: 'topPage' })
 
-  return ficsRouter<{ tasks: Task[] }, {}>({
+  return ficsRouter({
     pages: [
-      { paths: ['/', `/${lang}`], content: () => topPage },
-      {
-        paths: ['/todo', `/${lang}/todo`],
-        content: ({ $template }) => $template`${todoPost}${todoList}`
-      },
-      { paths: ['/todo/:id', `/${lang}/todo/:id`], content: () => taskDetail }
+      { paths: ['/', `/${_lang}`], content: () => topPage },
+      { paths: ['/todo', `/${_lang}/todo`], content: () => tasks },
+      { paths: ['/todo/:id', `/${_lang}/todo/:id`], content: () => taskDetail }
     ],
     notFound: { content: () => notFound },
-    data: () => ({ tasks: [{ title: 's', description: '', created_at: 0, updated_at: 0 }] }),
     props: [
-      {
-        descendant: todoPost,
-        values: ({ $getData }) => ({
-          length: $getData('tasks')!.length,
-          addNewTask: (value: string) => console.log(value)
-        })
-      },
-      { descendant: todoList, values: ({ $getData }) => ({ tasks: $getData('tasks') }) },
-      { descendant: [topPage, notFound], values: () => ({ lang }) },
-      { descendant: topPage, values: () => ({ ...topPageTexts }) }
+      { descendant: [topPage, notFound], values: () => ({ lang: _lang }) },
+      { descendant: topPage, values: () => ({ ...texts }) }
     ]
   })
 }
