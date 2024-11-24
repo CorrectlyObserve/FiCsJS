@@ -2,15 +2,21 @@ import { getHasLoaded } from './init'
 import type { Queue } from './types'
 
 const ficsIds: Record<string, true> = {}
-const queues: Queue[] = new Array()
-let isProcessing: boolean = false
-const getQueueId = (queue: Queue): string => `${queue.ficsId}-${queue.key}`
+const getQueueId = (queue: Queue, key?: Queue['key']): string =>
+  `${queue.ficsId}-${key ?? queue.key}`
+
 const dequeue = (queue: Queue): void => {
-  queue.func()
+  if (queue.key === 'fetch' && !ficsIds[getQueueId(queue, 'define')])
+    setTimeout(() => enqueue(queue), 0)
+  else queue.func()
+
   if (queue.key !== 'define') delete ficsIds[getQueueId(queue)]
 }
 
-export default (queue: Queue): void => {
+const queues: Queue[] = new Array()
+let isProcessing: boolean = false
+
+export const enqueue = (queue: Queue): void => {
   const queueId: string = getQueueId(queue)
 
   if (!ficsIds[queueId]) {
