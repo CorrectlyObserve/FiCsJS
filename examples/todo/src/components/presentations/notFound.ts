@@ -12,7 +12,7 @@ interface Data {
 
 export default fics<Data, { lang: string }>({
   name: 'not-found',
-  data: () => ({ seconds: 5, title: '', descriptions: [], buttonText: '' }),
+  data: () => ({ seconds: 10, title: '', descriptions: [], buttonText: '' }),
   fetch: ({ $props: { lang } }) => i18n({ directory: '/i18n', lang, key: 'notFound' }),
   props: {
     descendant: button,
