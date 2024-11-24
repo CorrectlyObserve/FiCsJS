@@ -4,7 +4,7 @@ import { getState } from 'ficsjs/state'
 import topPage from '@/components/presentations/topPage'
 import tasks from '@/components/containers/tasks'
 import taskDetail from '@/components/containers/taskDetail'
-import notFound from '@/components/presentations/notFound2'
+import notFound from '@/components/presentations/notFound'
 import { lang } from '@/store'
 
 export default async () => {
