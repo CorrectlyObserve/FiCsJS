@@ -19,15 +19,15 @@ setState(lang, _lang || 'en')
 
 if (pathname.split('/')[0] === getState(lang)) pathname = pathname.slice(3)
 
-const header = await Header()
-header.setData('pathname', pathname)
-header.ssr(body, 'before')
+await Header().then(header => {
+  header.setData('pathname', pathname)
+  header.ssr(body, 'before')
+  syncState({ state: lang, data: [{ fics: header, key: 'lang' }] })
+})
 
-Router(getState(lang)).then(component => {
+await Router().then(router => {
   const main = document.querySelector('main')
-  if (main) component.ssr(main)
+  if (main) router.ssr(main)
 })
 
 footer.ssr(body)
-
-syncState({ state: lang, data: [{ fics: header, key: 'lang' }] })
