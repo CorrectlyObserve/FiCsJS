@@ -121,6 +121,7 @@ export interface PropsTree<D, P> {
   numberId: number
   dataKey: keyof D
   setProps: (value: P[keyof P]) => void
+  updateProps: (value: P[keyof P]) => void
 }
 
 export interface Queue {
