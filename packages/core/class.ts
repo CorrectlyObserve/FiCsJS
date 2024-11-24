@@ -1,6 +1,6 @@
 import { getGlobalCss } from './globalCss'
 import { convertToArray, generateUid, throwWindowError } from './helpers'
-import enqueue from './queue'
+import { enqueue } from './queue'
 import type {
   Action,
   Attrs,
@@ -29,17 +29,12 @@ import type {
 const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, true> = {
-    var: true,
-    await: true,
-    router: true,
-    link: true
-  }
+  readonly #reservedWords: Record<string, true> = { var: true, router: true, link: true }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
-  readonly #inheritances: Props<D, P>[] = new Array()
+  readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings<D, P> = {
     isClassName: false,
@@ -47,8 +42,8 @@ export default class FiCsElement<D extends object, P extends object> {
     css: new Array(),
     actions: new Array()
   }
-  readonly #className: ClassName<D, P> | undefined
-  readonly #attrs: Attrs<D, P> | undefined
+  readonly #className?: ClassName<D, P>
+  readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
@@ -60,6 +55,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
+  #isLoaded?: boolean
   #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
   #isReflecting: boolean = false
@@ -68,6 +64,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     isExceptional,
     data,
+    fetch,
     props,
     className,
     attributes,
@@ -95,7 +92,7 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#options.immutable = immutable
       }
 
-      if (ssr === false) this.#options.ssr = false
+      if (ssr === false || fetch) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
 
       if (rootMargin) {
@@ -106,8 +103,16 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (data) for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
-    if (props) this.#inheritances = convertToArray(props)
+    if (data) {
+      for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+
+      if (fetch) {
+        this.#isLoaded = false
+        this.#enqueue(async () => await this.#awaitData(fetch), 'fetch')
+      }
+    }
+
+    if (props) this.#propsSources = convertToArray(props)
 
     if (className) {
       if (!this.#options.immutable && typeof className === 'function')
@@ -135,6 +140,17 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
+  #enqueue(func: () => void, key: Queue['key']): void {
+    enqueue({ ficsId: this.#ficsId, func, key })
+  }
+
+  async #awaitData(data: ({ $props }: { $props: P }) => Promise<Partial<D>>): Promise<void> {
+    for (const [key, value] of Object.entries(await data({ $props: { ...this.#props } })))
+      this.setData(key as keyof D, value as D[keyof D])
+
+    this.#isLoaded = true
+  }
+
   #setDataMethods(): DataMethods<D> {
     return {
       $setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
@@ -147,10 +163,6 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(
         `"${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
       )
-  }
-
-  #enqueue(func: () => void, key: Queue['key']): void {
-    enqueue({ ficsId: this.#ficsId, func, key })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -167,8 +179,8 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
         this.#props[key as keyof P] = value as P[keyof P]
 
-      if (this.#inheritances.length > 0)
-        for (const { descendant, values } of this.#inheritances)
+      if (this.#propsSources.length > 0)
+        for (const { descendant, values } of this.#propsSources)
           for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
             if (_descendant.#options.immutable)
               throw new Error(
@@ -309,7 +321,8 @@ export default class FiCsElement<D extends object, P extends object> {
         ...variables: (HtmlContent<D, P> | unknown)[]
       ): Sanitized<D, P> => ({ [sanitized]: convertSyntaxes(templates, variables) }),
       $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
-      $show: (condition: boolean): string => (condition ? '' : this.#showAttr)
+      $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
+      $isLoaded: this.#isLoaded
     })[sanitized]
 
     const html: string = contents.reduce((prev, curr) => {
@@ -960,7 +973,9 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#enqueue(() => this.#reRender(), 're-render')
 
       for (const { dataKey, setProps } of this.#propsTrees)
-        if (dataKey === key) setProps(value as unknown as P[keyof P])
+        if (dataKey === key)
+          if (this.#isLoaded) setProps(value as unknown as P[keyof P])
+          else setTimeout(() => setProps(value as unknown as P[keyof P]), 0)
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
