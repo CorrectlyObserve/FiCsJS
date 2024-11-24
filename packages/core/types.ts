@@ -59,6 +59,7 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => D
+  fetch?: ({ $props }: { $props: P }) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
@@ -66,24 +67,7 @@ export interface FiCs<D extends object, P extends object> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: Options
-}
-
-export interface FiCsAwait<D, P extends object> {
-  props?: SingleOrArray<Props<FicsAwaitData<D>, P>>
-  fetch: ({ $props }: { $props: P }) => Promise<D>
-  html: (
-    syntaxes: { $data: { response?: D } } & Syntaxes<FicsAwaitData<D>, P>
-  ) => Descendant | Sanitized<FicsAwaitData<D>, P>
-  fallback?: (
-    syntaxes: Syntaxes<FicsAwaitData<D>, P>
-  ) => Descendant | Sanitized<FicsAwaitData<D>, P>
-  options?: Omit<Options, 'immutable' | 'ssr'>
-}
-
-export interface FicsAwaitData<D> {
-  isLoaded: boolean
-  response?: D
+  options?: FiCs<D, P>['fetch'] extends undefined ? Options : Omit<Options, 'ssr' | 'lazyLoad'>
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
@@ -94,7 +78,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P> & Omit<Syntaxes<D, P>, '$props'>
+  params: DataProps<D, P> & Omit<Syntaxes<D, P>, '$props'> & { $isLoaded?: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -142,7 +126,7 @@ export interface PropsTree<D, P> {
 export interface Queue {
   ficsId: string
   func: () => void
-  key: 'define' | 'init' | 're-render'
+  key: 'define' | 'init' | 're-render' | 'fetch'
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
