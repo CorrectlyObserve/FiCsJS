@@ -166,6 +166,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
+    this.#props[key] = value
+    this.#enqueue(() => this.#define(), 'define')
+  }
+
+  #updateProps(key: keyof P, value: P[typeof key]): void {
     this.#throwKeyError(key, true)
 
     if (this.#props[key] !== value) {
@@ -202,7 +207,8 @@ export default class FiCsElement<D extends object, P extends object> {
               const tree: PropsTree<D, P> = {
                 numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
                 dataKey: key as keyof D,
-                setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
+                setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value),
+                updateProps: (value: P[keyof P]): void => _descendant.#updateProps(key, value)
               }
               const isExLargerNumberId = (index: number): boolean =>
                 this.#propsTrees[index].numberId >= tree.numberId
@@ -972,10 +978,10 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#data[key] = value
       this.#enqueue(() => this.#reRender(), 're-render')
 
-      for (const { dataKey, setProps } of this.#propsTrees)
+      for (const { dataKey, setProps, updateProps } of this.#propsTrees)
         if (dataKey === key)
-          if (this.#isLoaded) setProps(value as unknown as P[keyof P])
-          else setTimeout(() => setProps(value as unknown as P[keyof P]), 0)
+          if (this.#isLoaded === false) setProps(value as unknown as P[keyof P])
+          else updateProps(value as unknown as P[keyof P])
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
