@@ -34,7 +34,7 @@ export default fics<Data, Props>({
     {
       handler: 'click',
       selector: 'button.lang',
-      method: ({ $setData, $getData }) => $setData('isShown', !$getData('isShown')),
+      method: ({ $data: { isShown }, $setData }) => $setData('isShown', !isShown),
       options: { throttle: 500, blur: true }
     },
     {
