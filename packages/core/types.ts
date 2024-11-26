@@ -4,7 +4,7 @@ export interface Action<D, P> {
   handler: string
   selector?: string
   method: (
-    methodParams: DataParams<D, P> & {
+    params: DataProps<D, P, true> & {
       $event: Event
       $attributes: Record<string, string>
       $value?: string
@@ -41,17 +41,9 @@ interface CssSelector {
   ssr?: boolean
 }
 
-export interface DataMethods<D> {
-  $setData: <K extends keyof D>(key: K, value: D[K]) => void
-  $getData: <K extends keyof D>(key: K) => D[K]
-}
-
-export type DataParams<D, P> = DataProps<D, P> & DataMethods<D>
-
-export interface DataProps<D, P> {
-  $data: D
-  $props: P
-}
+export type DataProps<D, P, B = false> = { $data: D; $props: P } & (B extends true
+  ? SetData<D>
+  : {})
 
 export type Descendant = FiCsElement<any, any>
 
@@ -67,7 +59,7 @@ export interface FiCs<D extends object, P extends object> {
   css?: SingleOrArray<string | CssContent<D, P>>
   actions?: Action<D, P>[]
   hooks?: Hooks<D, P>
-  options?: FiCs<D, P>['fetch'] extends undefined ? Options : Omit<Options, 'ssr' | 'lazyLoad'>
+  options?: Options
 }
 
 export type GlobalCss = (GlobalCssContent | string)[]
@@ -86,11 +78,11 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  created?: (params: DataParams<D, P>) => void
-  mounted?: (params: DataParams<D, P> & Poll) => void
-  updated?: { [K in keyof Partial<D>]: (params: DataMethods<D> & { $dataValue?: D[K] }) => void }
-  destroyed?: (params: DataParams<D, P>) => void
-  adopted?: (params: DataParams<D, P>) => void
+  created?: (dataProps: DataProps<D, P, true>) => void
+  mounted?: (dataProps: DataProps<D, P, true> & Poll) => void
+  updated?: { [K in keyof Partial<D>]: (params: SetData<D> & { $datum?: D[K] }) => void }
+  destroyed?: (dataProps: DataProps<D, P, true>) => void
+  adopted?: (dataProps: DataProps<D, P, true>) => void
 }
 
 export interface Options {
@@ -112,7 +104,7 @@ export interface PollingOptions {
 
 export type Props<D, P> = {
   descendant: SingleOrArray<Descendant>
-  values: (params: DataMethods<D> & { $props: P }) => Record<string, any>
+  values: (dataProps: DataProps<D, P, true>) => Record<string, any>
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
@@ -121,7 +113,6 @@ export interface PropsTree<D, P> {
   numberId: number
   dataKey: keyof D
   setProps: (value: P[keyof P]) => void
-  updateProps: (value: P[keyof P]) => void
 }
 
 export interface Queue {
@@ -131,6 +122,10 @@ export interface Queue {
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
+
+export interface SetData<D> {
+  $setData: <K extends keyof D>(key: K, value: D[K]) => void
+}
 
 export type SingleOrArray<T = string> = T | T[]
 
