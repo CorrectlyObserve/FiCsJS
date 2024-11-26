@@ -14,11 +14,11 @@ export default async () => {
     data: () => ({ lang: _lang, pathname: '' }),
     props: {
       descendant: langs,
-      values: ({ $getData }) => ({
-        lang: $getData('lang'),
+      values: ({ $data: { lang: _lang, pathname } }) => ({
+        lang: _lang,
         switchLang: (_lang: string) => {
           setState(lang, _lang)
-          goto(`/${getState(lang) === 'en' ? '' : getState(lang) + '/'}${$getData('pathname')}`)
+          goto(`/${getState(lang) === 'en' ? '' : getState(lang) + '/'}${pathname}`)
         }
       })
     },
