@@ -107,11 +107,12 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
 
       if (fetch) {
-        this.#isLoaded = false
         this.#fetch = fetch
 
-        if (!this.#options.ssr && !this.#options.lazyLoad)
-          this.#enqueue(async () => await this.#awaitData(), 'fetch')
+        if (!this.#options.ssr) {
+          this.#isLoaded = false
+          if (!this.#options.lazyLoad) this.#enqueue(async () => await this.#awaitData(), 'fetch')
+        }
       }
     }
 
@@ -269,23 +270,11 @@ export default class FiCsElement<D extends object, P extends object> {
       : element.getAttribute(this.#ficsIdName)
   }
 
-  #render(element: Element, doc?: Document): HTMLElement {
-    const ficsId: string | null = this.#getFiCsId(element)
-    if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#name}...`)
-
-    const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-
-    if (doc) return descendant.#renderOnServer(doc, this.#propsChain)
-
-    descendant.#enqueue(() => descendant.#define(this.#propsChain), 'define')
-    return document.createElement(descendant.#name)
-  }
-
-  #convertTemplate(doc?: Document): ChildNode[] {
+  #getConvertedChildNodes(doc?: Document): ChildNode[] {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
-    const convertSyntaxes = (
+    const convertTemplate = (
       templates: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
@@ -324,10 +313,10 @@ export default class FiCsElement<D extends object, P extends object> {
       $template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: convertSyntaxes(templates, variables) }),
+      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
       $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
-      $isLoaded: this.#isLoaded
+      $isLoaded: !!doc || this.#isLoaded
     })[sanitized]
 
     const html: string = contents.reduce((prev, curr) => {
@@ -339,11 +328,13 @@ export default class FiCsElement<D extends object, P extends object> {
       return `${prev}${curr}`
     }, '') as string
 
-    const childNodes: ChildNode[] = this.#getChildNodes(
-      (doc ?? document).createRange().createContextualFragment(html)
-    )
+    return this.#getChildNodes((doc ?? document).createRange().createContextualFragment(html))
+  }
 
-    const convertChildNodes = (childNodes: ChildNode[]): void => {
+  async #convertTemplate(doc: Document): Promise<ChildNode[]> {
+    const childNodes: ChildNode[] = this.#getConvertedChildNodes(doc)
+
+    const convertChildNodes = async (childNodes: ChildNode[]): Promise<void> => {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
 
@@ -356,7 +347,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (childNode instanceof Element) {
           if (this.#isVarTag(childNode)) {
-            const component: HTMLElement = this.#render(childNode, doc)
+            const ficsId: string | null = this.#getFiCsId(childNode)
+
+            if (!ficsId)
+              throw new Error(`The ${childNode} has ficsId does not exist in ${this.#name}...`)
+
+            const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+            const component: HTMLElement = await descendant.#renderOnServer(doc, this.#propsChain)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
             index--
@@ -369,11 +366,11 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        convertChildNodes(this.#getChildNodes(childNode))
+        await convertChildNodes(this.#getChildNodes(childNode))
       }
     }
 
-    convertChildNodes(childNodes)
+    await convertChildNodes(childNodes)
     return childNodes
   }
 
@@ -454,9 +451,13 @@ export default class FiCsElement<D extends object, P extends object> {
     } else this.#hooks[key]?.(this.#getDataProps())
   }
 
-  #renderOnServer(doc: Document, propsChain: PropsChain<P>): HTMLElement {
+  async #renderOnServer(doc: Document, propsChain?: PropsChain<P>): Promise<HTMLElement> {
     const component: HTMLElement = doc.createElement(this.#name)
-    this.#initProps(propsChain)
+    this.#initProps(propsChain ?? this.#propsChain)
+
+    if (this.#options.ssr && this.#fetch)
+      for (const [key, value] of Object.entries(await this.#fetch({ $props: { ...this.#props } })))
+        this.#data[key as keyof D] = value as D[keyof D]
     this.#callback('created')
 
     if (this.#options.ssr) {
@@ -469,7 +470,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const div: HTMLElement = doc.createElement('div')
       div.id = this.#ficsId
       div.slot = this.#ficsId
-      for (const childNode of this.#convertTemplate(doc)) div.append(childNode)
+      for (const childNode of await this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
 
       const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
@@ -482,7 +483,18 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     this.#enqueue(() => this.#define(), 'define')
+    console.log(component)
     return component
+  }
+
+  #render(element: Element): HTMLElement {
+    const ficsId: string | null = this.#getFiCsId(element)
+    if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#name}...`)
+
+    const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+
+    descendant.#enqueue(() => descendant.#define(this.#propsChain), 'define')
+    return document.createElement(descendant.#name)
   }
 
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
@@ -496,7 +508,38 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addHtml(shadowRoot: ShadowRoot): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
-    const newChildNodes: ChildNode[] = this.#convertTemplate()
+    const newChildNodes: ChildNode[] = this.#getConvertedChildNodes()
+    const convertChildNodes = (childNodes: ChildNode[]): void => {
+      for (let index = 0; index < childNodes.length; index++) {
+        const childNode: ChildNode = childNodes[index]
+
+        if (childNode instanceof Text && (childNode.nodeValue ?? '').trim() === '') {
+          childNode.parentNode?.removeChild(childNode)
+          childNodes.splice(index, 1)
+          index--
+          continue
+        }
+
+        if (childNode instanceof Element) {
+          if (this.#isVarTag(childNode)) {
+            const component: HTMLElement = this.#render(childNode)
+            childNode.replaceWith(component)
+            childNodes.splice(index, 1, component)
+            index--
+            continue
+          }
+
+          if (childNode.hasAttribute(this.#showAttr)) {
+            ;(childNode as HTMLElement).style.display = 'none'
+            childNode.removeAttribute(this.#showAttr)
+          }
+        }
+
+        convertChildNodes(this.#getChildNodes(childNode))
+      }
+    }
+
+    convertChildNodes(newChildNodes)
 
     if (oldChildNodes.length === 0)
       for (const childNode of newChildNodes) shadowRoot.append(childNode)
@@ -938,13 +981,13 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  getServerComponent(doc: Document): string {
-    return this.#renderOnServer(doc, this.#propsChain).outerHTML
+  async getServerComponent(doc: Document): Promise<string> {
+    return await this.#renderOnServer(doc).then(component => component.outerHTML)
   }
 
-  ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): void {
+  async ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): Promise<void> {
     const temporary: HTMLElement = document.createElement(this.#varTag)
-    temporary.setHTMLUnsafe(this.getServerComponent(document))
+    temporary.setHTMLUnsafe(await this.getServerComponent(document))
 
     parent.insertBefore(
       temporary,
