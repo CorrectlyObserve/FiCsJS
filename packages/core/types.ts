@@ -104,7 +104,11 @@ export interface PollingOptions {
 
 export type Props<D, P> = {
   descendant: SingleOrArray<Descendant>
-  values: (dataProps: DataProps<D, P, true>) => Record<string, any>
+  values: SingleOrArray<{
+    dataKey?: SingleOrArray<keyof D>
+    key: string
+    content: (dataProps: DataProps<D, P, false>) => any
+  }>
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
