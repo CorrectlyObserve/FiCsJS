@@ -31,9 +31,9 @@ export default <P extends object>({
           return sanitize(content({ $props, $template, $html, $show }), $template)
         }
 
-        for (const { paths, content, redirect } of pages)
-          for (const path of convertToArray(paths))
-            if (pathname === path || getRegExp(path).test(pathname!))
+        for (const { path, content, redirect } of pages)
+          for (const _path of convertToArray(path))
+            if (pathname === _path || getRegExp(_path).test(pathname!))
               return resolveContent({ content, redirect })
 
         if (notFound) return resolveContent(notFound)
