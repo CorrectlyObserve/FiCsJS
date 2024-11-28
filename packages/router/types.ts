@@ -19,7 +19,7 @@ export interface FiCsLink<P extends object> {
 }
 
 export interface FiCsRouter<P extends object> {
-  pages: (PageContent<P> & { paths: SingleOrArray })[]
+  pages: (PageContent<P> & { path: SingleOrArray })[]
   notFound?: PageContent<P>
   props?: SingleOrArray<Props<RouterData, P>>
   options?: Omit<Options, 'immutable'>
