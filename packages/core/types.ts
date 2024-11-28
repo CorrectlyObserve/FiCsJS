@@ -51,7 +51,7 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => D
-  fetch?: ({ $props }: { $props: P }) => Promise<Partial<D>>
+  fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
