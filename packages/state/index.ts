@@ -40,17 +40,17 @@ export const syncState = ({
   data
 }: {
   state: string
-  data: { fics: Descendant; key: string }[]
+  data: { component: Descendant; key: string }[]
 }): void => {
-  for (const { fics, key } of data) {
+  for (const { component, key } of data) {
     const sync: Map<Descendant, Set<string>> | undefined = syncs.get(state)
 
     if (!sync) {
-      syncs.set(state, new Map([[fics, new Set([key])]]))
+      syncs.set(state, new Map([[component, new Set([key])]]))
       continue
     }
 
-    sync.has(fics) ? sync.get(fics)!.add(key) : sync.set(fics, new Set([key]))
+    sync.has(component) ? sync.get(component)!.add(key) : sync.set(component, new Set([key]))
   }
 }
 
