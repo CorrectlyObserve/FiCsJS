@@ -1,9 +1,9 @@
 import { fics } from 'ficsjs'
+import i18n from 'ficsjs/i18n'
 import button from '@/components/presentations/button'
 import goto from '@/utils'
 
-interface Props {
-  lang: string
+interface Data {
   titles: string[]
   descriptions: string[]
   features: string[]
@@ -11,17 +11,36 @@ interface Props {
   buttonText: string
 }
 
-export default fics<{}, Props>({
+export default fics<Data, { lang: string }>({
   name: 'top-page',
+  data: () => ({ titles: [], descriptions: [], features: [], conversion: '', buttonText: '' }),
+  fetch: ({ $props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'topPage' }),
   props: {
     descendant: button,
-    values: ({ $props: { buttonText, lang } }) => ({ buttonText, click: () => goto(lang, 'todo') })
+    values: [
+      { key: 'buttonText', content: ({ $data: { buttonText } }) => buttonText },
+      {
+        key: 'click',
+        content:
+          ({ $props: { lang } }) =>
+          () =>
+            goto(lang, 'todo')
+      }
+    ]
   },
-  html: ({ $props: { titles, descriptions, features, conversion }, $template }) =>
+  html: ({
+    $data: {
+      titles: [first, second],
+      descriptions,
+      features,
+      conversion
+    },
+    $template
+  }) =>
     $template`
-      <h2>${titles[0]}</h2>
+      <h2>${first}</h2>
       <div><ul>${descriptions.map(description => $template`<li>${description}</li>`)}</ul></div>
-      <h2>${titles[1]}</h2>
+      <h2>${second}</h2>
       <div><ol>${features.map(feature => $template`<li>${feature}</li>`)}</ol></div>
       <p>${conversion}</p>
       ${button}
