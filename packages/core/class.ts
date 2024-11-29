@@ -33,7 +33,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
-  readonly #fetch?: ({ $props }: { $props: P }) => Promise<Partial<D>>
+  readonly #fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings<D, P> = {
@@ -50,7 +50,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Action<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #options: Options = { immutable: false, ssr: true, lazyLoad: false, rootMargin: '0px' }
-  readonly #propsTrees: PropsTree<D, P>[] = new Array()
+  readonly #propsTrees: PropsTree<D>[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
@@ -148,15 +148,6 @@ export default class FiCsElement<D extends object, P extends object> {
     enqueue({ ficsId: this.#ficsId, func, key })
   }
 
-  async #awaitData(): Promise<void> {
-    if (this.#fetch) {
-      for (const [key, value] of Object.entries(await this.#fetch({ $props: { ...this.#props } })))
-        this.setData(key as keyof D, value as D[keyof D])
-
-      this.#isLoaded = true
-    }
-  }
-
   #getSetData(): SetData<D> {
     return {
       $setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value)
@@ -169,6 +160,15 @@ export default class FiCsElement<D extends object, P extends object> {
         ? { $data: {} as D, $props: {} as P }
         : { $data: { ...this.#data }, $props: { ...this.#props } }),
       ...this.#getSetData()
+    }
+  }
+
+  async #awaitData(): Promise<void> {
+    if (this.#fetch) {
+      for (const [key, value] of Object.entries(await this.#fetch(this.#getDataProps())))
+        this.setData(key as keyof D, value as D[keyof D])
+
+      this.#isLoaded = true
     }
   }
 
@@ -204,18 +204,20 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const descendantId: string = _descendant.#ficsId
 
-          for (const [key, value] of Object.entries(values(this.#getDataProps()))) {
+          for (const { dataKey, key, content } of convertToArray(values)) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            propsChain.set(descendantId, { ...chain, [key]: value })
+            propsChain.set(descendantId, { ...chain, [key]: content(this.#getDataProps()) })
 
             const last: number = this.#propsTrees.length - 1
-            const tree: PropsTree<D, P> = {
+            const tree: PropsTree<D> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-              dataKey: key as keyof D,
-              setProps: (value: P[keyof P]): void => _descendant.#setProps(key, value)
+              setProps: (_key: keyof D): void => {
+                if (dataKey ? convertToArray(dataKey).includes(_key) : key === _key)
+                  _descendant.#setProps(key, content(this.#getDataProps()))
+              }
             }
             const isExLargerNumberId = (index: number): boolean =>
               this.#propsTrees[index].numberId >= tree.numberId
@@ -456,8 +458,9 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#initProps(propsChain ?? this.#propsChain)
 
     if (this.#options.ssr && this.#fetch)
-      for (const [key, value] of Object.entries(await this.#fetch({ $props: { ...this.#props } })))
+      for (const [key, value] of Object.entries(await this.#fetch(this.#getDataProps())))
         this.#data[key as keyof D] = value as D[keyof D]
+
     this.#callback('created')
 
     if (this.#options.ssr) {
@@ -470,7 +473,9 @@ export default class FiCsElement<D extends object, P extends object> {
       const div: HTMLElement = doc.createElement('div')
       div.id = this.#ficsId
       div.slot = this.#ficsId
-      for (const childNode of await this.#convertTemplate(doc)) div.append(childNode)
+      for (const childNode of await this.#convertTemplate(doc)) {
+        div.append(childNode)
+      }
       component.append(div)
 
       const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
@@ -483,7 +488,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     this.#enqueue(() => this.#define(), 'define')
-    console.log(component)
     return component
   }
 
@@ -1015,9 +1019,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#data[key] = value
       this.#enqueue(() => this.#reRender(), 're-render')
 
-      for (const { dataKey, setProps } of this.#propsTrees) {
-        if (dataKey === key) setProps(value as unknown as P[keyof P])
-      }
+      for (const { setProps } of this.#propsTrees) setProps(key)
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
