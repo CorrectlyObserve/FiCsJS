@@ -455,12 +455,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
   async #renderOnServer(doc: Document, propsChain?: PropsChain<P>): Promise<HTMLElement> {
     const component: HTMLElement = doc.createElement(this.#name)
+
     this.#initProps(propsChain ?? this.#propsChain)
-
-    if (this.#options.ssr && this.#fetch)
-      for (const [key, value] of Object.entries(await this.#fetch(this.#getDataProps())))
-        this.#data[key as keyof D] = value as D[keyof D]
-
+    if (this.#options.ssr) await this.#awaitData()
     this.#callback('created')
 
     if (this.#options.ssr) {
