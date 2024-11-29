@@ -4,7 +4,7 @@
     "titles": ["About this ToDo App", "Features of FiCsJS"],
     "descriptions": [
       "This application is built with FiCsJS and does not use any other JavaScript frameworks.",
-      "\"FiCs\"stands for Framework-independent Components. It enables the development of flexible components without dependency on any framework.",
+      "\"FiCs\" stands for Framework-independent Components. It enables the development of flexible components without dependency on any framework.",
       "While FiCsJS is specialized for component development, it makes development of web applications entirely with FiCsJS possible, since it also provides routing and state management features."
     ],
     "features": [
