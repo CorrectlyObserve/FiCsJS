@@ -113,10 +113,9 @@ export type Props<D, P> = {
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
-export interface PropsTree<D, P> {
+export interface PropsTree<D> {
   numberId: number
-  dataKey: keyof D
-  setProps: (value: P[keyof P]) => void
+  setProps: (key: keyof D) => void
 }
 
 export interface Queue {
