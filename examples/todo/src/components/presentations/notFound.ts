@@ -50,5 +50,5 @@ export default fics<Data, { lang: string }>({
         { interval: 1000, max: seconds }
       )
   },
-  options: { ssr: false }
+  options: { ssr: false, lazyLoad: true }
 })
