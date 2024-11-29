@@ -13,13 +13,19 @@ interface Data {
 export default fics<Data, { lang: string }>({
   name: 'not-found',
   data: () => ({ seconds: 10, title: '', descriptions: [], buttonText: '' }),
-  fetch: ({ $props: { lang } }) => i18n({ directory: '/i18n', lang, key: 'notFound' }),
+  fetch: ({ $props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'notFound' }),
   props: {
     descendant: button,
-    values: ({ $props: { lang }, $getData }) => ({
-      buttonText: $getData('buttonText'),
-      click: () => goto(lang)
-    })
+    values: [
+      { key: 'buttonText', content: ({ $data: { buttonText } }) => buttonText },
+      {
+        key: 'click',
+        content:
+          ({ $props: { lang } }) =>
+          () =>
+            goto(lang)
+      }
+    ]
   },
   html: ({
     $data: {
@@ -43,5 +49,6 @@ export default fics<Data, { lang: string }>({
         },
         { interval: 1000, max: seconds }
       )
-  }
+  },
+  options: { ssr: false }
 })
