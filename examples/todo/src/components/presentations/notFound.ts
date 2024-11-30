@@ -1,6 +1,7 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
 import button from '@/components/presentations/button'
+import loadingIcon from '@/components/presentations/loadingIcon/'
 import goto from '@/utils'
 
 interface Data {
@@ -38,7 +39,7 @@ export default fics<Data, { lang: string }>({
   }) =>
     $isLoaded
       ? $template`<h2>${title}</h2><p>${start}${seconds}${end}</p>${button}`
-      : $template`<h2>Loading...</h2>`,
+      : $template`${loadingIcon}`,
   css: { selector: 'p', style: { marginBottom: 'var(--ex-lg)' } },
   hooks: {
     mounted: ({ $data: { seconds }, $props: { lang }, $setData, $poll }) =>
