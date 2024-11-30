@@ -11,11 +11,11 @@ ficsCss(resetCss)
 
 const {
   body,
-  documentElement: { lang: _lang }
+  documentElement: { lang }
 } = document
 let pathname = window.location.pathname.substring(1)
 
-setState($lang, _lang || 'en')
+setState($lang, lang || 'en')
 
 if (pathname.split('/')[0] === getState($lang)) pathname = pathname.slice(3)
 
