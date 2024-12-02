@@ -3,6 +3,6 @@ export interface Task {
   title: string
   description: string
   created_at: number
+  updated_at: number
   completed_at?: number
-  deleted_at?: number
 }
