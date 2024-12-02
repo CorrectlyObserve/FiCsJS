@@ -4,7 +4,7 @@ export default fics<{ value: string }, { placeholder: string; enter: () => void 
   name: 'input',
   data: () => ({ value: '' }),
   html: ({ $data: { value }, $props: { placeholder }, $template }) =>
-    $template`<input value="${value}" placeholder="${placeholder}" />`,
+    $template`<input value="${value}" placeholder="${placeholder}" type="text" />`,
   actions: [
     {
       handler: 'input',
