@@ -24,16 +24,25 @@ const openDB = (): Promise<IDBDatabase> => {
   })
 }
 
-const getStore = async (mode: IDBTransactionMode): Promise<IDBObjectStore> =>
-  await openDB().then(db => db.transaction(storeName, mode).objectStore(storeName))
+const getStore = async (mode: IDBTransactionMode): Promise<IDBObjectStore> => {
+  try {
+    return await openDB().then(db => db.transaction(storeName, mode).objectStore(storeName))
+  } catch (error) {
+    throw new Error(`${error}`)
+  }
+}
+
+const throwError = (request: IDBRequest, reject: (error: Error | DOMException) => void): void => {
+  request.onerror = () => reject(request.error ?? new Error('An unknown error occurred.'))
+}
 
 export const getAllTasks = async (): Promise<Task[]> => {
   const store = await getStore('readonly')
 
   return new Promise((resolve, reject) => {
-    const request = store.getAll()
+    const request: IDBRequest<Task[]> = store.getAll()
     request.onsuccess = () => resolve(request.result as Task[])
-    request.onerror = () => reject(request.error)
+    throwError(request, reject)
   })
 }
 
@@ -41,9 +50,31 @@ export const addTask = async (title: string): Promise<number> => {
   const store = await getStore('readwrite')
 
   return new Promise((resolve, reject) => {
-    const request = store.add({ title, description: '', created_at: Date.now() })
+    const request = store.add({
+      title,
+      description: '',
+      created_at: Date.now(),
+      updated_at: Date.now()
+    })
     request.onsuccess = () => resolve(request.result as number)
-    request.onerror = () => reject(request.error)
+    throwError(request, reject)
+  })
+}
+
+const getTask = async (id: number): Promise<Task> => {
+  const store = await getStore('readonly')
+
+  return new Promise((resolve, reject) => {
+    const request: IDBRequest<Task> = store.get(id)
+
+    request.onsuccess = () => {
+      const task: Task = request.result
+
+      if (task) resolve(task)
+      reject(new Error(`Task with id:${id} is not found...`))
+    }
+
+    throwError(request, reject)
   })
 }
 
@@ -58,54 +89,42 @@ export const updateTask = async ({
 }): Promise<void> => {
   const store = await getStore('readwrite')
 
-  return new Promise((resolve, reject) => {
-    const request = store.get(id)
+  return new Promise(async (resolve, reject) => {
+    await getTask(id).then(task => {
+      task.title = title
+      task.description = description
 
-    request.onsuccess = () => {
-      const task: Task = request.result
-
-      if (task) {
-        task.title = title
-        task.description = description
-
-        const updateRequest = store.put(task)
-        updateRequest.onsuccess = () => resolve()
-        updateRequest.onerror = () => reject(updateRequest.error)
-      } else reject(new Error(`Task with id:${id} is not found...`))
-    }
-
-    request.onerror = () => reject(request.error)
+      const request = store.put(task)
+      request.onsuccess = () => resolve()
+      throwError(request, reject)
+    })
   })
 }
 
 export const completeTask = async (id: number): Promise<void> => {
   const store = await getStore('readwrite')
 
-  return new Promise((resolve, reject) => {
-    const request = store.get(id)
+  return new Promise(async (resolve, reject) => {
+    await getTask(id).then(task => {
+      task.completed_at = Date.now()
 
-    request.onsuccess = () => {
-      const task: Task = request.result
-
-      if (task) {
-        task.completed_at = Date.now()
-
-        const updateRequest = store.put(task)
-        updateRequest.onsuccess = () => resolve()
-        updateRequest.onerror = () => reject(updateRequest.error)
-      } else reject(new Error(`Task with id:${id} is not found...`))
-    }
-
-    request.onerror = () => reject(request.error)
+      const request = store.put(task)
+      request.onsuccess = () => resolve()
+      throwError(request, reject)
+    })
   })
 }
 
 export const deleteTask = async (id: number): Promise<void> => {
   const store = await getStore('readwrite')
 
-  return new Promise((resolve, reject) => {
-    const request = store.delete(id)
-    request.onsuccess = () => resolve()
-    request.onerror = () => reject(request.error)
+  return new Promise(async (resolve, reject) => {
+    await getTask(id).then(task => {
+      task.completed_at = Date.now()
+
+      const request = store.delete(id)
+      request.onsuccess = () => resolve()
+      throwError(request, reject)
+    })
   })
 }
