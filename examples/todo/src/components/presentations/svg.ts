@@ -7,7 +7,7 @@ interface Props {
   click: () => void
 }
 
-export default fics<{}, Props>({
+export default () => fics<{}, Props>({
   name: 'svg',
   html: ({ $template }) => $template`<button />`,
   css: [
