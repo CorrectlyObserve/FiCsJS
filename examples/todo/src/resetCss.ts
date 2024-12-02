@@ -22,6 +22,18 @@ export default [
       { selector: ':focus', style: { transform: 'scale(0.8)' } }
     ]
   },
+  {
+    selector: 'input',
+    style: {
+      width: 'calc(var(--md) * 20)',
+      fontSize: 'var(--lg)',
+      color: 'var(--black)',
+      padding: 'var(--ex-sm) var(--md)',
+      borderRadius: 'var(--ex-sm)',
+      border: 'none',
+      outline: 'none'
+    }
+  },
   { selector: ['span', 'a'], style: { color: 'inherit', lineHeight: 'inherit' } },
   {
     selector: 'a',
