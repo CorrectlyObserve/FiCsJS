@@ -2,9 +2,9 @@
   "name": "fics_todo",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev": "bunx --bun vite",
+    "build": "bunx --bun vite build",
+    "preview": "bunx --bun vite preview"
   },
   "devDependencies": {
     "tsconfig-paths": "^4.2.0",
