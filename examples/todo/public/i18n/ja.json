@@ -15,7 +15,11 @@
     "conversion": "それでは、実際にFiCsJSで開発されたToDoアプリを使ってみましょう！",
     "buttonText": "ToDoアプリを始める"
   },
-  "tasks": { "placeholder": "FiCsJSを使ってみる", "unapplicable": "タスクがありません。" },
+  "tasks": {
+    "placeholder": "FiCsJSを使ってみる",
+    "checkbox": "完了済みのタスクを表示する",
+    "unapplicable": "タスクがありません。"
+  },
   "notFound": {
     "title": "ページが存在しません",
     "descriptions": ["あと", "秒後にトップページに遷移します。"],
