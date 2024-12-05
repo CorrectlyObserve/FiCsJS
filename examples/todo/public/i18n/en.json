@@ -15,7 +15,11 @@
     "conversion": "Now, let's try using the ToDo App built with FiCsJS!",
     "buttonText": "Start ToDo App"
   },
-  "tasks": { "placeholder": "Try using FiCsJS", "unapplicable": "There are no tasks..." },
+  "tasks": {
+    "placeholder": "Try using FiCsJS",
+    "checkbox": "Shown completed tasks",
+    "unapplicable": "There are no tasks..."
+  },
   "notFound": {
     "title": "Not Found...",
     "descriptions": ["You will be redirected to the top page in ", " seconds."],
