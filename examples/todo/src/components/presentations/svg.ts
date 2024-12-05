@@ -1,26 +1,25 @@
 import { fics } from 'ficsjs'
 
 interface Props {
-  icon: string
   size?: string
   color?: string
   padding?: string
   click: () => void
 }
 
-export default () =>
+export default (name: string) =>
   fics<{}, Props>({
-    name: 'svg',
+    name,
     html: ({ $template }) => $template`<button><div /></button>`,
     css: {
       selector: 'button',
       style: ({ $props: { padding } }) => ({ background: 'none', padding: padding ?? 0 }),
       nested: {
         selector: 'div',
-        style: ({ $props: { icon, size, color } }) => ({
+        style: ({ $props: { size, color } }) => ({
           width: size ?? 'calc(var(--lg) * 1.5)',
           height: size ?? 'calc(var(--lg) * 1.5)',
-          maskImage: `url("/icons/${icon}.svg")`,
+          maskImage: `url("/icons/${name}.svg")`,
           background: color ?? '#fff'
         })
       }
