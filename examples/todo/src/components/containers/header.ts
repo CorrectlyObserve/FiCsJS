@@ -5,8 +5,7 @@ import { setState, getState } from 'ficsjs/state'
 import langs from '@/components/presentations/langs/'
 import { $lang } from '@/store'
 
-export default () =>
-  fics({
+export default fics({
     name: 'header',
     data: () => ({ lang: getState<string>($lang), pathname: '', title: '' }),
     fetch: async ({ $data: { lang } }) => ({
