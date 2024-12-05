@@ -41,7 +41,7 @@ export const getAllTasks = async (): Promise<Task[]> => {
 
   return new Promise((resolve, reject) => {
     const request: IDBRequest<Task[]> = store.getAll()
-    request.onsuccess = () => resolve(request.result as Task[])
+    request.onsuccess = () => resolve(request.result)
     throwError(request, reject)
   })
 }
