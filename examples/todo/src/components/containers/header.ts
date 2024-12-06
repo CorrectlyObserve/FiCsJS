@@ -7,7 +7,7 @@ import { $lang } from '@/store'
 
 export default fics({
   name: 'header',
-  data: () => ({ lang: getState<string>($lang), pathname: '', title: '' }),
+  data: () => ({ lang: '', pathname: '', title: '' }),
   fetch: async ({ $data: { lang } }) => ({
     title: await i18n<string>({ directory: '/i18n', lang, key: 'title' })
   }),
