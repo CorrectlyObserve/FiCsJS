@@ -10,7 +10,6 @@ div.container {
       }
 
       &:focus {
-        transform: scale(1);
         opacity: 0.5;
       }
     }
