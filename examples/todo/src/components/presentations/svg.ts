@@ -1,13 +1,7 @@
 import { fics } from 'ficsjs'
 
-interface Props {
-  size?: string
-  color?: string
-  click: () => void
-}
-
 export default (name: string) =>
-  fics<{}, Props>({
+  fics<{}, { size?: string; color?: string; click: () => void }>({
     name,
     html: ({ $template }) => $template`<button><div /></button>`,
     css: {
