@@ -1,6 +1,7 @@
 import FiCsElement from '../core/class'
-import { convertToArray, sanitize, throwWindowError } from '../core/helpers'
+import { sanitize, throwWindowError } from '../core/helpers'
 import type { Sanitized } from '../core/types'
+import { getRegExp } from './dynamicParam'
 import goto from './goto'
 import type { FiCsRouter, PageContent, RouterData } from './types'
 
@@ -30,15 +31,16 @@ export default <P extends object>({
           return sanitize(content({ $props, $template, $html, $show }), $template)
         }
 
-        for (const { path, content, redirect } of pages)
-          for (const _path of convertToArray(path)) {
-            if (pathname === _path) return resolveContent({ content, redirect })
+        for (const { path, content, redirect } of pages) {
+          const langParam: string = `/${lang}${path}`
 
-            if (lang !== '' && pathname === `/${lang}${_path}`)
-              return resolveContent({ content, redirect })
-
-            continue
-          }
+          if (
+            pathname === path ||
+            getRegExp(path).test(pathname) ||
+            (lang !== '' && (pathname === langParam || getRegExp(path).test(langParam)))
+          )
+            return resolveContent({ content, redirect })
+        }
 
         if (notFound) return resolveContent(notFound)
 
