@@ -3,7 +3,6 @@ import { fics } from 'ficsjs'
 interface Props {
   size?: string
   color?: string
-  padding?: string
   click: () => void
 }
 
@@ -13,7 +12,7 @@ export default (name: string) =>
     html: ({ $template }) => $template`<button><div /></button>`,
     css: {
       selector: 'button',
-      style: ({ $props: { padding } }) => ({ background: 'none', padding: padding ?? 0 }),
+      style: { background: 'none', padding: 'var(--ex-sm)' },
       nested: {
         selector: 'div',
         style: ({ $props: { size, color } }) => ({
