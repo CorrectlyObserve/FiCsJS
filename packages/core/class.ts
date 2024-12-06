@@ -904,7 +904,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#removeChildNodes(this)
             that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-            that.#components.add(this)
+
+            if (!that.#components.has(this)) that.#components.add(this)
           }
 
           connectedCallback(): void {
@@ -942,44 +943,46 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #reRender(): void {
-    for (const component of this.#components) {
-      const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+    const component: HTMLElement | undefined = this.#components.values().next().value
 
-      if (isClassName) {
-        component.classList.remove(...Array.from(component.classList))
-        this.#addClassName(component)
-      }
+    if (!component) return
 
-      if (isAttr) this.#addAttrs(component)
+    const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
-      this.#addHtml(shadowRoot)
-
-      if (css.length > 0) {
-        const renewedCss: Css<D, P> = []
-
-        const getRenewedCss = (css: Bindings<D, P>['css']): void => {
-          for (const { index, nested } of css) {
-            if (index >= 0) renewedCss.push(this.#css[index])
-            if (nested) getRenewedCss(nested)
-          }
-        }
-
-        getRenewedCss(css)
-        this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
-      }
-
-      for (const action of actions ?? []) {
-        const { handler, selector, method, options }: Action<D, P> = action
-
-        if (selector)
-          for (const element of this.#getElements(shadowRoot, selector))
-            if (this.#newElements.has(element))
-              this.#addEventListener(element, handler, method, options)
-      }
-
-      this.#newElements.clear()
+    if (isClassName) {
+      component.classList.remove(...Array.from(component.classList))
+      this.#addClassName(component)
     }
+
+    if (isAttr) this.#addAttrs(component)
+
+    this.#addHtml(shadowRoot)
+
+    if (css.length > 0) {
+      const renewedCss: Css<D, P> = []
+
+      const getRenewedCss = (css: Bindings<D, P>['css']): void => {
+        for (const { index, nested } of css) {
+          if (index >= 0) renewedCss.push(this.#css[index])
+          if (nested) getRenewedCss(nested)
+        }
+      }
+
+      getRenewedCss(css)
+      this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
+    }
+
+    for (const action of actions ?? []) {
+      const { handler, selector, method, options }: Action<D, P> = action
+
+      if (selector)
+        for (const element of this.#getElements(shadowRoot, selector))
+          if (this.#newElements.has(element))
+            this.#addEventListener(element, handler, method, options)
+    }
+
+    this.#newElements.clear()
   }
 
   async getServerComponent(doc: Document): Promise<string> {
