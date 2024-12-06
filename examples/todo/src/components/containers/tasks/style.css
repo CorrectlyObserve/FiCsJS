@@ -18,8 +18,8 @@ div.menu {
           opacity: 0.5;
         }
 
-        &:focus {
-          transform: scale(0.8);
+        &:active {
+          transform: scale(0.95);
         }
       }
     }
