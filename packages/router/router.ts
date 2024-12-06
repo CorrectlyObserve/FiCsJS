@@ -1,7 +1,6 @@
 import FiCsElement from '../core/class'
 import { convertToArray, sanitize, throwWindowError } from '../core/helpers'
 import type { Sanitized } from '../core/types'
-import { getRegExp } from './dynamicParam'
 import goto from './goto'
 import type { FiCsRouter, PageContent, RouterData } from './types'
 
@@ -14,9 +13,9 @@ export default <P extends object>({
   new FiCsElement<RouterData, P>({
     name: 'router',
     isExceptional: true,
-    data: () => ({ pathname: '' }),
+    data: () => ({ pathname: '', lang: '' }),
     props,
-    html: ({ $data: { pathname }, $props, $template, $html, $show }) => {
+    html: ({ $data: { pathname, lang }, $props, $template, $html, $show }) => {
       const setContent = (): Sanitized<RouterData, P> => {
         const resolveContent = ({
           content,
@@ -32,9 +31,14 @@ export default <P extends object>({
         }
 
         for (const { path, content, redirect } of pages)
-          for (const _path of convertToArray(path))
-            if (pathname === _path || getRegExp(_path).test(pathname!))
+          for (const _path of convertToArray(path)) {
+            if (pathname === _path) return resolveContent({ content, redirect })
+
+            if (lang !== '' && pathname === `/${lang}${_path}`)
               return resolveContent({ content, redirect })
+
+            continue
+          }
 
         if (notFound) return resolveContent(notFound)
 
