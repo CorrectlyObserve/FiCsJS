@@ -1,31 +1,44 @@
-div.menu {
-  margin-bottom: var(--ex-lg);
+div {
+  &.menu {
+    margin-bottom: var(--ex-lg);
 
-  div {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: var(--md);
+    div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--md);
 
-    &:last-child {
-      margin-bottom: 0;
+      &:last-child {
+        margin-bottom: 0;
+      }
 
-      p {
-        transition: var(--transition);
-        cursor: pointer;
-
-        &:hover {
-          opacity: 0.5;
-        }
-
-        &:active {
-          transform: scale(0.95);
-        }
+      f-input {
+        margin-right: var(--md);
       }
     }
+  }
 
-    f-input {
-      margin-right: var(--md);
+  &.task {
+    display: flex;
+    align-items: center;
+    width: 60%;
+    margin-inline: auto;
+
+    p {
+      margin-left: var(--ex-sm);
+    }
+  }
+
+  span {
+    transition: var(--transition);
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.5;
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 }
