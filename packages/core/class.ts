@@ -340,11 +340,15 @@ export default class FiCsElement<D extends object, P extends object> {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
 
-        if (childNode instanceof Text && (childNode.nodeValue ?? '').trim() === '') {
-          childNode.parentNode?.removeChild(childNode)
-          childNodes.splice(index, 1)
-          index--
-          continue
+        if (childNode instanceof Text && childNode.nodeValue) {
+          childNode.nodeValue = childNode.nodeValue.trim()
+
+          if (childNode.nodeValue === '') {
+            childNode.parentNode?.removeChild(childNode)
+            childNodes.splice(index, 1)
+            index--
+            continue
+          }
         }
 
         if (childNode instanceof Element) {
@@ -514,11 +518,15 @@ export default class FiCsElement<D extends object, P extends object> {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
 
-        if (childNode instanceof Text && (childNode.nodeValue ?? '').trim() === '') {
-          childNode.parentNode?.removeChild(childNode)
-          childNodes.splice(index, 1)
-          index--
-          continue
+        if (childNode instanceof Text && childNode.nodeValue) {
+          childNode.nodeValue = childNode.nodeValue.trim()
+
+          if (childNode.nodeValue === '') {
+            childNode.parentNode?.removeChild(childNode)
+            childNodes.splice(index, 1)
+            index--
+            continue
+          }
         }
 
         if (childNode instanceof Element) {
