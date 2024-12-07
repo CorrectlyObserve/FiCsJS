@@ -7,7 +7,7 @@ export default [
     style: { fontSize: 'calc(var(--md) * 1.5)', color: '#fff', marginBottom: 'var(--ex-lg)' }
   },
   {
-    selector: ['p', 'button', 'li'],
+    selector: ['p', 'button', 'li', 'span'],
     style: { fontSize: 'var(--lg)', color: '#fff' },
     nested: [
       { selector: ':is(li)', style: { lineHeight: 1.8 } },
@@ -34,9 +34,15 @@ export default [
       outline: 'none'
     }
   },
-  { selector: ['span', 'a'], style: { color: 'inherit', lineHeight: 'inherit' } },
   {
     selector: 'a',
-    style: { width: '100%', display: 'inline-block', cursor: 'pointer', textDecoration: 'none' }
+    style: {
+      width: '100%',
+      display: 'inline-block',
+      color: 'inherit',
+      cursor: 'pointer',
+      lineHeight: 'inherit',
+      textDecoration: 'none'
+    }
   }
 ]
