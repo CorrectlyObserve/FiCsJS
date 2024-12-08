@@ -984,10 +984,22 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const action of actions ?? []) {
       const { handler, selector, method, options }: Action<D, P> = action
 
-      if (selector)
+      if (selector) {
+        const addAllElements = (elements: Element[] | Set<Element>): void => {
+          for (const element of elements) {
+            if (element instanceof Element && !this.#newElements.has(element))
+              this.#newElements.add(element)
+
+            addAllElements(this.#getChildNodes(element) as Element[])
+          }
+        }
+
+        addAllElements(this.#newElements)
+
         for (const element of this.#getElements(shadowRoot, selector))
           if (this.#newElements.has(element))
             this.#addEventListener(element, handler, method, options)
+      }
     }
 
     this.#newElements.clear()
