@@ -1,7 +1,8 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
+import { goto } from 'ficsjs/router'
 import button from '@/components/presentations/button'
-import goto from '@/utils'
+import getPath from '@/utils'
 
 interface Data {
   titles: string[]
@@ -24,7 +25,7 @@ export default fics<Data, { lang: string }>({
         content:
           ({ $props: { lang } }) =>
           () =>
-            goto(lang, 'todo')
+            goto(getPath(lang, 'todo'))
       }
     ]
   },
