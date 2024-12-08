@@ -209,14 +209,19 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            propsChain.set(descendantId, { ...chain, [key]: content(this.#getDataProps()) })
+            const _content: any = content({
+              ...this.#getDataProps(),
+              $getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
+            })
+
+            propsChain.set(descendantId, { ...chain, [key]: _content })
 
             const last: number = this.#propsTrees.length - 1
             const tree: PropsTree<D> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
               setProps: (_key: keyof D): void => {
                 if (dataKey ? convertToArray(dataKey).includes(_key) : key === _key)
-                  _descendant.#setProps(key, content(this.#getDataProps()))
+                  _descendant.#setProps(key, _content)
               }
             }
             const isExLargerNumberId = (index: number): boolean =>
