@@ -1,4 +1,2 @@
-import { goto } from 'ficsjs/router'
-
-export default (lang: string, path?: string): void =>
-  goto(`/${lang === 'en' ? '' : `${lang}/`}${path ?? ''}`)
+export default (lang: string, path?: string): string =>
+  `/${lang === 'en' ? '' : `${lang}/`}${path ?? ''}`
