@@ -1,8 +1,9 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
+import { goto } from 'ficsjs/router'
 import button from '@/components/presentations/button'
 import loadingIcon from '@/components/presentations/loadingIcon/'
-import goto from '@/utils'
+import getPath from '@/utils'
 
 interface Data {
   seconds: number
@@ -24,7 +25,7 @@ export default fics<Data, { lang: string }>({
         content:
           ({ $props: { lang } }) =>
           () =>
-            goto(lang)
+            goto(getPath(lang))
       }
     ]
   },
@@ -45,7 +46,7 @@ export default fics<Data, { lang: string }>({
     mounted: ({ $data: { seconds }, $props: { lang }, $setData, $poll }) =>
       $poll(
         ({ $times }) => {
-          if ($times === seconds - 1) goto(lang)
+          if ($times === seconds - 1) goto(getPath(lang))
           $setData('seconds', seconds - $times - 1)
         },
         { interval: 1000, max: seconds }
