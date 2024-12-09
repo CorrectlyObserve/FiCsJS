@@ -25,7 +25,7 @@ export default fics<Data, { lang: string }>({
         content:
           ({ $props: { lang } }) =>
           () =>
-            goto(getPath(lang, 'todo'))
+            goto(getPath(lang, '/todo'))
       }
     ]
   },
