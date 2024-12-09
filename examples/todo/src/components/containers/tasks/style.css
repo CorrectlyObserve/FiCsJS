@@ -23,7 +23,7 @@ div {
     display: flex;
     align-items: center;
     margin-inline: auto;
-    margin-bottom: var(--md);
+    margin-bottom: var(--ex-sm);
 
     &:last-child {
       margin-bottom: 0;
@@ -31,11 +31,12 @@ div {
 
     div {
       width: calc(100% - var(--lg) * 1.5 - var(--ex-sm) * 2);
-      display: inline-flex;
+      display: flex;
       align-items: center;
 
       span {
         width: 100%;
+        display: flex;
         text-align: left;
         margin-inline: var(--ex-sm);
         overflow-x: hidden;
@@ -45,6 +46,7 @@ div {
         }
 
         a {
+          padding-block: var(--ex-sm);
           white-space: nowrap;
           overflow-x: hidden;
           text-overflow: ellipsis;
