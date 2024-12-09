@@ -54,9 +54,13 @@ export default fics<Data, { lang: string }>({
         content:
           ({ $setData }) =>
           async () => {
-            await addTask(input.getData('value'))
-            $setData('tasks', await getAllTasks())
-            input.setData('value', '')
+            const value = input.getData('value')
+
+            if (value !== '') {
+              await addTask(value)
+              $setData('tasks', await getAllTasks())
+              input.setData('value', '')
+            }
           }
       }
     },
@@ -114,7 +118,7 @@ export default fics<Data, { lang: string }>({
                     <div>
                       ${completed_at ? checkIcon : circleIcon}
                       <span class="${completed_at ? 'done' : ''}">
-                        <a href="${getPath(lang, `todo/${id}`)}">${title}</a>
+                        <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
                       </span>
                     </div>
                     ${trashIcon}
