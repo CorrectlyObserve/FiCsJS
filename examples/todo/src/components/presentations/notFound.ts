@@ -25,7 +25,7 @@ export default fics<Data, { lang: string }>({
         content:
           ({ $props: { lang } }) =>
           () =>
-            goto(getPath(lang))
+            goto(getPath(lang, '/'))
       }
     ]
   },
@@ -46,7 +46,7 @@ export default fics<Data, { lang: string }>({
     mounted: ({ $data: { seconds }, $props: { lang }, $setData, $poll }) =>
       $poll(
         ({ $times }) => {
-          if ($times === seconds - 1) goto(getPath(lang))
+          if ($times === seconds - 1) goto(getPath(lang, '/'))
           $setData('seconds', seconds - $times - 1)
         },
         { interval: 1000, max: seconds }
