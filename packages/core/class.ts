@@ -209,19 +209,20 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            const _content: any = content({
-              ...this.#getDataProps(),
-              $getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
-            })
+            const getContent = (): any =>
+              content({
+                ...this.#getDataProps(),
+                $getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
+              })
 
-            propsChain.set(descendantId, { ...chain, [key]: _content })
+            propsChain.set(descendantId, { ...chain, [key]: getContent() })
 
             const last: number = this.#propsTrees.length - 1
             const tree: PropsTree<D> = {
               numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
               setProps: (_key: keyof D): void => {
                 if (dataKey ? convertToArray(dataKey).includes(_key) : key === _key)
-                  _descendant.#setProps(key, _content)
+                  _descendant.#setProps(key, getContent())
               }
             }
             const isExLargerNumberId = (index: number): boolean =>
@@ -990,16 +991,16 @@ export default class FiCsElement<D extends object, P extends object> {
       const { handler, selector, method, options }: Action<D, P> = action
 
       if (selector) {
-        const addAllElements = (elements: Element[] | Set<Element>): void => {
-          for (const element of elements) {
-            if (element instanceof Element && !this.#newElements.has(element))
-              this.#newElements.add(element)
+        // const addAllElements = (elements: Element[] | Set<Element>): void => {
+        //   for (const element of elements) {
+        //     if (element instanceof Element && !this.#newElements.has(element))
+        //       this.#newElements.add(element)
 
-            addAllElements(this.#getChildNodes(element) as Element[])
-          }
-        }
+        //     addAllElements(this.#getChildNodes(element) as Element[])
+        //   }
+        // }
 
-        addAllElements(this.#newElements)
+        // addAllElements(this.#newElements)
 
         for (const element of this.#getElements(shadowRoot, selector))
           if (this.#newElements.has(element))
