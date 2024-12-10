@@ -16,7 +16,7 @@ export default <P extends object>({
     isExceptional: true,
     data: () => ({ pathname: '', lang: '' }),
     props,
-    html: ({ $data: { pathname, lang }, $props, $template, $html, $show }) => {
+    html: ({ $data: { pathname, lang }, ...args }) => {
       const setContent = (): Sanitized<RouterData, P> => {
         const resolveContent = ({
           content,
@@ -28,17 +28,14 @@ export default <P extends object>({
             return setContent()
           }
 
-          return sanitize(content({ $props, $template, $html, $show }), $template)
+          return sanitize(content(args), args['$template'])
         }
 
         for (const { path, content, redirect } of pages) {
-          const langParam: string = `/${lang}${path}`
+          const isMatched = (path: string): boolean =>
+            pathname === path || getRegExp(path).test(pathname)
 
-          if (
-            pathname === path ||
-            getRegExp(path).test(pathname) ||
-            (lang !== '' && (pathname === langParam || getRegExp(path).test(langParam)))
-          )
+          if (isMatched(path) || (lang !== '' && isMatched(`/${lang}${path}`)))
             return resolveContent({ content, redirect })
         }
 
