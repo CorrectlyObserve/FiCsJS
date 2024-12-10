@@ -39,7 +39,7 @@ export default fics<Data, { lang: string }>({
     $isLoaded
   }) =>
     $isLoaded
-      ? $template`<h2>${title}</h2><p>${start}${seconds}${end}</p>${button}`
+      ? $template`<h2>404 ${title}</h2><p>${start}${seconds}${end}</p>${button}`
       : $template`${loadingIcon}`,
   css: { selector: 'p', style: { marginBottom: 'var(--ex-lg)' } },
   hooks: {
