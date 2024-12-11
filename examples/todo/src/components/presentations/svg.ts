@@ -1,18 +1,19 @@
 import { fics } from 'ficsjs'
 
-export default (name: string) =>
-  fics<{}, { size?: string; color?: string; click: () => void }>({
-    name,
-    html: ({ $template }) => $template`<button><div /></button>`,
+export default (icon: string) =>
+  fics<{}, { color?: string; click: () => void }>({
+    name: 'svg',
+    html: ({ $template }) => $template`<button><span /></button>`,
     css: {
       selector: 'button',
       style: { background: 'none', padding: 'var(--ex-sm)' },
       nested: {
-        selector: 'div',
-        style: ({ $props: { size, color } }) => ({
-          width: size ?? 'calc(var(--lg) * 1.5)',
-          height: size ?? 'calc(var(--lg) * 1.5)',
-          maskImage: `url("/icons/${name}.svg")`,
+        selector: 'span',
+        style: ({ $props: { color } }) => ({
+          width: 'calc(var(--lg) * 1.5)',
+          height: 'calc(var(--lg) * 1.5)',
+          display: 'block',
+          maskImage: `url("/icons/${icon}.svg")`,
           background: color ?? '#fff'
         })
       }
