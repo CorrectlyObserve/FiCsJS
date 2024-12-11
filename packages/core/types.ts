@@ -142,4 +142,5 @@ export interface Syntaxes<D extends object, P extends object> {
   ) => Sanitized<D, P>
   $html: (str: string) => Record<symbol, string>
   $show: (condition: boolean) => string
+  $setProps: (descendant: Descendant, props: object) => Descendant
 }
