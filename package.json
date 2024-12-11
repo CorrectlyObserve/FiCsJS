@@ -3,22 +3,18 @@
   "author": "Masami Ogasawara",
   "description": "FiCsJS: The Framework-independent Components Framework",
   "keywords": [
-    "FiCsJS",
     "Developer Experience",
+    "FiCsJS",
     "Framework",
     "OSS",
     "TypeScript",
     "Web Components"
   ],
   "license": "MIT",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "type": "module",
   "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
+  "scripts": {},
   "workspaces": [
     "examples/*"
   ],
