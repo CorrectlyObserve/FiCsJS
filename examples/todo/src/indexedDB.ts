@@ -56,6 +56,7 @@ export const addTask = async (title: string): Promise<number> => {
       created_at: Date.now(),
       updated_at: Date.now()
     })
+
     request.onsuccess = () => resolve(request.result as number)
     throwError(request, reject)
   })
@@ -87,44 +88,37 @@ export const updateTask = async ({
   title: string
   description: string
 }): Promise<void> => {
+  const task = await getTask(id)
+  task.title = title
+  task.description = description
+
   const store = await getStore('readwrite')
-
-  return new Promise(async (resolve, reject) => {
-    await getTask(id).then(task => {
-      task.title = title
-      task.description = description
-
-      const request = store.put(task)
-      request.onsuccess = () => resolve()
-      throwError(request, reject)
-    })
+  return new Promise((resolve, reject) => {
+    const request = store.put(task)
+    request.onsuccess = () => resolve()
+    throwError(request, reject)
   })
 }
 
 export const completeTask = async (id: number): Promise<void> => {
+  const task = await getTask(id)
+  task.completed_at = Date.now()
+
   const store = await getStore('readwrite')
-
-  return new Promise(async (resolve, reject) => {
-    await getTask(id).then(task => {
-      task.completed_at = Date.now()
-
-      const request = store.put(task)
-      request.onsuccess = () => resolve()
-      throwError(request, reject)
-    })
+  return new Promise((resolve, reject) => {
+    const request = store.put(task)
+    request.onsuccess = () => resolve()
+    throwError(request, reject)
   })
 }
 
 export const deleteTask = async (id: number): Promise<void> => {
+  const task = await getTask(id)
   const store = await getStore('readwrite')
 
-  return new Promise(async (resolve, reject) => {
-    await getTask(id).then(task => {
-      task.completed_at = Date.now()
-
-      const request = store.delete(id)
-      request.onsuccess = () => resolve()
-      throwError(request, reject)
-    })
+  return new Promise((resolve, reject) => {
+    const request = store.delete(task.id)
+    request.onsuccess = () => resolve()
+    throwError(request, reject)
   })
 }
