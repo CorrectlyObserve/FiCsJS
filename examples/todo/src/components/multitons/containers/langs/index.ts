@@ -1,4 +1,7 @@
 import { fics } from 'ficsjs'
+import { goto } from 'ficsjs/router'
+import { setState, getState } from 'ficsjs/state'
+import { $lang } from '@/store'
 import css from './style.css?inline'
 
 interface Data {
@@ -8,6 +11,7 @@ interface Data {
 
 interface Props {
   lang: string
+  pathname: string
   switchLang: (lang: string) => void
 }
 
@@ -40,7 +44,10 @@ export default fics<Data, Props>({
     {
       handler: 'click',
       selector: 'button[key]',
-      method: ({ $props: { switchLang }, $attributes }) => switchLang($attributes['key']),
+      method: ({ $props: { pathname }, $attributes }) => {
+        setState($lang, $attributes['key'])
+        goto(`/${getState($lang) === 'en' ? '' : getState($lang) + '/'}${pathname}`)
+      },
       options: { throttle: 500, blur: true }
     }
   ]
