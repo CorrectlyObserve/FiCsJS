@@ -1,8 +1,8 @@
 import { ficsCss, ficsInit } from 'ficsjs'
 import { getState, setState, syncState } from 'ficsjs/state'
-import header from '@/components/containers/header'
-import { router } from '@/components/containers/router'
-import footer from '@/components/presentations/footer'
+import header from '@/components/multitons/containers/header'
+import { router } from '@/components/multitons/containers/router'
+import footer from '@/components/multitons/presentations/footer'
 import resetCss from '@/resetCss'
 import { $lang } from '@/store'
 
