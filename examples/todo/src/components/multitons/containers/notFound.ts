@@ -1,8 +1,8 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
-import button from '@/components/presentations/button'
-import loadingIcon from '@/components/presentations/loadingIcon/'
+import button from '@/components/materials/button'
+import loadingIcon from '@/components/materials/loadingIcon'
 import getPath from '@/utils'
 
 interface Data {
