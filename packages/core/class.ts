@@ -9,6 +9,7 @@ import type {
   Css,
   CssContent,
   DataProps,
+  Descendant,
   FiCs,
   GlobalCssContent,
   Html,
@@ -25,6 +26,7 @@ import type {
   SingleOrArray
 } from './types'
 
+const names: Record<string, number> = {}
 const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -80,7 +82,9 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
-    this.#name = `f-${name}`
+
+    names[name] ? names[name]++ : (names[name] = 1)
+    this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
       const { immutable, ssr, lazyLoad, rootMargin }: Options = options
@@ -268,16 +272,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(parent.childNodes)
   }
 
-  #isVarTag(element: Element): boolean {
-    return element.localName === this.#varTag
-  }
-
-  #getFiCsId(element: Element, isProperty?: boolean): string | null {
-    return isProperty
-      ? (element as any)[this.#convertStr(this.#ficsIdName, 'camel')]
-      : element.getAttribute(this.#ficsIdName)
-  }
-
   #getConvertedChildNodes(doc?: Document): ChildNode[] {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
@@ -324,6 +318,10 @@ export default class FiCsElement<D extends object, P extends object> {
       ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
       $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
+      $setProps: (descendant: Descendant, props: object): Descendant => {
+        for (const [key, value] of Object.entries(props)) descendant.#setProps(key, value)
+        return descendant
+      },
       $isLoaded: !!doc || this.#isLoaded
     })[sanitized]
 
@@ -337,6 +335,16 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
 
     return this.#getChildNodes((doc ?? document).createRange().createContextualFragment(html))
+  }
+
+  #isVarTag(element: Element): boolean {
+    return element.localName === this.#varTag
+  }
+
+  #getFiCsId(element: Element, isProperty?: boolean): string | null {
+    return isProperty
+      ? (element as any)[this.#convertStr(this.#ficsIdName, 'camel')]
+      : element.getAttribute(this.#ficsIdName)
   }
 
   async #convertTemplate(doc: Document): Promise<ChildNode[]> {
@@ -882,78 +890,76 @@ export default class FiCsElement<D extends object, P extends object> {
   #define(propsChain?: PropsChain<P>): void {
     throwWindowError()
 
-    if (!window.customElements.get(this.#name)) {
-      const that: FiCsElement<D, P> = this
-      const { immutable, lazyLoad, rootMargin }: Options = that.#options
+    const that: FiCsElement<D, P> = this
+    const { immutable, lazyLoad, rootMargin }: Options = that.#options
 
-      window.customElements.define(
-        that.#name,
-        class extends HTMLElement {
-          readonly shadowRoot: ShadowRoot
-          isRendered: boolean = false
+    window.customElements.define(
+      that.#name,
+      class extends HTMLElement {
+        readonly shadowRoot: ShadowRoot
+        isRendered: boolean = false
 
-          constructor() {
-            super()
-            this.shadowRoot = this.attachShadow({ mode: 'open' })
-            if (!lazyLoad) this.#init()
+        constructor() {
+          super()
+          this.shadowRoot = this.attachShadow({ mode: 'open' })
+          if (!lazyLoad) this.#init()
+        }
+
+        #init() {
+          that.#initProps(propsChain ?? that.#propsChain)
+          that.#addClassName(this)
+          that.#addAttrs(this)
+          that.#addHtml(this.shadowRoot)
+          that.#addCss(this.shadowRoot)
+
+          for (const action of that.#actions ?? []) {
+            const { handler, selector, method, options }: Action<D, P> = action
+
+            if (!immutable && selector) {
+              that.#bindings.actions.push(action)
+
+              for (const element of that.#getElements(that.#getShadowRoot(this), selector))
+                that.#addEventListener(element, handler, method, options)
+            } else that.#addEventListener(this, handler, method, options)
           }
 
-          #init() {
-            that.#initProps(propsChain ?? that.#propsChain)
-            that.#addClassName(this)
-            that.#addAttrs(this)
-            that.#addHtml(this.shadowRoot)
-            that.#addCss(this.shadowRoot)
+          that.#removeChildNodes(this)
+          that.#setProperty(this, that.#ficsIdName, that.#ficsId)
 
-            for (const action of that.#actions ?? []) {
-              const { handler, selector, method, options }: Action<D, P> = action
+          if (!that.#components.has(this)) that.#components.add(this)
+        }
 
-              if (!immutable && selector) {
-                that.#bindings.actions.push(action)
+        connectedCallback(): void {
+          if (!this.isRendered) {
+            if (lazyLoad) {
+              const observer: IntersectionObserver = new IntersectionObserver(
+                ([{ isIntersecting, target }]) => {
+                  if (isIntersecting) {
+                    that.#enqueue(() => this.#init(), 'init')
+                    observer.unobserve(target)
+                  }
+                },
+                { rootMargin }
+              )
 
-                for (const element of that.#getElements(that.#getShadowRoot(this), selector))
-                  that.#addEventListener(element, handler, method, options)
-              } else that.#addEventListener(this, handler, method, options)
+              setTimeout(() => observer.observe(this), 0)
+              that.#enqueue(async () => await that.#awaitData(), 'fetch')
             }
 
-            that.#removeChildNodes(this)
-            that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-
-            if (!that.#components.has(this)) that.#components.add(this)
-          }
-
-          connectedCallback(): void {
-            if (!this.isRendered) {
-              if (lazyLoad) {
-                const observer: IntersectionObserver = new IntersectionObserver(
-                  ([{ isIntersecting, target }]) => {
-                    if (isIntersecting) {
-                      that.#enqueue(() => this.#init(), 'init')
-                      observer.unobserve(target)
-                    }
-                  },
-                  { rootMargin }
-                )
-
-                setTimeout(() => observer.observe(this), 0)
-                that.#enqueue(async () => await that.#awaitData(), 'fetch')
-              }
-
-              that.#callback('mounted')
-              this.isRendered = true
-            }
-          }
-
-          disconnectedCallback(): void {
-            that.#callback('destroyed')
-          }
-
-          adoptedCallback(): void {
-            that.#callback('adopted')
+            that.#callback('mounted')
+            this.isRendered = true
           }
         }
-      )
-    }
+
+        disconnectedCallback(): void {
+          that.#callback('destroyed')
+        }
+
+        adoptedCallback(): void {
+          that.#callback('adopted')
+        }
+      }
+    )
   }
 
   #reRender(): void {
@@ -991,16 +997,16 @@ export default class FiCsElement<D extends object, P extends object> {
       const { handler, selector, method, options }: Action<D, P> = action
 
       if (selector) {
-        // const addAllElements = (elements: Element[] | Set<Element>): void => {
-        //   for (const element of elements) {
-        //     if (element instanceof Element && !this.#newElements.has(element))
-        //       this.#newElements.add(element)
+        const addAllElements = (elements: Element[] | Set<Element>): void => {
+          for (const element of elements) {
+            if (element instanceof Element && !this.#newElements.has(element))
+              this.#newElements.add(element)
 
-        //     addAllElements(this.#getChildNodes(element) as Element[])
-        //   }
-        // }
+            addAllElements(this.#getChildNodes(element) as Element[])
+          }
+        }
 
-        // addAllElements(this.#newElements)
+        addAllElements(this.#newElements)
 
         for (const element of this.#getElements(shadowRoot, selector))
           if (this.#newElements.has(element))
