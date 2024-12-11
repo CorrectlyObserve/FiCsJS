@@ -1,9 +1,6 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
-import { goto } from 'ficsjs/router'
-import { setState, getState } from 'ficsjs/state'
-import langs from '@/components/presentations/langs/'
-import { $lang } from '@/store'
+import langs from '@/components/multitons/containers/langs'
 
 export default fics({
   name: 'header',
@@ -15,15 +12,7 @@ export default fics({
     descendant: langs,
     values: [
       { key: 'lang', content: ({ $data: { lang } }) => lang },
-      {
-        key: 'switchLang',
-        content:
-          ({ $data: { pathname } }) =>
-          (_lang: string) => {
-            setState($lang, _lang)
-            goto(`/${getState($lang) === 'en' ? '' : getState($lang) + '/'}${pathname}`)
-          }
-      }
+      { key: 'pathname', content: ({ $data: { pathname } }) => pathname }
     ]
   },
   html: ({ $data: { title }, $template }) =>
