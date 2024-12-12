@@ -72,6 +72,7 @@ export default class FiCsElement<D extends object, P extends object> {
     attributes,
     html,
     css,
+    clonedCss,
     actions,
     hooks,
     options
@@ -139,6 +140,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#showAttr = `${this.#ficsId}-show-syntax`
 
     if (css) this.#css = convertToArray(css)
+    if (clonedCss) this.#css = [...clonedCss]
     if (actions) this.#actions = [...actions]
     if (hooks) this.#hooks = { ...hooks }
   }
@@ -1065,5 +1067,24 @@ export default class FiCsElement<D extends object, P extends object> {
   getData<K extends keyof D>(key: K): D[K] {
     this.#throwKeyError(key)
     return this.#data[key]
+  }
+
+  clone(data: Partial<D>): FiCsElement<D, P> {
+    const options: Options = { ...this.#options }
+    if (!options.lazyLoad) delete options.rootMargin
+
+    return new FiCsElement({
+      name: this.#name,
+      data: () => ({ ...this.#data, ...data }),
+      fetch: this.#fetch,
+      props: this.#propsSources,
+      className: this.#className,
+      attributes: this.#attrs,
+      html: this.#html,
+      clonedCss: this.#css,
+      actions: this.#actions,
+      hooks: this.#hooks,
+      options
+    })
   }
 }
