@@ -124,7 +124,7 @@ export interface PropsTree<D> {
 export interface Queue {
   ficsId: string
   func: () => void
-  key: 'define' | 'init' | 're-render' | 'fetch'
+  key: 'define' | 're-render' | 'fetch'
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
