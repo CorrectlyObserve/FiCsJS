@@ -26,11 +26,11 @@ import type {
   SingleOrArray
 } from './types'
 
+const reservedWords: Record<string, true> = { var: true, router: true, link: true }
 const names: Record<string, number> = {}
 const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
-  readonly #reservedWords: Record<string, true> = { var: true, router: true, link: true }
   readonly #ficsIdName: string = 'fics-id'
   readonly #ficsId: string
   readonly #name: string
@@ -79,7 +79,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }: FiCs<D, P>) {
     name = this.#convertStr(name, 'kebab')
 
-    if (!isExceptional && this.#reservedWords[name])
+    if (!isExceptional && reservedWords[name])
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
@@ -1075,6 +1075,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     return new FiCsElement({
       name: this.#name,
+      isExceptional: false,
       data: () => ({ ...this.#data, ...data }),
       fetch: this.#fetch,
       props: this.#propsSources,
