@@ -937,7 +937,7 @@ export default class FiCsElement<D extends object, P extends object> {
               const observer: IntersectionObserver = new IntersectionObserver(
                 ([{ isIntersecting, target }]) => {
                   if (isIntersecting) {
-                    that.#enqueue(() => this.#init(), 'init')
+                    this.#init()
                     observer.unobserve(target)
                   }
                 },
