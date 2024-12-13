@@ -28,7 +28,11 @@ export const enqueue = (queue: Queue): void => {
 
       while (queues.length > 0) {
         const queue: Queue = queues.shift()!
-        queue.key === 're-render' ? setTimeout(() => dequeue(queue), 0) : dequeue(queue)
+
+        if (queue.key === 're-render') {
+          if (!ficsIds[getQueueId(queue, 'define')]) continue
+          else setTimeout(() => dequeue(queue), 0)
+        } else dequeue(queue)
       }
 
       isProcessing = false
