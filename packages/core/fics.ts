@@ -13,9 +13,10 @@ export default <D extends object, P extends object>({
   actions,
   hooks,
   options
-}: FiCs<D, P>): FiCsElement<D, P> =>
+}: Omit<FiCs<D, P>, 'isExceptional'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
+    isExceptional: false,
     data,
     fetch,
     props,
