@@ -49,7 +49,7 @@ export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
-  isExceptional?: boolean
+  isExceptional: boolean
   data?: () => D
   fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
