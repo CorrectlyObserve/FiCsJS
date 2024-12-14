@@ -6,3 +6,8 @@ export interface Task {
   updated_at: number
   completed_at?: number
 }
+
+export interface TaskQueue {
+  task: Task
+  status: 'add' | 'update' | 'complete' | 'delete'
+}
