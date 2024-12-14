@@ -1074,7 +1074,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!options.lazyLoad) delete options.rootMargin
 
     return new FiCsElement({
-      name: this.#name,
+      name: this.#name.slice(2),
       isExceptional: false,
       data: () => ({ ...this.#data, ...data }),
       fetch: this.#fetch,
