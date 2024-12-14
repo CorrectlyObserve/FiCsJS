@@ -1069,7 +1069,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#data[key]
   }
 
-  clone(data: Partial<D>): FiCsElement<D, P> {
+  extend(data: Partial<D>): FiCsElement<D, P> {
     const options: Options = { ...this.#options }
     if (!options.lazyLoad) delete options.rootMargin
 
