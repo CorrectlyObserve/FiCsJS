@@ -3,7 +3,7 @@ import i18n from 'ficsjs/i18n'
 import loadingIcon from '@/components/materials/loadingIcon'
 import input from '@/components/materials/input'
 import icon from '@/components/materials/icon'
-import { addTask, completeTask, deleteTask, getAllTasks } from '@/indexedDB'
+import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
 import { Task } from '@/types'
 import getPath from '@/utils'
 import css from './style.css?inline'
@@ -12,6 +12,7 @@ interface Data {
   placeholder: string
   isShown: boolean
   checkbox: string
+  confirmation: string
   tasks: Task[]
   unapplicable: string
 }
@@ -22,7 +23,14 @@ const checkSquareIcon = icon.extend({ icon: 'check-square' })
 
 export default fics<Data, { lang: string }>({
   name: 'tasks',
-  data: () => ({ placeholder: '', isShown: false, checkbox: '', tasks: [], unapplicable: '' }),
+  data: () => ({
+    placeholder: '',
+    isShown: false,
+    checkbox: '',
+    tasks: [],
+    confirmation: '',
+    unapplicable: ''
+  }),
   fetch: ({ $props: { lang } }) => i18n({ directory: '/i18n', lang, key: ['tasks'] }),
   props: [
     {
@@ -68,7 +76,7 @@ export default fics<Data, { lang: string }>({
     }
   ],
   html: ({
-    $data: { isShown, checkbox, tasks, unapplicable },
+    $data: { isShown, checkbox, tasks, confirmation, unapplicable },
     $props: { lang },
     $setData,
     $template,
@@ -90,8 +98,8 @@ export default fics<Data, { lang: string }>({
                   <div>
                     ${$setProps(icon.extend({ icon: completed_at ? 'check' : 'circle' }), {
                       click: async () => {
-                        $setData('tasks', await completeTask(id))
-                        $setData('isShown', true)
+                        $setData('tasks', await (completed_at ? revertTask(id) : completeTask(id)))
+                        $setData('isShown', !completed_at)
                       }
                     })}
                     <span class="${completed_at ? 'done' : ''}">
@@ -100,7 +108,9 @@ export default fics<Data, { lang: string }>({
                   </div>
                   ${$setProps(icon.extend({ icon: 'trash' }), {
                     color: 'var(--red)',
-                    click: async () => $setData('tasks', await deleteTask(id))
+                    click: async () => {
+                      if (window.confirm(confirmation)) $setData('tasks', await deleteTask(id))
+                    }
                   })}
                 </div>
               `
