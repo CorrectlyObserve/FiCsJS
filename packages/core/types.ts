@@ -71,7 +71,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P> & Omit<Syntaxes<D, P>, '$props'> & { $isLoaded?: boolean }
+  params: DataProps<D, P, true> & Omit<Syntaxes<D, P>, '$props'> & { $isLoaded?: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
