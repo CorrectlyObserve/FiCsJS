@@ -112,6 +112,18 @@ export const completeTask = async (id: number): Promise<Task[]> => {
   })
 }
 
+export const revertTask = async (id: number): Promise<Task[]> => {
+  const task = await getTask(id)
+  task.completed_at = undefined
+
+  const store = await getStore('readwrite')
+  return new Promise((resolve, reject) => {
+    const request = store.put(task)
+    request.onsuccess = async () => resolve(await getAllTasks())
+    throwError(request, reject)
+  })
+}
+
 export const deleteTask = async (id: number): Promise<Task[]> => {
   const task = await getTask(id)
   const store = await getStore('readwrite')
