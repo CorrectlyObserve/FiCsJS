@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
 import loadingIcon from '@/components/materials/loadingIcon'
 import input from '@/components/materials/input'
-import svg from '@/components/materials/svg'
+import icon from '@/components/materials/icon'
 import { addTask, completeTask, deleteTask, getAllTasks } from '@/indexedDB'
 import { Task } from '@/types'
 import getPath from '@/utils'
@@ -16,9 +16,9 @@ interface Data {
   unapplicable: string
 }
 
-const addIcon = svg.extend({ icon: 'add' })
-const squareIcon = svg.extend({ icon: 'square' })
-const checkSquareIcon = svg.extend({ icon: 'check-square' })
+const addIcon = icon.extend({ icon: 'add' })
+const squareIcon = icon.extend({ icon: 'square' })
+const checkSquareIcon = icon.extend({ icon: 'check-square' })
 
 export default fics<Data, { lang: string }>({
   name: 'tasks',
@@ -88,7 +88,7 @@ export default fics<Data, { lang: string }>({
               ({ id, title, completed_at }) => $template`
                 <div class="task" key="${id}">
                   <div>
-                    ${$setProps(svg.extend({ icon: completed_at ? 'check' : 'circle' }), {
+                    ${$setProps(icon.extend({ icon: completed_at ? 'check' : 'circle' }), {
                       click: async () => {
                         $setData('tasks', await completeTask(id))
                         $setData('isShown', true)
@@ -98,7 +98,7 @@ export default fics<Data, { lang: string }>({
                       <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
                     </span>
                   </div>
-                  ${$setProps(svg.extend({ icon: 'trash' }), {
+                  ${$setProps(icon.extend({ icon: 'trash' }), {
                     color: 'var(--red)',
                     click: async () => $setData('tasks', await deleteTask(id))
                   })}
