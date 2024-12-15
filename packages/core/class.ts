@@ -160,7 +160,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #getDataProps(): DataProps<D, P, true> {
+  #getDataProps<B extends boolean>(): DataProps<D, P, B> {
     return {
       ...(this.#options.immutable
         ? { $data: {} as D, $props: {} as P }
@@ -217,7 +217,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             const getContent = (): any =>
               content({
-                ...this.#getDataProps(),
+                ...this.#getDataProps<true>(),
                 $getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
               })
 
@@ -313,7 +313,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     const contents: HtmlContent<D, P>[] = this.#html({
-      ...this.#getDataProps(),
+      ...this.#getDataProps<true>(),
       $template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
@@ -469,7 +469,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...this.#getDataProps(), $poll: poll })
+      this.#hooks[key]?.({ ...this.#getDataProps<true>(), $poll: poll })
     } else this.#hooks[key]?.(this.#getDataProps())
   }
 
@@ -861,7 +861,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const callback = (event: Event): void => {
       method({
-        ...this.#getDataProps(),
+        ...this.#getDataProps<true>(),
         $event: event,
         $attributes: attrs,
         $value:
