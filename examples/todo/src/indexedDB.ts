@@ -46,7 +46,7 @@ export const getAllTasks = async (): Promise<Task[]> => {
   })
 }
 
-export const addTask = async (title: string): Promise<number> => {
+export const addTask = async (title: string): Promise<Task[]> => {
   const store = await getStore('readwrite')
 
   return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ export const addTask = async (title: string): Promise<number> => {
       updated_at: Date.now()
     })
 
-    request.onsuccess = () => resolve(request.result as number)
+    request.onsuccess = async () => resolve(await getAllTasks())
     throwError(request, reject)
   })
 }
@@ -87,7 +87,7 @@ export const updateTask = async ({
   id: number
   title: string
   description: string
-}): Promise<void> => {
+}): Promise<Task[]> => {
   const task = await getTask(id)
   task.title = title
   task.description = description
@@ -95,30 +95,30 @@ export const updateTask = async ({
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
     const request = store.put(task)
-    request.onsuccess = () => resolve()
+    request.onsuccess = async () => resolve(await getAllTasks())
     throwError(request, reject)
   })
 }
 
-export const completeTask = async (id: number): Promise<void> => {
+export const completeTask = async (id: number): Promise<Task[]> => {
   const task = await getTask(id)
   task.completed_at = Date.now()
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
     const request = store.put(task)
-    request.onsuccess = () => resolve()
+    request.onsuccess = async () => resolve(await getAllTasks())
     throwError(request, reject)
   })
 }
 
-export const deleteTask = async (id: number): Promise<void> => {
+export const deleteTask = async (id: number): Promise<Task[]> => {
   const task = await getTask(id)
   const store = await getStore('readwrite')
 
   return new Promise((resolve, reject) => {
     const request = store.delete(task.id)
-    request.onsuccess = () => resolve()
+    request.onsuccess = async () => resolve(await getAllTasks())
     throwError(request, reject)
   })
 }
