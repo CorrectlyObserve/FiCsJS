@@ -16,6 +16,7 @@
     "buttonText": "ToDoアプリを始める"
   },
   "tasks": {
+    "title": "タスク一覧",
     "placeholder": "FiCsJSを使ってみる",
     "checkbox": "完了済みのタスクを表示する",
     "confirmation": "本当にタスクを削除しますか？\n一度削除すると、元に戻すことはできません。",
