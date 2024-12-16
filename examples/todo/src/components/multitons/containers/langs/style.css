@@ -22,7 +22,7 @@ div.container {
   div {
     position: absolute;
     opacity: 1;
-    transition: 0.2s ease-in-out allow-discrete;
+    transition: var(--transition) allow-discrete;
 
     @starting-style {
       opacity: 0;
