@@ -40,6 +40,7 @@ div {
         text-align: left;
         margin-inline: var(--ex-sm);
         overflow-x: hidden;
+        transition: var(--transition) allow-discrete;
 
         &.done {
           text-decoration: line-through;
