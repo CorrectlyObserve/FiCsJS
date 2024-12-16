@@ -23,6 +23,14 @@ export default [
     ]
   },
   {
+    selector: ['input', 'textarea'],
+    style: { background: 'rgba(255, 255, 255, 0.1)' },
+    nested: [
+      { selector: ':hover', style: { cursor: 'pointer' } },
+      { selector: ':focus', style: { cursor: 'auto', background: 'rgba(255, 255, 255, 0.8)' } }
+    ]
+  },
+  {
     selector: 'input',
     style: {
       width: 'calc(var(--md) * 20)',
