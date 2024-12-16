@@ -16,6 +16,7 @@
     "buttonText": "Start ToDo App"
   },
   "tasks": {
+    "title": "Task list",
     "placeholder": "Try using FiCsJS",
     "checkbox": "Shown completed tasks",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
