@@ -1,5 +1,13 @@
 export default [
-  { selector: '*', style: { padding: 0, margin: 0, boxSizing: 'border-box' } },
+  {
+    selector: '*',
+    style: { padding: 0, margin: 0, boxSizing: 'border-box' },
+    nested: {
+      selector: '[tabindex]',
+      style: { cursor: 'pointer' },
+      nested: { selector: ':focus', style: { color: 'var(--red)', outline: 'none' } }
+    }
+  },
   { selector: ['h1', 'h2'], style: { textAlign: 'center', lineHeight: 1.5 } },
   { selector: 'h1', style: { fontSize: 'var(--ex-lg)' } },
   {
