@@ -91,7 +91,10 @@ export default fics<Data, { lang: string }>({
       <h2>${title}</h2>
       <div class="menu">
         <div>${input}${addIcon}</div>
-        <div>${isShown ? checkSquareIcon : squareIcon}<span>${checkbox}</span></div>
+        <div>
+          ${isShown ? checkSquareIcon : squareIcon}
+          <span role="button" tabindex="0">${checkbox}</span>
+        </div>
       </div>
       ${
         tasks.length > 0
