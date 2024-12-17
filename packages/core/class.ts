@@ -1069,14 +1069,14 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#data[key]
   }
 
-  extend(data: Partial<D>): FiCsElement<D, P> {
+  extend(data?: Partial<D>): FiCsElement<D, P> {
     const options: Options = { ...this.#options }
     if (!options.lazyLoad) delete options.rootMargin
 
     return new FiCsElement({
       name: this.#name.slice(2),
       isExceptional: false,
-      data: () => ({ ...this.#data, ...data }),
+      data: () => ({ ...this.#data, ...(data ?? {}) }),
       fetch: this.#fetch,
       props: this.#propsSources,
       className: this.#className,
