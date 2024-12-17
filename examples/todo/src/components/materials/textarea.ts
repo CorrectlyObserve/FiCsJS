@@ -1,10 +1,16 @@
 import { fics } from 'ficsjs'
 
-export default fics<{ value: string }, { placeholder: string; blur?: () => void }>({
+interface Props {
+  id?: string
+  placeholder: string
+  blur?: () => void
+}
+
+export default fics<{ value: string }, Props>({
   name: 'input',
   data: () => ({ value: '' }),
-  html: ({ $data: { value }, $props: { placeholder }, $template }) =>
-    $template`<textarea value="${value}" placeholder="${placeholder}" />`,
+  html: ({ $data: { value }, $props: { id, placeholder }, $template }) =>
+    $template`<textarea id="${id ?? ''}" value="${value}" placeholder="${placeholder}" />`,
   actions: [
     {
       handler: 'input',
