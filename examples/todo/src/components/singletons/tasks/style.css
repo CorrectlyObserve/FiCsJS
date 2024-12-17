@@ -58,7 +58,6 @@ div {
 
   span {
     transition: var(--transition);
-    cursor: pointer;
 
     &:hover {
       opacity: 0.5;
