@@ -24,22 +24,30 @@ export default [
   },
   {
     selector: ['input', 'textarea'],
-    style: { background: 'rgba(255, 255, 255, 0.1)' },
-    nested: [
-      { selector: ':hover', style: { cursor: 'pointer' } },
-      { selector: ':focus', style: { cursor: 'auto', background: 'rgba(255, 255, 255, 0.8)' } }
-    ]
-  },
-  {
-    selector: 'input',
     style: {
       width: 'calc(var(--md) * 20)',
+      background: 'rgba(255, 255, 255, 0.1)',
       fontSize: 'var(--lg)',
-      color: 'var(--black)',
+      color: '#fff',
       padding: 'var(--ex-sm) var(--md)',
       borderRadius: 'var(--ex-sm)',
       border: 'none',
       outline: 'none'
+    },
+    nested: [
+      { selector: ':hover', style: { cursor: 'pointer' } },
+      {
+        selector: ':focus',
+        style: { background: 'rgba(255, 255, 255, 0.8)', color: 'var(--black)', cursor: 'auto' }
+      }
+    ]
+  },
+  {
+    selector: 'textarea',
+    style: {
+      height: 'calc(var(--ex-sm) * 2 + var(--lg) * 1.2 * 6)',
+      lineHeight: 1.2,
+      resize: 'none'
     }
   },
   {
