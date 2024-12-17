@@ -6,6 +6,7 @@ interface Data {
 }
 
 interface Props {
+  id?: string
   placeholder: string
   enter?: () => void
   blur?: () => void
@@ -14,8 +15,8 @@ interface Props {
 export default fics<Data, Props>({
   name: 'input',
   data: () => ({ value: '', isComposing: false }),
-  html: ({ $data: { value }, $props: { placeholder }, $template }) =>
-    $template`<input value="${value}" placeholder="${placeholder}" type="text" />`,
+  html: ({ $data: { value }, $props: { id, placeholder }, $template }) =>
+    $template`<input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />`,
   actions: [
     {
       handler: 'input',
