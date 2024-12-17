@@ -7,7 +7,8 @@ interface Data {
 
 interface Props {
   placeholder: string
-  enter: () => void
+  enter?: () => void
+  blur?: () => void
 }
 
 export default fics<Data, Props>({
@@ -36,9 +37,17 @@ export default fics<Data, Props>({
       handler: 'keydown',
       selector: 'input',
       method: ({ $data: { value, isComposing }, $props: { enter }, $event }) => {
-        if ((value !== '' && ($event as KeyboardEvent).key) === 'Enter' && !isComposing) enter()
+        if ((value !== '' && ($event as KeyboardEvent).key) === 'Enter' && !isComposing && enter)
+          enter()
       },
       options: { throttle: 500 }
+    },
+    {
+      handler: 'blur',
+      selector: 'input',
+      method: ({ $data: { value }, $props: { blur } }) => {
+        if (value !== '' && blur) blur()
+      }
     }
   ]
 })
