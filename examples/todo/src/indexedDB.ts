@@ -62,7 +62,7 @@ export const addTask = async (title: string): Promise<Task[]> => {
   })
 }
 
-const getTask = async (id: number): Promise<Task> => {
+export const getTask = async (id: number): Promise<Task> => {
   const store = await getStore('readonly')
 
   return new Promise((resolve, reject) => {
@@ -85,12 +85,13 @@ export const updateTask = async ({
   description
 }: {
   id: number
-  title: string
-  description: string
+  title?: string
+  description?: string
 }): Promise<Task[]> => {
-  const task = await getTask(id)
-  task.title = title
-  task.description = description
+  const task: Task = await getTask(id)
+
+  if (title) task.title = title
+  if (description) task.description = description
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
@@ -101,7 +102,7 @@ export const updateTask = async ({
 }
 
 export const completeTask = async (id: number): Promise<Task[]> => {
-  const task = await getTask(id)
+  const task: Task = await getTask(id)
   task.completed_at = Date.now()
 
   const store = await getStore('readwrite')
@@ -113,7 +114,7 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 }
 
 export const revertTask = async (id: number): Promise<Task[]> => {
-  const task = await getTask(id)
+  const task: Task = await getTask(id)
   task.completed_at = undefined
 
   const store = await getStore('readwrite')
@@ -125,7 +126,7 @@ export const revertTask = async (id: number): Promise<Task[]> => {
 }
 
 export const deleteTask = async (id: number): Promise<Task[]> => {
-  const task = await getTask(id)
+  const task: Task = await getTask(id)
   const store = await getStore('readwrite')
 
   return new Promise((resolve, reject) => {
