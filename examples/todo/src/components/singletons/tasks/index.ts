@@ -9,7 +9,7 @@ import getPath from '@/utils'
 import css from './style.css?inline'
 
 interface Data {
-  title: string
+  heading: string
   placeholder: string
   isShown: boolean
   checkbox: string
@@ -25,7 +25,7 @@ const checkSquareIcon = icon.extend({ icon: 'check-square' })
 export default fics<Data, { lang: string }>({
   name: 'tasks',
   data: () => ({
-    title: '',
+    heading: '',
     placeholder: '',
     isShown: false,
     checkbox: '',
@@ -78,7 +78,7 @@ export default fics<Data, { lang: string }>({
     }
   ],
   html: ({
-    $data: { title, isShown, checkbox, tasks, confirmation, unapplicable },
+    $data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
     $props: { lang },
     $setData,
     $template,
@@ -88,7 +88,7 @@ export default fics<Data, { lang: string }>({
     if (!$isLoaded) return $template`${loadingIcon}`
 
     return $template`
-      <h2>${title}</h2>
+      <h2>${heading}</h2>
       <div class="menu">
         <div>${input}${addIcon}</div>
         <div>
