@@ -1,7 +1,7 @@
 {
-  "title": "FiCsJSで開発されたToDoアプリ",
+  "heading": "FiCsJSで開発されたToDoアプリ",
   "topPage": {
-    "titles": ["このToDoアプリについて", "FiCsJSの特徴"],
+    "headings": ["このToDoアプリについて", "FiCsJSの特徴"],
     "descriptions": [
       "このアプリケーションはFiCsJSで作られており、他のJavaScriptフレームワークは使用していません。",
       "\"FiCs\"とは、Framework-independent Componentsの略で、フレームワークに依存せずにコンポーネント開発ができるフレームワークです。",
@@ -16,14 +16,25 @@
     "buttonText": "ToDoアプリを始める"
   },
   "tasks": {
-    "title": "タスク一覧",
+    "heading": "タスク一覧",
     "placeholder": "FiCsJSを使ってみる",
     "checkbox": "完了済みのタスクを表示する",
     "confirmation": "本当にタスクを削除しますか？\n一度削除すると、元に戻すことはできません。",
     "unapplicable": "タスクがありません。"
   },
+  "task": {
+    "heading": "タスク詳細",
+    "title": "タイトル",
+    "description": "説明",
+    "placeholders": ["タスクのタイトルを入力してください", "タスクの説明を入力してください"],
+    "createdAt": "作成日時：",
+    "updatedAt": "更新日時：",
+    "buttonTexts": ["完了する", "未完了にする"],
+    "deletion": "削除する",
+    "back": "タスク一覧に戻る"
+  },
   "notFound": {
-    "title": "ページが存在しません",
+    "heading": "ページが存在しません",
     "descriptions": ["あと", "秒後にトップページに遷移します。"],
     "buttonText": "トップページへ戻る"
   }
