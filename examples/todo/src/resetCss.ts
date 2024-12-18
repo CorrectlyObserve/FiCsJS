@@ -15,11 +15,12 @@ export default [
     style: { fontSize: 'calc(var(--md) * 1.5)', color: '#fff', marginBottom: 'var(--ex-lg)' }
   },
   {
-    selector: ['p', 'button', 'li', 'span'],
+    selector: ['p', 'button', 'li', 'label', 'span'],
     style: { fontSize: 'var(--lg)', color: '#fff' },
     nested: [
       { selector: ':is(li)', style: { lineHeight: 1.8 } },
-      { selector: ':not(li)', style: { textAlign: 'center', lineHeight: 1 } }
+      { selector: ':not(li, label)', style: { textAlign: 'center', lineHeight: 1 } },
+      { selector: ':is(span)', style: { width: 'fit-content' } }
     ]
   },
   {
