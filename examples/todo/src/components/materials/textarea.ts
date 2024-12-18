@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default fics<{ value: string }, Props>({
-  name: 'input',
+  name: 'textarea',
   data: () => ({ value: '' }),
   html: ({ $data: { value }, $props: { id, placeholder }, $template }) =>
     $template`<textarea id="${id ?? ''}" value="${value}" placeholder="${placeholder}" />`,
