@@ -7,14 +7,14 @@ import getPath from '@/utils'
 
 interface Data {
   seconds: number
-  title: string
+  heading: string
   descriptions: string[]
   buttonText: string
 }
 
 export default fics<Data, { lang: string }>({
   name: 'not-found',
-  data: () => ({ seconds: 10, title: '', descriptions: [], buttonText: '' }),
+  data: () => ({ seconds: 10, heading: '', descriptions: [], buttonText: '' }),
   fetch: ({ $props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'notFound' }),
   props: {
     descendant: button,
@@ -32,14 +32,14 @@ export default fics<Data, { lang: string }>({
   html: ({
     $data: {
       seconds,
-      title,
+      heading,
       descriptions: [start, end]
     },
     $template,
     $isLoaded
   }) =>
     $isLoaded
-      ? $template`<h2>404 ${title}</h2><p>${start}${seconds}${end}</p>${button}`
+      ? $template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
       : $template`${loadingIcon}`,
   css: { selector: 'p', style: { marginBottom: 'var(--ex-lg)' } },
   hooks: {
