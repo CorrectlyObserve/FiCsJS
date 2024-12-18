@@ -424,16 +424,13 @@ export default class FiCsElement<D extends object, P extends object> {
             })
             .join('\n')
 
-          const processPseudoClass = (selector: string): string =>
-            selector.startsWith(':') ? selector : ` ${selector}`
-
           if (Array.isArray(selector))
             return selector.reduce(
-              (prev, curr) => `${prev} ${host}${processPseudoClass(curr)}{${content}}`,
+              (prev, curr) => `${prev} ${host} ${curr}{${content}}`,
               ''
             )
 
-          return `${host}${processPseudoClass(selector)}{${content}}`
+          return `${host} ${selector}{${content}}`
         }
         const { nested }: { nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent> } = curr
         const css: string = `${prev} ${createCssContent(host)}`
@@ -446,7 +443,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
       }, '') as string
 
-    return createCss(css, host)
+    return createCss(css, host).replace(/ ?(:|\[)/g, '$1')
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
