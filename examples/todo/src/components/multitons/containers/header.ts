@@ -4,9 +4,9 @@ import langs from '@/components/multitons/containers/langs'
 
 export default fics({
   name: 'header',
-  data: () => ({ lang: '', pathname: '', title: '' }),
+  data: () => ({ lang: '', pathname: '', heading: '' }),
   fetch: async ({ $data: { lang } }) => ({
-    title: await i18n<string>({ directory: '/i18n', lang, key: 'title' })
+    heading: await i18n<string>({ directory: '/i18n', lang, key: 'heading' })
   }),
   props: {
     descendant: langs,
@@ -15,8 +15,8 @@ export default fics({
       { key: 'pathname', content: ({ $data: { pathname } }) => pathname }
     ]
   },
-  html: ({ $data: { title }, $template }) =>
-    $template`<header><h1>${title}</h1><div>${langs}</div></header>`,
+  html: ({ $data: { heading }, $template }) =>
+    $template`<header><h1>${heading}</h1><div>${langs}</div></header>`,
   css: [
     { style: { display: 'block' } },
     {
