@@ -5,7 +5,7 @@ import button from '@/components/materials/button'
 import getPath from '@/utils'
 
 interface Data {
-  titles: string[]
+  headings: string[]
   descriptions: string[]
   features: string[]
   conversion: string
@@ -14,7 +14,7 @@ interface Data {
 
 export default fics<Data, { lang: string }>({
   name: 'top-page',
-  data: () => ({ titles: [], descriptions: [], features: [], conversion: '', buttonText: '' }),
+  data: () => ({ headings: [], descriptions: [], features: [], conversion: '', buttonText: '' }),
   fetch: ({ $props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'topPage' }),
   props: {
     descendant: button,
@@ -31,7 +31,7 @@ export default fics<Data, { lang: string }>({
   },
   html: ({
     $data: {
-      titles: [first, second],
+      headings: [first, second],
       descriptions,
       features,
       conversion
