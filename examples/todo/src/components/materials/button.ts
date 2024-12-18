@@ -8,19 +8,17 @@ interface Props {
 export default fics<{}, Props>({
   name: 'button',
   html: ({ $props: { buttonText }, $template }) => $template`<button>${buttonText}</button>`,
-  css: {
-    selector: 'button',
-    style: {
-      display: 'block',
-      background: 'var(--gradation)',
-      padding: 'var(--md)',
-      marginInline: 'auto',
-      borderRadius: 'var(--ex-sm)'
+  css: [
+    { style: { display: 'block', textAlign: 'center' } },
+    {
+      selector: 'button',
+      style: { background: 'var(--gradation)', padding: 'var(--md)', borderRadius: 'var(--ex-sm)' }
     }
-  },
+  ],
   actions: [
     {
       handler: 'click',
+      selector: 'button',
       method: ({ $props: { click } }) => click(),
       options: { throttle: 500, blur: true }
     }
