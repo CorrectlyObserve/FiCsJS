@@ -1,7 +1,7 @@
 {
-  "title": "ToDo App built with FiCsJS",
+  "heading": "ToDo App built with FiCsJS",
   "topPage": {
-    "titles": ["About this ToDo App", "Features of FiCsJS"],
+    "headings": ["About this ToDo App", "Features of FiCsJS"],
     "descriptions": [
       "This application is built with FiCsJS and does not use any other JavaScript frameworks.",
       "\"FiCs\" stands for Framework-independent Components. It enables the development of flexible components without dependency on any framework.",
@@ -16,14 +16,25 @@
     "buttonText": "Start ToDo App"
   },
   "tasks": {
-    "title": "Task list",
+    "heading": "Task list",
     "placeholder": "Try using FiCsJS",
     "checkbox": "Shown completed tasks",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
     "unapplicable": "There are no tasks..."
   },
+  "task": {
+    "heading": "Task details",
+    "title": "Title",
+    "description": "Description",
+    "placeholders": ["Please enter a title of the task", "Please enter a description of the task"],
+    "createdAt": "Created at: ",
+    "updatedAt": "Updated at: ",
+    "buttonTexts": ["Complete", "Revert"],
+    "deletion": "Delete",
+    "back": "Back to task list"
+  },
   "notFound": {
-    "title": "Not Found...",
+    "heading": "Not Found...",
     "descriptions": ["You will be redirected to the top page in ", " seconds."],
     "buttonText": "Back to top page"
   }
