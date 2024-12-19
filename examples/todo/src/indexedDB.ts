@@ -14,8 +14,8 @@ const openDB = (): Promise<IDBDatabase> => {
         store.createIndex('title', 'title', { unique: false })
         store.createIndex('description', 'description', { unique: false })
         store.createIndex('createdAt', 'createdAt', { unique: false })
+        store.createIndex('updatedAt', 'updatedAt', { unique: false })
         store.createIndex('completedAt', 'completedAt', { unique: false })
-        store.createIndex('deletedAt', 'deletedAt', { unique: false })
       }
     }
 
@@ -50,11 +50,13 @@ export const addTask = async (title: string): Promise<Task[]> => {
   const store = await getStore('readwrite')
 
   return new Promise((resolve, reject) => {
+    const timestamp = Date.now()
     const request = store.add({
       title,
       description: '',
-      createdAt: Date.now(),
-      updatedAt: Date.now()
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      completedAt: undefined
     })
 
     request.onsuccess = async () => resolve(await getAllTasks())
@@ -85,25 +87,28 @@ export const updateTask = async ({
   description
 }: {
   id: number
-  title?: string
-  description?: string
-}): Promise<Task[]> => {
+  title: string
+  description: string
+}): Promise<void> => {
   const task: Task = await getTask(id)
 
-  if (title) task.title = title
-  if (description) task.description = description
+  task.title = title
+  task.description = description
+  task.updatedAt = Date.now()
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
     const request = store.put(task)
-    request.onsuccess = async () => resolve(await getAllTasks())
+    request.onsuccess = async () => resolve()
     throwError(request, reject)
   })
 }
 
 export const completeTask = async (id: number): Promise<Task[]> => {
   const task: Task = await getTask(id)
-  task.completedAt = Date.now()
+  const timestamp = Date.now()
+  task.updatedAt= timestamp
+  task.completedAt= timestamp
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
@@ -115,6 +120,7 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 
 export const revertTask = async (id: number): Promise<Task[]> => {
   const task: Task = await getTask(id)
+  task.updatedAt = Date.now()
   task.completedAt = undefined
 
   const store = await getStore('readwrite')
