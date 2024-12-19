@@ -4,7 +4,7 @@ import loadingIcon from '@/components/materials/loadingIcon'
 import input from '@/components/materials/input'
 import icon from '@/components/materials/icon'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
-import { Task } from '@/types'
+import type { Task } from '@/types'
 import getPath from '@/utils'
 import css from './style.css?inline'
 
