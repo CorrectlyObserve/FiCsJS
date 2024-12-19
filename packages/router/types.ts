@@ -33,4 +33,6 @@ export interface PageContent<P extends object> {
 export interface RouterData {
   pathname: string
   lang: string
+  pathParams: Record<string, string>
+  queryParams: Record<string, string>
 }
