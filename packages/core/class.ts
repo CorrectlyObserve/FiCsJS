@@ -215,12 +215,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            const getContent = (): any =>
-              content({
-                ...this.#getDataProps<true>(),
-                $getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
-              })
-
+            const getContent = (): any => content(this.#getDataProps<true>())
             propsChain.set(descendantId, { ...chain, [key]: getContent() })
 
             const last: number = this.#propsTrees.length - 1
@@ -425,10 +420,7 @@ export default class FiCsElement<D extends object, P extends object> {
             .join('\n')
 
           if (Array.isArray(selector))
-            return selector.reduce(
-              (prev, curr) => `${prev} ${host} ${curr}{${content}}`,
-              ''
-            )
+            return selector.reduce((prev, curr) => `${prev} ${host} ${curr}{${content}}`, '')
 
           return `${host} ${selector}{${content}}`
         }
@@ -862,13 +854,12 @@ export default class FiCsElement<D extends object, P extends object> {
         $event: event,
         $attributes: attrs,
         $value:
-          element instanceof
-          (HTMLInputElement ||
-            HTMLTextAreaElement ||
-            HTMLOptionElement ||
-            HTMLProgressElement ||
-            HTMLMeterElement)
-            ? element.value
+          element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLOptionElement ||
+          element instanceof HTMLProgressElement ||
+          element instanceof HTMLMeterElement
+            ? `${element.value}`
             : undefined
       })
 
