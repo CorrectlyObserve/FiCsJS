@@ -11,8 +11,25 @@ export const router = ficsRouter({
     { path: '/todo/:id', content: () => task }
   ],
   notFound: { content: () => notFound },
-  props: {
-    descendant: [topPage, tasks, task, notFound],
-    values: { key: 'lang', content: ({ $data: { lang } }) => lang }
-  }
+  props: [
+    {
+      descendant: [topPage, tasks, task, notFound],
+      values: { key: 'lang', content: ({ $data: { lang } }) => lang }
+    },
+    {
+      descendant: task,
+      values: {
+        key: 'id',
+        dataKey: 'pathParams',
+        content: ({
+          $data: {
+            pathParams: { id }
+          }
+        }) => {
+          if (!id) return
+          return Number(id)
+        }
+      }
+    }
+  ]
 })
