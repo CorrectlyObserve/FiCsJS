@@ -27,11 +27,9 @@
     "title": "Title",
     "description": "Description",
     "placeholders": ["Please enter a title of the task", "Please enter a description of the task"],
-    "createdAt": "Created at: ",
-    "updatedAt": "Updated at: ",
-    "buttonTexts": ["Complete", "Revert"],
-    "deletion": "Delete",
-    "back": "Back to task list"
+    "datetimes": { "createdAt": "Created at: ", "updatedAt": "Updated at: " },
+    "buttonText": "Save",
+    "texts": ["Complete", "Revert", "Delete", "Back to task list"]
   },
   "notFound": {
     "heading": "Not Found...",
