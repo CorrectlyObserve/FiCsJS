@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import button from '@/components/materials/button'
-import getPath from '@/utils'
+import { getPath } from '@/utils'
 
 interface Data {
   headings: string[]
