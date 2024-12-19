@@ -1,27 +1,24 @@
 import { fics } from 'ficsjs'
 
-interface Data {
-  value: string
-  isComposing: boolean
-}
-
 interface Props {
   id?: string
+  value: string
   placeholder: string
-  enter?: () => void
+  input: (value: string) => void
+  enterKey?: () => void
   blur?: () => void
 }
 
-export default fics<Data, Props>({
+export default fics<{ isComposing: boolean }, Props>({
   name: 'input',
-  data: () => ({ value: '', isComposing: false }),
-  html: ({ $data: { value }, $props: { id, placeholder }, $template }) =>
+  data: () => ({ isComposing: false }),
+  html: ({ $props: { id, value, placeholder }, $template }) =>
     $template`<input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />`,
   actions: [
     {
       handler: 'input',
       selector: 'input',
-      method: ({ $setData, $value }) => $setData('value', $value!),
+      method: ({ $props: { input }, $value }) => input($value!),
       options: { debounce: 200 }
     },
     {
@@ -37,16 +34,16 @@ export default fics<Data, Props>({
     {
       handler: 'keydown',
       selector: 'input',
-      method: ({ $data: { value, isComposing }, $props: { enter }, $event }) => {
-        if ((value !== '' && ($event as KeyboardEvent).key) === 'Enter' && !isComposing && enter)
-          enter()
+      method: ({ $data: { isComposing }, $props: { value, enterKey }, $event }) => {
+        if ((value !== '' && ($event as KeyboardEvent).key) === 'Enter' && !isComposing && enterKey)
+          enterKey()
       },
       options: { throttle: 500 }
     },
     {
       handler: 'blur',
       selector: 'input',
-      method: ({ $data: { value }, $props: { blur } }) => {
+      method: ({ $props: { value, blur } }) => {
         if (value !== '' && blur) blur()
       }
     }
