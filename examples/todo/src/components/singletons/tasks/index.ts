@@ -5,11 +5,12 @@ import input from '@/components/materials/input'
 import icon from '@/components/materials/icon'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
 import type { Task } from '@/types'
-import getPath from '@/utils'
+import { getPath } from '@/utils'
 import css from './style.css?inline'
 
 interface Data {
   heading: string
+  value: string
   placeholder: string
   isShown: boolean
   checkbox: string
@@ -26,6 +27,7 @@ export default fics<Data, { lang: string }>({
   name: 'tasks',
   data: () => ({
     heading: '',
+    value: '',
     placeholder: '',
     isShown: false,
     checkbox: '',
@@ -38,14 +40,23 @@ export default fics<Data, { lang: string }>({
     {
       descendant: input,
       values: [
+        { key: 'value', content: ({ $data: { value } }) => value },
         { key: 'placeholder', content: ({ $data: { placeholder } }) => placeholder },
         {
-          key: 'enter',
+          key: 'input',
           content:
             ({ $setData }) =>
+            (value: string) =>
+              $setData('value', value)
+        },
+        {
+          key: 'enterKey',
+          dataKey: 'value',
+          content:
+            ({ $data: { value }, $setData }) =>
             async () => {
-              $setData('tasks', await addTask(input.getData('value')))
-              input.setData('value', '')
+              $setData('tasks', await addTask(value))
+              $setData('value', '')
             }
         }
       ]
@@ -54,14 +65,13 @@ export default fics<Data, { lang: string }>({
       descendant: addIcon,
       values: {
         key: 'click',
+        dataKey: 'value',
         content:
-          ({ $setData }) =>
+          ({ $data: { value }, $setData }) =>
           async () => {
-            const value = input.getData('value')
-
             if (value !== '') {
               $setData('tasks', await addTask(value))
-              input.setData('value', '')
+              $setData('value', '')
             }
           }
       }
@@ -70,10 +80,11 @@ export default fics<Data, { lang: string }>({
       descendant: [squareIcon, checkSquareIcon],
       values: {
         key: 'click',
+        dataKey: 'isShown',
         content:
-          ({ $setData, $getData }) =>
+          ({ $data: { isShown }, $setData }) =>
           () =>
-            $setData('isShown', !$getData('isShown'))
+            $setData('isShown', !isShown)
       }
     }
   ],
