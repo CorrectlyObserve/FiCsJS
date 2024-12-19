@@ -108,9 +108,7 @@ export type Props<D, P> = {
   values: SingleOrArray<{
     dataKey?: SingleOrArray<keyof D>
     key: string
-    content: (
-      dataProps: DataProps<D, P, true> & { $getData: <K extends keyof D>(key: K) => D[K] }
-    ) => any
+    content: (dataProps: DataProps<D, P, true>) => any
   }>
 }
 
