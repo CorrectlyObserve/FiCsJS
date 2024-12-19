@@ -98,17 +98,17 @@ export default fics<Data, { lang: string }>({
       </div>
       ${
         tasks.length > 0
-          ? (isShown ? tasks : tasks.filter(task => !task.completed_at)).map(
-              ({ id, title, completed_at }) => $template`
+          ? (isShown ? tasks : tasks.filter(task => !task.completedAt)).map(
+              ({ id, title, completedAt }) => $template`
                 <div class="task" key="${id}">
                   <div>
-                    ${$setProps(icon.extend({ icon: completed_at ? 'check' : 'circle' }), {
+                    ${$setProps(icon.extend({ icon: completedAt ? 'check' : 'circle' }), {
                       click: async () => {
-                        $setData('tasks', await (completed_at ? revertTask(id) : completeTask(id)))
-                        $setData('isShown', !completed_at)
+                        $setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                        $setData('isShown', !completedAt)
                       }
                     })}
-                    <span class="${completed_at ? 'done' : ''}">
+                    <span class="${completedAt ? 'done' : ''}">
                       <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
                     </span>
                   </div>

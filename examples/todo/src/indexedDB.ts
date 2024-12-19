@@ -13,9 +13,9 @@ const openDB = (): Promise<IDBDatabase> => {
         const store = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true })
         store.createIndex('title', 'title', { unique: false })
         store.createIndex('description', 'description', { unique: false })
-        store.createIndex('created_at', 'created_at', { unique: false })
-        store.createIndex('completed_at', 'completed_at', { unique: false })
-        store.createIndex('deleted_at', 'deleted_at', { unique: false })
+        store.createIndex('createdAt', 'createdAt', { unique: false })
+        store.createIndex('completedAt', 'completedAt', { unique: false })
+        store.createIndex('deletedAt', 'deletedAt', { unique: false })
       }
     }
 
@@ -53,8 +53,8 @@ export const addTask = async (title: string): Promise<Task[]> => {
     const request = store.add({
       title,
       description: '',
-      created_at: Date.now(),
-      updated_at: Date.now()
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     })
 
     request.onsuccess = async () => resolve(await getAllTasks())
@@ -103,7 +103,7 @@ export const updateTask = async ({
 
 export const completeTask = async (id: number): Promise<Task[]> => {
   const task: Task = await getTask(id)
-  task.completed_at = Date.now()
+  task.completedAt = Date.now()
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
@@ -115,7 +115,7 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 
 export const revertTask = async (id: number): Promise<Task[]> => {
   const task: Task = await getTask(id)
-  task.completed_at = undefined
+  task.completedAt = undefined
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
