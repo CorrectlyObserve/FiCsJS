@@ -1,6 +1,7 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
 import langs from '@/components/multitons/containers/langs'
+import { getPath } from '@/utils'
 
 export default fics({
   name: 'header',
@@ -15,8 +16,8 @@ export default fics({
       { key: 'pathname', content: ({ $data: { pathname } }) => pathname }
     ]
   },
-  html: ({ $data: { heading }, $template }) =>
-    $template`<header><h1>${heading}</h1><div>${langs}</div></header>`,
+  html: ({ $data: { lang, heading }, $template }) =>
+    $template`<header><h1><a href="${getPath(lang, '/')}">${heading}</a></h1><div>${langs}</div></header>`,
   css: [
     { style: { display: 'block' } },
     {
