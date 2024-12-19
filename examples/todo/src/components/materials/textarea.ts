@@ -2,26 +2,27 @@ import { fics } from 'ficsjs'
 
 interface Props {
   id?: string
+  value: string
   placeholder: string
+  input: (value: string) => void
   blur?: () => void
 }
 
-export default fics<{ value: string }, Props>({
+export default fics<{}, Props>({
   name: 'textarea',
-  data: () => ({ value: '' }),
-  html: ({ $data: { value }, $props: { id, placeholder }, $template }) =>
-    $template`<textarea id="${id ?? ''}" value="${value}" placeholder="${placeholder}" />`,
+  html: ({ $props: { id, value, placeholder }, $template }) =>
+    $template`<textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>`,
   actions: [
     {
       handler: 'input',
       selector: 'textarea',
-      method: ({ $setData, $value }) => $setData('value', $value!),
+      method: ({ $props: { input }, $value }) => input($value!),
       options: { debounce: 200 }
     },
     {
       handler: 'blur',
       selector: 'textarea',
-      method: ({ $data: { value }, $props: { blur } }) => {
+      method: ({ $props: { value, blur } }) => {
         if (value !== '' && blur) blur()
       }
     }
