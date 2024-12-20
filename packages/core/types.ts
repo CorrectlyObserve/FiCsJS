@@ -103,11 +103,11 @@ export interface PollingOptions {
   exit?: () => boolean
 }
 
-export type Props<D, P> = {
+export interface Props<D, P> {
   descendant: SingleOrArray<Descendant>
   values: SingleOrArray<{
-    dataKey?: SingleOrArray<keyof D>
     key: string
+    dataKey?: SingleOrArray<keyof D>
     content: (dataProps: DataProps<D, P, true>) => any
   }>
 }
