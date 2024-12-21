@@ -1,5 +1,5 @@
-import { generateUid } from '../core/helpers'
-import { Descendant } from '../core/types'
+import { convertToArray, generateUid } from '../core/helpers'
+import { Descendant, SingleOrArray } from '../core/types'
 
 const generator: Generator<number> = generateUid()
 const uneditableStates: Map<string, unknown> = new Map()
@@ -25,8 +25,7 @@ export const setState = <S>(key: string, value: S): void => {
   states.set(key, value)
 
   if (syncs.has(key))
-    for (const [fics, keys] of syncs.get(key)!)
-      for (const _key of keys) fics.setData(_key, value)
+    for (const [fics, keys] of syncs.get(key)!) for (const _key of keys) fics.setData(_key, value)
 
   if (observers.has(key)) observers.get(key)!()
 }
@@ -40,18 +39,19 @@ export const syncState = ({
   data
 }: {
   state: string
-  data: { component: Descendant; key: string }[]
+  data: SingleOrArray<Record<string, Descendant>>
 }): void => {
-  for (const { component, key } of data) {
-    const sync: Map<Descendant, Set<string>> | undefined = syncs.get(state)
+  for (const datum of convertToArray(data))
+    for (const [key, descendant] of Object.entries(datum)) {
+      const sync: Map<Descendant, Set<string>> | undefined = syncs.get(state)
 
-    if (!sync) {
-      syncs.set(state, new Map([[component, new Set([key])]]))
-      continue
+      if (!sync) {
+        syncs.set(state, new Map([[descendant, new Set([key])]]))
+        continue
+      }
+
+      sync.has(descendant) ? sync.get(descendant)!.add(key) : sync.set(descendant, new Set([key]))
     }
-
-    sync.has(component) ? sync.get(component)!.add(key) : sync.set(component, new Set([key]))
-  }
 }
 
 export const unsubscribeState = (key: string): void => {
