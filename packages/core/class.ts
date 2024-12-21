@@ -435,7 +435,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
       }, '') as string
 
-    return createCss(css, host).replace(/ ?(:|\[)/g, '$1')
+    return createCss(css, host).replace(/ ?(:+|\[)/g, '$1')
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
