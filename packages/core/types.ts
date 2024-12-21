@@ -31,7 +31,7 @@ export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
 export interface CssContent<D, P> extends CssSelector {
   style:
     | Record<string, string | number>
-    | ((dataProps: DataProps<D, P>) => Record<string, string | number | never>)
+    | ((dataProps: DataProps<D, P>) => Record<string, string | number> | {})
   nested?: SingleOrArray<CssContent<D, P>>
 }
 
