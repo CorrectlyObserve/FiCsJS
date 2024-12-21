@@ -25,10 +25,17 @@ export default [
   },
   {
     selector: 'button',
-    style: { transition: 'var(--transition)', cursor: 'pointer', border: 'none', outline: 'none' },
+    style: { transition: 'var(--transition)', border: 'none', outline: 'none' },
     nested: [
-      { selector: ':hover', style: { opacity: 0.5 } },
-      { selector: ':focus', style: { transform: 'scale(0.8)' } }
+      {
+        selector: ':not([disabled])',
+        style: { cursor: 'pointer' },
+        nested: [
+          { selector: ':hover', style: { opacity: 0.5 } },
+          { selector: ':focus', style: { transform: 'scale(0.8)' } }
+        ]
+      },
+      { selector: '[disabled]', style: { cursor: 'not-allowed' } }
     ]
   },
   {
