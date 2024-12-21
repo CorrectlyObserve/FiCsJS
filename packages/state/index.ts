@@ -26,7 +26,7 @@ export const setState = <S>(key: string, value: S): void => {
 
   if (syncs.has(key))
     for (const [fics, keys] of syncs.get(key)!)
-      for (const dataKey of keys) fics.setData(dataKey, value)
+      for (const _key of keys) fics.setData(_key, value)
 
   if (observers.has(key)) observers.get(key)!()
 }
