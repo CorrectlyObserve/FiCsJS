@@ -1,14 +1,12 @@
 import { fics } from 'ficsjs'
-import i18n from 'ficsjs/i18n'
+import { getState } from 'ficsjs/state'
 import langs from '@/components/multitons/containers/langs'
 import { getPath } from '@/utils'
+import { $lang } from '@/store'
 
 export default fics({
   name: 'header',
-  data: () => ({ lang: '', pathname: '', heading: '' }),
-  fetch: async ({ $data: { lang } }) => ({
-    heading: await i18n<string>({ directory: '/i18n', lang, key: 'heading' })
-  }),
+  data: () => ({ lang: '', pathname: '' }),
   props: {
     descendant: langs,
     values: [
@@ -16,8 +14,8 @@ export default fics({
       { key: 'pathname', content: ({ $data: { pathname } }) => pathname }
     ]
   },
-  html: ({ $data: { lang, heading }, $template }) =>
-    $template`<header><h1><a href="${getPath(lang, '/')}">${heading}</a></h1><div>${langs}</div></header>`,
+  html: ({ $data: { lang }, $template }) =>
+    $template`<header><h1><a href="${getPath(lang, '/')}">FiCs ToDo</a></h1><div>${langs}</div></header>`,
   css: [
     { style: { display: 'block' } },
     {
@@ -49,5 +47,15 @@ export default fics({
         }
       ]
     }
-  ]
+  ],
+  hooks: {
+    created: ({ $setData }) => {
+      const lang = getState<string>($lang)
+      $setData('lang', lang)
+
+      let pathname = window.location.pathname.substring(1)
+      if (pathname.split('/')[0] === lang) pathname = pathname.slice(3)
+      $setData('pathname', pathname)
+    }
+  }
 })
