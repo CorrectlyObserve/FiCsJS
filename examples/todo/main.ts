@@ -1,7 +1,7 @@
 import { ficsCss, ficsInit } from 'ficsjs'
 import { getState, setState, syncState } from 'ficsjs/state'
 import header from '@/components/multitons/containers/header'
-import { router } from '@/components/multitons/containers/router'
+import router from '@/components/multitons/containers/router'
 import footer from '@/components/multitons/presentations/footer'
 import resetCss from '@/resetCss'
 import { $lang } from '@/store'
@@ -13,16 +13,11 @@ const {
   body,
   documentElement: { lang }
 } = document
-let pathname = window.location.pathname.substring(1)
 
 setState($lang, lang || 'en')
+syncState({ state: $lang, data: { lang: header } })
 
-if (pathname.split('/')[0] === getState($lang)) pathname = pathname.slice(3)
-
-header.setData('lang', getState($lang))
-header.setData('pathname', pathname)
 header.ssr(body, 'before')
-syncState({ state: $lang, data: [{ component: header, key: 'lang' }] })
 
 const main = document.querySelector('main')
 if (main) {
