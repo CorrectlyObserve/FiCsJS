@@ -64,7 +64,7 @@ export const addTask = async (title: string): Promise<Task[]> => {
   })
 }
 
-export const getTask = async (id: number): Promise<Task> => {
+export const getTask = async (id: number, handleError?: () => void): Promise<Task> => {
   const store = await getStore('readonly')
 
   return new Promise((resolve, reject) => {
@@ -74,7 +74,7 @@ export const getTask = async (id: number): Promise<Task> => {
       const task: Task = request.result
 
       if (task) resolve(task)
-      reject(new Error(`Task with id:${id} is not found...`))
+      else handleError ? handleError() : reject(new Error(`Task with id:${id} is not found...`))
     }
 
     throwError(request, reject)
@@ -107,8 +107,8 @@ export const updateTask = async ({
 export const completeTask = async (id: number): Promise<Task[]> => {
   const task: Task = await getTask(id)
   const timestamp = Date.now()
-  task.updatedAt= timestamp
-  task.completedAt= timestamp
+  task.updatedAt = timestamp
+  task.completedAt = timestamp
 
   const store = await getStore('readwrite')
   return new Promise((resolve, reject) => {
