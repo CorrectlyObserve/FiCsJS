@@ -4,6 +4,7 @@ interface Props {
   id?: string
   value: string
   placeholder: string
+  isError?: boolean
   input: (value: string) => void
   enterKey?: () => void
   blur?: () => void
@@ -14,6 +15,14 @@ export default fics<{ isComposing: boolean }, Props>({
   data: () => ({ isComposing: false }),
   html: ({ $props: { id, value, placeholder }, $template }) =>
     $template`<input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />`,
+  css: {
+    selector: 'input',
+    style: ({ $props: { isError } }) => (isError ? { background: 'var(--error)' } : {}),
+    nested: {
+      selector: '::placeholder',
+      style: ({ $props: { isError } }) => (isError ? { color: '#fff', opacity: 0.5 } : {})
+    }
+  },
   actions: [
     {
       handler: 'input',
