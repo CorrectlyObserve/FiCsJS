@@ -1,5 +1,4 @@
 {
-  "heading": "ToDo App built with FiCsJS",
   "topPage": {
     "headings": ["About this ToDo App", "Features of FiCsJS"],
     "descriptions": [
@@ -17,7 +16,7 @@
   },
   "tasks": {
     "heading": "Task list",
-    "placeholder": "Try using FiCsJS",
+    "placeholder": "Add new task",
     "checkbox": "Shown completed tasks",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
     "unapplicable": "There are no tasks..."
@@ -25,8 +24,9 @@
   "task": {
     "heading": "Task details",
     "title": "Title",
+    "error": "Please enter at least 1 character",
     "description": "Description",
-    "placeholders": ["Please enter a title of the task", "Please enter a description of the task"],
+    "placeholders": ["Please enter the title", "Please enter the description"],
     "datetimes": { "createdAt": "Created at: ", "updatedAt": "Updated at: " },
     "buttonText": "Save",
     "texts": ["Complete", "Revert", "Delete", "Back to task list"]
