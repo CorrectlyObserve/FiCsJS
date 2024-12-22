@@ -98,6 +98,8 @@ export default fics<Data, { lang: string }>({
   }) => {
     if (!$isLoaded) return $template`${loadingIcon}`
 
+    if (!isShown) tasks = tasks.filter(task => !task.completedAt)
+
     return $template`
       <h2>${heading}</h2>
       <div class="menu">
@@ -109,14 +111,13 @@ export default fics<Data, { lang: string }>({
       </div>
       ${
         tasks.length > 0
-          ? (isShown ? tasks : tasks.filter(task => !task.completedAt)).map(
+          ? tasks.map(
               ({ id, title, completedAt }) => $template`
                 <div class="task" key="${id}">
                   <div>
                     ${$setProps(icon.extend({ icon: completedAt ? 'check' : 'circle' }), {
                       click: async () => {
                         $setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
-                        $setData('isShown', !completedAt)
                       }
                     })}
                     <span class="${completedAt ? 'done' : ''}">
