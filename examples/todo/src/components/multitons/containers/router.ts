@@ -4,7 +4,7 @@ import tasks from '@/components/singletons/tasks'
 import task from '@/components/singletons/task'
 import notFound from '@/components/multitons/containers/notFound'
 
-export const router = ficsRouter({
+export default ficsRouter({
   pages: [
     { path: '/', content: () => topPage },
     { path: '/todo', content: () => tasks },
