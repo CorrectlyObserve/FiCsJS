@@ -427,15 +427,20 @@ export default class FiCsElement<D extends object, P extends object> {
         const { nested }: { nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent> } = curr
         const css: string = `${prev} ${createCssContent(host)}`
 
-        if (!nested) return css
+        const replaceSyntaxes = (css: string): string =>
+          css.replace(/ ?(:+|\[)/g, '$1').replace(/ &/g, '')
 
-        return convertToArray(selector).reduce(
-          (prev, curr) => prev + createCss(convertToArray(nested), `${host} ${curr}`),
-          css
+        if (!nested) return replaceSyntaxes(css)
+
+        return replaceSyntaxes(
+          convertToArray(selector).reduce(
+            (prev, curr) => prev + createCss(convertToArray(nested), `${host} ${curr}`),
+            css
+          )
         )
       }, '') as string
 
-    return createCss(css, host).replace(/ ?(:+|\[)/g, '$1')
+    return createCss(css, host)
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
