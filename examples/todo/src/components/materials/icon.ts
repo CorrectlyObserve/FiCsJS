@@ -1,26 +1,46 @@
 import { fics } from 'ficsjs'
 
-export default fics<{ icon: string }, { color?: string; click: () => void }>({
+interface Data {
+  icon: string
+  isLoadingIcon: (icon: string) => boolean
+}
+
+interface Props {
+  color?: string
+  click: () => void
+}
+
+export default fics<Data, Props>({
   name: 'svg',
-  html: ({ $template }) => $template`<button><span /></button>`,
+  data: () => ({ icon: '', isLoadingIcon: (icon: string) => icon === 'loading' }),
+  html: ({ $data: { icon, isLoadingIcon }, $template }) =>
+    $template`<button class="${isLoadingIcon(icon) ? 'loading' : ''}"><span /></button>`,
   css: {
     selector: 'button',
     style: { background: 'none', padding: 'var(--ex-sm)' },
     nested: {
       selector: 'span',
-      style: ({ $data: { icon }, $props: { color } }) => ({
-        width: 'calc(var(--lg) * 1.5)',
-        height: 'calc(var(--lg) * 1.5)',
-        display: 'block',
-        maskImage: `url("/icons/${icon}.svg")`,
-        background: color ?? '#fff'
-      })
+      style: ({ $data: { icon, isLoadingIcon }, $props: { color } }) => {
+        const size = `calc(var(--lg) * ${isLoadingIcon(icon) ? 2 : 1.5})`
+        const loadingCss = { marginInline: 'auto', animation: 'loading 1.5s infinite linear' }
+
+        return {
+          width: size,
+          height: size,
+          display: 'block',
+          maskImage: `url("/icons/${icon}.svg")`,
+          background: color ?? '#fff',
+          ...(isLoadingIcon(icon) ? loadingCss : {})
+        }
+      }
     }
   },
   actions: [
     {
       handler: 'click',
-      method: ({ $props: { click } }) => click(),
+      method: ({ $props: { click } }) => {
+        if (click) click()
+      },
       options: { throttle: 500, blur: true }
     }
   ]
