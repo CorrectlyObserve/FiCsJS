@@ -1,7 +1,11 @@
 import { throwWindowError } from '../core/helpers'
-import { getRegExp, pathParam } from './dynamicParam'
 
-export default (path: string): Record<string, string> => {
+const pathParam: RegExp = /\/:[^\/]+/g
+
+export const getRegExp = (path: string): RegExp =>
+  new RegExp(`^${path.replaceAll(pathParam, `\/([^/]+?)`)}\/?$`)
+
+export const getPathParams = (path: string): Record<string, string> => {
   throwWindowError()
 
   const regExps: string[] | null = getRegExp(path).exec(window.location.pathname)
