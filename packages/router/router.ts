@@ -1,10 +1,8 @@
 import FiCsElement from '../core/class'
 import { sanitize, throwWindowError } from '../core/helpers'
 import type { Sanitized } from '../core/types'
-import { getRegExp } from './dynamicParam'
-import getPathParams from './getPathParams'
-import getQueryParams from './getQueryParams'
 import goto from './goto'
+import { getPathParams, getRegExp } from './params'
 import type { FiCsRouter, PageContent, RouterData } from './types'
 
 export default <P extends object>({
@@ -62,8 +60,10 @@ export default <P extends object>({
       },
       mounted: ({ $setData }) => {
         throwWindowError()
-        window.addEventListener('popstate', () => $setData('pathname', window.location.pathname))
-        $setData('queryParams', getQueryParams())
+        const { pathname, search }: { pathname: string; search: string } = window.location
+
+        window.addEventListener('popstate', () => $setData('pathname', pathname))
+        $setData('queryParams', Object.fromEntries(new URLSearchParams(search)))
       }
     },
     options
