@@ -1,22 +1,4 @@
-import FiCsElement from '../core/class'
-import type {
-  CssContent,
-  Descendant,
-  Options,
-  Props,
-  Sanitized,
-  SingleOrArray,
-  Syntaxes
-} from '../core/types'
-
-export interface FiCsLink<P extends object> {
-  href: string
-  content: (syntaxes: Syntaxes<{}, P>) => Descendant | Sanitized<{}, P>
-  router: FiCsElement<RouterData, P>
-  props?: SingleOrArray<Props<{}, P>>
-  css?: SingleOrArray<string | CssContent<{}, P>>
-  options?: { ssr?: boolean }
-}
+import type { Descendant, Options, Props, Sanitized, SingleOrArray, Syntaxes } from '../core/types'
 
 export interface FiCsRouter<P extends object> {
   pages: (PageContent<P> & { path: string })[]
