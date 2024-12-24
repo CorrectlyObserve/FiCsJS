@@ -1,8 +1,7 @@
 import { fics } from 'ficsjs'
 import i18n from 'ficsjs/i18n'
-import loadingIcon from '@/components/materials/loadingIcon'
+import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
-import icon from '@/components/materials/icon'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
 import type { Task } from '@/types'
 import { getPath } from '@/utils'
@@ -19,9 +18,9 @@ interface Data {
   unapplicable: string
 }
 
-const addIcon = icon.extend({ icon: 'add' })
-const squareIcon = icon.extend({ icon: 'square' })
-const checkSquareIcon = icon.extend({ icon: 'check-square' })
+const addIcon = svgIcon.extend({ icon: 'add' })
+const squareIcon = svgIcon.extend({ icon: 'square' })
+const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
 
 export default fics<Data, { lang: string }>({
   name: 'tasks',
@@ -115,7 +114,7 @@ export default fics<Data, { lang: string }>({
               ({ id, title, completedAt }) => $template`
                 <div class="task" key="${id}">
                   <div>
-                    ${$setProps(icon.extend({ icon: completedAt ? 'check' : 'circle' }), {
+                    ${$setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
                       click: async () => {
                         $setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                       }
@@ -124,7 +123,7 @@ export default fics<Data, { lang: string }>({
                       <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
                     </span>
                   </div>
-                  ${$setProps(icon.extend({ icon: 'trash' }), {
+                  ${$setProps(svgIcon.extend({ icon: 'trash' }), {
                     color: 'var(--red)',
                     click: async () => {
                       if (window.confirm(confirmation)) $setData('tasks', await deleteTask(id))
