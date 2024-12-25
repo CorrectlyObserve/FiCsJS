@@ -4,18 +4,7 @@ import { setState, getState } from 'ficsjs/state'
 import { $lang } from '@/store'
 import css from './style.css?inline'
 
-interface Data {
-  langs: string[]
-  isShown: boolean
-}
-
-interface Props {
-  lang: string
-  pathname: string
-  switchLang: (lang: string) => void
-}
-
-export default fics<Data, Props>({
+export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathname: string }>({
   name: 'langs',
   data: () => ({ langs: ['en', 'ja'], isShown: false }),
   html: ({ $data: { langs, isShown }, $props: { lang }, $template, $show }) =>
@@ -33,7 +22,40 @@ export default fics<Data, Props>({
         </div>
       </div>
     `,
-  css,
+  css: [
+    css,
+    {
+      selector: 'div.container',
+      style: {},
+      nested: [
+        {
+          selector: 'button',
+          style: {
+            width: 'calc(var(--md) * 3)',
+            background: 'none',
+            paddingBlock: 'var(--ex-sm)'
+          },
+          nested: [
+            {
+              selector: '&.lang',
+              style: {},
+              nested: [{ selector: ['&.shown', ':focus'], style: { opacity: 0.5 } }]
+            },
+            { selector: '&.selected', style: { color: 'var(--red)' } }
+          ]
+        },
+        {
+          selector: 'div',
+          style: {
+            position: 'absolute',
+            opacity: 1,
+            transition: 'var(--transition) allow-discrete'
+          },
+          nested: { selector: '&.hidden', style: { opacity: 0 } }
+        }
+      ]
+    }
+  ],
   actions: [
     {
       handler: 'click',

@@ -1,35 +1,5 @@
-div.container {
-  button {
-    width: calc(var(--md) * 3);
-    background: none;
-    padding-block: var(--ex-sm);
-
-    &.lang {
-      &.shown {
-        opacity: 0.5;
-      }
-
-      &:focus {
-        opacity: 0.5;
-      }
-    }
-
-    &.selected {
-      color: var(--red);
-    }
-  }
-
-  div {
-    position: absolute;
-    opacity: 1;
-    transition: var(--transition) allow-discrete;
-
-    @starting-style {
-      opacity: 0;
-    }
-
-    &.hidden {
-      opacity: 0;
-    }
+div.container div {
+  @starting-style {
+    opacity: 0;
   }
 }
