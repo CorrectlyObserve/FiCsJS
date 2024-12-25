@@ -15,34 +15,34 @@ interface Data {
 export default fics<Data, { lang: string }>({
   name: 'top-page',
   data: () => ({ headings: [], descriptions: [], features: [], conversion: '', buttonText: '' }),
-  fetch: ({ $props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'topPage' }),
+  fetch: ({ props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'topPage' }),
   props: {
     descendant: button,
     values: [
-      { key: 'buttonText', content: ({ $data: { buttonText } }) => buttonText },
+      { key: 'buttonText', content: ({ data: { buttonText } }) => buttonText },
       {
         key: 'click',
         content:
-          ({ $props: { lang } }) =>
+          ({ props: { lang } }) =>
           () =>
             goto(getPath(lang, '/todo'))
       }
     ]
   },
   html: ({
-    $data: {
+    data: {
       headings: [first, second],
       descriptions,
       features,
       conversion
     },
-    $template
+    template
   }) =>
-    $template`
+    template`
       <h2>${first}</h2>
-      <div><ul>${descriptions.map(description => $template`<li>${description}</li>`)}</ul></div>
+      <div><ul>${descriptions.map(description => template`<li>${description}</li>`)}</ul></div>
       <h2>${second}</h2>
-      <div><ol>${features.map(feature => $template`<li>${feature}</li>`)}</ol></div>
+      <div><ol>${features.map(feature => template`<li>${feature}</li>`)}</ol></div>
       <p>${conversion}</p>
       ${button}
     `,
