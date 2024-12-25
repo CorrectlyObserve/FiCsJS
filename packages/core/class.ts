@@ -978,7 +978,11 @@ export default class FiCsElement<D extends object, P extends object> {
       const renewedCss: Css<D, P> = []
 
       const getRenewedCss = (css: Bindings<D, P>['css']): void => {
-        for (const { index, nested } of css) {
+        for (const _css of css) {
+          if (!_css) continue
+
+          const { index, nested }: { index: number; nested?: Bindings<D, P>['css'] } = _css
+
           if (index >= 0) renewedCss.push(this.#css[index])
           if (nested) getRenewedCss(nested)
         }
