@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
-import { sanitize, throwWindowError } from '../core/helpers'
-import type { Sanitized } from '../core/types'
+import { throwWindowError } from '../core/helpers'
+import type { Descendant, Sanitized } from '../core/types'
 import goto from './goto'
 import { getPathParams, getRegExp } from './params'
 import type { FiCsRouter, PageContent, RouterData } from './types'
@@ -16,7 +16,7 @@ export default <P extends object>({
     isExceptional: true,
     data: () => ({ pathname: '', lang: '', pathParams: {}, queryParams: {} }),
     props,
-    html: ({ $data: { pathname, lang }, $template, $setData, ...args }) => {
+    html: ({ data: { pathname, lang }, template, setData, ...args }) => {
       const setContent = (): Sanitized<RouterData, P> => {
         const resolveContent = ({
           content,
@@ -28,7 +28,8 @@ export default <P extends object>({
             return setContent()
           }
 
-          return sanitize(content({ ...args, $template }), $template)
+          const _content: Descendant | Sanitized<RouterData, P> = content({ ...args, template })
+          return _content instanceof FiCsElement ? template`${_content}` : _content
         }
 
         for (const { path, content, redirect } of pages) {
@@ -37,7 +38,7 @@ export default <P extends object>({
           const langPath: string = `/${lang}${path}`
 
           if (isMatched(path) || (lang !== '' && isMatched(langPath))) {
-            $setData(
+            setData(
               'pathParams',
               getPathParams(Object.keys(getPathParams(path)).length > 0 ? path : langPath)
             )
@@ -54,16 +55,16 @@ export default <P extends object>({
       return setContent()
     },
     hooks: {
-      created: ({ $setData }) => {
+      created: ({ setData }) => {
         throwWindowError()
-        $setData('pathname', window.location.pathname)
+        setData('pathname', window.location.pathname)
       },
-      mounted: ({ $setData }) => {
+      mounted: ({ setData }) => {
         throwWindowError()
         const { pathname, search }: { pathname: string; search: string } = window.location
 
-        window.addEventListener('popstate', () => $setData('pathname', pathname))
-        $setData('queryParams', Object.fromEntries(new URLSearchParams(search)))
+        window.addEventListener('popstate', () => setData('pathname', pathname))
+        setData('queryParams', Object.fromEntries(new URLSearchParams(search)))
       }
     },
     options
