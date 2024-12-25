@@ -2,7 +2,8 @@ import { getGlobalCss } from './globalCss'
 import { convertToArray, generateUid, throwWindowError } from './helpers'
 import { enqueue } from './queue'
 import type {
-  Action,
+  Actions,
+  ActionOptions,
   Attrs,
   Bindings,
   ClassName,
@@ -15,6 +16,7 @@ import type {
   Html,
   HtmlContent,
   Hooks,
+  Method,
   Options,
   PollingOptions,
   Props,
@@ -38,18 +40,13 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
-  readonly #bindings: Bindings<D, P> = {
-    isClassName: false,
-    isAttr: false,
-    css: new Array(),
-    actions: new Array()
-  }
+  readonly #bindings: Bindings<D, P> = { isClassName: false, isAttr: false, css: new Array() }
   readonly #className?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P> = new Array()
-  readonly #actions: Action<D, P>[] = new Array()
+  readonly #actions: Actions<D, P> = {}
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #options: Options = { immutable: false, ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #propsTrees: PropsTree<D>[] = new Array()
@@ -141,7 +138,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = convertToArray(css)
     if (clonedCss) this.#css = [...clonedCss]
-    if (actions) this.#actions = [...actions]
+    if (actions) this.#actions = { ...actions }
     if (hooks) this.#hooks = { ...hooks }
   }
 
@@ -800,8 +797,8 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`${this.#name} does not have shadowRoot...`)
   }
 
-  #getElements(shadowRoot: ShadowRoot, selector: string): Element[] {
-    return Array.from(shadowRoot.querySelectorAll(`:host ${selector}`))
+  #getElements(component: HTMLElement, selector: string): Element[] {
+    return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
   #debounce<T extends (...args: any[]) => void>(
@@ -835,8 +832,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #addEventListener(
     element: Element,
     handler: string,
-    method: Action<D, P>['method'],
-    options?: Action<D, P>['options']
+    method: Method<D, P>,
+    options?: ActionOptions
   ): void {
     if (handler !== 'click' && options?.blur)
       throw new Error('The "blur" is enabled only if the handler is click...')
@@ -848,7 +845,7 @@ export default class FiCsElement<D extends object, P extends object> {
       attrs[name] = value
     }
 
-    const { debounce, throttle }: { debounce?: number; throttle?: number } = options ?? {}
+    const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
 
     if (debounce && throttle)
       throw new Error('Debounce and throttle cannot be used together in the same event handler.')
@@ -868,7 +865,7 @@ export default class FiCsElement<D extends object, P extends object> {
             : undefined
       })
 
-      if (options?.blur) (event.target as HTMLElement).blur()
+      if (blur) (event.target as HTMLElement).blur()
     }
 
     element.addEventListener(
@@ -878,7 +875,7 @@ export default class FiCsElement<D extends object, P extends object> {
         : throttle
           ? this.#throttle(callback, throttle)
           : callback,
-      { once: options?.once }
+      { once }
     )
   }
 
@@ -886,7 +883,7 @@ export default class FiCsElement<D extends object, P extends object> {
     throwWindowError()
 
     const that: FiCsElement<D, P> = this
-    const { immutable, lazyLoad, rootMargin }: Options = that.#options
+    const { lazyLoad, rootMargin }: Options = that.#options
 
     window.customElements.define(
       that.#name,
@@ -907,16 +904,12 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#addHtml(this.shadowRoot)
           that.#addCss(this.shadowRoot)
 
-          for (const action of that.#actions ?? []) {
-            const { handler, selector, method, options }: Action<D, P> = action
-
-            if (!immutable && selector) {
-              that.#bindings.actions.push(action)
-
-              for (const element of that.#getElements(that.#getShadowRoot(this), selector))
-                that.#addEventListener(element, handler, method, options)
-            } else that.#addEventListener(this, handler, method, options)
-          }
+          for (const [selector, value] of Object.entries(that.#actions))
+            for (const element of that.#getElements(this, selector))
+              for (const [handler, _value] of Object.entries(value))
+                Array.isArray(_value)
+                  ? that.#addEventListener(element, handler, _value[0], _value[1])
+                  : that.#addEventListener(element, handler, _value)
 
           that.#removeChildNodes(this)
           that.#setProperty(this, that.#ficsIdName, that.#ficsId)
@@ -962,7 +955,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!component) return
 
-    const { isClassName, isAttr, css, actions }: Bindings<D, P> = this.#bindings
+    const { isClassName, isAttr, css }: Bindings<D, P> = this.#bindings
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
     if (isClassName) {
@@ -992,10 +985,8 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
     }
 
-    for (const action of actions ?? []) {
-      const { handler, selector, method, options }: Action<D, P> = action
-
-      if (selector) {
+    if (!this.#options.immutable)
+      for (const [selector, value] of Object.entries(this.#actions)) {
         const addAllElements = (elements: Element[] | Set<Element>): void => {
           for (const element of elements) {
             if (element instanceof Element && !this.#newElements.has(element))
@@ -1007,11 +998,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
         addAllElements(this.#newElements)
 
-        for (const element of this.#getElements(shadowRoot, selector))
+        for (const element of this.#getElements(component, selector))
           if (this.#newElements.has(element))
-            this.#addEventListener(element, handler, method, options)
+            for (const [handler, _value] of Object.entries(value))
+              Array.isArray(_value)
+                ? this.#addEventListener(element, handler, _value[0], _value[1])
+                : this.#addEventListener(element, handler, _value)
       }
-    }
 
     this.#newElements.clear()
   }
