@@ -156,15 +156,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getSetData(): SetData<D> {
     return {
-      $setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value)
+      setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value)
     }
   }
 
   #getDataProps<B extends boolean>(): DataProps<D, P, B> {
     return {
       ...(this.#options.immutable
-        ? { $data: {} as D, $props: {} as P }
-        : { $data: { ...this.#data }, $props: { ...this.#props } }),
+        ? { data: {} as D, props: {} as P }
+        : { data: { ...this.#data }, props: { ...this.#props } }),
       ...this.#getSetData()
     }
   }
@@ -309,17 +309,17 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#getDataProps<true>(),
-      $template: (
+      template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
       ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
-      $html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
-      $show: (condition: boolean): string => (condition ? '' : this.#showAttr),
-      $setProps: (descendant: Descendant, props: object): Descendant => {
+      html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
+      show: (condition: boolean): string => (condition ? '' : this.#showAttr),
+      setProps: (descendant: Descendant, props: object): Descendant => {
         for (const [key, value] of Object.entries(props)) descendant.#setProps(key, value)
         return descendant
       },
-      $isLoaded: !!doc || this.#isLoaded
+      isLoaded: !!doc || this.#isLoaded
     })[sanitized]
 
     const html: string = contents.reduce((prev, curr) => {
@@ -446,7 +446,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     if (key === 'mounted') {
       const poll = (
-        func: ({ $times }: { $times: number }) => void,
+        func: ({ times }: { times: number }) => void,
         { interval, max, exit }: PollingOptions
       ): void => {
         let times = 0
@@ -457,13 +457,13 @@ export default class FiCsElement<D extends object, P extends object> {
             return
           }
 
-          func({ $times: times })
+          func({ times })
           times++
           setTimeout(run, interval)
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...this.#getDataProps<true>(), $poll: poll })
+      this.#hooks[key]?.({ ...this.#getDataProps<true>(), poll })
     } else this.#hooks[key]?.(this.#getDataProps())
   }
 
@@ -856,9 +856,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const callback = (event: Event): void => {
       method({
         ...this.#getDataProps<true>(),
-        $event: event,
-        $attributes: attrs,
-        $value:
+        event,
+        attributes: attrs,
+        value:
           element instanceof HTMLInputElement ||
           element instanceof HTMLTextAreaElement ||
           element instanceof HTMLOptionElement ||
@@ -1055,7 +1055,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
         this.#isReflecting = true
-        this.#hooks.updated[key]?.({ ...this.#getSetData(), $datum: this.#data[key] })
+        this.#hooks.updated[key]?.({ ...this.#getSetData(), datum: this.#data[key] })
         this.#isReflecting = false
       }
     }
