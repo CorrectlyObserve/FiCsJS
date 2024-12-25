@@ -5,9 +5,9 @@ export interface Action<D, P> {
   selector?: string
   method: (
     params: DataProps<D, P, true> & {
-      $event: Event
-      $attributes: Record<string, string>
-      $value?: string
+      event: Event
+      attributes: Record<string, string>
+      value?: string
     }
   ) => void
   options?: { debounce?: number; throttle?: number; blur?: boolean; once?: boolean }
@@ -41,9 +41,7 @@ interface CssSelector {
   ssr?: boolean
 }
 
-export type DataProps<D, P, B = false> = { $data: D; $props: P } & (B extends true
-  ? SetData<D>
-  : {})
+export type DataProps<D, P, B = false> = { data: D; props: P } & (B extends true ? SetData<D> : {})
 
 export type Descendant = FiCsElement<any, any>
 
@@ -71,7 +69,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P, true> & Omit<Syntaxes<D, P>, '$props'> & { $isLoaded?: boolean }
+  params: DataProps<D, P, true> & Omit<Syntaxes<D, P>, 'props'> & { isLoaded?: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -81,7 +79,7 @@ export type HtmlContent<D extends object, P extends object> =
 export interface Hooks<D, P> {
   created?: (dataProps: DataProps<D, P, true>) => void
   mounted?: (dataProps: DataProps<D, P, true> & Poll) => void
-  updated?: { [K in keyof Partial<D>]: (params: SetData<D> & { $datum?: D[K] }) => void }
+  updated?: { [K in keyof Partial<D>]: (params: SetData<D> & { datum?: D[K] }) => void }
   destroyed?: (dataProps: DataProps<D, P, true>) => void
   adopted?: (dataProps: DataProps<D, P, true>) => void
 }
@@ -94,7 +92,7 @@ export interface Options {
 }
 
 export interface Poll {
-  $poll: (func: ({ $times }: { $times: number }) => void, options: PollingOptions) => void
+  poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
 }
 
 export interface PollingOptions {
@@ -128,18 +126,18 @@ export interface Queue {
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface SetData<D> {
-  $setData: <K extends keyof D>(key: K, value: D[K]) => void
+  setData: <K extends keyof D>(key: K, value: D[K]) => void
 }
 
 export type SingleOrArray<T = string> = T | T[]
 
 export interface Syntaxes<D extends object, P extends object> {
-  $props: P
-  $template: (
+  props: P
+  template: (
     templates: TemplateStringsArray,
     ...variables: (HtmlContent<D, P> | unknown)[]
   ) => Sanitized<D, P>
-  $html: (str: string) => Record<symbol, string>
-  $show: (condition: boolean) => string
-  $setProps: (descendant: Descendant, props: object) => Descendant
+  html: (str: string) => Record<symbol, string>
+  show: (condition: boolean) => string
+  setProps: (descendant: Descendant, props: object) => Descendant
 }
