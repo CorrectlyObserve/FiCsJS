@@ -137,14 +137,11 @@ export default fics<Data, { lang: string }>({
     `
   },
   css,
-  actions: [
-    {
-      handler: 'click',
-      selector: '.menu span',
-      method: ({ data: { isShown }, setData }) => setData('isShown', !isShown),
-      options: { blur: true }
+  actions: {
+    '.menu span': {
+      click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
     }
-  ],
+  },
   hooks: { mounted: async ({ setData }) => setData('tasks', await getAllTasks()) },
   options: { lazyLoad: true }
 })

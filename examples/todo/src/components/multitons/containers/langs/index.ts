@@ -56,21 +56,21 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
       ]
     }
   ],
-  actions: [
-    {
-      handler: 'click',
-      selector: 'button.lang',
-      method: ({ data: { isShown }, setData }) => setData('isShown', !isShown),
-      options: { throttle: 500, blur: true }
+  actions: {
+    'button.lang': {
+      click: [
+        ({ data: { isShown }, setData }) => setData('isShown', !isShown),
+        { throttle: 500, blur: true }
+      ]
     },
-    {
-      handler: 'click',
-      selector: 'button[key]',
-      method: ({ props: { pathname }, attributes }) => {
-        setState($lang, attributes['key'])
-        goto(`/${getState($lang) === 'en' ? '' : getState($lang) + '/'}${pathname}`)
-      },
-      options: { throttle: 500, blur: true }
+    'button[key]': {
+      click: [
+        ({ props: { pathname }, attributes }) => {
+          setState($lang, attributes['key'])
+          goto(`/${getState($lang) === 'en' ? '' : getState($lang) + '/'}${pathname}`)
+        },
+        { throttle: 500, blur: true }
+      ]
     }
-  ]
+  }
 })
