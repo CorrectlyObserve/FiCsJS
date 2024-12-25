@@ -23,38 +23,25 @@ export default fics<{ isComposing: boolean }, Props>({
       style: ({ props: { isError } }) => (isError ? { color: '#fff', opacity: 0.5 } : {})
     }
   },
-  actions: [
-    {
-      handler: 'input',
-      selector: 'input',
-      method: ({ props: { input }, value }) => input(value!),
-      options: { debounce: 200 }
-    },
-    {
-      handler: 'compositionstart',
-      selector: 'input',
-      method: ({ setData }) => setData('isComposing', true)
-    },
-    {
-      handler: 'compositionend',
-      selector: 'input',
-      method: ({ setData }) => setData('isComposing', false)
-    },
-    {
-      handler: 'keydown',
-      selector: 'input',
-      method: ({ data: { isComposing }, props: { value, enterKey }, event }) => {
-        if ((value !== '' && (event as KeyboardEvent).key) === 'Enter' && !isComposing && enterKey)
-          enterKey()
-      },
-      options: { throttle: 500 }
-    },
-    {
-      handler: 'blur',
-      selector: 'input',
-      method: ({ props: { value, blur } }) => {
+  actions: {
+    input: {
+      input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
+      compositionstart: ({ setData }) => setData('isComposing', true),
+      compositionend: ({ setData }) => setData('isComposing', false),
+      keydown: [
+        ({ data: { isComposing }, props: { value, enterKey }, event }) => {
+          if (
+            (value !== '' && (event as KeyboardEvent).key) === 'Enter' &&
+            !isComposing &&
+            enterKey
+          )
+            enterKey()
+        },
+        { throttle: 500 }
+      ],
+      blur: ({ props: { value, blur } }) => {
         if (value !== '' && blur) blur()
       }
     }
-  ]
+  }
 })

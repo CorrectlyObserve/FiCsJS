@@ -12,19 +12,12 @@ export default fics<{}, Props>({
   name: 'textarea',
   html: ({ props: { id, value, placeholder }, template }) =>
     template`<textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>`,
-  actions: [
-    {
-      handler: 'input',
-      selector: 'textarea',
-      method: ({ props: { input }, value }) => input(value!),
-      options: { debounce: 200 }
-    },
-    {
-      handler: 'blur',
-      selector: 'textarea',
-      method: ({ props: { value, blur } }) => {
+  actions: {
+    textarea: {
+      input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
+      blur: ({ props: { value, blur } }) => {
         if (value !== '' && blur) blur()
       }
     }
-  ]
+  }
 })
