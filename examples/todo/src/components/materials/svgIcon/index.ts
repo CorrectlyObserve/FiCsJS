@@ -35,15 +35,16 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
       ]
     }
   ],
-  actions: [
-    {
-      handler: 'click',
-      method: ({ props: { click } }) => {
-        if (click) click()
-      },
-      options: { throttle: 500, blur: true }
+  actions: {
+    button: {
+      click: [
+        ({ props: { click } }) => {
+          if (click) click()
+        },
+        { throttle: 500, blur: true }
+      ]
     }
-  ]
+  }
 })
 
 export const loadingIcon = svgIcon.extend({ icon: 'loading' })

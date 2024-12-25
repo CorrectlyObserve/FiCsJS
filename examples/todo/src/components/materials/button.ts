@@ -21,14 +21,14 @@ export default fics<{}, Props>({
       })
     }
   ],
-  actions: [
-    {
-      handler: 'click',
-      selector: 'button',
-      method: ({ props: { isDisabled, click } }) => {
-        if (!isDisabled) click()
-      },
-      options: { throttle: 500, blur: true }
+  actions: {
+    button: {
+      click: [
+        ({ props: { isDisabled, click } }) => {
+          if (!isDisabled) click()
+        },
+        { throttle: 500, blur: true }
+      ]
     }
-  ]
+  }
 })
