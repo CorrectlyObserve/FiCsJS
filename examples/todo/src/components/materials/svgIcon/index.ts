@@ -3,8 +3,7 @@ import css from './style.css?inline'
 
 export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
   name: 'svg-icon',
-  html: ({ $data: { icon }, $template }) =>
-    $template`<button class="${icon}"><span /></button>`,
+  html: ({ data: { icon }, template }) => template`<button class="${icon}"><span /></button>`,
   css: [
     css,
     {
@@ -25,7 +24,7 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
         },
         {
           selector: 'span',
-          style: ({ $data: { icon }, $props: { color } }) => ({
+          style: ({ data: { icon }, props: { color } }) => ({
             width: 'calc(var(--lg) * 1.5)',
             height: 'calc(var(--lg) * 1.5)',
             display: 'block',
@@ -39,7 +38,7 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
   actions: [
     {
       handler: 'click',
-      method: ({ $props: { click } }) => {
+      method: ({ props: { click } }) => {
         if (click) click()
       },
       options: { throttle: 500, blur: true }

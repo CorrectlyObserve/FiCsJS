@@ -34,28 +34,28 @@ export default fics<Data, { lang: string }>({
     confirmation: '',
     unapplicable: ''
   }),
-  fetch: ({ $props: { lang } }) => i18n({ directory: '/i18n', lang, key: ['tasks'] }),
+  fetch: ({ props: { lang } }) => i18n({ directory: '/i18n', lang, key: ['tasks'] }),
   props: [
     {
       descendant: input,
       values: [
-        { key: 'value', content: ({ $data: { value } }) => value },
-        { key: 'placeholder', content: ({ $data: { placeholder } }) => placeholder },
+        { key: 'value', content: ({ data: { value } }) => value },
+        { key: 'placeholder', content: ({ data: { placeholder } }) => placeholder },
         {
           key: 'input',
           content:
-            ({ $setData }) =>
+            ({ setData }) =>
             (value: string) =>
-              $setData('value', value)
+              setData('value', value)
         },
         {
           key: 'enterKey',
           dataKey: 'value',
           content:
-            ({ $data: { value }, $setData }) =>
+            ({ data: { value }, setData }) =>
             async () => {
-              $setData('tasks', await addTask(value))
-              $setData('value', '')
+              setData('tasks', await addTask(value))
+              setData('value', '')
             }
         }
       ]
@@ -66,11 +66,11 @@ export default fics<Data, { lang: string }>({
         key: 'click',
         dataKey: 'value',
         content:
-          ({ $data: { value }, $setData }) =>
+          ({ data: { value }, setData }) =>
           async () => {
             if (value !== '') {
-              $setData('tasks', await addTask(value))
-              $setData('value', '')
+              setData('tasks', await addTask(value))
+              setData('value', '')
             }
           }
       }
@@ -81,25 +81,25 @@ export default fics<Data, { lang: string }>({
         key: 'click',
         dataKey: 'isShown',
         content:
-          ({ $data: { isShown }, $setData }) =>
+          ({ data: { isShown }, setData }) =>
           () =>
-            $setData('isShown', !isShown)
+            setData('isShown', !isShown)
       }
     }
   ],
   html: ({
-    $data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
-    $props: { lang },
-    $setData,
-    $template,
-    $setProps,
-    $isLoaded
+    data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
+    props: { lang },
+    setData,
+    template,
+    setProps,
+    isLoaded
   }) => {
-    if (!$isLoaded) return $template`${loadingIcon}`
+    if (!isLoaded) return template`${loadingIcon}`
 
     if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
-    return $template`
+    return template`
       <h2>${heading}</h2>
       <div class="menu">
         <div>${input}${addIcon}</div>
@@ -111,28 +111,28 @@ export default fics<Data, { lang: string }>({
       ${
         tasks.length > 0
           ? tasks.map(
-              ({ id, title, completedAt }) => $template`
+              ({ id, title, completedAt }) => template`
                 <div class="task" key="${id}">
                   <div>
-                    ${$setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
+                    ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
                       click: async () => {
-                        $setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                       }
                     })}
                     <span class="${completedAt ? 'done' : ''}">
                       <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
                     </span>
                   </div>
-                  ${$setProps(svgIcon.extend({ icon: 'trash' }), {
+                  ${setProps(svgIcon.extend({ icon: 'trash' }), {
                     color: 'var(--red)',
                     click: async () => {
-                      if (window.confirm(confirmation)) $setData('tasks', await deleteTask(id))
+                      if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
                     }
                   })}
                 </div>
               `
             )
-          : $template`<p>${unapplicable}</p>`
+          : template`<p>${unapplicable}</p>`
       }
     `
   },
@@ -141,10 +141,10 @@ export default fics<Data, { lang: string }>({
     {
       handler: 'click',
       selector: '.menu span',
-      method: ({ $data: { isShown }, $setData }) => $setData('isShown', !isShown),
+      method: ({ data: { isShown }, setData }) => setData('isShown', !isShown),
       options: { blur: true }
     }
   ],
-  hooks: { mounted: async ({ $setData }) => $setData('tasks', await getAllTasks()) },
+  hooks: { mounted: async ({ setData }) => setData('tasks', await getAllTasks()) },
   options: { lazyLoad: true }
 })
