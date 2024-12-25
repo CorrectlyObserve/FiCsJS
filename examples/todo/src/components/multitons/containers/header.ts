@@ -10,12 +10,12 @@ export default fics({
   props: {
     descendant: langs,
     values: [
-      { key: 'lang', content: ({ $data: { lang } }) => lang },
-      { key: 'pathname', content: ({ $data: { pathname } }) => pathname }
+      { key: 'lang', content: ({ data: { lang } }) => lang },
+      { key: 'pathname', content: ({ data: { pathname } }) => pathname }
     ]
   },
-  html: ({ $data: { lang }, $template }) =>
-    $template`<header><h1><a href="${getPath(lang, '/')}">FiCs ToDo</a></h1><div>${langs}</div></header>`,
+  html: ({ data: { lang }, template }) =>
+    template`<header><h1><a href="${getPath(lang, '/')}">FiCs ToDo</a></h1><div>${langs}</div></header>`,
   css: [
     { style: { display: 'block' } },
     {
@@ -49,13 +49,13 @@ export default fics({
     }
   ],
   hooks: {
-    created: ({ $setData }) => {
+    created: ({ setData }) => {
       const lang = getState<string>($lang)
-      $setData('lang', lang)
+      setData('lang', lang)
 
       let pathname = window.location.pathname.substring(1)
       if (pathname.split('/')[0] === lang) pathname = pathname.slice(3)
-      $setData('pathname', pathname)
+      setData('pathname', pathname)
     }
   }
 })

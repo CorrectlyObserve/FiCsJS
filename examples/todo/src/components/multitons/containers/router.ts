@@ -14,7 +14,7 @@ export default ficsRouter({
   props: [
     {
       descendant: [topPage, tasks, task, notFound],
-      values: { key: 'lang', content: ({ $data: { lang } }) => lang }
+      values: { key: 'lang', content: ({ data: { lang } }) => lang }
     },
     {
       descendant: task,
@@ -22,7 +22,7 @@ export default ficsRouter({
         key: 'id',
         dataKey: 'pathParams',
         content: ({
-          $data: {
+          data: {
             pathParams: { id }
           }
         }) => {
