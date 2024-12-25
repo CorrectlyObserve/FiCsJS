@@ -1,16 +1,12 @@
 import FiCsElement from './class'
 
-export interface Action<D, P> {
-  handler: string
-  selector?: string
-  method: (
-    params: DataProps<D, P, true> & {
-      event: Event
-      attributes: Record<string, string>
-      value?: string
-    }
-  ) => void
-  options?: { debounce?: number; throttle?: number; blur?: boolean; once?: boolean }
+export type Actions<D, P> = Record<string, Record<string, Method<D, P> | [Method<D, P>, ActionOptions]>>
+
+export interface ActionOptions {
+  debounce?: number
+  throttle?: number
+  blur?: boolean
+  once?: boolean
 }
 
 export type Attrs<D, P> =
@@ -21,7 +17,6 @@ export interface Bindings<D, P> {
   isClassName: boolean
   isAttr: boolean
   css: { index: number; nested?: Bindings<D, P>['css'] }[]
-  actions: Action<D, P>[]
 }
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
@@ -56,7 +51,7 @@ export interface FiCs<D extends object, P extends object> {
   html: Html<D, P>
   css?: SingleOrArray<string | CssContent<D, P>>
   clonedCss?: Css<D, P>
-  actions?: Action<D, P>[]
+  actions?: Actions<D, P>
   hooks?: Hooks<D, P>
   options?: Options
 }
@@ -83,6 +78,14 @@ export interface Hooks<D, P> {
   destroyed?: (dataProps: DataProps<D, P, true>) => void
   adopted?: (dataProps: DataProps<D, P, true>) => void
 }
+
+export type Method<D, P> = (
+  params: DataProps<D, P, true> & {
+    event: Event
+    attributes: Record<string, string>
+    value?: string
+  }
+) => void
 
 export interface Options {
   immutable?: boolean
