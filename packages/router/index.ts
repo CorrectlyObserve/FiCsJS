@@ -1,4 +1,5 @@
 import goto from './goto'
+import { getParams } from './params'
 import ficsRouter from './router'
 
-export { ficsRouter, goto }
+export { ficsRouter, getParams, goto }
