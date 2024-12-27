@@ -4,7 +4,7 @@ export interface FiCsRouter<P extends object> {
   pages: (PageContent<P> & { path: string })[]
   notFound?: PageContent<P>
   props?: SingleOrArray<Props<RouterData, P>>
-  options?: Omit<Options, 'immutable'>
+  options?: Options
 }
 
 export interface PageContent<P extends object> {
@@ -12,9 +12,9 @@ export interface PageContent<P extends object> {
   redirect?: string
 }
 
+export type ParamType = 'path' | 'query'
+
 export interface RouterData {
   pathname: string
   lang: string
-  pathParams: Record<string, string>
-  queryParams: Record<string, string>
 }
