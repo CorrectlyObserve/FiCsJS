@@ -2,7 +2,7 @@ import FiCsElement from '../core/class'
 import { throwWindowError } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
 import goto from './goto'
-import { getPathParams, getRegExp } from './params'
+import { getPathParams, getRegExp, params } from './params'
 import type { FiCsRouter, PageContent, RouterData } from './types'
 
 export default <P extends object>({
@@ -38,11 +38,10 @@ export default <P extends object>({
           const langPath: string = `/${lang}${path}`
 
           if (isMatched(path) || (lang !== '' && isMatched(langPath))) {
-            setData(
-              'pathParams',
+            params.set(
+              'path',
               getPathParams(Object.keys(getPathParams(path)).length > 0 ? path : langPath)
             )
-
             return resolveContent({ content, redirect })
           }
         }
@@ -64,7 +63,7 @@ export default <P extends object>({
         const { pathname, search }: { pathname: string; search: string } = window.location
 
         window.addEventListener('popstate', () => setData('pathname', pathname))
-        setData('queryParams', Object.fromEntries(new URLSearchParams(search)))
+        params.set('query', Object.fromEntries(new URLSearchParams(search)))
       }
     },
     options
