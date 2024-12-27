@@ -12,7 +12,7 @@ export interface PageContent<P extends object> {
   redirect?: string
 }
 
-export type ParamType = 'path' | 'query'
+export type Param = 'path' | 'query'
 
 export interface RouterData {
   pathname: string
