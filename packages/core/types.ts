@@ -1,6 +1,9 @@
 import FiCsElement from './class'
 
-export type Actions<D, P> = Record<string, Record<string, Method<D, P> | [Method<D, P>, ActionOptions]>>
+export type Actions<D, P> = Record<
+  string,
+  Record<string, Method<D, P> | [Method<D, P>, ActionOptions]>
+>
 
 export interface ActionOptions {
   debounce?: number
@@ -36,7 +39,17 @@ interface CssSelector {
   ssr?: boolean
 }
 
-export type DataProps<D, P, B = false> = { data: D; props: P } & (B extends true ? SetData<D> : {})
+export type DataProps<D, P> = {
+  data: D
+  props: P
+}
+
+export type DataPropsMethods<D, P> = {
+  data: D
+  props: P
+  setData: <K extends keyof D>(key: K, value: D[K]) => void
+  getData: <K extends keyof D>(key: K) => D[K]
+}
 
 export type Descendant = FiCsElement<any, any>
 
@@ -64,7 +77,7 @@ export interface GlobalCssContent extends CssSelector {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataProps<D, P, true> & Omit<Syntaxes<D, P>, 'props'> & { isLoaded?: boolean }
+  params: DataPropsMethods<D, P> & Omit<Syntaxes<D, P>, 'props'> & { isLoaded?: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -72,15 +85,20 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  created?: (dataProps: DataProps<D, P, true>) => void
-  mounted?: (dataProps: DataProps<D, P, true> & Poll) => void
-  updated?: { [K in keyof Partial<D>]: (params: SetData<D> & { datum?: D[K] }) => void }
-  destroyed?: (dataProps: DataProps<D, P, true>) => void
-  adopted?: (dataProps: DataProps<D, P, true>) => void
+  created?: (params: DataPropsMethods<D, P>) => void
+  mounted?: (params: DataPropsMethods<D, P> & Poll) => void
+  updated?: {
+    [K in keyof Partial<D>]: (params: {
+      setData: DataPropsMethods<D, P>['setData']
+      datum?: D[K]
+    }) => void
+  }
+  destroyed?: (params: DataPropsMethods<D, P>) => void
+  adopted?: (params: DataPropsMethods<D, P>) => void
 }
 
 export type Method<D, P> = (
-  params: DataProps<D, P, true> & {
+  params: DataPropsMethods<D, P> & {
     event: Event
     attributes: Record<string, string>
     value?: string
@@ -88,7 +106,6 @@ export type Method<D, P> = (
 ) => void
 
 export interface Options {
-  immutable?: boolean
   ssr?: boolean
   lazyLoad?: boolean
   rootMargin?: string
@@ -106,18 +123,14 @@ export interface PollingOptions {
 
 export interface Props<D, P> {
   descendant: SingleOrArray<Descendant>
-  values: SingleOrArray<{
-    key: string
-    dataKey?: SingleOrArray<keyof D>
-    content: (dataProps: DataProps<D, P, true>) => any
-  }>
+  values: (params: DataPropsMethods<D, P>) => Record<string, any>
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
 export interface PropsTree<D> {
   numberId: number
-  setProps: (key: keyof D) => void
+  setProps: (propsKey: string, value: D[keyof D]) => void
 }
 
 export interface Queue {
@@ -127,10 +140,6 @@ export interface Queue {
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
-
-export interface SetData<D> {
-  setData: <K extends keyof D>(key: K, value: D[K]) => void
-}
 
 export type SingleOrArray<T = string> = T | T[]
 
