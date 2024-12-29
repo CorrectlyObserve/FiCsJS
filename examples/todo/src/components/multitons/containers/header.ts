@@ -9,10 +9,7 @@ export default fics({
   data: () => ({ lang: '', pathname: '' }),
   props: {
     descendant: langs,
-    values: [
-      { key: 'lang', content: ({ data: { lang } }) => lang },
-      { key: 'pathname', content: ({ data: { pathname } }) => pathname }
-    ]
+    values: ({ getData }) => ({ lang: getData('lang'), pathname: getData('pathname') })
   },
   html: ({ data: { lang }, template }) =>
     template`<header><h1><a href="${getPath(lang, '/')}">FiCs ToDo</a></h1><div>${langs}</div></header>`,
