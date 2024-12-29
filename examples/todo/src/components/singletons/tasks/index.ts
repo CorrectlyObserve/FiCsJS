@@ -38,60 +38,38 @@ export default fics<Data, { lang: string }>({
   props: [
     {
       descendant: input,
-      values: [
-        { key: 'value', content: ({ data: { value } }) => value },
-        { key: 'placeholder', content: ({ data: { placeholder } }) => placeholder },
-        {
-          key: 'input',
-          content:
-            ({ setData }) =>
-            (value: string) =>
-              setData('value', value)
-        },
-        {
-          key: 'enterKey',
-          dataKey: 'value',
-          content:
-            ({ data: { value }, setData }) =>
-            async () => {
-              setData('tasks', await addTask(value))
-              setData('value', '')
-            }
+      values: ({ setData, getData }) => ({
+        value: getData('value'),
+        placeholder: getData('placeholder'),
+        input: (value: string) => setData('value', value),
+        enterKey: async () => {
+          setData('tasks', await addTask(getData('value')))
+          setData('value', '')
         }
-      ]
+      })
     },
     {
       descendant: addIcon,
-      values: {
-        key: 'click',
-        dataKey: 'value',
-        content:
-          ({ data: { value }, setData }) =>
-          async () => {
-            if (value !== '') {
-              setData('tasks', await addTask(value))
-              setData('value', '')
-            }
+      values: ({ setData, getData }) => ({
+        click: async () => {
+          const value = getData('value')
+          if (value !== '') {
+            setData('tasks', await addTask(value))
+            setData('value', '')
           }
-      }
+        }
+      })
     },
     {
       descendant: [squareIcon, checkSquareIcon],
-      values: {
-        key: 'click',
-        dataKey: 'isShown',
-        content:
-          ({ data: { isShown }, setData }) =>
-          () =>
-            setData('isShown', !isShown)
-      }
+      values: ({ setData, getData }) => ({ click: () => setData('isShown', !getData('isShown')) })
     }
   ],
   html: ({
     data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
     props: { lang },
-    setData,
     template,
+    setData,
     setProps,
     isLoaded
   }) => {
@@ -111,28 +89,28 @@ export default fics<Data, { lang: string }>({
       ${
         tasks.length > 0
           ? tasks.map(
-              ({ id, title, completedAt }) => template`
-                <div class="task" key="${id}">
-                  <div>
-                    ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
-                      click: async () => {
-                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
-                      }
-                    })}
-                    <span class="${completedAt ? 'done' : ''}">
-                      <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
-                    </span>
-                  </div>
-                  ${setProps(svgIcon.extend({ icon: 'trash' }), {
-                    color: 'var(--red)',
+            ({ id, title, completedAt }) => template`
+              <div class="task" key="${id}">
+                <div>
+                  ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
                     click: async () => {
-                      if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
+                      setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                     }
                   })}
+                  <span class="${completedAt ? 'done' : ''}">
+                    <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
+                  </span>
                 </div>
-              `
-            )
-          : template`<p>${unapplicable}</p>`
+                ${setProps(svgIcon.extend({ icon: 'trash' }), {
+                  color: 'var(--red)',
+                  click: async () => {
+                    if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
+                  }
+                })}
+              </div>
+            `
+          )
+        : template`<p>${unapplicable}</p>`
       }
     `
   },
