@@ -14,22 +14,7 @@ export default ficsRouter({
   props: [
     {
       descendant: [topPage, tasks, task, notFound],
-      values: { key: 'lang', content: ({ data: { lang } }) => lang }
-    },
-    {
-      descendant: task,
-      values: {
-        key: 'id',
-        dataKey: 'pathParams',
-        content: ({
-          data: {
-            pathParams: { id }
-          }
-        }) => {
-          if (!id) return
-          return Number(id)
-        }
-      }
+      values: ({ getData }) => ({ lang: getData('lang') })
     }
   ]
 })
