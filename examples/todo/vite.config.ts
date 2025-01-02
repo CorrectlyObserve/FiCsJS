@@ -7,6 +7,7 @@ const getPackage = (directory: string): string =>
 export default defineConfig({
   resolve: {
     alias: {
+      'ficsjs/css': getPackage('css'),
       'ficsjs/i18n': getPackage('i18n'),
       'ficsjs/router': getPackage('router'),
       'ficsjs/state': getPackage('state'),
