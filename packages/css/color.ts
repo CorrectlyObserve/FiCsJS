@@ -4,7 +4,7 @@ type Rgb = Record<RgbKey, number>
 export default (
   hex: string,
   rate: number,
-  direction: 'darken' | 'lighten' | 'translucent' = 'translucent'
+  type: 'darken' | 'lighten' | 'translucent' = 'translucent'
 ): string => {
   if (!hex.startsWith('#'))
     throw new Error(`${hex} must start with "#" and follow a valid format...`)
@@ -12,14 +12,14 @@ export default (
   if (isNaN(rate) || rate <= 0 || rate >= 1)
     throw new Error(`${rate} must be between 0 and 1 (exclusive).`)
 
-  const _hex: string = hex.slice(1)
   const rgbKeys: RgbKey[] = ['red', 'green', 'blue']
+  const _hex: string = hex.slice(1)
   const rgb: Rgb = rgbKeys.reduce(
     (prev, curr, i) => ({ ...prev, [curr]: parseInt(_hex.slice(i * 2, i * 2 + 2), 16) }),
     {} as Rgb
   )
 
-  if (direction === 'translucent') return `rgba(${Object.values(rgb).join()}, ${rate})`
+  if (type === 'translucent') return `rgba(${Object.values(rgb).join()}, ${rate})`
 
   const { red, green, blue }: Rgb = rgb
   const maxColorValue: number = 255
@@ -45,7 +45,7 @@ export default (
   }
 
   const s: number = max === 0 ? 0 : diff / max
-  const v: number = max * (1 + rate * (direction === 'darken' ? -1 : 1))
+  const v: number = max * (1 + rate * (type === 'darken' ? -1 : 1))
   let _rgb: Rgb = rgbKeys.reduce(
     (prev, curr) => ({ ...prev, [curr]: s > 0 ? 0 : v * maxColorValue }),
     {} as Rgb
