@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { color, variable } from 'ficsjs/css'
 
 interface Props {
   buttonText: string
@@ -15,9 +16,9 @@ export default fics<{}, Props>({
     {
       selector: 'button',
       style: ({ props: { isDisabled } }) => ({
-        background: isDisabled ? 'rgba(255, 255, 255, 0.1)' : 'var(--gradation)',
-        padding: 'var(--md)',
-        borderRadius: 'var(--ex-sm)'
+        background: isDisabled ? color('#fff', 0.1) : variable('gradation'),
+        padding: variable('md'),
+        borderRadius: variable('ex-sm')
       })
     }
   ],
