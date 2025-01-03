@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { variable } from 'ficsjs/css'
 import i18n from 'ficsjs/i18n'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
@@ -89,7 +90,7 @@ export default fics<Data, { lang: string }>({
       ${
         tasks.length > 0
           ? tasks.map(
-            ({ id, title, completedAt }) => template`
+              ({ id, title, completedAt }) => template`
               <div class="task" key="${id}">
                 <div>
                   ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
@@ -102,15 +103,15 @@ export default fics<Data, { lang: string }>({
                   </span>
                 </div>
                 ${setProps(svgIcon.extend({ icon: 'trash' }), {
-                  color: 'var(--red)',
+                  color: variable('red'),
                   click: async () => {
                     if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
                   }
                 })}
               </div>
             `
-          )
-        : template`<p>${unapplicable}</p>`
+            )
+          : template`<p>${unapplicable}</p>`
       }
     `
   },
