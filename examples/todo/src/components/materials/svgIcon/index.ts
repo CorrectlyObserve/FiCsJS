@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { calc, variable } from 'ficsjs/css'
 import css from './style.css?inline'
 
 export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
@@ -8,7 +9,7 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
     css,
     {
       selector: 'button',
-      style: { background: 'none', padding: 'var(--ex-sm)' },
+      style: { background: 'none', padding: variable('ex-sm') },
       nested: [
         {
           selector: '&.loading',
@@ -16,8 +17,8 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
           nested: {
             selector: 'span',
             style: {
-              width: 'calc(var(--ex-lg) * 2)',
-              height: 'calc(var(--ex-lg) * 2)',
+              width: calc([variable('ex-lg'), 2], '*'),
+              height: calc([variable('ex-lg'), 2], '*'),
               animation: 'loading 1.5s infinite linear'
             }
           }
@@ -25,8 +26,8 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
         {
           selector: 'span',
           style: ({ data: { icon }, props: { color } }) => ({
-            width: 'calc(var(--lg) * 1.5)',
-            height: 'calc(var(--lg) * 1.5)',
+            width: calc([variable('lg'), 1.5], '*'),
+            height: calc([variable('lg'), 1.5], '*'),
             display: 'block',
             maskImage: `url("/icons/${icon}.svg")`,
             background: color ?? '#fff'
