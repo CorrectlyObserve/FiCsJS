@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { variable } from 'ficsjs/css'
 import { getState } from 'ficsjs/state'
 import langs from '@/components/multitons/containers/langs'
 import { getPath } from '@/utils'
@@ -22,13 +23,13 @@ export default fics({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingBlock: 'var(--md)'
+        paddingBlock: variable('md')
       },
       nested: [
         {
           selector: '> h1',
           style: {
-            background: 'var(--gradation)',
+            background: variable('gradation'),
             backgroundClip: 'text',
             webkitTextFillColor: 'transparent'
           }
@@ -39,7 +40,7 @@ export default fics({
             position: 'absolute',
             top: '50%',
             transform: 'translateY(-50%)',
-            right: 'var(--ex-sm)'
+            right: variable('ex-sm')
           }
         }
       ]
