@@ -14,7 +14,7 @@ export default async <T>({
     .then(res => res.json())
     .then(json => {
       key = convertToArray(key)
-      let i18n: T | undefined = key.reduce((acc, _key) => acc && acc[_key], json)
+      let i18n: T | undefined = key.reduce((prev, curr) => prev && prev[curr], json)
 
       if (i18n) return i18n
       throw new Error(`${key.join('.')} does not exist in ${`${directory}/${lang}.json`}...`)
