@@ -15,7 +15,7 @@ interface Data {
 
 export default fics<Data, { lang: string }>({
   name: 'top-page',
-  data: () => ({ headings: [], descriptions: [], features: [], conversion: '', buttonText: '' }),
+  data: () => ({ buttonText: '' }),
   fetch: ({ props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'topPage' }),
   props: {
     descendant: button,
