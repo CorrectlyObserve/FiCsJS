@@ -1,2 +1,2 @@
 export default (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
-  `calc(${values.join(operator)})`
+  `calc(${values.join(` ${operator} `)})`
