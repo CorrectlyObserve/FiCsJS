@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { variable } from 'ficsjs/css'
 import i18n from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { loadingIcon } from '@/components/materials/svgIcon'
@@ -35,7 +36,7 @@ export default fics<Data, { lang: string }>({
     isLoaded
       ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
       : template`${loadingIcon}`,
-  css: { selector: 'p', style: { marginBottom: 'var(--ex-lg)' } },
+  css: { selector: 'p', style: { marginBottom: variable('ex-lg') } },
   hooks: {
     mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
       poll(
