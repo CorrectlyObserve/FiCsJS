@@ -13,7 +13,13 @@ export default (
     throw new Error(`${rate} must be between 0 and 1 (exclusive).`)
 
   const rgbKeys: RgbKey[] = ['red', 'green', 'blue']
-  const _hex: string = hex.slice(1)
+  let _hex: string = hex.slice(1)
+
+  if (_hex.length === 3) {
+    const [r, g, b]: string[] = _hex.split('')
+    _hex = `${r}${r}${g}${g}${b}${b}`
+  }
+
   const rgb: Rgb = rgbKeys.reduce(
     (prev, curr, i) => ({ ...prev, [curr]: parseInt(_hex.slice(i * 2, i * 2 + 2), 16) }),
     {} as Rgb
