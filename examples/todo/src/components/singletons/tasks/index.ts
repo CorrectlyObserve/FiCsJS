@@ -25,16 +25,7 @@ const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
 
 export default fics<Data, { lang: string }>({
   name: 'tasks',
-  data: () => ({
-    heading: '',
-    value: '',
-    placeholder: '',
-    isShown: false,
-    checkbox: '',
-    tasks: [],
-    confirmation: '',
-    unapplicable: ''
-  }),
+  data: () => ({ value: '', placeholder: '', tasks: [] }),
   fetch: ({ props: { lang } }) => i18n({ directory: '/i18n', lang, key: ['tasks'] }),
   props: [
     {
@@ -54,6 +45,7 @@ export default fics<Data, { lang: string }>({
       values: ({ setData, getData }) => ({
         click: async () => {
           const value = getData('value')
+
           if (value !== '') {
             setData('tasks', await addTask(value))
             setData('value', '')
