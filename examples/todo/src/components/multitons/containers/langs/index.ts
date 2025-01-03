@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { calc, variable } from 'ficsjs/css'
 import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
 import { $lang } from '@/store'
@@ -31,9 +32,9 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
         {
           selector: 'button',
           style: {
-            width: 'calc(var(--md) * 3)',
+            width: calc([variable('md'), 3], '*'),
             background: 'none',
-            paddingBlock: 'var(--ex-sm)'
+            paddingBlock: variable('ex-sm')
           },
           nested: [
             {
@@ -41,7 +42,7 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
               style: {},
               nested: [{ selector: ['&.shown', ':focus'], style: { opacity: 0.5 } }]
             },
-            { selector: '&.selected', style: { color: 'var(--red)' } }
+            { selector: '&.selected', style: { color: variable('red') } }
           ]
         },
         {
@@ -49,7 +50,7 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
           style: {
             position: 'absolute',
             opacity: 1,
-            transition: 'var(--transition) allow-discrete'
+            transition: `${variable('transition')} allow-discrete`
           },
           nested: { selector: '&.hidden', style: { opacity: 0 } }
         }
