@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { variable } from 'ficsjs/css'
 
 interface Props {
   id?: string
@@ -17,7 +18,7 @@ export default fics<{ isComposing: boolean }, Props>({
     template`<input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />`,
   css: {
     selector: 'input',
-    style: ({ props: { isError } }) => (isError ? { background: 'var(--error)' } : {}),
+    style: ({ props: { isError } }) => (isError ? { background: variable('error') } : {}),
     nested: {
       selector: '::placeholder',
       style: ({ props: { isError } }) => (isError ? { color: '#fff', opacity: 0.5 } : {})

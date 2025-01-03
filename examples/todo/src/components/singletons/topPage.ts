@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { variable } from 'ficsjs/css'
 import i18n from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import button from '@/components/materials/button'
@@ -46,10 +47,10 @@ export default fics<Data, { lang: string }>({
       style: { width: '60%', display: 'flex', justifyContent: 'center', marginInline: 'auto' },
       nested: {
         selector: 'li',
-        style: { marginBottom: 'var(--md)' },
-        nested: { selector: ':last-child', style: { marginBottom: 'var(--ex-lg)' } }
+        style: { marginBottom: variable('md') },
+        nested: { selector: ':last-child', style: { marginBottom: variable('ex-lg') } }
       }
     },
-    { selector: 'p', style: { marginBlock: 'var(--ex-lg)' } }
+    { selector: 'p', style: { marginBlock: variable('ex-lg') } }
   ]
 })
