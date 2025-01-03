@@ -15,7 +15,7 @@ interface Data {
 
 export default fics<Data, { lang: string }>({
   name: 'not-found',
-  data: () => ({ seconds: 10, heading: '', descriptions: [], buttonText: '' }),
+  data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
   fetch: ({ props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'notFound' }),
   props: {
     descendant: button,
