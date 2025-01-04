@@ -34,7 +34,7 @@ export interface CssContent<D, P> extends CssSelector {
 }
 
 interface CssSelector {
-  selector?: SingleOrArray
+  selector?: SingleOrArray<string>
   csr?: boolean
   ssr?: boolean
 }
@@ -146,7 +146,7 @@ export interface Queue {
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
-export type SingleOrArray<T = string> = T | T[]
+export type SingleOrArray<T> = T | T[]
 
 export interface Syntaxes<D extends object, P extends object> {
   props: P
