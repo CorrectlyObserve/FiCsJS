@@ -397,7 +397,7 @@ export default class FiCsElement<D extends object, P extends object> {
       css.reduce((prev, curr) => {
         if (typeof curr === 'string') return `${prev}${curr}`
 
-        const selector: SingleOrArray = curr.selector ?? ''
+        const selector: SingleOrArray<string> = curr.selector ?? ''
         const createCssContent = (host: string): string => {
           if (curr[mode] === false) return ''
 
