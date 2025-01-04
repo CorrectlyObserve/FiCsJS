@@ -91,8 +91,6 @@ export default fics<Data, { lang: string }>({
           async () => {
             const { id, title, description, completedAt }: Task = getData('task')
 
-            console.log({ id, title, description, completedAt })
-
             await updateTask({ id, title, description })
             completedAt ? await completeTask(id) : await revertTask(id)
 
