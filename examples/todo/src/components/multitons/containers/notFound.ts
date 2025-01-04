@@ -19,8 +19,8 @@ export default fics<Data, { lang: string }>({
   fetch: ({ props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'notFound' }),
   props: {
     descendant: button,
-    values: ({ props: { lang }, getData }) => ({
-      buttonText: getData('buttonText'),
+    values: ({ props: { lang } }) => ({
+      buttonText: ({ getData }) => getData('buttonText'),
       click: () => goto(getPath(lang, '/'))
     })
   },
