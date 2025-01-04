@@ -25,7 +25,7 @@ const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
 
 export default fics<Data, { lang: string }>({
   name: 'tasks',
-  data: () => ({ value: '', placeholder: '', tasks: [] }),
+  data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   fetch: ({ props: { lang } }) => i18n({ directory: '/i18n', lang, key: ['tasks'] }),
   props: [
     {
