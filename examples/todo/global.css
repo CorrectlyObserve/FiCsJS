@@ -1,0 +1,24 @@
+:root {
+  --ex-sm: 0.5rem;
+  --sm: 0.875rem;
+  --md: 1rem;
+  --lg: 1.125rem;
+  --ex-lg: 2rem;
+  --black: #282828;
+  --red: #b7282e;
+  --gradation: linear-gradient(30deg, var(--red) 20%, #e198b4);
+  --error: #cf5d89;
+  --transition: 0.2s ease-out;
+}
+
+body {
+  background: var(--black);
+  margin: 0;
+
+  main {
+    --header-hight: var(--ex-lg) * 1.5 + var(--md) * 2;
+    --footer-height: var(--sm) + var(--md) * 2;
+    min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--ex-lg) * 2));
+    padding: var(--ex-lg);
+  }
+}
