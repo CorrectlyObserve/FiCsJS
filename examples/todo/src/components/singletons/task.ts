@@ -14,16 +14,16 @@ type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
   task: Task
+  title: string
   isError: boolean
+  error: string
+  placeholders: string[]
+  description: string
+  buttonText: string
   heading: string
   status: string
-  title: string
-  error: string
-  description: string
-  placeholders: string[]
-  datetimes: Record<Datetime, string>
-  buttonText: string
   texts: string[]
+  datetimes: Record<Datetime, string>
   confirmation: string
 }
 
@@ -35,10 +35,13 @@ export default fics<Data, { lang: string }>({
   name: 'task',
   data: () => ({
     task: {} as Task,
+    title: '',
     isError: false,
-    texts: [],
+    error: '',
     placeholders: [],
-    buttonText: ''
+    description: '',
+    buttonText: '',
+    texts: []
   }),
   fetch: async ({ props: { lang } }) => ({
     ...(await i18n<Data>({ directory: '/i18n', lang, key: 'task' })),
@@ -60,7 +63,9 @@ export default fics<Data, { lang: string }>({
       descendant: input,
       values: ({ setData }) => ({
         id: 'title',
+        label: ({ getData }) => getData('title'),
         isError: ({ getData }) => getData('isError'),
+        error: ({ getData }) => getData('error'),
         value: ({ getData }) => getData('task').title,
         placeholder: ({ getData }) => getData('placeholders')[0],
         input:
@@ -73,8 +78,9 @@ export default fics<Data, { lang: string }>({
       descendant: textarea,
       values: ({ setData }) => ({
         id: 'description',
-        value: ({ getData }) => getData('task').description,
+        label: ({ getData }) => getData('description'),
         placeholder: ({ getData }) => getData('placeholders')[1],
+        value: ({ getData }) => getData('task').description,
         input:
           ({ getData }) =>
           (description: string) =>
@@ -103,17 +109,12 @@ export default fics<Data, { lang: string }>({
   html: ({
     data: {
       task,
-      isError,
       heading,
       status,
       texts: [complete, revert, ...args],
-      title,
-      error,
-      description,
       datetimes
     },
     template,
-    show,
     isLoaded
   }) => {
     if (!isLoaded) return template`${loadingIcon}`
@@ -128,12 +129,7 @@ export default fics<Data, { lang: string }>({
             <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
           </div>
         </fieldset>
-        <fieldset>
-          <label for="title">${title}</label>
-          <p class="error" ${show(isError)}>${error}</p>
-          ${input}
-        </fieldset>
-        <fieldset><label for="description">${description}</label>${textarea}</fieldset>
+        <fieldset>${input}</fieldset><fieldset>${textarea}</fieldset>
         ${Object.entries(datetimes).map(
           ([key, value]) => template`<p>${value}${getTimestamp(task[key as Datetime])}</p>`
         )}
@@ -158,12 +154,12 @@ export default fics<Data, { lang: string }>({
           { selector: '> span', style: { marginBottom: variable('ex-sm') } },
           {
             selector: 'div',
-            style: { display: 'flex', alignItems: 'center', flexDirection: 'row' }
-          },
-          { selector: 'label', style: { marginBottom: variable('ex-sm') } },
-          {
-            selector: 'p.error',
-            style: { color: variable('error'), marginBottom: variable('ex-sm'), textAlign: 'left' }
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              flexDirection: 'row',
+              marginTop: variable('ex-sm')
+            }
           }
         ]
       },
