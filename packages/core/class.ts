@@ -57,7 +57,6 @@ export default class FiCsElement<D extends object, P extends object> {
   #isLoaded?: boolean
   #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
-  #isReflecting: boolean = false
 
   constructor({
     name,
@@ -1032,12 +1031,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    if (this.#isReflecting) {
-      // throw new Error(
-      //   `"${key as string}" cannot be not changed in updated hook of ${this.#name}...`
-      // )
-    }
-
     if (this.#data[key] !== value) {
       this.#data[key] = value
       this.#enqueue(() => this.#reRender(), 're-render')
@@ -1047,13 +1040,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
-
-        this.#isReflecting = true
         this.#hooks.updated[key]?.({
           setData: this.#getDataPropsMethods().setData,
           datum: this.#data[key]
         })
-        this.#isReflecting = false
       }
     }
   }
