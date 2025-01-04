@@ -28,7 +28,6 @@ import type {
   SingleOrArray
 } from './types'
 
-const reservedWords: Record<string, true> = { var: true, router: true, link: true }
 const names: Record<string, number> = {}
 const generator: Generator<number> = generateUid()
 
@@ -75,7 +74,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }: FiCs<D, P>) {
     name = this.#convertStr(name, 'kebab')
 
-    if (!isExceptional && reservedWords[name])
+    if (!isExceptional && { var: true, router: true }[name])
       throw new Error(`"${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
