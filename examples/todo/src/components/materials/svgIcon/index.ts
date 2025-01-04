@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/css'
+import { calc, scale, variable } from 'ficsjs/css'
 import css from './style.css?inline'
 
 export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
@@ -11,6 +11,7 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
       selector: 'button',
       style: { background: 'none', padding: variable('ex-sm') },
       nested: [
+        { selector: '&:focus', style: { transform: scale(0.8) } },
         {
           selector: '&.loading',
           style: { display: 'block', marginInline: 'auto' },
