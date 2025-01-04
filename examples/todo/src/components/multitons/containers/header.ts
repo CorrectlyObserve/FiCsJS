@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
 import { variable } from 'ficsjs/css'
+import { goto } from 'ficsjs/router'
 import { getState } from 'ficsjs/state'
 import langs from '@/components/multitons/containers/langs'
 import { getPath } from '@/utils'
@@ -15,8 +16,8 @@ export default fics({
       pathname: ({ getData }) => getData('pathname')
     })
   },
-  html: ({ data: { lang }, template }) =>
-    template`<header><h1><a href="${getPath(lang, '/')}">FiCs ToDo</a></h1><div>${langs}</div></header>`,
+  html: ({ template }) =>
+    template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>`,
   css: [
     { style: { display: 'block' } },
     {
@@ -30,12 +31,13 @@ export default fics({
       },
       nested: [
         {
-          selector: '> h1',
+          selector: '> h1[tabindex]',
           style: {
             background: variable('gradation'),
             backgroundClip: 'text',
             webkitTextFillColor: 'transparent'
-          }
+          },
+          nested: { selector: '&:focus', style: { opacity: 0.5 } }
         },
         {
           selector: '> div',
@@ -58,5 +60,8 @@ export default fics({
       if (pathname.split('/')[0] === lang) pathname = pathname.slice(3)
       setData('pathname', pathname)
     }
+  },
+  actions: {
+    h1: { click: ({ data: { lang } }) => goto(getPath(lang, '/')) }
   }
 })
