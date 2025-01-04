@@ -1,7 +1,8 @@
 import { fics } from 'ficsjs'
+import { calc, variable } from 'ficsjs/css'
 import i18n from 'ficsjs/i18n'
-import { goto } from 'ficsjs/router'
-import loadingIcon from '@/components/materials/loadingIcon'
+import { getParams, goto } from 'ficsjs/router'
+import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import textarea from '@/components/materials/textarea'
 import button from '@/components/materials/button'
@@ -13,8 +14,11 @@ type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
   task: Task
+  isError: boolean
   heading: string
+  status: string
   title: string
+  error: string
   description: string
   placeholders: string[]
   datetimes: Record<Datetime, string>
@@ -23,167 +27,169 @@ interface Data {
   confirmation: string
 }
 
+const checkIcon = svgIcon.extend({ icon: 'check' })
+const circleIcon = svgIcon.extend({ icon: 'circle' })
 const backToTaskList = (lang: string) => goto(getPath(lang, '/todo'))
 
-export default fics<Data, { lang: string; id: number }>({
+export default fics<Data, { lang: string }>({
   name: 'task',
   data: () => ({
     task: {} as Task,
-    heading: '',
-    title: '',
-    description: '',
-    placeholders: [],
-    datetimes: {} as Record<Datetime, string>,
-    buttonText: '',
+    isError: false,
     texts: [],
-    confirmation: ''
+    placeholders: [],
+    buttonText: ''
   }),
-  fetch: async ({ $props: { lang } }) => ({
+  fetch: async ({ props: { lang } }) => ({
     ...(await i18n<Data>({ directory: '/i18n', lang, key: 'task' })),
     confirmation: await i18n({ directory: '/i18n', lang, key: ['tasks', 'confirmation'] })
   }),
   props: [
     {
+      descendant: [checkIcon, circleIcon],
+      values: ({ setData }) => ({
+        click:
+          ({ getData }) =>
+          () => {
+            const task: Task = getData('task')
+            setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() })
+          }
+      })
+    },
+    {
       descendant: input,
-      values: [
-        { key: 'id', content: () => 'title' },
-        {
-          key: 'value',
-          dataKey: 'task',
-          content: ({
-            $data: {
-              task: { title }
-            }
-          }) => title
-        },
-        {
-          key: 'placeholder',
-          dataKey: 'placeholders',
-          content: ({ $data: { placeholders } }) => placeholders[0]
-        },
-        {
-          key: 'input',
-          dataKey: 'task',
-          content:
-            ({ $data: { task }, $setData }) =>
-            (title: string) =>
-              $setData('task', { ...task, title })
-        }
-      ]
+      values: ({ setData }) => ({
+        id: 'title',
+        isError: ({ getData }) => getData('isError'),
+        value: ({ getData }) => getData('task').title,
+        placeholder: ({ getData }) => getData('placeholders')[0],
+        input:
+          ({ getData }) =>
+          (title: string) =>
+            setData('task', { ...getData('task'), title })
+      })
     },
     {
       descendant: textarea,
-      values: [
-        { key: 'id', content: () => 'description' },
-        {
-          key: 'value',
-          dataKey: 'task',
-          content: ({
-            $data: {
-              task: { description }
-            }
-          }) => description
-        },
-        {
-          key: 'placeholder',
-          dataKey: 'placeholders',
-          content: ({ $data: { placeholders } }) => placeholders[1]
-        },
-        {
-          key: 'input',
-          dataKey: 'task',
-          content:
-            ({ $data: { task }, $setData }) =>
-            (description: string) =>
-              $setData('task', { ...task, description })
-        }
-      ]
+      values: ({ setData }) => ({
+        id: 'description',
+        value: ({ getData }) => getData('task').description,
+        placeholder: ({ getData }) => getData('placeholders')[1],
+        input:
+          ({ getData }) =>
+          (description: string) =>
+            setData('task', { ...getData('task'), description })
+      })
     },
     {
       descendant: button,
-      values: [
-        { key: 'buttonText', content: ({ $data: { buttonText } }) => buttonText },
-        {
-          key: 'click',
-          dataKey: 'task',
-          content:
-            ({
-              $data: {
-                task: { title, description }
-              },
-              $props: { id, lang },
-              $setData
-            }) =>
-            async () => {
-              await updateTask({ id, title, description })
-              $setData('task', await getTask(id))
-              backToTaskList(lang)
-            }
-        }
-      ]
+      values: ({ props: { lang }, setData }) => ({
+        buttonText: ({ getData }) => getData('buttonText'),
+        isDisabled: ({ getData }) => getData('isError'),
+        click:
+          ({ getData }) =>
+          async () => {
+            const { id, title, description, completedAt }: Task = getData('task')
+
+            console.log({ id, title, description, completedAt })
+
+            await updateTask({ id, title, description })
+            completedAt ? await completeTask(id) : await revertTask(id)
+
+            setData('task', await getTask(id))
+            backToTaskList(lang)
+          }
+      })
     }
   ],
   html: ({
-    $data: {
+    data: {
       task,
+      isError,
       heading,
+      status,
+      texts: [complete, revert, ...args],
       title,
+      error,
       description,
-      datetimes,
-      texts: [complete, revert, ...args]
+      datetimes
     },
-    $template,
-    $isLoaded
+    template,
+    show,
+    isLoaded
   }) => {
-    if (!$isLoaded) return $template`${loadingIcon}`
+    if (!isLoaded) return template`${loadingIcon}`
 
-    return $template`
+    return template`
       <h2>${heading}</h2>
       <div class="container">
-        <fieldset><label for="title">${title}</label>${input}</fieldset>
+        <fieldset>
+          <label>${status}</label>
+          <div>
+            ${task.completedAt ? checkIcon : circleIcon}
+            <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
+          </div>
+        </fieldset>
+        <fieldset>
+          <label for="title">${title}</label>
+          <p class="error" ${show(isError)}>${error}</p>
+          ${input}
+        </fieldset>
         <fieldset><label for="description">${description}</label>${textarea}</fieldset>
         ${Object.entries(datetimes).map(
-          ([key, value]) => $template`<p>${value}${getTimestamp(task[key as Datetime])}</p>`
+          ([key, value]) => template`<p>${value}${getTimestamp(task[key as Datetime])}</p>`
         )}
         ${button}
-        <div>
-          ${[task.completedAt ? revert : complete, ...args].map(
-            text => $template`<span role="button" tabindex="0">${text}</span>`
-          )}
-        </div>
+        <div>${args.map(text => template`<span role="button" tabindex="0">${text}</span>`)}</div>
       </div>
     `
   },
   css: {
     selector: 'div.container',
-    style: { width: 'calc(var(--md) * 20)', marginInline: 'auto' },
+    style: { width: calc([variable('md'), 20], '*'), marginInline: 'auto' },
     nested: [
       {
         selector: 'fieldset',
-        style: { display: 'flex', flexDirection: 'column', marginBottom: 'var(--md)', border: 0 },
-        nested: { selector: 'label', style: { marginBottom: 'var(--ex-sm)' } }
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          marginBottom: variable('md'),
+          border: 0
+        },
+        nested: [
+          { selector: '> span', style: { marginBottom: variable('ex-sm') } },
+          {
+            selector: 'div',
+            style: { display: 'flex', alignItems: 'center', flexDirection: 'row' }
+          },
+          { selector: 'label', style: { marginBottom: variable('ex-sm') } },
+          {
+            selector: 'p.error',
+            style: { color: variable('error'), marginBottom: variable('ex-sm'), textAlign: 'left' }
+          }
+        ]
       },
       {
         selector: 'p',
-        style: { marginBottom: 'var(--ex-sm)', textAlign: 'left' },
-        nested: { selector: ':last-of-type', style: { marginBottom: 'var(--ex-lg)' } }
+        style: { marginBottom: variable('ex-sm'), textAlign: 'left' },
+        nested: { selector: ':last-of-type', style: { marginBottom: variable('ex-lg') } }
       },
       {
-        selector: 'div',
-        style: { display: 'flex', flexDirection: 'column', marginTop: 'var(--ex-lg)' },
+        selector: '> div',
+        style: { display: 'flex', flexDirection: 'column', marginTop: variable('ex-lg') },
         nested: [
           {
             selector: 'span',
             style: {
               marginInline: 'auto',
-              marginBottom: 'var(--ex-lg)',
+              marginBottom: variable('ex-lg'),
               textDecoration: 'underline',
-              transition: 'var(--transition)'
+              transition: variable('transition')
             },
             nested: [
               {
-                selector: ':nth-of-type(2)',
-                style: { color: 'var(--red)' },
+                selector: ':first-of-type',
+                style: { color: variable('red') },
                 nested: { selector: ':focus', style: { opacity: 0.2 } }
               },
               { selector: ':hover', style: { cursor: 'pointer', opacity: 0.5 } }
@@ -193,47 +199,41 @@ export default fics<Data, { lang: string; id: number }>({
       }
     ]
   },
-  actions: [
-    {
-      handler: 'click',
-      selector: 'span:first-of-type',
-      method: async ({
-        $data: {
-          task: { id, completedAt }
-        },
-        $setData
-      }) => {
-        completedAt ? await revertTask(id) : await completeTask(id)
-        $setData('task', await getTask(id))
-      },
-      options: { throttle: 500, blur: true }
+  actions: {
+    'fieldset span': {
+      click: [
+        ({ data: { task }, setData }) =>
+          setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() }),
+        { throttle: 500, blur: true }
+      ]
     },
-    {
-      handler: 'click',
-      selector: 'span:nth-of-type(2)',
-      method: async ({
-        $data: {
-          task: { id },
-          confirmation
+    'div.container > div span:first-of-type': {
+      click: [
+        async ({
+          data: {
+            task: { id },
+            confirmation
+          },
+          props: { lang }
+        }) => {
+          if (window.confirm(confirmation)) {
+            await deleteTask(id)
+            backToTaskList(lang)
+          }
         },
-        $props: { lang }
-      }) => {
-        if (window.confirm(confirmation)) {
-          await deleteTask(id)
-          backToTaskList(lang)
-        }
-      },
-      options: { throttle: 500, blur: true }
+        { throttle: 500, blur: true }
+      ]
     },
-    {
-      handler: 'click',
-      selector: 'span:last-of-type',
-      method: ({ $props: { lang } }) => backToTaskList(lang),
-      options: { throttle: 500, blur: true }
+    'div.container > div span:last-of-type': {
+      click: [({ props: { lang } }) => backToTaskList(lang), { throttle: 500, blur: true }]
     }
-  ],
+  },
   hooks: {
-    mounted: async ({ $props: { id }, $setData }) => $setData('task', await getTask(id))
+    mounted: async ({ setData }) =>
+      setData('task', await getTask(Number(getParams('path').id), () => goto('/404'))),
+    updated: {
+      task: async ({ datum, setData }) => setData('isError', datum.title === '')
+    }
   },
   options: { lazyLoad: true }
 })
