@@ -1,17 +1,23 @@
 import { fics } from 'ficsjs'
+import { variable } from 'ficsjs/css'
 
 interface Props {
   id?: string
-  value: string
+  label?: string
   placeholder: string
+  value: string
   input: (value: string) => void
   blur?: () => void
 }
 
 export default fics<{}, Props>({
   name: 'textarea',
-  html: ({ props: { id, value, placeholder }, template }) =>
-    template`<textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>`,
+  html: ({ props: { id, label, placeholder, value }, template }) =>
+    template`
+      ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
+      <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
+    `,
+  css: { selector: 'label', style: { marginBottom: variable('ex-sm') } },
   actions: {
     textarea: {
       input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
