@@ -2,12 +2,19 @@ import { color, calc, scale, variable } from 'ficsjs/css'
 
 export default [
   {
+    selector: ['*[tabindex]', 'button', 'label', 'a'],
+    style: { transition: variable('transition') }
+  },
+  {
     selector: '*',
     style: { padding: 0, margin: 0, boxSizing: 'border-box' },
     nested: {
       selector: '[tabindex]',
-      style: { cursor: 'pointer' },
-      nested: { selector: ':focus', style: { color: variable('red'), outline: 'none' } }
+      style: {},
+      nested: [
+        { selector: ':hover', style: { cursor: 'pointer', opacity: 0.5 } },
+        { selector: ':focus', style: { color: variable('red'), outline: 'none' } }
+      ]
     }
   },
   { selector: ['h1', 'h2'], style: { textAlign: 'center', lineHeight: 1.5 } },
@@ -25,23 +32,28 @@ export default [
     style: { fontSize: variable('lg'), color: '#fff' },
     nested: [
       { selector: ':is(li)', style: { lineHeight: 1.8 } },
+      {
+        selector: ':is(label)',
+        style: { display: 'inline-block' },
+        nested: { selector: ':hover', style: { cursor: 'pointer', opacity: 0.5 } }
+      },
       { selector: ':not(li, label)', style: { textAlign: 'center', lineHeight: 1 } },
       { selector: ':is(span)', style: { width: 'fit-content' } }
     ]
   },
   {
     selector: 'button',
-    style: { transition: variable('transition'), border: 'none', outline: 'none' },
+    style: { border: 'none', outline: 'none' },
     nested: [
       {
-        selector: ':not([disabled])',
-        style: { cursor: 'pointer' },
+        selector: ':not([aria-disabled="true"])',
+        style: {},
         nested: [
-          { selector: ':hover', style: { opacity: 0.5 } },
+          { selector: ':hover', style: { cursor: 'pointer', opacity: 0.5 } },
           { selector: ':focus', style: { transform: scale(0.8) } }
         ]
       },
-      { selector: '[disabled]', style: { cursor: 'not-allowed' } }
+      { selector: '[aria-disabled="true"]', style: { cursor: 'not-allowed' } }
     ]
   },
   {
@@ -82,9 +94,13 @@ export default [
       width: '100%',
       display: 'inline-block',
       color: 'inherit',
-      cursor: 'pointer',
       lineHeight: 'inherit',
-      textDecoration: 'none'
-    }
+      textDecoration: 'none',
+      outline: 'none'
+    },
+    nested: [
+      { selector: ':hover', style: { cursor: 'pointer' } },
+      { selector: ':focus', style: { opacity: 0.5 } }
+    ]
   }
 ]
