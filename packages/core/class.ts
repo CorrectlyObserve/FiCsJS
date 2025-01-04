@@ -10,6 +10,7 @@ import type {
   Css,
   CssContent,
   DataProps,
+  DataPropsMethods,
   Descendant,
   FiCs,
   GlobalCssContent,
@@ -24,7 +25,6 @@ import type {
   PropsTree,
   Queue,
   Sanitized,
-  SetData,
   SingleOrArray
 } from './types'
 
@@ -48,8 +48,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #css: Css<D, P> = new Array()
   readonly #actions: Actions<D, P> = {}
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
-  readonly #options: Options = { immutable: false, ssr: true, lazyLoad: false, rootMargin: '0px' }
-  readonly #propsTrees: PropsTree<D>[] = new Array()
+  readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #propsTrees: PropsTree[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
@@ -85,14 +85,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
-      const { immutable, ssr, lazyLoad, rootMargin }: Options = options
-
-      if (immutable) {
-        if (data)
-          throw new Error(`${this.#name} is an immutable component, so it cannot define data...`)
-
-        this.#options.immutable = immutable
-      }
+      const { ssr, lazyLoad, rootMargin }: Options = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -106,7 +99,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (data) {
-      for (const [key, value] of Object.entries(data())) this.#data[key as keyof D] = value
+      for (const [key, value] of Object.entries(data()))
+        this.#data[key as keyof D] = value as D[keyof D]
 
       if (fetch) {
         this.#fetch = fetch
@@ -121,15 +115,12 @@ export default class FiCsElement<D extends object, P extends object> {
     if (props) this.#propsSources = convertToArray(props)
 
     if (className) {
-      if (!this.#options.immutable && typeof className === 'function')
-        this.#bindings.isClassName = true
-
+      if (typeof className === 'function') this.#bindings.isClassName = true
       this.#className = className
     }
 
     if (attributes) {
-      if (!this.#options.immutable && typeof attributes === 'function') this.#bindings.isAttr = true
-
+      if (typeof attributes === 'function') this.#bindings.isAttr = true
       this.#attrs = attributes
     }
 
@@ -151,24 +142,20 @@ export default class FiCsElement<D extends object, P extends object> {
     enqueue({ ficsId: this.#ficsId, func, key })
   }
 
-  #getSetData(): SetData<D> {
+  #getDataPropsMethods(): DataPropsMethods<D, P> {
     return {
-      setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value)
-    }
-  }
-
-  #getDataProps<B extends boolean>(): DataProps<D, P, B> {
-    return {
-      ...(this.#options.immutable
-        ? { data: {} as D, props: {} as P }
-        : { data: { ...this.#data }, props: { ...this.#props } }),
-      ...this.#getSetData()
+      data: { ...this.#data },
+      props: { ...this.#props },
+      setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
+      getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
   }
 
   async #awaitData(): Promise<void> {
     if (this.#fetch) {
-      for (const [key, value] of Object.entries(await this.#fetch(this.#getDataProps())))
+      const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
+
+      for (const [key, value] of Object.entries(await this.#fetch({ data, props })))
         this.setData(key as keyof D, value as D[keyof D])
 
       this.#isLoaded = true
@@ -198,45 +185,55 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
         if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
 
-      for (const { descendant, values } of this.#propsSources ?? [])
+      for (const { descendant, values } of this.#propsSources)
         for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
-          if (_descendant.#options.immutable)
-            throw new Error(
-              `${this.#name} is an immutable component, so it cannot receive props...`
-            )
-
+          const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods()
           const descendantId: string = _descendant.#ficsId
 
-          for (const { dataKey, key, content } of convertToArray(values)) {
+          for (const [key, value] of Object.entries(values({ data, props, setData }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            const getContent = (): any => content(this.#getDataProps<true>())
-            propsChain.set(descendantId, { ...chain, [key]: getContent() })
+            if (typeof value === 'function' && /getData/.test(value.toString())) {
+              const keys: Record<string, true> = { [key]: true }
+              const _value: any = value({
+                getData: <K extends keyof D>(_key: K): D[K] => {
+                  if (key !== _key) keys[_key as string] = true
+                  return this.getData(_key)
+                }
+              })
 
-            const last: number = this.#propsTrees.length - 1
-            const tree: PropsTree<D> = {
-              numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-              setProps: (_key: keyof D): void => {
-                if (dataKey ? convertToArray(dataKey).includes(_key) : key === _key)
-                  _descendant.#setProps(key, getContent())
+              propsChain.set(descendantId, { ...chain, [key]: _value })
+
+              if (typeof _value !== 'function') {
+                const tree: PropsTree = {
+                  numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                  keys,
+                  setProps: (): void =>
+                    _descendant.#setProps(
+                      key,
+                      value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
+                    )
+                }
+                const last: number = this.#propsTrees.length - 1
+                const isExLargerNumberId = (index: number): boolean =>
+                  this.#propsTrees[index].numberId >= tree.numberId
+
+                if (last > 2) {
+                  let min: number = 0
+                  let max: number = last
+
+                  while (min <= max) {
+                    const mid: number = Math.floor((min + max) / 2)
+                    isExLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+                  }
+
+                  this.#propsTrees.splice(min, 0, tree)
+                } else
+                  this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
               }
-            }
-            const isExLargerNumberId = (index: number): boolean =>
-              this.#propsTrees[index].numberId >= tree.numberId
-
-            if (last > 2) {
-              let min: number = 0
-              let max: number = last
-
-              while (min <= max) {
-                const mid: number = Math.floor((min + max) / 2)
-                isExLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
-              }
-
-              this.#propsTrees.splice(min, 0, tree)
-            } else this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
+            } else propsChain.set(descendantId, { ...chain, [key]: value })
           }
         }
 
@@ -246,18 +243,23 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addClassName(component: HTMLElement): void {
-    if (this.#className)
+    if (this.#className) {
+      const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
+
       component.setAttribute(
         'class',
         typeof this.#className === 'function'
-          ? this.#className(this.#getDataProps())
+          ? this.#className({ data, props })
           : (this.#className ?? '')
       )
+    }
   }
 
   #addAttrs(component: HTMLElement): void {
+    const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
+
     for (const [key, value] of Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+      typeof this.#attrs === 'function' ? this.#attrs({ data, props }) : (this.#attrs ?? [])
     ))
       component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
@@ -305,7 +307,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     const contents: HtmlContent<D, P>[] = this.#html({
-      ...this.#getDataProps<true>(),
+      ...this.#getDataPropsMethods(),
       template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
@@ -399,10 +401,10 @@ export default class FiCsElement<D extends object, P extends object> {
         const createCssContent = (host: string): string => {
           if (curr[mode] === false) return ''
 
-          const entries: [string, string | number | undefined][] = Object.entries(
-            typeof curr.style === 'function' ? curr.style(this.#getDataProps()) : curr.style
+          const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
+          const content: string = Object.entries(
+            typeof curr.style === 'function' ? curr.style({ data, props }) : curr.style
           )
-          const content: string = entries
             .map(([key, value]) => {
               if (value === undefined) return ''
 
@@ -460,8 +462,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...this.#getDataProps<true>(), poll })
-    } else this.#hooks[key]?.(this.#getDataProps())
+      this.#hooks[key]?.({ ...this.#getDataPropsMethods(), poll })
+    } else this.#hooks[key]?.(this.#getDataPropsMethods())
   }
 
   async #renderOnServer(doc: Document, propsChain?: PropsChain<P>): Promise<HTMLElement> {
@@ -759,7 +761,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (allCss.length === 0) return
 
-    if (!this.#options.immutable && !css) {
+    if (!css) {
       const bindNestedCss = (
         parentIndex: number,
         nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent>
@@ -852,7 +854,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const callback = (event: Event): void => {
       method({
-        ...this.#getDataProps<true>(),
+        ...this.#getDataPropsMethods(),
         event,
         attributes: attrs,
         value:
@@ -969,7 +971,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css.length > 0) {
       const renewedCss: Css<D, P> = []
-
       const getRenewedCss = (css: Bindings<D, P>['css']): void => {
         for (const _css of css) {
           if (!_css) continue
@@ -985,26 +986,25 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
     }
 
-    if (!this.#options.immutable)
-      for (const [selector, value] of Object.entries(this.#actions)) {
-        const addAllElements = (elements: Element[] | Set<Element>): void => {
-          for (const element of elements) {
-            if (element instanceof Element && !this.#newElements.has(element))
-              this.#newElements.add(element)
+    for (const [selector, value] of Object.entries(this.#actions)) {
+      const addAllElements = (elements: Element[] | Set<Element>): void => {
+        for (const element of elements) {
+          if (element instanceof Element && !this.#newElements.has(element))
+            this.#newElements.add(element)
 
-            addAllElements(this.#getChildNodes(element) as Element[])
-          }
+          addAllElements(this.#getChildNodes(element) as Element[])
         }
-
-        addAllElements(this.#newElements)
-
-        for (const element of this.#getElements(component, selector))
-          if (this.#newElements.has(element))
-            for (const [handler, _value] of Object.entries(value))
-              Array.isArray(_value)
-                ? this.#addEventListener(element, handler, _value[0], _value[1])
-                : this.#addEventListener(element, handler, _value)
       }
+
+      addAllElements(this.#newElements)
+
+      for (const element of this.#getElements(component, selector))
+        if (this.#newElements.has(element))
+          for (const [handler, _value] of Object.entries(value))
+            Array.isArray(_value)
+              ? this.#addEventListener(element, handler, _value[0], _value[1])
+              : this.#addEventListener(element, handler, _value)
+    }
 
     this.#newElements.clear()
   }
@@ -1032,23 +1032,27 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    if (this.#isReflecting)
-      throw new Error(
-        `"${key as string}" cannot be not changed in updated hook of ${this.#name}...`
-      )
-
-    this.#throwKeyError(key)
+    if (this.#isReflecting) {
+      // throw new Error(
+      //   `"${key as string}" cannot be not changed in updated hook of ${this.#name}...`
+      // )
+    }
 
     if (this.#data[key] !== value) {
       this.#data[key] = value
       this.#enqueue(() => this.#reRender(), 're-render')
 
-      for (const { setProps } of this.#propsTrees) setProps(key)
+      for (const { keys, setProps } of this.#propsTrees)
+        if (typeof key === 'string' && keys[key]) setProps()
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
+
         this.#isReflecting = true
-        this.#hooks.updated[key]?.({ ...this.#getSetData(), datum: this.#data[key] })
+        this.#hooks.updated[key]?.({
+          setData: this.#getDataPropsMethods().setData,
+          datum: this.#data[key]
+        })
         this.#isReflecting = false
       }
     }
