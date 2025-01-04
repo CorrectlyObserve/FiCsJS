@@ -1,0 +1,66 @@
+div {
+  &.menu {
+    margin-bottom: var(--ex-lg);
+
+    div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--md);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      f-input {
+        margin-right: var(--md);
+      }
+    }
+  }
+
+  &.task {
+    width: 60%;
+    display: flex;
+    align-items: center;
+    margin-inline: auto;
+    margin-bottom: var(--ex-sm);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    div {
+      width: calc(100% - var(--lg) * 1.5 - var(--ex-sm) * 2);
+      display: flex;
+      align-items: center;
+
+      span {
+        width: 100%;
+        display: flex;
+        text-align: left;
+        margin-inline: var(--ex-sm);
+        overflow-x: hidden;
+        transition: var(--transition) allow-discrete;
+
+        &.done {
+          text-decoration: line-through;
+        }
+
+        a {
+          padding-block: var(--ex-sm);
+          white-space: nowrap;
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  span {
+    transition: var(--transition);
+
+    &:hover {
+      opacity: 0.5;
+    }
+  }
+}

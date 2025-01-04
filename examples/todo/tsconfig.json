@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
+    "strict": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "baseUrl": "./",
+    "paths": {
+      "ficsjs/css": ["./../../packages/css/index"],
+      "ficsjs/i18n": ["./../../packages/i18n/index"],
+      "ficsjs/router": ["./../../packages/router/index"],
+      "ficsjs/state": ["./../../packages/state/index"],
+      "ficsjs": ["./../../packages/core/index"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "main.ts"]
+}
