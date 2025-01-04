@@ -1,0 +1,40 @@
+{
+  "topPage": {
+    "headings": ["このToDoアプリについて", "FiCsJSの特徴"],
+    "descriptions": [
+      "このアプリケーションはFiCsJSで作られており、他のJavaScriptフレームワークは使用していません。",
+      "\"FiCs\"とは、Framework-independent Componentsの略で、フレームワークに依存せずにコンポーネント開発ができるフレームワークです。",
+      "FiCsJSはコンポーネント開発に特化していますが、ルーティングの機能や状態管理の機能も提供されているため、FiCsJSのみでWebアプリケーションを開発することもできます。"
+    ],
+    "features": [
+      "フレームワークに依存しない、自由なコンポーネント開発が可能",
+      "糖衣構文を使用せず、JavaScriptエコシステムとの調和している",
+      "Web Componentsベースによるブラウザネイティブ"
+    ],
+    "conversion": "それでは、実際にFiCsJSで開発されたToDoアプリを使ってみましょう！",
+    "buttonText": "ToDoアプリを始める"
+  },
+  "tasks": {
+    "heading": "タスク一覧",
+    "placeholder": "タスクを追加する",
+    "checkbox": "完了済みのタスクを表示する",
+    "confirmation": "本当にタスクを削除しますか？\n一度削除すると、元に戻すことはできません。",
+    "unapplicable": "タスクがありません。"
+  },
+  "task": {
+    "heading": "タスク詳細",
+    "status": "ステータス",
+    "texts": ["完了する", "未完了にする", "削除する", "タスク一覧に戻る"],
+    "title": "タイトル",
+    "error": "1文字以上入力してください",
+    "description": "説明",
+    "placeholders": ["タイトルを入力してください", "説明文を入力してください"],
+    "datetimes": { "createdAt": "作成日時: ", "updatedAt": "更新日時: " },
+    "buttonText": "保存する"
+  },
+  "notFound": {
+    "heading": "ページが存在しません",
+    "descriptions": ["あと", "秒後にトップページに遷移します。"],
+    "buttonText": "トップページへ戻る"
+  }
+}
