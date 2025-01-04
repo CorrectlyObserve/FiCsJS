@@ -56,7 +56,7 @@ export type Descendant = FiCsElement<any, any>
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional: boolean
-  data?: () => D
+  data?: () => Partial<D>
   fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
@@ -123,14 +123,19 @@ export interface PollingOptions {
 
 export interface Props<D, P> {
   descendant: SingleOrArray<Descendant>
-  values: (params: DataPropsMethods<D, P>) => Record<string, any>
+  values: (
+    params: Omit<DataPropsMethods<D, P>, 'getData'>
+  ) =>
+    | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => any>
+    | Record<string, any>
 }
 
 export type PropsChain<P> = Map<string, Record<string, P>>
 
-export interface PropsTree<D> {
+export interface PropsTree {
   numberId: number
-  setProps: (propsKey: string, value: D[keyof D]) => void
+  keys: Record<string, true>
+  setProps: () => void
 }
 
 export interface Queue {
