@@ -8,7 +8,7 @@ export default async <T>({
 }: {
   directory: string
   lang: string
-  key: SingleOrArray
+  key: SingleOrArray<string>
 }): Promise<T> =>
   await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
