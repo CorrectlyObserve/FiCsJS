@@ -10,7 +10,7 @@ interface Props {
 export default fics<{}, Props>({
   name: 'button',
   html: ({ props: { buttonText, isDisabled }, template }) =>
-    template`<button ${isDisabled ? 'disabled' : ''}>${buttonText}</button>`,
+    template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
   css: [
     { style: { display: 'block', textAlign: 'center' } },
     {
