@@ -89,8 +89,8 @@ export interface Hooks<D, P> {
   mounted?: (params: DataPropsMethods<D, P> & Poll) => void
   updated?: {
     [K in keyof Partial<D>]: (params: {
+      datum: D[K]
       setData: DataPropsMethods<D, P>['setData']
-      datum?: D[K]
     }) => void
   }
   destroyed?: (params: DataPropsMethods<D, P>) => void
