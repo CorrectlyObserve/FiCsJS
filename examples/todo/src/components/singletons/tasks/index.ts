@@ -30,32 +30,41 @@ export default fics<Data, { lang: string }>({
   props: [
     {
       descendant: input,
-      values: ({ setData, getData }) => ({
-        value: getData('value'),
-        placeholder: getData('placeholder'),
+      values: ({ setData }) => ({
+        value: ({ getData }) => getData('value'),
+        placeholder: ({ getData }) => getData('placeholder'),
         input: (value: string) => setData('value', value),
-        enterKey: async () => {
-          setData('tasks', await addTask(getData('value')))
-          setData('value', '')
-        }
+        enterKey:
+          ({ getData }) =>
+          async () => {
+            setData('tasks', await addTask(getData('value')))
+            setData('value', '')
+          }
       })
     },
     {
       descendant: addIcon,
-      values: ({ setData, getData }) => ({
-        click: async () => {
-          const value = getData('value')
+      values: ({ setData }) => ({
+        click:
+          ({ getData }) =>
+          async () => {
+            const value = getData('value')
 
-          if (value !== '') {
-            setData('tasks', await addTask(value))
-            setData('value', '')
+            if (value !== '') {
+              setData('tasks', await addTask(value))
+              setData('value', '')
+            }
           }
-        }
       })
     },
     {
       descendant: [squareIcon, checkSquareIcon],
-      values: ({ setData, getData }) => ({ click: () => setData('isShown', !getData('isShown')) })
+      values: ({ setData }) => ({
+        click:
+          ({ getData }) =>
+          () =>
+            setData('isShown', !getData('isShown'))
+      })
     }
   ],
   html: ({
@@ -82,7 +91,7 @@ export default fics<Data, { lang: string }>({
       ${
         tasks.length > 0
           ? tasks.map(
-              ({ id, title, completedAt }) => template`
+            ({ id, title, completedAt }) => template`
               <div class="task" key="${id}">
                 <div>
                   ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
