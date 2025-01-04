@@ -72,11 +72,7 @@ export default [
       { selector: ':hover', style: { cursor: 'pointer' } },
       {
         selector: ':focus',
-        style: {
-          background: color('#fff', 0.8),
-          color: variable('black'),
-          cursor: 'auto'
-        }
+        style: { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
       }
     ]
   },
