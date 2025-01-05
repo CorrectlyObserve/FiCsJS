@@ -26,17 +26,11 @@ export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
 
-export interface CssContent<D, P> extends CssSelector {
-  style:
-    | Record<string, string | number>
-    | ((dataProps: DataProps<D, P>) => Record<string, string | number> | {})
-  nested?: SingleOrArray<CssContent<D, P>>
-}
-
-interface CssSelector {
-  selector?: SingleOrArray<string>
-  csr?: boolean
-  ssr?: boolean
+export interface CssContent<D, P> {
+  [key: string]:
+    | Style
+    | ((dataProps: DataProps<D, P>) => Style)
+    | [CssContent<D, P>, 'csr' | 'ssr' | undefined]
 }
 
 export type DataProps<D, P> = {
@@ -71,9 +65,8 @@ export interface FiCs<D extends object, P extends object> {
 
 export type GlobalCss = (GlobalCssContent | string)[]
 
-export interface GlobalCssContent extends CssSelector {
-  style: Record<string, string | number | undefined>
-  nested?: SingleOrArray<GlobalCssContent>
+export interface GlobalCssContent {
+  [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
 }
 
 export type Html<D extends object, P extends object> = (
@@ -147,6 +140,10 @@ export interface Queue {
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export type SingleOrArray<T> = T | T[]
+
+interface Style {
+  [key: string]: string | number | undefined | Style
+}
 
 export interface Syntaxes<D extends object, P extends object> {
   props: P
