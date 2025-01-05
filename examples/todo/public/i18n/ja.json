@@ -1,19 +1,4 @@
 {
-  "topPage": {
-    "headings": ["このToDoアプリについて", "FiCsJSの特徴"],
-    "descriptions": [
-      "このアプリケーションはFiCsJSで作られており、他のJavaScriptフレームワークは使用していません。",
-      "\"FiCs\"とは、Framework-independent Componentsの略で、フレームワークに依存せずにコンポーネント開発ができるフレームワークです。",
-      "FiCsJSはコンポーネント開発に特化していますが、ルーティングの機能や状態管理の機能も提供されているため、FiCsJSのみでWebアプリケーションを開発することもできます。"
-    ],
-    "features": [
-      "フレームワークに依存しない、自由なコンポーネント開発が可能",
-      "糖衣構文を使用せず、JavaScriptエコシステムとの調和している",
-      "Web Componentsベースによるブラウザネイティブ"
-    ],
-    "conversion": "それでは、実際にFiCsJSで開発されたToDoアプリを使ってみましょう！",
-    "buttonText": "ToDoアプリを始める"
-  },
   "tasks": {
     "heading": "タスク一覧",
     "placeholder": "タスクを追加する",
