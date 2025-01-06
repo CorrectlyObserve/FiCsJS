@@ -139,59 +139,41 @@ export default fics<Data, { lang: string }>({
     `
   },
   css: {
-    selector: 'div.container',
-    style: { width: calc([variable('md'), 20], '*'), marginInline: 'auto' },
-    nested: [
-      {
-        selector: 'fieldset',
-        style: {
+    'div.container': {
+      width: calc([variable('md'), 20], '*'),
+      marginInline: 'auto',
+      fieldset: {
+        display: 'flex',
+        flexDirection: 'column',
+        marginBottom: variable('md'),
+        border: 0,
+        '> span': { marginBottom: variable('ex-sm') },
+        div: {
           display: 'flex',
-          flexDirection: 'column',
-          marginBottom: variable('md'),
-          border: 0
-        },
-        nested: [
-          { selector: '> span', style: { marginBottom: variable('ex-sm') } },
-          {
-            selector: 'div',
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              flexDirection: 'row',
-              marginTop: variable('ex-sm')
-            }
-          }
-        ]
+          alignItems: 'center',
+          flexDirection: 'row',
+          marginTop: variable('ex-sm')
+        }
       },
-      {
-        selector: 'p',
-        style: { marginBottom: variable('ex-sm'), textAlign: 'left' },
-        nested: { selector: ':last-of-type', style: { marginBottom: variable('ex-lg') } }
+      p: {
+        marginBottom: variable('ex-sm'),
+        textAlign: 'left',
+        '&:last-of-type': { marginBottom: variable('ex-lg') }
       },
-      {
-        selector: '> div',
-        style: { display: 'flex', flexDirection: 'column', marginTop: variable('ex-lg') },
-        nested: [
-          {
-            selector: 'span',
-            style: {
-              marginInline: 'auto',
-              marginBottom: variable('ex-lg'),
-              textDecoration: 'underline',
-              transition: variable('transition')
-            },
-            nested: [
-              {
-                selector: ':first-of-type',
-                style: { color: variable('red') },
-                nested: { selector: ':focus', style: { opacity: 0.2 } }
-              },
-              { selector: ':hover', style: { cursor: 'pointer', opacity: 0.5 } }
-            ]
-          }
-        ]
+      '> div': {
+        display: 'flex',
+        flexDirection: 'column',
+        marginTop: variable('ex-lg'),
+        span: {
+          marginInline: 'auto',
+          marginBottom: variable('ex-lg'),
+          textDecoration: 'underline',
+          transition: variable('transition'),
+          '&:first-of-type': { color: variable('red'), '&:focus': { opacity: 0.2 } },
+          '&:hover': { cursor: 'pointer', opacity: 0.5 }
+        }
       }
-    ]
+    }
   },
   actions: {
     'fieldset span': {
