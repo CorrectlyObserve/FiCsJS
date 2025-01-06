@@ -30,7 +30,7 @@ export interface CssContent<D, P> {
   [key: string]:
     | Style
     | ((dataProps: DataProps<D, P>) => Style)
-    | [CssContent<D, P>, 'csr' | 'ssr' | undefined]
+    | [Style | ((dataProps: DataProps<D, P>) => Style), 'csr' | 'ssr' | undefined]
 }
 
 export type DataProps<D, P> = {
@@ -141,7 +141,7 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 
 export type SingleOrArray<T> = T | T[]
 
-interface Style {
+export interface Style {
   [key: string]: string | number | undefined | Style
 }
 
