@@ -9,48 +9,39 @@ import { $lang } from '@/store'
 export default fics({
   name: 'header',
   data: () => ({ lang: '', pathname: '' }),
-  props: {
-    descendant: langs,
-    values: ({}) => ({
-      lang: ({ getData }) => getData('lang'),
-      pathname: ({ getData }) => getData('pathname')
-    })
-  },
-  html: ({ template }) =>
-    template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>`,
-  css: [
-    { style: { display: 'block' } },
+  props: [
     {
-      selector: 'header',
-      style: {
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingBlock: variable('md')
-      },
-      nested: [
-        {
-          selector: '> h1[tabindex]',
-          style: {
-            background: variable('gradation'),
-            backgroundClip: 'text',
-            webkitTextFillColor: 'transparent'
-          },
-          nested: { selector: '&:focus', style: { opacity: 0.5 } }
-        },
-        {
-          selector: '> div',
-          style: {
-            position: 'absolute',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            right: variable('ex-sm')
-          }
-        }
-      ]
+      descendant: langs,
+      values: () => ({
+        lang: ({ getData }) => getData('lang'),
+        pathname: ({ getData }) => getData('pathname')
+      })
     }
   ],
+  html: ({ template }) =>
+    template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>`,
+  css: {
+    '': { display: 'block' },
+    header: {
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingBlock: variable('md'),
+      '> h1[tabindex]': {
+        background: variable('gradation'),
+        backgroundClip: 'text',
+        webkitTextFillColor: 'transparent',
+        '&:focus': { opacity: 0.5 }
+      },
+      '> div': {
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        right: variable('ex-sm')
+      }
+    }
+  },
   hooks: {
     created: ({ setData }) => {
       const lang = getState<string>($lang)
