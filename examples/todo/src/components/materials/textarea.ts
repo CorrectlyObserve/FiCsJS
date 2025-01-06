@@ -17,7 +17,7 @@ export default fics<{}, Props>({
       ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
       <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
     `,
-  css: { selector: 'label', style: { marginBottom: variable('ex-sm') } },
+  css: { label: { marginBottom: variable('ex-sm') } },
   actions: {
     textarea: {
       input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
