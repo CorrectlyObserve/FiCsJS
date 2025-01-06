@@ -52,7 +52,7 @@ export interface FiCs<D extends object, P extends object> {
   isExceptional: boolean
   data?: () => Partial<D>
   fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
-  props?: SingleOrArray<Props<D, P>>
+  props?: Props<D, P>[]
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
