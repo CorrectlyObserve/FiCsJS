@@ -9,8 +9,10 @@ export default ficsRouter({
     { path: '/:id', content: () => task }
   ],
   notFound: { content: () => notFound },
-  props: {
-    descendant: [tasks, task, notFound],
-    values: ({}) => ({ lang: ({ getData }) => getData('lang') })
-  }
+  props: [
+    {
+      descendant: [tasks, task, notFound],
+      values: () => ({ lang: ({ getData }) => getData('lang') })
+    }
+  ]
 })
