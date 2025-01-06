@@ -37,7 +37,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
   readonly #data: D = {} as D
   readonly #fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
-  readonly #propsSources: Props<D, P>[] = new Array()
+  readonly #propsSources: Props<D, P> = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings<D, P> = { isClassName: false, isAttr: false, css: new Array() }
   readonly #className?: ClassName<D, P>
@@ -110,7 +110,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (props) this.#propsSources = convertToArray(props)
+    if (props) this.#propsSources = [...props]
 
     if (className) {
       if (typeof className === 'function') this.#bindings.isClassName = true
