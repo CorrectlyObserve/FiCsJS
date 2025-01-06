@@ -5,8 +5,6 @@ export default fics({
   name: 'footer',
   html: ({ template }) => template`<footer><p>&copy; 2024 Masami Ogasawara</p></footer>`,
   css: {
-    selector: 'footer',
-    style: { paddingBlock: variable('md') },
-    nested: { selector: 'p', style: { fontSize: variable('sm') } }
+    footer: { paddingBlock: variable('md'), p: { fontSize: variable('sm') } }
   }
 })
