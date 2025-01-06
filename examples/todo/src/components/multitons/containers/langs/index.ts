@@ -26,35 +26,23 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
   css: [
     css,
     {
-      selector: 'div.container',
-      style: {},
-      nested: [
-        {
-          selector: 'button',
-          style: {
-            width: calc([variable('md'), 3], '*'),
-            background: 'none',
-            paddingBlock: variable('ex-sm')
+      'div.container': {
+        button: {
+          width: calc([variable('md'), 3], '*'),
+          background: 'none',
+          paddingBlock: variable('ex-sm'),
+          '&.lang': {
+            '&.shown, &:focus': { opacity: 0.5 }
           },
-          nested: [
-            {
-              selector: '&.lang',
-              style: {},
-              nested: [{ selector: ['&.shown', ':focus'], style: { opacity: 0.5 } }]
-            },
-            { selector: '&.selected', style: { color: variable('red') } }
-          ]
+          '&.selected': { color: variable('red') }
         },
-        {
-          selector: 'div',
-          style: {
-            position: 'absolute',
-            opacity: 1,
-            transition: `${variable('transition')} allow-discrete`
-          },
-          nested: { selector: '&.hidden', style: { opacity: 0 } }
+        div: {
+          position: 'absolute',
+          opacity: 1,
+          transition: `${variable('transition')} allow-discrete`,
+          '&.hidden': { opacity: 0 }
         }
-      ]
+      }
     }
   ],
   actions: {
