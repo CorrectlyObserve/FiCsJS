@@ -8,33 +8,27 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
   css: [
     css,
     {
-      selector: 'button',
-      style: { background: 'none', padding: variable('ex-sm') },
-      nested: [
-        { selector: '&:focus', style: { transform: scale(0.8) } },
-        {
-          selector: '&.loading',
-          style: { display: 'block', marginInline: 'auto' },
-          nested: {
-            selector: 'span',
-            style: {
-              width: calc([variable('ex-lg'), 2], '*'),
-              height: calc([variable('ex-lg'), 2], '*'),
-              animation: 'loading 1.5s infinite linear'
-            }
+      button: ({ data: { icon }, props: { color } }) => ({
+        background: 'none',
+        padding: variable('ex-sm'),
+        '&:focus': { transform: scale(0.8) },
+        '&.loading': {
+          display: 'block',
+          marginInline: 'auto',
+          span: {
+            width: calc([variable('ex-lg'), 2], '*'),
+            height: calc([variable('ex-lg'), 2], '*'),
+            animation: 'loading 1.5s infinite linear'
           }
         },
-        {
-          selector: 'span',
-          style: ({ data: { icon }, props: { color } }) => ({
-            width: calc([variable('lg'), 1.5], '*'),
-            height: calc([variable('lg'), 1.5], '*'),
-            display: 'block',
-            maskImage: `url("/icons/${icon}.svg")`,
-            background: color ?? '#fff'
-          })
+        span: {
+          width: calc([variable('lg'), 1.5], '*'),
+          height: calc([variable('lg'), 1.5], '*'),
+          display: 'block',
+          maskImage: `url("/icons/${icon}.svg")`,
+          background: color ?? '#fff'
         }
-      ]
+      })
     }
   ],
   actions: {
