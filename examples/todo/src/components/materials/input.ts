@@ -22,18 +22,14 @@ export default fics<{ isComposing: boolean }, Props>({
       <p class="error" ${show(!!isError)}>${error}</p>
       <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
     `,
-  css: [
-    { selector: ['label', 'p'], style: { marginBottom: variable('ex-sm') } },
-    { selector: 'p.error', style: { color: variable('error'), textAlign: 'left' } },
-    {
-      selector: 'input',
-      style: ({ props: { isError } }) => (isError ? { background: variable('error') } : {}),
-      nested: {
-        selector: '::placeholder',
-        style: ({ props: { isError } }) => (isError ? { color: '#fff', opacity: 0.5 } : {})
-      }
-    }
-  ],
+  css: {
+    'label, p': { marginBottom: variable('ex-sm') },
+    'p.error': { color: variable('error'), textAlign: 'left' },
+    input: ({ props: { isError } }) => ({
+      background: isError ? variable('error') : undefined,
+      '&::placeholder': isError ? { color: '#fff', opacity: 0.5 } : {}
+    })
+  },
   actions: {
     input: {
       input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
