@@ -17,13 +17,15 @@ export default fics<Data, { lang: string }>({
   name: 'not-found',
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
   fetch: ({ props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'notFound' }),
-  props: {
-    descendant: button,
-    values: ({ props: { lang } }) => ({
-      buttonText: ({ getData }) => getData('buttonText'),
-      click: () => goto(getPath(lang, '/'))
-    })
-  },
+  props: [
+    {
+      descendant: button,
+      values: ({ props: { lang } }) => ({
+        buttonText: ({ getData }) => getData('buttonText'),
+        click: () => goto(getPath(lang, '/'))
+      })
+    }
+  ],
   html: ({
     data: {
       seconds,
@@ -36,7 +38,7 @@ export default fics<Data, { lang: string }>({
     isLoaded
       ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
       : template`${loadingIcon}`,
-  css: { selector: 'p', style: { marginBottom: variable('ex-lg') } },
+  css: { p: { marginBottom: variable('ex-lg') } },
   hooks: {
     mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
       poll(
