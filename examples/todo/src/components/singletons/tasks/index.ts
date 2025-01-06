@@ -1,12 +1,11 @@
 import { fics } from 'ficsjs'
-import { variable } from 'ficsjs/css'
+import { calc, variable } from 'ficsjs/css'
 import i18n from 'ficsjs/i18n'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
 import type { Task } from '@/types'
 import { getPath } from '@/utils'
-import css from './style.css?inline'
 
 interface Data {
   heading: string
@@ -91,7 +90,7 @@ export default fics<Data, { lang: string }>({
       ${
         tasks.length > 0
           ? tasks.map(
-            ({ id, title, completedAt }) => template`
+              ({ id, title, completedAt }) => template`
               <div class="task" key="${id}">
                 <div>
                   ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
@@ -116,9 +115,58 @@ export default fics<Data, { lang: string }>({
       }
     `
   },
-  css,
+  css: {
+    div: {
+      '&.menu': {
+        marginBottom: variable('ex-lg'),
+        div: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: variable('md'),
+          '&:last-child': { marginBottom: 0 },
+          'f-input': { marginRight: variable('md') }
+        }
+      },
+      '&.task': {
+        width: '60%',
+        display: 'flex',
+        alignItems: 'center',
+        marginInline: 'auto',
+        marginBottom: variable('ex-sm'),
+        '&:last-child': { marginBottom: 0 },
+        div: {
+          width: `${calc(
+            [
+              calc([calc(['100%', variable('lg')], '-'), 1.5], '*'),
+              calc([variable('ex-sm'), 2], '*')
+            ],
+            '-'
+          )}`,
+          display: 'flex',
+          alignItems: 'center',
+          span: {
+            width: '100%',
+            display: 'flex',
+            textAlign: 'left',
+            marginInline: variable('ex-sm'),
+            overflowX: 'hidden',
+            transition: `${variable('transition')} allow-discrete`,
+            '&.done': { textDecoration: 'line-through' },
+            a: {
+              paddingBlock: variable('ex-sm'),
+              whiteSpace: 'nowrap',
+              overflowX: 'hidden',
+              textOverflow: 'ellipsis'
+            }
+          }
+        }
+      },
+      span: { transition: variable('transition'), '&:hover': { opacity: 0.5 } }
+    }
+  },
   actions: {
-    '.menu span': {
+    'div.menu span': {
       click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
     }
   },
