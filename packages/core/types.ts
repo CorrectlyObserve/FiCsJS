@@ -24,11 +24,10 @@ export interface Bindings {
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
-export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
-
-export interface CssContent<D, P> {
-  [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
-}
+export type Css<D, P> =
+  | string
+  | { [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined] }
+  | GlobalCssContent
 
 export type DataProps<D, P> = {
   data: D
@@ -53,14 +52,12 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<string | CssContent<D, P>>
-  clonedCss?: Css<D, P>
+  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  clonedCss?: Css<D, P>[]
   actions?: Actions<D, P>
   hooks?: Hooks<D, P>
   options?: Options
 }
-
-export type GlobalCss = (GlobalCssContent | string)[]
 
 export interface GlobalCssContent {
   [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
