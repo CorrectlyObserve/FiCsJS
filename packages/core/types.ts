@@ -16,10 +16,10 @@ export type Attrs<D, P> =
   | Record<string, string>
   | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
-export interface Bindings<D, P> {
+export interface Bindings {
   isClassName: boolean
   isAttr: boolean
-  css: { index: number; nested?: Bindings<D, P>['css'] }[]
+  css: number[]
 }
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
@@ -27,10 +27,7 @@ export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
 
 export interface CssContent<D, P> {
-  [key: string]:
-    | Style
-    | ((dataProps: DataProps<D, P>) => Style)
-    | [Style | ((dataProps: DataProps<D, P>) => Style), 'csr' | 'ssr' | undefined]
+  [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
 }
 
 export type DataProps<D, P> = {
@@ -141,8 +138,10 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 
 export type SingleOrArray<T> = T | T[]
 
-export interface Style {
-  [key: string]: string | number | undefined | Style
+export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
+
+interface StyleContent {
+  [key: string]: string | number | undefined | StyleContent
 }
 
 export interface Syntaxes<D extends object, P extends object> {
