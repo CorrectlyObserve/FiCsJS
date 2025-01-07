@@ -1,6 +1,7 @@
 {
   "editor.formatOnSave": true,
-  "trailing-spaces.trimOnSave": true,
+  "editor.formatOnType": true,
+  "trailing-spaces.trimOnSave": false,
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": ["rgbs"]
 }
