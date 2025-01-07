@@ -29,7 +29,7 @@ interface Data {
 
 const checkIcon = svgIcon.extend({ icon: 'check' })
 const circleIcon = svgIcon.extend({ icon: 'circle' })
-const backToTaskList = (lang: string) => goto(getPath(lang, '/todo'))
+const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
 
 export default fics<Data, { lang: string }>({
   name: 'task',
