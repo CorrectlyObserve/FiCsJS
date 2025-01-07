@@ -99,7 +99,7 @@ export default fics<Data, { lang: string }>({
                     }
                   })}
                   <span class="${completedAt ? 'done' : ''}">
-                    <a href="${getPath(lang, `/todo/${id}`)}">${title}</a>
+                    <a href="${getPath(lang, `/${id}`)}">${title}</a>
                   </span>
                 </div>
                 ${setProps(svgIcon.extend({ icon: 'trash' }), {
