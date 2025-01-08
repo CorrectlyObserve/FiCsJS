@@ -6,17 +6,16 @@ export default {
   '*[tabindex]:hover, a:hover': { cursor: 'pointer', opacity: 0.5 },
   '*[tabindex]:focus, a:focus': { color: variable('red'), outline: 'none' },
   'h1, h2': { textAlign: 'center', lineHeight: 1.5 },
-  h1: { fontSize: variable('ex-lg') },
   h2: {
     fontSize: calc([variable('md'), 1.5], '*'),
     color: '#fff',
     marginBottom: variable('ex-lg')
   },
-  'p, button, li, label, span': { fontSize: variable('lg'), color: '#fff' },
-  'p, button, span': { textAlign: 'center', lineHeight: 1 },
-  li: { lineHeight: 1.8 },
-  label: { display: 'inline-block', '&:hover': { cursor: 'pointer', opacity: 0.5 } },
-  span: { width: 'fit-content' },
+  'p, button, label, span': {
+    fontSize: variable('lg'),
+    color: '#fff',
+    ':not(label)': { textAlign: 'center', lineHeight: 1 }
+  },
   button: {
     border: 'none',
     outline: 'none',
@@ -26,6 +25,7 @@ export default {
     },
     '[aria-disabled="true"]': { cursor: 'not-allowed' }
   },
+  label: { display: 'inline-block', '&:hover': { cursor: 'pointer', opacity: 0.5 } },
   'input, textarea': {
     width: calc([variable('md'), 20], '*'),
     background: color('#fff', 0.1),
@@ -38,11 +38,7 @@ export default {
     '&:hover': { cursor: 'pointer' },
     '&:focus': { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
   },
-  textarea: {
-    height: calc([calc([variable('ex-sm'), 2], '*'), calc([variable('lg'), 1.2, 6], '*')], '+'),
-    lineHeight: 1.2,
-    resize: 'none'
-  },
+  span: { width: 'fit-content' },
   a: {
     width: '100%',
     display: 'inline-block',
