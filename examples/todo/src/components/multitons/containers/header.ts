@@ -28,13 +28,14 @@ export default fics({
       alignItems: 'center',
       justifyContent: 'center',
       paddingBlock: variable('md'),
-      '> h1[tabindex]': {
+      h1: {
+        fontSize: variable('ex-lg'),
         background: variable('gradation'),
         backgroundClip: 'text',
         webkitTextFillColor: 'transparent',
         '&:focus': { opacity: 0.5 }
       },
-      '> div': {
+      div: {
         position: 'absolute',
         top: '50%',
         transform: 'translateY(-50%)',
