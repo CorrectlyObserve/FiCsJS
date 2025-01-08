@@ -1,5 +1,4 @@
-type RgbKey = 'red' | 'green' | 'blue'
-type Rgb = Record<RgbKey, number>
+type Rgb = Record<'red' | 'green' | 'blue', number>
 
 export default (
   hex: string,
@@ -12,7 +11,7 @@ export default (
   if (isNaN(rate) || rate <= 0 || rate >= 1)
     throw new Error(`${rate} must be between 0 and 1 (exclusive).`)
 
-  const rgbKeys: RgbKey[] = ['red', 'green', 'blue']
+  const rgbKeys = ['red', 'green', 'blue'] as const
   let _hex: string = hex.slice(1)
 
   if (_hex.length === 3) {
