@@ -21,25 +21,27 @@ export default fics({
   html: ({ template }) =>
     template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>`,
   css: {
-    '': { display: 'block' },
-    header: {
-      position: 'relative',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingBlock: variable('md'),
-      h1: {
-        fontSize: variable('ex-lg'),
-        background: variable('gradation'),
-        backgroundClip: 'text',
-        webkitTextFillColor: 'transparent',
-        '&:focus': { opacity: 0.5 }
-      },
-      div: {
-        position: 'absolute',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        right: variable('ex-sm')
+    ':host': {
+      display: 'block',
+      header: {
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBlock: variable('md'),
+        h1: {
+          fontSize: variable('ex-lg'),
+          background: variable('gradation'),
+          backgroundClip: 'text',
+          webkitTextFillColor: 'transparent',
+          '&:focus': { opacity: 0.2 }
+        },
+        div: {
+          position: 'absolute',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          right: variable('ex-sm')
+        }
       }
     }
   },
