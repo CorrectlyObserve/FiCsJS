@@ -25,7 +25,11 @@ export default {
     },
     '[aria-disabled="true"]': { cursor: 'not-allowed' }
   },
-  label: { display: 'inline-block', '&:hover': { cursor: 'pointer', opacity: 0.5 } },
+  label: {
+    display: 'inline-block',
+    textAlign: 'left',
+    '&:hover': { cursor: 'pointer', opacity: 0.5 }
+  },
   'input, textarea': {
     width: calc([variable('md'), 20], '*'),
     background: color('#fff', 0.1),
