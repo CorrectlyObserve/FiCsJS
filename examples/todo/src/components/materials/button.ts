@@ -6,7 +6,7 @@ export default fics<{}, { buttonText: string; isDisabled?: boolean; click: () =>
   html: ({ props: { buttonText, isDisabled }, template }) =>
     template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
   css: {
-    '': { display: 'block', textAlign: 'center' },
+    ':host': { display: 'block', textAlign: 'center' },
     button: ({ props: { isDisabled } }) => ({
       background: isDisabled ? color('#fff', 0.1) : variable('gradation'),
       padding: variable('md'),
