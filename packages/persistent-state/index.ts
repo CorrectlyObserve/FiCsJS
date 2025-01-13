@@ -1,21 +1,5 @@
 import { generateUid } from '../core/helpers'
-
-interface State {
-  id: number
-  state: unknown
-  key: string
-  readonly: boolean
-  createdAt: number
-  updatedAt: number
-}
-
-interface Snapshot {
-  id: number
-  state: unknown
-  name: string
-  createdAt: number
-  updatedAt: number
-}
+import type { Snapshot, State } from './type'
 
 const generator: Generator<number> = generateUid()
 
