@@ -1,4 +1,4 @@
-import { color, calc, scale, variable } from 'ficsjs/css'
+import { color, calc, scale, variable } from 'ficsjs/style'
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
