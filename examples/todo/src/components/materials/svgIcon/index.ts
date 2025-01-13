@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, scale, variable } from 'ficsjs/css'
+import { calc, scale, variable } from 'ficsjs/style'
 import css from './style.css?inline'
 
 export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
