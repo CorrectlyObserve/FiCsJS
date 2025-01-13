@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/css'
+import { calc, variable } from 'ficsjs/style'
 import i18n from 'ficsjs/i18n'
 import { getParams, goto } from 'ficsjs/router'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
