@@ -4,14 +4,15 @@ import { Descendant, SingleOrArray } from '../core/types'
 const generator: Generator<number> = generateUid()
 const states: Map<string, unknown> = new Map()
 const writableStates: Set<string> = new Set()
-const syncs: Map<string, Map<Descendant, Set<string>>> = new Map()
 const observers: Map<string, () => void> = new Map()
+const syncs: Map<string, Map<Descendant, Set<string>>> = new Map()
 
-export const createState = <S>(value: S, isReadonly: boolean = false): string => {
-  const key: string = `state-${generator.next().value}`
+export const createState = <S>(value: S, options?: { readonly: boolean }): string => {
+  const key: string = `fics-state-${generator.next().value}`
+  const { readonly }: { readonly?: boolean } = options ?? {}
 
   states.set(key, value)
-  if (!isReadonly) writableStates.add(key)
+  if (!readonly) writableStates.add(key)
 
   return key
 }
@@ -36,6 +37,11 @@ export const subscribeState = (key: string, value: () => void): void => {
   observers.set(key, value)
 }
 
+export const unsubscribeState = (key: string): void => {
+  if (observers.has(key)) observers.delete(key)
+  else throw new Error(`The "${key}" is not defined in observers...`)
+}
+
 export const syncState = ({
   state,
   data
@@ -54,9 +60,4 @@ export const syncState = ({
 
       sync.has(descendant) ? sync.get(descendant)!.add(key) : sync.set(descendant, new Set([key]))
     }
-}
-
-export const unsubscribeState = (key: string): void => {
-  if (observers.has(key)) observers.delete(key)
-  else throw new Error(`"${key}" is not defined in observers...`)
 }
