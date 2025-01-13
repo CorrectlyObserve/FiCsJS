@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { color, variable } from 'ficsjs/css'
+import { color, variable } from 'ficsjs/style'
 
 export default fics<{}, { buttonText: string; isDisabled?: boolean; click: () => void }>({
   name: 'button',
