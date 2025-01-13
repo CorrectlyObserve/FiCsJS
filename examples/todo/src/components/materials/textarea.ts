@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/css'
+import { calc, variable } from 'ficsjs/style'
 
 interface Props {
   id?: string

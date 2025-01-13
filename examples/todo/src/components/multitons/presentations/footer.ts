@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { variable } from 'ficsjs/css'
+import { variable } from 'ficsjs/style'
 
 export default fics({
   name: 'footer',
