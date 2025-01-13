@@ -9,6 +9,7 @@ export default defineConfig({
     alias: {
       'ficsjs/css': getPackage('css'),
       'ficsjs/i18n': getPackage('i18n'),
+      'ficsjs/persistent-state': getPackage('persistent-state'),
       'ficsjs/router': getPackage('router'),
       'ficsjs/state': getPackage('state'),
       ficsjs: getPackage('core'),

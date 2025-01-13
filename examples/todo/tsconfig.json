@@ -17,6 +17,7 @@
     "paths": {
       "ficsjs/css": ["./../../packages/css/index"],
       "ficsjs/i18n": ["./../../packages/i18n/index"],
+      "ficsjs/persistent-state": ["./../../packages/persistent-state/index"],
       "ficsjs/router": ["./../../packages/router/index"],
       "ficsjs/state": ["./../../packages/state/index"],
       "ficsjs": ["./../../packages/core/index"],
