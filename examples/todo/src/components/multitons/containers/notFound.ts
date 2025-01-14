@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import i18n from 'ficsjs/i18n'
+import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { variable } from 'ficsjs/style'
 import { loadingIcon } from '@/components/materials/svgIcon'
@@ -16,7 +16,7 @@ interface Data {
 export default fics<Data, { lang: string }>({
   name: 'not-found',
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
-  fetch: ({ props: { lang } }) => i18n<Data>({ directory: '/i18n', lang, key: 'notFound' }),
+  fetch: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
   props: [
     {
       descendant: button,
