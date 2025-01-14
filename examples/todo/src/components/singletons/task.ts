@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import i18n from 'ficsjs/i18n'
+import { i18n } from 'ficsjs/i18n'
 import { getParams, goto } from 'ficsjs/router'
 import { calc, variable } from 'ficsjs/style'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
@@ -45,7 +45,7 @@ export default fics<Data, { lang: string }>({
   }),
   fetch: async ({ props: { lang } }) => ({
     ...(await i18n<Data>({ directory: '/i18n', lang, key: 'task' })),
-    confirmation: await i18n({ directory: '/i18n', lang, key: ['tasks', 'confirmation'] })
+    confirmation: await i18n({ lang, key: ['tasks', 'confirmation'] })
   }),
   props: [
     {
