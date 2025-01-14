@@ -13,5 +13,5 @@ export function* generateUid(): Generator<number> {
 }
 
 export const throwWindowError = (): void => {
-  if (typeof window === 'undefined') throw new Error('window is not defined...')
+  if (typeof window === 'undefined') throw new Error('window is not defined in this environment...')
 }
