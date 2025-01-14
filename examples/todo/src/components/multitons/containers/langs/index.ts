@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/style'
 import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
+import { calc, variable } from 'ficsjs/style'
 import { $lang } from '@/store'
 import css from './style.css?inline'
 

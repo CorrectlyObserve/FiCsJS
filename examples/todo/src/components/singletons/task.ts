@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/style'
 import i18n from 'ficsjs/i18n'
 import { getParams, goto } from 'ficsjs/router'
+import { calc, variable } from 'ficsjs/style'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import textarea from '@/components/materials/textarea'
