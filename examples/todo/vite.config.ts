@@ -11,7 +11,7 @@ export default defineConfig({
       'ficsjs/persistent-state': getPackage('persistent-state'),
       'ficsjs/router': getPackage('router'),
       'ficsjs/state': getPackage('state'),
-      'ficsjs/style': getPackage('css'),
+      'ficsjs/style': getPackage('style'),
       ficsjs: getPackage('core'),
       '@': '/src'
     }
