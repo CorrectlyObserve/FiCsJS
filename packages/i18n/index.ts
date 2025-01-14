@@ -1,16 +1,25 @@
 import { convertToArray } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
+import { createState, getState } from '../state/'
 
-export default async <T>({
+let _directory = ''
+
+export const ficsI18n = (directory: string) => {
+  _directory = createState<string>(directory)
+}
+
+export const i18n = async <T>({
   directory,
   lang,
   key
 }: {
-  directory: string
+  directory?: string
   lang: string
   key: SingleOrArray<string>
-}): Promise<T> =>
-  await fetch(`${directory}/${lang}.json`)
+}): Promise<T> => {
+  if (!directory) directory = getState<string>(_directory)
+
+  return await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
       key = convertToArray(key)
@@ -22,3 +31,4 @@ export default async <T>({
     .catch(error => {
       throw new Error(error)
     })
+}
