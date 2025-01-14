@@ -6,10 +6,10 @@ export default (
   type: 'darken' | 'lighten' | 'translucent' = 'translucent'
 ): string => {
   if (!hex.startsWith('#'))
-    throw new Error(`${hex} must start with "#" and follow a valid format...`)
+    throw new Error(`The "${hex}" must start with "#" and follow a valid format...`)
 
   if (isNaN(rate) || rate <= 0 || rate >= 1)
-    throw new Error(`${rate} must be between 0 and 1 (exclusive).`)
+    throw new Error(`The "${rate}" must be between 0 and 1 (exclusive)...`)
 
   const rgbKeys = ['red', 'green', 'blue'] as const
   let _hex: string = hex.slice(1)
