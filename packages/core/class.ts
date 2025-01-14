@@ -8,12 +8,10 @@ import type {
   Bindings,
   ClassName,
   Css,
-  CssContent,
   DataProps,
   DataPropsMethods,
   Descendant,
   FiCs,
-  GlobalCssContent,
   Html,
   HtmlContent,
   Hooks,
@@ -25,7 +23,7 @@ import type {
   PropsTree,
   Queue,
   Sanitized,
-  SingleOrArray
+  Style
 } from './types'
 
 const names: Record<string, number> = {}
@@ -37,14 +35,14 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
   readonly #data: D = {} as D
   readonly #fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
-  readonly #propsSources: Props<D, P> = new Array()
+  readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
-  readonly #bindings: Bindings<D, P> = { isClassName: false, isAttr: false, css: new Array() }
+  readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
   readonly #className?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
   readonly #showAttr: string
-  readonly #css: Css<D, P> = new Array()
+  readonly #css: Css<D, P>[] = new Array()
   readonly #actions: Actions<D, P> = {}
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -72,6 +70,7 @@ export default class FiCsElement<D extends object, P extends object> {
     hooks,
     options
   }: FiCs<D, P>) {
+    //TODO: trim
     name = this.#convertStr(name, 'kebab')
 
     if (!isExceptional && { var: true, router: true }[name])
@@ -244,6 +243,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#className) {
       const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
 
+      //TODO: trim
       component.setAttribute(
         'class',
         typeof this.#className === 'function'
@@ -388,53 +388,65 @@ export default class FiCsElement<D extends object, P extends object> {
     return childNodes
   }
 
-  #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
+  #convertCss({
+    css,
+    host,
+    mode
+  }: {
+    css: Css<D, P>[]
+    host: string
+    mode: 'csr' | 'ssr'
+  }): string {
     if (css.length === 0) return ''
 
-    const createCss = (css: Css<D, P>, host: string): string =>
+    const createCss = (css: Css<D, P>[], host: string): string =>
       css.reduce((prev, curr) => {
         if (typeof curr === 'string') return `${prev}${curr}`
 
-        const selector: SingleOrArray<string> = curr.selector ?? ''
-        const createCssContent = (host: string): string => {
-          if (curr[mode] === false) return ''
+        let _curr: string = ''
+
+        for (let [selector, style] of Object.entries(curr)) {
+          if (Array.isArray(style) && style[1] !== mode) continue
+
+          if (selector.startsWith(':host')) selector = selector.replace(':host', '')
 
           const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-          const content: string = Object.entries(
-            typeof curr.style === 'function' ? curr.style({ data, props }) : curr.style
-          )
-            .map(([key, value]) => {
-              if (value === undefined) return ''
+          let current: string = ''
+
+          const convertCssContent = (selector: string, style: Style<D, P>): void => {
+            for (let [key, value] of Object.entries(
+              typeof style === 'function' ? style({ data, props }) : style
+            )) {
+              if (
+                value === undefined ||
+                value === '' ||
+                (typeof value === 'object' && Object.keys(value).length === 0)
+              )
+                continue
 
               key = this.#convertStr(key, 'kebab')
+              if (key.startsWith('webkit')) key = `-${key}`
 
-              if (key.startsWith(':host'))
-                console.warn(`The ':host' selector might not be necessary in ${key}...`)
-              else if (key.startsWith('webkit')) key = `-${key}`
+              if (typeof value === 'string' || typeof value === 'number') {
+                const content: string = `${key}:${value};`
 
-              return `${key}: ${value};`
-            })
-            .join('\n')
+                if (selector === '') _curr += content
+                else if (current === selector) {
+                  if (_curr.endsWith(';}')) _curr = _curr.slice(0, -1)
+                  _curr += `${content}}`
+                } else _curr += `${selector}{${content}}`
 
-          if (Array.isArray(selector))
-            return selector.reduce((prev, curr) => `${prev} ${host} ${curr}{${content}}`, '')
+                current = selector
+              } else {
+                if (this.#name === 'f-input') console.log(selector, key, value)
+              }
+            }
+          }
 
-          return `${host} ${selector}{${content}}`
+          convertCssContent(selector, Array.isArray(style) ? style[0] : style)
         }
-        const { nested }: { nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent> } = curr
-        const css: string = `${prev} ${createCssContent(host)}`
 
-        const replaceSyntaxes = (css: string): string =>
-          css.replace(/ ?(:+|\[)/g, '$1').replace(/ &/g, '')
-
-        if (!nested) return replaceSyntaxes(css)
-
-        return replaceSyntaxes(
-          convertToArray(selector).reduce(
-            (prev, curr) => prev + createCss(convertToArray(nested), `${host} ${curr}`),
-            css
-          )
-        )
+        return `${prev}${host}{${_curr}}`
       }, '') as string
 
     return createCss(css, host)
@@ -481,13 +493,10 @@ export default class FiCsElement<D extends object, P extends object> {
       const div: HTMLElement = doc.createElement('div')
       div.id = this.#ficsId
       div.slot = this.#ficsId
-      for (const childNode of await this.#convertTemplate(doc)) {
-        div.append(childNode)
-      }
+      for (const childNode of await this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
 
-      const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
-
+      const allCss: Css<D, P>[] = [...getGlobalCss(), ...this.#css]
       if (allCss.length > 0)
         div.insertAdjacentHTML(
           'beforeend',
@@ -754,37 +763,16 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>): void {
-    const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
+  #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>[]): void {
+    const allCss: Css<D, P>[] = [...getGlobalCss(), ...this.#css]
 
     if (allCss.length === 0) return
 
-    if (!css) {
-      const bindNestedCss = (
-        parentIndex: number,
-        nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent>
-      ): void => {
-        if (nested)
-          for (const [index, content] of convertToArray(nested).entries()) {
-            if (typeof content.style === 'function') {
-              if (!this.#bindings.css[parentIndex])
-                this.#bindings.css[parentIndex] = { index: parentIndex, nested: [] }
-
-              this.#bindings.css[parentIndex].nested?.push({ index })
-            }
-
-            bindNestedCss(index, (content as CssContent<D, P>).nested)
-          }
-      }
-
+    if (!css)
       for (const [index, content] of this.#css.entries()) {
         if (typeof content === 'string') continue
-
-        if (typeof content.style === 'function') this.#bindings.css.push({ index })
-
-        bindNestedCss(index, content.nested)
+        if (typeof content.style === 'function') this.#bindings.css.push(index)
       }
-    }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
@@ -955,7 +943,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!component) return
 
-    const { isClassName, isAttr, css }: Bindings<D, P> = this.#bindings
+    const { isClassName, isAttr, css }: Bindings = this.#bindings
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
     if (isClassName) {
@@ -967,22 +955,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#addHtml(shadowRoot)
 
-    if (css.length > 0) {
-      const renewedCss: Css<D, P> = []
-      const getRenewedCss = (css: Bindings<D, P>['css']): void => {
-        for (const _css of css) {
-          if (!_css) continue
-
-          const { index, nested }: { index: number; nested?: Bindings<D, P>['css'] } = _css
-
-          if (index >= 0) renewedCss.push(this.#css[index])
-          if (nested) getRenewedCss(nested)
-        }
-      }
-
-      getRenewedCss(css)
-      this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
-    }
+    if (css.length > 0)
+      this.#addCss(
+        shadowRoot,
+        css.map(index => this.#css[index])
+      )
 
     for (const [selector, value] of Object.entries(this.#actions)) {
       const addAllElements = (elements: Element[] | Set<Element>): void => {
