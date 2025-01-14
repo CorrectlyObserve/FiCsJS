@@ -112,8 +112,10 @@ export default class FiCsElement<D extends object, P extends object> {
     if (props) this.#propsSources = [...props]
 
     if (className) {
-      if (typeof className === 'function') this.#bindings.isClassName = true
-      this.#className = className
+      if (typeof className === 'function') {
+        this.#bindings.isClassName = true
+        this.#className = className
+      } else this.#className = className.trim()
     }
 
     if (attributes) {
@@ -243,12 +245,11 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#className) {
       const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
 
-      //TODO: trim
+      if (this.#className === undefined) return
+
       component.setAttribute(
         'class',
-        typeof this.#className === 'function'
-          ? this.#className({ data, props })
-          : (this.#className ?? '')
+        typeof this.#className === 'function' ? this.#className({ data, props }) : this.#className
       )
     }
   }
