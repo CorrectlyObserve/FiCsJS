@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import i18n from 'ficsjs/i18n'
+import { i18n } from 'ficsjs/i18n'
 import { calc, variable } from 'ficsjs/style'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
@@ -25,7 +25,7 @@ const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
 export default fics<Data, { lang: string }>({
   name: 'tasks',
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-  fetch: ({ props: { lang } }) => i18n({ directory: '/i18n', lang, key: ['tasks'] }),
+  fetch: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
   props: [
     {
       descendant: input,
