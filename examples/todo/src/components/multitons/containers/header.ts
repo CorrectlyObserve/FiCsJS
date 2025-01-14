@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
-import { variable } from 'ficsjs/style'
 import { goto } from 'ficsjs/router'
 import { getState } from 'ficsjs/state'
+import { variable } from 'ficsjs/style'
 import langs from '@/components/multitons/containers/langs'
 import { getPath } from '@/utils'
 import { $lang } from '@/store'

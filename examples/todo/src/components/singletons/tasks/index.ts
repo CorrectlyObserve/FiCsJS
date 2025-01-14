@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/style'
 import i18n from 'ficsjs/i18n'
+import { calc, variable } from 'ficsjs/style'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
