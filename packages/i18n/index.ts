@@ -26,7 +26,7 @@ export const i18n = async <T>({
       let i18n: T | undefined = key.reduce((prev, curr) => prev && prev[curr], json)
 
       if (i18n) return i18n
-      throw new Error(`${key.join('.')} does not exist in ${`${directory}/${lang}.json`}...`)
+      throw new Error(`The ${key.join('.')} does not exist in ${`${directory}/${lang}.json`}...`)
     })
     .catch(error => {
       throw new Error(error)
