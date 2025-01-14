@@ -5,6 +5,6 @@ let globalCss: (GlobalCssContent | string)[] = new Array()
 
 export const getGlobalCss = (): (GlobalCssContent | string)[] => globalCss
 
-export const ficsCss = (css: SingleOrArray<GlobalCssContent | string>): void => {
+export const ficsGlobalCss = (css: SingleOrArray<GlobalCssContent | string>): void => {
   globalCss = convertToArray(css)
 }
