@@ -70,11 +70,12 @@ export default class FiCsElement<D extends object, P extends object> {
     hooks,
     options
   }: FiCs<D, P>) {
-    //TODO: trim
+    name = name.trim()
+    if (name === '') throw new Error('The FiCsElement name cannot be empty....')
     name = this.#convertStr(name, 'kebab')
 
     if (!isExceptional && { var: true, router: true }[name])
-      throw new Error(`"${name}" is a reserved word in FiCsJS...`)
+      throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
 
@@ -837,7 +838,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
 
     if (debounce && throttle)
-      throw new Error('Debounce and throttle cannot be used together in the same event handler.')
+      throw new Error('Debounce and throttle should not be combined in the same event handler...')
 
     const callback = (event: Event): void => {
       method({
