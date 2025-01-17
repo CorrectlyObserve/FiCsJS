@@ -14,16 +14,16 @@ export default {
   'p, button, label, span': {
     fontSize: variable('lg'),
     color: '#fff',
-    ':not(label)': { textAlign: 'center', lineHeight: 1 }
+    '&:not(label)': { textAlign: 'center', lineHeight: 1 }
   },
   button: {
     border: 'none',
     outline: 'none',
-    ':not([aria-disabled="true"])': {
+    '&[aria-disabled="true"]': { cursor: 'not-allowed' },
+    '&:not([aria-disabled="true"])': {
       '&:hover': { cursor: 'pointer', opacity: 0.5 },
       '&:focus': { transform: scale(0.8) }
-    },
-    '[aria-disabled="true"]': { cursor: 'not-allowed' }
+    }
   },
   label: {
     display: 'inline-block',
