@@ -413,7 +413,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (selector.startsWith(':host')) selector = selector.replace(':host', '')
 
           const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-          let current: string = ''
+          let currentSelector: string = ''
 
           const convertCssContent = (selector: string, style: Style<D, P>): void => {
             for (let [key, value] of Object.entries(
@@ -433,12 +433,12 @@ export default class FiCsElement<D extends object, P extends object> {
                 const content: string = `${key}:${value};`
 
                 if (selector === '') _curr += content
-                else if (current === selector) {
+                else if (currentSelector === selector) {
                   if (_curr.endsWith(';}')) _curr = _curr.slice(0, -1)
                   _curr += `${content}}`
                 } else _curr += `${selector}{${content}}`
 
-                current = selector
+                currentSelector = selector
               } else {
                 if (this.#name === 'f-input') console.log(selector, key, value)
               }
