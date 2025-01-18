@@ -416,8 +416,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (key.startsWith('webkit')) key = `-${key}`
 
           return (
-            prev +
-            key +
+            `${prev}${key}` +
             (typeof value === 'string' || typeof value === 'number'
               ? `:${value};`
               : `{${convertCssContent(value)}}`)
