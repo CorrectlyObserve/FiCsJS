@@ -425,6 +425,11 @@ export default class FiCsElement<D extends object, P extends object> {
         ''
       )
 
+    const getCurlyBracket = (selector: string, type: 'left' | 'right'): string => {
+      if (selector.trim() === '') return ''
+      return type === 'left' ? '{' : '}'
+    }
+
     return css.reduce((prev, curr) => {
       if (typeof curr === 'string') return `${prev}${curr}`
 
@@ -435,10 +440,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (selector.startsWith(':host')) selector = selector.replace(':host', '')
 
-        _curr += `${selector}{${convertCssContent(Array.isArray(style) ? style[0] : style)}}`
+        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
+        _curr += `${selector}${getCurlyBracket(selector, 'left')}${content}${getCurlyBracket(selector, 'right')}`
       }
-
-      if (this.#name === 'f-header') console.log(`${host}{${_curr}}`)
 
       return `${prev}${host}{${_curr}}`
     }, '') as string
