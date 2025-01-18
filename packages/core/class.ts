@@ -401,57 +401,48 @@ export default class FiCsElement<D extends object, P extends object> {
   }): string {
     if (css.length === 0) return ''
 
-    const createCss = (css: Css<D, P>[], host: string): string =>
-      css.reduce((prev, curr) => {
-        if (typeof curr === 'string') return `${prev}${curr}`
+    const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
+    const convertCssContent = (style: Style<D, P>): string =>
+      Object.entries(typeof style === 'function' ? style({ data, props }) : style).reduce(
+        (prev, [key, value]) => {
+          if (
+            value === undefined ||
+            value === '' ||
+            (typeof value === 'object' && Object.keys(value).length === 0)
+          )
+            return prev
 
-        let _curr: string = ''
+          key = this.#convertStr(key, 'kebab')
+          if (key.startsWith('webkit')) key = `-${key}`
 
-        for (let [selector, style] of Object.entries(curr)) {
-          if (Array.isArray(style) && style[1] !== mode) continue
+          return (
+            prev +
+            key +
+            (typeof value === 'string' || typeof value === 'number'
+              ? `:${value};`
+              : `{${convertCssContent(value)}}`)
+          )
+        },
+        ''
+      )
 
-          if (selector.startsWith(':host')) selector = selector.replace(':host', '')
+    return css.reduce((prev, curr) => {
+      if (typeof curr === 'string') return `${prev}${curr}`
 
-          const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-          let currentSelector: string = ''
+      let _curr: string = ''
 
-          const convertCssContent = (selector: string, style: Style<D, P>): void => {
-            for (let [key, value] of Object.entries(
-              typeof style === 'function' ? style({ data, props }) : style
-            )) {
-              if (
-                value === undefined ||
-                value === '' ||
-                (typeof value === 'object' && Object.keys(value).length === 0)
-              )
-                continue
+      for (let [selector, style] of Object.entries(curr)) {
+        if (Array.isArray(style) && style[1] !== mode) continue
 
-              key = this.#convertStr(key, 'kebab')
-              if (key.startsWith('webkit')) key = `-${key}`
+        if (selector.startsWith(':host')) selector = selector.replace(':host', '')
 
-              if (typeof value === 'string' || typeof value === 'number') {
-                const content: string = `${key}:${value};`
+        _curr += `${selector}{${convertCssContent(Array.isArray(style) ? style[0] : style)}}`
+      }
 
-                if (selector === '') _curr += content
-                else if (currentSelector === selector) {
-                  if (_curr.endsWith(';}')) _curr = _curr.slice(0, -1)
-                  _curr += `${content}}`
-                } else _curr += `${selector}{${content}}`
+      if (this.#name === 'f-header') console.log(`${host}{${_curr}}`)
 
-                currentSelector = selector
-              } else {
-                if (this.#name === 'f-input') console.log(selector, key, value)
-              }
-            }
-          }
-
-          convertCssContent(selector, Array.isArray(style) ? style[0] : style)
-        }
-
-        return `${prev}${host}{${_curr}}`
-      }, '') as string
-
-    return createCss(css, host)
+      return `${prev}${host}{${_curr}}`
+    }, '') as string
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
