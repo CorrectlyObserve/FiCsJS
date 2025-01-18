@@ -3,7 +3,6 @@ import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
 import { calc, variable } from 'ficsjs/style'
 import { $lang } from '@/store'
-import css from './style.css?inline'
 
 export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathname: string }>({
   name: 'langs',
@@ -23,28 +22,26 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
         </div>
       </div>
     `,
-  css: [
-    css,
-    {
-      'div.container': {
-        button: {
-          width: calc([variable('md'), 3], '*'),
-          background: 'none',
-          paddingBlock: variable('ex-sm'),
-          '&.lang': {
-            '&.shown, &:focus': { opacity: 0.5 }
-          },
-          '&.selected': { color: variable('red') }
+  css: {
+    'div.container': {
+      button: {
+        width: calc([variable('md'), 3], '*'),
+        background: 'none',
+        paddingBlock: variable('ex-sm'),
+        '&.lang': {
+          '&.shown, &:focus': { opacity: 0.5 }
         },
-        div: {
-          position: 'absolute',
-          opacity: 1,
-          transition: `${variable('transition')} allow-discrete`,
-          '&.hidden': { opacity: 0 }
-        }
+        '&.selected': { color: variable('red') }
+      },
+      div: {
+        position: 'absolute',
+        opacity: 1,
+        transition: `${variable('transition')} allow-discrete`,
+        '@starting-style': { opacity: 0 },
+        '&.hidden': { opacity: 0 }
       }
     }
-  ],
+  },
   actions: {
     'button.lang': {
       click: [
