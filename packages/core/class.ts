@@ -401,7 +401,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }): string {
     if (css.length === 0) return ''
 
+    let topLevelCss: string = ''
     const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
+
     const convertCssContent = (style: Style<D, P>): string =>
       Object.entries(typeof style === 'function' ? style({ data, props }) : style).reduce(
         (prev, [key, value]) => {
@@ -415,6 +417,15 @@ export default class FiCsElement<D extends object, P extends object> {
           key = this.#convertStr(key, 'kebab')
           if (key.startsWith('webkit')) key = `-${key}`
 
+          if (
+            key.startsWith('@keyframes') ||
+            key.startsWith('@media') ||
+            key.startsWith('@container')
+          ) {
+            topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
+            return prev
+          }
+
           return (
             `${prev}${key}` +
             (typeof value === 'string' || typeof value === 'number'
@@ -424,11 +435,6 @@ export default class FiCsElement<D extends object, P extends object> {
         },
         ''
       )
-
-    const getCurlyBracket = (selector: string, type: 'left' | 'right'): string => {
-      if (selector.trim() === '') return ''
-      return type === 'left' ? '{' : '}'
-    }
 
     return css.reduce((prev, curr) => {
       if (typeof curr === 'string') return `${prev}${curr}`
@@ -440,11 +446,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (selector.startsWith(':host')) selector = selector.replace(':host', '')
 
+        const getCurlyBracket = (type: 'left' | 'right'): string => {
+          if (selector.trim() === '') return ''
+          return type === 'left' ? '{' : '}'
+        }
         const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
-        _curr += `${selector}${getCurlyBracket(selector, 'left')}${content}${getCurlyBracket(selector, 'right')}`
+
+        _curr += `${selector}${getCurlyBracket('left')}${content}${getCurlyBracket('right')}`
       }
 
-      return `${prev}${host}{${_curr}}`
+      return `${prev}${host}{${_curr}}${topLevelCss}`
     }, '') as string
   }
 
