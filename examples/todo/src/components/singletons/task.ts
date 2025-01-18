@@ -166,10 +166,11 @@ export default fics<Data, { lang: string }>({
         marginTop: variable('ex-lg'),
         span: {
           marginInline: 'auto',
-          marginBottom: variable('ex-lg'),
+          marginBottom: variable('md'),
           textDecoration: 'underline',
           transition: variable('transition'),
           '&:first-of-type': { color: variable('red'), '&:focus': { opacity: 0.2 } },
+          '&:last-of-type': { marginBottom: 0 },
           '&:hover': { cursor: 'pointer', opacity: 0.5 }
         }
       }
