@@ -417,11 +417,7 @@ export default class FiCsElement<D extends object, P extends object> {
           key = this.#convertStr(key, 'kebab')
           if (key.startsWith('webkit')) key = `-${key}`
 
-          if (
-            key.startsWith('@keyframes') ||
-            key.startsWith('@media') ||
-            key.startsWith('@container')
-          ) {
+          if (key.startsWith('@')) {
             topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
             return prev
           }
