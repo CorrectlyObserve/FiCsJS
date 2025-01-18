@@ -91,25 +91,25 @@ export default fics<Data, { lang: string }>({
         tasks.length > 0
           ? tasks.map(
               ({ id, title, completedAt }) => template`
-              <div class="task" key="${id}">
-                <div>
-                  ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
+                <div class="task" key="${id}">
+                  <div>
+                    ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
+                      click: async () => {
+                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                      }
+                    })}
+                    <span class="${completedAt ? 'done' : ''}">
+                      <a href="${getPath(lang, `/${id}`)}">${title}</a>
+                    </span>
+                  </div>
+                  ${setProps(svgIcon.extend({ icon: 'trash' }), {
+                    color: variable('red'),
                     click: async () => {
-                      setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                      if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
                     }
                   })}
-                  <span class="${completedAt ? 'done' : ''}">
-                    <a href="${getPath(lang, `/${id}`)}">${title}</a>
-                  </span>
                 </div>
-                ${setProps(svgIcon.extend({ icon: 'trash' }), {
-                  color: variable('red'),
-                  click: async () => {
-                    if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
-                  }
-                })}
-              </div>
-            `
+              `
             )
           : template`<p>${unapplicable}</p>`
       }
