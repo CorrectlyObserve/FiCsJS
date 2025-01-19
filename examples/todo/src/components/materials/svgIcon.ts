@@ -7,14 +7,14 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
   css: {
     button: ({ data: { icon }, props: { color } }) => ({
       background: 'none',
-      padding: variable('ex-sm'),
+      padding: variable('xs'),
       '&:focus': { transform: scale(0.8) },
       '&.loading': {
         display: 'block',
         marginInline: 'auto',
         span: {
-          width: calc([variable('ex-lg'), 2], '*'),
-          height: calc([variable('ex-lg'), 2], '*'),
+          width: variable('4xl'),
+          height: variable('4xl'),
           animation: 'loading 1.5s infinite linear'
         }
       },
