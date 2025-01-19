@@ -1,4 +1,4 @@
-import { getGlobalCss } from './globalCss'
+import { globalCss } from './globalCss'
 import { convertToArray, generateUid, throwWindowError } from './helpers'
 import { enqueue } from './queue'
 import type {
@@ -499,7 +499,7 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of await this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
 
-      const allCss: Css<D, P>[] = [...getGlobalCss(), ...this.#css]
+      const allCss: Css<D, P>[] = [...globalCss(), ...this.#css]
       if (allCss.length > 0)
         div.insertAdjacentHTML(
           'beforeend',
@@ -767,7 +767,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>[]): void {
-    const allCss: Css<D, P>[] = [...getGlobalCss(), ...this.#css]
+    const allCss: Css<D, P>[] = [...globalCss(), ...this.#css]
 
     if (allCss.length === 0) return
 
