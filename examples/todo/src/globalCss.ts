@@ -8,10 +8,10 @@ export default {
   '*[tabindex]:focus, a:focus': { color: variable('red'), outline: 'none' },
   'h1, h2': { textAlign: 'center', lineHeight: 1.5 },
   h2: {
-    fontSize: calc([variable('md'), 1.5], '*'),
+    fontSize: variable('xl'),
     color: '#fff',
-    marginBottom: variable('ex-lg'),
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('md') }
+    marginBottom: variable('2xl'),
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('xl') }
   },
   'p, button, label, span': {
     fontSize: variable('lg'),
@@ -37,8 +37,8 @@ export default {
     background: color('#fff', 0.1),
     fontSize: variable('lg'),
     color: '#fff',
-    padding: `${variable('ex-sm')} ${variable('md')}`,
-    borderRadius: variable('ex-sm'),
+    padding: `${variable('xs')} ${variable('md')}`,
+    borderRadius: variable('xs'),
     border: 'none',
     outline: 'none',
     '&:hover': { cursor: 'pointer' },
