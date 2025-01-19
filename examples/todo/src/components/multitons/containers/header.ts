@@ -32,7 +32,7 @@ export default fics({
         paddingBlock: variable('md'),
         [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('sm') },
         h1: {
-          fontSize: variable('ex-lg'),
+          fontSize: variable('2xl'),
           background: variable('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
@@ -42,7 +42,7 @@ export default fics({
           position: 'absolute',
           top: '50%',
           transform: 'translateY(-50%)',
-          right: variable('ex-sm')
+          right: variable('xs')
         }
       }
     }
