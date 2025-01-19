@@ -18,9 +18,9 @@ export default fics<{}, Props>({
       <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
     `,
   css: {
-    label: { marginBottom: variable('ex-sm') },
+    label: { marginBottom: variable('xs') },
     textarea: {
-      height: calc([calc([variable('ex-sm'), 2], '*'), calc([variable('lg'), 1.2, 6], '*')], '+'),
+      height: calc([calc([variable('xs'), 2], '*'), calc([variable('lg'), 1.2, 6], '*')], '+'),
       lineHeight: 1.2,
       resize: 'none'
     }
