@@ -2,6 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { variable } from 'ficsjs/style'
+import breakPoints from '@/breakpoints'
 import { loadingIcon } from '@/components/materials/svgIcon'
 import button from '@/components/materials/button'
 import { getPath } from '@/utils'
@@ -38,7 +39,12 @@ export default fics<Data, { lang: string }>({
     isLoaded
       ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
       : template`${loadingIcon}`,
-  css: { p: { marginBottom: variable('ex-lg') } },
+  css: {
+    p: {
+      marginBottom: variable('ex-lg'),
+      [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('md') }
+    }
+  },
   hooks: {
     mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
       poll(
