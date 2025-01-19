@@ -28,7 +28,7 @@ body {
   @media (max-width: 30rem) {
     main {
       --padding: var(--md);
-      --header-hight: var(--2xl) * 1.5 + var(--sm) * 2;
+      --header-hight: var(--2xl) * 1.5 + var(--xs) * 2;
       --footer-height: var(--sm) + var(--sm) * 2;
     }
   }
