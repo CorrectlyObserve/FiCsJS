@@ -2,6 +2,7 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
 import { calc, variable } from 'ficsjs/style'
+import breakPoints from '@/breakpoints'
 import { $lang } from '@/store'
 
 export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathname: string }>({
@@ -28,9 +29,8 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
         width: calc([variable('md'), 3], '*'),
         background: 'none',
         paddingBlock: variable('xs'),
-        '&.lang': {
-          '&.shown, &:focus': { opacity: 0.5 }
-        },
+        [`@media (max-width: ${breakPoints.sm})`]: { paddingBlock: variable('md') },
+        '&.lang': { '&.shown, &:focus': { opacity: 0.5 } },
         '&.selected': { color: variable('red') }
       },
       div: {
