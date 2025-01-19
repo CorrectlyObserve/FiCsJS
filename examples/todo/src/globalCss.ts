@@ -1,4 +1,5 @@
 import { color, calc, scale, variable } from 'ficsjs/style'
+import breakpoints from '@/breakpoints'
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
@@ -9,7 +10,8 @@ export default {
   h2: {
     fontSize: calc([variable('md'), 1.5], '*'),
     color: '#fff',
-    marginBottom: variable('ex-lg')
+    marginBottom: variable('ex-lg'),
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('md') }
   },
   'p, button, label, span': {
     fontSize: variable('lg'),
