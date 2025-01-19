@@ -27,7 +27,7 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
       button: {
         width: calc([variable('md'), 3], '*'),
         background: 'none',
-        paddingBlock: variable('ex-sm'),
+        paddingBlock: variable('xs'),
         '&.lang': {
           '&.shown, &:focus': { opacity: 0.5 }
         },
