@@ -1,2 +1,2 @@
-const breakPoints = { sm: '30rem' } as const
-export default breakPoints
+const breakpoints = { sm: '30rem' } as const
+export default breakpoints
