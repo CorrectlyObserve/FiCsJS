@@ -2,9 +2,10 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { getState } from 'ficsjs/state'
 import { variable } from 'ficsjs/style'
+import breakpoints from '@/breakpoints'
 import langs from '@/components/multitons/containers/langs'
-import { getPath } from '@/utils'
 import { $lang } from '@/store'
+import { getPath } from '@/utils'
 
 export default fics({
   name: 'header',
@@ -29,6 +30,7 @@ export default fics({
         alignItems: 'center',
         justifyContent: 'center',
         paddingBlock: variable('md'),
+        [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('sm') },
         h1: {
           fontSize: variable('ex-lg'),
           background: variable('gradation'),
