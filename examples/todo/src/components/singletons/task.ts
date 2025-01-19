@@ -206,8 +206,11 @@ export default fics<Data, { lang: string }>({
     }
   },
   hooks: {
-    mounted: async ({ setData }) =>
-      setData('task', await getTask(Number(getParams('path').id), () => goto('/404'))),
+    mounted: async ({ props: { lang }, setData }) =>
+      setData(
+        'task',
+        await getTask(Number(getParams('path').id), () => goto(getPath(lang, `/404`)))
+      ),
     updated: {
       task: async ({ datum, setData }) => setData('isError', datum.title === '')
     }
