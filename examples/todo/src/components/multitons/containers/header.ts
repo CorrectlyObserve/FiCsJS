@@ -30,7 +30,7 @@ export default fics({
         alignItems: 'center',
         justifyContent: 'center',
         paddingBlock: variable('md'),
-        [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('sm') },
+        [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('xs') },
         h1: {
           fontSize: variable('2xl'),
           background: variable('gradation'),
