@@ -10,7 +10,7 @@ export default fics<{}, { buttonText: string; isDisabled?: boolean; click: () =>
     button: ({ props: { isDisabled } }) => ({
       background: isDisabled ? color('#fff', 0.1) : variable('gradation'),
       padding: variable('md'),
-      borderRadius: variable('ex-sm')
+      borderRadius: variable('xs')
     })
   },
   actions: {
