@@ -1,6 +1,7 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { calc, variable } from 'ficsjs/style'
+import breakPoints from '@/breakpoints'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
@@ -118,7 +119,8 @@ export default fics<Data, { lang: string }>({
   css: {
     div: {
       '&.menu': {
-        marginBottom: variable('ex-lg'),
+        marginBottom: variable('2xl'),
+        [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('xl') },
         div: {
           display: 'flex',
           alignItems: 'center',
@@ -133,14 +135,11 @@ export default fics<Data, { lang: string }>({
         display: 'flex',
         alignItems: 'center',
         marginInline: 'auto',
-        marginBottom: variable('ex-sm'),
+        marginBottom: variable('xs'),
         '&:last-child': { marginBottom: 0 },
         div: {
           width: `${calc(
-            [
-              calc([calc(['100%', variable('lg')], '-'), 1.5], '*'),
-              calc([variable('ex-sm'), 2], '*')
-            ],
+            [calc([calc(['100%', variable('lg')], '-'), 1.5], '*'), calc([variable('xs'), 2], '*')],
             '-'
           )}`,
           display: 'flex',
@@ -149,12 +148,12 @@ export default fics<Data, { lang: string }>({
             width: '100%',
             display: 'flex',
             textAlign: 'left',
-            marginInline: variable('ex-sm'),
+            marginInline: variable('xs'),
             overflowX: 'hidden',
             transition: `${variable('transition')} allow-discrete`,
             '&.done': { textDecoration: 'line-through' },
             a: {
-              paddingBlock: variable('ex-sm'),
+              paddingBlock: variable('xs'),
               whiteSpace: 'nowrap',
               overflowX: 'hidden',
               textOverflow: 'ellipsis'
