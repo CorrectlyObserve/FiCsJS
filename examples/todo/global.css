@@ -1,9 +1,11 @@
 :root {
-  --ex-sm: 0.5rem;
+  --xs: 0.5rem;
   --sm: 0.875rem;
   --md: 1rem;
   --lg: 1.125rem;
-  --ex-lg: 2rem;
+  --xl: 1.5rem;
+  --2xl: 2rem;
+  --4xl: 4rem;
   --black: #282828;
   --red: #b7282e;
   --gradation: linear-gradient(30deg, var(--red) 20%, #e198b4);
@@ -16,9 +18,18 @@ body {
   margin: 0;
 
   main {
-    --header-hight: var(--ex-lg) * 1.5 + var(--md) * 2;
+    --padding: var(--2xl);
+    --header-hight: var(--2xl) * 1.5 + var(--md) * 2;
     --footer-height: var(--sm) + var(--md) * 2;
-    min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--ex-lg) * 2));
-    padding: var(--ex-lg);
+    min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--padding) * 2));
+    padding: var(--padding);
+  }
+
+  @media (max-width: 30rem) {
+    main {
+      --padding: var(--md);
+      --header-hight: var(--2xl) * 1.5 + var(--sm) * 2;
+      --footer-height: var(--sm) + var(--sm) * 2;
+    }
   }
 }
