@@ -23,7 +23,7 @@ export default fics<{ isComposing: boolean }, Props>({
       <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
     `,
   css: {
-    'label, p': { marginBottom: variable('ex-sm') },
+    'label, p': { marginBottom: variable('xs') },
     'p.error': { color: variable('error'), textAlign: 'left' },
     input: ({ props: { isError } }) => ({
       background: isError ? variable('error') : undefined,
