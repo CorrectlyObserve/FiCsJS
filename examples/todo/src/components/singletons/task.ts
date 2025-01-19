@@ -147,23 +147,23 @@ export default fics<Data, { lang: string }>({
         flexDirection: 'column',
         marginBottom: variable('md'),
         border: 0,
-        '> span': { marginBottom: variable('ex-sm') },
+        '> span': { marginBottom: variable('xs') },
         div: {
           display: 'flex',
           alignItems: 'center',
           flexDirection: 'row',
-          marginTop: variable('ex-sm')
+          marginTop: variable('xs')
         }
       },
       p: {
-        marginBottom: variable('ex-sm'),
+        marginBottom: variable('xs'),
         textAlign: 'left',
-        '&:last-of-type': { marginBottom: variable('ex-lg') }
+        '&:last-of-type': { marginBottom: variable('2xl') }
       },
       '> div': {
         display: 'flex',
         flexDirection: 'column',
-        marginTop: variable('ex-lg'),
+        marginTop: variable('2xl'),
         span: {
           marginInline: 'auto',
           marginBottom: variable('md'),
