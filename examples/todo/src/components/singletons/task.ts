@@ -123,7 +123,7 @@ export default fics<Data, { lang: string }>({
       <h2>${heading}</h2>
       <div class="container">
         <fieldset>
-          <label>${status}</label>
+          <label tabindex="0">${status}</label>
           <div>
             ${task.completedAt ? checkIcon : circleIcon}
             <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
@@ -177,7 +177,7 @@ export default fics<Data, { lang: string }>({
     }
   },
   actions: {
-    'fieldset span': {
+    'fieldset label, fieldset span': {
       click: [
         ({ data: { task }, setData }) =>
           setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() }),
