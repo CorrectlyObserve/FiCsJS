@@ -37,7 +37,10 @@ export default <P extends object>({
             pathname === path || getRegExp(path).test(pathname)
           const langPath: string = `/${lang}${path}`
 
-          if (isMatched(path) || (lang !== '' && isMatched(langPath))) {
+          if ((pathname === '/404' || pathname === `/${lang}404`) && notFound)
+            return resolveContent(notFound)
+
+          if (isMatched(path) || isMatched(langPath)) {
             params.set(
               'path',
               getPathParams(Object.keys(getPathParams(path)).length > 0 ? path : langPath)
