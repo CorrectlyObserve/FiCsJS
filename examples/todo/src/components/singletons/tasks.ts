@@ -139,7 +139,7 @@ export default fics<Data, { lang: string }>({
         '&:last-child': { marginBottom: 0 },
         div: {
           width: `${calc(
-            [calc([calc(['100%', variable('lg')], '-'), 1.5], '*'), calc([variable('xs'), 2], '*')],
+            [calc(['100%', variable('2xl')], '-'), calc([variable('xs'), 2], '*')],
             '-'
           )}`,
           display: 'flex',
@@ -153,9 +153,15 @@ export default fics<Data, { lang: string }>({
             transition: `${variable('transition')} allow-discrete`,
             '&.done': { textDecoration: 'line-through' },
             a: {
+              width: '100%',
+              display: 'inline-block',
+              color: 'inherit',
               paddingBlock: variable('xs'),
+              lineHeight: 'inherit',
+              outline: 'none',
               whiteSpace: 'nowrap',
               overflowX: 'hidden',
+              textDecoration: 'none',
               textOverflow: 'ellipsis'
             }
           }
