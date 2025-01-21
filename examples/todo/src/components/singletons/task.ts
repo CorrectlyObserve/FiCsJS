@@ -155,7 +155,7 @@ export default fics<Data, { lang: string }>({
       p: {
         marginBottom: variable('xs'),
         textAlign: 'left',
-        '&:last-of-type': { marginBottom: variable('2xl') }
+        '&:last-of-type': { marginBottom: variable('xl') }
       },
       '> div': {
         display: 'flex',
