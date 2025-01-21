@@ -27,7 +27,7 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
     'div.container': {
       button: {
         width: calc([variable('md'), 3], '*'),
-        background: 'none',
+        background: variable('black'),
         paddingBlock: variable('xs'),
         [`@media (max-width: ${breakPoints.sm})`]: { paddingBlock: variable('md') },
         '&.lang': { '&.shown, &:focus': { opacity: 0.5 } },
