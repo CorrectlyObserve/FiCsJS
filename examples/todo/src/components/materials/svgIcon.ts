@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, rotate, scale, variable } from 'ficsjs/style'
+import { rotate, scale, variable } from 'ficsjs/style'
 
 export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
   name: 'svg-icon',
@@ -19,8 +19,8 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
         }
       },
       span: {
-        width: calc([variable('lg'), 1.5], '*'),
-        height: calc([variable('lg'), 1.5], '*'),
+        width: variable('2xl'),
+        height: variable('2xl'),
         display: 'block',
         maskImage: `url("/icons/${icon}.svg")`,
         background: color ?? '#fff'
