@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, variable } from 'ficsjs/style'
+import { calc, color, variable } from 'ficsjs/style'
 
 interface Props {
   id?: string
@@ -14,15 +14,32 @@ export default fics<{}, Props>({
   name: 'textarea',
   html: ({ props: { id, label, placeholder, value }, template }) =>
     template`
-      ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
-      <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
+      <div>
+        ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
+        <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
+      </div>
     `,
   css: {
-    label: { marginBottom: variable('xs') },
-    textarea: {
-      height: calc([calc([variable('xs'), 2], '*'), calc([variable('lg'), 1.2, 6], '*')], '+'),
-      lineHeight: 1.2,
-      resize: 'none'
+    div: {
+      display: 'flex',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      label: { paddingBottom: variable('xs') },
+      textarea: {
+        minWidth: calc([variable('md'), 20], '*'),
+        height: calc([calc([variable('xs'), 2], '*'), calc([variable('md'), 1.2, 6], '*')], '+'),
+        background: color('#fff', 0.1),
+        fontSize: variable('md'),
+        color: '#fff',
+        padding: `${variable('sm')} ${variable('md')}`,
+        borderRadius: variable('xs'),
+        border: 'none',
+        outline: 'none',
+        lineHeight: 1.2,
+        resize: 'none',
+        '&:hover': { cursor: 'pointer' },
+        '&:focus': { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
+      }
     }
   },
   actions: {
