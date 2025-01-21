@@ -9,7 +9,7 @@ export default fics({
     footer: {
       paddingBlock: variable('md'),
       p: { fontSize: variable('sm') },
-      [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('sm') }
+      [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('xs') }
     }
   }
 })
