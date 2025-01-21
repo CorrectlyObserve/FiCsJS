@@ -41,8 +41,8 @@ export default fics<Data, { lang: string }>({
       : template`${loadingIcon}`,
   css: {
     p: {
-      marginBottom: variable('2xl'),
-      [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('xl') }
+      marginBottom: variable('xl'),
+      [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('lg') }
     }
   },
   hooks: {
