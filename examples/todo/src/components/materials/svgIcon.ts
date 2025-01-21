@@ -13,14 +13,14 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
         display: 'block',
         marginInline: 'auto',
         span: {
-          width: variable('4xl'),
-          height: variable('4xl'),
+          width: variable('2xl'),
+          height: variable('2xl'),
           animation: 'loading 1.5s infinite linear'
         }
       },
       span: {
-        width: variable('2xl'),
-        height: variable('2xl'),
+        width: variable('xl'),
+        height: variable('xl'),
         display: 'block',
         maskImage: `url("/icons/${icon}.svg")`,
         background: color ?? '#fff'
