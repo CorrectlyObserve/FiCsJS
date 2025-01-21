@@ -479,6 +479,10 @@ export default class FiCsElement<D extends object, P extends object> {
     } else this.#hooks[key]?.(this.#getDataPropsMethods())
   }
 
+  #getCss(): Css<D, P>[] {
+    return [...globalCss(), ...this.#css]
+  }
+
   async #renderOnServer(doc: Document, propsChain?: PropsChain<P>): Promise<HTMLElement> {
     const component: HTMLElement = doc.createElement(this.#name)
 
@@ -499,11 +503,11 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const childNode of await this.#convertTemplate(doc)) div.append(childNode)
       component.append(div)
 
-      const allCss: Css<D, P>[] = [...globalCss(), ...this.#css]
-      if (allCss.length > 0)
+      const css: Css<D, P>[] = this.#getCss()
+      if (css.length > 0)
         div.insertAdjacentHTML(
           'beforeend',
-          `<style>${this.#convertCss({ css: allCss, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
+          `<style>${this.#convertCss({ css, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
         )
     }
 
@@ -767,9 +771,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>[]): void {
-    const allCss: Css<D, P>[] = [...globalCss(), ...this.#css]
+    const _css: Css<D, P>[] = this.#getCss()
 
-    if (allCss.length === 0) return
+    if (_css.length === 0) return
 
     if (!css)
       for (const [index, content] of this.#css.entries()) {
@@ -779,7 +783,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#convertCss({ css: allCss, host: ':host', mode: 'csr' }))
+    stylesheet.replaceSync(this.#convertCss({ css: _css, host: ':host', mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
