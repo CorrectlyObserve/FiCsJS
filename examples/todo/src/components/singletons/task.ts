@@ -2,6 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getParams, goto } from 'ficsjs/router'
 import { calc, variable } from 'ficsjs/style'
+import breakpoints from '@/breakpoints'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import textarea from '@/components/materials/textarea'
@@ -142,18 +143,14 @@ export default fics<Data, { lang: string }>({
     'div.container': {
       width: calc([variable('md'), 20], '*'),
       marginInline: 'auto',
+      [`@media (max-width: ${breakpoints.sm})`]: { width: '100%' },
       fieldset: {
         display: 'flex',
         flexDirection: 'column',
         marginBottom: variable('md'),
         border: 0,
-        '> span': { marginBottom: variable('xs') },
-        div: {
-          display: 'flex',
-          alignItems: 'center',
-          flexDirection: 'row',
-          marginTop: variable('xs')
-        }
+        label: { paddingBottom: variable('xs') },
+        div: { display: 'flex', span: { display: 'flex', alignItems: 'center' } }
       },
       p: {
         marginBottom: variable('xs'),
@@ -163,15 +160,15 @@ export default fics<Data, { lang: string }>({
       '> div': {
         display: 'flex',
         flexDirection: 'column',
-        marginTop: variable('2xl'),
+        marginTop: variable('md'),
         span: {
+          padding: variable('md'),
           marginInline: 'auto',
-          marginBottom: variable('md'),
           textDecoration: 'underline',
           transition: variable('transition'),
           '&:first-of-type': { color: variable('red'), '&:focus': { opacity: 0.2 } },
-          '&:last-of-type': { marginBottom: 0 },
-          '&:hover': { cursor: 'pointer', opacity: 0.5 }
+          '&:hover': { cursor: 'pointer', opacity: 0.5 },
+          [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('md') }
         }
       }
     }
