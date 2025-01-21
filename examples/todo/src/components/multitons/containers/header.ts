@@ -23,7 +23,10 @@ export default fics({
     template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>`,
   css: {
     ':host': {
+      position: 'fixed',
       display: 'block',
+      width: '100vw',
+      zIndex: 10,
       header: {
         position: 'relative',
         display: 'flex',
@@ -36,6 +39,7 @@ export default fics({
           background: variable('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
+          lineHeight: 1.5,
           '&:focus': { opacity: 0.2 }
         },
         div: {
