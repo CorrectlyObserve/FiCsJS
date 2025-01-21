@@ -20,16 +20,18 @@ body {
   main {
     --padding: var(--2xl);
     --header-hight: var(--2xl) * 1.5 + var(--md) * 2;
-    --footer-height: var(--sm) + var(--md) * 2;
+    --footer-height: var(--sm) * 1.2 + var(--md) * 2;
     min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--padding) * 2));
-    padding: var(--padding);
+    padding-top: calc(var(--header-hight) + var(--padding));
+    padding-inline: var(--padding);
+    padding-bottom: var(--padding);
   }
 
   @media (max-width: 30rem) {
     main {
       --padding: var(--md);
       --header-hight: var(--2xl) * 1.5 + var(--xs) * 2;
-      --footer-height: var(--sm) + var(--sm) * 2;
+      --footer-height: var(--sm) * 1.2 + var(--xs) * 2;
     }
   }
 }
