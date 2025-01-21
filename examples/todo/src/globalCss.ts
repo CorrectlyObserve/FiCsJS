@@ -8,10 +8,10 @@ export default {
   '*[tabindex]:focus, a:focus': { color: variable('red'), outline: 'none' },
   'h2, p, button, label, span': { color: '#fff', textAlign: 'center' },
   h2: {
-    fontSize: variable('xl'),
-    marginBottom: variable('2xl'),
+    fontSize: variable('lg'),
+    marginBottom: variable('xl'),
     lineHeight: 1.5,
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('xl') }
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('lg') }
   },
   'p, button, label, span': { fontSize: variable('md'), lineHeight: 1.2 },
   button: {
