@@ -770,20 +770,20 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>[]): void {
-    const _css: Css<D, P>[] = this.#getCss()
+  #addCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
+    const css: Css<D, P>[] = this.#getCss()
 
-    if (_css.length === 0) return
+    if (css.length === 0) return
 
-    if (!css)
+    if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
         if (typeof content === 'string') continue
-        if (typeof content.style === 'function') this.#bindings.css.push(index)
+        if (typeof Object.values(content)[0] === 'function') this.#bindings.css.push(index)
       }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#convertCss({ css: _css, host: ':host', mode: 'csr' }))
+    stylesheet.replaceSync(this.#convertCss({ css, host: ':host', mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -897,7 +897,7 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#addClassName(this)
           that.#addAttrs(this)
           that.#addHtml(this.shadowRoot)
-          that.#addCss(this.shadowRoot)
+          that.#addCss(this.shadowRoot, [])
 
           for (const [selector, value] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
