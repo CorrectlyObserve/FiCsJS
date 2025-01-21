@@ -119,8 +119,8 @@ export default fics<Data, { lang: string }>({
   css: {
     div: {
       '&.menu': {
-        marginBottom: variable('2xl'),
-        [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('xl') },
+        marginBottom: variable('xl'),
+        [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('lg') },
         div: {
           display: 'flex',
           alignItems: 'center',
@@ -139,7 +139,7 @@ export default fics<Data, { lang: string }>({
         '&:last-child': { marginBottom: 0 },
         div: {
           width: `${calc(
-            [calc(['100%', variable('2xl')], '-'), calc([variable('xs'), 2], '*')],
+            [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
             '-'
           )}`,
           display: 'flex',
