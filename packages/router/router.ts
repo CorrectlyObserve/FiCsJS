@@ -33,12 +33,12 @@ export default <P extends object>({
         }
 
         for (const { path, content, redirect } of pages) {
+          if ((pathname === '/404' || pathname === `/${lang}/404`) && notFound)
+            return resolveContent(notFound)
+
           const isMatched = (path: string): boolean =>
             pathname === path || getRegExp(path).test(pathname)
           const langPath: string = `/${lang}${path}`
-
-          if ((pathname === '/404' || pathname === `/${lang}404`) && notFound)
-            return resolveContent(notFound)
 
           if (isMatched(path) || isMatched(langPath)) {
             params.set(
