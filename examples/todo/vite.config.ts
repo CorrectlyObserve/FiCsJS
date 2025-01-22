@@ -33,5 +33,5 @@ export default defineConfig({
     rollupOptions: { input: { en: 'index.html', ja: 'ja.html' } },
     minify: true
   },
-  server: { hmr: true }
+  server: { hmr: true, host: true }
 })
