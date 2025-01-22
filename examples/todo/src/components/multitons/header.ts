@@ -3,7 +3,7 @@ import { goto } from 'ficsjs/router'
 import { getState } from 'ficsjs/state'
 import { variable } from 'ficsjs/style'
 import breakpoints from '@/breakpoints'
-import langs from '@/components/multitons/containers/langs'
+import langs from '@/components/multitons/langs'
 import { $lang } from '@/store'
 import { getPath } from '@/utils'
 
@@ -49,7 +49,7 @@ export default fics({
           right: variable('xs')
         }
       }
-    }
+    },
   },
   hooks: {
     created: ({ setData }) => {
