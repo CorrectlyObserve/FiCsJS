@@ -1,7 +1,7 @@
 import { ficsRouter } from 'ficsjs/router'
 import tasks from '@/components/singletons/tasks'
 import task from '@/components/singletons/task'
-import notFound from '@/components/multitons/containers/notFound'
+import notFound from '@/components/multitons/notFound'
 
 export default ficsRouter({
   pages: [
