@@ -8,7 +8,7 @@
   --black: #282828;
   --red: #b7282e;
   --gradation: linear-gradient(30deg, var(--red) 20%, #e198b4);
-  --error: #cf5d89;
+  --error: #b93769;
   --transition: 0.2s ease-out;
 }
 
