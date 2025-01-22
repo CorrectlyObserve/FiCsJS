@@ -13,7 +13,7 @@ export default <D extends object, P extends object>({
   actions,
   hooks,
   options
-}: Omit<FiCs<D, P>, 'isExceptional'>): FiCsElement<D, P> =>
+}: Omit<FiCs<D, P>, 'isExceptional' | 'clonedCss'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
     isExceptional: false,
