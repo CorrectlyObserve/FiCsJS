@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { calc, variable } from 'ficsjs/style'
-import breakPoints from '@/breakpoints'
+import breakpoints from '@/breakpoints'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
@@ -128,19 +128,19 @@ export default fics<Data, { lang: string }>({
           '&:last-child': { marginBottom: 0 },
           'f-input': { marginRight: variable('md') }
         },
-        [`@media (max-width: ${breakPoints.sm})`]: {
+        [`@media (max-width: ${breakpoints.sm})`]: {
           marginBottom: variable('md'),
           div: { marginBottom: variable('xs'), 'f-input': { marginRight: 0 } }
         }
       },
       '&.task': {
-        width: '60%',
+        width: breakpoints.sm,
         display: 'flex',
         alignItems: 'center',
         marginInline: 'auto',
         marginBottom: variable('xs'),
         '&:last-child': { marginBottom: 0 },
-        [`@media (max-width: ${breakPoints.sm})`]: { width: '100%' },
+        [`@media (max-width: ${breakpoints.sm})`]: { width: '100%' },
         div: {
           width: `${calc(
             [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
