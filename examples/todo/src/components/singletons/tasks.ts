@@ -120,7 +120,6 @@ export default fics<Data, { lang: string }>({
     div: {
       '&.menu': {
         marginBottom: variable('xl'),
-        [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('lg') },
         div: {
           display: 'flex',
           alignItems: 'center',
@@ -128,6 +127,10 @@ export default fics<Data, { lang: string }>({
           marginBottom: variable('md'),
           '&:last-child': { marginBottom: 0 },
           'f-input': { marginRight: variable('md') }
+        },
+        [`@media (max-width: ${breakPoints.sm})`]: {
+          marginBottom: variable('md'),
+          div: { marginBottom: variable('xs'), 'f-input': { marginRight: 0 } }
         }
       },
       '&.task': {
@@ -137,6 +140,7 @@ export default fics<Data, { lang: string }>({
         marginInline: 'auto',
         marginBottom: variable('xs'),
         '&:last-child': { marginBottom: 0 },
+        [`@media (max-width: ${breakPoints.sm})`]: { width: '100%' },
         div: {
           width: `${calc(
             [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
