@@ -18,7 +18,7 @@ export default fics<{}, Props>({
   html: ({ props: { id, label, placeholder, value }, template }) =>
     template`
       <div>
-        ${label ? template`<label for="${id ?? ''}" tabindex="0">${label}</label>` : ''}
+        ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
         <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
       </div>
     `,
