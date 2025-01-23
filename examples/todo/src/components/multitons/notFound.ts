@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { variable } from 'ficsjs/style'
-import breakPoints from '@/breakpoints'
+import breakpoints from '@/breakpoints'
 import { loadingIcon } from '@/components/materials/svgIcon'
 import button from '@/components/materials/button'
 import { getPath } from '@/utils'
@@ -42,7 +42,7 @@ export default fics<Data, { lang: string }>({
   css: {
     p: {
       marginBottom: variable('xl'),
-      [`@media (max-width: ${breakPoints.sm})`]: { marginBottom: variable('lg') }
+      [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('lg') }
     }
   },
   hooks: {
