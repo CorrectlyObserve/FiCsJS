@@ -10,6 +10,9 @@ interface Props {
   blur?: () => void
 }
 
+const lineHeight = 1.5
+const paddingY: string = calc([variable('xs'), 1.5], '*')
+
 export default fics<{}, Props>({
   name: 'textarea',
   html: ({ props: { id, label, placeholder, value }, template }) =>
@@ -27,15 +30,15 @@ export default fics<{}, Props>({
       label: { paddingBottom: variable('xs') },
       textarea: {
         minWidth: calc([variable('md'), 20], '*'),
-        height: calc([calc([variable('xs'), 2], '*'), calc([variable('md'), 1.2, 6], '*')], '+'),
+        height: calc([calc([paddingY, 2], '*'), calc([variable('md'), lineHeight, 6], '*')], '+'),
         background: color('#fff', 0.1),
         fontSize: variable('md'),
         color: '#fff',
-        padding: `${variable('sm')} ${variable('md')}`,
+        padding: `${paddingY} ${variable('md')}`,
         borderRadius: variable('xs'),
         border: 'none',
         outline: 'none',
-        lineHeight: 1.2,
+        lineHeight,
         resize: 'none',
         '&:hover': { cursor: 'pointer' },
         '&:focus': { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
