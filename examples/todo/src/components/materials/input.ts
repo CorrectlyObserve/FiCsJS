@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { variable } from 'ficsjs/style'
+import { calc, color, variable } from 'ficsjs/style'
 
 interface Props {
   id?: string
@@ -18,16 +18,38 @@ export default fics<{ isComposing: boolean }, Props>({
   data: () => ({ isComposing: false }),
   html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
     template`
-      ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
-      <p class="error" ${show(!!isError)}>${error}</p>
-      <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
+      <div>
+        ${label ? template`<div><label for="${id ?? ''}">${label}</label></div>` : ''}
+        <p ${show(!!isError)}>${error}</p>
+        <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
+      </div>
     `,
   css: {
-    'label, p': { marginBottom: variable('xs') },
-    'p.error': { color: variable('error'), textAlign: 'left' },
-    input: ({ props: { isError } }) => ({
-      background: isError ? variable('error') : undefined,
-      '&::placeholder': isError ? { color: '#fff', opacity: 0.5 } : {}
+    div: ({ props: { isError } }) => ({
+      display: 'flex',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      label: { paddingBottom: variable('xs') },
+      p: {
+        fontSize: variable('sm'),
+        color: variable('error'),
+        marginBottom: variable('xs'),
+        textAlign: 'left'
+      },
+      input: {
+        minWidth: calc([variable('md'), 20], '*'),
+        background: isError ? variable('error') : color('#fff', 0.1),
+        fontSize: variable('md'),
+        color: '#fff',
+        padding: `${calc([variable('xs'), 1.5], '*')} ${variable('md')}`,
+        borderRadius: variable('xs'),
+        border: 'none',
+        outline: 'none',
+        lineHeight: 1.5,
+        '&::placeholder': isError ? { color: '#fff', opacity: 0.5 } : {},
+        '&:hover': { cursor: 'pointer' },
+        '&:focus': { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
+      }
     })
   },
   actions: {
