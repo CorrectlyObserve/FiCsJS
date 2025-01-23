@@ -124,7 +124,7 @@ export default fics<Data, { lang: string }>({
       <h2>${heading}</h2>
       <div class="container">
         <fieldset>
-          <label tabindex="0">${status}</label>
+          <label>${status}</label>
           <div>
             ${task.completedAt ? checkIcon : circleIcon}
             <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
