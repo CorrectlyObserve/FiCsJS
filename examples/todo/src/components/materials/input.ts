@@ -19,7 +19,7 @@ export default fics<{ isComposing: boolean }, Props>({
   html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
     template`
       <div>
-        ${label ? template`<div><label for="${id ?? ''}">${label}</label></div>` : ''}
+        ${label ? template`<div><label for="${id ?? ''}" tabindex="0">${label}</label></div>` : ''}
         <p ${show(!!isError)}>${error}</p>
         <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
       </div>
