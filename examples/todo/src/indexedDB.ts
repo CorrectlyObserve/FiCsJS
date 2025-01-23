@@ -67,16 +67,20 @@ export const getTask = async (id: number, handleError?: () => void): Promise<Tas
   const store = await getStore('readonly')
 
   return new Promise((resolve, reject) => {
-    const request: IDBRequest<Task> = store.get(id)
+    try {
+      const request: IDBRequest<Task> = store.get(id)
 
-    request.onsuccess = () => {
-      const task: Task = request.result
+      request.onsuccess = () => {
+        const task: Task = request.result
 
-      if (task) resolve(task)
-      else handleError ? handleError() : reject(new Error(`Task with id:${id} is not found...`))
+        if (task) resolve(task)
+        else handleError ? handleError() : reject(new Error(`Task with id:${id} is not found...`))
+      }
+
+      throwError(request, reject)
+    } catch (error) {
+      handleError ? handleError() : reject(error)
     }
-
-    throwError(request, reject)
   })
 }
 
