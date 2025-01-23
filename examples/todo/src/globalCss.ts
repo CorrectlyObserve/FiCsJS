@@ -3,9 +3,13 @@ import breakpoints from '@/breakpoints'
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
-  '*[tabindex], button, label, a': { transition: variable('transition') },
-  '*[tabindex]:hover, a:hover': { cursor: 'pointer', opacity: 0.5 },
-  '*[tabindex]:focus, a:focus': { color: variable('red'), outline: 'none' },
+  '*[tabindex], button, label, a': {
+    transition: variable('transition'),
+    '&:not(button)': {
+      '&:hover': { cursor: 'pointer', opacity: 0.5 },
+      '&:focus': { color: variable('red'), outline: 'none' }
+    }
+  },
   'h2, p, button, label, span': { color: '#fff', textAlign: 'center' },
   h2: {
     fontSize: variable('lg'),
