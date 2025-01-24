@@ -38,6 +38,7 @@ export default fics<{ isComposing: boolean }, Props>({
       },
       input: {
         minWidth: calc([variable('md'), 20], '*'),
+        maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
         background: isError ? variable('error') : color('#fff', 0.1),
         fontSize: variable('md'),
         color: '#fff',
