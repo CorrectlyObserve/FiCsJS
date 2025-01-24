@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getParams, goto } from 'ficsjs/router'
-import { variable } from 'ficsjs/style'
+import { calc, variable } from 'ficsjs/style'
 import breakpoints from '@/breakpoints'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
@@ -142,6 +142,7 @@ export default fics<Data, { lang: string }>({
   css: {
     'div.container': {
       width: breakpoints.sm,
+      maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
       marginInline: 'auto',
       [`@media (max-width: ${breakpoints.sm})`]: { width: '100%' },
       fieldset: {
