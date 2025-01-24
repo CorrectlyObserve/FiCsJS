@@ -135,6 +135,7 @@ export default fics<Data, { lang: string }>({
       },
       '&.task': {
         width: breakpoints.sm,
+        maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
         display: 'flex',
         alignItems: 'center',
         marginInline: 'auto',
