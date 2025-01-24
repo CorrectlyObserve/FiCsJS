@@ -30,6 +30,7 @@ export default fics<{}, Props>({
       label: { paddingBottom: variable('xs') },
       textarea: {
         minWidth: calc([variable('md'), 20], '*'),
+        maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
         height: calc([calc([paddingY, 2], '*'), calc([variable('md'), lineHeight, 6], '*')], '+'),
         background: color('#fff', 0.1),
         fontSize: variable('md'),
