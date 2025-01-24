@@ -26,6 +26,7 @@ export default fics({
       position: 'fixed',
       display: 'block',
       width: '100vw',
+      background: variable('black'),
       zIndex: 10,
       header: {
         position: 'relative',
@@ -46,10 +47,11 @@ export default fics({
           position: 'absolute',
           top: '50%',
           transform: 'translateY(-50%)',
-          right: variable('xs')
+          right: variable('xl'),
+          [`@media (max-width: ${breakpoints.sm})`]: { right: variable('xs') }
         }
       }
-    },
+    }
   },
   hooks: {
     created: ({ setData }) => {
