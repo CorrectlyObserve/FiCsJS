@@ -27,7 +27,7 @@ body {
 
     --main-padding: var(--padding) * 2;
 
-    min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--main-padding)));
+    min-height: calc(100dvh - (var(--header-hight) + var(--footer-height) + var(--main-padding)));
     padding-top: calc(var(--header-hight) + var(--padding));
     padding-inline: var(--padding);
     padding-bottom: var(--padding);
