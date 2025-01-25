@@ -390,15 +390,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return childNodes
   }
 
-  #convertCss({
-    css,
-    host,
-    mode
-  }: {
-    css: Css<D, P>[]
-    host: string
-    mode: 'csr' | 'ssr'
-  }): string {
+  #convertCss({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
     let topLevelCss: string = ''
@@ -440,18 +432,23 @@ export default class FiCsElement<D extends object, P extends object> {
       for (let [selector, style] of Object.entries(curr)) {
         if (Array.isArray(style) && style[1] !== mode) continue
 
-        if (selector.startsWith(':host')) selector = selector.replace(':host', '')
+        if (mode === 'ssr' && selector.startsWith(':host'))
+          selector = selector.replace(':host', this.#name)
 
-        const getCurlyBracket = (type: 'left' | 'right'): string => {
-          if (selector.trim() === '') return ''
-          return type === 'left' ? '{' : '}'
-        }
         const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
+        const index: number = content.indexOf('{')
 
-        _curr += `${selector}${getCurlyBracket('left')}${content}${getCurlyBracket('right')}`
+        if (selector.startsWith(':host') && index > -1) {
+          const hostCss: string = content.slice(0, index)
+          const lastIndex: number = hostCss.lastIndexOf(';')
+          const hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length)
+          const _selector: string = hostCss.slice(lastIndex + 1)
+
+          _curr += `${selector}{${hostCssContent}}${_selector}${content.slice(index)}`
+        } else _curr += `${selector}{${content}}`
       }
 
-      return `${prev}${host}{${_curr}}${topLevelCss}`
+      return `${prev}${_curr}${topLevelCss}`
     }, '') as string
   }
 
@@ -507,7 +504,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (css.length > 0)
         div.insertAdjacentHTML(
           'beforeend',
-          `<style>${this.#convertCss({ css, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
+          `<style>${this.#convertCss({ css, mode: 'ssr' })}</style>`
         )
     }
 
@@ -783,7 +780,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#convertCss({ css, host: ':host', mode: 'csr' }))
+    stylesheet.replaceSync(this.#convertCss({ css, mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
