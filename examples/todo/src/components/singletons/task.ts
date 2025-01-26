@@ -14,6 +14,7 @@ import type { Task } from '@/types'
 type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
+  heading: string
   task: Task
   title: string
   isError: boolean
@@ -21,7 +22,6 @@ interface Data {
   placeholders: string[]
   description: string
   buttonText: string
-  heading: string
   status: string
   texts: string[]
   datetimes: Record<Datetime, string>
@@ -45,7 +45,7 @@ export default fics<Data, { lang: string }>({
     texts: []
   }),
   fetch: async ({ props: { lang } }) => ({
-    ...(await i18n<Data>({ directory: '/i18n', lang, key: 'task' })),
+    ...(await i18n<Data>({ lang, key: 'task' })),
     confirmation: await i18n({ lang, key: ['tasks', 'confirmation'] })
   }),
   props: [
@@ -109,8 +109,8 @@ export default fics<Data, { lang: string }>({
   ],
   html: ({
     data: {
-      task,
       heading,
+      task,
       status,
       texts: [complete, revert, ...args],
       datetimes
