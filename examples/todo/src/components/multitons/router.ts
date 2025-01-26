@@ -6,7 +6,7 @@ import notFound from '@/components/multitons/notFound'
 export default ficsRouter({
   pages: [
     { path: '/', content: () => tasks },
-    { path: '/:id', content: () => task }
+    { path: '/:id', content: ({ template }) => template`${tasks}${task}` }
   ],
   notFound: { content: () => notFound },
   props: [
