@@ -11,7 +11,7 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
   html: ({ data: { langs, isShown }, props: { lang }, template, show }) =>
     template`
       <div class="container">
-        <button class="${('lang ' + (isShown ? 'shown' : '')).trim()}">${lang.toUpperCase()}</button>
+        <button class="lang">${lang.toUpperCase()}</button>
         <div class="${('langs ' + (!isShown ? 'hidden' : '')).trim()}" ${show(isShown)}>
           ${langs.map(
             _lang => template`
@@ -30,7 +30,7 @@ export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathn
         background: variable('black'),
         paddingBlock: variable('xs'),
         [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('md') },
-        '&.lang': { '&.shown, &:focus': { opacity: 0.5 } },
+        '&.lang:focus': { opacity: 0.5 },
         '&.selected': { color: variable('red') }
       },
       div: {
