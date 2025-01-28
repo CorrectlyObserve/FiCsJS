@@ -1,4 +1,6 @@
 {
+  "title": "ToDo App created with FiCsJS",
+  "content": "This is a ToDo app developed with FiCsJS. All processing is completed using FiCsJS without any other JavaScript frameworks.",
   "tasks": {
     "heading": "Task list",
     "placeholder": "Add new task",
