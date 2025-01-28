@@ -16,22 +16,6 @@ export default defineConfig({
       '@': '/src'
     }
   },
-  plugins: [
-    {
-      name: 'ja',
-      configureServer(server) {
-        server.middlewares.use((req, _, next) => {
-          if (req.url?.startsWith('/ja/')) req.url = './ja.html'
-          next()
-        })
-      }
-    }
-  ],
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: { input: { en: 'index.html', ja: 'ja.html' } },
-    minify: true
-  },
+  build: { outDir: 'dist', emptyOutDir: true, minify: true },
   server: { hmr: true, host: true }
 })
