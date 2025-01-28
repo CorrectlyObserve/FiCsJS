@@ -1,6 +1,6 @@
 import { ficsCss, ficsInit } from 'ficsjs'
 import { ficsI18n, i18n } from 'ficsjs/i18n'
-import { getState, setState, syncState } from 'ficsjs/state'
+import { getState, setState } from 'ficsjs/state'
 import header from '@/components/multitons/header'
 import footer from '@/components/multitons/footer'
 import router from '@/components/multitons/router'
@@ -21,9 +21,8 @@ metaTag.setAttribute('content', await i18n<string>({ lang, key: 'content' }))
 document.head.append(metaTag)
 
 setState($lang, lang === 'ja' ? 'ja' : 'en')
-syncState({ state: $lang, data: { lang: header } })
 
-header.describe()
+header.ssr(document.body, 'before')
 footer.describe()
 
 router.setData('lang', getState($lang))
