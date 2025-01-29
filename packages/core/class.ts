@@ -142,18 +142,16 @@ export default class FiCsElement<D extends object, P extends object> {
     enqueue({ ficsId: this.#ficsId, func, key })
   }
 
+  #getDataProps(): DataProps<D, P> {
+    return { data: { ...this.#data }, props: { ...this.#props } }
+  }
+
   #getDataPropsMethods(): DataPropsMethods<D, P> {
     return {
-      data: { ...this.#data },
-      props: { ...this.#props },
+      ...this.#getDataProps(),
       setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
-  }
-
-  #getDataProps(): DataProps<D, P> {
-    const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-    return { data, props }
   }
 
   async #awaitData(): Promise<void> {
@@ -422,6 +420,8 @@ export default class FiCsElement<D extends object, P extends object> {
         (prev, [key, value]) => `${prev} ${this.#convertStr(key, 'kebab')}="${value}"`,
         ''
       )
+      const value: string = `${className} ${attrs}`.trim()
+      const openTag: string = `<${this.#name}${value.length > 0 ? ` ${value}` : ''}>`
 
       const applyDescendant = async (html: string): Promise<string> => {
         const varBegin: string = `<${this.#varTag} ${this.#ficsIdName}="`
@@ -448,15 +448,21 @@ export default class FiCsElement<D extends object, P extends object> {
         const showAttrIndex: number = html.indexOf(this.#showAttr)
         if (showAttrIndex < 0) return html
 
+        const openIndex: number = html.indexOf('<', showAttrIndex)
+        const closeIndex: number = html.indexOf('>', showAttrIndex)
         const prev: string = html.slice(0, showAttrIndex)
         let next: string = applyShowAttr(html.slice(showAttrIndex + this.#showAttr.length))
 
+        if (openIndex > 0 && openIndex < closeIndex) return `${prev}${this.#showAttr}${next}`
+
         const styleAttr: string = 'style="'
         const styleIndex: number = prev.lastIndexOf(styleAttr)
+        const displayKey: string = 'display:'
+        const displayNone: string = `${displayKey}none`
 
-        if (styleIndex < 0) return `${prev}display="none"${next}`
+        if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
 
-        const newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`
+        let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`
         let remaining: string = prev.slice(styleIndex + styleAttr.length)
         const endIndex: number = remaining.indexOf('"')
 
@@ -465,24 +471,23 @@ export default class FiCsElement<D extends object, P extends object> {
         next = `${remaining.slice(endIndex).trim()}${next}`
         remaining = remaining.slice(0, endIndex).replace(/\s/g, '')
 
-        const displayKey: string = 'display:'
         const displayIndex: number = remaining.indexOf(displayKey)
-        const displayNone: string = `${displayKey}none`
-
         if (displayIndex < 0) return `${newPrev}${remaining}; ${displayNone}${next}`
+
+        newPrev += remaining.slice(0, displayIndex)
+        remaining = remaining.slice(displayIndex)
 
         const displayEndIndex: number = remaining.indexOf(';', displayIndex)
         if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
 
-        remaining = remaining.slice(displayEndIndex)
-        return `${newPrev}${displayNone}${remaining}${next}`
+        return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
       }
 
       const html: string = this.#convertTemplate(true).replace(/>\s+</g, '><').replace(/\n\s*/g, '')
       const css: Css<D, P>[] = this.#getCss()
 
       return `
-        <${this.#name} ${`${className} ${attrs}`.trim()}>
+        ${openTag}
           <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
           <div id="${this.#ficsId}" slot="${this.#ficsId}">
             ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
