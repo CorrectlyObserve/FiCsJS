@@ -56,7 +56,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   actions?: Actions<D, P>
   hooks?: Hooks<D, P>
-  options?: Options
+  options?: Omit<Options, 'ssr'> & { ssr?: boolean }
 }
 
 export interface GlobalCssContent {
@@ -93,7 +93,7 @@ export type Method<D, P> = (
 ) => void
 
 export interface Options {
-  ssr?: boolean
+  ssr: boolean
   lazyLoad?: boolean
   rootMargin?: string
 }
