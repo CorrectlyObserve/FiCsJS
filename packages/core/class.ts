@@ -83,7 +83,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin }: Options = options
+      const { ssr, lazyLoad, rootMargin }: Omit<Options, 'ssr'> & { ssr?: boolean } = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -243,28 +243,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
-    if (key === 'mounted') {
-      const poll = (
-        func: ({ times }: { times: number }) => void,
-        { interval, max, exit }: PollingOptions
-      ): void => {
-        let times = 0
-
-        const execute: NodeJS.Timeout = setTimeout(function run() {
-          if ((max && times >= max) || (exit && exit())) {
-            clearTimeout(execute)
-            return
-          }
-
-          func({ times })
-          times++
-          setTimeout(run, interval)
-        }, interval)
-      }
-
-      this.#hooks[key]?.({ ...this.#getDataPropsMethods(), poll })
-    } else this.#hooks[key]?.(this.#getDataPropsMethods())
+  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
+    return Array.from(parent.childNodes)
   }
 
   #convertTemplate(isSsr?: boolean): string {
@@ -328,190 +308,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return `${prev}${curr}`
     }, '') as string
-  }
-
-  #getClassName() {
-    if (!this.#className) return ''
-
-    return typeof this.#className === 'function'
-      ? this.#className(this.#getDataProps())
-      : this.#className
-  }
-
-  #getAttrs(): [string, string][] {
-    return Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
-    )
-  }
-
-  #getCss(): Css<D, P>[] {
-    return [...globalCss(), ...this.#css]
-  }
-
-  #convertCss({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
-    if (css.length === 0) return ''
-
-    let topLevelCss: string = ''
-    const convertCssContent = (style: Style<D, P>): string =>
-      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
-        (prev, [key, value]) => {
-          if (
-            value === undefined ||
-            value === '' ||
-            (typeof value === 'object' && Object.keys(value).length === 0)
-          )
-            return prev
-
-          key = this.#convertStr(key, 'kebab')
-          if (key.startsWith('webkit')) key = `-${key}`
-
-          if (key.startsWith('@keyframes')) {
-            topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
-            return prev
-          }
-
-          return (
-            `${prev}${key}` +
-            (typeof value === 'string' || typeof value === 'number'
-              ? `:${value};`
-              : `{${convertCssContent(value)}}`)
-          )
-        },
-        ''
-      )
-
-    return css.reduce((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${curr}`
-
-      let _curr: string = ''
-
-      for (let [selector, style] of Object.entries(curr)) {
-        if (Array.isArray(style) && style[1] !== mode) continue
-
-        if (mode === 'ssr' && selector.startsWith(':host'))
-          selector = selector.replace(':host', this.#name)
-
-        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
-        const index: number = content.indexOf('{')
-
-        if (selector.startsWith(':host') && index > -1) {
-          const hostCss: string = content.slice(0, index)
-          const lastIndex: number = hostCss.lastIndexOf(';')
-          const hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length)
-          const _selector: string = hostCss.slice(lastIndex + 1)
-
-          _curr += `${selector}{${hostCssContent}}${_selector}${content.slice(index)}`
-        } else _curr += `${selector}{${content}}`
-      }
-
-      return `${prev}${_curr}${topLevelCss}`
-    }, '') as string
-  }
-
-  async #renderOnServer(propsChain?: PropsChain<P>): Promise<string> {
-    this.#initProps(propsChain ?? this.#propsChain)
-    if (this.#options.ssr) await this.#awaitData()
-    this.#callback('created')
-    this.#enqueue(() => this.#define(), 'define')
-
-    if (this.#options.ssr) {
-      const className: string = this.#className ? `class="${this.#getClassName()}"` : ''
-      const attrs: string = this.#getAttrs().reduce(
-        (prev, [key, value]) => `${prev} ${this.#convertStr(key, 'kebab')}="${value}"`,
-        ''
-      )
-      const value: string = `${className} ${attrs}`.trim()
-      const openTag: string = `<${this.#name}${value.length > 0 ? ` ${value}` : ''}>`
-
-      const applyDescendant = async (html: string): Promise<string> => {
-        const varBegin: string = `<${this.#varTag} ${this.#ficsIdName}="`
-        const varEnd: string = `"></${this.#varTag}>`
-
-        const varBeginIndex: number = html.indexOf(varBegin)
-        const varEndIndex: number = html.indexOf(varEnd)
-
-        if (varBeginIndex < 0 || varEndIndex < 0) return html
-
-        const prev: string = html.slice(0, varBeginIndex)
-        const next: string = await applyDescendant(html.slice(varEndIndex + varEnd.length))
-        const ficsId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
-
-        if (!(ficsId in this.#descendants))
-          throw new Error(`The element does not have a valid ficsId in ${this.#name}...`)
-
-        const component: string = await this.#descendants[ficsId].#renderOnServer(this.#propsChain)
-
-        return `${prev}${component}${next}`
-      }
-
-      const applyShowAttr = (html: string): string => {
-        const showAttrIndex: number = html.indexOf(this.#showAttr)
-        if (showAttrIndex < 0) return html
-
-        const openIndex: number = html.indexOf('<', showAttrIndex)
-        const closeIndex: number = html.indexOf('>', showAttrIndex)
-        const prev: string = html.slice(0, showAttrIndex)
-        let next: string = applyShowAttr(html.slice(showAttrIndex + this.#showAttr.length))
-
-        if (openIndex > 0 && openIndex < closeIndex) return `${prev}${this.#showAttr}${next}`
-
-        const styleAttr: string = 'style="'
-        const styleIndex: number = prev.lastIndexOf(styleAttr)
-        const displayKey: string = 'display:'
-        const displayNone: string = `${displayKey}none`
-
-        if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
-
-        let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`
-        let remaining: string = prev.slice(styleIndex + styleAttr.length)
-        const endIndex: number = remaining.indexOf('"')
-
-        if (endIndex < 0) throw new Error('The style attribute is not closed...')
-
-        next = `${remaining.slice(endIndex).trim()}${next}`
-        remaining = remaining.slice(0, endIndex).replace(/\s/g, '')
-
-        const displayIndex: number = remaining.indexOf(displayKey)
-        if (displayIndex < 0) return `${newPrev}${remaining}; ${displayNone}${next}`
-
-        newPrev += remaining.slice(0, displayIndex)
-        remaining = remaining.slice(displayIndex)
-
-        const displayEndIndex: number = remaining.indexOf(';', displayIndex)
-        if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
-
-        return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
-      }
-
-      const html: string = this.#convertTemplate(true).replace(/>\s+</g, '><').replace(/\n\s*/g, '')
-      const css: Css<D, P>[] = this.#getCss()
-
-      return `
-        ${openTag}
-          <template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>
-          <div id="${this.#ficsId}" slot="${this.#ficsId}">
-            ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
-            ${css.length > 0 ? `<style>${this.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
-          </div>
-        </${this.#name}>
-      `
-    }
-
-    return `<${this.#name}></${this.#name}>`
-  }
-
-  #addClassName(component: HTMLElement): void {
-    if (!this.#className) return
-    component.setAttribute('class', this.#getClassName())
-  }
-
-  #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs())
-      component.setAttribute(this.#convertStr(key, 'kebab'), value)
-  }
-
-  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
-    return Array.from(parent.childNodes)
   }
 
   #getFiCsId(element: Element, isProperty?: boolean): string | null {
@@ -782,6 +578,70 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #getCss(): Css<D, P>[] {
+    return [...globalCss(), ...this.#css]
+  }
+
+  #convertCss({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
+    if (css.length === 0) return ''
+
+    let topLevelCss: string = ''
+    const convertCssContent = (style: Style<D, P>): string =>
+      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+        (prev, [key, value]) => {
+          if (
+            value === undefined ||
+            value === '' ||
+            (typeof value === 'object' && Object.keys(value).length === 0)
+          )
+            return prev
+
+          key = this.#convertStr(key, 'kebab')
+          if (key.startsWith('webkit')) key = `-${key}`
+
+          if (key.startsWith('@keyframes')) {
+            topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
+            return prev
+          }
+
+          return (
+            `${prev}${key}` +
+            (typeof value === 'string' || typeof value === 'number'
+              ? `:${value};`
+              : `{${convertCssContent(value)}}`)
+          )
+        },
+        ''
+      )
+
+    return css.reduce((prev, curr) => {
+      if (typeof curr === 'string') return `${prev}${curr}`
+
+      let _curr: string = ''
+
+      for (let [selector, style] of Object.entries(curr)) {
+        if (Array.isArray(style) && style[1] !== mode) continue
+
+        if (mode === 'ssr' && selector.startsWith(':host'))
+          selector = selector.replace(':host', this.#name)
+
+        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
+        const index: number = content.indexOf('{')
+
+        if (selector.startsWith(':host') && index > -1) {
+          const hostCss: string = content.slice(0, index)
+          const lastIndex: number = hostCss.lastIndexOf(';')
+          const hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length)
+          const _selector: string = hostCss.slice(lastIndex + 1)
+
+          _curr += `${selector}{${hostCssContent}}${_selector}${content.slice(index)}`
+        } else _curr += `${selector}{${content}}`
+      }
+
+      return `${prev}${_curr}${topLevelCss}`
+    }, '') as string
+  }
+
   #addCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
     const css: Css<D, P>[] = this.#getCss()
 
@@ -884,6 +744,54 @@ export default class FiCsElement<D extends object, P extends object> {
           : callback,
       { once }
     )
+  }
+
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+    if (key === 'mounted') {
+      const poll = (
+        func: ({ times }: { times: number }) => void,
+        { interval, max, exit }: PollingOptions
+      ): void => {
+        let times = 0
+
+        const execute: NodeJS.Timeout = setTimeout(function run() {
+          if ((max && times >= max) || (exit && exit())) {
+            clearTimeout(execute)
+            return
+          }
+
+          func({ times })
+          times++
+          setTimeout(run, interval)
+        }, interval)
+      }
+
+      this.#hooks[key]?.({ ...this.#getDataPropsMethods(), poll })
+    } else this.#hooks[key]?.(this.#getDataPropsMethods())
+  }
+
+  #getClassName() {
+    if (!this.#className) return ''
+
+    return typeof this.#className === 'function'
+      ? this.#className(this.#getDataProps())
+      : this.#className
+  }
+
+  #addClassName(component: HTMLElement): void {
+    if (!this.#className) return
+    component.setAttribute('class', this.#getClassName())
+  }
+
+  #getAttrs(): [string, string][] {
+    return Object.entries(
+      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+    )
+  }
+
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs())
+      component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
   #define(propsChain?: PropsChain<P>): void {
@@ -1006,7 +914,106 @@ export default class FiCsElement<D extends object, P extends object> {
 
   async ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): Promise<void> {
     const temporary: HTMLElement = document.createElement('div')
-    temporary.setHTMLUnsafe(await this.#renderOnServer())
+    const render = async (that: FiCsElement<D, P>): Promise<string> => {
+      that.#initProps(this.#propsChain)
+
+      const { ssr }: { ssr: boolean } = that.#options
+      if (ssr) await that.#awaitData()
+
+      that.#callback('created')
+      that.#enqueue(() => that.#define(), 'define')
+
+      if (ssr) {
+        const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
+        const attrs: string = that
+          .#getAttrs()
+          .reduce(
+            (prev, [key, value]) => `${prev} ${that.#convertStr(key, 'kebab')}="${value}"`,
+            ''
+          )
+        const value: string = `${className} ${attrs}`.trim()
+        const openTag: string = `<${that.#name}${value.length > 0 ? ` ${value}` : ''}>`
+
+        const applyDescendant = async (html: string): Promise<string> => {
+          const varBegin: string = `<${that.#varTag} ${that.#ficsIdName}="`
+          const varEnd: string = `"></${that.#varTag}>`
+
+          const varBeginIndex: number = html.indexOf(varBegin)
+          const varEndIndex: number = html.indexOf(varEnd)
+
+          if (varBeginIndex < 0 || varEndIndex < 0) return html
+
+          const prev: string = html.slice(0, varBeginIndex)
+          const next: string = await applyDescendant(html.slice(varEndIndex + varEnd.length))
+          const ficsId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
+
+          if (!(ficsId in that.#descendants))
+            throw new Error(`The element does not have a valid ficsId in ${that.#name}...`)
+
+          const component: string = await render(that.#descendants[ficsId])
+          return `${prev}${component}${next}`
+        }
+
+        const applyShowAttr = (html: string): string => {
+          const showAttrIndex: number = html.indexOf(that.#showAttr)
+          if (showAttrIndex < 0) return html
+
+          const openIndex: number = html.indexOf('<', showAttrIndex)
+          const closeIndex: number = html.indexOf('>', showAttrIndex)
+          const prev: string = html.slice(0, showAttrIndex)
+          let next: string = applyShowAttr(html.slice(showAttrIndex + that.#showAttr.length))
+
+          if (openIndex > 0 && openIndex < closeIndex) return `${prev}${that.#showAttr}${next}`
+
+          const styleAttr: string = 'style="'
+          const styleIndex: number = prev.lastIndexOf(styleAttr)
+          const displayKey: string = 'display:'
+          const displayNone: string = `${displayKey}none`
+
+          if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
+
+          let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`
+          let remaining: string = prev.slice(styleIndex + styleAttr.length)
+          const endIndex: number = remaining.indexOf('"')
+
+          if (endIndex < 0) throw new Error('The style attribute is not closed...')
+
+          next = `${remaining.slice(endIndex).trim()}${next}`
+          remaining = remaining.slice(0, endIndex).replace(/\s/g, '')
+
+          const displayIndex: number = remaining.indexOf(displayKey)
+          if (displayIndex < 0) return `${newPrev}${remaining}; ${displayNone}${next}`
+
+          newPrev += remaining.slice(0, displayIndex)
+          remaining = remaining.slice(displayIndex)
+
+          const displayEndIndex: number = remaining.indexOf(';', displayIndex)
+          if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
+
+          return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
+        }
+
+        const html: string = that
+          .#convertTemplate(true)
+          .replace(/>\s+</g, '><')
+          .replace(/\n\s*/g, '')
+        const css: Css<D, P>[] = that.#getCss()
+
+        return `
+        ${openTag}
+          <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
+          <div id="${that.#ficsId}" slot="${that.#ficsId}">
+            ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
+            ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
+          </div>
+        </${that.#name}>
+      `
+      }
+
+      return `<${that.#name}></${that.#name}>`
+    }
+
+    temporary.setHTMLUnsafe(await render(this))
     while (temporary.firstChild)
       parent.insertBefore(temporary.firstChild, position === 'before' ? parent.firstChild : null)
   }
