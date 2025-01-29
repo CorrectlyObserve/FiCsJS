@@ -17,6 +17,7 @@ import type {
   Hooks,
   Method,
   Options,
+  OptionArgs,
   PollingOptions,
   Props,
   PropsChain,
@@ -83,7 +84,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin }: Omit<Options, 'ssr'> & { ssr?: boolean } = options
+      const { ssr, lazyLoad, rootMargin }: OptionArgs = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
