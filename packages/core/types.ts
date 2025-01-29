@@ -56,7 +56,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   actions?: Actions<D, P>
   hooks?: Hooks<D, P>
-  options?: Omit<Options, 'ssr'> & { ssr?: boolean }
+  options?: OptionArgs
 }
 
 export interface GlobalCssContent {
@@ -97,6 +97,8 @@ export interface Options {
   lazyLoad?: boolean
   rootMargin?: string
 }
+
+export type OptionArgs = Omit<Options, 'ssr'> & { ssr?: boolean }
 
 export interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
