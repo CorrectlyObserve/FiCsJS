@@ -20,7 +20,7 @@ export default fics({
     }
   ],
   html: ({ template }) =>
-    template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>`,
+    template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</d></header>`,
   css: {
     ':host': {
       position: 'fixed',
@@ -43,7 +43,7 @@ export default fics({
           lineHeight: 1.5,
           '&:focus': { opacity: 0.2 }
         },
-        div: {
+        '> div': {
           position: 'absolute',
           top: '50%',
           transform: 'translateY(-50%)',
