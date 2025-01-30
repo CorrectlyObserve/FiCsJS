@@ -106,7 +106,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (!this.#options.ssr) {
           this.#isLoaded = false
-          if (!this.#options.lazyLoad) this.#enqueue(async () => await this.#awaitData(), 'fetch')
+          if (!this.#options.lazyLoad) {
+            console.log(this.#name)
+            this.#enqueue(async () => await this.#awaitData(), 'fetch')
+          }
         }
       }
     }
@@ -814,6 +817,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
+          if (!lazyLoad) that.#enqueue(async () => await that.#awaitData(), 'fetch')
           that.#initProps(propsChain ?? that.#propsChain)
           that.#addHtml(this.shadowRoot)
           that.#addCss(this.shadowRoot, [])
@@ -831,13 +835,14 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!that.#components.has(this)) that.#components.add(this)
         }
 
-        connectedCallback(): void {
+        async connectedCallback(): Promise<void> {
           if (!this.isRendered) {
             if (lazyLoad) {
               const observer: IntersectionObserver = new IntersectionObserver(
-                ([{ isIntersecting, target }]) => {
+                async ([{ isIntersecting, target }]) => {
                   if (isIntersecting) {
                     this.#init()
+                    that.#enqueue(async () => await that.#awaitData(), 'fetch')
                     observer.unobserve(target)
                   }
                 },
@@ -845,7 +850,6 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
               setTimeout(() => observer.observe(this), 0)
-              that.#enqueue(async () => await that.#awaitData(), 'fetch')
             }
 
             that.#callback('mounted')
