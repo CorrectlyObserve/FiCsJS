@@ -22,8 +22,9 @@ document.head.append(metaTag)
 
 setState($lang, lang === 'ja' ? 'ja' : 'en')
 
-header.ssr(document.body, 'before')
-footer.describe()
+header.describe()
 
 router.setData('lang', getState($lang))
-router.ssr(document.querySelector('main')!)
+router.describe()
+
+footer.describe()
