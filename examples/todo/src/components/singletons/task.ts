@@ -42,7 +42,8 @@ export default fics<Data, { lang: string }>({
     placeholders: [],
     description: '',
     buttonText: '',
-    texts: []
+    texts: [],
+    datetimes: {} as Record<Datetime, string>
   }),
   fetch: async ({ props: { lang } }) => ({
     ...(await i18n<Data>({ lang, key: 'task' })),
