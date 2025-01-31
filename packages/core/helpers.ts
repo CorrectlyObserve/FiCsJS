@@ -4,7 +4,7 @@ export const convertToArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
 
 export function* generateUid(): Generator<number> {
-  let n = 1
+  let n: number = 1
 
   while (true) {
     yield n
