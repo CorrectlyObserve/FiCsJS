@@ -106,22 +106,18 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (!this.#options.ssr) {
           this.#isLoaded = false
-          if (!this.#options.lazyLoad) {
-            console.log(this.#name)
-            this.#enqueue(async () => await this.#awaitData(), 'fetch')
-          }
+          if (!this.#options.lazyLoad) this.#enqueue(async () => await this.#awaitData(), 'fetch')
         }
       }
     }
 
     if (props) this.#propsSources = [...props]
 
-    if (className) {
+    if (className)
       if (typeof className === 'function') {
         this.#bindings.isClassName = true
         this.#className = className
       } else this.#className = className.trim()
-    }
 
     if (attributes) {
       if (typeof attributes === 'function') this.#bindings.isAttr = true
@@ -817,8 +813,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
-          if (!lazyLoad) that.#enqueue(async () => await that.#awaitData(), 'fetch')
           that.#initProps(propsChain ?? that.#propsChain)
+          that.#enqueue(async () => await that.#awaitData(), 'fetch')
           that.#addHtml(this.shadowRoot)
           that.#addCss(this.shadowRoot, [])
 
@@ -842,7 +838,6 @@ export default class FiCsElement<D extends object, P extends object> {
                 async ([{ isIntersecting, target }]) => {
                   if (isIntersecting) {
                     this.#init()
-                    that.#enqueue(async () => await that.#awaitData(), 'fetch')
                     observer.unobserve(target)
                   }
                 },
@@ -855,7 +850,6 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#callback('mounted')
             that.#addClassName(this)
             that.#addAttrs(this)
-
             this.isRendered = true
           }
         }
