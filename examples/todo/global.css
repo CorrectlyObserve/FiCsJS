@@ -21,13 +21,11 @@ body {
 
     --header-padding: var(--md) * 2;
     --header-hight: var(--xl) * 1.5 + var(--header-padding);
-
     --footer-padding: var(--md);
     --footer-height: var(--sm) * 1.2 + var(--footer-padding);
 
-    --main-padding: var(--padding) * 2;
-
-    min-height: calc(100dvh - (var(--header-hight) + var(--footer-height) + var(--main-padding)));
+    --min-height: calc(100vh - (var(--header-hight) + var(--footer-height) +  var(--padding) * 2));
+    min-height: var(--min-height);
     padding-top: calc(var(--header-hight) + var(--padding));
     padding-inline: var(--padding);
     padding-bottom: var(--padding);
