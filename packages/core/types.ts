@@ -34,6 +34,8 @@ export type DataProps<D, P> = {
   props: P
 }
 
+export type CssArgs<D, P> = SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+
 export type DataPropsMethods<D, P> = {
   data: D
   props: P
@@ -52,7 +54,7 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  css?: CssArgs<D, P>
   clonedCss?: Css<D, P>[]
   actions?: Actions<D, P>
   hooks?: Hooks<D, P>
