@@ -1,3 +1,5 @@
+import { throwWindowError } from './../core/helpers'
+
 type Rgb = Record<'red' | 'green' | 'blue', number>
 
 export default (
@@ -5,6 +7,11 @@ export default (
   rate: number,
   type: 'darken' | 'lighten' | 'translucent' = 'translucent'
 ): string => {
+  if (hex.startsWith('--')) {
+    throwWindowError()
+    hex = window.getComputedStyle(document.documentElement).getPropertyValue(hex).trim()
+  }
+
   if (!hex.startsWith('#'))
     throw new Error(`The "${hex}" must start with "#" and follow a valid format...`)
 
