@@ -9,6 +9,7 @@ export default <P extends object>({
   pages,
   notFound,
   props,
+  css,
   options
 }: FiCsRouter<P>): FiCsElement<RouterData, P> =>
   new FiCsElement<RouterData, P>({
@@ -56,6 +57,7 @@ export default <P extends object>({
 
       return setContent()
     },
+    css,
     hooks: {
       created: ({ setData }) => {
         throwWindowError()
