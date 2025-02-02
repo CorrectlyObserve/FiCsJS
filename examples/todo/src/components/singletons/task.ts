@@ -31,6 +31,7 @@ interface Data {
 const checkIcon = svgIcon.extend({ icon: 'check' })
 const circleIcon = svgIcon.extend({ icon: 'circle' })
 const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
+const { sm } = breakpoints
 
 export default fics<Data, { lang: string }>({
   name: 'task',
@@ -142,10 +143,10 @@ export default fics<Data, { lang: string }>({
   },
   css: {
     'div.container': {
-      width: breakpoints.sm,
+      width: sm,
       maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
       marginInline: 'auto',
-      [`@media (max-width: ${breakpoints.sm})`]: { width: '100%' },
+      [`@media (max-width: ${sm})`]: { width: '100%' },
       fieldset: {
         display: 'flex',
         flexDirection: 'column',
@@ -170,7 +171,7 @@ export default fics<Data, { lang: string }>({
           transition: variable('transition'),
           '&:first-of-type': { color: variable('red'), '&:focus': { opacity: 0.2 } },
           '&:hover': { cursor: 'pointer', opacity: 0.5 },
-          [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('md') }
+          [`@media (max-width: ${sm})`]: { paddingBlock: variable('md') }
         }
       }
     }
