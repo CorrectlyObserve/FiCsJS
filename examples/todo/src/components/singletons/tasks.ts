@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { calc, variable } from 'ficsjs/style'
+import { calc, remToPx, variable } from 'ficsjs/style'
 import breakpoints from '@/breakpoints'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
@@ -22,6 +22,7 @@ interface Data {
 const addIcon = svgIcon.extend({ icon: 'add' })
 const squareIcon = svgIcon.extend({ icon: 'square' })
 const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
+const { sm, lg } = breakpoints
 
 export default fics<Data, { lang: string }>({
   name: 'tasks',
@@ -100,7 +101,7 @@ export default fics<Data, { lang: string }>({
                       }
                     })}
                     <span class="${completedAt ? 'done' : ''}">
-                      <a href="${getPath(lang, `/${id}`)}">${title}</a>
+                      <a id="${id}" href="${getPath(lang, `/${id}`)}">${title}</a>
                     </span>
                   </div>
                   ${setProps(svgIcon.extend({ icon: 'trash' }), {
@@ -128,20 +129,20 @@ export default fics<Data, { lang: string }>({
           '&:last-child': { marginBottom: 0 },
           'f-input': { marginRight: variable('md') }
         },
-        [`@media (max-width: ${breakpoints.sm})`]: {
+        [`@media (max-width: ${sm})`]: {
           marginBottom: variable('md'),
           div: { marginBottom: variable('xs'), 'f-input': { marginRight: 0 } }
         }
       },
       '&.task': {
-        width: breakpoints.sm,
+        width: sm,
         maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
         display: 'flex',
         alignItems: 'center',
         marginInline: 'auto',
         marginBottom: variable('xs'),
         '&:last-child': { marginBottom: 0 },
-        [`@media (max-width: ${breakpoints.sm})`]: { width: '100%' },
+        [`@media (max-width: ${sm})`]: { width: '100%' },
         div: {
           width: `${calc(
             [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
@@ -178,6 +179,14 @@ export default fics<Data, { lang: string }>({
   actions: {
     'div.menu span': {
       click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
+    },
+    'div.task a': {
+      click: [
+        ({ event }) => {
+          if (document.documentElement.offsetWidth >= remToPx(lg)) event.preventDefault()
+        },
+        { debounce: 500 }
+      ]
     }
   },
   hooks: { mounted: async ({ setData }) => setData('tasks', await getAllTasks()) },
