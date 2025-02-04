@@ -2,8 +2,8 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { setState, getState } from 'ficsjs/state'
 import { calc, variable } from 'ficsjs/style'
-import breakpoints from '@/breakpoints'
 import { $lang } from '@/store'
+import { breakpoints } from '@/utils'
 
 export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathname: string }>({
   name: 'langs',
