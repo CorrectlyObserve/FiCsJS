@@ -1,12 +1,11 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { calc, remToPx, variable } from 'ficsjs/style'
-import breakpoints from '@/breakpoints'
 import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
 import input from '@/components/materials/input'
 import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
 import type { Task } from '@/types'
-import { getPath } from '@/utils'
+import { breakpoints, getPath } from '@/utils'
 
 interface Data {
   heading: string
