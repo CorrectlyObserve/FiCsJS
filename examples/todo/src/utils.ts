@@ -13,3 +13,5 @@ export const getTimestamp = (timestamp: number): string => {
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
+
+export const white: string = '#fff'
