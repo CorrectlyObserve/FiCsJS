@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
 import { calc, color, variable } from 'ficsjs/style'
+import { white } from '@/utils'
 
 interface Props {
   id?: string
@@ -39,18 +40,18 @@ export default fics<{ isComposing: boolean }, Props>({
       input: {
         minWidth: calc([variable('md'), 20], '*'),
         maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-        background: isError ? variable('error') : color({ hex: '#fff', rate: 0.1 }),
+        background: isError ? variable('error') : color({ hex: white, rate: 0.1 }),
         fontSize: variable('md'),
-        color: '#fff',
+        color: white,
         padding: `${calc([variable('xs'), 1.5], '*')} ${variable('md')}`,
         borderRadius: variable('xs'),
         border: 'none',
         outline: 'none',
         lineHeight: 1.5,
-        '&::placeholder': isError ? { color: '#fff', opacity: 0.5 } : {},
+        '&::placeholder': isError ? { color: white, opacity: 0.5 } : {},
         '&:hover': { cursor: 'pointer' },
         '&:focus': {
-          background: color({ hex: '#fff', rate: 0.8 }),
+          background: color({ hex: white, rate: 0.8 }),
           color: variable('black'),
           cursor: 'auto'
         }
