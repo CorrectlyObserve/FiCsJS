@@ -32,7 +32,7 @@ export default fics<{}, Props>({
         minWidth: calc([variable('md'), 20], '*'),
         maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
         height: calc([calc([paddingY, 2], '*'), calc([variable('md'), lineHeight, 6], '*')], '+'),
-        background: color('#fff', 0.1),
+        background: color({ hex: '#fff', rate: 0.1 }),
         fontSize: variable('md'),
         color: '#fff',
         padding: `${paddingY} ${variable('md')}`,
@@ -42,7 +42,11 @@ export default fics<{}, Props>({
         lineHeight,
         resize: 'none',
         '&:hover': { cursor: 'pointer' },
-        '&:focus': { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
+        '&:focus': {
+          background: color({ hex: '#fff', rate: 0.8 }),
+          color: variable('black'),
+          cursor: 'auto'
+        }
       }
     }
   },
