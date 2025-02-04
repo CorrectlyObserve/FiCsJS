@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
 import { rotate, scale, variable } from 'ficsjs/style'
+import { white } from '@/utils'
 
 export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
   name: 'svg-icon',
@@ -23,7 +24,7 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
         height: variable('xl'),
         display: 'block',
         maskImage: `url("/icons/${icon}.svg")`,
-        background: color ?? '#fff'
+        background: color ?? white
       },
       '@keyframes loading': { from: { transform: rotate(0) }, to: { transform: rotate(360) } }
     })
