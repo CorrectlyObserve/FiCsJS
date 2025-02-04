@@ -39,7 +39,7 @@ export default fics<{ isComposing: boolean }, Props>({
       input: {
         minWidth: calc([variable('md'), 20], '*'),
         maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-        background: isError ? variable('error') : color('#fff', 0.1),
+        background: isError ? variable('error') : color({ hex: '#fff', rate: 0.1 }),
         fontSize: variable('md'),
         color: '#fff',
         padding: `${calc([variable('xs'), 1.5], '*')} ${variable('md')}`,
@@ -49,7 +49,11 @@ export default fics<{ isComposing: boolean }, Props>({
         lineHeight: 1.5,
         '&::placeholder': isError ? { color: '#fff', opacity: 0.5 } : {},
         '&:hover': { cursor: 'pointer' },
-        '&:focus': { background: color('#fff', 0.8), color: variable('black'), cursor: 'auto' }
+        '&:focus': {
+          background: color({ hex: '#fff', rate: 0.8 }),
+          color: variable('black'),
+          cursor: 'auto'
+        }
       }
     })
   },
