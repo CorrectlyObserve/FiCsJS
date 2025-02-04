@@ -2,10 +2,9 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { variable } from 'ficsjs/style'
-import breakpoints from '@/breakpoints'
 import { loadingIcon } from '@/components/materials/svgIcon'
 import button from '@/components/materials/button'
-import { getPath } from '@/utils'
+import { breakpoints, getPath } from '@/utils'
 
 interface Data {
   seconds: number
