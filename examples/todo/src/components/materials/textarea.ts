@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
 import { calc, color, variable } from 'ficsjs/style'
+import { white } from '@/utils'
 
 interface Props {
   id?: string
@@ -32,9 +33,9 @@ export default fics<{}, Props>({
         minWidth: calc([variable('md'), 20], '*'),
         maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
         height: calc([calc([paddingY, 2], '*'), calc([variable('md'), lineHeight, 6], '*')], '+'),
-        background: color({ hex: '#fff', rate: 0.1 }),
+        background: color({ hex: white, rate: 0.1 }),
         fontSize: variable('md'),
-        color: '#fff',
+        color: white,
         padding: `${paddingY} ${variable('md')}`,
         borderRadius: variable('xs'),
         border: 'none',
@@ -43,7 +44,7 @@ export default fics<{}, Props>({
         resize: 'none',
         '&:hover': { cursor: 'pointer' },
         '&:focus': {
-          background: color({ hex: '#fff', rate: 0.8 }),
+          background: color({ hex: white, rate: 0.8 }),
           color: variable('black'),
           cursor: 'auto'
         }
