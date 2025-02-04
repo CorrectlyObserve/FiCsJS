@@ -2,10 +2,9 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { getState } from 'ficsjs/state'
 import { variable } from 'ficsjs/style'
-import breakpoints from '@/breakpoints'
 import langs from '@/components/multitons/langs'
 import { $lang } from '@/store'
-import { getPath } from '@/utils'
+import { breakpoints, getPath } from '@/utils'
 
 export default fics({
   name: 'header',
