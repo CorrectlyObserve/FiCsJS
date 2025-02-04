@@ -1,6 +1,5 @@
 import { scale, variable } from 'ficsjs/style'
-import breakpoints from '@/breakpoints'
-import { white } from '@/utils'
+import { breakpoints, white } from '@/utils'
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
