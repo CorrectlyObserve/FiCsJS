@@ -8,12 +8,12 @@ export default fics<{}, { buttonText: string; isDisabled?: boolean; click: () =>
   css: {
     ':host': { display: 'block', textAlign: 'center' },
     button: ({ props: { isDisabled } }) => ({
-      background: isDisabled ? color('#fff', 0.1) : variable('gradation'),
+      background: isDisabled ? color({ hex: '#fff', rate: 0.1 }) : variable('gradation'),
       padding: variable('md'),
       borderRadius: variable('xs'),
       '&[aria-disabled="true"]': {
         background: 'none',
-        color: color('#fff', 0.2),
+        color: color({ hex: '#fff', rate: 0.2 }),
         cursor: 'not-allowed'
       }
     })
