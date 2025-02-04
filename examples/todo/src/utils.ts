@@ -1,3 +1,5 @@
+export const breakpoints = { sm: '30rem', lg: '60rem' } as const
+
 export const getPath = (lang: string, path: string): string =>
   `${lang === 'en' ? '' : `/${lang}`}${path}`
 
