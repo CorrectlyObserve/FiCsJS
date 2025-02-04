@@ -2,11 +2,15 @@ import { throwWindowError } from './../core/helpers'
 
 type Rgb = Record<'red' | 'green' | 'blue', number>
 
-export default (
-  hex: string,
-  rate: number,
-  type: 'darken' | 'lighten' | 'translucent' = 'translucent'
-): string => {
+export default ({
+  hex,
+  rate,
+  isOpacity = true
+}: {
+  hex: string
+  rate: number
+  isOpacity?: boolean
+}): string => {
   if (hex.startsWith('--')) {
     throwWindowError()
     hex = window.getComputedStyle(document.documentElement).getPropertyValue(hex).trim()
@@ -15,8 +19,8 @@ export default (
   if (!hex.startsWith('#'))
     throw new Error(`The "${hex}" must start with "#" and follow a valid format...`)
 
-  if (isNaN(rate) || rate <= 0 || rate >= 1)
-    throw new Error(`The "${rate}" must be between 0 and 1 (exclusive)...`)
+  if (isNaN(rate) || rate <= -1 || rate >= 1)
+    throw new Error(`The "${rate}" must be between -1 and 1 (exclusive)...`)
 
   const rgbKeys = ['red', 'green', 'blue'] as const
   let _hex: string = hex.slice(1)
@@ -31,7 +35,7 @@ export default (
     {} as Rgb
   )
 
-  if (type === 'translucent') return `rgba(${Object.values(rgb).join()}, ${rate})`
+  if (isOpacity) return `rgba(${Object.values(rgb).join()}, ${Math.max(0, rate)})`
 
   const { red, green, blue }: Rgb = rgb
   const maxColorValue: number = 255
@@ -57,9 +61,9 @@ export default (
   }
 
   const s: number = max === 0 ? 0 : diff / max
-  const v: number = max * (1 + rate * (type === 'darken' ? -1 : 1))
+  const v: number = rate < 0 ? Math.min(1, max + Math.abs(rate)) : Math.max(0, max - max * rate)
   let _rgb: Rgb = rgbKeys.reduce(
-    (prev, curr) => ({ ...prev, [curr]: s > 0 ? 0 : v * maxColorValue }),
+    (prev, curr) => ({ ...prev, [curr]: s > 0 ? 0 : Math.round(v * maxColorValue) }),
     {} as Rgb
   )
 
