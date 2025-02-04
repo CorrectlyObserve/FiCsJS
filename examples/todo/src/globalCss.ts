@@ -1,5 +1,6 @@
 import { scale, variable } from 'ficsjs/style'
 import breakpoints from '@/breakpoints'
+import { white } from '@/utils'
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
@@ -10,7 +11,7 @@ export default {
       '&:focus': { color: variable('red'), outline: 'none' }
     }
   },
-  'h2, p, button, label, span': { color: '#fff', textAlign: 'center' },
+  'h2, p, button, label, span': { color: white, textAlign: 'center' },
   h2: {
     fontSize: variable('lg'),
     marginBottom: variable('xl'),
