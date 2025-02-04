@@ -1,9 +1,9 @@
 import { ficsRouter } from 'ficsjs/router'
-import breakpoints from '@/breakpoints'
+import { calc, color, variable } from 'ficsjs/style'
 import tasks from '@/components/singletons/tasks'
 import task from '@/components/singletons/task'
 import notFound from '@/components/multitons/notFound'
-import { calc, color, variable } from 'ficsjs/style'
+import { breakpoints } from '@/utils'
 
 const xs = calc([variable('xs'), -1], '*')
 
@@ -27,19 +27,20 @@ export default ficsRouter({
     }
   ],
   css: {
-    '.container > f-task': { display: 'none' },
-    [`@media (min-width: ${breakpoints.lg})`]: {
-      ':host': {
-        position: 'relative',
-        display: 'block',
-        minHeight: variable('min-height'),
-        '.container': {
-          position: 'absolute',
-          display: 'flex',
-          justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-          gap: variable('xl'),
+    ':host': {
+      position: 'relative',
+      display: 'block',
+      minHeight: variable('min-height'),
+      'div.container': {
+        position: 'absolute',
+        containerType: 'inline-size',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: variable('xl'),
+        width: '100%',
+        height: '100%',
+        'f-task': { display: 'none' },
+        [`@container (width >= ${breakpoints.lg})`]: {
           'f-task': {
             display: 'block',
             paddingLeft: variable('xl'),
