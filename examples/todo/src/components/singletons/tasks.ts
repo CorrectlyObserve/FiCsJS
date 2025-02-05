@@ -23,7 +23,7 @@ const squareIcon = svgIcon.extend({ icon: 'square' })
 const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
 const { sm, lg } = breakpoints
 
-export default fics<Data, { lang: string }>({
+export default fics<Data, { lang: string; click?: (id: number) => void }>({
   name: 'tasks',
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   fetch: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
@@ -181,10 +181,13 @@ export default fics<Data, { lang: string }>({
     },
     'div.task a': {
       click: [
-        ({ event }) => {
-          if (document.documentElement.offsetWidth >= remToPx(lg)) event.preventDefault()
+        ({ props: { click }, event, attributes }) => {
+          if (document.documentElement.offsetWidth >= remToPx(lg) && click) {
+            event.preventDefault()
+            click(Number(attributes.id))
+          }
         },
-        { debounce: 500 }
+        { throttle: 500, blur: true }
       ]
     }
   },
