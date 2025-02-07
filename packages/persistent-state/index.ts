@@ -41,7 +41,7 @@ const getStore = async (
 
     return await openDB().then(db => db.transaction(storeName, mode).objectStore(storeName))
   } catch (error) {
-    throw new Error(`${error}`)
+    throw new Error((error as Error).message)
   }
 }
 
@@ -98,7 +98,7 @@ export const setPersistentState = async <S>(
     if (readonly) throw new Error(`The "${key}" is readonly...`)
 
     const store: IDBObjectStore = await getStore(key, { mode: 'readwrite' })
-    const request: IDBRequest<IDBValidKey> = store.add({
+    const request: IDBRequest<IDBValidKey> = store.put({
       state: value,
       key,
       readonly,
@@ -156,7 +156,7 @@ export const setSnapshot = (state: string, name?: string): Promise<void> =>
       createdAt: timestamp,
       updatedAt: timestamp
     }
-    const request: IDBRequest<IDBValidKey> = store.add(name ? { ...value, name } : value)
+    const request: IDBRequest<IDBValidKey> = store.put(name ? { ...value, name } : value)
 
     request.onsuccess = async () => resolve()
     request.onerror = event => {
