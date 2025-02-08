@@ -34,8 +34,6 @@ export type DataProps<D, P> = {
   props: P
 }
 
-export type CssArgs<D, P> = SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
-
 export type DataPropsMethods<D, P> = {
   data: D
   props: P
@@ -47,14 +45,14 @@ export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
-  isExceptional: boolean
+  isExceptional?: boolean
   data?: () => Partial<D>
   fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   props?: Props<D, P>[]
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: CssArgs<D, P>
+  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
   clonedCss?: Css<D, P>[]
   actions?: Actions<D, P>
   hooks?: Hooks<D, P>
