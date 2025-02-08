@@ -28,6 +28,7 @@ import type {
 } from './types'
 
 const names: Record<string, number> = {}
+const nameGenerators: Record<string, Generator<number>> = {}
 const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -80,7 +81,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
 
-    names[name] ? names[name]++ : (names[name] = 1)
+    if (!nameGenerators[name]) nameGenerators[name] = generateUid()
+    names[name] = nameGenerators[name].next().value
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
@@ -294,8 +296,22 @@ export default class FiCsElement<D extends object, P extends object> {
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (descendant: Descendant, props: object): Descendant => {
-        for (const [key, value] of Object.entries(props)) descendant.#setProps(key, value)
-        return descendant
+        const _descendant: Descendant = new FiCsElement({
+          name: descendant.#name.slice(2),
+          data: () => descendant.#data,
+          fetch: descendant.#fetch,
+          props: descendant.#propsSources,
+          className: descendant.#className,
+          attributes: descendant.#attrs,
+          html: descendant.#html,
+          clonedCss: descendant.#css,
+          actions: descendant.#actions,
+          hooks: descendant.#hooks,
+          options: descendant.#options
+        })
+
+        for (const [key, value] of Object.entries(props)) _descendant.#setProps(key, value)
+        return _descendant
       },
       isLoaded: !isSsr || this.#isLoaded
     })[sanitized]
@@ -1044,25 +1060,5 @@ export default class FiCsElement<D extends object, P extends object> {
   getData<K extends keyof D>(key: K): D[K] {
     this.#throwKeyError(key)
     return this.#data[key]
-  }
-
-  extend(data?: Partial<D>): FiCsElement<D, P> {
-    const options: Options = { ...this.#options }
-    if (!options.lazyLoad) delete options.rootMargin
-
-    return new FiCsElement({
-      name: this.#name.slice(2),
-      isExceptional: false,
-      data: () => ({ ...this.#data, ...(data ?? {}) }),
-      fetch: this.#fetch,
-      props: this.#propsSources,
-      className: this.#className,
-      attributes: this.#attrs,
-      html: this.#html,
-      clonedCss: this.#css,
-      actions: this.#actions,
-      hooks: this.#hooks,
-      options
-    })
   }
 }
