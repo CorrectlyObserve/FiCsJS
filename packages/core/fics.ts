@@ -16,7 +16,6 @@ export default <D extends object, P extends object>({
 }: Omit<FiCs<D, P>, 'isExceptional' | 'clonedCss'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
-    isExceptional: false,
     data,
     fetch,
     props,
