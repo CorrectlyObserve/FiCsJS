@@ -14,7 +14,7 @@ interface Props {
   blur?: () => void
 }
 
-export default fics<{ isComposing: boolean }, Props>({
+export default () => fics<{ isComposing: boolean }, Props>({
   name: 'input',
   data: () => ({ isComposing: false }),
   html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
