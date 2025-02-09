@@ -1,9 +1,9 @@
 import { ficsCss, ficsInit } from 'ficsjs'
 import { ficsI18n, i18n } from 'ficsjs/i18n'
 import { getState, setState } from 'ficsjs/state'
-import header from '@/components/multitons/header'
-import footer from '@/components/multitons/footer'
-import router from '@/components/multitons/router'
+import Header from '@/components/multitons/header'
+import Router from '@/components/multitons/router'
+import Footer from '@/components/multitons/footer'
 import globalCss from '@/globalCss'
 import { $lang } from '@/store'
 
@@ -22,9 +22,10 @@ document.head.append(metaTag)
 
 setState($lang, lang === 'ja' ? 'ja' : 'en')
 
-header.describe()
+Header().describe()
 
+const router = Router()
 router.setData('lang', getState($lang))
 router.describe()
 
-footer.describe()
+Footer().describe()
