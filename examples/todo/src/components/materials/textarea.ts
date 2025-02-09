@@ -14,7 +14,7 @@ interface Props {
 const lineHeight = 1.5
 const paddingY: string = calc([variable('xs'), 1.5], '*')
 
-export default fics<{}, Props>({
+export default () => fics<{}, Props>({
   name: 'textarea',
   html: ({ props: { id, label, placeholder, value }, template }) =>
     template`
