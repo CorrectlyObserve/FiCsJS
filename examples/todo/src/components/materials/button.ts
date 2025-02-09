@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { color, variable } from 'ficsjs/style'
 import { white } from '@/utils'
 
-export default fics<{}, { buttonText: string; isDisabled?: boolean; click: () => void }>({
+export default () => fics<{}, { buttonText: string; isDisabled?: boolean; click: () => void }>({
   name: 'button',
   html: ({ props: { buttonText, isDisabled }, template }) =>
     template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
