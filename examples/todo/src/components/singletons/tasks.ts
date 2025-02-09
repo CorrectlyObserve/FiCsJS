@@ -1,9 +1,10 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
+import { getPersistentState, setPersistentState } from 'ficsjs/persistent-state'
 import { calc, remToPx, variable } from 'ficsjs/style'
-import { loadingIcon, svgIcon } from '@/components/materials/svgIcon'
-import input from '@/components/materials/input'
-import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
+import Icon from '@/components/materials/icon'
+import Input from '@/components/materials/input'
+import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
 import type { Task } from '@/types'
 import { breakpoints, getPath } from '@/utils'
 
@@ -13,73 +14,88 @@ interface Data {
   placeholder: string
   isShown: boolean
   checkbox: string
-  confirmation: string
   tasks: Task[]
+  confirmation: string
+  isPC: boolean
   unapplicable: string
 }
 
-const addIcon = svgIcon.extend({ icon: 'add' })
-const squareIcon = svgIcon.extend({ icon: 'square' })
-const checkSquareIcon = svgIcon.extend({ icon: 'check-square' })
+const input = Input()
+const addIcon = Icon('add')
+const squareIcon = Icon('square')
+const checkSquareIcon = Icon('check-square')
+const loadingIcon = Icon('loading')
+const trashIcon = Icon('trash')
 const { sm, lg } = breakpoints
 
-export default fics<Data, { lang: string; click?: (id: number) => void }>({
-  name: 'tasks',
-  data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-  fetch: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
-  props: [
-    {
-      descendant: input,
-      values: ({ setData }) => ({
-        value: ({ getData }) => getData('value'),
-        placeholder: ({ getData }) => getData('placeholder'),
-        input: (value: string) => setData('value', value),
-        enterKey:
-          ({ getData }) =>
-          async () => {
-            setData('tasks', await addTask(getData('value')))
-            setData('value', '')
-          }
-      })
-    },
-    {
-      descendant: addIcon,
-      values: ({ setData }) => ({
-        click:
-          ({ getData }) =>
-          async () => {
-            const value = getData('value')
+export default () =>
+  fics<Data, { lang: string; click?: (id: number) => void }>({
+    name: 'tasks',
+    data: () => ({ value: '', placeholder: '', isShown: false, tasks: [], isPC: false }),
+    fetch: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
+    props: [
+      {
+        descendant: input,
+        values: ({ setData }) => ({
+          value: ({ getData }) => getData('value'),
+          placeholder: ({ getData }) => getData('placeholder'),
+          input: (value: string) => setData('value', value),
+          enterKey:
+            ({ getData }) =>
+            async () => {
+              const value = getData('value')
 
-            if (value !== '') {
-              setData('tasks', await addTask(value))
-              setData('value', '')
+              if (value !== '') {
+                const tasks: Task[] = await addTask(value)
+
+                setPersistentState($tasks, tasks)
+                setData('tasks', tasks)
+                setData('value', '')
+              }
             }
-          }
-      })
-    },
-    {
-      descendant: [squareIcon, checkSquareIcon],
-      values: ({ setData }) => ({
-        click:
-          ({ getData }) =>
-          () =>
-            setData('isShown', !getData('isShown'))
-      })
-    }
-  ],
-  html: ({
-    data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
-    props: { lang },
-    template,
-    setData,
-    setProps,
-    isLoaded
-  }) => {
-    if (!isLoaded) return template`${loadingIcon}`
+        })
+      },
+      {
+        descendant: addIcon,
+        values: ({ setData }) => ({
+          click:
+            ({ getData }) =>
+            async () => {
+              const value = getData('value')
 
-    if (!isShown) tasks = tasks.filter(task => !task.completedAt)
+              if (value !== '') {
+                const tasks: Task[] = await addTask(value)
 
-    return template`
+                setPersistentState($tasks, tasks)
+                setData('tasks', tasks)
+                setData('value', '')
+              }
+            }
+        })
+      },
+      {
+        descendant: [squareIcon, checkSquareIcon],
+        values: ({ setData }) => ({
+          click:
+            ({ getData }) =>
+            () =>
+              setData('isShown', !getData('isShown'))
+        })
+      }
+    ],
+    html: ({
+      data: { heading, isShown, checkbox, tasks, isPC, confirmation, unapplicable },
+      props: { lang },
+      template,
+      setData,
+      setProps,
+      isLoaded
+    }) => {
+      if (!isLoaded) return template`${loadingIcon}`
+
+      if (!isShown) tasks = tasks.filter(task => !task.completedAt)
+
+      return template`
       <h2>${heading}</h2>
       <div class="menu">
         <div>${input}${addIcon}</div>
@@ -94,16 +110,20 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
               ({ id, title, completedAt }) => template`
                 <div class="task" key="${id}">
                   <div>
-                    ${setProps(svgIcon.extend({ icon: completedAt ? 'check' : 'circle' }), {
+                    ${setProps(Icon(completedAt ? 'check' : 'circle'), {
                       click: async () => {
                         setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                       }
                     })}
                     <span class="${completedAt ? 'done' : ''}">
-                      <a id="${id}" href="${getPath(lang, `/${id}`)}">${title}</a>
+                      ${
+                        isPC
+                          ? template`<a>${title}</a>`
+                          : template`<a id="${id}" href="${getPath(lang, `/${id}`)}">${title}</a>`
+                      }
                     </span>
                   </div>
-                  ${setProps(svgIcon.extend({ icon: 'trash' }), {
+                  ${setProps(trashIcon, {
                     color: variable('red'),
                     click: async () => {
                       if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
@@ -115,82 +135,87 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
           : template`<p>${unapplicable}</p>`
       }
     `
-  },
-  css: {
-    div: {
-      '&.menu': {
-        marginBottom: variable('xl'),
-        div: {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: variable('md'),
-          '&:last-child': { marginBottom: 0 },
-          'f-input': { marginRight: variable('md') }
-        },
-        [`@media (max-width: ${sm})`]: {
-          marginBottom: variable('md'),
-          div: { marginBottom: variable('xs'), 'f-input': { marginRight: 0 } }
-        }
-      },
-      '&.task': {
-        width: sm,
-        maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-        display: 'flex',
-        alignItems: 'center',
-        marginInline: 'auto',
-        marginBottom: variable('xs'),
-        '&:last-child': { marginBottom: 0 },
-        [`@media (max-width: ${sm})`]: { width: '100%' },
-        div: {
-          width: `${calc(
-            [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
-            '-'
-          )}`,
-          display: 'flex',
-          alignItems: 'center',
-          span: {
-            width: '100%',
+    },
+    css: {
+      div: {
+        '&.menu': {
+          marginBottom: variable('xl'),
+          div: {
             display: 'flex',
-            textAlign: 'left',
-            marginInline: variable('xs'),
-            overflowX: 'hidden',
-            transition: `${variable('transition')} allow-discrete`,
-            '&.done': { textDecoration: 'line-through' },
-            a: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: variable('md'),
+            '&:last-child': { marginBottom: 0 },
+            'f-input': { marginRight: variable('md') }
+          },
+          [`@media (max-width: ${sm})`]: {
+            marginBottom: variable('md'),
+            div: { marginBottom: variable('xs'), 'f-input': { marginRight: 0 } }
+          }
+        },
+        '&.task': {
+          width: sm,
+          maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
+          display: 'flex',
+          alignItems: 'center',
+          marginInline: 'auto',
+          marginBottom: variable('xs'),
+          '&:last-child': { marginBottom: 0 },
+          [`@media (max-width: ${sm})`]: { width: '100%' },
+          div: {
+            width: `${calc(
+              [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
+              '-'
+            )}`,
+            display: 'flex',
+            alignItems: 'center',
+            span: {
               width: '100%',
-              display: 'inline-block',
-              color: 'inherit',
-              paddingBlock: variable('xs'),
-              lineHeight: 'inherit',
-              outline: 'none',
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              textAlign: 'left',
+              marginInline: variable('xs'),
               overflowX: 'hidden',
-              textDecoration: 'none',
-              textOverflow: 'ellipsis'
+              transition: `${variable('transition')} allow-discrete`,
+              '&.done': { textDecoration: 'line-through' },
+              a: {
+                width: '100%',
+                display: 'inline-block',
+                color: 'inherit',
+                paddingBlock: variable('xs'),
+                lineHeight: 'inherit',
+                outline: 'none',
+                whiteSpace: 'nowrap',
+                overflowX: 'hidden',
+                textDecoration: 'none',
+                textOverflow: 'ellipsis'
+              }
             }
           }
-        }
-      },
-      span: { transition: variable('transition'), '&:hover': { opacity: 0.5 } }
-    }
-  },
-  actions: {
-    'div.menu span': {
-      click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
-    },
-    'div.task a': {
-      click: [
-        ({ props: { click }, event, attributes }) => {
-          if (document.documentElement.offsetWidth >= remToPx(lg) && click) {
-            event.preventDefault()
-            click(Number(attributes.id))
-          }
         },
-        { throttle: 500, blur: true }
-      ]
-    }
-  },
-  hooks: { mounted: async ({ setData }) => setData('tasks', await getAllTasks()) },
-  options: { lazyLoad: true }
-})
+        span: { transition: variable('transition'), '&:hover': { opacity: 0.5 } }
+      }
+    },
+    actions: {
+      'div.menu span': {
+        click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
+      },
+      'div.task a': {
+        click: [
+          ({ data: { isPC }, props: { click }, event, attributes }) => {
+            if (isPC && click) {
+              event.preventDefault()
+              click(Number(attributes.id))
+            }
+          },
+          { throttle: 500, blur: true }
+        ]
+      }
+    },
+    hooks: {
+      mounted: async ({ setData }) => {
+        setData('tasks', await getPersistentState($tasks))
+        setData('isPC', document.documentElement.offsetWidth >= remToPx(lg))
+      }
+    },
+    options: { lazyLoad: true }
+  })
