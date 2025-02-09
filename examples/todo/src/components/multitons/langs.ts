@@ -5,7 +5,7 @@ import { calc, variable } from 'ficsjs/style'
 import { $lang } from '@/store'
 import { breakpoints } from '@/utils'
 
-export default fics<{ langs: string[]; isShown: boolean }, { lang: string; pathname: string }>({
+export default () => fics<{ langs: string[]; isShown: boolean }, { lang: string; pathname: string }>({
   name: 'langs',
   data: () => ({ langs: ['en', 'ja'], isShown: false }),
   html: ({ data: { langs, isShown }, props: { lang }, template, show }) =>
