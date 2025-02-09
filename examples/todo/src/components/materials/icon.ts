@@ -2,8 +2,9 @@ import { fics } from 'ficsjs'
 import { rotate, scale, variable } from 'ficsjs/style'
 import { white } from '@/utils'
 
-export const svgIcon = fics<{ icon: string }, { color?: string; click: () => void }>({
-  name: 'svg-icon',
+export default (icon: string) => fics<{ icon: string }, { color?: string; click: () => void }>({
+  name: 'icon',
+  data: () => ({icon}),
   html: ({ data: { icon }, template }) => template`<button class="${icon}"><span /></button>`,
   css: {
     button: ({ data: { icon }, props: { color } }) => ({
@@ -40,5 +41,3 @@ export const svgIcon = fics<{ icon: string }, { color?: string; click: () => voi
     }
   }
 })
-
-export const loadingIcon = svgIcon.extend({ icon: 'loading' })
