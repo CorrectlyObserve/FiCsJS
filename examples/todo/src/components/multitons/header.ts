@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { getState } from 'ficsjs/state'
+import { getState, setState } from 'ficsjs/state'
 import { variable } from 'ficsjs/style'
 import Langs from '@/components/multitons/langs'
 import { $lang } from '@/store'
@@ -17,7 +17,11 @@ export default () =>
         descendant: langs,
         values: () => ({
           lang: ({ getData }) => getData('lang'),
-          pathname: ({ getData }) => getData('pathname')
+          pathname: ({ getData }) => getData('pathname'),
+          getLang: (lang: string) => {
+            setState($lang, lang)
+            return lang
+          }
         })
       }
     ],
@@ -60,9 +64,11 @@ export default () =>
         const lang = getState<string>($lang)
         setData('lang', lang)
 
-        let pathname = window.location.pathname.substring(1)
-        if (pathname.split('/')[0] === lang) pathname = pathname.slice(3)
-        setData('pathname', pathname)
+        const { pathname, search } = window.location
+        let _pathname = `${pathname.substring(1)}${search}`
+        if (_pathname.split('/')[0] === lang) _pathname = _pathname.slice(3)
+
+        setData('pathname', `/${_pathname}`)
       }
     },
     actions: {
