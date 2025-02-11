@@ -17,17 +17,16 @@ export default <D extends RouterData, P extends object>({
     isExceptional: true,
     data: () => ({ pathname: '', lang: '' }) as D,
     props,
-    html: ({ data, template, setData, ...args }) => {
-      const { pathname, lang }: { pathname: string; lang: string } = data as D
+    html: ({ data: { pathname, lang }, template, setData, ...args }) => {
       const setContent = (): Sanitized<D, P> => {
         const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
           if (redirect) {
             setData('pathname', redirect)
-            goto(data.pathname, { history: false, reload: false })
+            goto(pathname, { history: false, reload: false })
             return setContent()
           }
 
-          const _content: Descendant | Sanitized<D, P> = content({ ...args, data, template })
+          const _content: Descendant | Sanitized<D, P> = content({ template, ...args })
           return _content instanceof FiCsElement ? template`${_content}` : _content
         }
 
@@ -72,15 +71,13 @@ export default <D extends RouterData, P extends object>({
     hooks: {
       created: ({ setData }) => {
         throwWindowError()
-        setData('pathname', window.location.pathname)
-      },
-      mounted: ({ setData }) => {
-        throwWindowError()
         const { pathname, search }: { pathname: string; search: string } = window.location
 
+        setData('pathname', pathname)
         params.set('query', Object.fromEntries(new URLSearchParams(search)))
-        window.addEventListener('popstate', () => setData('pathname', pathname))
-      }
+      },
+      mounted: ({ setData }) =>
+        window.addEventListener('popstate', () => setData('pathname', window.location.pathname))
     },
     options
   })
