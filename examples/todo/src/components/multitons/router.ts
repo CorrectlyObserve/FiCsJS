@@ -26,7 +26,7 @@ export default () =>
 
           if (isNaN(queryId)) return tasks
 
-          return document.documentElement.clientWidth <= remToPx(breakpoints.lg)
+          return document.documentElement.clientWidth < remToPx(breakpoints.lg)
             ? task
             : template`<div class="container">${tasks}${task}</div>`
         }
@@ -46,7 +46,6 @@ export default () =>
           justifyContent: 'center',
           gap: variable('xl'),
           width: '100%',
-          height: '100%',
           [`@container (width >= ${breakpoints.lg})`]: {
             'f-task': {
               display: 'block',
