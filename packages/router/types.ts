@@ -1,11 +1,19 @@
-import type { CssArgs, Descendant, OptionArgs, Props, Sanitized, Syntaxes } from '../core/types'
+import type {
+  Css,
+  Descendant,
+  GlobalCssContent,
+  OptionArgs,
+  Props,
+  Sanitized,
+  SingleOrArray,
+  Syntaxes
+} from '../core/types'
 
 export interface FiCsRouter<D extends RouterData, P extends object> {
-  data?: () => Omit<D, keyof RouterData>
   props?: Props<D, P>[]
   pages: (PageContent<D, P> & { path: string })[]
   notFound?: PageContent<D, P>
-  css?: CssArgs<D, P>
+  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
   options?: OptionArgs
 }
 
@@ -19,6 +27,4 @@ export type Param = 'path' | 'query'
 export interface RouterData {
   pathname: string
   lang: string
-  pathParams: Record<string, string>
-  queryParams: Record<string, string>
 }
