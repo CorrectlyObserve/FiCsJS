@@ -18,7 +18,7 @@ export interface FiCsRouter<D extends RouterData, P extends object> {
 }
 
 export interface PageContent<D extends object, P extends object> {
-  content: (syntaxes: Syntaxes<D, P> & { data: D }) => Descendant | Sanitized<D, P>
+  content: (syntaxes: Syntaxes<D, P>) => Descendant | Sanitized<D, P>
   redirect?: string
 }
 
