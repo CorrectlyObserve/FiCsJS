@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { goto } from 'ficsjs/router'
+import { getParams, goto } from 'ficsjs/router'
 import { calc, variable } from 'ficsjs/style'
 import Icon from '@/components/materials/icon'
 import Input from '@/components/materials/input'
@@ -38,7 +38,7 @@ const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
 const { sm } = breakpoints
 
 export default () =>
-  fics<Data, { lang: string; taskId: number }>({
+  fics<Data, { lang: string }>({
     name: 'task',
     data: () => ({
       task: {} as Task,
@@ -119,7 +119,7 @@ export default () =>
         heading,
         task,
         status,
-        texts: [complete, revert, ...args],
+        texts: [complete, revert, _delete, back, close],
         datetimes
       },
       template,
@@ -142,7 +142,11 @@ export default () =>
           ([key, value]) => template`<p>${value}${convertTimestamp(task[key as Datetime])}</p>`
         )}
         ${button}
-        <div>${args.map(text => template`<span role="button" tabindex="0">${text}</span>`)}</div>
+        <div>
+          ${[_delete, isNaN(parseInt(getParams('path').id)) ? close : back].map(
+            text => template`<span role="button" tabindex="0">${text}</span>`
+          )}
+        </div>
       </div>
     `
     },
@@ -211,9 +215,12 @@ export default () =>
       }
     },
     hooks: {
-      mounted: async ({ props: { lang, taskId }, setData }) => {
-        if (isNaN(taskId)) return goto(getPath(lang, '/404'))
-        setData('task', await getTask(taskId))
+      mounted: async ({ props: { lang }, setData }) => {
+        const paramId = parseInt(getParams('path').id)
+        const queryId = parseInt(getParams('query').id)
+
+        if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
+        setData('task', await getTask(paramId ?? queryId))
       },
       updated: {
         task: async ({ datum, setData }) => setData('isError', datum.title === '')
