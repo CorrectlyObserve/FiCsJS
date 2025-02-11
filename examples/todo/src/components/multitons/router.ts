@@ -1,53 +1,67 @@
-import { ficsRouter } from 'ficsjs/router'
-import { calc, color, variable } from 'ficsjs/style'
-import tasks from '@/components/singletons/tasks'
-import task from '@/components/singletons/task'
-import notFound from '@/components/multitons/notFound'
+import { ficsRouter, getParams } from 'ficsjs/router'
+import { calc, color, remToPx, variable } from 'ficsjs/style'
+import Tasks from '@/components/singletons/tasks'
+import Task from '@/components/singletons/task'
+import NotFound from '@/components/multitons/notFound'
 import { breakpoints } from '@/utils'
 
+const tasks = Tasks()
+const task = Task()
+const notFound = NotFound()
 const xs = calc([variable('xs'), -1], '*')
 
-export default ficsRouter({
-  pages: [
-    {
-      path: '/',
-      content: ({ template }) => {
-        const { id }: { id: number | undefined } = task.getData('task')
-        console.log(id)
-        return template`<div class="container">${tasks}${!id ? task : ''}</div>`
+export default () =>
+  ficsRouter({
+    props: [
+      {
+        descendant: [tasks, task, notFound],
+        values: () => ({ lang: ({ getData }) => getData('lang') })
+      },
+      {
+        descendant: task,
+        values: () => {
+          const paramId = parseInt(getParams('path').id)
+          return { taskId: isNaN(paramId) ? parseInt(getParams('query').id) : paramId }
+        }
       }
-    },
-    { path: '/:id', content: () => task }
-  ],
-  notFound: { content: () => notFound },
-  props: [
-    {
-      descendant: [tasks, task, notFound],
-      values: () => ({ lang: ({ getData }) => getData('lang') })
-    }
-  ],
-  css: {
-    ':host': {
-      position: 'relative',
-      display: 'block',
-      minHeight: variable('min-height'),
-      'div.container': {
-        position: 'absolute',
-        containerType: 'inline-size',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: variable('xl'),
-        width: '100%',
-        height: '100%',
-        'f-task': { display: 'none' },
-        [`@container (width >= ${breakpoints.lg})`]: {
-          'f-task': {
-            display: 'block',
-            paddingLeft: variable('xl'),
-            boxShadow: `${xs} 0px ${variable('xs')} ${xs} ${color({ hex: '--black', rate: 0.5, isOpacity: false })}`
+    ],
+    pages: [
+      {
+        path: '/',
+        content: ({ template }) => {
+          const queryId = parseInt(getParams('query').id)
+
+          if (isNaN(queryId)) return tasks
+
+          return document.documentElement.clientWidth <= remToPx(breakpoints.lg)
+            ? task
+            : template`<div class="container">${tasks}${task}</div>`
+        }
+      },
+      { path: '/:id', content: () => task }
+    ],
+    notFound: { content: () => notFound },
+    css: {
+      ':host': {
+        position: 'relative',
+        display: 'block',
+        minHeight: variable('min-height'),
+        'div.container': {
+          position: 'absolute',
+          containerType: 'inline-size',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: variable('xl'),
+          width: '100%',
+          height: '100%',
+          [`@container (width >= ${breakpoints.lg})`]: {
+            'f-task': {
+              display: 'block',
+              paddingLeft: variable('xl'),
+              boxShadow: `${xs} 0px ${variable('xs')} ${xs} ${color({ hex: '--black', rate: 0.5, isOpacity: false })}`
+            }
           }
         }
       }
     }
-  }
-})
+  })
