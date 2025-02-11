@@ -16,7 +16,6 @@ interface Data {
   checkbox: string
   tasks: Task[]
   confirmation: string
-  isPC: boolean
   unapplicable: string
 }
 
@@ -31,7 +30,7 @@ const { sm, lg } = breakpoints
 export default () =>
   fics<Data, { lang: string; click?: (id: number) => void }>({
     name: 'tasks',
-    data: () => ({ value: '', placeholder: '', isShown: false, tasks: [], isPC: false }),
+    data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
     fetch: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
     props: [
       {
@@ -84,7 +83,7 @@ export default () =>
       }
     ],
     html: ({
-      data: { heading, isShown, checkbox, tasks, isPC, confirmation, unapplicable },
+      data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
       props: { lang },
       template,
       setData,
@@ -116,11 +115,7 @@ export default () =>
                       }
                     })}
                     <span class="${completedAt ? 'done' : ''}">
-                      ${
-                        isPC
-                          ? template`<a>${title}</a>`
-                          : template`<a id="${id}" href="${getPath(lang, `/${id}`)}">${title}</a>`
-                      }
+                      <a href="${getPath(lang, (document.documentElement.offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
                     </span>
                   </div>
                   ${setProps(trashIcon, {
@@ -198,24 +193,10 @@ export default () =>
     actions: {
       'div.menu span': {
         click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
-      },
-      'div.task a': {
-        click: [
-          ({ data: { isPC }, props: { click }, event, attributes }) => {
-            if (isPC && click) {
-              event.preventDefault()
-              click(Number(attributes.id))
-            }
-          },
-          { throttle: 500, blur: true }
-        ]
       }
     },
     hooks: {
-      mounted: async ({ setData }) => {
-        setData('tasks', await getPersistentState($tasks))
-        setData('isPC', document.documentElement.offsetWidth >= remToPx(lg))
-      }
+      mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks))
     },
     options: { lazyLoad: true }
   })
