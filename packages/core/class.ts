@@ -113,7 +113,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (props) this.#propsSources = [...props]
-
     if (className)
       if (typeof className === 'function') {
         this.#bindings.isClassName = true
@@ -356,7 +355,9 @@ export default class FiCsElement<D extends object, P extends object> {
         throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
 
       const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-      descendant.#enqueue(() => descendant.#define(this.#propsChain), 'define')
+      descendant.#initProps(this.#propsChain)
+      descendant.#callback('created')
+      descendant.#enqueue(() => descendant.#define(), 'define')
 
       return document.createElement(descendant.#name)
     }
@@ -809,7 +810,7 @@ export default class FiCsElement<D extends object, P extends object> {
       component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
-  #define(propsChain?: PropsChain<P>): void {
+  #define(): void {
     throwWindowError()
 
     const that: FiCsElement<D, P> = this
@@ -828,7 +829,6 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
-          that.#initProps(propsChain ?? that.#propsChain)
           that.#enqueue(async () => await that.#awaitData(), 'fetch')
           that.#addHtml(this.shadowRoot)
           that.#addCss(this.shadowRoot, [])
@@ -929,15 +929,12 @@ export default class FiCsElement<D extends object, P extends object> {
   async ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): Promise<void> {
     const temporary: HTMLElement = document.createElement('div')
     const render = async (that: FiCsElement<D, P>): Promise<string> => {
-      that.#initProps(this.#propsChain)
-
-      const { ssr }: { ssr: boolean } = that.#options
-      if (ssr) await that.#awaitData()
-
+      that.#initProps(that.#propsChain)
       that.#callback('created')
       that.#enqueue(() => that.#define(), 'define')
 
-      if (ssr) {
+      if (that.#options.ssr) {
+        await that.#awaitData()
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
         const attrs: string = that
           .#getAttrs()
@@ -1034,6 +1031,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   describe(parent?: HTMLElement): void {
     this.#callback('created')
+    this.#initProps(this.#propsChain)
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
