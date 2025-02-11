@@ -16,13 +16,6 @@ export default () =>
       {
         descendant: [tasks, task, notFound],
         values: () => ({ lang: ({ getData }) => getData('lang') })
-      },
-      {
-        descendant: task,
-        values: () => {
-          const paramId = parseInt(getParams('path').id)
-          return { taskId: isNaN(paramId) ? parseInt(getParams('query').id) : paramId }
-        }
       }
     ],
     pages: [
