@@ -220,7 +220,7 @@ export default () =>
         const queryId = parseInt(getParams('query').id)
 
         if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
-        setData('task', await getTask(paramId ?? queryId))
+        setData('task', await getTask(isNaN(paramId) ? queryId : paramId))
       },
       updated: {
         task: async ({ datum, setData }) => setData('isError', datum.title === '')
