@@ -1,10 +1,9 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { getPersistentState, setPersistentState } from 'ficsjs/persistent-state'
 import { calc, remToPx, variable } from 'ficsjs/style'
 import Icon from '@/components/materials/icon'
 import Input from '@/components/materials/input'
-import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
+import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
 import type { Task } from '@/types'
 import { breakpoints, getPath } from '@/utils'
 
@@ -47,7 +46,6 @@ export default () =>
               if (value !== '') {
                 const tasks: Task[] = await addTask(value)
 
-                setPersistentState($tasks, tasks)
                 setData('tasks', tasks)
                 setData('value', '')
               }
@@ -65,7 +63,6 @@ export default () =>
               if (value !== '') {
                 const tasks: Task[] = await addTask(value)
 
-                setPersistentState($tasks, tasks)
                 setData('tasks', tasks)
                 setData('value', '')
               }
@@ -196,7 +193,7 @@ export default () =>
       }
     },
     hooks: {
-      mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks))
+      mounted: async ({ setData }) => setData('tasks', await getAllTasks())
     },
     options: { lazyLoad: true }
   })
