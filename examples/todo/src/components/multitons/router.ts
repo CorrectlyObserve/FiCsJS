@@ -48,7 +48,6 @@ export default () =>
           width: '100%',
           [`@container (width >= ${breakpoints.lg})`]: {
             'f-task': {
-              display: 'block',
               paddingLeft: variable('xl'),
               boxShadow: `${xs} 0px ${variable('xs')} ${xs} ${color({ hex: '--black', rate: 0.5, isOpacity: false })}`
             }
