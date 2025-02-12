@@ -14,69 +14,70 @@ interface Props {
   blur?: () => void
 }
 
-export default () => fics<{ isComposing: boolean }, Props>({
-  name: 'input',
-  data: () => ({ isComposing: false }),
-  html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
-    template`
+export default () =>
+  fics<{ isComposing: boolean }, Props>({
+    name: 'input',
+    data: () => ({ isComposing: false }),
+    html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
+      template`
       <div>
         ${label ? template`<div><label for="${id ?? ''}">${label}</label></div>` : ''}
         <p ${show(!!isError)}>${error}</p>
         <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
       </div>
     `,
-  css: {
-    div: ({ props: { isError } }) => ({
-      display: 'flex',
-      justifyContent: 'center',
-      flexDirection: 'column',
-      label: { paddingBottom: variable('xs') },
-      p: {
-        fontSize: variable('sm'),
-        color: variable('error'),
-        marginBottom: variable('xs'),
-        textAlign: 'left'
-      },
+    css: {
+      div: ({ props: { isError } }) => ({
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        label: { paddingBottom: variable('xs') },
+        p: {
+          fontSize: variable('sm'),
+          color: variable('error'),
+          marginBottom: variable('xs'),
+          textAlign: 'left'
+        },
+        input: {
+          minWidth: calc([variable('md'), 20], '*'),
+          maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
+          background: isError ? variable('error') : color({ hex: white, rate: 0.1 }),
+          fontSize: variable('md'),
+          color: white,
+          padding: `${calc([variable('xs'), 1.5], '*')} ${variable('md')}`,
+          borderRadius: variable('xs'),
+          border: 'none',
+          outline: 'none',
+          lineHeight: 1.5,
+          '&::placeholder': isError ? { color: white, opacity: 0.5 } : {},
+          '&:hover': { cursor: 'pointer' },
+          '&:focus': {
+            background: color({ hex: white, rate: 0.8 }),
+            color: variable('black'),
+            cursor: 'auto'
+          }
+        }
+      })
+    },
+    actions: {
       input: {
-        minWidth: calc([variable('md'), 20], '*'),
-        maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-        background: isError ? variable('error') : color({ hex: white, rate: 0.1 }),
-        fontSize: variable('md'),
-        color: white,
-        padding: `${calc([variable('xs'), 1.5], '*')} ${variable('md')}`,
-        borderRadius: variable('xs'),
-        border: 'none',
-        outline: 'none',
-        lineHeight: 1.5,
-        '&::placeholder': isError ? { color: white, opacity: 0.5 } : {},
-        '&:hover': { cursor: 'pointer' },
-        '&:focus': {
-          background: color({ hex: white, rate: 0.8 }),
-          color: variable('black'),
-          cursor: 'auto'
+        input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
+        compositionstart: ({ setData }) => setData('isComposing', true),
+        compositionend: ({ setData }) => setData('isComposing', false),
+        keydown: [
+          ({ data: { isComposing }, props: { value, enterKey }, event }) => {
+            if (
+              (value !== '' && (event as KeyboardEvent).key) === 'Enter' &&
+              !isComposing &&
+              enterKey
+            )
+              enterKey()
+          },
+          { throttle: 500 }
+        ],
+        blur: ({ props: { value, blur } }) => {
+          if (value !== '' && blur) blur()
         }
       }
-    })
-  },
-  actions: {
-    input: {
-      input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
-      compositionstart: ({ setData }) => setData('isComposing', true),
-      compositionend: ({ setData }) => setData('isComposing', false),
-      keydown: [
-        ({ data: { isComposing }, props: { value, enterKey }, event }) => {
-          if (
-            (value !== '' && (event as KeyboardEvent).key) === 'Enter' &&
-            !isComposing &&
-            enterKey
-          )
-            enterKey()
-        },
-        { throttle: 500 }
-      ],
-      blur: ({ props: { value, blur } }) => {
-        if (value !== '' && blur) blur()
-      }
     }
-  }
-})
+  })
