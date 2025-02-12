@@ -1,9 +1,6 @@
 export const breakpoints = { sm: '30rem', lg: '60rem' } as const
 
-export const getPath = (lang: string, path: string): string =>
-  `${lang === 'en' ? '' : `/${lang}`}${path}`
-
-export const getTimestamp = (timestamp: number): string => {
+export const convertTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp)
 
   const year = date.getFullYear()
@@ -15,5 +12,10 @@ export const getTimestamp = (timestamp: number): string => {
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
+
+export const getPath = (lang: string, path: string): string =>
+  `${lang === 'en' ? '' : `/${lang}`}${path}`
+
+export const getTimestamp = (): number => Date.now()
 
 export const white: string = '#fff'
