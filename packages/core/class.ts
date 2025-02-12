@@ -90,7 +90,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin) {
+      if (rootMargin !== '0px') {
         if (!lazyLoad)
           throw new Error(`"rootMargin" in options is enabled only if "lazyLoad" is set to true...`)
 
