@@ -7,7 +7,7 @@ import Input from '@/components/materials/input'
 import Textarea from '@/components/materials/textarea'
 import Button from '@/components/materials/button'
 import { getTask } from '@/indexedDB'
-import { completeTask, revertTask, deleteTask, updateTask } from '@/store'
+import { completeTask, revertTask, deleteTask, updateTask } from '@/indexedDB'
 import type { Task } from '@/types'
 import { breakpoints, convertTimestamp, getPath } from '@/utils'
 
