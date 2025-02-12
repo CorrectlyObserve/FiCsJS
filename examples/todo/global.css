@@ -18,14 +18,11 @@ body {
 
   main {
     --padding: var(--xl);
+    --header-padding: var(--md);
+    --header-hight: var(--xl) * 1.5 + var(--header-padding) * 2;
+    --footer-height: var(--sm) * 1.2 + var(--md);
 
-    --header-padding: var(--md) * 2;
-    --header-hight: var(--xl) * 1.5 + var(--header-padding);
-    --footer-padding: var(--md);
-    --footer-height: var(--sm) * 1.2 + var(--footer-padding);
-
-    --min-height: calc(100vh - (var(--header-hight) + var(--footer-height) +  var(--padding) * 2));
-    min-height: var(--min-height);
+    min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--padding) * 2));
     padding-top: calc(var(--header-hight) + var(--padding));
     padding-inline: var(--padding);
     padding-bottom: var(--padding);
@@ -34,8 +31,7 @@ body {
   @media (max-width: 30rem) {
     main {
       --padding: var(--md);
-      --header-padding: var(--xs) * 2;
-      --footer-padding: var(--xs);
+      --header-padding: var(--xs);
     }
   }
 }
