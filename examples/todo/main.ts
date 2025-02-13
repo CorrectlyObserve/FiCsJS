@@ -14,12 +14,13 @@ ficsI18n('/i18n')
 const lang = window.location.pathname.slice(1).split('/')[0] === 'ja' ? 'ja' : 'en'
 
 if (lang === 'ja') {
-  document.documentElement.lang = lang
-  document.title = await i18n<string>({ lang, key: 'title' })
+  const { title, description } = await i18n<Record<string, string>>({ lang, key: 'head' })
 
-  const metaTag = document.querySelector("meta[name='description']")
-  if (metaTag && metaTag?.hasAttribute('content'))
-    metaTag.setAttribute('content', await i18n<string>({ lang, key: 'content' }))
+  document.documentElement.lang = lang
+  document.title = title
+
+  const metaTag = document.head.querySelector("meta[name='description']")
+  if (metaTag && metaTag?.hasAttribute('content')) metaTag.setAttribute('content', description)
 }
 
 setState($lang, lang)
