@@ -16,28 +16,18 @@ export type Attrs<D, P> =
   | Record<string, string>
   | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
-export interface Bindings<D, P> {
+export interface Bindings {
   isClassName: boolean
   isAttr: boolean
-  css: { index: number; nested?: Bindings<D, P>['css'] }[]
+  css: number[]
 }
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
-export type Css<D, P> = (string | CssContent<D, P> | GlobalCssContent)[]
-
-export interface CssContent<D, P> extends CssSelector {
-  style:
-    | Record<string, string | number>
-    | ((dataProps: DataProps<D, P>) => Record<string, string | number> | {})
-  nested?: SingleOrArray<CssContent<D, P>>
-}
-
-interface CssSelector {
-  selector?: SingleOrArray<string>
-  csr?: boolean
-  ssr?: boolean
-}
+export type Css<D, P> =
+  | string
+  | { [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined] }
+  | GlobalCssContent
 
 export type DataProps<D, P> = {
   data: D
@@ -55,25 +45,22 @@ export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
-  isExceptional: boolean
+  isExceptional?: boolean
   data?: () => Partial<D>
   fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
-  props?: SingleOrArray<Props<D, P>>
+  props?: Props<D, P>[]
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<string | CssContent<D, P>>
-  clonedCss?: Css<D, P>
+  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  clonedCss?: Css<D, P>[]
   actions?: Actions<D, P>
   hooks?: Hooks<D, P>
-  options?: Options
+  options?: Omit<Options, 'ssr'> & { ssr?: boolean }
 }
 
-export type GlobalCss = (GlobalCssContent | string)[]
-
-export interface GlobalCssContent extends CssSelector {
-  style: Record<string, string | number | undefined>
-  nested?: SingleOrArray<GlobalCssContent>
+export interface GlobalCssContent {
+  [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
 }
 
 export type Html<D extends object, P extends object> = (
@@ -106,7 +93,7 @@ export type Method<D, P> = (
 ) => void
 
 export interface Options {
-  ssr?: boolean
+  ssr: boolean
   lazyLoad?: boolean
   rootMargin?: string
 }
@@ -147,6 +134,12 @@ export interface Queue {
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export type SingleOrArray<T> = T | T[]
+
+export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
+
+interface StyleContent {
+  [key: string]: string | number | undefined | StyleContent
+}
 
 export interface Syntaxes<D extends object, P extends object> {
   props: P

@@ -7,30 +7,15 @@ const getPackage = (directory: string): string =>
 export default defineConfig({
   resolve: {
     alias: {
-      'ficsjs/css': getPackage('css'),
       'ficsjs/i18n': getPackage('i18n'),
+      'ficsjs/persistent-state': getPackage('persistent-state'),
       'ficsjs/router': getPackage('router'),
       'ficsjs/state': getPackage('state'),
+      'ficsjs/style': getPackage('style'),
       ficsjs: getPackage('core'),
       '@': '/src'
     }
   },
-  plugins: [
-    {
-      name: 'ja',
-      configureServer(server) {
-        server.middlewares.use((req, _, next) => {
-          if (req.url?.startsWith('/ja/')) req.url = './ja.html'
-          next()
-        })
-      }
-    }
-  ],
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: { input: { en: 'index.html', ja: 'ja.html' } },
-    minify: true
-  },
-  server: { hmr: true }
+  build: { outDir: 'dist', emptyOutDir: true, minify: true },
+  server: { hmr: true, host: true }
 })

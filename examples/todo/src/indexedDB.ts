@@ -1,31 +1,30 @@
 import type { Task } from '@/types'
 
-const storeName = 'tasks'
-const openDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('todo', 1)
-    const getDBRequest = (event: Event): IDBOpenDBRequest => event.target as IDBOpenDBRequest
-
-    request.onupgradeneeded = event => {
-      const db: IDBDatabase = getDBRequest(event).result
-
-      if (!db.objectStoreNames.contains(storeName)) {
-        const store = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true })
-        store.createIndex('title', 'title', { unique: false })
-        store.createIndex('description', 'description', { unique: false })
-        store.createIndex('createdAt', 'createdAt', { unique: false })
-        store.createIndex('updatedAt', 'updatedAt', { unique: false })
-        store.createIndex('completedAt', 'completedAt', { unique: false })
-      }
-    }
-
-    request.onsuccess = event => resolve(getDBRequest(event).result)
-    request.onerror = event => reject(`Database error: ${getDBRequest(event).error}`)
-  })
-}
-
 const getStore = async (mode: IDBTransactionMode): Promise<IDBObjectStore> => {
   try {
+    const storeName = 'tasks'
+    const openDB = (): Promise<IDBDatabase> =>
+      new Promise((resolve, reject) => {
+        const request = indexedDB.open('todo', 1)
+        const getDBRequest = (event: Event): IDBOpenDBRequest => event.target as IDBOpenDBRequest
+
+        request.onupgradeneeded = event => {
+          const db: IDBDatabase = getDBRequest(event).result
+
+          if (!db.objectStoreNames.contains(storeName)) {
+            const store = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true })
+            store.createIndex('title', 'title', { unique: false })
+            store.createIndex('description', 'description', { unique: false })
+            store.createIndex('createdAt', 'createdAt', { unique: false })
+            store.createIndex('updatedAt', 'updatedAt', { unique: false })
+            store.createIndex('completedAt', 'completedAt', { unique: false })
+          }
+        }
+
+        request.onsuccess = event => resolve(getDBRequest(event).result)
+        request.onerror = event => reject(`Database error: ${getDBRequest(event).error}`)
+      })
+
     return await openDB().then(db => db.transaction(storeName, mode).objectStore(storeName))
   } catch (error) {
     throw new Error(`${error}`)
@@ -68,16 +67,20 @@ export const getTask = async (id: number, handleError?: () => void): Promise<Tas
   const store = await getStore('readonly')
 
   return new Promise((resolve, reject) => {
-    const request: IDBRequest<Task> = store.get(id)
+    try {
+      const request: IDBRequest<Task> = store.get(id)
 
-    request.onsuccess = () => {
-      const task: Task = request.result
+      request.onsuccess = () => {
+        const task: Task = request.result
 
-      if (task) resolve(task)
-      else handleError ? handleError() : reject(new Error(`Task with id:${id} is not found...`))
+        if (task) resolve(task)
+        else handleError ? handleError() : reject(new Error(`Task with id:${id} is not found...`))
+      }
+
+      throwError(request, reject)
+    } catch (error) {
+      handleError ? handleError() : reject(error)
     }
-
-    throwError(request, reject)
   })
 }
 

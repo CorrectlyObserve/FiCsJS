@@ -31,7 +31,7 @@ export const enqueue = (queue: Queue): void => {
 
         if (queue.key === 're-render') {
           if (!ficsIds[getQueueId(queue, 'define')]) continue
-          else setTimeout(() => dequeue(queue), 0)
+          setTimeout(() => dequeue(queue), 0)
         } else dequeue(queue)
       }
 

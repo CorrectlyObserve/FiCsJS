@@ -1,14 +1,24 @@
-import type { Descendant, Options, Props, Sanitized, SingleOrArray, Syntaxes } from '../core/types'
+import type {
+  Css,
+  Descendant,
+  GlobalCssContent,
+  Options,
+  Props,
+  Sanitized,
+  SingleOrArray,
+  Syntaxes
+} from '../core/types'
 
-export interface FiCsRouter<P extends object> {
-  pages: (PageContent<P> & { path: string })[]
-  notFound?: PageContent<P>
-  props?: SingleOrArray<Props<RouterData, P>>
-  options?: Options
+export interface FiCsRouter<D extends RouterData, P extends object> {
+  props?: Props<D, P>[]
+  pages: (PageContent<D, P> & { path: string })[]
+  notFound?: PageContent<D, P>
+  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  options?: Omit<Options, 'ssr'>
 }
 
-export interface PageContent<P extends object> {
-  content: (syntaxes: Syntaxes<RouterData, P>) => Descendant | Sanitized<RouterData, P>
+export interface PageContent<D extends object, P extends object> {
+  content: (syntaxes: Syntaxes<D, P>) => Descendant | Sanitized<D, P>
   redirect?: string
 }
 

@@ -1,4 +1,4 @@
-import { getGlobalCss } from './globalCss'
+import { globalCss } from './globalCss'
 import { convertToArray, generateUid, throwWindowError } from './helpers'
 import { enqueue } from './queue'
 import type {
@@ -8,12 +8,10 @@ import type {
   Bindings,
   ClassName,
   Css,
-  CssContent,
   DataProps,
   DataPropsMethods,
   Descendant,
   FiCs,
-  GlobalCssContent,
   Html,
   HtmlContent,
   Hooks,
@@ -25,10 +23,11 @@ import type {
   PropsTree,
   Queue,
   Sanitized,
-  SingleOrArray
+  Style
 } from './types'
 
 const names: Record<string, number> = {}
+const nameGenerators: Record<string, Generator<number>> = {}
 const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -39,12 +38,12 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
-  readonly #bindings: Bindings<D, P> = { isClassName: false, isAttr: false, css: new Array() }
+  readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
   readonly #className?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
   readonly #showAttr: string
-  readonly #css: Css<D, P> = new Array()
+  readonly #css: Css<D, P>[] = new Array()
   readonly #actions: Actions<D, P> = {}
   readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -72,23 +71,26 @@ export default class FiCsElement<D extends object, P extends object> {
     hooks,
     options
   }: FiCs<D, P>) {
+    name = name.trim()
+    if (name === '') throw new Error('The FiCsElement name cannot be empty....')
     name = this.#convertStr(name, 'kebab')
 
     if (!isExceptional && { var: true, router: true }[name])
-      throw new Error(`"${name}" is a reserved word in FiCsJS...`)
+      throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
 
-    names[name] ? names[name]++ : (names[name] = 1)
+    if (!nameGenerators[name]) nameGenerators[name] = generateUid()
+    names[name] = nameGenerators[name].next().value
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin }: Options = options
+      const { ssr, lazyLoad, rootMargin }: Omit<Options, 'ssr'> & { ssr?: boolean } = options
 
-      if (ssr === false || lazyLoad) this.#options.ssr = false
+      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin) {
+      if (rootMargin !== '0px') {
         if (!lazyLoad)
           throw new Error(`"rootMargin" in options is enabled only if "lazyLoad" is set to true...`)
 
@@ -110,12 +112,12 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (props) this.#propsSources = convertToArray(props)
-
-    if (className) {
-      if (typeof className === 'function') this.#bindings.isClassName = true
-      this.#className = className
-    }
+    if (props) this.#propsSources = [...props]
+    if (className)
+      if (typeof className === 'function') {
+        this.#bindings.isClassName = true
+        this.#className = className
+      } else this.#className = className.trim()
 
     if (attributes) {
       if (typeof attributes === 'function') this.#bindings.isAttr = true
@@ -133,17 +135,20 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
     if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-    return str.toLowerCase().replaceAll(/-([a-z])/g, (_, char) => char.toUpperCase())
+    return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
   #enqueue(func: () => void, key: Queue['key']): void {
     enqueue({ ficsId: this.#ficsId, func, key })
   }
 
+  #getDataProps(): DataProps<D, P> {
+    return { data: { ...this.#data }, props: { ...this.#props } }
+  }
+
   #getDataPropsMethods(): DataPropsMethods<D, P> {
     return {
-      data: { ...this.#data },
-      props: { ...this.#props },
+      ...this.#getDataProps(),
       setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
@@ -151,9 +156,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   async #awaitData(): Promise<void> {
     if (this.#fetch) {
-      const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-
-      for (const [key, value] of Object.entries(await this.#fetch({ data, props })))
+      for (const [key, value] of Object.entries(await this.#fetch(this.#getDataProps())))
         this.setData(key as keyof D, value as D[keyof D])
 
       this.#isLoaded = true
@@ -240,33 +243,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addClassName(component: HTMLElement): void {
-    if (this.#className) {
-      const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-
-      component.setAttribute(
-        'class',
-        typeof this.#className === 'function'
-          ? this.#className({ data, props })
-          : (this.#className ?? '')
-      )
-    }
-  }
-
-  #addAttrs(component: HTMLElement): void {
-    const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-
-    for (const [key, value] of Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs({ data, props }) : (this.#attrs ?? [])
-    ))
-      component.setAttribute(this.#convertStr(key, 'kebab'), value)
-  }
-
   #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
     return Array.from(parent.childNodes)
   }
 
-  #getConvertedChildNodes(doc?: Document): ChildNode[] {
+  #convertTemplate(isSsr?: boolean): string {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
@@ -291,7 +272,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           variable =
             typeof variable === 'string'
-              ? variable.replaceAll(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+              ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
               : (variable ?? '')
 
           if (variable !== '') converted.push(variable as HtmlContent<D, P>)
@@ -313,13 +294,27 @@ export default class FiCsElement<D extends object, P extends object> {
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (descendant: Descendant, props: object): Descendant => {
-        for (const [key, value] of Object.entries(props)) descendant.#setProps(key, value)
-        return descendant
+        const _descendant: Descendant = new FiCsElement({
+          name: descendant.#name.slice(2),
+          data: () => descendant.#data,
+          fetch: descendant.#fetch,
+          props: descendant.#propsSources,
+          className: descendant.#className,
+          attributes: descendant.#attrs,
+          html: descendant.#html,
+          clonedCss: descendant.#css,
+          actions: descendant.#actions,
+          hooks: descendant.#hooks,
+          options: descendant.#options
+        })
+
+        for (const [key, value] of Object.entries(props)) _descendant.#setProps(key, value)
+        return _descendant
       },
-      isLoaded: !!doc || this.#isLoaded
+      isLoaded: !isSsr || this.#isLoaded
     })[sanitized]
 
-    const html: string = contents.reduce((prev, curr) => {
+    return contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
         if (!(curr.#ficsId in this.#descendants)) this.#descendants[curr.#ficsId] = curr
         curr = `<${this.#varTag} ${this.#ficsIdName}="${curr.#ficsId}"></${this.#varTag}>`
@@ -327,12 +322,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return `${prev}${curr}`
     }, '') as string
-
-    return this.#getChildNodes((doc ?? document).createRange().createContextualFragment(html))
-  }
-
-  #isVarTag(element: Element): boolean {
-    return element.localName === this.#varTag
   }
 
   #getFiCsId(element: Element, isProperty?: boolean): string | null {
@@ -341,177 +330,13 @@ export default class FiCsElement<D extends object, P extends object> {
       : element.getAttribute(this.#ficsIdName)
   }
 
-  async #convertTemplate(doc: Document): Promise<ChildNode[]> {
-    const childNodes: ChildNode[] = this.#getConvertedChildNodes(doc)
-
-    const convertChildNodes = async (childNodes: ChildNode[]): Promise<void> => {
-      for (let index = 0; index < childNodes.length; index++) {
-        const childNode: ChildNode = childNodes[index]
-
-        if (childNode instanceof Text && childNode.nodeValue) {
-          childNode.nodeValue = childNode.nodeValue.trim()
-
-          if (childNode.nodeValue === '') {
-            childNode.parentNode?.removeChild(childNode)
-            childNodes.splice(index, 1)
-            index--
-            continue
-          }
-        }
-
-        if (childNode instanceof Element) {
-          if (this.#isVarTag(childNode)) {
-            const ficsId: string | null = this.#getFiCsId(childNode)
-
-            if (!ficsId)
-              throw new Error(`The ${childNode} has ficsId does not exist in ${this.#name}...`)
-
-            const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-            const component: HTMLElement = await descendant.#renderOnServer(doc, this.#propsChain)
-            childNode.replaceWith(component)
-            childNodes.splice(index, 1, component)
-            index--
-            continue
-          }
-
-          if (childNode.hasAttribute(this.#showAttr)) {
-            ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(this.#showAttr)
-          }
-        }
-
-        await convertChildNodes(this.#getChildNodes(childNode))
-      }
-    }
-
-    await convertChildNodes(childNodes)
-    return childNodes
-  }
-
-  #convertCss({ css, host, mode }: { css: Css<D, P>; host: string; mode: 'csr' | 'ssr' }): string {
-    if (css.length === 0) return ''
-
-    const createCss = (css: Css<D, P>, host: string): string =>
-      css.reduce((prev, curr) => {
-        if (typeof curr === 'string') return `${prev}${curr}`
-
-        const selector: SingleOrArray<string> = curr.selector ?? ''
-        const createCssContent = (host: string): string => {
-          if (curr[mode] === false) return ''
-
-          const { data, props }: DataProps<D, P> = this.#getDataPropsMethods()
-          const content: string = Object.entries(
-            typeof curr.style === 'function' ? curr.style({ data, props }) : curr.style
-          )
-            .map(([key, value]) => {
-              if (value === undefined) return ''
-
-              key = this.#convertStr(key, 'kebab')
-
-              if (key.startsWith(':host'))
-                console.warn(`The ':host' selector might not be necessary in ${key}...`)
-              else if (key.startsWith('webkit')) key = `-${key}`
-
-              return `${key}: ${value};`
-            })
-            .join('\n')
-
-          if (Array.isArray(selector))
-            return selector.reduce((prev, curr) => `${prev} ${host} ${curr}{${content}}`, '')
-
-          return `${host} ${selector}{${content}}`
-        }
-        const { nested }: { nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent> } = curr
-        const css: string = `${prev} ${createCssContent(host)}`
-
-        const replaceSyntaxes = (css: string): string =>
-          css.replace(/ ?(:+|\[)/g, '$1').replace(/ &/g, '')
-
-        if (!nested) return replaceSyntaxes(css)
-
-        return replaceSyntaxes(
-          convertToArray(selector).reduce(
-            (prev, curr) => prev + createCss(convertToArray(nested), `${host} ${curr}`),
-            css
-          )
-        )
-      }, '') as string
-
-    return createCss(css, host)
-  }
-
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
-    if (key === 'mounted') {
-      const poll = (
-        func: ({ times }: { times: number }) => void,
-        { interval, max, exit }: PollingOptions
-      ): void => {
-        let times = 0
-
-        const execute: NodeJS.Timeout = setTimeout(function run() {
-          if ((max && times >= max) || (exit && exit())) {
-            clearTimeout(execute)
-            return
-          }
-
-          func({ times })
-          times++
-          setTimeout(run, interval)
-        }, interval)
-      }
-
-      this.#hooks[key]?.({ ...this.#getDataPropsMethods(), poll })
-    } else this.#hooks[key]?.(this.#getDataPropsMethods())
-  }
-
-  async #renderOnServer(doc: Document, propsChain?: PropsChain<P>): Promise<HTMLElement> {
-    const component: HTMLElement = doc.createElement(this.#name)
-
-    this.#initProps(propsChain ?? this.#propsChain)
-    if (this.#options.ssr) await this.#awaitData()
-    this.#callback('created')
-
-    if (this.#options.ssr) {
-      this.#addClassName(component)
-      this.#addAttrs(component)
-      component.setHTMLUnsafe(
-        `<template shadowrootmode="open"><slot name="${this.#ficsId}"></slot></template>`
-      )
-
-      const div: HTMLElement = doc.createElement('div')
-      div.id = this.#ficsId
-      div.slot = this.#ficsId
-      for (const childNode of await this.#convertTemplate(doc)) {
-        div.append(childNode)
-      }
-      component.append(div)
-
-      const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
-
-      if (allCss.length > 0)
-        div.insertAdjacentHTML(
-          'beforeend',
-          `<style>${this.#convertCss({ css: allCss, host: `#${this.#ficsId}`, mode: 'ssr' })}</style>`
-        )
-    }
-
-    this.#enqueue(() => this.#define(), 'define')
-    return component
-  }
-
-  #render(element: Element): HTMLElement {
-    const ficsId: string | null = this.#getFiCsId(element)
-    if (!ficsId) throw new Error(`The ${element} has ficsId does not exist in ${this.#name}...`)
-
-    const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-
-    descendant.#enqueue(() => descendant.#define(this.#propsChain), 'define')
-    return document.createElement(descendant.#name)
-  }
-
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
     for (const childNode of target instanceof HTMLElement ? this.#getChildNodes(target) : target)
       childNode.remove()
+  }
+
+  #isVarTag(element: Element): boolean {
+    return element.localName === this.#varTag
   }
 
   #setProperty<V>(element: HTMLElement, property: string, value: V): void {
@@ -520,7 +345,22 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addHtml(shadowRoot: ShadowRoot): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
-    const newChildNodes: ChildNode[] = this.#getConvertedChildNodes()
+    const newChildNodes: ChildNode[] = this.#getChildNodes(
+      document.createRange().createContextualFragment(this.#convertTemplate())
+    )
+
+    const render = (element: Element): HTMLElement => {
+      const ficsId: string | null = this.#getFiCsId(element)
+      if (!ficsId || !(ficsId in this.#descendants))
+        throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
+
+      const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+      descendant.#initProps(this.#propsChain)
+      descendant.#callback('created')
+      descendant.#enqueue(() => descendant.#define(), 'define')
+
+      return document.createElement(descendant.#name)
+    }
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
@@ -538,7 +378,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (childNode instanceof Element) {
           if (this.#isVarTag(childNode)) {
-            const component: HTMLElement = this.#render(childNode)
+            const component: HTMLElement = render(childNode)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
             index--
@@ -661,10 +501,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
           if (childNode instanceof Element)
-            if (that.#isVarTag(childNode)) childNode = that.#render(childNode)
+            if (that.#isVarTag(childNode)) childNode = render(childNode)
             else that.#newElements.add(childNode)
 
-          if (before instanceof Element && that.#isVarTag(before)) before = that.#render(before)
+          if (before instanceof Element && that.#isVarTag(before)) before = render(before)
 
           parentNode.insertBefore(
             childNode,
@@ -754,41 +594,84 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addCss(shadowRoot: ShadowRoot, css?: Css<D, P>): void {
-    const allCss: Css<D, P> = [...getGlobalCss(), ...this.#css]
+  #getCss(): Css<D, P>[] {
+    return [...globalCss(), ...this.#css]
+  }
 
-    if (allCss.length === 0) return
+  #convertCss({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
+    if (css.length === 0) return ''
 
-    if (!css) {
-      const bindNestedCss = (
-        parentIndex: number,
-        nested?: SingleOrArray<CssContent<D, P> | GlobalCssContent>
-      ): void => {
-        if (nested)
-          for (const [index, content] of convertToArray(nested).entries()) {
-            if (typeof content.style === 'function') {
-              if (!this.#bindings.css[parentIndex])
-                this.#bindings.css[parentIndex] = { index: parentIndex, nested: [] }
+    let topLevelCss: string = ''
+    const convertCssContent = (style: Style<D, P>): string =>
+      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+        (prev, [key, value]) => {
+          if (
+            value === undefined ||
+            value === '' ||
+            (typeof value === 'object' && Object.keys(value).length === 0)
+          )
+            return prev
 
-              this.#bindings.css[parentIndex].nested?.push({ index })
-            }
+          key = this.#convertStr(key, 'kebab')
+          if (key.startsWith('webkit')) key = `-${key}`
 
-            bindNestedCss(index, (content as CssContent<D, P>).nested)
+          if (key.startsWith('@keyframes')) {
+            topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
+            return prev
           }
+
+          return (
+            `${prev}${key}` +
+            (typeof value === 'string' || typeof value === 'number'
+              ? `:${value};`
+              : `{${convertCssContent(value)}}`)
+          )
+        },
+        ''
+      )
+
+    return css.reduce((prev, curr) => {
+      if (typeof curr === 'string') return `${prev}${curr}`
+
+      let _curr: string = ''
+
+      for (let [selector, style] of Object.entries(curr)) {
+        if (Array.isArray(style) && style[1] !== mode) continue
+
+        if (mode === 'ssr' && selector.startsWith(':host'))
+          selector = selector.replace(':host', this.#name)
+
+        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
+        const index: number = content.indexOf('{')
+
+        if (selector.startsWith(':host') && index > -1) {
+          const hostCss: string = content.slice(0, index)
+          const lastIndex: number = hostCss.lastIndexOf(';')
+          const hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length)
+          const _selector: string = hostCss.slice(lastIndex + 1)
+
+          _curr += `${selector}{${hostCssContent}}${_selector}${content.slice(index)}`
+        } else _curr += `${selector}{${content}}`
       }
 
+      return `${prev}${_curr}${topLevelCss}`
+    }, '') as string
+  }
+
+  #addCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
+    const css: Css<D, P>[] = this.#getCss()
+
+    if (css.length === 0) return
+
+    if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
         if (typeof content === 'string') continue
-
-        if (typeof content.style === 'function') this.#bindings.css.push({ index })
-
-        bindNestedCss(index, content.nested)
+        if (typeof Object.values(content)[0] === 'function') this.#bindings.css.push(index)
       }
-    }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#convertCss({ css: allCss, host: ':host', mode: 'csr' }))
+    stylesheet.replaceSync(this.#convertCss({ css, mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -848,7 +731,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
 
     if (debounce && throttle)
-      throw new Error('Debounce and throttle cannot be used together in the same event handler.')
+      throw new Error('Debounce and throttle should not be combined in the same event handler...')
 
     const callback = (event: Event): void => {
       method({
@@ -879,7 +762,55 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #define(propsChain?: PropsChain<P>): void {
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+    if (key === 'mounted') {
+      const poll = (
+        func: ({ times }: { times: number }) => void,
+        { interval, max, exit }: PollingOptions
+      ): void => {
+        let times = 0
+
+        const execute: NodeJS.Timeout = setTimeout(function run() {
+          if ((max && times >= max) || (exit && exit())) {
+            clearTimeout(execute)
+            return
+          }
+
+          func({ times })
+          times++
+          setTimeout(run, interval)
+        }, interval)
+      }
+
+      this.#hooks[key]?.({ ...this.#getDataPropsMethods(), poll })
+    } else this.#hooks[key]?.(this.#getDataPropsMethods())
+  }
+
+  #getClassName() {
+    if (!this.#className) return ''
+
+    return typeof this.#className === 'function'
+      ? this.#className(this.#getDataProps())
+      : this.#className
+  }
+
+  #addClassName(component: HTMLElement): void {
+    if (!this.#className) return
+    component.setAttribute('class', this.#getClassName())
+  }
+
+  #getAttrs(): [string, string][] {
+    return Object.entries(
+      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+    )
+  }
+
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs())
+      component.setAttribute(this.#convertStr(key, 'kebab'), value)
+  }
+
+  #define(): void {
     throwWindowError()
 
     const that: FiCsElement<D, P> = this
@@ -898,11 +829,9 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
-          that.#initProps(propsChain ?? that.#propsChain)
-          that.#addClassName(this)
-          that.#addAttrs(this)
+          that.#enqueue(async () => await that.#awaitData(), 'fetch')
           that.#addHtml(this.shadowRoot)
-          that.#addCss(this.shadowRoot)
+          that.#addCss(this.shadowRoot, [])
 
           for (const [selector, value] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
@@ -917,11 +846,11 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!that.#components.has(this)) that.#components.add(this)
         }
 
-        connectedCallback(): void {
+        async connectedCallback(): Promise<void> {
           if (!this.isRendered) {
             if (lazyLoad) {
               const observer: IntersectionObserver = new IntersectionObserver(
-                ([{ isIntersecting, target }]) => {
+                async ([{ isIntersecting, target }]) => {
                   if (isIntersecting) {
                     this.#init()
                     observer.unobserve(target)
@@ -931,10 +860,11 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
               setTimeout(() => observer.observe(this), 0)
-              that.#enqueue(async () => await that.#awaitData(), 'fetch')
             }
 
             that.#callback('mounted')
+            that.#addClassName(this)
+            that.#addAttrs(this)
             this.isRendered = true
           }
         }
@@ -955,7 +885,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!component) return
 
-    const { isClassName, isAttr, css }: Bindings<D, P> = this.#bindings
+    const { isClassName, isAttr, css }: Bindings = this.#bindings
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
     if (isClassName) {
@@ -967,22 +897,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#addHtml(shadowRoot)
 
-    if (css.length > 0) {
-      const renewedCss: Css<D, P> = []
-      const getRenewedCss = (css: Bindings<D, P>['css']): void => {
-        for (const _css of css) {
-          if (!_css) continue
-
-          const { index, nested }: { index: number; nested?: Bindings<D, P>['css'] } = _css
-
-          if (index >= 0) renewedCss.push(this.#css[index])
-          if (nested) getRenewedCss(nested)
-        }
-      }
-
-      getRenewedCss(css)
-      this.#addCss(shadowRoot, renewedCss.length > 0 ? renewedCss : undefined)
-    }
+    if (css.length > 0)
+      this.#addCss(
+        shadowRoot,
+        css.map(index => this.#css[index])
+      )
 
     for (const [selector, value] of Object.entries(this.#actions)) {
       const addAllElements = (elements: Element[] | Set<Element>): void => {
@@ -1007,24 +926,112 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#newElements.clear()
   }
 
-  async getServerComponent(doc: Document): Promise<string> {
-    return await this.#renderOnServer(doc).then(component => component.outerHTML)
-  }
-
   async ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): Promise<void> {
-    const temporary: HTMLElement = document.createElement(this.#varTag)
-    temporary.setHTMLUnsafe(await this.getServerComponent(document))
+    const temporary: HTMLElement = document.createElement('div')
+    const render = async (that: FiCsElement<D, P>): Promise<string> => {
+      that.#initProps(that.#propsChain)
+      that.#callback('created')
+      that.#enqueue(() => that.#define(), 'define')
 
-    parent.insertBefore(
-      temporary,
-      position === 'before' ? parent.firstChild : (parent.lastChild?.nextSibling ?? null)
-    )
-    parent.insertBefore(temporary.firstChild!, temporary)
-    temporary.remove()
+      if (that.#options.ssr) {
+        await that.#awaitData()
+        const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
+        const attrs: string = that
+          .#getAttrs()
+          .reduce(
+            (prev, [key, value]) => `${prev} ${that.#convertStr(key, 'kebab')}="${value}"`,
+            ''
+          )
+        const value: string = `${className} ${attrs}`.trim()
+        const openTag: string = `<${that.#name}${value.length > 0 ? ` ${value}` : ''}>`
+
+        const applyDescendant = async (html: string): Promise<string> => {
+          const varBegin: string = `<${that.#varTag} ${that.#ficsIdName}="`
+          const varEnd: string = `"></${that.#varTag}>`
+
+          const varBeginIndex: number = html.indexOf(varBegin)
+          const varEndIndex: number = html.indexOf(varEnd)
+
+          if (varBeginIndex < 0 || varEndIndex < 0) return html
+
+          const prev: string = html.slice(0, varBeginIndex)
+          const next: string = await applyDescendant(html.slice(varEndIndex + varEnd.length))
+          const ficsId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
+
+          if (!(ficsId in that.#descendants))
+            throw new Error(`The element does not have a valid ficsId in ${that.#name}...`)
+
+          const component: string = await render(that.#descendants[ficsId])
+          return `${prev}${component}${next}`
+        }
+
+        const applyShowAttr = (html: string): string => {
+          const showAttrIndex: number = html.indexOf(that.#showAttr)
+          if (showAttrIndex < 0) return html
+
+          const openIndex: number = html.indexOf('<', showAttrIndex)
+          const closeIndex: number = html.indexOf('>', showAttrIndex)
+          const prev: string = html.slice(0, showAttrIndex)
+          let next: string = applyShowAttr(html.slice(showAttrIndex + that.#showAttr.length))
+
+          if (openIndex > 0 && openIndex < closeIndex) return `${prev}${that.#showAttr}${next}`
+
+          const styleAttr: string = 'style="'
+          const styleIndex: number = prev.lastIndexOf(styleAttr)
+          const displayKey: string = 'display:'
+          const displayNone: string = `${displayKey}none`
+
+          if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
+
+          let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`
+          let remaining: string = prev.slice(styleIndex + styleAttr.length)
+          const endIndex: number = remaining.indexOf('"')
+
+          if (endIndex < 0) throw new Error('The style attribute is not closed...')
+
+          next = `${remaining.slice(endIndex).trim()}${next}`
+          remaining = remaining.slice(0, endIndex).replace(/\s/g, '')
+
+          const displayIndex: number = remaining.indexOf(displayKey)
+          if (displayIndex < 0) return `${newPrev}${remaining}; ${displayNone}${next}`
+
+          newPrev += remaining.slice(0, displayIndex)
+          remaining = remaining.slice(displayIndex)
+
+          const displayEndIndex: number = remaining.indexOf(';', displayIndex)
+          if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
+
+          return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
+        }
+
+        const html: string = that
+          .#convertTemplate(true)
+          .replace(/>\s+</g, '><')
+          .replace(/\n\s*/g, '')
+        const css: Css<D, P>[] = that.#getCss()
+
+        return `
+        ${openTag}
+          <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
+          <div id="${that.#ficsId}" slot="${that.#ficsId}">
+            ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
+            ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
+          </div>
+        </${that.#name}>
+      `
+      }
+
+      return `<${that.#name}></${that.#name}>`
+    }
+
+    temporary.setHTMLUnsafe(await render(this))
+    while (temporary.firstChild)
+      parent.insertBefore(temporary.firstChild, position === 'before' ? parent.firstChild : null)
   }
 
   describe(parent?: HTMLElement): void {
     this.#callback('created')
+    this.#initProps(this.#propsChain)
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
@@ -1050,25 +1057,5 @@ export default class FiCsElement<D extends object, P extends object> {
   getData<K extends keyof D>(key: K): D[K] {
     this.#throwKeyError(key)
     return this.#data[key]
-  }
-
-  extend(data?: Partial<D>): FiCsElement<D, P> {
-    const options: Options = { ...this.#options }
-    if (!options.lazyLoad) delete options.rootMargin
-
-    return new FiCsElement({
-      name: this.#name.slice(2),
-      isExceptional: false,
-      data: () => ({ ...this.#data, ...(data ?? {}) }),
-      fetch: this.#fetch,
-      props: this.#propsSources,
-      className: this.#className,
-      attributes: this.#attrs,
-      html: this.#html,
-      clonedCss: this.#css,
-      actions: this.#actions,
-      hooks: this.#hooks,
-      options
-    })
   }
 }

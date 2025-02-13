@@ -1,35 +1,33 @@
 import { fics } from 'ficsjs'
-import { color, variable } from 'ficsjs/css'
+import { color, variable } from 'ficsjs/style'
+import { white } from '@/utils'
 
-interface Props {
-  buttonText: string
-  isDisabled?: boolean
-  click: () => void
-}
-
-export default fics<{}, Props>({
-  name: 'button',
-  html: ({ props: { buttonText, isDisabled }, template }) =>
-    template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
-  css: [
-    { style: { display: 'block', textAlign: 'center' } },
-    {
-      selector: 'button',
-      style: ({ props: { isDisabled } }) => ({
-        background: isDisabled ? color('#fff', 0.1) : variable('gradation'),
+export default () =>
+  fics<{}, { buttonText: string; isDisabled?: boolean; click: () => void }>({
+    name: 'button',
+    html: ({ props: { buttonText, isDisabled }, template }) =>
+      template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
+    css: {
+      ':host': { display: 'block', textAlign: 'center' },
+      button: ({ props: { isDisabled } }) => ({
+        background: isDisabled ? color({ hex: white, rate: 0.1 }) : variable('gradation'),
         padding: variable('md'),
-        borderRadius: variable('ex-sm')
+        borderRadius: variable('xs'),
+        '&[aria-disabled="true"]': {
+          background: 'none',
+          color: color({ hex: white, rate: 0.2 }),
+          cursor: 'not-allowed'
+        }
       })
+    },
+    actions: {
+      button: {
+        click: [
+          ({ props: { isDisabled, click } }) => {
+            if (!isDisabled) click()
+          },
+          { throttle: 500, blur: true }
+        ]
+      }
     }
-  ],
-  actions: {
-    button: {
-      click: [
-        ({ props: { isDisabled, click } }) => {
-          if (!isDisabled) click()
-        },
-        { throttle: 500, blur: true }
-      ]
-    }
-  }
-})
+  })
