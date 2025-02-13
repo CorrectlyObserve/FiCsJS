@@ -23,6 +23,8 @@ export const getPathParams = (path: string): Record<string, string> => {
   return pathParams
 }
 
+export const isPathParam = (path: string): boolean => pathParam.test(path)
+
 class Params {
   params: Record<Param, Record<string, string>> = { path: {}, query: {} }
 
