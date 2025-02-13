@@ -16,6 +16,8 @@ export default ({
     hex = window.getComputedStyle(document.documentElement).getPropertyValue(hex).trim()
   }
 
+  if (hex === '') return ''
+
   if (!hex.startsWith('#'))
     throw new Error(`The "${hex}" must start with "#" and follow a valid format...`)
 
