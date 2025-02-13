@@ -1,6 +1,8 @@
 {
-  "title": "FiCsJSで開発されたToDoアプリケーション",
-  "content": "これはFiCsJSで開発されたToDoアプリです。他のJavaScriptフレームワークを使うことなく、FiCsJSで処理を全て完結しています。",
+  "head": {
+    "title": "FiCsJSで開発されたToDoアプリケーション",
+    "description": "これはFiCsJSで開発されたToDoアプリです。他のJavaScriptフレームワークを使うことなく、FiCsJSで処理を全て完結しています。"
+  },
   "tasks": {
     "heading": "タスク一覧",
     "placeholder": "タスクを追加する",
