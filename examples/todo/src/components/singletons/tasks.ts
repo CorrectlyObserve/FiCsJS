@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
+import { goto, getParams } from 'ficsjs/router'
 import { calc, remToPx, variable } from 'ficsjs/style'
 import Icon from '@/components/materials/icon'
 import Input from '@/components/materials/input'
@@ -118,7 +119,10 @@ export default () =>
                   ${setProps(trashIcon, {
                     color: variable('red'),
                     click: async () => {
-                      if (window.confirm(confirmation)) setData('tasks', await deleteTask(id))
+                      if (window.confirm(confirmation)) {
+                        setData('tasks', await deleteTask(id))
+                        if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
+                      }
                     }
                   })}
                 </div>
