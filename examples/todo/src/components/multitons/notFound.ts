@@ -2,8 +2,8 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { variable } from 'ficsjs/style'
-import Icon from '@/components/materials/icon'
-import Button from '@/components/materials/button'
+import Icon from '@/components/materials/Icon'
+import Button from '@/components/materials/Button'
 import { breakpoints, getPath } from '@/utils'
 
 interface Data {
