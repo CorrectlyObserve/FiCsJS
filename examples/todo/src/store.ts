@@ -31,12 +31,8 @@ export const addTask = async (title: string): Promise<Task[]> => {
   }
 }
 
-export const getTask = async (tasks: Task[], id: number): Promise<Task> => {
-  const task: Task | undefined = tasks.find(task => task.id === id)
-
-  if (!task) throw new Error(`The task with id:${id} is not found...`)
-  return task
-}
+export const getTask = async (tasks: Task[], id: number): Promise<Task | undefined> =>
+  tasks.find(task => task.id === id)
 
 export const updateTask = async ({
   id,
@@ -49,7 +45,9 @@ export const updateTask = async ({
 }): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getPersistentState<Task[]>($tasks)
-    const task = await getTask(tasks, id)
+    const task: Task | undefined = await getTask(tasks, id)
+
+    if (!task) throw new Error(`The task with id:${id} is not found...`)
 
     task.title = title
     task.description = description
@@ -65,7 +63,9 @@ export const updateTask = async ({
 export const completeTask = async (id: number): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getPersistentState<Task[]>($tasks)
-    const task = await getTask(tasks, id)
+    const task: Task | undefined = await getTask(tasks, id)
+
+    if (!task) throw new Error(`The task with id:${id} is not found...`)
 
     const timestamp: number = getTimestamp()
     task.updatedAt = timestamp
@@ -81,7 +81,9 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 export const revertTask = async (id: number): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getPersistentState<Task[]>($tasks)
-    const task = await getTask(tasks, id)
+    const task: Task | undefined = await getTask(tasks, id)
+
+    if(!task) throw new Error(`The task with id:${id} is not found...`)
 
     task.updatedAt = getTimestamp()
     task.completedAt = undefined
@@ -96,7 +98,6 @@ export const revertTask = async (id: number): Promise<Task[]> => {
 export const deleteTask = async (id: number): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getPersistentState<Task[]>($tasks)
-    console.log('tasks:', tasks)
     const taskIndex = tasks.findIndex(task => task.id === id)
 
     if (taskIndex === -1) throw new Error(`The task with id:${id} is not found...`)
