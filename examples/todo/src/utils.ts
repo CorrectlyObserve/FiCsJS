@@ -13,6 +13,17 @@ export const convertTimestamp = (timestamp: number): string => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
+function* generateUid(): Generator<number> {
+  let n: number = 1
+
+  while (true) {
+    yield n
+    n++
+  }
+}
+
+export const generator: Generator<number> = generateUid()
+
 export const getPath = (lang: string, path: string): string =>
   `${lang === 'en' ? '' : `/${lang}`}${path}`
 
