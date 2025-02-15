@@ -73,7 +73,7 @@ export const createPersistentState = <S>(
     }
   })
 
-const _getPersistentState = async <S>(id: string): Promise<S> => {
+export const getPersistentState = async <S>(id: string): Promise<S> => {
   const getAllStates = async (): Promise<State<S>[]> =>
     new Promise(async (resolve, reject) => {
       const store: IDBObjectStore = await getStore('states', { mode: 'readonly' })
@@ -89,16 +89,13 @@ const _getPersistentState = async <S>(id: string): Promise<S> => {
   throw new Error(`The "${id}" is not defined in states...`)
 }
 
-export const getPersistentState = async <S>(key: string): Promise<S> =>
-  (await _getPersistentState(key)) as S
-
 export const setPersistentState = async <S>(
   id: string,
   value: S,
   subscribe?: () => void
 ): Promise<void> =>
   new Promise(async (resolve, reject) => {
-    const { readonly, createdAt }: State<S> = await _getPersistentState(id)
+    const { readonly, createdAt }: State<S> = await getPersistentState(id)
     if (readonly) throw new Error(`The "${id}" is readonly...`)
 
     const store: IDBObjectStore = await getStore('states', { mode: 'readwrite' })
@@ -116,7 +113,7 @@ export const setPersistentState = async <S>(
 
 export const deletePersistentState = (id: string): Promise<void> =>
   new Promise(async (resolve, reject) => {
-    const { id: _id }: { id: string } = await _getPersistentState(id)
+    const { id: _id }: { id: string } = await getPersistentState(id)
     const request = (await getStore('states', { mode: 'readwrite' })).delete(_id)
 
     request.onsuccess = async () => resolve()
