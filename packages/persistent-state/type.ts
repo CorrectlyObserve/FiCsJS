@@ -1,15 +1,14 @@
-export interface Snapshot {
+export interface Snapshot<S> {
   id: number
-  state: unknown
+  state: S
   name: string
   createdAt: number
   updatedAt: number
 }
 
-export interface State {
-  id: number
-  state: unknown
-  key: string
+export interface State<S> {
+  id: string
+  state: S
   readonly: boolean
   createdAt: number
   updatedAt: number
