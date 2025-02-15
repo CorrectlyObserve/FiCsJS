@@ -20,15 +20,12 @@ const getStore = async (
 
           if (!db.objectStoreNames.contains(storeName)) {
             const store: IDBObjectStore = db.createObjectStore(storeName, {
-              keyPath: 'id',
-              autoIncrement: true
+              keyPath: 'id'
             })
             store.createIndex('state', 'state', { unique: false })
 
-            const name = isSnapshot ? 'name' : 'key'
-            store.createIndex(name, name, { unique: isSnapshot })
-
-            if (!isSnapshot) store.createIndex('readonly', 'readonly', { unique: false })
+            if (isSnapshot) store.createIndex('name', 'name', { unique: true })
+            else store.createIndex('readonly', 'readonly', { unique: false })
 
             store.createIndex('createdAt', 'createdAt', { unique: false })
             store.createIndex('updatedAt', 'updatedAt', { unique: false })
@@ -41,7 +38,7 @@ const getStore = async (
 
     return await openDB().then(db => db.transaction(storeName, mode).objectStore(storeName))
   } catch (error) {
-    throw new Error((error as Error).message)
+    throw new Error(`${error}`)
   }
 }
 
@@ -54,53 +51,60 @@ export const createPersistentState = <S>(
   options?: { readonly: boolean }
 ): Promise<string> =>
   new Promise(async (resolve, reject) => {
-    const key: string = `fics-state-${generator.next().value}`
-    const store: IDBObjectStore = await getStore(key, { mode: 'readwrite' })
-    const timestamp: number = Date.now()
-    const request: IDBRequest<IDBValidKey> = store.add({
-      state: value,
-      key,
-      readonly: !!options?.readonly,
-      createdAt: timestamp,
-      updatedAt: timestamp
-    })
+    const id: string = `fics-state-${generator.next().value}`
+    const store: IDBObjectStore = await getStore('states', { mode: 'readwrite' })
 
-    request.onsuccess = async () => resolve(key)
-    throwError(request, reject)
+    const getRequest: IDBRequest<S> = store.get(id)
+    getRequest.onsuccess = () => {
+      if (getRequest.result) resolve(id)
+      else {
+        const timestamp: number = Date.now()
+        const request: IDBRequest<IDBValidKey> = store.add({
+          id,
+          state: value,
+          readonly: options?.readonly === true,
+          createdAt: timestamp,
+          updatedAt: timestamp
+        })
+
+        request.onsuccess = async () => resolve(id)
+        throwError(request, reject)
+      }
+    }
   })
 
-const _getPersistentState = async (key: string): Promise<State> => {
-  const getAllStates = async (key: string): Promise<State[]> =>
+const _getPersistentState = async <S>(id: string): Promise<S> => {
+  const getAllStates = async (): Promise<State<S>[]> =>
     new Promise(async (resolve, reject) => {
-      const store: IDBObjectStore = await getStore(key, { mode: 'readonly' })
-      const request: IDBRequest<State[]> = store.getAll()
+      const store: IDBObjectStore = await getStore('states', { mode: 'readonly' })
+      const request: IDBRequest<State<S>[]> = store.getAll()
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(request.error ?? new Error('An unknown error occurred.'))
     })
 
-  const states: State[] = await getAllStates(key)
-  const state: State | undefined = states.find(state => state.key === key)
+  const states: State<S>[] = await getAllStates()
+  const stateObj: State<S> | undefined = states.find(stateObj => stateObj.id === id)
 
-  if (state) return state
-  throw new Error(`The "${key}" is not defined in states...`)
+  if (stateObj) return stateObj.state
+  throw new Error(`The "${id}" is not defined in states...`)
 }
 
 export const getPersistentState = async <S>(key: string): Promise<S> =>
-  (await _getPersistentState(key)).state as S
+  (await _getPersistentState(key)) as S
 
 export const setPersistentState = async <S>(
-  key: string,
+  id: string,
   value: S,
   subscribe?: () => void
 ): Promise<void> =>
   new Promise(async (resolve, reject) => {
-    const { readonly, createdAt }: State = await _getPersistentState(key)
-    if (readonly) throw new Error(`The "${key}" is readonly...`)
+    const { readonly, createdAt }: State<S> = await _getPersistentState(id)
+    if (readonly) throw new Error(`The "${id}" is readonly...`)
 
-    const store: IDBObjectStore = await getStore(key, { mode: 'readwrite' })
+    const store: IDBObjectStore = await getStore('states', { mode: 'readwrite' })
     const request: IDBRequest<IDBValidKey> = store.put({
+      id,
       state: value,
-      key,
       readonly,
       createdAt,
       updatedAt: Date.now()
@@ -110,32 +114,32 @@ export const setPersistentState = async <S>(
     throwError(request, reject)
   })
 
-export const deletePersistentState = (key: string): Promise<void> =>
+export const deletePersistentState = (id: string): Promise<void> =>
   new Promise(async (resolve, reject) => {
-    const { id }: { id: number } = await _getPersistentState(key)
-    const request = (await getStore(key, { mode: 'readwrite' })).delete(id)
+    const { id: _id }: { id: string } = await _getPersistentState(id)
+    const request = (await getStore('states', { mode: 'readwrite' })).delete(_id)
 
     request.onsuccess = async () => resolve()
     throwError(request, reject)
   })
 
-const _getSnapshot = async (state: string, key: string | number): Promise<Snapshot> => {
-  const getAllSnapshots = (state: string): Promise<Snapshot[]> =>
+const _getSnapshot = async <S>(state: string, key: string | number): Promise<Snapshot<S>> => {
+  const getAllSnapshots = (state: string): Promise<Snapshot<S>[]> =>
     new Promise(async (resolve, reject) => {
       const store: IDBObjectStore = await getStore(state, {
         isSnapshot: true,
         mode: 'readonly'
       })
 
-      const request: IDBRequest<Snapshot[]> = store.getAll()
+      const request: IDBRequest<Snapshot<S>[]> = store.getAll()
       request.onsuccess = () => resolve(request.result)
       throwError(request, reject)
     })
 
-  const snapshots: Snapshot[] = await getAllSnapshots(state)
+  const snapshots: Snapshot<S>[] = await getAllSnapshots(state)
 
   if (typeof key === 'string') {
-    const snapshot: Snapshot | undefined = snapshots.find(snapshot => snapshot.name === key)
+    const snapshot: Snapshot<S> | undefined = snapshots.find(snapshot => snapshot.name === key)
 
     if (snapshot) return snapshot
     throw new Error(`The "${key}" is not defined in snapshots...`)
@@ -147,12 +151,12 @@ const _getSnapshot = async (state: string, key: string | number): Promise<Snapsh
 export const getSnapshot = async (state: string, key: string | number): Promise<unknown> =>
   _getSnapshot(state, key).then(snapshot => snapshot.state)
 
-export const setSnapshot = (state: string, name?: string): Promise<void> =>
+export const setSnapshot = <S>(state: string, name?: string): Promise<void> =>
   new Promise(async (resolve, reject) => {
     const store: IDBObjectStore = await getStore(state, { isSnapshot: true, mode: 'readwrite' })
     const timestamp: number = Date.now()
-    const value: Omit<Snapshot, 'id' | 'name'> = {
-      state: getPersistentState(state),
+    const value: Omit<Snapshot<S>, 'id' | 'name'> = {
+      state: await getPersistentState<S>(state),
       createdAt: timestamp,
       updatedAt: timestamp
     }
