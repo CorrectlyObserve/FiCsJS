@@ -5,7 +5,7 @@ import {
 } from 'ficsjs/persistent-state'
 import { createState } from 'ficsjs/state'
 import { Task } from '@/types'
-import { getTimestamp, generator } from '@/utils'
+import { getTimestamp } from '@/utils'
 
 export const $lang = createState<string>('en')
 export const $tasks = await createPersistentState<Task[]>([])
@@ -15,7 +15,7 @@ export const addTask = async (title: string): Promise<Task[]> => {
     const tasks: Task[] = await getPersistentState<Task[]>($tasks)
     const timestamp: number = getTimestamp()
     const newTask: Task = {
-      id: generator.next().value,
+      id: timestamp,
       title,
       description: '',
       createdAt: timestamp,
