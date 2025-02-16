@@ -1,15 +1,31 @@
+# node
+**/node_modules
+
+# output
+**/dist
+**/dist-ssr
+**/docs
+
+# env
+.env
+.env.*
+*.local
+vite-env.d.ts
+
+# test
+/examples
+.prettierrc.yml
+
+# config
+tsconfig.json
+.vscode/*
+.github/*
+
+# log
 logs
 *.log
 npm-debug.log*
-/node_modules
-/dist
-/dist-ssr
-/src
-/storybook-static
-*.local
-tsconfig.json
-.prettierrc.yml
-.github/*
-vite-env.d.ts
-.vscode/*
-!.vscode/extensions.json
+
+# misc
+CODE_OF_CONDUCT.md
+.DS_Store
