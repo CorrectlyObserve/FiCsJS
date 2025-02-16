@@ -1,0 +1,25 @@
+# node
+**/node_modules
+
+# output
+**/dist
+**/dist-ssr
+
+# env
+.env
+.env.*
+*.local
+vite-env.d.ts
+
+# config
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# log
+logs
+*.log
+npm-debug.log*
+
+# misc
+*.DS_Store
