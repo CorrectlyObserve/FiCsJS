@@ -1,8 +1,8 @@
 import { ficsRouter, getParams } from 'ficsjs/router'
 import { calc, color, remToPx, variable } from 'ficsjs/style'
-import Tasks from '@/components/singletons/tasks'
-import Task from '@/components/singletons/task'
-import NotFound from '@/components/multitons/notFound'
+import Tasks from '@/components/singletons/Tasks'
+import Task from '@/components/singletons/Task'
+import NotFound from '@/components/multitons/NotFound'
 import { breakpoints } from '@/utils'
 
 const tasks = Tasks()

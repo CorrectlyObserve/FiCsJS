@@ -1,13 +1,13 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
+import { getPersistentState } from 'ficsjs/persistent-state'
 import { getParams, goto } from 'ficsjs/router'
 import { calc, variable } from 'ficsjs/style'
-import Icon from '@/components/materials/icon'
-import Input from '@/components/materials/input'
-import Textarea from '@/components/materials/textarea'
-import Button from '@/components/materials/button'
-import { getTask } from '@/indexedDB'
-import { completeTask, revertTask, deleteTask, updateTask } from '@/indexedDB'
+import Icon from '@/components/materials/Icon'
+import Input from '@/components/materials/Input'
+import Textarea from '@/components/materials/Textarea'
+import Button from '@/components/materials/Button'
+import { $tasks, completeTask, deleteTask, getTask, revertTask, updateTask } from '@/store'
 import type { Task } from '@/types'
 import { breakpoints, convertTimestamp, getPath } from '@/utils'
 
@@ -108,7 +108,8 @@ export default () =>
               await updateTask({ id, title, description })
               completedAt ? await completeTask(id) : await revertTask(id)
 
-              setData('task', await getTask(id))
+              const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+              setData('task', (await getTask(tasks, id))!)
               backToTaskList(lang)
             }
         })
@@ -128,27 +129,27 @@ export default () =>
       if (!isLoaded) return template`${loadingIcon}`
 
       return template`
-      <h2>${heading}</h2>
-      <div class="container">
-        <fieldset>
-          <label>${status}</label>
-          <div>
-            ${task.completedAt ? checkIcon : circleIcon}
-            <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
-          </div>
-        </fieldset>
-        <fieldset>${input}</fieldset><fieldset>${textarea}</fieldset>
-        ${Object.entries(datetimes).map(
-          ([key, value]) => template`<p>${value}${convertTimestamp(task[key as Datetime])}</p>`
-        )}
-        ${button}
-        <div>
-          ${[_delete, isNaN(parseInt(getParams('path').id)) ? close : back].map(
-            text => template`<span role="button" tabindex="0">${text}</span>`
+        <h2>${heading}</h2>
+        <div class="container">
+          <fieldset>
+            <label>${status}</label>
+            <div>
+              ${task.completedAt ? checkIcon : circleIcon}
+              <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
+            </div>
+          </fieldset>
+          <fieldset>${input}</fieldset><fieldset>${textarea}</fieldset>
+          ${Object.entries(datetimes).map(
+            ([key, value]) => template`<p>${value}${convertTimestamp(task[key as Datetime])}</p>`
           )}
+          ${button}
+          <div>
+            ${[_delete, isNaN(parseInt(getParams('path').id)) ? close : back].map(
+              text => template`<span role="button" tabindex="0">${text}</span>`
+            )}
+          </div>
         </div>
-      </div>
-    `
+      `
     },
     css: {
       'div.container': {
@@ -220,7 +221,12 @@ export default () =>
         const queryId = parseInt(getParams('query').id)
 
         if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
-        setData('task', await getTask(isNaN(paramId) ? queryId : paramId))
+
+        const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+        const task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
+
+        if (!task) return goto(getPath(lang, '/404'))
+        setData('task', task)
       },
       updated: {
         task: async ({ datum, setData }) => setData('isError', datum.title === '')

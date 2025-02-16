@@ -1,10 +1,11 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
+import { getPersistentState } from 'ficsjs/persistent-state'
 import { goto, getParams } from 'ficsjs/router'
 import { calc, remToPx, variable } from 'ficsjs/style'
-import Icon from '@/components/materials/icon'
-import Input from '@/components/materials/input'
-import { addTask, completeTask, deleteTask, getAllTasks, revertTask } from '@/indexedDB'
+import Icon from '@/components/materials/Icon'
+import Input from '@/components/materials/Input'
+import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
 import type { Task } from '@/types'
 import { breakpoints, getPath } from '@/utils'
 
@@ -93,44 +94,44 @@ export default () =>
       if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
       return template`
-      <h2>${heading}</h2>
-      <div class="menu">
-        <div>${input}${addIcon}</div>
-        <div>
-          ${isShown ? checkSquareIcon : squareIcon}
-          <span role="button" tabindex="0">${checkbox}</span>
+        <h2>${heading}</h2>
+        <div class="menu">
+          <div>${input}${addIcon}</div>
+          <div>
+            ${isShown ? checkSquareIcon : squareIcon}
+            <span role="button" tabindex="0">${checkbox}</span>
+          </div>
         </div>
-      </div>
-      ${
-        tasks.length > 0
-          ? tasks.map(
-              ({ id, title, completedAt }) => template`
-                <div class="task" key="${id}">
-                  <div>
-                    ${setProps(Icon(completedAt ? 'check' : 'circle'), {
+        ${
+          tasks.length > 0
+            ? tasks.map(
+                ({ id, title, completedAt }) => template`
+                  <div class="task" key="${id}">
+                    <div>
+                      ${setProps(Icon(completedAt ? 'check' : 'circle'), {
+                        click: async () => {
+                          setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                        }
+                      })}
+                      <span class="${completedAt ? 'done' : ''}">
+                        <a href="${getPath(lang, (document.documentElement.offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
+                      </span>
+                    </div>
+                    ${setProps(trashIcon, {
+                      color: variable('red'),
                       click: async () => {
-                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                        if (window.confirm(confirmation)) {
+                          setData('tasks', await deleteTask(id))
+                          if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
+                        }
                       }
                     })}
-                    <span class="${completedAt ? 'done' : ''}">
-                      <a href="${getPath(lang, (document.documentElement.offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
-                    </span>
                   </div>
-                  ${setProps(trashIcon, {
-                    color: variable('red'),
-                    click: async () => {
-                      if (window.confirm(confirmation)) {
-                        setData('tasks', await deleteTask(id))
-                        if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
-                      }
-                    }
-                  })}
-                </div>
-              `
-            )
-          : template`<p>${unapplicable}</p>`
-      }
-    `
+                `
+              )
+            : template`<p>${unapplicable}</p>`
+        }
+      `
     },
     css: {
       div: {
@@ -197,7 +198,7 @@ export default () =>
       }
     },
     hooks: {
-      mounted: async ({ setData }) => setData('tasks', await getAllTasks())
+      mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks))
     },
     options: { lazyLoad: true }
   })

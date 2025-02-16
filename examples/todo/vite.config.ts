@@ -16,6 +16,6 @@ export default defineConfig({
       '@': '/src'
     }
   },
-  build: { outDir: 'dist', emptyOutDir: true, minify: true },
+  build: { outDir: 'dist', target: 'esnext', emptyOutDir: true, minify: true },
   server: { hmr: true, host: true }
 })
