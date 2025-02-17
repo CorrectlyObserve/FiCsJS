@@ -44,8 +44,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
+  readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
-  readonly #hooks: Hooks<D, P> = {} as Hooks<D, P>
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #propsTrees: PropsTree[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
@@ -67,8 +67,8 @@ export default class FiCsElement<D extends object, P extends object> {
     html,
     css,
     clonedCss,
-    actions,
     hooks,
+    actions,
     options
   }: FiCs<D, P>) {
     name = name.trim()
@@ -129,8 +129,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = convertToArray(css)
     if (clonedCss) this.#css = [...clonedCss]
-    if (actions) this.#actions = { ...actions }
     if (hooks) this.#hooks = { ...hooks }
+    if (actions) this.#actions = { ...actions }
   }
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
@@ -770,7 +770,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ): void => {
         let times = 0
 
-        const execute: NodeJS.Timeout = setTimeout(function run() {
+        const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
           if ((max && times >= max) || (exit && exit())) {
             clearTimeout(execute)
             return
