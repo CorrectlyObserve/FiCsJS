@@ -19,7 +19,8 @@
     "examples/*"
   ],
   "dependencies": {
-    "fics_todo": "workspace:*"
+    "fics-todo": "workspace:*",
+    "fics-fake-api": "workspace:*"
   },
   "devDependencies": {
     "prettier": "^3.5.0",
