@@ -1,6 +1,7 @@
 {
   "name": "fics-fake-api",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "init": "bunx tsc && bunx postcss src/**/*.css --dir dist",
     "dev": "bun run init && bun run --hot app.ts"
