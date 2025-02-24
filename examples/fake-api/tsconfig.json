@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./",
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
-  }
+    "jsxImportSource": "hono/jsx",
+    "skipLibCheck": true
+  },
+  "include": ["./src/**/*", "./app.ts"]
 }
