@@ -1,16 +1,3 @@
-import { Hono } from 'hono'
-
-const app = new Hono()
-
-app.get('/', c => {
-  return c.text('Hello Hono!')
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM is fully loaded!')
 })
-
-app.get('/photos', c => {
-  return c.text('Hello Photos!')
-})
-
-export default {
-  port: 5174,
-  fetch: app.fetch
-}
