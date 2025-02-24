@@ -7,5 +7,6 @@
     "jsxImportSource": "hono/jsx",
     "skipLibCheck": true
   },
-  "include": ["./src/**/*", "../app.ts"]
+  "include": ["./src/**/*"],
+  "exclude": ["../app.ts"]
 }
