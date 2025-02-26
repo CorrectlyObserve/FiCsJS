@@ -5,29 +5,58 @@ const app = new Hono()
 
 app.get('/dist/*', serveStatic({ root: './' }))
 
-app.get('/', c => {
-  return c.html(`
+const template = ({
+  title,
+  description,
+  content,
+  path
+}: {
+  title: string
+  description: string
+  content: string
+  path: string
+}): string =>
+  `
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hono Page</title>
+        <title>${title}</title>
+        <meta name="description" content="${description}" />
         <link rel="stylesheet" type="text/css" href="./dist/global.css" />
       </head>
       <body>
-        <h1 class="flex justify-center items-center">Hello, Hono!</h1>
-        <script src="./dist/index.js"></script>
+        ${content}
+        <script src="./dist${path}.js"></script>
       </body>
     </html>
-  `)
-})
+  `
 
-app.get('/photos', c => {
-  return c.text('Hello Photos!')
-})
+app.get('/', c =>
+  c.html(
+    template({
+      title: 'Home',
+      description: 'Home page',
+      content: `
+        <h1 class="flex justify-center items-center">Hello, Hono!</h1>
+      `,
+      path: '/top'
+    })
+  )
+)
 
-export default {
-  port: 5174,
-  fetch: app.fetch
-}
+app.get('/photos', c =>
+  c.html(
+    template({
+      title: 'Home',
+      description: 'Home page',
+      content: `
+        <h1 class="flex justify-center items-center">Hello, Hono!</h1>
+      `,
+      path: '/photos'
+    })
+  )
+)
+
+export default { port: 5174, fetch: app.fetch }
