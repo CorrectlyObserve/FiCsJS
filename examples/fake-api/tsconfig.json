@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "strict": true,
+    "target": "ES2015",
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "../../",
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "skipLibCheck": true,
@@ -17,5 +18,5 @@
     }
   },
   "include": ["./src/**/*"],
-  "exclude": ["../app.ts", "../../packages/**/*"]
+  "exclude": ["../app.ts", "./../../packages/**/*"]
 }
