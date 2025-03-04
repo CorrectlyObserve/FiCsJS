@@ -20,6 +20,7 @@ vite-env.d.ts
 tsconfig.json
 .vscode/*
 .github/*
+.prettierignore
 
 # log
 logs
