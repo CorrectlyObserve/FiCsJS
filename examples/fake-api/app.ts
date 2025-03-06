@@ -28,7 +28,7 @@ const template = ({
       </head>
       <body>
         ${content}
-        <script src="./dist${path}.js"></script>
+        <script type="module" src="./dist${path}.js"></script>
       </body>
     </html>
   `
@@ -41,7 +41,7 @@ app.get('/', c =>
       content: `
         <h1 class="flex justify-center items-center">Hello, Hono!</h1>
       `,
-      path: '/top'
+      path: '/index'
     })
   )
 )
@@ -54,7 +54,7 @@ app.get('/photos', c =>
       content: `
         <h1 class="flex justify-center items-center">Hello, Hono!</h1>
       `,
-      path: '/photos'
+      path: '/index'
     })
   )
 )
