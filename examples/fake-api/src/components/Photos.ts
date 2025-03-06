@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import css from '@/global.css?inline'
 
 interface Data {
   count: number
@@ -9,7 +10,7 @@ export default () =>
   fics<Data, {}>({
     name: 'photos',
     data: () => ({ count: 0 }),
-    fetch: () => {
+    fetch: async () => {
       return Promise.resolve({ photos: [] })
     },
     html: ({ data: { photos }, template }) => template`
@@ -23,6 +24,6 @@ export default () =>
         </div>
       </div>
     `,
-    css: '',
+    css,
     hooks: {}
   })
