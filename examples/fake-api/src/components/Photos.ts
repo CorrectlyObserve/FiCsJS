@@ -15,13 +15,17 @@ export default () =>
     },
     html: ({ data: { photos }, template }) => template`
       <div>
-        <div>
-          ${photos.map(
-            ({ id, author }) => template`
-            <img src="https://picsum.photos/id/${id}/300/300?blur" />
-            <p>${author}</p>`
-          )}
-        </div>
+        ${photos.map(({ id, author }) => {
+          const popoverId = `popover-${id}`
+
+          return template`
+            <img src="https://picsum.photos/id/${id}/300/300?blur" popovertarget="${popoverId}" />
+            <div id="${popoverId}" popover>
+              <button popovertarget="${popoverId}" popovertargetaction="hide" aria-hidden="true">X</button>
+              <p>Created by ${author}<p>
+            </div>
+          `
+        })}
       </div>
     `,
     css,
