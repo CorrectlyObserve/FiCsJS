@@ -2,8 +2,9 @@
   "name": "fics-todo",
   "version": "0.1.0",
   "scripts": {
-    "dev": "bunx --bun vite",
-    "build": "bunx --bun vite build",
+    "build:packages": "cd ../../packages && bun run build && cd ../examples/todo",
+    "dev": "bun run build:packages && bunx --bun vite",
+    "build": "bun run build:packages && bunx --bun vite build",
     "preview": "bunx --bun vite preview"
   },
   "dependencies": {
