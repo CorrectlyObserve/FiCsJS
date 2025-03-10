@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { serveStatic } from '@hono/node-server/serve-static'
+import Photos from './src/components/Photos'
 
 const app = new Hono()
 
@@ -46,15 +47,15 @@ app.get('/', c =>
   )
 )
 
-app.get('/photos', c =>
+app.get('/scroll', c =>
   c.html(
     template({
       title: 'Home',
       description: 'Home page',
       content: `
-        <h1 class="flex justify-center items-center">Hello, Hono!</h1>
+        <h1 class="flex justify-center items-center">Scroll page</h1>
       `,
-      path: '/index'
+      path: '/scroll'
     })
   )
 )
