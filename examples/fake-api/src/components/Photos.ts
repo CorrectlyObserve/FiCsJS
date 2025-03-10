@@ -1,10 +1,11 @@
 import { fics } from 'ficsjs'
-import css from '@/global.css?inline'
 
 interface Data {
   count: number
   photos: { id: number; author: string }[]
 }
+
+const css = await Bun.file('@/global.css').text()
 
 export default () =>
   fics<Data, {}>({
