@@ -35,7 +35,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
-  readonly #fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
+  readonly #fetch?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
@@ -156,7 +156,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
   async #awaitData(): Promise<void> {
     if (this.#fetch) {
-      for (const [key, value] of Object.entries(await this.#fetch(this.#getDataProps())))
+      for (const [key, value] of Object.entries(
+        await this.#fetch({ ...this.#getDataProps(), crud: this.#crud })
+      ))
         this.setData(key as keyof D, value as D[keyof D])
 
       this.#isLoaded = true
@@ -684,6 +686,20 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
+  async #crud<K extends keyof D>({
+    api,
+    key,
+    options
+  }: {
+    api: string
+    key: K
+    options?: RequestInit
+  }): Promise<D[K]> {
+    return fetch(api, options)
+      .then(res => res.json())
+      .then(json => json[key])
+  }
+
   #debounce<T extends (...args: any[]) => void>(
     func: T,
     time: number
@@ -736,6 +752,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const callback = (event: Event): void => {
       method({
         ...this.#getDataPropsMethods(),
+        crud: this.#crud,
         event,
         attributes: attrs,
         value:
@@ -763,6 +780,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+    const params: DataPropsMethods<D, P, true> = {
+      ...this.#getDataPropsMethods(),
+      crud: this.#crud
+    }
+
     if (key === 'mounted') {
       const poll = (
         func: ({ times }: { times: number }) => void,
@@ -782,8 +804,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...this.#getDataPropsMethods(), poll })
-    } else this.#hooks[key]?.(this.#getDataPropsMethods())
+      this.#hooks[key]?.({ ...params, poll })
+    } else this.#hooks[key]?.(params)
   }
 
   #getClassName() {
