@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build:js": "bun build src/{,**/}*.ts --outdir dist --splitting --minify",
-    "build:css": "bunx postcss src/**/*.css --dir dist --minify",
+    "build:css": "bunx postcss src/{,**/}*.css --dir dist --minify",
     "build:packages": "cd ../../packages && bun run build && cd ../examples/fake-api",
     "dev": "rm -rf dist && bun run build:packages && bun run build:js && bun run build:css && bun run --hot app.ts"
   },
