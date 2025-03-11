@@ -62,7 +62,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
-  options?: Omit<Options, 'ssr'> & { ssr?: boolean }
+  options?: Options & { ssr?: boolean }
 }
 
 export interface GlobalCssContent {
