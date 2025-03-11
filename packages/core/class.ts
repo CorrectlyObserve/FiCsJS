@@ -948,8 +948,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#newElements.clear()
   }
 
-  async ssr(parent: HTMLElement, position: 'before' | 'after' = 'after'): Promise<void> {
-    const temporary: HTMLElement = document.createElement('div')
+  async ssr(): Promise<string> {
     const render = async (that: FiCsElement<D, P>): Promise<string> => {
       that.#initProps(that.#propsChain)
       that.#callback('created')
@@ -1046,9 +1045,7 @@ export default class FiCsElement<D extends object, P extends object> {
       return `<${that.#name}></${that.#name}>`
     }
 
-    temporary.setHTMLUnsafe(await render(this))
-    while (temporary.firstChild)
-      parent.insertBefore(temporary.firstChild, position === 'before' ? parent.firstChild : null)
+    return await render(this)
   }
 
   describe(parent?: HTMLElement): void {
