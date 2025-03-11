@@ -5,7 +5,7 @@ interface Data {
   photos: { id: number; author: string }[]
 }
 
-const css = await Bun.file('@/global.css').text()
+const css = await Bun.file('./src/global.css').text()
 
 export default () =>
   fics<Data, {}>({
