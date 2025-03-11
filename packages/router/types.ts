@@ -14,7 +14,7 @@ export interface FiCsRouter<D extends RouterData, P extends object> {
   pages: (PageContent<D, P> & { path: string })[]
   notFound?: PageContent<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
-  options?: Omit<Options, 'ssr'>
+  options?: Options & { ssr: false }
 }
 
 export interface PageContent<D extends object, P extends object> {
