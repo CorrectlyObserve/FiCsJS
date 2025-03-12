@@ -32,15 +32,7 @@ export type Css<D, P> =
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true
-  ? {
-      crud: <K extends keyof D>(params: {
-        api: string
-        key: K
-        options?: RequestInit
-      }) => Promise<D[K]>
-    }
-  : {})
+} & (B extends true ? { crud: <T>(api: string, options?: RequestInit) => Promise<T> } : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
@@ -62,7 +54,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
-  options?: Options & { ssr?: boolean }
+  options?: OptionParams
 }
 
 export interface GlobalCssContent {
@@ -103,6 +95,8 @@ export interface Options {
   lazyLoad?: boolean
   rootMargin?: string
 }
+
+export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
 
 export interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
