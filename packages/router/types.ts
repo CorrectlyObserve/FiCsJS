@@ -2,7 +2,7 @@ import type {
   Css,
   Descendant,
   GlobalCssContent,
-  Options,
+  OptionParams,
   Props,
   Sanitized,
   SingleOrArray,
@@ -14,7 +14,7 @@ export interface FiCsRouter<D extends RouterData, P extends object> {
   pages: (PageContent<D, P> & { path: string })[]
   notFound?: PageContent<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
-  options?: Options & { ssr: false }
+  options?: OptionParams
 }
 
 export interface PageContent<D extends object, P extends object> {
