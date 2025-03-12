@@ -12,9 +12,15 @@ const css = await Bun.file('./src/global.css').text()
 export default () =>
   fics<Data, {}>({
     name: 'photos',
-    fetch: async ({ crud }) => {
-      const photos = await crud<Record<'id' | 'author' | string, string>[]>(getPhotos(1))
-      return { count: 1, photos: photos.map(({ id, author }) => ({ id: parseInt(id), author })) }
+    data: () => ({ count: 0 }),
+    fetch: async ({ data: { count }, crud }) => {
+      count++
+      const photos = await crud<Record<'id' | 'author' | string, string>[]>(getPhotos(count))
+
+      return {
+        count,
+        photos: photos.map(({ id, author }) => ({ id: parseInt(id), author }))
+      }
     },
     html: ({ data: { photos }, template }) => template`
       <div>
