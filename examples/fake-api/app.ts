@@ -37,23 +37,26 @@ const template = ({
 app.get('/', c =>
   c.html(
     template({
-      title: 'Home',
-      description: 'Home page',
+      title: 'FiCsJS with Hono',
+      description: 'This is a simple example of FiCsJS with Hono in SSR.',
       content: `
-        <h1 class="flex justify-center items-center">Hello, Hono!</h1>
+        <a href="/scroll">Go to the scroll page</a>
       `,
       path: '/index'
     })
   )
 )
 
+const photos = await Photos().ssr()
+
 app.get('/scroll', c =>
   c.html(
     template({
-      title: 'Home',
-      description: 'Home page',
+      title: 'Infinite and virtual scroll',
+      description: 'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
       content: `
-        <h1 class="flex justify-center items-center">Scroll page</h1>
+        <a href="/">Back to the top page</a>
+        ${photos}
       `,
       path: '/scroll'
     })
