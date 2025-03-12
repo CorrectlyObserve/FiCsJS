@@ -17,6 +17,7 @@ import type {
   Hooks,
   Method,
   Options,
+  OptionParams,
   PollingOptions,
   Props,
   PropsChain,
@@ -85,7 +86,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin }: Omit<Options, 'ssr'> & { ssr?: boolean } = options
+      const { ssr, lazyLoad, rootMargin }: OptionParams = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -686,18 +687,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
-  async #crud<K extends keyof D>({
-    api,
-    key,
-    options
-  }: {
-    api: string
-    key: K
-    options?: RequestInit
-  }): Promise<D[K]> {
+  async #crud<T>(api: string, options?: RequestInit): Promise<T> {
     return fetch(api, options)
       .then(res => res.json())
-      .then(json => json[key])
+      .then(json => json)
   }
 
   #debounce<T extends (...args: any[]) => void>(
