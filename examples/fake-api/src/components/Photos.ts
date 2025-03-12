@@ -5,14 +5,16 @@ interface Data {
   photos: { id: number; author: string }[]
 }
 
+const root = 'https://picsum.photos'
+const getPhotos = (page: number) => `${root}/v2/list?page=${page}&limit=10`
 const css = await Bun.file('./src/global.css').text()
 
 export default () =>
   fics<Data, {}>({
     name: 'photos',
-    data: () => ({ count: 0 }),
-    fetch: async () => {
-      return Promise.resolve({ photos: [] })
+    fetch: async ({ crud }) => {
+      const photos = await crud<Record<'id' | 'author' | string, string>[]>(getPhotos(1))
+      return { count: 1, photos: photos.map(({ id, author }) => ({ id: parseInt(id), author })) }
     },
     html: ({ data: { photos }, template }) => template`
       <div>
@@ -20,15 +22,18 @@ export default () =>
           const popoverId = `popover-${id}`
 
           return template`
-            <img src="https://picsum.photos/id/${id}/300/300?blur" popovertarget="${popoverId}" />
+            <img src="${root}/id/${id}/300/300?blur" popovertarget="${popoverId}" />
             <div id="${popoverId}" popover>
               <button popovertarget="${popoverId}" popovertargetaction="hide" aria-hidden="true">X</button>
-              <p>Created by ${author}<p>
+              <p>Created by ${author}</p>
             </div>
           `
         })}
       </div>
     `,
     css,
+    actions: {
+      img: { click: ({ event: { target } }) => (target as HTMLImageElement).showPopover() }
+    },
     hooks: {}
   })
