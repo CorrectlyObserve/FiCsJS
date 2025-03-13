@@ -179,7 +179,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-        this.#enqueue(() => this.#reRender(), 're-render')
+
+        if (typeof document === 'undefined') this.#reRender()
+        else this.#enqueue(() => this.#reRender(), 're-render')
       }
     } else this.#props[key] = value
   }
@@ -1035,6 +1037,7 @@ export default class FiCsElement<D extends object, P extends object> {
       `
       }
 
+      that.#enqueue(() => that.#define(), 'define')
       return `<${that.#name}></${that.#name}>`
     }
 
@@ -1051,7 +1054,9 @@ export default class FiCsElement<D extends object, P extends object> {
   setData<K extends keyof D>(key: K, value: D[K]): void {
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      this.#enqueue(() => this.#reRender(), 're-render')
+
+      if (typeof document === 'undefined') this.#reRender()
+      else this.#enqueue(() => this.#reRender(), 're-render')
 
       for (const { keys, setProps } of this.#propsTrees)
         if (typeof key === 'string' && keys[key]) setProps()
