@@ -1,4 +1,4 @@
-import { getHasLoaded } from './init'
+import { throwWindowError } from './helpers'
 import type { Queue } from './types'
 
 const ficsIds: Record<string, true> = {}
@@ -16,6 +16,24 @@ const dequeue = (queue: Queue): void => {
 const queues: Queue[] = new Array()
 let isProcessing: boolean = false
 
+export const processQueue = (): void => {
+
+  if (queues.length > 0 && !isProcessing) {
+    isProcessing = true
+
+    while (queues.length > 0) {
+      const queue: Queue = queues.shift()!
+
+      if (queue.key === 're-render') {
+        if (!ficsIds[getQueueId(queue, 'define')]) continue
+        setTimeout(() => dequeue(queue), 0)
+      } else dequeue(queue)
+    }
+
+    isProcessing = false
+  }
+}
+
 export const enqueue = (queue: Queue): void => {
   const queueId: string = getQueueId(queue)
 
@@ -23,19 +41,15 @@ export const enqueue = (queue: Queue): void => {
     ficsIds[queueId] = true
     queues.push(queue)
 
-    if (getHasLoaded() && !isProcessing) {
-      isProcessing = true
-
-      while (queues.length > 0) {
-        const queue: Queue = queues.shift()!
-
-        if (queue.key === 're-render') {
-          if (!ficsIds[getQueueId(queue, 'define')]) continue
-          setTimeout(() => dequeue(queue), 0)
-        } else dequeue(queue)
-      }
-
-      isProcessing = false
-    }
+    if (typeof document !== 'undefined') processQueue()
   }
+}
+
+export const initQueue = (): void => {
+  throwWindowError()
+  if (typeof document === 'undefined') throw new Error('document is not defined...')
+
+  document.readyState === 'loading'
+    ? window.addEventListener('DOMContentLoaded', processQueue, { once: true })
+    : processQueue()
 }
