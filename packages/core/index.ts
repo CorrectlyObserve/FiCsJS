@@ -1,5 +1,5 @@
 import fics from './fics'
 import { ficsCss } from './globalCss'
-import { ficsInit } from './init'
+import { initQueue as ficsInit } from './queue'
 
 export { fics, ficsCss, ficsInit }
