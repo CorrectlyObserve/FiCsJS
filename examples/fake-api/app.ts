@@ -47,16 +47,16 @@ app.get('/', c =>
   )
 )
 
-const photos = await Photos().ssr()
-
-app.get('/scroll', c =>
+const photos = Photos()
+app.get('/scroll', async c =>
   c.html(
     template({
       title: 'Infinite and virtual scroll',
-      description: 'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
+      description:
+        'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
       content: `
         <a href="/">Back to the top page</a>
-        ${photos}
+        ${await photos.ssr()}
       `,
       path: '/scroll'
     })
