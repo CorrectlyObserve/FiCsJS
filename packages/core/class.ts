@@ -947,7 +947,6 @@ export default class FiCsElement<D extends object, P extends object> {
     const render = async (that: FiCsElement<D, P>): Promise<string> => {
       that.#initProps(that.#propsChain)
       that.#callback('created')
-      that.#enqueue(() => that.#define(), 'define')
 
       if (that.#options.ssr) {
         await that.#awaitData()
@@ -1037,7 +1036,6 @@ export default class FiCsElement<D extends object, P extends object> {
       `
       }
 
-      that.#enqueue(() => that.#define(), 'define')
       return `<${that.#name}></${that.#name}>`
     }
 
