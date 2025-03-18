@@ -12,6 +12,5 @@
     "skipLibCheck": true,
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src/**/*"],
-  "exclude": ["./app.ts"]
+  "include": ["src/**/*"]
 }
