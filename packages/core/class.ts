@@ -1028,7 +1028,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
         ${openTag}
           <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
-          <div id="${that.#ficsId}" slot="${that.#ficsId}">
+          <div id="${that.#ficsId}" slot="${that.#ficsId}" width="100%">
             ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
