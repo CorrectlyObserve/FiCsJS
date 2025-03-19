@@ -1,3 +1,3 @@
-import { ficsInit } from 'ficsjs'
+import Photos from '@/components/Photos'
 
-ficsInit()
+Photos().describe()
