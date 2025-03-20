@@ -1,3 +1,3 @@
-import { ficsInit } from 'ficsjs'
+import Users from '@/components/Users'
 
-ficsInit()
+Users().describe()
