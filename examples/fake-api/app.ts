@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { serveStatic } from '@hono/node-server/serve-static'
+import Users from './src/components/Users'
 import Photos from './src/components/Photos'
 
 const app = new Hono()
@@ -34,13 +35,15 @@ const template = ({
     </html>
   `
 
-app.get('/', c =>
+const users = Users()
+app.get('/', async c =>
   c.html(
     template({
       title: 'FiCsJS with Hono',
       description: 'This is a simple example of FiCsJS with Hono in SSR.',
       content: `
         <a href="/scroll">Go to the scroll page</a>
+        ${await users.ssr()}
       `,
       path: '/index'
     })
