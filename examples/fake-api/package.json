@@ -3,12 +3,10 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build:packages": "cd ../../packages && rm -rf dist && bun run build && cd ../examples/fake-api",
-    "build:tailwindcss": "bunx tailwindcss --input src/global.css --output src/.tailwindcss.txt --minify",
-    "dev:js": "bun build src/{,**/}*.ts --outdir dist --splitting --hot --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext]",
-    "dev": "bun run build:packages && bun run build:tailwindcss && bun run dev:js &&  bun run --hot app.ts",
-    "build:js": "bun build src/{,**/}*.ts --outdir dist --splitting --minify --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext]",
-    "build": "rm -rf dist && bun run build:packages && bun run build:tailwindcss && bun run build:js && bun run dev:tailwind && bun run --minify app.ts"
+    "build:packages": "rm -rf dist && cd ../../packages && rm -rf dist && bun run build && cd ../examples/fake-api",
+    "build:css": "bunx postcss src/{,**/}*.css --dir dist --minify && bunx tailwindcss --input src/global.css --output src/.tailwindcss.txt --minify",
+    "dev": "bun run build:packages && bun run build:css && bun build src/{,**/}*.ts --outdir dist --splitting --hot --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --hot app.ts",
+    "build": "bun run build:packages && bun run build:css && bun build src/{,**/}*.ts --outdir dist --splitting --minify --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --minify app.ts"
   },
   "dependencies": {
     "ficsjs": "*",
