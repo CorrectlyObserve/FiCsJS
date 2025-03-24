@@ -1,5 +1,5 @@
 export default {
-  content: ['./src/**/*.ts', './dist/**/*.js'],
+  content: ['./src/**/*.ts', './dist/*.js'],
   theme: { extend: {} },
   plugins: []
 }
