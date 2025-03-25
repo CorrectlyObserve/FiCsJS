@@ -10,19 +10,31 @@ interface User {
 const root = 'https://jsonplaceholder.typicode.com/users'
 
 export default () =>
-  fics<{ users: User[] }, {}>({
+  fics<{ users: User[]; selected: String }, {}>({
     name: 'users',
-    data: () => ({ users: [] }),
-    fetch: async ({ crud }) => ({ users: await crud<Array<User>>(root) }),
-    html: ({ data: { users }, template }) => template`
-      ${users.map(
-        ({ id, name, email }) => template`
-          <div key="${id}">
-            <p>Name: ${name}</p>
-            <p>Email: ${email}</p>
+    data: () => ({ users: [], selected: '' }),
+    fetch: async ({ crud }) => ({ users: await crud<User[]>(root) }),
+    html: ({ data: { users, selected }, template }) => template`
+      ${users.map(({ id, name, email }) => {
+        const textColor = `${selected === id.toString() ? 'text-red-700' : 'text-gray-900'}`
+        const labels = ['Name', 'Email']
+
+        return template`
+          <div class="cursor-pointer" key="${id}" tabindex="0">
+            ${[name, email].map(
+              (value, index) => template`<p class="${textColor}">${labels[index]}: ${value}</p>`
+            )}
           </div>
         `
-      )}
+      })}
     `,
-    css: typeof window !== 'undefined' ? css : undefined
+    css: typeof window !== 'undefined' ? css : '',
+    actions: {
+      div: {
+        click: ({ setData, getData, attributes }) => {
+          setData('selected', attributes.key)
+        }
+      }
+    },
+    options: { ssr: false }
   })
