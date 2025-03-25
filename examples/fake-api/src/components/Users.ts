@@ -31,7 +31,7 @@ export default () =>
     css: typeof window !== 'undefined' ? css : '',
     actions: {
       div: {
-        click: ({ setData, getData, attributes }) => {
+        click: ({ setData, attributes }) => {
           setData('selected', attributes.key)
         }
       }
