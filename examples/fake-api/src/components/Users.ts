@@ -35,6 +35,5 @@ export default () =>
           setData('selected', attributes.key)
         }
       }
-    },
-    options: { ssr: false }
+    }
   })
