@@ -730,53 +730,62 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addEventListener(
     element: Element,
-    handler: string,
-    method: Method<D, P>,
-    options?: ActionOptions
-  ): void {
-    if (handler !== 'click' && options?.blur)
-      throw new Error('The "blur" is enabled only if the handler is click...')
+    entries: [string, Method<D, P> | [Method<D, P>, ActionOptions]][]
+  ) {
+    const addEventListener = (
+      handler: string,
+      method: Method<D, P>,
+      options?: ActionOptions
+    ): void => {
+      if (handler !== 'click' && options?.blur)
+        throw new Error('The "blur" is enabled only if the handler is click...')
 
-    const attrs: Record<string, string> = {}
+      const attrs: Record<string, string> = {}
 
-    for (let index = 0; index < element.attributes.length; index++) {
-      const { name, value }: { name: string; value: string } = element.attributes[index]
-      attrs[name] = value
+      for (let index = 0; index < element.attributes.length; index++) {
+        const { name, value }: { name: string; value: string } = element.attributes[index]
+        attrs[name] = value
+      }
+
+      const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
+
+      if (debounce && throttle)
+        throw new Error('Debounce and throttle should not be combined in the same event handler...')
+
+      const callback = (event: Event): void => {
+        method({
+          ...this.#getDataPropsMethods(),
+          crud: this.#crud,
+          event,
+          attributes: attrs,
+          value:
+            element instanceof HTMLInputElement ||
+            element instanceof HTMLTextAreaElement ||
+            element instanceof HTMLOptionElement ||
+            element instanceof HTMLProgressElement ||
+            element instanceof HTMLMeterElement
+              ? `${element.value}`
+              : undefined
+        })
+
+        if (blur) (event.target as HTMLElement).blur()
+      }
+
+      element.addEventListener(
+        handler,
+        debounce
+          ? this.#debounce(callback, debounce)
+          : throttle
+            ? this.#throttle(callback, throttle)
+            : callback,
+        { once }
+      )
     }
 
-    const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
-
-    if (debounce && throttle)
-      throw new Error('Debounce and throttle should not be combined in the same event handler...')
-
-    const callback = (event: Event): void => {
-      method({
-        ...this.#getDataPropsMethods(),
-        crud: this.#crud,
-        event,
-        attributes: attrs,
-        value:
-          element instanceof HTMLInputElement ||
-          element instanceof HTMLTextAreaElement ||
-          element instanceof HTMLOptionElement ||
-          element instanceof HTMLProgressElement ||
-          element instanceof HTMLMeterElement
-            ? `${element.value}`
-            : undefined
-      })
-
-      if (blur) (event.target as HTMLElement).blur()
-    }
-
-    element.addEventListener(
-      handler,
-      debounce
-        ? this.#debounce(callback, debounce)
-        : throttle
-          ? this.#throttle(callback, throttle)
-          : callback,
-      { once }
-    )
+    for (const [handler, _value] of entries)
+      Array.isArray(_value)
+        ? addEventListener(handler, _value[0], _value[1])
+        : addEventListener(handler, _value)
   }
 
   async #awaitData(): Promise<void> {
@@ -845,10 +854,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const [selector, value] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
-              for (const [handler, _value] of Object.entries(value))
-                Array.isArray(_value)
-                  ? that.#addEventListener(element, handler, _value[0], _value[1])
-                  : that.#addEventListener(element, handler, _value)
+              that.#addEventListener(element, Object.entries(value))
 
           that.#removeChildNodes(this)
           that.#setProperty(this, that.#ficsIdName, that.#ficsId)
@@ -925,11 +931,7 @@ export default class FiCsElement<D extends object, P extends object> {
       addAllElements(this.#newElements)
 
       for (const element of this.#getElements(component, selector))
-        if (this.#newElements.has(element))
-          for (const [handler, _value] of Object.entries(value))
-            Array.isArray(_value)
-              ? this.#addEventListener(element, handler, _value[0], _value[1])
-              : this.#addEventListener(element, handler, _value)
+        if (this.#newElements.has(element)) this.#addEventListener(element, Object.entries(value))
     }
 
     this.#newElements.clear()
