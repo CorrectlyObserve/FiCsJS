@@ -53,7 +53,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
-  #isLoaded?: boolean
+  #isLoaded: boolean = false
   #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
 
