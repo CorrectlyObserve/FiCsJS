@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build:packages": "rm -rf dist && cd ../../packages && rm -rf dist && bun run build && cd ../examples/fake-api",
-    "build:css": "bunx postcss src/{,**/}*.css --dir dist --minify && bunx tailwindcss --input src/global.css --output src/.tailwindcss.txt --minify",
+    "build:css": "bunx postcss \"src/{,**/}*.css\" \"!src/**/tailwind.css\" --dir dist --minify && bunx tailwindcss --input src/tailwind.css --output src/.tailwindcss.txt --minify",
     "dev": "bun run build:packages && bun run build:css && bun build src/{,**/}*.ts --outdir dist --splitting --hot --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --hot app.ts",
     "build": "bun run build:packages && bun run build:css && bun build src/{,**/}*.ts --outdir dist --splitting --minify --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --minify app.ts"
   },
@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/bun": "^1.2.5",
     "autoprefixer": "^10.4.20",
+    "cssnano": "^7.0.6",
     "postcss": "^8.5.3",
     "postcss-cli": "^11.0.0",
     "tailwindcss": "3.4.17"
