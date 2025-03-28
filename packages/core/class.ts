@@ -354,7 +354,7 @@ export default class FiCsElement<D extends object, P extends object> {
     ;(element as any)[this.#convertStr(property, 'camel')] = value
   }
 
-  #addHtml(shadowRoot: ShadowRoot): void {
+  #addHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const newChildNodes: ChildNode[] = this.#getChildNodes(
       document.createRange().createContextualFragment(this.#convertTemplate())
@@ -408,8 +408,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     convertChildNodes(newChildNodes)
 
-    if (oldChildNodes.length === 0)
-      for (const childNode of newChildNodes) shadowRoot.append(childNode)
+    if (isInitialized) for (const childNode of newChildNodes) shadowRoot.append(childNode)
     else if (newChildNodes.length === 0) this.#removeChildNodes(oldChildNodes)
     else {
       const that: FiCsElement<D, P> = this
@@ -841,7 +840,7 @@ export default class FiCsElement<D extends object, P extends object> {
         async #init() {
           that.#addClassName(this)
           that.#addAttrs(this)
-          that.#addHtml(this.shadowRoot)
+          that.#addHtml(this.shadowRoot, true)
           that.#addCss(this.shadowRoot, [])
 
           for (const [selector, value] of Object.entries(that.#actions))
