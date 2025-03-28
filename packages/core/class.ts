@@ -91,7 +91,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin !== '0px') {
+      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
         if (!lazyLoad)
           throw new Error(`"rootMargin" in options is enabled only if "lazyLoad" is set to true...`)
 
@@ -103,14 +103,7 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data()))
         this.#data[key as keyof D] = value as D[keyof D]
 
-      if (fetch) {
-        this.#fetch = fetch
-
-        if (!this.#options.ssr) {
-          this.#isLoaded = false
-          if (!this.#options.lazyLoad) this.#enqueue(async () => await this.#awaitData(), 'fetch')
-        }
-      }
+      if (fetch) this.#fetch = fetch
     }
 
     if (props) this.#propsSources = [...props]
@@ -252,7 +245,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(parent.childNodes)
   }
 
-  #convertTemplate(isSsr?: boolean): string {
+  #convertTemplate(): string {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
@@ -316,7 +309,7 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const [key, value] of Object.entries(props)) _descendant.#setProps(key, value)
         return _descendant
       },
-      isLoaded: !isSsr || this.#isLoaded
+      isLoaded: this.#isLoaded
     })[sanitized]
 
     return contents.reduce((prev, curr) => {
@@ -690,7 +683,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #crud<T>(api: string, options?: RequestInit): Promise<T> {
-    return fetch(api, options)
+    return await fetch(api, options)
       .then(res => res.json())
       .then(json => json)
   }
@@ -957,8 +950,6 @@ export default class FiCsElement<D extends object, P extends object> {
             (prev, [key, value]) => `${prev} ${that.#convertStr(key, 'kebab')}="${value}"`,
             ''
           )
-        const value: string = `${className} ${attrs}`.trim()
-        const openTag: string = `<${that.#name}${value.length > 0 ? ` ${value}` : ''}>`
 
         const applyDescendant = async (html: string): Promise<string> => {
           const varBegin: string = `<${that.#varTag} ${that.#ficsIdName}="`
@@ -1019,14 +1010,12 @@ export default class FiCsElement<D extends object, P extends object> {
           return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
         }
 
-        const html: string = that
-          .#convertTemplate(true)
-          .replace(/>\s+</g, '><')
-          .replace(/\n\s*/g, '')
+        const value: string = `${className} ${attrs}`.trim()
+        const html: string = that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s*/g, '')
         const css: Css<D, P>[] = that.#getCss()
 
         return `
-        ${openTag}
+        <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
           <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
           <div id="${that.#ficsId}" slot="${that.#ficsId}" width="100%">
             ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
