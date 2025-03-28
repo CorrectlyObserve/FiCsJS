@@ -230,6 +230,30 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #getClassName() {
+    if (!this.#className) return ''
+
+    return typeof this.#className === 'function'
+      ? this.#className(this.#getDataProps())
+      : this.#className
+  }
+
+  #addClassName(component: HTMLElement): void {
+    if (!this.#className) return
+    component.setAttribute('class', this.#getClassName())
+  }
+
+  #getAttrs(): [string, string][] {
+    return Object.entries(
+      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+    )
+  }
+
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs())
+      component.setAttribute(this.#convertStr(key, 'kebab'), value)
+  }
+
   #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
     return Array.from(parent.childNodes)
   }
@@ -796,30 +820,6 @@ export default class FiCsElement<D extends object, P extends object> {
     } else this.#hooks[key]?.(params)
   }
 
-  #getClassName() {
-    if (!this.#className) return ''
-
-    return typeof this.#className === 'function'
-      ? this.#className(this.#getDataProps())
-      : this.#className
-  }
-
-  #addClassName(component: HTMLElement): void {
-    if (!this.#className) return
-    component.setAttribute('class', this.#getClassName())
-  }
-
-  #getAttrs(): [string, string][] {
-    return Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
-    )
-  }
-
-  #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs())
-      component.setAttribute(this.#convertStr(key, 'kebab'), value)
-  }
-
   #define(): void {
     throwWindowError()
 
@@ -838,8 +838,9 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!lazyLoad) this.#init()
         }
 
-        #init() {
-          that.#enqueue(async () => await that.#awaitData(), 'fetch')
+        async #init() {
+          that.#addClassName(this)
+          that.#addAttrs(this)
           that.#addHtml(this.shadowRoot)
           that.#addCss(this.shadowRoot, [])
 
@@ -852,6 +853,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           that.#removeChildNodes(this)
           that.#setProperty(this, that.#ficsIdName, that.#ficsId)
+          that.#enqueue(async () => await that.#awaitData(), 'fetch')
 
           if (!that.#components.has(this)) that.#components.add(this)
         }
@@ -873,8 +875,6 @@ export default class FiCsElement<D extends object, P extends object> {
             }
 
             that.#callback('mounted')
-            that.#addClassName(this)
-            that.#addAttrs(this)
             this.isRendered = true
           }
         }
