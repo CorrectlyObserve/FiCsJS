@@ -148,17 +148,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  async #awaitData(): Promise<void> {
-    if (this.#fetch) {
-      for (const [key, value] of Object.entries(
-        await this.#fetch({ ...this.#getDataProps(), crud: this.#crud })
-      ))
-        this.setData(key as keyof D, value as D[keyof D])
-
-      this.#isLoaded = true
-    }
-  }
-
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
     if (!(key in (isProps ? this.#props : this.#data)))
       throw new Error(
@@ -765,6 +754,17 @@ export default class FiCsElement<D extends object, P extends object> {
           : callback,
       { once }
     )
+  }
+
+  async #awaitData(): Promise<void> {
+    if (this.#fetch && !this.#isLoaded) {
+      for (const [key, value] of Object.entries(
+        await this.#fetch({ ...this.#getDataProps(), crud: this.#crud })
+      ))
+        this.setData(key as keyof D, value as D[keyof D])
+
+      if (typeof document !== 'undefined') this.#isLoaded = true
+    }
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
