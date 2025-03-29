@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { convertToArray, generateUid, throwWindowError } from './helpers'
+import { convertToArray, generateUid, isBrowser, throwWindowError } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -161,9 +161,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-
-        if (typeof document === 'undefined') this.#reRender()
-        else this.#enqueue(() => this.#reRender(), 're-render')
+        isBrowser() ? this.#enqueue(() => this.#reRender(), 're-render') : this.#reRender()
       }
     } else this.#props[key] = value
   }
@@ -691,6 +689,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
+    if (selector === '') return [component]
     return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
@@ -795,7 +794,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ))
         this.setData(key as keyof D, value as D[keyof D])
 
-      if (typeof document !== 'undefined') this.#isLoaded = true
+      if (isBrowser()) this.#isLoaded = true
     }
   }
 
@@ -1042,9 +1041,7 @@ export default class FiCsElement<D extends object, P extends object> {
   setData<K extends keyof D>(key: K, value: D[K]): void {
     if (this.#data[key] !== value) {
       this.#data[key] = value
-
-      if (typeof document === 'undefined') this.#reRender()
-      else this.#enqueue(() => this.#reRender(), 're-render')
+      isBrowser() ? this.#enqueue(() => this.#reRender(), 're-render') : this.#reRender()
 
       for (const { keys, setProps } of this.#propsTrees)
         if (typeof key === 'string' && keys[key]) setProps()
