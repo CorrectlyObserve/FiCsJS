@@ -12,6 +12,8 @@ export function* generateUid(): Generator<number> {
   }
 }
 
+export const isBrowser = (): boolean => typeof window !== 'undefined'
+
 export const throwWindowError = (): void => {
-  if (typeof window === 'undefined') throw new Error('window is not defined in this environment...')
+  if (!isBrowser()) throw new Error('window is not defined in this environment...')
 }
