@@ -5,10 +5,7 @@ const getQueueId = (queue: Queue, key?: Queue['key']): string =>
   `${queue.ficsId}-${key ?? queue.key}`
 
 const dequeue = (queue: Queue): void => {
-  if (queue.key === 'fetch' && !ficsIds[getQueueId(queue, 'define')])
-    setTimeout(() => enqueue(queue), 0)
-  else queue.func()
-
+  queue.func()
   if (queue.key !== 'define') delete ficsIds[getQueueId(queue)]
 }
 
