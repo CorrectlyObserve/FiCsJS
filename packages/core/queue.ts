@@ -1,3 +1,4 @@
+import { isBrowser } from './helpers'
 import type { Queue } from './types'
 
 const ficsIds: Record<string, true> = {}
@@ -19,7 +20,7 @@ export const enqueue = (queue: Queue): void => {
     ficsIds[queueId] = true
     queues.push(queue)
 
-    if (typeof document !== 'undefined' && queues.length > 0 && !isProcessing) {
+    if (isBrowser() && queues.length > 0 && !isProcessing) {
       isProcessing = true
 
       while (queues.length > 0) {
