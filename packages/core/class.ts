@@ -846,6 +846,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         async #init() {
+          that.#enqueue(async () => await that.#awaitData(), 'fetch')
+
           that.#addClassName(this)
           that.#addAttrs(this)
           that.#addHtml(this.shadowRoot, true)
@@ -857,7 +859,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
           that.#removeChildNodes(this)
           that.#setProperty(this, that.#ficsIdName, that.#ficsId)
-          that.#enqueue(async () => await that.#awaitData(), 'fetch')
 
           if (!that.#components.has(this)) that.#components.add(this)
         }
