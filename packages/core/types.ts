@@ -29,14 +29,12 @@ export type Css<D, P> =
   | { [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined] }
   | GlobalCssContent
 
-export type DataProps<D, P> = {
+export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-}
+} & (B extends true ? { crud: <T>(api: string, options?: RequestInit) => Promise<T> } : {})
 
-export type DataPropsMethods<D, P> = {
-  data: D
-  props: P
+export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
   getData: <K extends keyof D>(key: K) => D[K]
 }
@@ -47,16 +45,16 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => Partial<D>
-  fetch?: (dataProps: DataProps<D, P>) => Promise<Partial<D>>
+  fetch?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
   clonedCss?: Css<D, P>[]
-  actions?: Actions<D, P>
   hooks?: Hooks<D, P>
-  options?: Omit<Options, 'ssr'> & { ssr?: boolean }
+  actions?: Actions<D, P>
+  options?: OptionParams
 }
 
 export interface GlobalCssContent {
@@ -72,20 +70,20 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface Hooks<D, P> {
-  created?: (params: DataPropsMethods<D, P>) => void
-  mounted?: (params: DataPropsMethods<D, P> & Poll) => void
+  created?: (params: DataPropsMethods<D, P, true>) => void
+  mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
   updated?: {
     [K in keyof Partial<D>]: (params: {
       datum: D[K]
       setData: DataPropsMethods<D, P>['setData']
     }) => void
   }
-  destroyed?: (params: DataPropsMethods<D, P>) => void
-  adopted?: (params: DataPropsMethods<D, P>) => void
+  destroyed?: (params: DataPropsMethods<D, P, true>) => void
+  adopted?: (params: DataPropsMethods<D, P, true>) => void
 }
 
 export type Method<D, P> = (
-  params: DataPropsMethods<D, P> & {
+  params: DataPropsMethods<D, P, true> & {
     event: Event
     attributes: Record<string, string>
     value?: string
@@ -97,6 +95,8 @@ export interface Options {
   lazyLoad?: boolean
   rootMargin?: string
 }
+
+export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
 
 export interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void

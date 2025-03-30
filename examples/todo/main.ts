@@ -1,4 +1,4 @@
-import { ficsCss, ficsInit } from 'ficsjs'
+import { ficsCss } from 'ficsjs'
 import { ficsI18n, i18n } from 'ficsjs/i18n'
 import { getState, setState } from 'ficsjs/state'
 import Header from '@/components/multitons/Header'
@@ -7,7 +7,6 @@ import Footer from '@/components/multitons/Footer'
 import globalCss from '@/globalCss'
 import { $lang } from '@/store'
 
-ficsInit()
 ficsCss(globalCss)
 ficsI18n('/i18n')
 
