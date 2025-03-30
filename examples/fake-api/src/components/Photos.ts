@@ -33,7 +33,7 @@ export default () =>
     css: typeof window !== 'undefined' ? css : undefined,
     hooks: {
       mounted: async ({ data: { count }, setData, getData, crud }) => {
-        setData('count', count++)
+        setData('count', ++count)
         setData('photos', [
           ...getData('photos'),
           ...(await crud<Array<Photo>>(getPhotos(getData('count'))))
