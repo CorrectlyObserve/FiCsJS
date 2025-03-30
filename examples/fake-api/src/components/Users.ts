@@ -8,12 +8,14 @@ interface User {
 }
 
 const root = 'https://jsonplaceholder.typicode.com/users'
+const users: User[] = await fetch(root)
+  .then(res => res.json())
+  .then(json => json)
 
 export default () =>
   fics<{ users: User[]; selected: String }, {}>({
     name: 'users',
-    data: () => ({ users: [], selected: '' }),
-    fetch: async ({ crud }) => ({ users: await crud<User[]>(root) }),
+    data: () => ({ users, selected: '' }),
     html: ({ data: { users, selected }, template }) => template`
       ${users.map(({ id, name, email }) => {
         const textColor = `${selected === id.toString() ? 'text-red-700' : 'text-gray-900'}`
