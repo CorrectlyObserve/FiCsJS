@@ -364,7 +364,7 @@ export default class FiCsElement<D extends object, P extends object> {
         throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
 
       const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-      descendant.#callback('created')
+      if (!descendant.#options.ssr) this.#callback('created')
       descendant.#initProps(this.#propsChain)
       descendant.#enqueue(() => descendant.#define(), 'define')
 
@@ -1033,7 +1033,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    this.#callback('created')
+    if (!this.#options.ssr) this.#callback('created')
     this.#initProps(this.#propsChain)
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
