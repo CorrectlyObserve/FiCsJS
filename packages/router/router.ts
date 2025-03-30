@@ -1,5 +1,5 @@
 import FiCsElement from '../core/class'
-import { throwWindowError } from '../core/helpers'
+import { throwBrowserError } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
 import goto from './goto'
 import { getPathParams, getRegExp, isPathParam, params } from './params'
@@ -70,7 +70,7 @@ export default <D extends RouterData, P extends object>({
     css,
     hooks: {
       created: ({ setData }) => {
-        throwWindowError()
+        throwBrowserError()
         const { pathname, search }: { pathname: string; search: string } = window.location
 
         setData('pathname', pathname)
