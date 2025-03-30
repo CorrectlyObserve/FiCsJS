@@ -4,7 +4,7 @@ import type { FiCs } from './types'
 export default <D extends object, P extends object>({
   name,
   data,
-  fetch,
+  deferredData,
   props,
   className,
   attributes,
@@ -17,7 +17,7 @@ export default <D extends object, P extends object>({
   new FiCsElement<D, P>({
     name,
     data,
-    fetch,
+    deferredData,
     props,
     className,
     attributes,
