@@ -1,4 +1,4 @@
-import { throwWindowError } from '../core/helpers'
+import { throwBrowserError } from '../core/helpers'
 import type { Param } from './types'
 
 const pathParam: RegExp = /\/:[^\/]+/g
@@ -7,7 +7,7 @@ export const getRegExp = (path: string): RegExp =>
   new RegExp(`^${path.replaceAll(pathParam, `\/([^/]+?)`)}\/?$`)
 
 export const getPathParams = (path: string): Record<string, string> => {
-  throwWindowError()
+  throwBrowserError()
 
   const regExps: string[] | null = getRegExp(path).exec(window.location.pathname)
   const pathParams: Record<string, string> = {}
@@ -29,7 +29,7 @@ class Params {
   params: Record<Param, Record<string, string>> = { path: {}, query: {} }
 
   constructor() {
-    throwWindowError()
+    throwBrowserError()
   }
 
   set(param: Param, params: Record<string, string>): void {
