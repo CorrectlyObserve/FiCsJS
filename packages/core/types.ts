@@ -45,7 +45,7 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => Partial<D>
-  fetch?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
+  deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
