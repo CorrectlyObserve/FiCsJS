@@ -21,7 +21,7 @@ export default () =>
     html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
       template`
       <div>
-        ${label ? template`<div><label for="${id ?? ''}">${label}</label></div>` : ''}
+        ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
         <p ${show(!!isError)}>${error}</p>
         <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
       </div>

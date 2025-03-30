@@ -1,13 +1,16 @@
 {
-  "name": "fics_todo",
-  "version": "0.0.1",
+  "name": "fics-todo",
+  "version": "0.1.0",
   "scripts": {
-    "dev": "bunx --bun vite",
-    "build": "bunx --bun vite build",
+    "build:packages": "cd ../../packages && rm -rf dist && bun run build && cd ../examples/todo",
+    "dev": "bun run build:packages && bunx --bun vite",
+    "build": "bun run build:packages && bunx --bun vite build",
     "preview": "bunx --bun vite preview"
   },
+  "dependencies": {
+    "ficsjs": "*"
+  },
   "devDependencies": {
-    "tsconfig-paths": "^4.2.0",
-    "vite": "^6.1.0"
+    "vite": "^6.2.1"
   }
 }

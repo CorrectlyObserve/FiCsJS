@@ -1,0 +1,62 @@
+{
+  "name": "ficsjs",
+  "author": "Masami Ogasawara",
+  "description": "FiCsJS: The Framework-independent Components Framework",
+  "keywords": [
+    "Developer Experience",
+    "FiCsJS",
+    "Framework",
+    "OSS",
+    "TypeScript",
+    "Web Components"
+  ],
+  "license": "MIT",
+  "version": "0.0.5",
+  "type": "module",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/core/index.js",
+      "types": "./dist/core/index.d.ts"
+    },
+    "./i18n": {
+      "import": "./dist/i18n/index.js",
+      "types": "./dist/i18n/index.d.ts"
+    },
+    "./persistent-state": {
+      "import": "./dist/persistent-state/index.js",
+      "types": "./dist/persistent-state/index.d.ts"
+    },
+    "./router": {
+      "import": "./dist/router/index.js",
+      "types": "./dist/router/index.d.ts"
+    },
+    "./state": {
+      "import": "./dist/state/index.js",
+      "types": "./dist/state/index.d.ts"
+    },
+    "./style": {
+      "import": "./dist/style/index.js",
+      "types": "./dist/style/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CorrectlyObserve/ficsjs.git"
+  },
+  "scripts": {
+    "minify": "find ./dist -name '*.js' -exec bunx terser {} --compress --mangle --output {} \\;",
+    "build": "rm -rf dist && bunx tsc && bun run minify",
+    "prepublishOnly": "bun run build && bun run minify && cp ../README.md ./README.md && cp ../LICENSE ./LICENSE"
+  },
+  "devDependencies": {
+    "terser": "^5.39.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
