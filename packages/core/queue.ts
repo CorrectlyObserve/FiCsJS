@@ -1,4 +1,4 @@
-import { getHasLoaded } from './init'
+import { isBrowser } from './helpers'
 import type { Queue } from './types'
 
 const ficsIds: Record<string, true> = {}
@@ -6,10 +6,7 @@ const getQueueId = (queue: Queue, key?: Queue['key']): string =>
   `${queue.ficsId}-${key ?? queue.key}`
 
 const dequeue = (queue: Queue): void => {
-  if (queue.key === 'fetch' && !ficsIds[getQueueId(queue, 'define')])
-    setTimeout(() => enqueue(queue), 0)
-  else queue.func()
-
+  queue.func()
   if (queue.key !== 'define') delete ficsIds[getQueueId(queue)]
 }
 
@@ -23,7 +20,7 @@ export const enqueue = (queue: Queue): void => {
     ficsIds[queueId] = true
     queues.push(queue)
 
-    if (getHasLoaded() && !isProcessing) {
+    if (isBrowser() && queues.length > 0 && !isProcessing) {
       isProcessing = true
 
       while (queues.length > 0) {

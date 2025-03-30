@@ -23,3 +23,5 @@ npm-debug.log*
 
 # misc
 *.DS_Store
+packages/LICENSE
+packages/README.md
