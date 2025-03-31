@@ -31,11 +31,5 @@ export default () =>
       })}
     `,
     css: typeof window !== 'undefined' ? css : '',
-    actions: {
-      div: {
-        click: ({ setData, attributes }) => {
-          setData('selected', attributes.key)
-        }
-      }
-    }
+    actions: { div: { click: ({ setData, attributes }) => setData('selected', attributes.key) } }
   })
