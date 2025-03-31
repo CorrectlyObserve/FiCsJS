@@ -364,12 +364,13 @@ export default class FiCsElement<D extends object, P extends object> {
         throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
 
       const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-      if (!descendant.#options.ssr) this.#callback('created')
+      descendant.#callback('created')
       descendant.#initProps(this.#propsChain)
       descendant.#enqueue(() => descendant.#define(), 'define')
 
       return document.createElement(descendant.#name)
     }
+
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
@@ -937,7 +938,6 @@ export default class FiCsElement<D extends object, P extends object> {
   ssr(): string {
     const render = (that: FiCsElement<D, P>): string => {
       that.#initProps(that.#propsChain)
-      that.#callback('created')
 
       if (that.#options.ssr) {
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
@@ -1028,7 +1028,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    if (!this.#options.ssr) this.#callback('created')
+    this.#callback('created')
     this.#initProps(this.#propsChain)
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
