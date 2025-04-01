@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { serveStatic } from '@hono/node-server/serve-static'
 import Users from './src/components/Users'
+import Footer from './src/components/Footer'
 import Photos from './src/components/Photos'
 
 const app = new Hono()
@@ -36,6 +37,7 @@ const template = ({
   `
 
 const users = Users()
+const footer = Footer()
 app.get('/', c =>
   c.html(
     template({
@@ -44,6 +46,7 @@ app.get('/', c =>
       content: `
         <a href="/scroll">Go to the scroll page</a>
         ${users.ssr()}
+        ${footer.ssr()}
       `,
       path: '/index'
     })
@@ -60,6 +63,7 @@ app.get('/scroll', c =>
       content: `
         <a href="/">Back to the top page</a>
         ${photos.ssr()}
+        ${footer.ssr()}
       `,
       path: '/scroll'
     })
