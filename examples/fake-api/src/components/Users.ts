@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import css from '@/.tailwindcss.txt'
 
 interface User {
   id: string
@@ -30,6 +29,5 @@ export default () =>
         `
       })}
     `,
-    css: typeof window !== 'undefined' ? css : '',
     actions: { div: { click: ({ setData, attributes }) => setData('selected', attributes.key) } }
   })
