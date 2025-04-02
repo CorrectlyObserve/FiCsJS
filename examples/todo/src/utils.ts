@@ -2,13 +2,14 @@ export const breakpoints = { sm: '30rem', lg: '60rem' } as const
 
 export const convertTimestamp = (timestamp: number): string => {
   const date = new Date(timestamp)
+  const modifyFormat = (param: number) => param.toString().padStart(2, '0')
 
   const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
+  const month = modifyFormat(date.getMonth() + 1)
+  const day = modifyFormat(date.getDate())
+  const hours = modifyFormat(date.getHours())
+  const minutes = modifyFormat(date.getMinutes())
+  const seconds = modifyFormat(date.getSeconds())
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
