@@ -105,7 +105,7 @@ export interface Options {
 
 export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
 
-export interface Poll {
+interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
 }
 
