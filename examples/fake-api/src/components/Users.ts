@@ -7,12 +7,10 @@ interface User {
 }
 
 const root = 'https://jsonplaceholder.typicode.com/users'
-const users: User[] = await fetch(root)
-  .then(res => res.json())
-  .then(json => json)
+const users: User[] = await fetch(root).then(res => res.json())
 
 export default () =>
-  fics<{ users: User[]; selected: String }, {}>({
+  fics<{ users: User[]; selected: string }, {}>({
     name: 'users',
     data: () => ({ users, selected: '' }),
     html: ({ data: { users, selected }, template }) => template`
