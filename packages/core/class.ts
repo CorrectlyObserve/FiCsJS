@@ -832,12 +832,12 @@ export default class FiCsElement<D extends object, P extends object> {
     window.customElements.define(
       that.#name,
       class extends HTMLElement {
-        readonly shadowRoot: ShadowRoot
-        isRendered: boolean = false
+        readonly #shadowRoot: ShadowRoot
+        #isRendered: boolean = false
 
         constructor() {
           super()
-          this.shadowRoot = this.attachShadow({ mode: 'open' })
+          this.#shadowRoot = this.attachShadow({ mode: 'open' })
           if (!lazyLoad) this.#init()
         }
 
@@ -854,8 +854,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
           that.#addClassName(this)
           that.#addAttrs(this)
-          that.#addHtml(this.shadowRoot, true)
-          that.#addCss(this.shadowRoot, [])
+          that.#addHtml(this.#shadowRoot, true)
+          that.#addCss(this.#shadowRoot, [])
 
           for (const [selector, value] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
@@ -868,7 +868,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         async connectedCallback(): Promise<void> {
-          if (!this.isRendered) {
+          if (!this.#isRendered) {
             if (lazyLoad) {
               const observer: IntersectionObserver = new IntersectionObserver(
                 async ([{ isIntersecting, target }]) => {
@@ -884,7 +884,7 @@ export default class FiCsElement<D extends object, P extends object> {
             }
 
             that.#callback('mounted')
-            this.isRendered = true
+            this.#isRendered = true
           }
         }
 
