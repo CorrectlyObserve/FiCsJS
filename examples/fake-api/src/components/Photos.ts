@@ -8,9 +8,7 @@ interface Photo {
 const root = 'https://picsum.photos'
 const getPhotos = (page: number) => `${root}/v2/list?page=${page}&limit=10`
 
-const photos: Photo[] = await fetch(getPhotos(1))
-  .then(res => res.json())
-  .then(json => json)
+const photos: Photo[] = await fetch(getPhotos(1)).then(res => res.json())
 
 export default () =>
   fics<{ count: number; photos: Photo[] }, {}>({
