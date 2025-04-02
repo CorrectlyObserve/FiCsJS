@@ -694,10 +694,16 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
-  async #crud<T>(api: string, options?: RequestInit): Promise<T> {
-    return await fetch(api, options)
-      .then(res => res.json())
-      .then(json => json)
+  async #crud<T>(api: string, options?: RequestInit): Promise<T>
+  async #crud<T extends D[keyof D]>(
+    api: string,
+    options: RequestInit & { key: keyof D }
+  ): Promise<T | void> {
+    const { key, ..._options }: { key?: keyof D } & RequestInit = options ?? {}
+    const json: T = await fetch(api, _options).then(res => res.json())
+
+    if (key) this.setData(key, json)
+    else return json
   }
 
   #debounce<T extends (...args: any[]) => void>(
