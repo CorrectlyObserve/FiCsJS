@@ -32,7 +32,14 @@ export type Css<D, P> =
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true ? { crud: <T>(api: string, options?: RequestInit) => Promise<T> } : {})
+} & (B extends true
+  ? {
+      crud: {
+        <T>(api: string, options?: RequestInit): Promise<T>
+        (api: string, options: RequestInit & { key: keyof D }): Promise<void>
+      }
+    }
+  : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
