@@ -132,10 +132,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
-  #enqueue(func: () => void, key: Queue['key']): void {
-    enqueue({ ficsId: this.#ficsId, func, key })
-  }
-
   #getDataProps(): DataProps<D, P> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
@@ -153,6 +149,10 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(
         `"${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
       )
+  }
+
+  #enqueue(func: () => void, key: Queue['key']): void {
+    enqueue({ ficsId: this.#ficsId, func, key })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -364,8 +364,8 @@ export default class FiCsElement<D extends object, P extends object> {
         throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
 
       const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-      descendant.#callback('created')
       descendant.#initProps(this.#propsChain)
+      descendant.#callback('created')
       descendant.#enqueue(() => descendant.#define(), 'define')
 
       return document.createElement(descendant.#name)
@@ -1034,8 +1034,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    this.#callback('created')
     this.#initProps(this.#propsChain)
+    this.#callback('created')
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
