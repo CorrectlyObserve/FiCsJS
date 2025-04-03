@@ -28,12 +28,11 @@ export default () =>
       )}
     `,
     hooks: {
-      mounted: async ({ data: { count }, setData, getData, crud }) => {
+      mounted: async ({ data: { photos, count }, setData, getData, crud }) => {
         setData('count', ++count)
-        setData('photos', [
-          ...getData('photos'),
-          ...(await crud<Array<Photo>>(getPhotos(getData('count'))))
-        ])
+        await crud<Array<Photo>>(getPhotos(getData('count'))).then(newPhotos =>
+          setData('photos', [...photos, ...newPhotos])
+        )
       }
     }
   })
