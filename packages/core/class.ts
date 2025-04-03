@@ -260,7 +260,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
-    const convertTemplate = (
+    const _convertTemplate = (
       templates: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
@@ -299,7 +299,7 @@ export default class FiCsElement<D extends object, P extends object> {
       template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
+      ): Sanitized<D, P> => ({ [sanitized]: _convertTemplate(templates, variables) }),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (descendant: Descendant, props: object): Descendant => {
