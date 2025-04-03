@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import css from '@/.tailwindcss.txt'
 
 interface User {
   id: string
@@ -8,12 +7,12 @@ interface User {
 }
 
 const root = 'https://jsonplaceholder.typicode.com/users'
+const users: User[] = await fetch(root).then(res => res.json())
 
 export default () =>
-  fics<{ users: User[]; selected: String }, {}>({
+  fics<{ users: User[]; selected: string }, {}>({
     name: 'users',
-    data: () => ({ users: [], selected: '' }),
-    fetch: async ({ crud }) => ({ users: await crud<User[]>(root) }),
+    data: () => ({ users, selected: '' }),
     html: ({ data: { users, selected }, template }) => template`
       ${users.map(({ id, name, email }) => {
         const textColor = `${selected === id.toString() ? 'text-red-700' : 'text-gray-900'}`
@@ -28,12 +27,5 @@ export default () =>
         `
       })}
     `,
-    css: typeof window !== 'undefined' ? css : '',
-    actions: {
-      div: {
-        click: ({ setData, attributes }) => {
-          setData('selected', attributes.key)
-        }
-      }
-    }
+    actions: { div: { click: ({ setData, attributes }) => setData('selected', attributes.key) } }
   })

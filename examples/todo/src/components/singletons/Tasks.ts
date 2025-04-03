@@ -32,7 +32,7 @@ export default () =>
   fics<Data, { lang: string; click?: (id: number) => void }>({
     name: 'tasks',
     data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-    fetch: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
+    deferredData: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
     props: [
       {
         descendant: input,

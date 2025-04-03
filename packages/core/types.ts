@@ -32,7 +32,14 @@ export type Css<D, P> =
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true ? { crud: <T>(api: string, options?: RequestInit) => Promise<T> } : {})
+} & (B extends true
+  ? {
+      crud: {
+        <T>(api: string, options?: RequestInit): Promise<T>
+        (api: string, options: RequestInit & { key: keyof D }): Promise<void>
+      }
+    }
+  : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
@@ -45,7 +52,7 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   data?: () => Partial<D>
-  fetch?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
+  deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
@@ -98,7 +105,7 @@ export interface Options {
 
 export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
 
-export interface Poll {
+interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
 }
 

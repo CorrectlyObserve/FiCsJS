@@ -51,7 +51,7 @@ export default () =>
       texts: [],
       datetimes: {} as Record<Datetime, string>
     }),
-    fetch: async ({ props: { lang } }) => ({
+    deferredData: async ({ props: { lang } }) => ({
       ...(await i18n<Data>({ lang, key: 'task' })),
       confirmation: await i18n({ lang, key: ['tasks', 'confirmation'] })
     }),
