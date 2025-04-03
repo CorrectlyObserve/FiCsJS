@@ -45,8 +45,8 @@ app.get('/', c =>
       description: 'This is a simple example of FiCsJS with Hono in SSR.',
       content: `
         <a href="/scroll">Go to the scroll page</a>
-        ${users.ssr()}
-        ${footer.ssr()}
+        ${users.toString()}
+        ${footer.toString()}
       `,
       path: '/index'
     })
@@ -62,8 +62,8 @@ app.get('/scroll', c =>
         'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
       content: `
         <a href="/">Back to the top page</a>
-        ${photos.ssr()}
-        ${footer.ssr()}
+        ${photos.toString()}
+        ${footer.toString()}
       `,
       path: '/scroll'
     })
