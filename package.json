@@ -1,0 +1,16 @@
+{
+  "name": "fics.js",
+  "workspaces": [
+    "packages",
+    "examples/*"
+  ],
+  "dependencies": {
+    "ficsjs": "workspace:*",
+    "fics-todo": "workspace:*",
+    "fics-fake-api": "workspace:*"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  }
+}

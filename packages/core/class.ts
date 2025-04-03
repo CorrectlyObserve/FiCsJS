@@ -36,7 +36,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
-  readonly #fetch?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
+  readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
@@ -61,7 +61,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     isExceptional,
     data,
-    fetch,
+    deferredData,
     props,
     className,
     attributes,
@@ -103,7 +103,7 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data()))
         this.#data[key as keyof D] = value as D[keyof D]
 
-      if (fetch) this.#fetch = fetch
+      if (deferredData) this.#deferredData = deferredData
     }
 
     if (props) this.#propsSources = [...props]
@@ -132,10 +132,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
-  #enqueue(func: () => void, key: Queue['key']): void {
-    enqueue({ ficsId: this.#ficsId, func, key })
-  }
-
   #getDataProps(): DataProps<D, P> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
@@ -153,6 +149,10 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(
         `"${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
       )
+  }
+
+  #enqueue(func: () => void, key: Queue['key']): void {
+    enqueue({ ficsId: this.#ficsId, func, key })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -260,7 +260,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
 
-    const convertTemplate = (
+    const _convertTemplate = (
       templates: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
@@ -299,14 +299,14 @@ export default class FiCsElement<D extends object, P extends object> {
       template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
+      ): Sanitized<D, P> => ({ [sanitized]: _convertTemplate(templates, variables) }),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (descendant: Descendant, props: object): Descendant => {
         const _descendant: Descendant = new FiCsElement({
           name: descendant.#name.slice(2),
           data: () => descendant.#data,
-          fetch: descendant.#fetch,
+          deferredData: descendant.#deferredData,
           props: descendant.#propsSources,
           className: descendant.#className,
           attributes: descendant.#attrs,
@@ -364,12 +364,13 @@ export default class FiCsElement<D extends object, P extends object> {
         throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
 
       const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-      if (!descendant.#options.ssr) this.#callback('created')
       descendant.#initProps(this.#propsChain)
+      descendant.#callback('created')
       descendant.#enqueue(() => descendant.#define(), 'define')
 
       return document.createElement(descendant.#name)
     }
+
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
@@ -693,10 +694,16 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
-  async #crud<T>(api: string, options?: RequestInit): Promise<T> {
-    return await fetch(api, options)
-      .then(res => res.json())
-      .then(json => json)
+  async #crud<T>(api: string, options?: RequestInit): Promise<T>
+  async #crud<T extends D[keyof D]>(
+    api: string,
+    options: RequestInit & { key: keyof D }
+  ): Promise<T | void> {
+    const { key, ..._options }: { key?: keyof D } & RequestInit = options ?? {}
+    const json: T = await fetch(api, _options).then(res => res.json())
+
+    if (key) this.setData(key, json)
+    else return json
   }
 
   #debounce<T extends (...args: any[]) => void>(
@@ -787,17 +794,6 @@ export default class FiCsElement<D extends object, P extends object> {
         : addEventListener(handler, _value)
   }
 
-  async #awaitData(): Promise<void> {
-    if (this.#fetch && !this.#isLoaded) {
-      for (const [key, value] of Object.entries(
-        await this.#fetch({ ...this.#getDataProps(), crud: this.#crud })
-      ))
-        this.setData(key as keyof D, value as D[keyof D])
-
-      if (isBrowser()) this.#isLoaded = true
-    }
-  }
-
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     const params: DataPropsMethods<D, P, true> = {
       ...this.#getDataPropsMethods(),
@@ -836,22 +832,30 @@ export default class FiCsElement<D extends object, P extends object> {
     window.customElements.define(
       that.#name,
       class extends HTMLElement {
-        readonly shadowRoot: ShadowRoot
-        isRendered: boolean = false
+        readonly #shadowRoot: ShadowRoot
+        #isRendered: boolean = false
 
         constructor() {
           super()
-          this.shadowRoot = this.attachShadow({ mode: 'open' })
+          this.#shadowRoot = this.attachShadow({ mode: 'open' })
           if (!lazyLoad) this.#init()
         }
 
-        async #init() {
-          that.#enqueue(async () => await that.#awaitData(), 'fetch')
+        #init() {
+          if (that.#deferredData)
+            that.#enqueue(async () => {
+              for (const [key, value] of Object.entries(
+                await that.#deferredData!({ ...that.#getDataProps(), crud: that.#crud })
+              ))
+                that.setData(key as keyof D, value as D[keyof D])
+
+              that.#isLoaded = true
+            }, 'fetch')
 
           that.#addClassName(this)
           that.#addAttrs(this)
-          that.#addHtml(this.shadowRoot, true)
-          that.#addCss(this.shadowRoot, [])
+          that.#addHtml(this.#shadowRoot, true)
+          that.#addCss(this.#shadowRoot, [])
 
           for (const [selector, value] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
@@ -864,7 +868,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         async connectedCallback(): Promise<void> {
-          if (!this.isRendered) {
+          if (!this.#isRendered) {
             if (lazyLoad) {
               const observer: IntersectionObserver = new IntersectionObserver(
                 async ([{ isIntersecting, target }]) => {
@@ -880,7 +884,7 @@ export default class FiCsElement<D extends object, P extends object> {
             }
 
             that.#callback('mounted')
-            this.isRendered = true
+            this.#isRendered = true
           }
         }
 
@@ -937,13 +941,11 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#newElements.clear()
   }
 
-  async ssr(): Promise<string> {
-    const render = async (that: FiCsElement<D, P>): Promise<string> => {
+  toString(): string {
+    const render = (that: FiCsElement<D, P>): string => {
       that.#initProps(that.#propsChain)
-      that.#callback('created')
 
       if (that.#options.ssr) {
-        await that.#awaitData()
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
         const attrs: string = that
           .#getAttrs()
@@ -951,8 +953,9 @@ export default class FiCsElement<D extends object, P extends object> {
             (prev, [key, value]) => `${prev} ${that.#convertStr(key, 'kebab')}="${value}"`,
             ''
           )
+        const value: string = `${className} ${attrs}`.trim()
 
-        const applyDescendant = async (html: string): Promise<string> => {
+        const applyDescendant = (html: string): string => {
           const varBegin: string = `<${that.#varTag} ${that.#ficsIdName}="`
           const varEnd: string = `"></${that.#varTag}>`
 
@@ -962,14 +965,13 @@ export default class FiCsElement<D extends object, P extends object> {
           if (varBeginIndex < 0 || varEndIndex < 0) return html
 
           const prev: string = html.slice(0, varBeginIndex)
-          const next: string = await applyDescendant(html.slice(varEndIndex + varEnd.length))
+          const next: string = applyDescendant(html.slice(varEndIndex + varEnd.length))
           const ficsId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
 
           if (!(ficsId in that.#descendants))
             throw new Error(`The element does not have a valid ficsId in ${that.#name}...`)
 
-          const component: string = await render(that.#descendants[ficsId])
-          return `${prev}${component}${next}`
+          return `${prev}${render(that.#descendants[ficsId])}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
@@ -1011,7 +1013,6 @@ export default class FiCsElement<D extends object, P extends object> {
           return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
         }
 
-        const value: string = `${className} ${attrs}`.trim()
         const html: string = that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s*/g, '')
         const css: Css<D, P>[] = that.#getCss()
 
@@ -1019,7 +1020,7 @@ export default class FiCsElement<D extends object, P extends object> {
         <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
           <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
           <div id="${that.#ficsId}" slot="${that.#ficsId}" width="100%">
-            ${await applyDescendant(html).then(_html => applyShowAttr(_html))}
+            ${applyShowAttr(applyDescendant(html))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
         </${that.#name}>
@@ -1029,12 +1030,12 @@ export default class FiCsElement<D extends object, P extends object> {
       return `<${that.#name}></${that.#name}>`
     }
 
-    return await render(this)
+    return render(this)
   }
 
   describe(parent?: HTMLElement): void {
-    if (!this.#options.ssr) this.#callback('created')
     this.#initProps(this.#propsChain)
+    this.#callback('created')
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
