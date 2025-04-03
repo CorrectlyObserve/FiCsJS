@@ -20,7 +20,7 @@ export default () =>
   fics<Data, { lang: string }>({
     name: 'not-found',
     data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
-    fetch: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
+    deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
     props: [
       {
         descendant: button,

@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import css from '@/.tailwindcss.txt'
 
 interface Photo {
   id: string
@@ -9,14 +8,12 @@ interface Photo {
 const root = 'https://picsum.photos'
 const getPhotos = (page: number) => `${root}/v2/list?page=${page}&limit=10`
 
+const photos: Photo[] = await fetch(getPhotos(1)).then(res => res.json())
+
 export default () =>
   fics<{ count: number; photos: Photo[] }, {}>({
     name: 'photos',
-    data: () => ({ count: 0, photos: [] }),
-    fetch: async ({ data: { count }, crud }) => {
-      count++
-      return { count, photos: await crud<Array<Photo>>(getPhotos(count)) }
-    },
+    data: () => ({ count: 1, photos }),
     html: ({ data: { photos }, template }) => template`
       ${photos.map(
         ({ id, author }) => template`
@@ -30,14 +27,12 @@ export default () =>
         `
       )}
     `,
-    css: typeof window !== 'undefined' ? css : undefined,
     hooks: {
-      mounted: async ({ data: { count }, setData, getData, crud }) => {
+      mounted: async ({ data: { photos, count }, setData, getData, crud }) => {
         setData('count', ++count)
-        setData('photos', [
-          ...getData('photos'),
-          ...(await crud<Array<Photo>>(getPhotos(getData('count'))))
-        ])
+        await crud<Array<Photo>>(getPhotos(getData('count'))).then(newPhotos =>
+          setData('photos', [...photos, ...newPhotos])
+        )
       }
     }
   })
