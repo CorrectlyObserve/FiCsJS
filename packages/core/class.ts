@@ -941,7 +941,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#newElements.clear()
   }
 
-  ssr(): string {
+  toString(): string {
     const render = (that: FiCsElement<D, P>): string => {
       that.#initProps(that.#propsChain)
 
