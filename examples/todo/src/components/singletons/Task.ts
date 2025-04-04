@@ -98,8 +98,8 @@ export default () =>
       {
         descendant: button,
         values: ({ props: { lang }, setData }) => ({
-          buttonText: ({ getData }) => getData('buttonText'),
           isDisabled: ({ getData }) => getData('isError'),
+          buttonText: ({ getData }) => getData('buttonText'),
           click:
             ({ getData }) =>
             async () => {
