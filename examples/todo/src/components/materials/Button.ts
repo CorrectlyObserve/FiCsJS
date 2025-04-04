@@ -3,9 +3,9 @@ import { color, variable } from 'ficsjs/style'
 import { white } from '@/utils'
 
 export default () =>
-  fics<{}, { buttonText: string; isDisabled?: boolean; click: () => void }>({
+  fics<{}, { isDisabled?: boolean; buttonText: string; click: () => void }>({
     name: 'button',
-    html: ({ props: { buttonText, isDisabled }, template }) =>
+    html: ({ props: { isDisabled, buttonText }, template }) =>
       template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
     css: {
       ':host': { display: 'block', textAlign: 'center' },
