@@ -331,7 +331,9 @@ export default class FiCsElement<D extends object, P extends object> {
           options: descendant.#options
         })
 
-        for (const [key, value] of Object.entries(props)) _descendant.#setProps(key, value)
+        for (const [key, value] of Object.entries({ ...descendant.#props, ...props }))
+          _descendant.#setProps(key, value)
+
         return _descendant
       },
       isLoaded: this.#isLoaded
