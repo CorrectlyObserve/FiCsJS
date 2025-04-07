@@ -1,29 +1,29 @@
 import { fics } from 'ficsjs'
 
 interface Props {
-  userId: string
+  id: number
   method: 'put' | 'patch' | 'delete'
-  deleteUser: (userId: string) => void
-  updateUser: ({ userId, name }: { userId: string; name: string }, method: 'put' | 'patch') => void
+  deleteMethod: (id: number) => void
+  updateMethod: ({ id, name }: { id: number; name: string }, method: 'put' | 'patch') => void
 }
 
 export default () =>
-  fics<{}, Props>({
+  fics<{ isId: (id: number) => boolean }, Props>({
     name: 'button',
-    html: ({ props: { userId, method }, template }) =>
-      template`<button aria-disabled="${userId === ''}">${method.toUpperCase()}</button>`,
-    css: { '&[aria-disabled="true"]': { cursor: 'not-allowed' } },
+    data: () => ({ isId: (id: number) => !isNaN(id) }),
+    html: ({ data: { isId }, props: { id, method }, template }) =>
+      template`<button aria-disabled="${!isId(id)}">${method.toUpperCase()}</button>`,
+    css: { 'button[aria-disabled="true"]': { cursor: 'not-allowed' } },
     actions: {
       button: {
         click: [
-          ({ props: { userId, method, deleteUser, updateUser } }) => {
-            if (userId !== '') {
-              if (method === 'delete') deleteUser(userId)
+          ({ data: { isId }, props: { id, method, deleteMethod, updateMethod } }) => {
+            if (isId(id))
+              if (method === 'delete') deleteMethod(id)
               else {
                 const name = prompt('Please enter a new user name.')
-                if (name) updateUser({ userId, name }, method)
+                if (name) updateMethod({ id, name }, method)
               }
-            }
           },
           { throttle: 500, blur: true }
         ]
