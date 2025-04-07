@@ -118,7 +118,7 @@ export interface PollingOptions {
 export interface Props<D, P> {
   descendant: SingleOrArray<Descendant>
   values: (
-    params: Omit<DataPropsMethods<D, P>, 'getData'>
+    params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
     | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => any>
     | Record<string, any>
