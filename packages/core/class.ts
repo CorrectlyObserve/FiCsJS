@@ -168,14 +168,14 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (window.customElements.get(this.#name)) {
+    if (isBrowser() && window.customElements.get(this.#name)) {
       this.#throwKeyError(key, true)
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-        isBrowser() ? this.#enqueue(() => this.#reRender(), 're-render') : this.#reRender()
+        this.#enqueue(() => this.#reRender(), 're-render')
       }
-    } else this.#props[key] = value
+    } else if (this.#props[key] !== value) this.#props[key] = value
   }
 
   #initProps(propsChain: PropsChain<P>): void {
