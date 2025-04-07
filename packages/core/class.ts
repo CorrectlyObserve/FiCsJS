@@ -144,6 +144,18 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  async #crud<T>(api: string, options?: RequestInit): Promise<T>
+  async #crud<T extends D[keyof D]>(
+    api: string,
+    options: RequestInit & { key: keyof D }
+  ): Promise<T | void> {
+    const { key, ..._options }: { key?: keyof D } & RequestInit = options ?? {}
+    const json: T = await fetch(api, _options).then(res => res.json())
+
+    if (key) this.setData(key, json)
+    else return json
+  }
+
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
     if (!(key in (isProps ? this.#props : this.#data)))
       throw new Error(
@@ -176,7 +188,9 @@ export default class FiCsElement<D extends object, P extends object> {
           const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods()
           const descendantId: string = _descendant.#ficsId
 
-          for (const [key, value] of Object.entries(values({ data, props, setData }))) {
+          for (const [key, value] of Object.entries(
+            values({ data, props, setData, crud: this.#crud })
+          )) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
@@ -694,18 +708,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
   }
 
-  async #crud<T>(api: string, options?: RequestInit): Promise<T>
-  async #crud<T extends D[keyof D]>(
-    api: string,
-    options: RequestInit & { key: keyof D }
-  ): Promise<T | void> {
-    const { key, ..._options }: { key?: keyof D } & RequestInit = options ?? {}
-    const json: T = await fetch(api, _options).then(res => res.json())
-
-    if (key) this.setData(key, json)
-    else return json
-  }
-
   #debounce<T extends (...args: any[]) => void>(
     func: T,
     time: number
@@ -922,23 +924,25 @@ export default class FiCsElement<D extends object, P extends object> {
         css.map(index => this.#css[index])
       )
 
-    for (const [selector, value] of Object.entries(this.#actions)) {
-      const addAllElements = (elements: Element[] | Set<Element>): void => {
-        for (const element of elements) {
-          if (element instanceof Element && !this.#newElements.has(element))
-            this.#newElements.add(element)
+    if (isBrowser()) {
+      for (const [selector, value] of Object.entries(this.#actions)) {
+        const addAllElements = (elements: Element[] | Set<Element>): void => {
+          for (const element of elements) {
+            if (element instanceof Element && !this.#newElements.has(element))
+              this.#newElements.add(element)
 
-          addAllElements(this.#getChildNodes(element) as Element[])
+            addAllElements(this.#getChildNodes(element) as Element[])
+          }
         }
+
+        addAllElements(this.#newElements)
+
+        for (const element of this.#getElements(component, selector))
+          if (this.#newElements.has(element)) this.#addEventListener(element, Object.entries(value))
       }
 
-      addAllElements(this.#newElements)
-
-      for (const element of this.#getElements(component, selector))
-        if (this.#newElements.has(element)) this.#addEventListener(element, Object.entries(value))
+      this.#newElements.clear()
     }
-
-    this.#newElements.clear()
   }
 
   toString(): string {
