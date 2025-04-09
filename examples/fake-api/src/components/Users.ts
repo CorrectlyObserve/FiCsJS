@@ -63,7 +63,7 @@ export default () =>
       })}
     `,
     hooks: {
-      mounted: async ({ setData, getData, crud }) => {
+      mounted: async ({ setData, getData, crud }) =>
         setData('users', [
           ...getData('users'),
           await crud<User>(root, {
@@ -72,7 +72,6 @@ export default () =>
             headers
           })
         ])
-      }
     },
     actions: {
       div: { click: ({ setData, attributes }) => setData('userId', parseInt(attributes.key)) }
