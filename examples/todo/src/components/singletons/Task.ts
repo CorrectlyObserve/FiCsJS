@@ -124,9 +124,9 @@ export default () =>
         datetimes
       },
       template,
-      isLoaded
+      isDeferred
     }) => {
-      if (!isLoaded) return template`${loadingIcon}`
+      if (!isDeferred) return template`${loadingIcon}`
 
       return template`
         <h2>${heading}</h2>
