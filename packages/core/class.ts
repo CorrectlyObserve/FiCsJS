@@ -1052,7 +1052,9 @@ export default class FiCsElement<D extends object, P extends object> {
   setData<K extends keyof D>(key: K, value: D[K]): void {
     if (this.#data[key] !== value) {
       this.#data[key] = value
-      isBrowser() ? this.#enqueue(() => this.#reRender(), 're-render') : this.#reRender()
+
+      if (isBrowser() && this.#components.size > 0)
+        this.#enqueue(() => this.#reRender(), 're-render')
 
       for (const { keys, setProps } of this.#propsTrees)
         if (typeof key === 'string' && keys[key]) setProps()
