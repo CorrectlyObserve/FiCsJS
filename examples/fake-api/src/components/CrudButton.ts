@@ -4,7 +4,10 @@ interface Props {
   id: number
   method: 'put' | 'patch' | 'delete'
   deleteMethod: (id: number) => void
-  updateMethod: ({ id, name }: { id: number; name: string }, method: 'put' | 'patch') => void
+  updateMethod: (
+    { id, name }: { id: number; name: string },
+    method: Exclude<Props['method'], 'delete'>
+  ) => void
 }
 
 export default () =>
