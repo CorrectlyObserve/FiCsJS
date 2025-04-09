@@ -53,7 +53,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
-  #isLoaded: boolean = false
+  #isDeferred: boolean = true
   #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
 
@@ -103,7 +103,10 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data()))
         this.#data[key as keyof D] = value as D[keyof D]
 
-      if (deferredData) this.#deferredData = deferredData
+      if (deferredData) {
+        this.#deferredData = deferredData
+        if (isBrowser()) this.#isDeferred = false
+      }
     }
 
     if (props) this.#propsSources = [...props]
@@ -336,7 +339,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return _descendant
       },
-      isLoaded: this.#isLoaded
+      isDeferred: this.#isDeferred
     })[sanitized]
 
     return contents.reduce((prev, curr) => {
@@ -853,7 +856,7 @@ export default class FiCsElement<D extends object, P extends object> {
               ))
                 that.setData(key as keyof D, value as D[keyof D])
 
-              that.#isLoaded = true
+              that.#isDeferred = true
             }, 'fetch')
 
           that.#addClassName(this)
