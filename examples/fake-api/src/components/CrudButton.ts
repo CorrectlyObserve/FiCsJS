@@ -12,7 +12,7 @@ interface Props {
 
 export default () =>
   fics<{ isId: (id: number) => boolean }, Props>({
-    name: 'button',
+    name: 'crud-button',
     data: () => ({ isId: (id: number) => !isNaN(id) }),
     html: ({ data: { isId }, props: { id, method }, template }) =>
       template`<button aria-disabled="${!isId(id)}">${method.toUpperCase()}</button>`,
