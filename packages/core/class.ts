@@ -33,6 +33,7 @@ const generator: Generator<number> = generateUid()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsIdName: string = 'fics-id'
+  readonly #generator: Generator<number> = generateUid()
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
@@ -60,6 +61,7 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     name,
     isExceptional,
+    ficsId,
     data,
     deferredData,
     props,
@@ -79,7 +81,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#ficsId = `${this.#ficsIdName}${generator.next().value}`
+    this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
 
     if (!nameGenerators[name]) nameGenerators[name] = generateUid()
     names[name] = nameGenerators[name].next().value
@@ -320,8 +322,11 @@ export default class FiCsElement<D extends object, P extends object> {
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (descendant: Descendant, props: object): Descendant => {
+        descendant.#initProps(this.#propsChain)
+
         const _descendant: Descendant = new FiCsElement({
-          name: descendant.#name.slice(2),
+          name: `${descendant.#name.slice(2)}`,
+          ficsId: `${descendant.#ficsId}-${descendant.#generator.next().value}`,
           data: () => descendant.#data,
           deferredData: descendant.#deferredData,
           props: descendant.#propsSources,
@@ -363,32 +368,16 @@ export default class FiCsElement<D extends object, P extends object> {
       childNode.remove()
   }
 
-  #isVarTag(element: Element): boolean {
-    return element.localName === this.#varTag
-  }
-
   #setProperty<V>(element: HTMLElement, property: string, value: V): void {
     ;(element as any)[this.#convertStr(property, 'camel')] = value
   }
 
   #addHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
+    const isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const newChildNodes: ChildNode[] = this.#getChildNodes(
       document.createRange().createContextualFragment(this.#convertTemplate())
     )
-
-    const render = (element: Element): HTMLElement => {
-      const ficsId: string | null = this.#getFiCsId(element)
-      if (!ficsId || !(ficsId in this.#descendants))
-        throw new Error(`The element ${element} does not have a valid ficsId in ${this.#name}...`)
-
-      const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-      descendant.#initProps(this.#propsChain)
-      descendant.#callback('created')
-      descendant.#enqueue(() => descendant.#define(), 'define')
-
-      return document.createElement(descendant.#name)
-    }
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -405,9 +394,20 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         }
 
-        if (childNode instanceof Element) {
-          if (this.#isVarTag(childNode)) {
-            const component: HTMLElement = render(childNode)
+        if (isElement(childNode)) {
+          if (childNode.localName === this.#varTag) {
+            const ficsId: string | null = this.#getFiCsId(childNode)
+            if (!ficsId || !(ficsId in this.#descendants))
+              throw new Error(
+                `The element ${childNode} does not have a valid ficsId in ${this.#name}...`
+              )
+
+            const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+            descendant.#initProps(this.#propsChain)
+            descendant.#callback('created')
+            descendant.#enqueue(() => descendant.#define(), 'define')
+
+            const component: HTMLElement = document.createElement(descendant.#name)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
             index--
@@ -431,31 +431,20 @@ export default class FiCsElement<D extends object, P extends object> {
     else {
       const that: FiCsElement<D, P> = this
       let { activeElement }: { activeElement: Element | null } = shadowRoot
-
       const getKey = (element: Element): string | null => element.getAttribute('key')
+
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
 
-        if (oldChildNode instanceof Element && newChildNode instanceof Element) {
-          const isSameFiCsId: boolean =
-            this.#isVarTag(newChildNode) &&
-            this.#getFiCsId(oldChildNode, true) === this.#getFiCsId(newChildNode)
-          const isSameKey: boolean = getKey(oldChildNode) === getKey(newChildNode)
-
-          return isSameFiCsId || (isSameNode && isSameKey)
-        }
-
-        return isSameNode
+        return isElement(oldChildNode) && isElement(newChildNode)
+          ? isSameNode && getKey(oldChildNode) === getKey(newChildNode)
+          : isSameNode
       }
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
         if (oldChildNode instanceof Text && newChildNode instanceof Text)
           oldChildNode.nodeValue = newChildNode.nodeValue
-        else if (
-          oldChildNode instanceof Element &&
-          newChildNode instanceof Element &&
-          !that.#isVarTag(newChildNode)
-        ) {
+        else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const oldAttrs: NamedNodeMap = oldChildNode.attributes
           const newAttrs: NamedNodeMap = newChildNode.attributes
           const oldAttrList: Record<string, string> = {}
@@ -509,7 +498,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const keys: Record<string, true> = {}
 
         for (const newChildNode of newChildNodes) {
-          if (!(newChildNode instanceof Element) || that.#isVarTag(newChildNode)) continue
+          if (!isElement(newChildNode)) continue
 
           const { localName }: { localName: string } = newChildNode
           const key: string = getKey(newChildNode) ?? localName
@@ -528,15 +517,11 @@ export default class FiCsElement<D extends object, P extends object> {
         const keyChildNodes: Map<string, ChildNode> = new Map()
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
-          if (childNode instanceof Element)
-            if (that.#isVarTag(childNode)) childNode = render(childNode)
-            else that.#newElements.add(childNode)
-
-          if (before instanceof Element && that.#isVarTag(before)) before = render(before)
+          if (isElement(childNode)) that.#newElements.add(childNode)
 
           parentNode.insertBefore(
             childNode,
-            before && !before.parentNode?.isEqualNode(parentNode) ? oldStartNode : before
+            before && !before.parentNode?.isEqualNode(parentNode) ? null : before
           )
         }
 
@@ -558,7 +543,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const getMapKey = (childNode: ChildNode): string => {
           const { nodeName }: { nodeName: string } = childNode
-          const key: string | null = childNode instanceof Element ? getKey(childNode) : null
+          const key: string | null = isElement(childNode) ? getKey(childNode) : null
 
           return key ? `${nodeName}-${key}` : nodeName
         }
@@ -580,15 +565,14 @@ export default class FiCsElement<D extends object, P extends object> {
             newEndNode = newChildNodes[--newEndIndex]
           } else if (matchChildNode(oldEndNode, newStartNode)) {
             patchChildNode(oldEndNode, newStartNode)
-            insertBefore(oldEndNode, oldStartNode)
+            insertBefore(oldEndNode, newStartNode)
             focusNode(oldEndNode)
             oldEndNode = oldChildNodes[--oldEndIndex]
             newStartNode = newChildNodes[++newStartIndex]
           } else {
             if (dom.size === 0)
               for (const oldChildNode of oldChildNodes) {
-                if (oldChildNode instanceof Element && !!that.#getFiCsId(oldChildNode, true))
-                  continue
+                if (isElement(oldChildNode) && !!that.#getFiCsId(oldChildNode, true)) continue
 
                 const mapKey: string = getMapKey(oldChildNode)
                 dom.set(mapKey, [...(dom.get(mapKey) ?? []), oldChildNode])
@@ -599,6 +583,34 @@ export default class FiCsElement<D extends object, P extends object> {
             if (mapStartNode?.nodeName === newStartNode.nodeName) {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
+            } else if (isElement(newStartNode)) {
+              const _getKey = (element: Element): string | number | null => {
+                let key: string | number | null = getKey(element)
+                if (key && !isNaN(parseInt(key))) key = parseInt(key)
+
+                return key
+              }
+              const key: string | number | null = _getKey(newStartNode)
+
+              if (typeof key === 'number') {
+                let _oldStartIndex: number = oldStartIndex
+                let reference: Element | null = null
+
+                while (_oldStartIndex <= oldEndIndex) {
+                  const childNode = oldChildNodes[_oldStartIndex++]
+
+                  if (isElement(childNode)) {
+                    const _key: string | number | null = _getKey(childNode)
+
+                    if (typeof _key === 'number' && _key > key) {
+                      reference = childNode
+                      break
+                    }
+                  }
+                }
+
+                insertBefore(newStartNode, reference)
+              } else insertBefore(newStartNode, oldStartNode)
             } else {
               insertBefore(newStartNode, oldStartNode)
               focusNode(newStartNode)
