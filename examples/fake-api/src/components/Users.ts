@@ -13,9 +13,9 @@ const button = Button()
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
 
 export default () =>
-  fics<{ users: User[]; userId: number }, {}>({
+  fics<{ users: User[]; userId: number; methods: string[] }, {}>({
     name: 'users',
-    data: () => ({ users, userId: NaN }),
+    data: () => ({ users, userId: NaN, methods: ['put', 'patch', 'delete'] }),
     props: [
       {
         descendant: button,
@@ -48,8 +48,8 @@ export default () =>
         })
       }
     ],
-    html: ({ data: { users, userId }, template, setProps }) => template`
-      ${['put', 'patch', 'delete'].map(method => setProps(button, { method }))}
+    html: ({ data: { users, userId, methods }, template, setProps }) => template`
+      ${methods.map(method => setProps(button, { method }))}
       ${users.map(user => {
         const textColor = `${userId === user.id ? 'text-red-700' : 'text-gray-900'}`
         const items = { id: 'Id', name: 'Name', email: 'Email' } as const
