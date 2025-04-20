@@ -1,7 +1,7 @@
-import { generateUid, isString } from '../core/helpers'
+import { isString, uid } from '../core/helpers'
 import type { Snapshot, State } from './type'
 
-const generator: Generator<number> = generateUid()
+const generator: Generator<number> = uid()
 
 const getStore = async (
   state: string,
