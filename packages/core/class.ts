@@ -1,12 +1,5 @@
 import { globalCss } from './globalCss'
-import {
-  convertToArray,
-  generateUid,
-  isBrowser,
-  isNumber,
-  isString,
-  throwBrowserError
-} from './helpers'
+import { convertToArray, isBrowser, isNumber, isString, throwBrowserError, uid } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -36,11 +29,11 @@ import type {
 
 const names: Record<string, number> = {}
 const nameGenerators: Record<string, Generator<number>> = {}
-const generator: Generator<number> = generateUid()
+const generator: Generator<number> = uid()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsIdName: string = 'fics-id'
-  readonly #generator: Generator<number> = generateUid()
+  readonly #generator: Generator<number> = uid()
   readonly #ficsId: string
   readonly #name: string
   readonly #data: D = {} as D
@@ -90,7 +83,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
 
-    if (!nameGenerators[name]) nameGenerators[name] = generateUid()
+    if (!nameGenerators[name]) nameGenerators[name] = uid()
     names[name] = nameGenerators[name].next().value
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
