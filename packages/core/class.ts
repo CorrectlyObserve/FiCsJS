@@ -1,5 +1,12 @@
 import { globalCss } from './globalCss'
-import { convertToArray, generateUid, isBrowser, isString, throwBrowserError } from './helpers'
+import {
+  convertToArray,
+  generateUid,
+  isBrowser,
+  isNumber,
+  isString,
+  throwBrowserError
+} from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -591,7 +598,7 @@ export default class FiCsElement<D extends object, P extends object> {
               }
               const key: string | number | null = _getKey(newStartNode)
 
-              if (typeof key === 'number') {
+              if (isNumber(key)) {
                 let _oldStartIndex: number = oldStartIndex
                 let reference: Element | null = null
 
@@ -601,7 +608,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   if (isElement(childNode)) {
                     const _key: string | number | null = _getKey(childNode)
 
-                    if (typeof _key === 'number' && _key > key) {
+                    if (isNumber(_key) && _key > key) {
                       reference = childNode
                       break
                     }
@@ -659,12 +666,7 @@ export default class FiCsElement<D extends object, P extends object> {
             return prev
           }
 
-          return (
-            `${prev}${key}` +
-            (isString(value) || typeof value === 'number'
-              ? `:${value};`
-              : `{${convertCssContent(value)}}`)
-          )
+          return `${prev}${key}${isString(value) || isNumber(value) ? `:${value};` : `{${convertCssContent(value)}}`}`
         },
         ''
       )
