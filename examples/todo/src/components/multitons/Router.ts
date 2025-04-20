@@ -37,7 +37,6 @@ export default () =>
     css: {
       ':host': {
         position: 'relative',
-        display: 'block',
         minHeight: variable('min-height'),
         'div.container': {
           position: 'absolute',
