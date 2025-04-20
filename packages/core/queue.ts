@@ -2,8 +2,7 @@ import { isBrowser } from './helpers'
 import type { Queue } from './types'
 
 const ficsIds: Record<string, true> = {}
-const getQueueId = (queue: Queue, key?: Queue['key']): string =>
-  `${queue.ficsId}-${key ?? queue.key}`
+const getQueueId = (queue: Queue): string => `${queue.ficsId}-${queue.key}`
 
 const dequeue = (queue: Queue): void => {
   queue.func()
@@ -25,11 +24,7 @@ export const enqueue = (queue: Queue): void => {
 
       while (queues.length > 0) {
         const queue: Queue = queues.shift()!
-
-        if (queue.key === 're-render') {
-          if (!ficsIds[getQueueId(queue, 'define')]) continue
-          setTimeout(() => dequeue(queue), 0)
-        } else dequeue(queue)
+        queue.key === 're-render' ? setTimeout(() => dequeue(queue), 0) : dequeue(queue)
       }
 
       isProcessing = false

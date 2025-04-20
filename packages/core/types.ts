@@ -51,6 +51,7 @@ export type Descendant = FiCsElement<any, any>
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
+  ficsId?: string
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
@@ -69,7 +70,7 @@ export interface GlobalCssContent {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataPropsMethods<D, P> & Omit<Syntaxes<D, P>, 'props'> & { isLoaded?: boolean }
+  params: DataPropsMethods<D, P> & Omit<Syntaxes<D, P>, 'props'> & { isDeferred: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -118,7 +119,7 @@ export interface PollingOptions {
 export interface Props<D, P> {
   descendant: SingleOrArray<Descendant>
   values: (
-    params: Omit<DataPropsMethods<D, P>, 'getData'>
+    params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
     | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => any>
     | Record<string, any>

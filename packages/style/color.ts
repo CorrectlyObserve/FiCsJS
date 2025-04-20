@@ -1,4 +1,4 @@
-import { throwBrowserError } from './../core/helpers'
+import { browserError } from './../core/helpers'
 
 type Rgb = Record<'red' | 'green' | 'blue', number>
 
@@ -12,7 +12,7 @@ export default ({
   isOpacity?: boolean
 }): string => {
   if (hex.startsWith('--')) {
-    throwBrowserError()
+    browserError()
     hex = window.getComputedStyle(document.documentElement).getPropertyValue(hex).trim()
   }
 
