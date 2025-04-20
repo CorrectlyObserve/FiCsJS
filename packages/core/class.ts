@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { convertToArray, generateUid, isBrowser, throwBrowserError } from './helpers'
+import { convertToArray, generateUid, isBrowser, isString, throwBrowserError } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -298,10 +298,9 @@ export default class FiCsElement<D extends object, P extends object> {
         else {
           if (template !== '') converted.push(template)
 
-          variable =
-            typeof variable === 'string'
-              ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-              : (variable ?? '')
+          variable = isString(variable)
+            ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+            : (variable ?? '')
 
           if (variable !== '') converted.push(variable as HtmlContent<D, P>)
         }
@@ -662,7 +661,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           return (
             `${prev}${key}` +
-            (typeof value === 'string' || typeof value === 'number'
+            (isString(value) || typeof value === 'number'
               ? `:${value};`
               : `{${convertCssContent(value)}}`)
           )
@@ -671,7 +670,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
 
     return css.reduce((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${curr}`
+      if (isString(curr)) return `${prev}${curr}`
 
       let _curr: string = ''
 
@@ -705,7 +704,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
-        if (typeof content === 'string') continue
+        if (isString(content)) continue
         if (typeof Object.values(content)[0] === 'function') this.#bindings.css.push(index)
       }
 
@@ -1068,8 +1067,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (isBrowser() && this.#components.size > 0)
         this.#enqueue(() => this.#reRender(), 're-render')
 
-      for (const { keys, setProps } of this.#propsTrees)
-        if (typeof key === 'string' && keys[key]) setProps()
+      for (const { keys, setProps } of this.#propsTrees) if (isString(key) && keys[key]) setProps()
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
