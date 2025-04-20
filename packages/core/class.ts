@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { convertToArray, isBrowser, isNumber, isString, throwBrowserError, uid } from './helpers'
+import { isBrowser, isNumber, isString, throwBrowserError, toArray, uid } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -126,7 +126,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#html = html
     this.#showAttr = `${this.#ficsId}-show-syntax`
 
-    if (css) this.#css = convertToArray(css)
+    if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
     if (hooks) this.#hooks = { ...hooks }
     if (actions) this.#actions = { ...actions }
