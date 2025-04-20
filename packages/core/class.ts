@@ -711,7 +711,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#convertCss({ css, mode: 'csr' }))
+    stylesheet.replaceSync(this.#convertCss({ css: [':host{display:block}', ...css], mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -1040,7 +1040,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
         <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
           <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
-          <div id="${that.#ficsId}" slot="${that.#ficsId}" width="100%">
+          <div id="${that.#ficsId}" slot="${that.#ficsId}">
             ${applyShowAttr(applyDescendant(html))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
