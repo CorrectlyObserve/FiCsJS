@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { isBrowser, isNumber, isString, throwBrowserError, toArray, uid } from './helpers'
+import { browserError, isBrowser, isNumber, isString, toArray, uid } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -837,7 +837,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #define(): void {
-    throwBrowserError()
+    browserError()
 
     const that: FiCsElement<D, P> = this
     const { lazyLoad, rootMargin }: Options = that.#options
