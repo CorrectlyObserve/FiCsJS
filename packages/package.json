@@ -49,8 +49,8 @@
     "url": "https://github.com/CorrectlyObserve/ficsjs.git"
   },
   "scripts": {
+    "build": "rm -rf dist && bunx tsc",
     "minify": "find ./dist -name '*.js' -exec bunx terser {} --compress --mangle --output {} \\;",
-    "build": "rm -rf dist && bunx tsc && bun run minify",
     "prepublishOnly": "bun run build && bun run minify && cp ../README.md ./README.md && cp ../LICENSE ./LICENSE"
   },
   "devDependencies": {

@@ -1,9 +1,9 @@
 {
-  "name": "fics-fake-api",
+  "name": "fics-ssr",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build:packages": "rm -rf dist && cd ../../packages && rm -rf dist && bun run build && cd ../examples/fake-api",
+    "build:packages": "rm -rf dist && cd ../../packages && rm -rf dist && bun run build && cd ../examples/ssr",
     "build:css": "bunx postcss \"src/{,**/}*.css\" \"!src/**/tailwind.css\" --dir dist --minify && bunx @tailwindcss/cli --input src/tailwind.css --output src/.tailwindcss.txt --minify",
     "dev": "bun run build:packages && bun run build:css && bun build src/{,**/}*.ts --outdir dist --splitting --hot --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --hot app.ts",
     "build": "bun run build:packages && bun run build:css && bun build src/{,**/}*.ts --outdir dist --splitting --minify --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --minify app.ts"

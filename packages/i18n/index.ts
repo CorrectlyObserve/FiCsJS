@@ -1,4 +1,4 @@
-import { convertToArray } from '../core/helpers'
+import { toArray } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 import { createState, getState } from '../state/'
 
@@ -22,7 +22,7 @@ export const i18n = async <T>({
   return await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())
     .then(json => {
-      key = convertToArray(key)
+      key = toArray(key)
       let i18n: T | undefined = key.reduce((prev, curr) => prev && prev[curr], json)
 
       if (i18n) return i18n

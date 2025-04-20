@@ -37,9 +37,9 @@ export default () =>
         descriptions: [start, end]
       },
       template,
-      isLoaded
+      isDeferred
     }) =>
-      isLoaded
+      isDeferred
         ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
         : template`${loadingIcon}`,
     css: {

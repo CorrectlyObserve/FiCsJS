@@ -87,9 +87,9 @@ export default () =>
       template,
       setData,
       setProps,
-      isLoaded
+      isDeferred
     }) => {
-      if (!isLoaded) return template`${loadingIcon}`
+      if (!isDeferred) return template`${loadingIcon}`
 
       if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 

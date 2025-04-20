@@ -7,7 +7,6 @@ interface Photo {
 
 const root = 'https://picsum.photos'
 const getPhotos = (page: number) => `${root}/v2/list?page=${page}&limit=10`
-
 const photos: Photo[] = await fetch(getPhotos(1)).then(res => res.json())
 
 export default () =>
@@ -28,11 +27,10 @@ export default () =>
       )}
     `,
     hooks: {
-      mounted: async ({ data: { photos, count }, setData, getData, crud }) => {
-        setData('count', ++count)
-        await crud<Array<Photo>>(getPhotos(getData('count'))).then(newPhotos =>
+      mounted: async ({ data: { photos, count }, setData, getData, crud }) =>
+        await crud<Photo[]>(getPhotos(getData('count'))).then(newPhotos => {
+          setData('count', ++count)
           setData('photos', [...photos, ...newPhotos])
-        )
-      }
+        })
     }
   })

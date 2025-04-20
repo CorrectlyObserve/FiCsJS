@@ -1,7 +1,7 @@
-import { convertToArray, generateUid } from '../core/helpers'
+import { toArray, uid } from '../core/helpers'
 import { Descendant, SingleOrArray } from '../core/types'
 
-const generator: Generator<number> = generateUid()
+const generator: Generator<number> = uid()
 const states: Map<string, unknown> = new Map()
 const writableStates: Set<string> = new Set()
 const observers: Map<string, () => void> = new Map()
@@ -49,7 +49,7 @@ export const syncState = ({
   state: string
   data: SingleOrArray<Record<string, Descendant>>
 }): void => {
-  for (const datum of convertToArray(data))
+  for (const datum of toArray(data))
     for (const [key, descendant] of Object.entries(datum)) {
       const sync: Map<Descendant, Set<string>> | undefined = syncs.get(state)
 

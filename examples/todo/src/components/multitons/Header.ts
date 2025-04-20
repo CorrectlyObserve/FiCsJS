@@ -30,7 +30,6 @@ export default () =>
     css: {
       ':host': {
         position: 'fixed',
-        display: 'block',
         width: '100vw',
         background: variable('black'),
         zIndex: 10,

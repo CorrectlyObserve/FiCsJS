@@ -7,7 +7,7 @@
   "dependencies": {
     "ficsjs": "workspace:*",
     "fics-todo": "workspace:*",
-    "fics-fake-api": "workspace:*"
+    "fics-ssr": "workspace:*"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
