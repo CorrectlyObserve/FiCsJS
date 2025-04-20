@@ -1,7 +1,7 @@
-import { convertToArray, generateUid } from '../core/helpers'
+import { convertToArray, uid } from '../core/helpers'
 import { Descendant, SingleOrArray } from '../core/types'
 
-const generator: Generator<number> = generateUid()
+const generator: Generator<number> = uid()
 const states: Map<string, unknown> = new Map()
 const writableStates: Set<string> = new Set()
 const observers: Map<string, () => void> = new Map()
