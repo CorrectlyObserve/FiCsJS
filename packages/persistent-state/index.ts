@@ -1,4 +1,4 @@
-import { generateUid } from '../core/helpers'
+import { generateUid, isString } from '../core/helpers'
 import type { Snapshot, State } from './type'
 
 const generator: Generator<number> = generateUid()
@@ -135,7 +135,7 @@ const _getSnapshot = async <S>(state: string, key: string | number): Promise<Sna
 
   const snapshots: Snapshot<S>[] = await getAllSnapshots(state)
 
-  if (typeof key === 'string') {
+  if (isString(key)) {
     const snapshot: Snapshot<S> | undefined = snapshots.find(snapshot => snapshot.name === key)
 
     if (snapshot) return snapshot
