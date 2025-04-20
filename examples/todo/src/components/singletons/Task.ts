@@ -98,8 +98,8 @@ export default () =>
       {
         descendant: button,
         values: ({ props: { lang }, setData }) => ({
-          buttonText: ({ getData }) => getData('buttonText'),
           isDisabled: ({ getData }) => getData('isError'),
+          buttonText: ({ getData }) => getData('buttonText'),
           click:
             ({ getData }) =>
             async () => {
@@ -124,9 +124,9 @@ export default () =>
         datetimes
       },
       template,
-      isLoaded
+      isDeferred
     }) => {
-      if (!isLoaded) return template`${loadingIcon}`
+      if (!isDeferred) return template`${loadingIcon}`
 
       return template`
         <h2>${heading}</h2>
