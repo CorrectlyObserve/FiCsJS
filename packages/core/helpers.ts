@@ -12,7 +12,10 @@ export function* generateUid(): Generator<number> {
   }
 }
 
-export const isBrowser = (): boolean => typeof window !== 'undefined' && typeof document !== 'undefined'
+export const isBrowser = (): boolean =>
+  typeof window !== 'undefined' && typeof document !== 'undefined'
+
+export const isString = (param: string | unknown): param is string => typeof param === 'string'
 
 export const throwBrowserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
