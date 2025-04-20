@@ -8,7 +8,7 @@ export default () =>
     html: ({ props: { isDisabled, buttonText }, template }) =>
       template`<button aria-disabled="${isDisabled}">${buttonText}</button>`,
     css: {
-      ':host': { display: 'block', textAlign: 'center' },
+      ':host': { textAlign: 'center' },
       button: ({ props: { isDisabled } }) => ({
         background: isDisabled ? color({ hex: white, rate: 0.1 }) : variable('gradation'),
         padding: variable('md'),
