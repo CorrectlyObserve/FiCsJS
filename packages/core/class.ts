@@ -430,14 +430,18 @@ export default class FiCsElement<D extends object, P extends object> {
     else {
       const that: FiCsElement<D, P> = this
       let { activeElement }: { activeElement: Element | null } = shadowRoot
+
+      const isSameNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean =>
+        oldChildNode.nodeName === newChildNode.nodeName
+
       const getKey = (element: Element): string | null => element.getAttribute('key')
 
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
-        const isSameNode: boolean = oldChildNode.nodeName === newChildNode.nodeName
+        const _isSameNode: boolean = isSameNode(oldChildNode, newChildNode)
 
         return isElement(oldChildNode) && isElement(newChildNode)
-          ? isSameNode && getKey(oldChildNode) === getKey(newChildNode)
-          : isSameNode
+          ? _isSameNode && getKey(oldChildNode) === getKey(newChildNode)
+          : _isSameNode
       }
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
@@ -579,7 +583,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             const mapStartNode: ChildNode | undefined = dom.get(getMapKey(newStartNode))?.shift()
 
-            if (mapStartNode?.nodeName === newStartNode.nodeName) {
+            if (mapStartNode && isSameNode(mapStartNode, newStartNode)) {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
             } else if (isElement(newStartNode)) {
@@ -601,7 +605,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   if (isElement(childNode)) {
                     const _key: string | number | null = _getKey(childNode)
 
-                    if (isNumber(_key) && _key > key) {
+                    if (isSameNode(newStartNode, childNode) && isNumber(_key) && _key > key) {
                       reference = childNode
                       break
                     }
