@@ -15,6 +15,8 @@ export function* generateUid(): Generator<number> {
 export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
 
+export const isNumber = (param: number | unknown): param is number => typeof param === 'number'
+
 export const isString = (param: string | unknown): param is string => typeof param === 'string'
 
 export const throwBrowserError = (): void => {
