@@ -1,11 +1,11 @@
-import { isString, throwBrowserError } from './../core/helpers'
+import { browserError, isString } from './../core/helpers'
 import color from './color'
 
 export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
   `calc(${values.join(` ${operator} `)})`
 
 export const remToPx = (rem: number | string): number => {
-  throwBrowserError()
+  browserError()
 
   if (isString(rem)) rem = parseFloat(rem)
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
