@@ -29,7 +29,8 @@ const template = ({
         <meta name="description" content="${description}" />
         <link rel="stylesheet" type="text/css" href="./dist/global.css" />
       </head>
-      <body>
+      <body class="bg-dark">
+        <h1>${title}</h1>
         ${content}
         <script type="module" src="./dist${path}.js"></script>
       </body>
