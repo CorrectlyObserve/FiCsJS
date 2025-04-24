@@ -74,6 +74,11 @@ export default () =>
         ])
     },
     actions: {
-      div: { click: ({ setData, attributes }) => setData('userId', parseInt(attributes.key)) }
+      div: {
+        click: ({ setData, getData, attributes }) => {
+          const userId = parseInt(attributes.key)
+          setData('userId', getData('userId') === userId ? NaN : userId)
+        }
+      }
     }
   })
