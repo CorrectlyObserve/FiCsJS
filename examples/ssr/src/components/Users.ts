@@ -51,7 +51,7 @@ export default () =>
     html: ({ data: { users, userId, methods }, template, setProps }) => template`
       ${methods.map(method => setProps(button, { method }))}
       ${users.map(user => {
-        const textColor = `${userId === user.id ? 'text-red-700' : 'text-gray-900'}`
+        const textColor = `${userId === user.id ? 'text-red' : 'text-white'}`
         const items = { id: 'Id', name: 'Name', email: 'Email' } as const
         const keys = Object.keys(items) as (keyof typeof items)[]
 
