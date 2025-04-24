@@ -3,5 +3,5 @@
 @import 'tailwindcss/utilities';
 
 @theme {
-  --color-red-700: #b7282e;
+  --color-red: #b7282e;
 }
