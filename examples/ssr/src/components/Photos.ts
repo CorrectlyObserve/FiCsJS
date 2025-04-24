@@ -16,7 +16,7 @@ export default () =>
     html: ({ data: { photos }, template }) => template`
       ${photos.map(
         ({ id, author }) => template`
-          <div key="${id}">
+          <div class="photo text-center" key="${id}">
             <button popovertarget="${id}"><img src="${root}/id/${id}/300/300?blur" /></button>
             <div id="${id}" popover>
               <button popovertarget="${id}" popovertargetaction="hide" aria-hidden="true">X</button>
@@ -26,6 +26,11 @@ export default () =>
         `
       )}
     `,
+    css: [
+      {
+        'div.photo': { fontSize: 0 }
+      }
+    ],
     hooks: {
       mounted: async ({ data: { photos, count }, setData, getData, crud }) =>
         await crud<Photo[]>(getPhotos(getData('count'))).then(newPhotos => {
