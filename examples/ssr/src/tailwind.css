@@ -3,5 +3,7 @@
 @import 'tailwindcss/utilities';
 
 @theme {
+  --text-base--line-height: 1.2;
+  --text-sm--line-height: 1.2;
   --color-red: #b7282e;
 }
