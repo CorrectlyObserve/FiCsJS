@@ -7,3 +7,9 @@
   --text-sm--line-height: 1.2;
   --color-red: #b7282e;
 }
+
+.clickable {
+  @apply duration-200 ease-out cursor-pointer;
+  @apply hover:opacity-50;
+  @apply focus:scale-90;
+}
