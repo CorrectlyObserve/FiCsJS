@@ -23,7 +23,7 @@ export default () =>
         `
       )}
     `,
-    css: [{ div: { '&[key]': { ...flexCenter('x') } }, '&[popover]': absoluteCenter }],
+    css: [{ div: { '&[key]': { ...flexCenter('x') }, '&[popover]': { ...absoluteCenter() } } }],
     hooks: {
       mounted: async ({ data: { photos, count }, setData, crud }) =>
         await crud<Photo[]>(getPhotos(++count)).then(newPhotos => {
