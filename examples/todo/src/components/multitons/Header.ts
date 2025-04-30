@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { getState, setState } from 'ficsjs/state'
-import { flexCenter, variable } from 'ficsjs/style'
+import { absoluteCenter, flexCenter, variable } from 'ficsjs/style'
 import Langs from '@/components/multitons/Langs'
 import { $lang } from '@/store'
 import { breakpoints, getPath } from '@/utils'
@@ -47,9 +47,7 @@ export default () =>
             '&:focus': { opacity: 0.2 }
           },
           '> div': {
-            position: 'absolute',
-            top: '50%',
-            transform: 'translateY(-50%)',
+            ...absoluteCenter('y'),
             right: variable('xl'),
             [`@media (max-width: ${breakpoints.sm})`]: { right: variable('xs') }
           }
