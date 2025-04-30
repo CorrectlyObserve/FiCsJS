@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { getParams, goto } from 'ficsjs/router'
-import { calc, variable } from 'ficsjs/style'
+import { calc, flexCenter, variable } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
@@ -163,7 +163,7 @@ export default () =>
           marginBottom: variable('md'),
           border: 0,
           label: { paddingBottom: variable('xs') },
-          div: { display: 'flex', span: { display: 'flex', alignItems: 'center' } }
+          div: { display: 'flex', span: { ...flexCenter('y') } }
         },
         p: {
           marginBottom: variable('xs'),
