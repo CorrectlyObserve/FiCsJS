@@ -1,6 +1,6 @@
 import { browserError, isString } from './../core/helpers'
 import color from './color'
-import { flexCenterXY, flexCenterX, flexCenterY } from './flexCenter'
+import { flexCenter } from './flexCenter'
 
 export const absoluteCenter = {
   position: 'absolute',
@@ -26,4 +26,4 @@ export const scale = (decimal: number): string => `scale(${decimal})`
 export const variable = (variable: string): string =>
   `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
 
-export { color, flexCenterXY, flexCenterX, flexCenterY }
+export { color, flexCenter }
