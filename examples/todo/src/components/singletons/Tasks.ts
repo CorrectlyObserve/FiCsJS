@@ -93,6 +93,8 @@ export default () =>
 
       if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
+      const { offsetWidth } = document.documentElement
+
       return template`
         <h2>${heading}</h2>
         <div class="menu">
@@ -114,7 +116,7 @@ export default () =>
                         }
                       })}
                       <span class="${completedAt ? 'done' : ''}">
-                        <a href="${getPath(lang, (document.documentElement.offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
+                        <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
                       </span>
                     </div>
                     ${setProps(trashIcon, {
@@ -193,8 +195,6 @@ export default () =>
         click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
       }
     },
-    hooks: {
-      mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks))
-    },
+    hooks: { mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks)) },
     options: { lazyLoad: true }
   })
