@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, color, variable } from 'ficsjs/style'
+import { calc, color, flexCenter, variable } from 'ficsjs/style'
 import { white } from '@/utils'
 
 interface Props {
@@ -28,9 +28,7 @@ export default () =>
     `,
     css: {
       div: ({ props: { isError } }) => ({
-        display: 'flex',
-        justifyContent: 'center',
-        flexDirection: 'column',
+        ...flexCenter('x', 'column'),
         label: { paddingBottom: variable('xs') },
         p: {
           fontSize: variable('sm'),
