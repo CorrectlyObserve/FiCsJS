@@ -15,16 +15,10 @@ export function flexCenter(
   direction?: Direction
 ): Flex & typeof justifyCenter & typeof alignCenter
 export function flexCenter(axis: 'xy' | 'x' | 'y', direction: Direction = 'row'): Flex {
-  const flex: Flex = { display: 'flex', flexDirection: direction }
-
-  switch (axis) {
-    case 'x':
-      return { ...flex, ...justifyCenter }
-
-    case 'y':
-      return { ...flex, ...alignCenter }
-
-    case 'xy':
-      return { ...flex, ...justifyCenter, ...alignCenter }
+  return {
+    display: 'flex',
+    flexDirection: direction,
+    ...(axis.includes('x') ? justifyCenter : {}),
+    ...(axis.includes('y') ? alignCenter : {})
   }
 }
