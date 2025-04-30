@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { goto, getParams } from 'ficsjs/router'
-import { calc, remToPx, variable } from 'ficsjs/style'
+import { calc, flexCenter, remToPx, variable } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
@@ -138,9 +138,7 @@ export default () =>
         '&.menu': {
           marginBottom: variable('xl'),
           div: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            ...flexCenter('xy'),
             marginBottom: variable('md'),
             '&:last-child': { marginBottom: 0 },
             'f-input': { marginRight: variable('md') }
@@ -151,10 +149,9 @@ export default () =>
           }
         },
         '&.task': {
+          ...flexCenter('y'),
           width: sm,
           maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-          display: 'flex',
-          alignItems: 'center',
           marginInline: 'auto',
           marginBottom: variable('xs'),
           '&:last-child': { marginBottom: 0 },
@@ -164,8 +161,7 @@ export default () =>
               [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
               '-'
             )}`,
-            display: 'flex',
-            alignItems: 'center',
+            ...flexCenter('y'),
             span: {
               width: '100%',
               display: 'flex',
