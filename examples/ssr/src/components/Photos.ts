@@ -1,23 +1,20 @@
 import { fics } from 'ficsjs'
-
-interface Photo {
-  id: string
-  author: string
-}
-
-const root = 'https://picsum.photos'
-const getPhotos = (page: number) => `${root}/v2/list?page=${page}&limit=10`
-const photos: Photo[] = await fetch(getPhotos(1)).then(res => res.json())
+import { absoluteCenter, flexCenter } from 'ficsjs/style'
+import { api, getPhotos, photos } from '@/data/photos'
+import type { Photo } from '@/types'
 
 export default () =>
-  fics<{ count: number; photos: Photo[] }, {}>({
+  fics({
     name: 'photos',
     data: () => ({ count: 1, photos }),
+    className: 'pt-4',
     html: ({ data: { photos }, template }) => template`
       ${photos.map(
         ({ id, author }) => template`
-          <div class="photo text-center" key="${id}">
-            <button popovertarget="${id}"><img src="${root}/id/${id}/300/300?blur" /></button>
+          <div key="${id}">
+            <button class="clickable" popovertarget="${id}">
+              <img src="${api}/id/${id}/200/200.webp?blur" />
+            </button>
             <div id="${id}" popover>
               <button popovertarget="${id}" popovertargetaction="hide" aria-hidden="true">X</button>
               <p>Created by ${author}</p>
@@ -26,15 +23,11 @@ export default () =>
         `
       )}
     `,
-    css: [
-      {
-        'div.photo': { fontSize: 0 }
-      }
-    ],
+    css: [{ div: { '&[key]': { ...flexCenter('x') } }, '&[popover]': absoluteCenter }],
     hooks: {
-      mounted: async ({ data: { photos, count }, setData, getData, crud }) =>
-        await crud<Photo[]>(getPhotos(getData('count'))).then(newPhotos => {
-          setData('count', ++count)
+      mounted: async ({ data: { photos, count }, setData, crud }) =>
+        await crud<Photo[]>(getPhotos(++count)).then(newPhotos => {
+          setData('count', count)
           setData('photos', [...photos, ...newPhotos])
         })
     }
