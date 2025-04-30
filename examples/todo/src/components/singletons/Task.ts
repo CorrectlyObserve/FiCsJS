@@ -228,9 +228,7 @@ export default () =>
         if (!task) return goto(getPath(lang, '/404'))
         setData('task', task)
       },
-      updated: {
-        task: async ({ datum, setData }) => setData('isError', datum.title === '')
-      }
+      updated: { task: async ({ datum, setData }) => setData('isError', datum.title === '') }
     },
     options: { lazyLoad: true }
   })
