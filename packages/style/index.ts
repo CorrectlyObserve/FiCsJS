@@ -1,6 +1,13 @@
 import { browserError, isString } from './../core/helpers'
 import color from './color'
 
+export const absoluteCenter = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)'
+} as const
+
 export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
   `calc(${values.join(` ${operator} `)})`
 
