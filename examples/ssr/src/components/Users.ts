@@ -44,7 +44,7 @@ export default () =>
       }
     ],
     html: ({ data: { users, userId, methods }, template, setProps }) => template`
-      <div class="my-4 gap-4">${methods.map(method => setProps(button, { method }))}</div>
+      <div class="buttons mt-4 mb-7 gap-4">${methods.map(method => setProps(button, { method }))}</div>
       <div class="space-y-4">
         ${users.map(user => {
           const textColor = `${userId === user.id ? 'text-red' : 'text-white'}`
@@ -62,9 +62,9 @@ export default () =>
         })}
       </div>
     `,
-    css: [
-      { div: { '&.my-4': { ...flexCenter('x') }, '&.space-y-4': { ...flexCenter('x', 'column') } } }
-    ],
+    css: {
+      div: { '&.buttons': { ...flexCenter('x') }, '&.space-y-4': { ...flexCenter('x', 'column') } }
+    },
     hooks: {
       mounted: async ({ setData, getData, crud }) => {
         const users = getData('users')
