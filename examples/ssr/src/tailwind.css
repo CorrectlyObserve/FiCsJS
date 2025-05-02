@@ -9,7 +9,13 @@
 }
 
 .clickable {
-  @apply duration-200 ease-out cursor-pointer;
-  @apply hover:opacity-50;
-  @apply focus:scale-90;
+  &:not([aria-disabled='true']) {
+    @apply duration-200 ease-out cursor-pointer;
+    @apply hover:opacity-50;
+    @apply focus:scale-90;
+  }
+
+  &[aria-disabled='true'] {
+    @apply cursor-not-allowed;
+  }
 }
