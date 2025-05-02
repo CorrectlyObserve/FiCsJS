@@ -6,17 +6,16 @@
   --text-base--line-height: 1.2;
   --text-sm--line-height: 1.2;
   --color-red: #b7282e;
-  --color-dark: #282828;
 }
 
 .clickable {
+  @apply transition-opacity duration-200 ease-out;
+
   &:not([aria-disabled='true']) {
-    @apply duration-200 ease-out cursor-pointer;
-    @apply hover:opacity-50;
-    @apply focus:scale-90;
+    @apply cursor-pointer hover:opacity-50 focus:scale-90;
   }
 
   &[aria-disabled='true'] {
-    @apply cursor-not-allowed;
+    @apply opacity-20 cursor-not-allowed;
   }
 }
