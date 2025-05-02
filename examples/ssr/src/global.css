@@ -3,6 +3,7 @@
 @theme {
   --text-xl: 2rem;
   --text-xl--line-height: 1.5;
+  --text-base--line-height: 1.2;
   --color-dark: #282828;
 }
 
