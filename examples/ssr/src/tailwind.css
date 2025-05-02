@@ -6,6 +6,7 @@
   --text-base--line-height: 1.2;
   --text-sm--line-height: 1.2;
   --color-red: #b7282e;
+  --color-dark: #282828;
 }
 
 .clickable {
