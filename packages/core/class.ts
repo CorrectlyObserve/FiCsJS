@@ -7,6 +7,7 @@ import type {
   Attrs,
   Bindings,
   ClassName,
+  CrudOptions,
   Css,
   DataProps,
   DataPropsMethods,
@@ -149,16 +150,15 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  async #crud<T>(api: string, options?: RequestInit): Promise<T>
-  async #crud<T extends D[keyof D]>(
-    api: string,
-    options: RequestInit & { key: keyof D }
-  ): Promise<T | void> {
-    const { key, ..._options }: { key?: keyof D } & RequestInit = options ?? {}
-    const json: T = await fetch(api, _options).then(res => res.json())
+  async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
+    const { key, ..._options }: CrudOptions<D> = options ?? {}
 
-    if (key) this.setData(key, json)
-    else return json
+    const isKey = !!(key && typeof this.getData(key) === 'boolean')
+
+    if (isKey) this.setData(key, true as D[typeof key])
+    const json: T = await fetch(api, _options).then(res => res.json())
+    if (isKey) this.setData(key, false as D[typeof key])
+    return json
   }
 
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
@@ -194,7 +194,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const descendantId: string = _descendant.#ficsId
 
           for (const [key, value] of Object.entries(
-            values({ data, props, setData, crud: this.#crud })
+            values({ data, props, setData, crud: this.#crud.bind(this) })
           )) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
@@ -778,7 +778,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const callback = (event: Event): void => {
         method({
           ...this.#getDataPropsMethods(),
-          crud: this.#crud,
+          crud: this.#crud.bind(this),
           event,
           attributes: attrs,
           value:
@@ -814,7 +814,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     const params: DataPropsMethods<D, P, true> = {
       ...this.#getDataPropsMethods(),
-      crud: this.#crud
+      crud: this.#crud.bind(this)
     }
 
     if (key === 'mounted') {
