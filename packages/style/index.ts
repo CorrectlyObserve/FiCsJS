@@ -1,4 +1,4 @@
-import { browserError, isString } from './../core/helpers'
+import { browserError, checkType } from './../core/helpers'
 import { absoluteCenter } from './absoluteCenter'
 import color from './color'
 import { flexCenter } from './flexCenter'
@@ -9,7 +9,7 @@ export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/
 export const remToPx = (rem: number | string): number => {
   browserError()
 
-  if (isString(rem)) rem = parseFloat(rem)
+  if (checkType(rem, 'string')) rem = parseFloat(rem)
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
 
