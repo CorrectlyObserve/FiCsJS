@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { browserError, isBrowser, isNumber, isString, toArray, uid } from './helpers'
+import { browserError, checkType, isBrowser, toArray, uid } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -114,13 +114,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (props) this.#propsSources = [...props]
     if (className)
-      if (typeof className === 'function') {
+      if (checkType(className, 'function')) {
         this.#bindings.isClassName = true
         this.#className = className
       } else this.#className = className.trim()
 
     if (attributes) {
-      if (typeof attributes === 'function') this.#bindings.isAttr = true
+      if (checkType(attributes, 'function')) this.#bindings.isAttr = true
       this.#attrs = attributes
     }
 
@@ -200,7 +200,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            if (typeof value === 'function' && /getData/.test(value.toString())) {
+            if (checkType(value, 'function') && /getData/.test(value.toString())) {
               const keys: Record<string, true> = { [key]: true }
               const _value: any = value({
                 getData: <K extends keyof D>(_key: K): D[K] => {
@@ -211,7 +211,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
               propsChain.set(descendantId, { ...chain, [key]: _value })
 
-              if (typeof _value !== 'function') {
+              if (!checkType(_value, 'function')) {
                 const tree: PropsTree = {
                   numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
                   keys,
@@ -250,7 +250,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getClassName() {
     if (!this.#className) return ''
 
-    return typeof this.#className === 'function'
+    return checkType(this.#className, 'function')
       ? this.#className(this.#getDataProps())
       : this.#className
   }
@@ -262,7 +262,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getAttrs(): [string, string][] {
     return Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
     )
   }
 
@@ -284,7 +284,7 @@ export default class FiCsElement<D extends object, P extends object> {
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
       const isSymbol = (variable: unknown, symbol: symbol): boolean =>
-        !!(variable && typeof variable === 'object' && symbol in variable)
+        !!(variable && checkType(variable, 'object') && symbol in variable)
       const converted: HtmlContent<D, P>[] = new Array()
 
       const sanitize = (index: number, template: string, variable: unknown): void => {
@@ -298,7 +298,7 @@ export default class FiCsElement<D extends object, P extends object> {
         else {
           if (template !== '') converted.push(template)
 
-          variable = isString(variable)
+          variable = checkType(variable, 'string')
             ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
             : (variable ?? '')
 
@@ -595,7 +595,7 @@ export default class FiCsElement<D extends object, P extends object> {
               }
               const key: string | number | null = _getKey(newStartNode)
 
-              if (isNumber(key)) {
+              if (checkType(key, 'number')) {
                 let _oldStartIndex: number = oldStartIndex
                 let reference: Element | null = null
 
@@ -605,7 +605,11 @@ export default class FiCsElement<D extends object, P extends object> {
                   if (isElement(childNode)) {
                     const _key: string | number | null = _getKey(childNode)
 
-                    if (isSameNode(newStartNode, childNode) && isNumber(_key) && _key > key) {
+                    if (
+                      isSameNode(newStartNode, childNode) &&
+                      checkType(_key, 'number') &&
+                      _key > key
+                    ) {
                       reference = childNode
                       break
                     }
@@ -646,12 +650,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
     let topLevelCss: string = ''
     const convertCssContent = (style: Style<D, P>): string =>
-      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+      Object.entries(checkType(style, 'function') ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (
             value === undefined ||
             value === '' ||
-            (typeof value === 'object' && Object.keys(value).length === 0)
+            (checkType(value, 'object') && Object.keys(value).length === 0)
           )
             return prev
 
@@ -663,13 +667,13 @@ export default class FiCsElement<D extends object, P extends object> {
             return prev
           }
 
-          return `${prev}${key}${isString(value) || isNumber(value) ? `:${value};` : `{${convertCssContent(value)}}`}`
+          return `${prev}${key}${checkType(value, 'string') || checkType(value, 'number') ? `:${value};` : `{${convertCssContent(value)}}`}`
         },
         ''
       )
 
     return css.reduce((prev, curr) => {
-      if (isString(curr)) return `${prev}${curr}`
+      if (checkType(curr, 'string')) return `${prev}${curr}`
 
       let _curr: string = ''
 
@@ -703,8 +707,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
-        if (isString(content)) continue
-        if (typeof Object.values(content)[0] === 'function') this.#bindings.css.push(index)
+        if (checkType(content, 'string')) continue
+        if (checkType(Object.values(content)[0], 'function')) this.#bindings.css.push(index)
       }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
@@ -1066,7 +1070,8 @@ export default class FiCsElement<D extends object, P extends object> {
       if (isBrowser() && this.#components.size > 0)
         this.#enqueue(() => this.#reRender(), 're-render')
 
-      for (const { keys, setProps } of this.#propsTrees) if (isString(key) && keys[key]) setProps()
+      for (const { keys, setProps } of this.#propsTrees)
+        if (checkType(key, 'string') && keys[key]) setProps()
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
