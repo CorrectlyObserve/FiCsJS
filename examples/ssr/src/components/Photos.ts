@@ -7,29 +7,27 @@ export default () =>
   fics({
     name: 'photos',
     data: () => ({ count: 1, photos }),
-    className: 'pt-4',
     html: ({ data: { photos }, template }) => template`
-      ${photos.map(
-        ({ id, author }) => template`
-          <div key="${id}">
-            <button class="clickable" popovertarget="${id}">
-              <img src="${api}/id/${id}/200/200.webp?blur" />
-            </button>
-            <div id="${id}" class="rounded-xl" popover>
-              <button class="clickable block text-white p-3 ml-auto" popovertarget="${id}" popovertargetaction="hide" aria-hidden="true">X</button>
-              <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+      <div class="pt-4">
+        ${photos.map(
+          ({ id, author }) => template`
+            <div key="${id}">
+              <button class="clickable" popovertarget="${id}">
+                <img src="${api}/id/${id}/200/200.webp?blur" />
+              </button>
+              <div id="${id}" class="rounded-xl" popover>
+                <button class="clickable block text-white p-3 ml-auto" popovertarget="${id}" popovertargetaction="hide" aria-hidden="true">X</button>
+                <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+              </div>
             </div>
-          </div>
-        `
-      )}
+          `
+        )}
+      </div>
     `,
     css: {
       div: {
         '&[key]': { ...flexCenter('x') },
-        '&[popover]': {
-          ...absoluteCenter(),
-          background: `${color({ hex: '#282828', rate: 0.5 })}`
-        }
+        '&[popover]': { ...absoluteCenter(), background: `${color({ hex: '#282828', rate: 0.5 })}` }
       }
     },
     hooks: {
