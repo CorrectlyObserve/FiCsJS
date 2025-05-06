@@ -1052,7 +1052,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
         <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
           <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-          <div id="${that.#name}" slot="${that.#name}" data-${that.#name}='${data ? JSON.stringify(data) : ''}'>
+          <div id="${that.#name}" slot="${that.#name}"${data ? ` data-${that.#name}='${JSON.stringify(data)}'` : ''}>
             ${applyShowAttr(applyDescendant(html))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
