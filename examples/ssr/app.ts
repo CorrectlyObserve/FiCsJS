@@ -39,21 +39,19 @@ const template = ({
       </body>
     </html>
   `
-
-const toScrollPage = Link({ href: '/scroll', text: 'Go to the scroll page' })
+const link = Link()
 const users = Users()
 app.get('/', c =>
   c.html(
     template({
       title: 'FiCsJS with Hono',
       description: 'This is a simple example of FiCsJS with Hono in SSR.',
-      content: `${toScrollPage.toString()}${users.toString()}`,
+      content: `${link.toString({ href: '/scroll', text: 'Go to the scroll page' })}${users.toString()}`,
       path: '/index'
     })
   )
 )
 
-const toIndexPage = Link({ href: '/', text: 'Back to the top page' })
 const photos = Photos()
 app.get('/scroll', c =>
   c.html(
@@ -61,7 +59,7 @@ app.get('/scroll', c =>
       title: 'Infinite and virtual scroll',
       description:
         'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
-      content: `${toIndexPage.toString()}${photos.toString()}`,
+      content: `${link.toString({ href: '/', text: 'Back to the top page' })}${photos.toString()}`,
       path: '/scroll'
     })
   )
