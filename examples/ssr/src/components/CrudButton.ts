@@ -15,9 +15,9 @@ export default () =>
     name: 'crud-button',
     data: () => ({ isId: (id: number) => !isNaN(id) }),
     html: ({ data: { isId }, props: { id, method }, template }) => template`
-        <button class="clickable text-white border border-white p-3 rounded-lg" aria-disabled="${!isId(id)}">
-          ${method.toUpperCase()}
-        </button>
+      <button class="clickable text-white border border-white p-3 rounded-lg" aria-disabled="${!isId(id)}">
+        ${method.toUpperCase()}
+      </button>
     `,
     actions: {
       button: {
