@@ -103,12 +103,22 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (data) {
-      for (const [key, value] of Object.entries(data()))
+      let attrData: Partial<D> = {}
+      if (isBrowser()) {
+        const component: HTMLElement | null = document.getElementById(this.#name)
+        if (component) {
+          const attr: string | null = component.getAttribute(`data-${this.#name}`)
+          if (attr) attrData = { ...JSON.parse(attr) }
+        }
+      }
+
+      for (const [key, value] of Object.entries({ ...data(), ...attrData })) {
         this.#data[key as keyof D] = value as D[keyof D]
 
-      if (deferredData) {
-        this.#deferredData = deferredData
-        if (isBrowser()) this.#isDeferred = false
+        if (deferredData) {
+          this.#deferredData = deferredData
+          if (isBrowser()) this.#isDeferred = false
+        }
       }
     }
 
@@ -964,8 +974,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  toString(): string {
-    const render = (that: FiCsElement<D, P>): string => {
+  toString(data?: Partial<D>): string {
+    const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
       that.#initProps(that.#propsChain)
 
       if (that.#options.ssr) {
@@ -1041,8 +1051,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return `
         <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
-          <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
-          <div id="${that.#ficsId}" slot="${that.#ficsId}">
+          <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
+          <div id="${that.#name}" slot="${that.#name}" data-${that.#name}='${data ? JSON.stringify(data) : ''}'>
             ${applyShowAttr(applyDescendant(html))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
@@ -1053,7 +1063,11 @@ export default class FiCsElement<D extends object, P extends object> {
       return `<${that.#name}></${that.#name}>`
     }
 
-    return render(this)
+    if (data)
+      for (const [key, value] of Object.entries(data))
+        this.setData(key as keyof D, value as D[keyof D])
+
+    return render(this, data)
   }
 
   describe(parent?: HTMLElement): void {
