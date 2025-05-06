@@ -104,7 +104,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (data) {
       let attrData: Partial<D> = {}
-      if (isBrowser()) {
+      const _isBrowser: boolean = isBrowser()
+
+      if (_isBrowser) {
         const component: HTMLElement | null = document.getElementById(this.#name)
         if (component) {
           const attr: string | null = component.getAttribute(`data-${this.#name}`)
@@ -117,7 +119,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (deferredData) {
           this.#deferredData = deferredData
-          if (isBrowser()) this.#isDeferred = false
+          if (_isBrowser) this.#isDeferred = false
         }
       }
     }
