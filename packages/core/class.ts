@@ -164,12 +164,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
   async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
     const { key, ..._options }: CrudOptions<D> = options ?? {}
+    const isKeyEnabled: boolean = !!(key && checkType(this.getData(key), 'boolean'))
 
-    const isKey = !!(key && typeof this.getData(key) === 'boolean')
-
-    if (isKey) this.setData(key, true as D[typeof key])
+    if (isKeyEnabled) this.setData(key as keyof D, true as D[keyof D])
     const json: T = await fetch(api, _options).then(res => res.json())
-    if (isKey) this.setData(key, false as D[typeof key])
+    if (isKeyEnabled) this.setData(key as keyof D, false as D[keyof D])
     return json
   }
 
