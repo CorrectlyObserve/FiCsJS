@@ -8,7 +8,7 @@ export default () =>
     name: 'photos',
     data: () => ({ count: 1, photos }),
     html: ({ data: { photos }, template }) => template`
-      <div class="pt-4">
+      <div class="min-h-250 mt-4">
         ${photos.map(
           ({ id, author }) => template`
             <div key="${id}">
