@@ -26,8 +26,13 @@ export const checkType = <
     ? typeof param === 'object' && param !== null && !Array.isArray(param)
     : typeof param === type
 
-export const isBrowser = (): boolean =>
-  typeof window !== 'undefined' && typeof document !== 'undefined'
+export const isBrowser = (): boolean => {
+  try {
+    return !checkType(window, 'undefined') && !checkType(document, 'undefined')
+  } catch (_) {
+    return false
+  }
+}
 
 export const toArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
