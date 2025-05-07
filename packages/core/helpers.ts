@@ -4,7 +4,9 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
-export const checkType = <T extends 'string' | 'number' | 'boolean' | 'function' | 'object'>(
+export const checkType = <
+  T extends 'string' | 'number' | 'boolean' | 'function' | 'object' | 'undefined'
+>(
   param: unknown,
   type: T
 ): param is T extends 'string'
@@ -17,8 +19,12 @@ export const checkType = <T extends 'string' | 'number' | 'boolean' | 'function'
         ? Function
         : T extends 'object'
           ? object
-          : never =>
-  type === 'object' ? typeof param === 'object' && param !== null : typeof param === type
+          : T extends 'undefined'
+            ? undefined
+            : never =>
+  type === 'object'
+    ? typeof param === 'object' && param !== null && !Array.isArray(param)
+    : typeof param === type
 
 export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
