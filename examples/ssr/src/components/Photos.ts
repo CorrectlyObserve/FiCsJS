@@ -1,33 +1,46 @@
 import { fics } from 'ficsjs'
-import { absoluteCenter, color, flexCenter } from 'ficsjs/style'
+import { absoluteCenter, color } from 'ficsjs/style'
 import { api, getPhotos, photos } from '@/data/photos'
 import type { Photo } from '@/types'
 
 export default () =>
   fics({
     name: 'photos',
-    data: () => ({ count: 1, photos }),
-    html: ({ data: { photos }, template }) => template`
+    data: () => ({
+      count: 1,
+      photos,
+      photo: {} as Photo,
+      isPhoto: (photoId: string) => photoId !== '' && photoId !== undefined
+    }),
+    html: ({
+      data: {
+        photos,
+        photo: { id, author },
+        isPhoto
+      },
+      template
+    }) => template`
       <div class="min-h-250 mt-4">
         ${photos.map(
-          ({ id, author }) => template`
-            <div key="${id}">
-              <button class="clickable" popovertarget="${id}">
-                <img src="${api}/id/${id}/200/200.webp?blur" />
-              </button>
-              <div id="${id}" class="rounded-xl" popover>
-                <button class="clickable block text-white p-3 ml-auto" popovertarget="${id}" popovertargetaction="hide" aria-hidden="true">X</button>
-                <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
-              </div>
-            </div>
-          `
+          ({ id }) =>
+            template`<img class="clickable mx-auto" src="${api}/id/${id}/200/200.webp?blur" key="${id}" tabindex="0" />`
         )}
       </div>
+      ${
+        isPhoto(id)
+          ? template`
+              <dialog class="rounded-xl" open>
+                <button class="clickable block text-white p-3 ml-auto">X</button>
+                <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+              </dialog>
+            `
+          : ''
+      }
     `,
     css: {
-      div: {
-        '&[key]': { ...flexCenter('x') },
-        '&[popover]': { ...absoluteCenter(), background: `${color({ hex: '#282828', rate: 0.5 })}` }
+      dialog: {
+        ...absoluteCenter('xy', true),
+        background: `${color({ hex: '#282828', rate: 0.5 })}`
       }
     },
     hooks: {
@@ -36,5 +49,29 @@ export default () =>
           setData('count', count)
           setData('photos', [...photos, ...newPhotos])
         })
+    },
+    actions: {
+      '.clickable': {
+        click: [
+          ({
+            data: {
+              photos,
+              photo: { id },
+              isPhoto
+            },
+            setData,
+            attributes
+          }) => {
+            const { key }: { key?: string } = attributes
+            setData(
+              'photo',
+              isPhoto(id) && (key === id || key === undefined)
+                ? { id: '', author: '' }
+                : { id: key, author: photos[parseInt(key)].author }
+            )
+          },
+          { throttle: 500, blur: true }
+        ]
+      }
     }
   })
