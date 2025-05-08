@@ -806,7 +806,8 @@ export default class FiCsElement<D extends object, P extends object> {
               : undefined
         })
 
-        if (blur) (event.target as HTMLElement).blur()
+        const { activeElement }: { activeElement: Element | null } = document
+        if (blur && activeElement instanceof HTMLElement) activeElement.blur()
       }
 
       element.addEventListener(
