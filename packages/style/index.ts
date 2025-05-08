@@ -1,7 +1,21 @@
 import { browserError, checkType } from './../core/helpers'
-import { absoluteCenter } from './absoluteCenter'
 import color from './color'
 import { flexCenter } from './flexCenter'
+
+export const absoluteCenter = (
+  axis: 'xy' | 'y',
+  isFixed?: boolean
+): {
+  position: 'absolute' | 'fixed'
+  top: '50%'
+  left?: '50%'
+  transform: 'translate(-50%, -50%)' | 'translateY(-50%)'
+} => ({
+  position: isFixed ? 'fixed' : 'absolute',
+  top: '50%',
+  transform: 'translate(-50%, -50%)',
+  ...(axis === 'xy' ? { left: '50%' } : { transform: 'translateY(-50%)' })
+})
 
 export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
   `calc(${values.join(` ${operator} `)})`
@@ -20,4 +34,4 @@ export const scale = (decimal: number): string => `scale(${decimal})`
 export const variable = (variable: string): string =>
   `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
 
-export { absoluteCenter, color, flexCenter }
+export { color, flexCenter }
