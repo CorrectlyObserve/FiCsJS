@@ -1,5 +1,5 @@
 import { ficsRouter, getParams } from 'ficsjs/router'
-import { calc, color, remToPx, variable } from 'ficsjs/style'
+import { calc, color, flexCenter, remToPx, variable } from 'ficsjs/style'
 import Tasks from '@/components/singletons/Tasks'
 import Task from '@/components/singletons/Task'
 import NotFound from '@/components/multitons/NotFound'
@@ -39,10 +39,9 @@ export default () =>
         position: 'relative',
         minHeight: variable('min-height'),
         'div.container': {
+          ...flexCenter('x'),
           position: 'absolute',
           containerType: 'inline-size',
-          display: 'flex',
-          justifyContent: 'center',
           gap: variable('xl'),
           width: '100%',
           [`@container (width >= ${breakpoints.lg})`]: {

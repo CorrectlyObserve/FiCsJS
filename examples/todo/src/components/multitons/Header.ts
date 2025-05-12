@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { getState, setState } from 'ficsjs/state'
-import { variable } from 'ficsjs/style'
+import { absoluteCenter, flexCenter, variable } from 'ficsjs/style'
 import Langs from '@/components/multitons/Langs'
 import { $lang } from '@/store'
 import { breakpoints, getPath } from '@/utils'
@@ -34,10 +34,8 @@ export default () =>
         background: variable('black'),
         zIndex: 10,
         header: {
+          ...flexCenter('xy'),
           position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           paddingBlock: variable('md'),
           [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: variable('xs') },
           h1: {
@@ -49,9 +47,7 @@ export default () =>
             '&:focus': { opacity: 0.2 }
           },
           '> div': {
-            position: 'absolute',
-            top: '50%',
-            transform: 'translateY(-50%)',
+            ...absoluteCenter('y'),
             right: variable('xl'),
             [`@media (max-width: ${breakpoints.sm})`]: { right: variable('xs') }
           }
@@ -70,7 +66,5 @@ export default () =>
         setData('pathname', `/${_pathname}`)
       }
     },
-    actions: {
-      h1: { click: ({ data: { lang } }) => goto(getPath(lang, '/')) }
-    }
+    actions: { h1: { click: ({ data: { lang } }) => goto(getPath(lang, '/')) } }
   })

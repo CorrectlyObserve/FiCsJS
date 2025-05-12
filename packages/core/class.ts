@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { browserError, isBrowser, isNumber, isString, toArray, uid } from './helpers'
+import { browserError, checkType, isBrowser, toArray, uid } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -7,6 +7,7 @@ import type {
   Attrs,
   Bindings,
   ClassName,
+  CrudOptions,
   Css,
   DataProps,
   DataPropsMethods,
@@ -102,24 +103,36 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (data) {
-      for (const [key, value] of Object.entries(data()))
+      let attrData: Partial<D> = {}
+      const _isBrowser: boolean = isBrowser()
+
+      if (_isBrowser) {
+        const component: HTMLElement | null = document.getElementById(this.#name)
+        if (component) {
+          const attr: string | null = component.getAttribute(`data-${this.#name}`)
+          if (attr) attrData = { ...JSON.parse(attr) }
+        }
+      }
+
+      for (const [key, value] of Object.entries({ ...data(), ...attrData })) {
         this.#data[key as keyof D] = value as D[keyof D]
 
-      if (deferredData) {
-        this.#deferredData = deferredData
-        if (isBrowser()) this.#isDeferred = false
+        if (deferredData) {
+          this.#deferredData = deferredData
+          if (_isBrowser) this.#isDeferred = false
+        }
       }
     }
 
     if (props) this.#propsSources = [...props]
     if (className)
-      if (typeof className === 'function') {
+      if (checkType(className, 'function')) {
         this.#bindings.isClassName = true
         this.#className = className
       } else this.#className = className.trim()
 
     if (attributes) {
-      if (typeof attributes === 'function') this.#bindings.isAttr = true
+      if (checkType(attributes, 'function')) this.#bindings.isAttr = true
       this.#attrs = attributes
     }
 
@@ -149,16 +162,14 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  async #crud<T>(api: string, options?: RequestInit): Promise<T>
-  async #crud<T extends D[keyof D]>(
-    api: string,
-    options: RequestInit & { key: keyof D }
-  ): Promise<T | void> {
-    const { key, ..._options }: { key?: keyof D } & RequestInit = options ?? {}
-    const json: T = await fetch(api, _options).then(res => res.json())
+  async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
+    const { key, ..._options }: CrudOptions<D> = options ?? {}
+    const isKeyEnabled: boolean = !!(key && checkType(this.getData(key), 'boolean'))
 
-    if (key) this.setData(key, json)
-    else return json
+    if (isKeyEnabled) this.setData(key as keyof D, true as D[keyof D])
+    const json: T = await fetch(api, _options).then(res => res.json())
+    if (isKeyEnabled) this.setData(key as keyof D, false as D[keyof D])
+    return json
   }
 
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
@@ -194,13 +205,13 @@ export default class FiCsElement<D extends object, P extends object> {
           const descendantId: string = _descendant.#ficsId
 
           for (const [key, value] of Object.entries(
-            values({ data, props, setData, crud: this.#crud })
+            values({ data, props, setData, crud: this.#crud.bind(this) })
           )) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
 
-            if (typeof value === 'function' && /getData/.test(value.toString())) {
+            if (checkType(value, 'function') && /getData/.test(value.toString())) {
               const keys: Record<string, true> = { [key]: true }
               const _value: any = value({
                 getData: <K extends keyof D>(_key: K): D[K] => {
@@ -211,7 +222,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
               propsChain.set(descendantId, { ...chain, [key]: _value })
 
-              if (typeof _value !== 'function') {
+              if (!checkType(_value, 'function')) {
                 const tree: PropsTree = {
                   numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
                   keys,
@@ -250,7 +261,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getClassName() {
     if (!this.#className) return ''
 
-    return typeof this.#className === 'function'
+    return checkType(this.#className, 'function')
       ? this.#className(this.#getDataProps())
       : this.#className
   }
@@ -262,7 +273,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getAttrs(): [string, string][] {
     return Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
     )
   }
 
@@ -284,7 +295,7 @@ export default class FiCsElement<D extends object, P extends object> {
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
       const isSymbol = (variable: unknown, symbol: symbol): boolean =>
-        !!(variable && typeof variable === 'object' && symbol in variable)
+        !!(variable && checkType(variable, 'object') && symbol in variable)
       const converted: HtmlContent<D, P>[] = new Array()
 
       const sanitize = (index: number, template: string, variable: unknown): void => {
@@ -298,7 +309,7 @@ export default class FiCsElement<D extends object, P extends object> {
         else {
           if (template !== '') converted.push(template)
 
-          variable = isString(variable)
+          variable = checkType(variable, 'string')
             ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
             : (variable ?? '')
 
@@ -595,7 +606,7 @@ export default class FiCsElement<D extends object, P extends object> {
               }
               const key: string | number | null = _getKey(newStartNode)
 
-              if (isNumber(key)) {
+              if (checkType(key, 'number')) {
                 let _oldStartIndex: number = oldStartIndex
                 let reference: Element | null = null
 
@@ -605,7 +616,11 @@ export default class FiCsElement<D extends object, P extends object> {
                   if (isElement(childNode)) {
                     const _key: string | number | null = _getKey(childNode)
 
-                    if (isSameNode(newStartNode, childNode) && isNumber(_key) && _key > key) {
+                    if (
+                      isSameNode(newStartNode, childNode) &&
+                      checkType(_key, 'number') &&
+                      _key > key
+                    ) {
                       reference = childNode
                       break
                     }
@@ -646,12 +661,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
     let topLevelCss: string = ''
     const convertCssContent = (style: Style<D, P>): string =>
-      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+      Object.entries(checkType(style, 'function') ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (
             value === undefined ||
             value === '' ||
-            (typeof value === 'object' && Object.keys(value).length === 0)
+            (checkType(value, 'object') && Object.keys(value).length === 0)
           )
             return prev
 
@@ -663,13 +678,13 @@ export default class FiCsElement<D extends object, P extends object> {
             return prev
           }
 
-          return `${prev}${key}${isString(value) || isNumber(value) ? `:${value};` : `{${convertCssContent(value)}}`}`
+          return `${prev}${key}${checkType(value, 'string') || checkType(value, 'number') ? `:${value};` : `{${convertCssContent(value)}}`}`
         },
         ''
       )
 
     return css.reduce((prev, curr) => {
-      if (isString(curr)) return `${prev}${curr}`
+      if (checkType(curr, 'string')) return `${prev}${curr}`
 
       let _curr: string = ''
 
@@ -703,8 +718,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
-        if (isString(content)) continue
-        if (typeof Object.values(content)[0] === 'function') this.#bindings.css.push(index)
+        if (checkType(content, 'string')) continue
+        if (checkType(Object.values(content)[0], 'function')) this.#bindings.css.push(index)
       }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
@@ -778,7 +793,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const callback = (event: Event): void => {
         method({
           ...this.#getDataPropsMethods(),
-          crud: this.#crud,
+          crud: this.#crud.bind(this),
           event,
           attributes: attrs,
           value:
@@ -791,7 +806,8 @@ export default class FiCsElement<D extends object, P extends object> {
               : undefined
         })
 
-        if (blur) (event.target as HTMLElement).blur()
+        const { activeElement }: { activeElement: Element | null } = document
+        if (blur && activeElement instanceof HTMLElement) activeElement.blur()
       }
 
       element.addEventListener(
@@ -814,7 +830,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     const params: DataPropsMethods<D, P, true> = {
       ...this.#getDataPropsMethods(),
-      crud: this.#crud
+      crud: this.#crud.bind(this)
     }
 
     if (key === 'mounted') {
@@ -960,8 +976,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  toString(): string {
-    const render = (that: FiCsElement<D, P>): string => {
+  toString(data?: Partial<D>): string {
+    const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
       that.#initProps(that.#propsChain)
 
       if (that.#options.ssr) {
@@ -1037,8 +1053,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return `
         <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
-          <template shadowrootmode="open"><slot name="${that.#ficsId}"></slot></template>
-          <div id="${that.#ficsId}" slot="${that.#ficsId}">
+          <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
+          <div id="${that.#name}" slot="${that.#name}"${data ? ` data-${that.#name}='${JSON.stringify(data)}'` : ''}>
             ${applyShowAttr(applyDescendant(html))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
@@ -1049,7 +1065,11 @@ export default class FiCsElement<D extends object, P extends object> {
       return `<${that.#name}></${that.#name}>`
     }
 
-    return render(this)
+    if (data)
+      for (const [key, value] of Object.entries(data))
+        this.setData(key as keyof D, value as D[keyof D])
+
+    return render(this, data)
   }
 
   describe(parent?: HTMLElement): void {
@@ -1066,7 +1086,8 @@ export default class FiCsElement<D extends object, P extends object> {
       if (isBrowser() && this.#components.size > 0)
         this.#enqueue(() => this.#reRender(), 're-render')
 
-      for (const { keys, setProps } of this.#propsTrees) if (isString(key) && keys[key]) setProps()
+      for (const { keys, setProps } of this.#propsTrees)
+        if (checkType(key, 'string') && keys[key]) setProps()
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)

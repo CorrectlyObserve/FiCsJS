@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { goto, getParams } from 'ficsjs/router'
-import { calc, remToPx, variable } from 'ficsjs/style'
+import { calc, flexCenter, remToPx, variable } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
@@ -93,6 +93,8 @@ export default () =>
 
       if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
+      const { offsetWidth } = document.documentElement
+
       return template`
         <h2>${heading}</h2>
         <div class="menu">
@@ -114,7 +116,7 @@ export default () =>
                         }
                       })}
                       <span class="${completedAt ? 'done' : ''}">
-                        <a href="${getPath(lang, (document.documentElement.offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
+                        <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
                       </span>
                     </div>
                     ${setProps(trashIcon, {
@@ -138,9 +140,7 @@ export default () =>
         '&.menu': {
           marginBottom: variable('xl'),
           div: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            ...flexCenter('xy'),
             marginBottom: variable('md'),
             '&:last-child': { marginBottom: 0 },
             'f-input': { marginRight: variable('md') }
@@ -151,10 +151,9 @@ export default () =>
           }
         },
         '&.task': {
+          ...flexCenter('y'),
           width: sm,
           maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-          display: 'flex',
-          alignItems: 'center',
           marginInline: 'auto',
           marginBottom: variable('xs'),
           '&:last-child': { marginBottom: 0 },
@@ -164,8 +163,7 @@ export default () =>
               [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
               '-'
             )}`,
-            display: 'flex',
-            alignItems: 'center',
+            ...flexCenter('y'),
             span: {
               width: '100%',
               display: 'flex',
@@ -197,8 +195,6 @@ export default () =>
         click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
       }
     },
-    hooks: {
-      mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks))
-    },
+    hooks: { mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks)) },
     options: { lazyLoad: true }
   })
