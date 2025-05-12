@@ -354,6 +354,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return _descendant
       },
+      isBrowser: isBrowser(),
       isDeferred: this.#isDeferred
     })[sanitized]
 
