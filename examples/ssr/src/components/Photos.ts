@@ -6,7 +6,8 @@ import type { Photo } from '@/types'
 export default () =>
   fics({
     name: 'photos',
-    data: () => ({ count: 1, photos, photo: {} as Photo }),
+    data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo }),
+    className: 'mt-4',
     html: ({
       data: {
         photos,
@@ -15,12 +16,10 @@ export default () =>
       template,
       show
     }) => template`
-      <div class="min-h-250 mt-4">
-        ${photos.map(
-          ({ id }) =>
-            template`<img class="clickable mx-auto" src="${api}/id/${id}/200/200.webp?blur" key="${id}" tabindex="0" />`
-        )}
-      </div>
+      ${photos.map(
+        ({ id }) =>
+          template`<img class="clickable mx-auto" src="${api}/id/${id}/200/200.webp?blur" key="${id}" tabindex="0" />`
+      )}
       <dialog class="rounded-xl" open ${show(!!id)}>
         <button class="clickable block text-white p-3 ml-auto">X</button>
         <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
@@ -33,7 +32,7 @@ export default () =>
       }
     },
     hooks: {
-      mounted: async ({ data: { photos, count }, setData, crud }) =>
+      created: async ({ data: { photos, count }, setData, crud }) =>
         await crud<Photo[]>(getPhotos(++count)).then(newPhotos => {
           setData('count', count)
           setData('photos', [...photos, ...newPhotos])
@@ -61,5 +60,6 @@ export default () =>
           { throttle: 500, blur: true }
         ]
       }
-    }
+    },
+    options: { ssr: false }
   })
