@@ -5,8 +5,8 @@
   "scripts": {
     "build:packages": "rm -rf dist && cd ../../packages && rm -rf dist && bun run build && cd ../examples/ssr",
     "build:css": "bunx postcss \"src/{,**/}*.css\" \"!src/**/tailwind.css\" --dir dist --minify && bunx @tailwindcss/cli --input src/tailwind.css --output src/.tailwindcss.txt --minify",
-    "dev": "bun run build:packages && bun run build:css && bun build $(find src -name \"*.ts\" ! -name \"*.d.ts\") --outdir dist --hot --entry-naming [name].[ext] && bun run --hot app.ts",
-    "build": "bun run build:packages && bun run build:css && bun build $(find src -name \"*.ts\" ! -name \"*.d.ts\") --outdir dist --splitting --minify --entry-naming [name].[ext] --chunk-naming [name]-[hash].[ext] && bun run --minify app.ts"
+    "dev": "bun run build:packages && bun run build:css && bun build src/**/*.ts --outdir dist --hot --entry-naming [name].[ext] && bun run --hot app.ts",
+    "build": "bun run build:packages && bun run build:css && bun build src/**/*.ts --outdir dist --splitting --minify --entry-naming [hash].[ext] --chunk-naming [hash].[ext] && bun run --minify app.ts"
   },
   "dependencies": {
     "ficsjs": "*",

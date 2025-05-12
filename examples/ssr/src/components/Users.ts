@@ -72,7 +72,7 @@ export default () =>
           ...users,
           await crud<User>(api, {
             method: 'POST',
-            body: JSON.stringify(users[Math.floor(Math.random() * 10)]),
+            body: JSON.stringify(users[Math.floor(Math.random() * users.length)]),
             headers
           })
         ])
