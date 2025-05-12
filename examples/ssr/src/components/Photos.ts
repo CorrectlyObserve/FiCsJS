@@ -1,13 +1,16 @@
 import { fics } from 'ficsjs'
 import { absoluteCenter, color } from 'ficsjs/style'
+import Skelton from '@/components/Skelton'
 import { api, getPhotos } from '@/data/photos'
 import type { Photo } from '@/types'
+
+const skelton = Skelton()
 
 export default () =>
   fics({
     name: 'photos',
     data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo }),
-    className: 'mt-4',
+    className: 'min-h-200 mt-4',
     html: ({
       data: {
         photos,
@@ -15,16 +18,20 @@ export default () =>
       },
       template,
       show
-    }) => template`
-      ${photos.map(
-        ({ id }) =>
-          template`<img class="clickable mx-auto" src="${api}/id/${id}/200/200.webp?blur" key="${id}" tabindex="0" />`
-      )}
-      <dialog class="rounded-xl" open ${show(!!id)}>
-        <button class="clickable block text-white p-3 ml-auto">X</button>
-        <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
-      </dialog>
-    `,
+    }) => {
+      if (photos.length > 0)
+        return template`
+          ${photos.map(
+            ({ id }) =>
+              template`<img class="clickable mx-auto" src="${api}/id/${id}/200/200.webp?blur" key="${id}" tabindex="0" />`
+          )}
+          <dialog class="rounded-xl" open ${show(!!id)}>
+            <button class="clickable block text-white p-3 ml-auto">X</button>
+            <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+          </dialog>
+        `
+      return template`${[...Array(5)].map(_ => template`${skelton}`)}`
+    },
     css: {
       dialog: {
         ...absoluteCenter('xy', true),
@@ -32,7 +39,7 @@ export default () =>
       }
     },
     hooks: {
-      created: async ({ data: { photos, count }, setData, crud }) =>
+      mounted: async ({ data: { photos, count }, setData, crud }) =>
         await crud<Photo[]>(getPhotos(++count)).then(newPhotos => {
           setData('count', count)
           setData('photos', [...photos, ...newPhotos])
@@ -60,6 +67,5 @@ export default () =>
           { throttle: 500, blur: true }
         ]
       }
-    },
-    options: { ssr: false }
+    }
   })
