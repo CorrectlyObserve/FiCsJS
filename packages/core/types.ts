@@ -24,6 +24,10 @@ export interface Bindings {
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
+export interface CrudOptions<D> extends RequestInit {
+  key?: keyof D
+}
+
 export type Css<D, P> =
   | string
   | { [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined] }
@@ -32,14 +36,7 @@ export type Css<D, P> =
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true
-  ? {
-      crud: {
-        <T>(api: string, options?: RequestInit): Promise<T>
-        (api: string, options: RequestInit & { key: keyof D }): Promise<void>
-      }
-    }
-  : {})
+} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions<D>): Promise<T> } } : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void

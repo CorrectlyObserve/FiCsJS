@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, color, variable } from 'ficsjs/style'
+import { calc, color, flexCenter, variable } from 'ficsjs/style'
 import { white } from '@/utils'
 
 interface Props {
@@ -26,9 +26,7 @@ export default () =>
     `,
     css: {
       div: {
-        display: 'flex',
-        justifyContent: 'center',
-        flexDirection: 'column',
+        ...flexCenter('x', 'column'),
         label: { paddingBottom: variable('xs') },
         textarea: {
           minWidth: calc([variable('md'), 20], '*'),
