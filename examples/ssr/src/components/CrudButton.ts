@@ -14,9 +14,11 @@ export default () =>
   fics<{ isId: (id: number) => boolean }, Props>({
     name: 'crud-button',
     data: () => ({ isId: (id: number) => !isNaN(id) }),
-    html: ({ data: { isId }, props: { id, method }, template }) =>
-      template`<button aria-disabled="${!isId(id)}">${method.toUpperCase()}</button>`,
-    css: { 'button[aria-disabled="true"]': { cursor: 'not-allowed' } },
+    html: ({ data: { isId }, props: { id, method }, template }) => template`
+      <button class="clickable text-white border border-white p-3 rounded-lg" aria-disabled="${!isId(id)}">
+        ${method.toUpperCase()}
+      </button>
+    `,
     actions: {
       button: {
         click: [

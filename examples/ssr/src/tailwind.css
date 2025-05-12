@@ -3,5 +3,19 @@
 @import 'tailwindcss/utilities';
 
 @theme {
-  --color-red-700: #b7282e;
+  --text-base--line-height: 1.2;
+  --text-sm--line-height: 1.2;
+  --color-red: #b7282e;
+}
+
+.clickable {
+  @apply transition duration-200 ease-out;
+
+  &:not([aria-disabled='true']) {
+    @apply cursor-pointer hover:opacity-50 focus:scale-95;
+  }
+
+  &[aria-disabled='true'] {
+    @apply opacity-20 cursor-not-allowed;
+  }
 }

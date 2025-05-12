@@ -1,13 +1,15 @@
 import { Hono } from 'hono'
 import { serveStatic } from '@hono/node-server/serve-static'
-import Users from './src/components/Users'
 import Footer from './src/components/Footer'
+import Link from './src/components/Link'
+import Users from './src/components/Users'
 import Photos from './src/components/Photos'
 
 const app = new Hono()
 
 app.get('/dist/*', serveStatic({ root: './' }))
 
+const footer = Footer()
 const template = ({
   title,
   description,
@@ -29,25 +31,22 @@ const template = ({
         <meta name="description" content="${description}" />
         <link rel="stylesheet" type="text/css" href="./dist/global.css" />
       </head>
-      <body>
-        ${content}
+      <body class="bg-dark px-4 pb-4">
+        <header class="py-2"><h1 class="text-xl text-center font-medium">${title}</h1></header>
+        <main class="mb-8">${content}</main>
+        ${footer.toString()}
         <script type="module" src="./dist${path}.js"></script>
       </body>
     </html>
   `
-
+const link = Link()
 const users = Users()
-const footer = Footer()
 app.get('/', c =>
   c.html(
     template({
       title: 'FiCsJS with Hono',
       description: 'This is a simple example of FiCsJS with Hono in SSR.',
-      content: `
-        <a href="/scroll">Go to the scroll page</a>
-        ${users.toString()}
-        ${footer.toString()}
-      `,
+      content: `${link.toString({ href: '/scroll', text: 'Go to the scroll page' })}${users.toString()}`,
       path: '/index'
     })
   )
@@ -60,11 +59,7 @@ app.get('/scroll', c =>
       title: 'Infinite and virtual scroll',
       description:
         'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
-      content: `
-        <a href="/">Back to the top page</a>
-        ${photos.toString()}
-        ${footer.toString()}
-      `,
+      content: `${link.toString({ href: '/', text: 'Back to the top page' })}${photos.toString()}`,
       path: '/scroll'
     })
   )
