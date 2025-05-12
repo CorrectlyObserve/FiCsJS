@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { absoluteCenter, color } from 'ficsjs/style'
-import { api, getPhotos, photos } from '@/data/photos'
+import { api, getPhotos } from '@/data/photos'
 import type { Photo } from '@/types'
 
 export default () =>
