@@ -373,12 +373,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #getFiCsId(element: Element, isProperty?: boolean): string | null {
-    return isProperty
-      ? (element as any)[this.#convertStr(this.#ficsIdName, 'camel')]
-      : element.getAttribute(this.#ficsIdName)
-  }
-
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
     for (const childNode of target instanceof HTMLElement ? this.#getChildNodes(target) : target)
       childNode.remove()
@@ -412,7 +406,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (isElement(childNode)) {
           if (childNode.localName === this.#varTag) {
-            const ficsId: string | null = this.#getFiCsId(childNode)
+            const ficsId: string | null = childNode.getAttribute(this.#ficsIdName)
+
             if (!ficsId || !(ficsId in this.#descendants))
               throw new Error(
                 `The element ${childNode} does not have a valid ficsId in ${this.#name}...`
@@ -592,7 +587,11 @@ export default class FiCsElement<D extends object, P extends object> {
           } else {
             if (dom.size === 0)
               for (const oldChildNode of oldChildNodes) {
-                if (isElement(oldChildNode) && !!that.#getFiCsId(oldChildNode, true)) continue
+                if (
+                  isElement(oldChildNode) &&
+                  !!(oldChildNode as any)[that.#convertStr(that.#ficsIdName, 'camel')]
+                )
+                  continue
 
                 const mapKey: string = getMapKey(oldChildNode)
                 dom.set(mapKey, [...(dom.get(mapKey) ?? []), oldChildNode])
