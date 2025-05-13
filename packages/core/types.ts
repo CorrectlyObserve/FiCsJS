@@ -57,6 +57,7 @@ export interface FiCs<D extends object, P extends object> {
   html: Html<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
   clonedCss?: Css<D, P>[]
+  eventSource?: string | [string, { withCredentials: boolean }]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
@@ -77,7 +78,7 @@ export type HtmlContent<D extends object, P extends object> =
 
 export interface Hooks<D, P> {
   created?: (params: DataPropsMethods<D, P, true>) => void
-  mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
+  mounted?: (params: DataPropsMethods<D, P, true> & Poll & { eventSource?: EventSource }) => void
   updated?: {
     [K in keyof Partial<D>]: (params: {
       datum: D[K]

@@ -47,6 +47,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
+  readonly #eventSource?: string | [string, { withCredentials: boolean }]
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -71,6 +72,7 @@ export default class FiCsElement<D extends object, P extends object> {
     html,
     css,
     clonedCss,
+    eventSource,
     hooks,
     actions,
     options
@@ -141,6 +143,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
+    if (eventSource && isBrowser()) this.#eventSource = eventSource
     if (hooks) this.#hooks = { ...hooks }
     if (actions) this.#actions = { ...actions }
   }
@@ -828,7 +831,9 @@ export default class FiCsElement<D extends object, P extends object> {
         : addEventListener(handler, _value)
   }
 
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+  #callback(key: 'mounted', eventSource?: EventSource): void
+  #callback(key: Exclude<keyof Hooks<D, P>, 'mounted' | 'updated'>): void
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>, eventSource?: EventSource): void {
     const params: DataPropsMethods<D, P, true> = {
       ...this.#getDataPropsMethods(),
       crud: this.#crud.bind(this)
@@ -853,7 +858,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...params, poll })
+      this.#hooks[key]?.({ ...params, poll, eventSource })
     } else this.#hooks[key]?.(params)
   }
 
@@ -868,6 +873,7 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
+        #_eventSource?: EventSource
 
         constructor() {
           super()
@@ -917,12 +923,18 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this), 0)
             }
 
-            that.#callback('mounted')
+            if (that.#eventSource)
+              this.#_eventSource = checkType(that.#eventSource, 'string')
+                ? new EventSource(that.#eventSource)
+                : new EventSource(that.#eventSource[0], that.#eventSource[1])
+
+            that.#callback('mounted', this.#_eventSource)
             this.#isRendered = true
           }
         }
 
         disconnectedCallback(): void {
+          this.#_eventSource?.close()
           that.#callback('destroyed')
         }
 
