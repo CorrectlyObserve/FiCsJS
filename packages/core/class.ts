@@ -37,6 +37,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #generator: Generator<number> = uid()
   readonly #ficsId: string
   readonly #name: string
+  readonly #isBrowser: boolean
   readonly #data: D = {} as D
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
@@ -104,11 +105,12 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
+    this.#isBrowser = isBrowser()
+
     if (data) {
       let attrData: Partial<D> = {}
-      const _isBrowser: boolean = isBrowser()
 
-      if (_isBrowser) {
+      if (this.#isBrowser) {
         const component: HTMLElement | null = document.getElementById(this.#name)
         if (component) {
           const attr: string | null = component.getAttribute(`data-${this.#name}`)
@@ -121,7 +123,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (deferredData) {
           this.#deferredData = deferredData
-          if (_isBrowser) this.#isDeferred = false
+          if (this.#isBrowser) this.#isDeferred = false
         }
       }
     }
@@ -143,7 +145,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
-    if (eventSource && isBrowser()) this.#eventSource = eventSource
+    if (eventSource && this.#isBrowser) this.#eventSource = eventSource
     if (hooks) this.#hooks = { ...hooks }
     if (actions) this.#actions = { ...actions }
   }
@@ -187,7 +189,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (isBrowser() && window.customElements.get(this.#name)) {
+    if (this.#isBrowser && window.customElements.get(this.#name)) {
       this.#throwKeyError(key, true)
 
       if (this.#props[key] !== value) {
@@ -357,7 +359,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return _descendant
       },
-      isBrowser: isBrowser(),
+      isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred
     })[sanitized]
 
@@ -968,7 +970,7 @@ export default class FiCsElement<D extends object, P extends object> {
         css.map(index => this.#css[index])
       )
 
-    if (isBrowser()) {
+    if (this.#isBrowser) {
       for (const [selector, value] of Object.entries(this.#actions)) {
         const addAllElements = (elements: Element[] | Set<Element>): void => {
           for (const element of elements) {
@@ -1096,7 +1098,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#data[key] !== value) {
       this.#data[key] = value
 
-      if (isBrowser() && this.#components.size > 0)
+      if (this.#isBrowser && this.#components.size > 0)
         this.#enqueue(() => this.#reRender(), 're-render')
 
       for (const { keys, setProps } of this.#propsTrees)
