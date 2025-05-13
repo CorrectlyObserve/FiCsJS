@@ -35,7 +35,7 @@ export const isBrowser = (): boolean => {
 }
 
 export const toArray = <T>(param: SingleOrArray<T>): T[] =>
-  Array.isArray(param) ? [...param] : [param && typeof param === 'object' ? { ...param } : param]
+  Array.isArray(param) ? [...param] : [checkType(param, 'object') ? { ...param } : param]
 
 export function* uid(): Generator<number> {
   let n: number = 1
