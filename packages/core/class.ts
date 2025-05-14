@@ -97,7 +97,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
+      if (rootMargin !== '' && rootMargin !== '0px' && !checkType(rootMargin, 'undefined')) {
         if (!lazyLoad)
           throw new Error(`"rootMargin" in options is enabled only if "lazyLoad" is set to true...`)
 
@@ -669,7 +669,7 @@ export default class FiCsElement<D extends object, P extends object> {
       Object.entries(checkType(style, 'function') ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (
-            value === undefined ||
+            checkType(value, 'undefined') ||
             value === '' ||
             (checkType(value, 'object') && Object.keys(value).length === 0)
           )
