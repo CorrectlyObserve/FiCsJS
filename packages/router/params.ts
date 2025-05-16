@@ -1,4 +1,4 @@
-import { browserError } from '../core/helpers'
+import { browserError, isBrowser } from '../core/helpers'
 import type { Param } from './types'
 
 const pathParam: RegExp = /\/:[^\/]+/g
@@ -28,16 +28,12 @@ export const isPathParam = (path: string): boolean => pathParam.test(path)
 class Params {
   params: Record<Param, Record<string, string>> = { path: {}, query: {} }
 
-  constructor() {
-    browserError()
-  }
-
   set(param: Param, params: Record<string, string>): void {
-    this.params[param] = params
+    this.params[param] = isBrowser() ? params : {}
   }
 
   get(param: Param): Record<string, string> {
-    return this.params[param]
+    return isBrowser() ? this.params[param] : {}
   }
 }
 
