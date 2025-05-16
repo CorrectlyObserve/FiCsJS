@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
+  --font-sans: 'Times New Roman', serif;
   --text-xl: 2rem;
   --text-xl--line-height: 1.5;
   --text-base--line-height: 1.2;
