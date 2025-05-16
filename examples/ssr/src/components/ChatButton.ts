@@ -11,7 +11,7 @@ export default () =>
     className: 'fixed bottom-8 right-4',
     props: [{ descendant: icon, values: () => ({ icon: MessageCircleMore, isLarge: true }) }],
     html: ({ template }) => template`
-      <button class="clickable text-white" aria-label="to the chat page">${icon}</button>
+      <button class="clickable text-white" aria-label="go to the chat page">${icon}</button>
     `,
     css: { ':host > button.clickable:focus': { scale: 0.8 } },
     actions: { button: { click: [() => goto('/chat'), { throttle: 500, blur: true }] } }
