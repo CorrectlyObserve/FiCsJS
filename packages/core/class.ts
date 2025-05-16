@@ -173,7 +173,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (isKeyEnabled) this.setData(key as keyof D, true as D[keyof D])
     const json: T = await fetch(api, _options).then(res => res.json())
-    if (isKeyEnabled) this.setData(key as keyof D, false as D[keyof D])
+    if (isKeyEnabled) setTimeout(() => this.setData(key as keyof D, false as D[keyof D]), 0)
     return json
   }
 
