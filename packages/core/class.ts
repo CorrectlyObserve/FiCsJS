@@ -146,8 +146,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
     if (eventSource && this.#isBrowser) this.#eventSource = eventSource
-    if (hooks) this.#hooks = { ...hooks }
-    if (actions) this.#actions = { ...actions }
+    if (hooks && this.#isBrowser) this.#hooks = { ...hooks }
+    if (actions && this.#isBrowser) this.#actions = { ...actions }
   }
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
