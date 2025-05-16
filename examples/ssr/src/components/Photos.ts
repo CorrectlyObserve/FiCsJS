@@ -12,29 +12,37 @@ const skelton = Skelton()
 export default () =>
   fics({
     name: 'photos',
-    data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo }),
+    data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo, isLoading: false }),
     props: [{ descendant: icon, values: () => ({ icon: X }) }],
     className: 'min-h-200 mt-4',
     html: ({
       data: {
         photos,
-        photo: { id, author }
+        photo: { id, author },
+        isLoading
       },
       template,
-      show
+      show,
+      isBrowser
     }) => {
-      if (photos.length > 0)
-        return template`
+      if (!isBrowser || isLoading) return template`${[...Array(5)].map(_ => template`${skelton}`)}`
+      return template`
           ${photos.map(
-            ({ id }) =>
-              template`<img class="clickable mx-auto" src="${api}/id/${id}/200/200.webp?blur" key="${id}" tabindex="0" />`
+            ({ id, author }) => template`
+              <img
+                class="clickable mx-auto"
+                src="${api}/id/${id}/200/200.webp?blur"
+                alt="the image created by ${author}"
+                key="${id}"
+                tabindex="0"
+              />
+            `
           )}
           <dialog class="rounded-xl" open ${show(!!id)}>
             <button class="clickable block text-white ml-auto">${icon}</button>
             <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
           </dialog>
         `
-      return template`${[...Array(5)].map(_ => template`${skelton}`)}`
     },
     css: {
       dialog: {
@@ -43,8 +51,8 @@ export default () =>
       }
     },
     hooks: {
-      mounted: async ({ data: { photos, count }, setData, crud }) =>
-        await crud<Photo[]>(getPhotos(++count)).then(newPhotos => {
+      created: async ({ data: { photos, count }, setData, crud }) =>
+        await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
           setData('count', count)
           setData('photos', [...photos, ...newPhotos])
         })
