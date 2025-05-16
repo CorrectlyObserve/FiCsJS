@@ -992,7 +992,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   toString(data?: Partial<D>): string {
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
-      that.#initProps(that.#propsChain)
+      that.#initProps(this.#propsChain)
 
       if (that.#options.ssr) {
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
@@ -1061,15 +1061,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
           return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
         }
-
-        const html: string = that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s*/g, '')
         const css: Css<D, P>[] = that.#getCss()
 
         return `
         <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
           <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
           <div id="${that.#name}" slot="${that.#name}"${data ? ` data-${that.#name}='${JSON.stringify(data)}'` : ''}>
-            ${applyShowAttr(applyDescendant(html))}
+            ${applyShowAttr(applyDescendant(that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s/g, '')))}
             ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
           </div>
         </${that.#name}>
