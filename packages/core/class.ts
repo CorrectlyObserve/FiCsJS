@@ -996,13 +996,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (that.#options.ssr) {
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
-        const attrs: string = that
+        const value: string = `${className} ${that
           .#getAttrs()
           .reduce(
             (prev, [key, value]) => `${prev} ${that.#convertStr(key, 'kebab')}="${value}"`,
             ''
-          )
-        const value: string = `${className} ${attrs}`.trim()
+          )}`.trim()
+        const attrs = (name: string): string =>
+          `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
 
         const applyDescendant = (html: string): string => {
           const varBegin: string = `<${that.#varTag} ${that.#ficsIdName}="`
@@ -1061,17 +1062,19 @@ export default class FiCsElement<D extends object, P extends object> {
 
           return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
         }
-        const css: Css<D, P>[] = that.#getCss()
+
+        const html: string = applyShowAttr(
+          applyDescendant(that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s/g, ''))
+        )
+        const css = (_css: Css<D, P>[]): string =>
+          _css.length > 0 ? `<style>${that.#convertCss({ css: _css, mode: 'ssr' })}</style>` : ''
 
         return `
-        <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
-          <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-          <div id="${that.#name}" slot="${that.#name}"${data ? ` data-${that.#name}='${JSON.stringify(data)}'` : ''}>
-            ${applyShowAttr(applyDescendant(that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s/g, '')))}
-            ${css.length > 0 ? `<style>${that.#convertCss({ css, mode: 'ssr' })}</style>` : ''}
-          </div>
-        </${that.#name}>
-      `
+          <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
+            <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
+            <div ${attrs(that.#name)}>${html}${css(that.#getCss())}</div>
+          </${that.#name}>
+        `
       }
 
       return `<${that.#name}></${that.#name}>`
