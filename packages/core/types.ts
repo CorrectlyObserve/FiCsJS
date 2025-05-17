@@ -57,7 +57,7 @@ export interface FiCs<D extends object, P extends object> {
   html: Html<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
   clonedCss?: Css<D, P>[]
-  eventSource?: string | [string, { withCredentials: boolean }]
+  sse?: ServerSentEvents<D, P>
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
@@ -78,7 +78,7 @@ export type HtmlContent<D extends object, P extends object> =
 
 export interface Hooks<D, P> {
   created?: (params: DataPropsMethods<D, P, true>) => void
-  mounted?: (params: DataPropsMethods<D, P, true> & Poll & { eventSource?: EventSource }) => void
+  mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
   updated?: {
     [K in keyof Partial<D>]: (params: {
       datum: D[K]
@@ -140,7 +140,20 @@ export interface Queue {
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
+export interface ServerSentEvents<D, P> {
+  path: string
+  withCredentials?: boolean
+  onopen?: (params: Omit<Method<D, P>, 'attributes' | 'value'>) => void
+  onmessage?: (params: DataPropsMethods<D, P> & { event: MessageEvent }) => void
+  onerror?: (params: Omit<Method<D, P>, 'attributes' | 'value'>) => void
+  actions?: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+}
+
 export type SingleOrArray<T> = T | T[]
+
+export type SSEMethod<D, P> = (
+  params: DataPropsMethods<D, P, true> & { event: MessageEvent }
+) => void
 
 export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
 
