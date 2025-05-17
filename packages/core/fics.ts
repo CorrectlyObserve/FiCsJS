@@ -10,7 +10,7 @@ export default <D extends object, P extends object>({
   attributes,
   html,
   css,
-  eventSource,
+  sse,
   hooks,
   actions,
   options
@@ -24,7 +24,7 @@ export default <D extends object, P extends object>({
     attributes,
     html,
     css,
-    eventSource,
+    sse,
     hooks,
     actions,
     options
