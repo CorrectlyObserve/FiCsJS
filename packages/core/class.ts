@@ -25,6 +25,8 @@ import type {
   PropsTree,
   Queue,
   Sanitized,
+  ServerSentEvents,
+  SSEMethod,
   Style
 } from './types'
 
@@ -48,7 +50,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
-  readonly #eventSource?: string | [string, { withCredentials: boolean }]
+  readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -73,7 +75,7 @@ export default class FiCsElement<D extends object, P extends object> {
     html,
     css,
     clonedCss,
-    eventSource,
+    sse,
     hooks,
     actions,
     options
@@ -145,7 +147,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
-    if (eventSource && this.#isBrowser) this.#eventSource = eventSource
+    if (sse && this.#isBrowser) this.#sse = { ...sse }
     if (hooks && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && this.#isBrowser) this.#actions = { ...actions }
   }
@@ -159,12 +161,14 @@ export default class FiCsElement<D extends object, P extends object> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
 
-  #getDataPropsMethods(): DataPropsMethods<D, P> {
-    return {
+  #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
+    const base: DataPropsMethods<D, P> = {
       ...this.#getDataProps(),
       setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
+
+    return (isCrud ? { ...base, crud: this.#crud.bind(this) } : base) as DataPropsMethods<D, P, B>
   }
 
   async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
@@ -206,12 +210,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
       for (const { descendant, values } of this.#propsSources)
         for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
-          const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods()
+          const { data, props, setData, crud }: DataPropsMethods<D, P, true> =
+            this.#getDataPropsMethods(true)
           const descendantId: string = _descendant.#ficsId
 
-          for (const [key, value] of Object.entries(
-            values({ data, props, setData, crud: this.#crud.bind(this) })
-          )) {
+          for (const [key, value] of Object.entries(values({ data, props, setData, crud }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
 
             if (key in chain && propsChain.has(descendantId)) continue
@@ -797,8 +800,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const callback = (event: Event): void => {
         method({
-          ...this.#getDataPropsMethods(),
-          crud: this.#crud.bind(this),
+          ...this.#getDataPropsMethods(true),
           event,
           attributes: attrs,
           value:
@@ -832,14 +834,7 @@ export default class FiCsElement<D extends object, P extends object> {
         : addEventListener(handler, _value)
   }
 
-  #callback(key: 'mounted', eventSource?: EventSource): void
-  #callback(key: Exclude<keyof Hooks<D, P>, 'mounted' | 'updated'>): void
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>, eventSource?: EventSource): void {
-    const params: DataPropsMethods<D, P, true> = {
-      ...this.#getDataPropsMethods(),
-      crud: this.#crud.bind(this)
-    }
-
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     if (key === 'mounted') {
       const poll = (
         func: ({ times }: { times: number }) => void,
@@ -859,8 +854,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...params, poll, eventSource })
-    } else this.#hooks[key]?.(params)
+      this.#hooks[key]?.({ ...this.#getDataPropsMethods(true), poll })
+    } else this.#hooks[key]?.({ ...this.#getDataPropsMethods(true) })
   }
 
   #define(): void {
@@ -874,7 +869,7 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
-        #_eventSource?: EventSource
+        #eventSource?: EventSource
 
         constructor() {
           super()
@@ -924,18 +919,71 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this), 0)
             }
 
-            if (that.#eventSource)
-              this.#_eventSource = checkType(that.#eventSource, 'string')
-                ? new EventSource(that.#eventSource)
-                : new EventSource(that.#eventSource[0], that.#eventSource[1])
+            if ('path' in that.#sse) {
+              const {
+                path,
+                withCredentials,
+                onopen,
+                onmessage,
+                onerror,
+                actions
+              }: ServerSentEvents<D, P> = that.#sse
+              this.#eventSource = new EventSource(path, { withCredentials })
 
-            that.#callback('mounted', this.#_eventSource)
+              if (onopen)
+                this.#eventSource.onopen = (event: Event): void =>
+                  onopen({ ...that.#getDataPropsMethods(), event })
+
+              if (onmessage)
+                this.#eventSource.onmessage = (event: MessageEvent): void =>
+                  onmessage({ ...that.#getDataPropsMethods(), event })
+
+              if (onerror)
+                this.#eventSource.onerror = (event: Event): void =>
+                  onerror({ ...that.#getDataPropsMethods(), event })
+
+              if (actions) {
+                const addEventListener = (
+                  eventSource: EventSource,
+                  handler: string,
+                  method: SSEMethod<D, P>,
+                  options?: ActionOptions
+                ): void => {
+                  const { debounce, throttle, once }: ActionOptions = options ?? {}
+
+                  if (debounce && throttle)
+                    throw new Error(
+                      'Debounce and throttle should not be combined in the same event handler...'
+                    )
+
+                  const callback = (event: MessageEvent): void =>
+                    method({ ...that.#getDataPropsMethods(true), event })
+
+                  eventSource.addEventListener(
+                    handler,
+                    debounce
+                      ? that.#debounce(callback, debounce)
+                      : throttle
+                        ? that.#throttle(callback, throttle)
+                        : callback,
+                    { once }
+                  )
+                }
+
+                for (const [handler, value] of Object.entries(actions))
+                  Array.isArray(value)
+                    ? addEventListener(this.#eventSource, handler, value[0], value[1])
+                    : addEventListener(this.#eventSource, handler, value)
+              }
+            }
+
+            that.#callback('mounted')
             this.#isRendered = true
           }
         }
 
         disconnectedCallback(): void {
-          this.#_eventSource?.close()
+          this.#eventSource?.close()
           that.#callback('destroyed')
         }
 
