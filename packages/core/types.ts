@@ -57,10 +57,10 @@ export interface FiCs<D extends object, P extends object> {
   html: Html<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
   clonedCss?: Css<D, P>[]
-  sse?: ServerSentEvents<D, P>
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
+  sse?: ServerSentEvents<D, P>
 }
 
 export interface GlobalCssContent {
