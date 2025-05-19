@@ -50,10 +50,10 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
-  readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #propsTrees: PropsTree[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
@@ -75,10 +75,10 @@ export default class FiCsElement<D extends object, P extends object> {
     html,
     css,
     clonedCss,
-    sse,
     hooks,
     actions,
-    options
+    options,
+    sse
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
@@ -147,9 +147,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
-    if (sse && this.#isBrowser) this.#sse = { ...sse }
     if (hooks && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && this.#isBrowser) this.#actions = { ...actions }
+    if (sse && this.#isBrowser) this.#sse = { ...sse }
   }
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
