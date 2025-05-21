@@ -29,7 +29,8 @@ export default () =>
       template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</d></header>`,
     css: {
       ':host': {
-        position: 'fixed',
+        position: 'sticky',
+        top: 0,
         width: '100vw',
         background: variable('black'),
         zIndex: 10,
