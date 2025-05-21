@@ -25,6 +25,7 @@ import type {
   PropsTree,
   Queue,
   Sanitized,
+  Scroll,
   ServerSentEvents,
   SSEMethod,
   Style
@@ -932,15 +933,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
               if (onopen)
                 this.#eventSource.onopen = (event: Event): void =>
-                  onopen({ ...that.#getDataPropsMethods(), event })
+                  onopen({ ...that.#getDataPropsMethods(true), event })
 
               if (onmessage)
                 this.#eventSource.onmessage = (event: MessageEvent): void =>
-                  onmessage({ ...that.#getDataPropsMethods(), event })
+                  onmessage({ ...that.#getDataPropsMethods(true), event })
 
               if (onerror)
                 this.#eventSource.onerror = (event: Event): void =>
-                  onerror({ ...that.#getDataPropsMethods(), event })
+                  onerror({ ...that.#getDataPropsMethods(true), event })
 
               if (actions) {
                 const addEventListener = (
