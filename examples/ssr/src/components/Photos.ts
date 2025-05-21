@@ -28,14 +28,17 @@ export default () =>
       if (!isBrowser || isLoading) return template`${[...Array(5)].map(_ => template`${skelton}`)}`
       return template`
           ${photos.map(
-            ({ id, author }) => template`
-              <img
-                class="clickable mx-auto"
-                src="${api}/id/${id}/200/200.webp?blur"
-                alt="the image created by ${author}"
-                key="${id}"
-                tabindex="0"
-              />
+            ({ id, author, isLoaded }) => template`
+              <div class="relative" key="${id}-container">
+                <img
+                  class="clickable mx-auto"
+                  src="${api}/id/${id}/200/200.webp?blur"
+                  alt="the image created by ${author}"
+                  key="${id}"
+                  tabindex="0"
+                />
+                <div class="bg-dark top-0" key="${id}-skelton" ${show(!isLoaded)}>${skelton}</div>
+              </div>
             `
           )}
           <dialog class="rounded-xl" open ${show(!!id)}>
@@ -45,8 +48,9 @@ export default () =>
         `
     },
     css: {
+      'div.bg-dark': { ...absoluteCenter('x') },
       dialog: {
-        ...absoluteCenter('xy', true),
+        ...absoluteCenter('xy', 'fixed'),
         background: `${color({ hex: '#282828', rate: 0.5 })}`
       }
     },
@@ -58,6 +62,19 @@ export default () =>
         })
     },
     actions: {
+      img: {
+        load: [
+          ({ data: { photos }, setData, attributes: { key } }) =>
+            setData(
+              'photos',
+              photos.map(photo => {
+                if (photo.id === key) photo.isLoaded = true
+                return photo
+              })
+            ),
+          { once: true }
+        ]
+      },
       '.clickable': {
         click: [
           ({
@@ -66,16 +83,14 @@ export default () =>
               photo: { id }
             },
             setData,
-            attributes
-          }) => {
-            const { key }: { key?: string } = attributes
+            attributes: { key }
+          }) =>
             setData(
               'photo',
               !!id && (key === id || key === undefined)
                 ? ({} as Photo)
-                : { id: key, author: photos[parseInt(key)]?.author }
-            )
-          },
+                : { id: key, author: photos[parseInt(key)]?.author, isLoaded: false }
+            ),
           { throttle: 500, blur: true }
         ]
       }
