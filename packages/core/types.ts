@@ -143,9 +143,9 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 export interface ServerSentEvents<D, P> {
   path: string
   withCredentials?: boolean
-  onopen?: (params: Omit<Method<D, P>, 'attributes' | 'value'>) => void
-  onmessage?: (params: DataPropsMethods<D, P> & { event: MessageEvent }) => void
-  onerror?: (params: Omit<Method<D, P>, 'attributes' | 'value'>) => void
+  onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+  onmessage?: (params: DataPropsMethods<D, P, true> & { event: MessageEvent }) => void
+  onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
   actions?: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
 }
 
