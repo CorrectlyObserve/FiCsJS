@@ -144,6 +144,7 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 export interface Scroll<D, P> {
   area: string
   rootMargin?: string
+  trigger?: ({ data }: { data: D }) => boolean
   method: (params: DataPropsMethods<D, P, true>) => void
 }
 
