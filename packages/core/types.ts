@@ -60,7 +60,7 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
-  scroll?: Scroll<D, P>
+  scroll?: Omit<Scroll<D, P>, 'isEnabled'>
   sse?: ServerSentEvents<D, P>
 }
 
@@ -142,6 +142,7 @@ export interface Queue {
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Scroll<D, P> {
+  isEnabled: boolean
   area: string
   rootMargin?: string
   trigger?: ({ data }: { data: D }) => boolean
