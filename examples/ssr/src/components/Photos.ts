@@ -13,53 +13,53 @@ export default () =>
   fics({
     name: 'photos',
     data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo, isLoading: false }),
+    deferredData: async ({ data: { count }, crud }) =>
+      await crud<Photo[]>(getPhotos(++count)).then(photos => ({ count, photos })),
     props: [{ descendant: icon, values: () => ({ icon: X }) }],
     className: 'min-h-200 mt-4',
     html: ({
       data: {
         photos,
-        photo: { id, author },
-        isLoading
+        photo: { id, author }
       },
       template,
       show,
-      isBrowser
+      isBrowser,
+      isDeferred
     }) => {
-      if (!isBrowser || isLoading) return template`${[...Array(5)].map(_ => template`${skelton}`)}`
+      if (!isBrowser || !isDeferred)
+        return template`${[...Array(5)].map(_ => template`${skelton}`)}`
+
       return template`
+        <div class="images">
           ${photos.map(
             ({ id, author, isLoaded }) => template`
-              <div class="relative" key="${id}-container">
+              <div class="relative h-50" key="${id}-container">
+                ${skelton}
                 <img
                   class="clickable mx-auto"
                   src="${api}/id/${id}/200/200.webp?blur"
                   alt="the image created by ${author}"
                   key="${id}"
                   tabindex="0"
+                  ${show(isLoaded)}
                 />
-                <div class="bg-dark top-0" key="${id}-skelton" ${show(!isLoaded)}>${skelton}</div>
               </div>
             `
           )}
-          <dialog class="rounded-xl" open ${show(!!id)}>
-            <button class="clickable block text-white ml-auto">${icon}</button>
-            <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
-          </dialog>
-        `
+        </div>
+        <dialog class="rounded-xl" open ${show(!!id)}>
+          <button class="clickable block text-white ml-auto">${icon}</button>
+          <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+        </dialog>
+      `
     },
     css: {
-      'div.bg-dark': { ...absoluteCenter('x') },
+      img: { ...absoluteCenter('x'), top: 0 },
       dialog: {
         ...absoluteCenter('xy', 'fixed'),
         background: `${color({ hex: '#282828', rate: 0.5 })}`
       }
-    },
-    hooks: {
-      created: async ({ data: { photos, count }, setData, crud }) =>
-        await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
-          setData('count', count)
-          setData('photos', [...photos, ...newPhotos])
-        })
     },
     actions: {
       img: {
@@ -94,5 +94,14 @@ export default () =>
           { throttle: 500, blur: true }
         ]
       }
+    },
+    scroll: {
+      area: 'div.images',
+      trigger: ({ data: { photos } }) => photos.length > 0,
+      method: async ({ data: { photos, count }, setData, crud }) =>
+        await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
+          setData('count', count)
+          setData('photos', [...photos, ...newPhotos])
+        })
     }
   })
