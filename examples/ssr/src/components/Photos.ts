@@ -97,6 +97,7 @@ export default () =>
     },
     scroll: {
       area: 'div.images',
+      rootMargin: '200px 0px 0px 0px',
       trigger: ({ data: { photos } }) => photos.length > 0,
       method: async ({ data: { photos, count }, setData, crud }) =>
         await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
