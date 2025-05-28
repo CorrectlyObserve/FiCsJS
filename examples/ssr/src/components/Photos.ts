@@ -1,13 +1,14 @@
 import { fics } from 'ficsjs'
+import { goto } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import Skelton from '@/components/Skelton'
+import Skeleton from '@/components/Skeleton'
 import { api, getPhotos } from '@/data/photos'
 import type { Photo } from '@/types'
 import { X } from 'lucide-static'
 
 const icon = Icon()
-const skelton = Skelton()
+const skelton = Skeleton()
 
 export default () =>
   fics({
@@ -16,19 +17,21 @@ export default () =>
     deferredData: async ({ data: { count }, crud }) =>
       await crud<Photo[]>(getPhotos(++count)).then(photos => ({ count, photos })),
     props: [{ descendant: icon, values: () => ({ icon: X }) }],
-    className: 'min-h-200 mt-4',
+    className: 'min-h-200',
     html: ({
       data: {
         photos,
-        photo: { id, author }
+        photo: { id, author },
+        isLoading
       },
       template,
       show,
       isBrowser,
       isDeferred
     }) => {
-      if (!isBrowser || !isDeferred)
-        return template`${[...Array(5)].map(_ => template`${skelton}`)}`
+      const skeletons = template`${[...Array(5)].map(_ => template`${Skeleton()}`)}`
+
+      if (!isBrowser || !isDeferred) return skeletons
 
       return template`
         <div class="images">
@@ -47,6 +50,7 @@ export default () =>
               </div>
             `
           )}
+          ${isLoading ? skeletons : ''}
         </div>
         <dialog class="rounded-xl" open ${show(!!id)}>
           <button class="clickable block text-white ml-auto">${icon}</button>
@@ -103,6 +107,7 @@ export default () =>
         await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
           setData('count', count)
           setData('photos', [...photos, ...newPhotos])
+          goto(`/scroll?page=${count}`, { reload: false })
         })
     }
   })
