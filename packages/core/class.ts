@@ -54,6 +54,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #propsTrees: PropsTree[] = new Array()
   readonly #descendants: Record<string, FiCsElement<D, P>> = {}
@@ -79,6 +80,7 @@ export default class FiCsElement<D extends object, P extends object> {
     hooks,
     actions,
     options,
+    scroll,
     sse
   }: FiCs<D, P>) {
     name = name.trim()
@@ -102,7 +104,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (rootMargin !== '' && rootMargin !== '0px' && !checkType(rootMargin, 'undefined')) {
         if (!lazyLoad)
-          throw new Error(`"rootMargin" in options is enabled only if "lazyLoad" is set to true...`)
+          throw new Error(
+            `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
+          )
 
         this.#options.rootMargin = rootMargin
       }
@@ -150,6 +154,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (clonedCss) this.#css = [...clonedCss]
     if (hooks && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && this.#isBrowser) this.#actions = { ...actions }
+    if (scroll && this.#isBrowser) this.#scroll = { ...scroll, isEnabled: false }
     if (sse && this.#isBrowser) this.#sse = { ...sse }
   }
 
@@ -185,7 +190,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
     if (!(key in (isProps ? this.#props : this.#data)))
       throw new Error(
-        `"${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
+        `The "${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
       )
   }
 
@@ -835,7 +840,47 @@ export default class FiCsElement<D extends object, P extends object> {
         : addEventListener(handler, _value)
   }
 
+  #infiniteScroll(shadowRoot: ShadowRoot): void {
+    if ('area' in this.#scroll && !this.#scroll.isEnabled) {
+      const { area, rootMargin, trigger, method }: Scroll<D, P> = this.#scroll
+      const _trigger: boolean | undefined = trigger?.({ data: this.#data })
+
+      if (checkType(_trigger, 'undefined') || _trigger) {
+        const root: Element | null = shadowRoot.querySelector(area)
+
+        if (!root)
+          throw new Error(`The "${area}" is not found in the shadowRoot of ${this.#name}...`)
+
+        let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
+
+        if (lastChild) {
+          const intersectionObserver: IntersectionObserver = new IntersectionObserver(
+            async ([{ isIntersecting }]) => {
+              if (isIntersecting) method({ ...this.#getDataPropsMethods(true) })
+            },
+            { rootMargin }
+          )
+
+          const mutationObserver = new MutationObserver(() => {
+            const { lastElementChild }: { lastElementChild: Element | null } = root
+
+            if (lastElementChild && lastElementChild !== lastChild) {
+              if (lastChild) intersectionObserver.unobserve(lastChild)
+              intersectionObserver.observe(lastElementChild)
+              lastChild = lastElementChild
+            }
+          })
+
+          intersectionObserver.observe(lastChild)
+          mutationObserver.observe(root, { childList: true })
+          this.#scroll.isEnabled = true
+        }
+      }
+    }
+  }
+
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+    if (this.#hooks?.[key] === undefined) return
     if (key === 'mounted') {
       const poll = (
         func: ({ times }: { times: number }) => void,
@@ -855,8 +900,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }, interval)
       }
 
-      this.#hooks[key]?.({ ...this.#getDataPropsMethods(true), poll })
-    } else this.#hooks[key]?.({ ...this.#getDataPropsMethods(true) })
+      this.#hooks[key]({ ...this.#getDataPropsMethods(true), poll })
+    } else this.#hooks[key]({ ...this.#getDataPropsMethods(true) })
   }
 
   #define(): void {
@@ -882,7 +927,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (that.#deferredData)
             that.#enqueue(async () => {
               for (const [key, value] of Object.entries(
-                await that.#deferredData!({ ...that.#getDataProps(), crud: that.#crud })
+                await that.#deferredData!({ ...that.#getDataProps(), crud: that.#crud.bind(that) })
               ))
                 that.setData(key as keyof D, value as D[keyof D])
 
@@ -919,6 +964,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
               setTimeout(() => observer.observe(this), 0)
             }
+
+            that.#infiniteScroll(this.#shadowRoot)
 
             if ('path' in that.#sse) {
               const {
@@ -1148,7 +1195,10 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#data[key] = value
 
       if (this.#isBrowser && this.#components.size > 0)
-        this.#enqueue(() => this.#reRender(), 're-render')
+        this.#enqueue(() => {
+          this.#reRender()
+          this.#infiniteScroll(this.#getShadowRoot(this.#components.values().next().value!))
+        }, 're-render')
 
       for (const { keys, setProps } of this.#propsTrees)
         if (checkType(key, 'string') && keys[key]) setProps()
