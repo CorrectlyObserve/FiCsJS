@@ -44,7 +44,7 @@ export default () =>
       }
     ],
     html: ({ data: { users, userId, methods }, template, setProps }) => template`
-      <div class="buttons mt-4 mb-7 gap-4">${methods.map(method => setProps(button, { method }))}</div>
+      <div class="buttons mb-7 gap-4">${methods.map(method => setProps(button, { method }))}</div>
       <div class="space-y-4">
         ${users.map(user => {
           const textColor = `${userId === user.id ? 'text-red' : 'text-white'}`
