@@ -7,10 +7,7 @@ export default () =>
   fics({
     name: 'tab',
     data: () => ({
-      tabs: [
-        { href: '/chat', text: 'Chat' },
-        { href: '/chat?tab=logs', text: 'Logs' }
-      ],
+      tabs: [{ text: 'Chat' }, { query: '?tab=logs', text: 'Logs' }],
       currentPath: ''
     }),
     html: ({ data: { tabs }, template, setData, setProps }) => {
@@ -21,10 +18,12 @@ export default () =>
 
       return template`
         <div class="buttons mb-7 gap-4">
-          ${tabs.map(
-            ({ href, text }) => template`
+          ${tabs.map(({ query, text }) => {
+            const href = `/chat${query ?? ''}`
+
+            return template`
               ${setProps(button, {
-                isDisabled: href === `${pathname}${search}`,
+                isDisabled: href === path,
                 text,
                 click: () => {
                   goto(href, { reload: true })
@@ -32,7 +31,7 @@ export default () =>
                 }
               })}
             `
-          )}
+          })}
         </div>
       `
     },
