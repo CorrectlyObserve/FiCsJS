@@ -1,5 +1,5 @@
 import { ficsCss } from 'ficsjs'
-import Link from '@/components/Link'
+import Link from '@/components/materials/Link'
 import Users from '@/components/Users'
 import ChatButton from '@/components/ChatButton'
 import css from '@/.tailwindcss.txt'
