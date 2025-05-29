@@ -128,9 +128,9 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries({ ...data(), ...attrData })) {
         this.#data[key as keyof D] = value as D[keyof D]
 
-        if (deferredData) {
+        if (deferredData && this.#isBrowser) {
           this.#deferredData = deferredData
-          if (this.#isBrowser) this.#isDeferred = false
+          this.#isDeferred = false
         }
       }
     }
