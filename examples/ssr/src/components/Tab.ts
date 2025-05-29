@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { flexCenter } from 'ficsjs/style'
-import Button from '@/components/Button'
+import Button from '@/components/materials/Button'
 
 export default () =>
   fics({
