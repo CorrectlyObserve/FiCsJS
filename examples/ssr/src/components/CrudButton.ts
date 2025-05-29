@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import Button from '@/components/materials/Button'
 
 interface Props {
   id: number
@@ -10,28 +11,27 @@ interface Props {
   ) => void
 }
 
+const button = Button()
+
 export default () =>
-  fics<{ isId: (id: number) => boolean }, Props>({
+  fics<{}, Props>({
     name: 'crud-button',
-    data: () => ({ isId: (id: number) => !isNaN(id) }),
-    html: ({ data: { isId }, props: { id, method }, template }) => template`
-      <button class="clickable text-white border border-white p-3 rounded-lg" aria-disabled="${!isId(id)}">
-        ${method.toUpperCase()}
-      </button>
-    `,
-    actions: {
-      button: {
-        click: [
-          ({ data: { isId }, props: { id, method, deleteMethod, updateMethod } }) => {
-            if (isId(id))
+    props: [
+      {
+        descendant: button,
+        values: ({ props: { id, method, deleteMethod, updateMethod } }) => ({
+          isDisabled: isNaN(id),
+          text: method.toUpperCase(),
+          click: () => {
+            if (!isNaN(id))
               if (method === 'delete') deleteMethod(id)
               else {
                 const name = prompt('Please enter a new user name.')
                 if (name) updateMethod({ id, name }, method)
               }
-          },
-          { throttle: 500, blur: true }
-        ]
+          }
+        })
       }
-    }
+    ],
+    html: ({ template }) => template`${button}`
   })
