@@ -854,7 +854,14 @@ export default class FiCsElement<D extends object, P extends object> {
         let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
 
         if (lastChild) {
-          const reObserve = (): void => {
+          const intersectionObserver: IntersectionObserver = new IntersectionObserver(
+            async ([{ isIntersecting }]) => {
+              if (isIntersecting) method({ ...this.#getDataPropsMethods(true) })
+            },
+            { rootMargin }
+          )
+
+          const mutationObserver = new MutationObserver(() => {
             const { lastElementChild }: { lastElementChild: Element | null } = root
 
             if (lastElementChild && lastElementChild !== lastChild) {
@@ -862,20 +869,9 @@ export default class FiCsElement<D extends object, P extends object> {
               intersectionObserver.observe(lastElementChild)
               lastChild = lastElementChild
             }
-          }
-          const intersectionObserver: IntersectionObserver = new IntersectionObserver(
-            async ([{ isIntersecting }]) => {
-              if (isIntersecting) {
-                method({ ...this.#getDataPropsMethods(true) })
-                reObserve()
-              }
-            },
-            { rootMargin }
-          )
+          })
 
           intersectionObserver.observe(lastChild)
-
-          const mutationObserver = new MutationObserver(() => reObserve())
           mutationObserver.observe(root, { childList: true })
           this.#scroll.isEnabled = true
         }
