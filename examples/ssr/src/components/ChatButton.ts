@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import Icon from '@/components/Icon'
+import Icon from '@/components/materials/Icon'
 import { MessageCircleMore } from 'lucide-static'
 
 const icon = Icon()
