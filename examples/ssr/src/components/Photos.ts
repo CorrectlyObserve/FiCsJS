@@ -1,8 +1,8 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
-import Icon from '@/components/Icon'
-import Skeleton from '@/components/Skeleton'
+import Icon from '@/components/materials/Icon'
+import Skeleton from '@/components/materials/Skeleton'
 import { api, getPhotos } from '@/data/photos'
 import type { Photo } from '@/types'
 import { X } from 'lucide-static'
@@ -50,8 +50,8 @@ export default () =>
               </div>
             `
           )}
+          </div>
           ${isLoading ? skeletons : ''}
-        </div>
         <dialog class="rounded-xl" open ${show(!!id)}>
           <button class="clickable block text-white ml-auto">${icon}</button>
           <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
@@ -101,7 +101,7 @@ export default () =>
     },
     scroll: {
       area: 'div.images',
-      rootMargin: '200px 0px 0px 0px',
+      rootMargin: '100px 0px 0px 0px',
       trigger: ({ data: { photos } }) => photos.length > 0,
       method: async ({ data: { photos, count }, setData, crud }) =>
         await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
