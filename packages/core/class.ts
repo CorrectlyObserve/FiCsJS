@@ -346,8 +346,6 @@ export default class FiCsElement<D extends object, P extends object> {
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (descendant: Descendant, props: object): Descendant => {
-        descendant.#initProps(this.#propsChain)
-
         const _descendant: Descendant = new FiCsElement({
           name: `${descendant.#name.slice(2)}`,
           ficsId: `${descendant.#ficsId}-${descendant.#generator.next().value}`,
@@ -365,6 +363,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         for (const [key, value] of Object.entries({ ...descendant.#props, ...props }))
           _descendant.#setProps(key, value)
+
+        _descendant.#initProps(this.#propsChain)
 
         return _descendant
       },
