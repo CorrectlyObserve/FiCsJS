@@ -296,10 +296,6 @@ export default class FiCsElement<D extends object, P extends object> {
       component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
-  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
-    return Array.from(parent.childNodes)
-  }
-
   #convertTemplate(): string {
     const sanitized: unique symbol = Symbol(`${this.#ficsId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#ficsId}-unsanitized`)
@@ -380,6 +376,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return `${prev}${curr}`
     }, '') as string
+  }
+
+  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
+    return Array.from(parent.childNodes)
   }
 
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
