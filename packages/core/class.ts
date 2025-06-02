@@ -57,7 +57,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #propsTrees: PropsTree[] = new Array()
-  readonly #descendants: Record<string, FiCsElement<D, P>> = {}
+  readonly #descendantStore: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
@@ -370,7 +370,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     return contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
-        if (!(curr.#ficsId in this.#descendants)) this.#descendants[curr.#ficsId] = curr
+        if (!(curr.#ficsId in this.#descendantStore)) this.#descendantStore[curr.#ficsId] = curr
         curr = `<${this.#varTag} ${this.#ficsIdName}="${curr.#ficsId}"></${this.#varTag}>`
       }
 
@@ -417,12 +417,12 @@ export default class FiCsElement<D extends object, P extends object> {
           if (childNode.localName === this.#varTag) {
             const ficsId: string | null = childNode.getAttribute(this.#ficsIdName)
 
-            if (!ficsId || !(ficsId in this.#descendants))
+            if (!ficsId || !(ficsId in this.#descendantStore))
               throw new Error(
                 `The element ${childNode} does not have a valid ficsId in ${this.#name}...`
               )
 
-            const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
+            const descendant: FiCsElement<D, P> = this.#descendantStore[ficsId]
             descendant.#initProps(this.#propsChain)
             descendant.#callback('created')
             descendant.#enqueue(() => descendant.#define(), 'define')
@@ -1114,10 +1114,10 @@ export default class FiCsElement<D extends object, P extends object> {
           const next: string = applyDescendant(html.slice(varEndIndex + varEnd.length))
           const ficsId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
 
-          if (!(ficsId in that.#descendants))
+          if (!(ficsId in that.#descendantStore))
             throw new Error(`The element does not have a valid ficsId in ${that.#name}...`)
 
-          return `${prev}${render(that.#descendants[ficsId])}${next}`
+          return `${prev}${render(that.#descendantStore[ficsId])}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
