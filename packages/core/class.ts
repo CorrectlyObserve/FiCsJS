@@ -39,6 +39,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsIdName: string = 'fics-id'
   readonly #generator: Generator<number> = uid()
   readonly #ficsId: string
+  readonly #instanceId: string
   readonly #name: string
   readonly #isBrowser: boolean
   readonly #data: D = {} as D
@@ -69,6 +70,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     isExceptional,
     ficsId,
+    instanceId,
     data,
     deferredData,
     props,
@@ -91,6 +93,7 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
+    this.#instanceId = instanceId ?? this.#ficsId
 
     if (!nameGenerators[name]) nameGenerators[name] = uid()
     names[name] = nameGenerators[name].next().value
@@ -211,14 +214,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #initProps(propsChain: PropsChain<P>): void {
     if (!this.#isInitialized) {
-      for (const [key, value] of Object.entries(propsChain.get(this.#ficsId) ?? {}))
+      for (const [key, value] of Object.entries(propsChain.get(this.#instanceId) ?? {}))
         if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
 
       for (const { descendant, values } of this.#propsSources)
         for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
           const { data, props, setData, crud }: DataPropsMethods<D, P, true> =
             this.#getDataPropsMethods(true)
-          const descendantId: string = _descendant.#ficsId
+          const descendantId: string = _descendant.#instanceId
 
           for (const [key, value] of Object.entries(values({ data, props, setData, crud }))) {
             const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
@@ -345,6 +348,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const _descendant: Descendant = new FiCsElement({
           name: `${descendant.#name.slice(2)}`,
           ficsId: `${descendant.#ficsId}-${descendant.#generator.next().value}`,
+          instanceId: descendant.#ficsId,
           data: () => descendant.#data,
           deferredData: descendant.#deferredData,
           props: descendant.#propsSources,
