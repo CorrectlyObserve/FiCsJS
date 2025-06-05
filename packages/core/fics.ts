@@ -15,7 +15,7 @@ export default <D extends object, P extends object>({
   options,
   scroll,
   sse
-}: Omit<FiCs<D, P>, 'isExceptional' | 'ficsId' | 'clonedCss'>): FiCsElement<D, P> =>
+}: Omit<FiCs<D, P>, 'isExceptional' | 'ficsId' | 'instanceId' | 'clonedCss'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
     data,
