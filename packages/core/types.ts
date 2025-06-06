@@ -45,11 +45,16 @@ export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, 
 
 export type Descendant = FiCsElement<any, any>
 
+export interface Descendants {
+  [key: string]: Descendant | Descendants
+}
+
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   ficsId?: string
   instanceId?: string
+  children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
