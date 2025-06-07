@@ -54,7 +54,7 @@ export interface FiCs<D extends object, P extends object> {
   isExceptional?: boolean
   ficsId?: string
   instanceId?: string
-  children?: Descendant[]
+  descendants?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
