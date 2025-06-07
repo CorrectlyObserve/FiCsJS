@@ -3,7 +3,7 @@ import type { FiCs } from './types'
 
 export default <D extends object, P extends object>({
   name,
-  descendants,
+  children,
   data,
   deferredData,
   props,
@@ -19,7 +19,7 @@ export default <D extends object, P extends object>({
 }: Omit<FiCs<D, P>, 'isExceptional' | 'ficsId' | 'instanceId' | 'clonedCss'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
-    descendants,
+    children,
     data,
     deferredData,
     props,
