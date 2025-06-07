@@ -22,6 +22,8 @@ export interface Bindings {
   css: number[]
 }
 
+export type Children = Record<string, Descendant>
+
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export interface CrudOptions<D> extends RequestInit {
@@ -45,16 +47,12 @@ export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, 
 
 export type Descendant = FiCsElement<any, any>
 
-export interface Descendants {
-  [key: string]: Descendant | Descendants
-}
-
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   ficsId?: string
   instanceId?: string
-  descendants?: Descendant[]
+  children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   props?: Props<D, P>[]
@@ -76,7 +74,7 @@ export interface GlobalCssContent {
 
 export type Html<D extends object, P extends object> = (
   params: DataPropsMethods<D, P> &
-    Omit<Syntaxes<D, P>, 'props'> & { isBrowser: boolean; isDeferred: boolean }
+    Omit<Syntaxes<D, P>, 'props'> & { children: Children; isBrowser: boolean; isDeferred: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -123,7 +121,10 @@ export interface PollingOptions {
 }
 
 export interface Props<D, P> {
-  descendant: SingleOrArray<Descendant>
+  descendant: (params: {
+    children: Children
+    getChildren: (instance: Descendant) => Children
+  }) => SingleOrArray<Descendant>
   values: (
     params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
@@ -184,5 +185,5 @@ export interface Syntaxes<D extends object, P extends object> {
   ) => Sanitized<D, P>
   html: (str: string) => Record<symbol, string>
   show: (condition: boolean) => string
-  setProps: (descendant: Descendant, props: object) => Descendant
+  setProps: (instance: Descendant, props: object) => Descendant
 }
