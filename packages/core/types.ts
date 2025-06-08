@@ -55,7 +55,7 @@ export interface FiCs<D extends object, P extends object> {
   children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
-  props?: Props<D, P>[]
+  props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
