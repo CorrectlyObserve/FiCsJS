@@ -147,7 +147,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (props) this.#propsSources = [...props]
+    if (props) this.#propsSources = toArray(props)
     if (className)
       if (checkType(className, 'function')) {
         this.#bindings.isClassName = true
