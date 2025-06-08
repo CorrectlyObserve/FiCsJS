@@ -6,6 +6,7 @@ import type {
   ActionOptions,
   Attrs,
   Bindings,
+  Children,
   ClassName,
   CrudOptions,
   Css,
@@ -27,6 +28,7 @@ import type {
   Sanitized,
   Scroll,
   ServerSentEvents,
+  SingleOrArray,
   SSEMethod,
   Style
 } from './types'
@@ -36,11 +38,13 @@ const nameGenerators: Record<string, Generator<number>> = {}
 const generator: Generator<number> = uid()
 
 export default class FiCsElement<D extends object, P extends object> {
+  readonly #nameKey: string
   readonly #ficsIdName: string = 'fics-id'
   readonly #generator: Generator<number> = uid()
   readonly #ficsId: string
   readonly #instanceId: string
   readonly #name: string
+  readonly #children: Children = {}
   readonly #isBrowser: boolean
   readonly #data: D = {} as D
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
@@ -58,19 +62,21 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #propsTrees: PropsTree[] = new Array()
-  readonly #descendants: Record<string, FiCsElement<D, P>> = {}
+  readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
+  #hasIndividualProps: boolean = false
 
   constructor({
     name,
     isExceptional,
     ficsId,
     instanceId,
+    children,
     data,
     deferredData,
     props,
@@ -88,6 +94,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
     name = this.#convertStr(name, 'kebab')
+    this.#nameKey = this.#convertStr(name, 'camel')
 
     if (!isExceptional && { var: true, router: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
@@ -114,6 +121,8 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#options.rootMargin = rootMargin
       }
     }
+
+    if (children) for (const child of children) this.#children[child.#nameKey] = child.#clone()
 
     this.#isBrowser = isBrowser()
 
@@ -164,6 +173,28 @@ export default class FiCsElement<D extends object, P extends object> {
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
     if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
     return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
+  }
+
+  #clone(): FiCsElement<D, P> {
+    const cloned = new FiCsElement({
+      name: this.#nameKey,
+      ficsId: `${this.#ficsId}-${this.#generator.next().value}`,
+      instanceId: this.#instanceId,
+      data: () => this.#data,
+      deferredData: this.#deferredData,
+      props: this.#propsSources,
+      className: this.#className,
+      attributes: this.#attrs,
+      html: this.#html,
+      clonedCss: this.#css,
+      actions: this.#actions,
+      hooks: this.#hooks,
+      options: this.#options
+    })
+
+    for (const [key, value] of Object.entries(this.#children)) cloned.#children[key] = value
+
+    return cloned
   }
 
   #getDataProps(): DataProps<D, P> {
@@ -217,8 +248,15 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(propsChain.get(this.#instanceId) ?? {}))
         if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
 
-      for (const { descendant, values } of this.#propsSources)
-        for (const _descendant of Array.isArray(descendant) ? descendant : [descendant]) {
+      for (const { descendant, values } of this.#propsSources) {
+        const descendants: SingleOrArray<Descendant> = descendant({
+          children: this.#children,
+          getChildren: (instance: Descendant): Children => instance.#children
+        })
+
+        for (const _descendant of Array.isArray(descendants) ? descendants : [descendants]) {
+          if (checkType(_descendant, 'undefined')) continue
+
           const { data, props, setData, crud }: DataPropsMethods<D, P, true> =
             this.#getDataPropsMethods(true)
           const descendantId: string = _descendant.#instanceId
@@ -269,6 +307,7 @@ export default class FiCsElement<D extends object, P extends object> {
             } else propsChain.set(descendantId, { ...chain, [key]: value })
           }
         }
+      }
 
       this.#propsChain = new Map(propsChain)
       this.#isInitialized = true
@@ -338,35 +377,23 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#getDataPropsMethods(),
+      children: this.#children,
       template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
       ): Sanitized<D, P> => ({ [sanitized]: _convertTemplate(templates, variables) }),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
-      setProps: (descendant: Descendant, props: object): Descendant => {
-        const _descendant: Descendant = new FiCsElement({
-          name: `${descendant.#name.slice(2)}`,
-          ficsId: `${descendant.#ficsId}-${descendant.#generator.next().value}`,
-          instanceId: descendant.#ficsId,
-          data: () => descendant.#data,
-          deferredData: descendant.#deferredData,
-          props: descendant.#propsSources,
-          className: descendant.#className,
-          attributes: descendant.#attrs,
-          html: descendant.#html,
-          clonedCss: descendant.#css,
-          actions: descendant.#actions,
-          hooks: descendant.#hooks,
-          options: descendant.#options
-        })
+      setProps: (instance: Descendant, props: object): Descendant => {
+        const descendant: Descendant = instance.#clone()
 
-        for (const [key, value] of Object.entries({ ...descendant.#props, ...props }))
-          _descendant.#setProps(key, value)
+        for (const [key, value] of Object.entries({ ...instance.#props, ...props }))
+          descendant.#setProps(key, value)
 
-        _descendant.#initProps(this.#propsChain)
+        descendant.#initProps(this.#propsChain)
+        descendant.#hasIndividualProps = true
 
-        return _descendant
+        return descendant
       },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred
@@ -374,7 +401,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     return contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
-        if (!(curr.#ficsId in this.#descendants)) this.#descendants[curr.#ficsId] = curr
+        if (!(curr.#ficsId in this.#childrenStore)) this.#childrenStore[curr.#ficsId] = curr
         curr = `<${this.#varTag} ${this.#ficsIdName}="${curr.#ficsId}"></${this.#varTag}>`
       }
 
@@ -421,17 +448,17 @@ export default class FiCsElement<D extends object, P extends object> {
           if (childNode.localName === this.#varTag) {
             const ficsId: string | null = childNode.getAttribute(this.#ficsIdName)
 
-            if (!ficsId || !(ficsId in this.#descendants))
+            if (!ficsId || !(ficsId in this.#childrenStore))
               throw new Error(
                 `The element ${childNode} does not have a valid ficsId in ${this.#name}...`
               )
 
-            const descendant: FiCsElement<D, P> = this.#descendants[ficsId]
-            descendant.#initProps(this.#propsChain)
-            descendant.#callback('created')
-            descendant.#enqueue(() => descendant.#define(), 'define')
+            const child: FiCsElement<D, P> = this.#childrenStore[ficsId]
+            child.#initProps(this.#propsChain)
+            child.#callback('created')
+            child.#enqueue(() => child.#define(), 'define')
 
-            const component: HTMLElement = document.createElement(descendant.#name)
+            const component: HTMLElement = document.createElement(child.#name)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
             index--
@@ -1118,10 +1145,10 @@ export default class FiCsElement<D extends object, P extends object> {
           const next: string = applyDescendant(html.slice(varEndIndex + varEnd.length))
           const ficsId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
 
-          if (!(ficsId in that.#descendants))
+          if (!(ficsId in that.#childrenStore))
             throw new Error(`The element does not have a valid ficsId in ${that.#name}...`)
 
-          return `${prev}${render(that.#descendants[ficsId])}${next}`
+          return `${prev}${render(that.#childrenStore[ficsId])}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
