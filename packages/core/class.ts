@@ -259,12 +259,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const { data, props, setData, crud }: DataPropsMethods<D, P, true> =
             this.#getDataPropsMethods(true)
-          const descendantId: string = _descendant.#instanceId
+          const instanceId: string = _descendant.#instanceId
 
           for (const [key, value] of Object.entries(values({ data, props, setData, crud }))) {
-            const chain: Record<string, P> = propsChain.get(descendantId) ?? {}
+            const chain: Record<string, P> = propsChain.get(instanceId) ?? {}
 
-            if (key in chain && propsChain.has(descendantId)) continue
+            if (key in chain && propsChain.has(instanceId)) continue
 
             if (checkType(value, 'function') && /getData/.test(value.toString())) {
               const keys: Record<string, true> = { [key]: true }
@@ -275,11 +275,11 @@ export default class FiCsElement<D extends object, P extends object> {
                 }
               })
 
-              propsChain.set(descendantId, { ...chain, [key]: _value })
+              propsChain.set(instanceId, { ...chain, [key]: _value })
 
               if (!checkType(_value, 'function')) {
                 const tree: PropsTree = {
-                  numberId: parseInt(descendantId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                  numberId: parseInt(instanceId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
                   keys,
                   setProps: (): void =>
                     _descendant.#setProps(
@@ -304,7 +304,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 } else
                   this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
               }
-            } else propsChain.set(descendantId, { ...chain, [key]: value })
+            } else propsChain.set(instanceId, { ...chain, [key]: value })
           }
         }
       }
