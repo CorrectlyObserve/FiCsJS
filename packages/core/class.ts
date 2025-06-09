@@ -69,7 +69,6 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInitialized: boolean = false
   #propsChain: PropsChain<P> = new Map()
-  #hasIndividualProps: boolean = false
 
   constructor({
     name,
@@ -175,11 +174,11 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
-  #clone(): FiCsElement<D, P> {
+  #clone(hasIndividualProps?: boolean): FiCsElement<D, P> {
     const cloned = new FiCsElement({
       name: this.#nameKey,
-      ficsId: `${this.#ficsId}-${this.#generator.next().value}`,
-      instanceId: this.#instanceId,
+      ficsId: hasIndividualProps ? `${this.#ficsId}-${this.#generator.next().value}` : undefined,
+      instanceId: hasIndividualProps ? this.#instanceId : undefined,
       data: () => this.#data,
       deferredData: this.#deferredData,
       props: this.#propsSources,
@@ -192,7 +191,8 @@ export default class FiCsElement<D extends object, P extends object> {
       options: this.#options
     })
 
-    for (const [key, value] of Object.entries(this.#children)) cloned.#children[key] = value
+    for (const [key, value] of Object.entries(this.#children))
+      cloned.#children[key] = hasIndividualProps ? value.#clone() : value
 
     return cloned
   }
@@ -385,14 +385,12 @@ export default class FiCsElement<D extends object, P extends object> {
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       setProps: (instance: Descendant, props: object): Descendant => {
-        const descendant: Descendant = instance.#clone()
+        const descendant: Descendant = instance.#clone(true)
 
         for (const [key, value] of Object.entries({ ...instance.#props, ...props }))
           descendant.#setProps(key, value)
 
         descendant.#initProps(this.#propsChain)
-        descendant.#hasIndividualProps = true
-
         return descendant
       },
       isBrowser: this.#isBrowser,
