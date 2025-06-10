@@ -1,5 +1,6 @@
 import type {
   Css,
+  Children,
   Descendant,
   GlobalCssContent,
   OptionParams,
@@ -10,7 +11,8 @@ import type {
 } from '../core/types'
 
 export interface FiCsRouter<D extends RouterData, P extends object> {
-  props?: Props<D, P>[]
+  children?: Descendant[]
+  props?: SingleOrArray<Props<D, P>>
   pages: (PageContent<D, P> & { path: string })[]
   notFound?: PageContent<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
@@ -18,7 +20,7 @@ export interface FiCsRouter<D extends RouterData, P extends object> {
 }
 
 export interface PageContent<D extends object, P extends object> {
-  content: (syntaxes: Syntaxes<D, P>) => Descendant | Sanitized<D, P>
+  content: (syntaxes: Syntaxes<D, P> & { children: Children }) => Descendant | Sanitized<D, P>
   redirect?: string
 }
 
