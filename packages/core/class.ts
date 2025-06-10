@@ -42,7 +42,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #ficsIdName: string = 'fics-id'
   readonly #generator: Generator<number> = uid()
   readonly #ficsId: string
-  readonly #instanceId: string
+  readonly #inheritedId: string
   readonly #name: string
   readonly #children: Children = {}
   readonly #isBrowser: boolean
@@ -74,7 +74,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     isExceptional,
     ficsId,
-    instanceId,
+    inheritedId,
     children,
     data,
     deferredData,
@@ -99,7 +99,7 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#ficsId = ficsId ?? `${this.#ficsIdName}${generator.next().value}`
-    this.#instanceId = instanceId ?? this.#ficsId
+    this.#inheritedId = inheritedId ?? this.#ficsId
 
     if (!nameGenerators[name]) nameGenerators[name] = uid()
     names[name] = nameGenerators[name].next().value
@@ -175,10 +175,10 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #clone(hasIndividualProps?: boolean): FiCsElement<D, P> {
-    const cloned = new FiCsElement({
+    const cloned: FiCsElement<D, P> = new FiCsElement({
       name: this.#nameKey,
-      ficsId: hasIndividualProps ? `${this.#ficsId}-${this.#generator.next().value}` : undefined,
-      instanceId: hasIndividualProps ? this.#instanceId : undefined,
+      ficsId: hasIndividualProps ? `${this.#ficsId}-${this.#generator.next().value}` : this.#ficsId,
+      inheritedId: this.#inheritedId,
       data: () => this.#data,
       deferredData: this.#deferredData,
       props: this.#propsSources,
@@ -192,7 +192,7 @@ export default class FiCsElement<D extends object, P extends object> {
     })
 
     for (const [key, value] of Object.entries(this.#children))
-      cloned.#children[key] = hasIndividualProps ? value.#clone() : value
+      cloned.#children[key] = hasIndividualProps ? value.#clone(true) : value
 
     return cloned
   }
@@ -245,8 +245,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #initProps(propsChain: PropsChain<P>): void {
     if (!this.#isInitialized) {
-      for (const [key, value] of Object.entries(propsChain.get(this.#instanceId) ?? {}))
-        if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
+      for (const chainKey of [this.#inheritedId, this.#ficsId])
+        for (const [key, value] of Object.entries(propsChain.get(chainKey) ?? {}))
+          this.#props[key as keyof P] = value as P[keyof P]
 
       for (const { descendant, values } of this.#propsSources) {
         const descendants: SingleOrArray<Descendant> = descendant({
@@ -257,55 +258,54 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const _descendant of Array.isArray(descendants) ? descendants : [descendants]) {
           if (checkType(_descendant, 'undefined')) continue
 
-          const { data, props, setData, crud }: DataPropsMethods<D, P, true> =
-            this.#getDataPropsMethods(true)
-          const instanceId: string = _descendant.#instanceId
+          for (const chainKey of [_descendant.#inheritedId, _descendant.#ficsId])
+            for (const [key, value] of Object.entries(values(this.#getDataPropsMethods(true)))) {
+              const chain: Record<string, P> = propsChain.get(chainKey) ?? {}
 
-          for (const [key, value] of Object.entries(values({ data, props, setData, crud }))) {
-            const chain: Record<string, P> = propsChain.get(instanceId) ?? {}
+              if (key in chain && propsChain.has(chainKey)) continue
 
-            if (key in chain && propsChain.has(instanceId)) continue
+              if (checkType(value, 'function') && /getData/.test(value.toString())) {
+                const keys: Record<string, true> = { [key]: true }
+                const _value: any = value({
+                  getData: <K extends keyof D>(_key: K): D[K] => {
+                    if (key !== _key) keys[_key as string] = true
+                    return this.getData(_key)
+                  }
+                })
 
-            if (checkType(value, 'function') && /getData/.test(value.toString())) {
-              const keys: Record<string, true> = { [key]: true }
-              const _value: any = value({
-                getData: <K extends keyof D>(_key: K): D[K] => {
-                  if (key !== _key) keys[_key as string] = true
-                  return this.getData(_key)
-                }
-              })
+                propsChain.set(chainKey, { ...chain, [key]: _value })
 
-              propsChain.set(instanceId, { ...chain, [key]: _value })
-
-              if (!checkType(_value, 'function')) {
-                const tree: PropsTree = {
-                  numberId: parseInt(instanceId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-                  keys,
-                  setProps: (): void =>
-                    _descendant.#setProps(
-                      key,
-                      value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
-                    )
-                }
-                const last: number = this.#propsTrees.length - 1
-                const isExLargerNumberId = (index: number): boolean =>
-                  this.#propsTrees[index].numberId >= tree.numberId
-
-                if (last > 2) {
-                  let min: number = 0
-                  let max: number = last
-
-                  while (min <= max) {
-                    const mid: number = Math.floor((min + max) / 2)
-                    isExLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+                if (!checkType(_value, 'function')) {
+                  const tree: PropsTree = {
+                    numberId: parseInt(chainKey.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                    keys,
+                    setProps: (): void => {
+                      _descendant.#setProps(
+                        key,
+                        value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
+                      )
+                    }
                   }
 
-                  this.#propsTrees.splice(min, 0, tree)
-                } else
-                  this.#propsTrees[last < 0 || isExLargerNumberId(last) ? 'push' : 'unshift'](tree)
-              }
-            } else propsChain.set(instanceId, { ...chain, [key]: value })
-          }
+                  const last: number = this.#propsTrees.length - 1
+                  const isLargerNumberId = (index: number): boolean =>
+                    this.#propsTrees[index].numberId >= tree.numberId
+
+                  if (last > 2) {
+                    let min: number = 0
+                    let max: number = last
+
+                    while (min <= max) {
+                      const mid: number = Math.floor((min + max) / 2)
+                      isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+                    }
+
+                    this.#propsTrees.splice(min, 0, tree)
+                  } else
+                    this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
+                }
+              } else propsChain.set(chainKey, { ...chain, [key]: value })
+            }
         }
       }
 
