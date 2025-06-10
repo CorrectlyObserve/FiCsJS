@@ -1,3 +1,5 @@
+export type Method = 'PUT' | 'PATCH' | 'DELETE'
+
 export interface Photo {
   id: string
   author: string
