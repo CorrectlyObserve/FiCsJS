@@ -2,48 +2,60 @@ import { fics } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import CrudButton from '@/components/CrudButton'
 import { api, users } from '@/data/users'
-import type { User } from '@/types'
+import type { Method, User } from '@/types'
 
-const crudButton = CrudButton()
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
 
 export default () =>
   fics({
     name: 'users',
-    data: () => ({ users, userId: NaN, methods: ['put', 'patch', 'delete'] }),
+    children: [CrudButton()],
+    data: () => ({ users, userId: NaN, methods: ['PUT', 'PATCH', 'DELETE'] as Method[] }),
     props: [
       {
-        descendant: crudButton,
+        descendant: ({ children: { crudButton }, getChildren }) => getChildren(crudButton).button,
+        values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
+      },
+      {
+        descendant: ({ children: { crudButton } }) => crudButton,
         values: ({ setData, crud }) => ({
-          id: ({ getData }) => getData('userId'),
-          deleteMethod:
+          click:
             ({ getData }) =>
-            async (id: number) => {
-              await crud<User>(`${api}/${id}`, { method: 'DELETE', headers })
-              setData(
-                'users',
-                getData('users').filter(user => user.id !== id)
-              )
-              setData('userId', NaN)
-            },
-          updateMethod:
-            ({ getData }) =>
-            async ({ id, name }: { id: number; name: string }, method: 'put' | 'patch') => {
-              await crud<User>(`${api}/${id}`, {
-                method: method.toUpperCase(),
-                body: JSON.stringify({ id, name }),
-                headers
-              })
-              setData(
-                'users',
-                getData('users').map(user => (user.id === id ? { ...user, name } : user))
-              )
+            async (method: Method) => {
+              const userId = getData('userId')
+              const options = { method, ...headers }
+
+              if (method === 'DELETE') {
+                await crud<User>(`${api}/${userId}`, options)
+                setData(
+                  'users',
+                  getData('users').filter(({ id }) => id !== userId)
+                )
+              } else {
+                const name = prompt('Please enter a new user name.')
+                if (name) {
+                  await crud<User>(`${api}/${userId}`, {
+                    ...options,
+                    body: JSON.stringify({ id: userId, name })
+                  })
+                  setData(
+                    'users',
+                    getData('users').map(user => (user.id === userId ? { ...user, name } : user))
+                  )
+                }
+              }
+
               setData('userId', NaN)
             }
         })
       }
     ],
-    html: ({ data: { users, userId, methods }, template, setProps }) => template`
+    html: ({
+      children: { crudButton },
+      data: { users, userId, methods },
+      template,
+      setProps
+    }) => template`
       <div class="buttons mb-7 gap-4">${methods.map(method => setProps(crudButton, { method }))}</div>
       <div class="space-y-4">
         ${users.map(user => {
@@ -55,10 +67,10 @@ export default () =>
               ${keys.map((key, index) => {
                 const _key = keys[index]
                 return template`
-                    <p class="text-base ${userId === id ? 'text-red' : 'text-white'}" key="${id}-${key}">
-                      ${_key.charAt(0).toUpperCase() + _key.slice(1)}: ${user[key]}
-                    </p>
-                  `
+                  <p class="text-base ${userId === id ? 'text-red' : 'text-white'}" key="${id}-${key}">
+                    ${_key.charAt(0).toUpperCase() + _key.slice(1)}: ${user[key]}
+                  </p>
+                `
               })}
             </div>
           `
