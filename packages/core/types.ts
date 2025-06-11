@@ -47,6 +47,8 @@ export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, 
 
 export type Descendant = FiCsElement<any, any>
 
+export type Excluded = 'isExceptional' | 'uniqueId' | 'inheritedId' | 'clonedCss'
+
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
