@@ -121,7 +121,9 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (children) for (const child of children) this.#children[child.#nameKey] = child.#clone()
+    if (children)
+      for (const child of children)
+        this.#children[child.#nameKey] = inheritedId ? child : child.#clone()
 
     this.#isBrowser = isBrowser()
 
@@ -175,12 +177,13 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #clone(hasIndividualProps?: boolean): FiCsElement<D, P> {
-    const cloned: FiCsElement<D, P> = new FiCsElement({
+    return new FiCsElement({
       name: this.#nameKey,
       uniqueId: hasIndividualProps
         ? `${this.#uniqueId}-${this.#generator.next().value}`
         : this.#uniqueId,
       inheritedId: this.#inheritedId,
+      children: Object.values(this.#children).map(child => child.#clone(hasIndividualProps)),
       data: () => this.#data,
       deferredData: this.#deferredData,
       props: this.#propsSources,
@@ -192,11 +195,6 @@ export default class FiCsElement<D extends object, P extends object> {
       hooks: this.#hooks,
       options: this.#options
     })
-
-    for (const [key, value] of Object.entries(this.#children))
-      cloned.#children[key] = hasIndividualProps ? value.#clone(true) : value
-
-    return cloned
   }
 
   #getDataProps(): DataProps<D, P> {
@@ -235,8 +233,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (this.#isBrowser && window.customElements.get(this.#name)) {
-      this.#throwKeyError(key, true)
+    if (this.#isBrowser) {
+      if (window.customElements.get(this.#name)) this.#throwKeyError(key, true)
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
@@ -278,35 +276,32 @@ export default class FiCsElement<D extends object, P extends object> {
 
               propsChain.set(uniqueId, { ...chain, [key]: _value })
 
-              if (!checkType(_value, 'function')) {
-                const tree: PropsTree = {
-                  numberId: parseInt(uniqueId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-                  keys,
-                  setProps: (): void => {
-                    _descendant.#setProps(
-                      key,
-                      value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
-                    )
-                  }
+              if (checkType(_value, 'function')) continue
+
+              const tree: PropsTree = {
+                uniqueId,
+                numberId: parseInt(uniqueId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                keys,
+                propsKey: key,
+                propsValue: () =>
+                  value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
+              }
+
+              const last: number = this.#propsTrees.length - 1
+              const isLargerNumberId = (index: number): boolean =>
+                this.#propsTrees[index].numberId >= tree.numberId
+
+              if (last > 2) {
+                let min: number = 0
+                let max: number = last
+
+                while (min <= max) {
+                  const mid: number = Math.floor((min + max) / 2)
+                  isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
                 }
 
-                const last: number = this.#propsTrees.length - 1
-                const isLargerNumberId = (index: number): boolean =>
-                  this.#propsTrees[index].numberId >= tree.numberId
-
-                if (last > 2) {
-                  let min: number = 0
-                  let max: number = last
-
-                  while (min <= max) {
-                    const mid: number = Math.floor((min + max) / 2)
-                    isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
-                  }
-
-                  this.#propsTrees.splice(min, 0, tree)
-                } else
-                  this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
-              }
+                this.#propsTrees.splice(min, 0, tree)
+              } else this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
             } else propsChain.set(uniqueId, { ...chain, [key]: value })
           }
         }
@@ -1234,8 +1229,17 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#infiniteScroll(this.#getShadowRoot(this.#components.values().next().value!))
         }, 're-render')
 
-      for (const { keys, setProps } of this.#propsTrees)
-        if (checkType(key, 'string') && keys[key]) setProps()
+      for (const { uniqueId, keys, propsKey, propsValue } of this.#propsTrees)
+        if (checkType(key, 'string') && keys[key]) {
+          const setProps = (children: Children): void => {
+            for (const child of Object.values(children)) {
+              if (child.#uniqueId === uniqueId) child.#setProps(propsKey, propsValue())
+              else setProps(child.#children)
+            }
+          }
+
+          setProps(this.#children)
+        }
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
