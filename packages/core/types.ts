@@ -137,9 +137,11 @@ export interface Props<D, P> {
 export type PropsChain<P> = Map<string, Record<string, P>>
 
 export interface PropsTree {
+  uniqueId: string
   numberId: number
   keys: Record<string, true>
-  setProps: () => void
+  propsKey: string
+  propsValue: () => unknown
 }
 
 export interface Queue {
