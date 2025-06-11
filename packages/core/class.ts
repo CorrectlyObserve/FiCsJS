@@ -250,62 +250,63 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#props[key as keyof P] = value as P[keyof P]
 
       for (const { descendant, values } of this.#propsSources) {
-        const descendants: SingleOrArray<Descendant> = descendant({
+        const returned: SingleOrArray<Descendant> = descendant({
           children: this.#children,
           getChildren: (instance: Descendant): Children => instance.#children
         })
 
-        for (const _descendant of Array.isArray(descendants) ? descendants : [descendants]) {
+        for (const _descendant of Array.isArray(returned) ? returned : [returned]) {
           if (checkType(_descendant, 'undefined')) continue
 
-          for (const chainKey of [_descendant.#inheritedId, _descendant.#ficsId])
-            for (const [key, value] of Object.entries(values(this.#getDataPropsMethods(true)))) {
-              const chain: Record<string, P> = propsChain.get(chainKey) ?? {}
+          const ficsId: string = _descendant.#ficsId
 
-              if (key in chain && propsChain.has(chainKey)) continue
+          for (const [key, value] of Object.entries(values(this.#getDataPropsMethods(true)))) {
+            const chain: Record<string, P> = propsChain.get(ficsId) ?? {}
 
-              if (checkType(value, 'function') && /getData/.test(value.toString())) {
-                const keys: Record<string, true> = { [key]: true }
-                const _value: any = value({
-                  getData: <K extends keyof D>(_key: K): D[K] => {
-                    if (key !== _key) keys[_key as string] = true
-                    return this.getData(_key)
-                  }
-                })
+            if (key in chain && propsChain.has(ficsId)) continue
 
-                propsChain.set(chainKey, { ...chain, [key]: _value })
-
-                if (!checkType(_value, 'function')) {
-                  const tree: PropsTree = {
-                    numberId: parseInt(chainKey.replace(new RegExp(`^${this.#ficsIdName}`), '')),
-                    keys,
-                    setProps: (): void => {
-                      _descendant.#setProps(
-                        key,
-                        value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
-                      )
-                    }
-                  }
-
-                  const last: number = this.#propsTrees.length - 1
-                  const isLargerNumberId = (index: number): boolean =>
-                    this.#propsTrees[index].numberId >= tree.numberId
-
-                  if (last > 2) {
-                    let min: number = 0
-                    let max: number = last
-
-                    while (min <= max) {
-                      const mid: number = Math.floor((min + max) / 2)
-                      isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
-                    }
-
-                    this.#propsTrees.splice(min, 0, tree)
-                  } else
-                    this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
+            if (checkType(value, 'function') && /getData/.test(value.toString())) {
+              const keys: Record<string, true> = { [key]: true }
+              const _value: any = value({
+                getData: <K extends keyof D>(_key: K): D[K] => {
+                  if (key !== _key) keys[_key as string] = true
+                  return this.getData(_key)
                 }
-              } else propsChain.set(chainKey, { ...chain, [key]: value })
-            }
+              })
+
+              propsChain.set(ficsId, { ...chain, [key]: _value })
+
+              if (!checkType(_value, 'function')) {
+                const tree: PropsTree = {
+                  numberId: parseInt(ficsId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                  keys,
+                  setProps: (): void => {
+                    _descendant.#setProps(
+                      key,
+                      value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
+                    )
+                  }
+                }
+
+                const last: number = this.#propsTrees.length - 1
+                const isLargerNumberId = (index: number): boolean =>
+                  this.#propsTrees[index].numberId >= tree.numberId
+
+                if (last > 2) {
+                  let min: number = 0
+                  let max: number = last
+
+                  while (min <= max) {
+                    const mid: number = Math.floor((min + max) / 2)
+                    isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
+                  }
+
+                  this.#propsTrees.splice(min, 0, tree)
+                } else
+                  this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
+              }
+            } else propsChain.set(ficsId, { ...chain, [key]: value })
+          }
         }
       }
 
