@@ -50,8 +50,8 @@ export type Descendant = FiCsElement<any, any>
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
-  ficsId?: string
-  instanceId?: string
+  uniqueId?: string
+  inheritedId?: string
   children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
@@ -141,7 +141,7 @@ export interface PropsTree {
 }
 
 export interface Queue {
-  ficsId: string
+  uniqueId: string
   func: () => void
   key: 'define' | 're-render' | 'fetch'
 }
