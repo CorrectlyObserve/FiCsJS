@@ -13,24 +13,21 @@ interface Data {
   buttonText: string
 }
 
-const button = Button()
-const loadingIcon = Icon('loading')
-
 export default () =>
   fics<Data, { lang: string }>({
     name: 'not-found',
+    children: [Button(), Icon('loading')],
     data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
     deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
-    props: [
-      {
-        descendant: button,
-        values: ({ props: { lang } }) => ({
-          buttonText: ({ getData }) => getData('buttonText'),
-          click: () => goto(getPath(lang, '/'))
-        })
-      }
-    ],
+    props: {
+      descendant: ({ children: { button } }) => button,
+      values: ({ props: { lang } }) => ({
+        buttonText: ({ getData }) => getData('buttonText'),
+        click: () => goto(getPath(lang, '/'))
+      })
+    },
     html: ({
+      children: { button, icon },
       data: {
         seconds,
         heading,
@@ -41,7 +38,7 @@ export default () =>
     }) =>
       isDeferred
         ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
-        : template`${loadingIcon}`,
+        : template`${icon}`,
     css: {
       p: {
         marginBottom: variable('xl'),
