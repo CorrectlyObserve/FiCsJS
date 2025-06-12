@@ -7,18 +7,17 @@ import { api, getPhotos } from '@/data/photos'
 import type { Photo } from '@/types'
 import { X } from 'lucide-static'
 
-const icon = Icon()
-const skelton = Skeleton()
-
 export default () =>
   fics({
     name: 'photos',
+    children: [Icon(), Skeleton()],
     data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo, isLoading: false }),
     deferredData: async ({ data: { count }, crud }) =>
       await crud<Photo[]>(getPhotos(++count)).then(photos => ({ count, photos })),
-    props: [{ descendant: icon, values: () => ({ icon: X }) }],
+    props: { descendant: ({ children: { icon } }) => icon, values: () => ({ icon: X }) },
     className: 'min-h-200',
     html: ({
+      children: { icon, skelton },
       data: {
         photos,
         photo: { id, author },
