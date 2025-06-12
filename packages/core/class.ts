@@ -1232,10 +1232,9 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const { uniqueId, keys, propsKey, propsValue } of this.#propsTrees)
         if (checkType(key, 'string') && keys[key]) {
           const setProps = (children: Children): void => {
-            for (const child of Object.values(children)) {
+            for (const child of Object.values(children))
               if (child.#uniqueId === uniqueId) child.#setProps(propsKey, propsValue())
               else setProps(child.#children)
-            }
           }
 
           setProps(this.#children)
