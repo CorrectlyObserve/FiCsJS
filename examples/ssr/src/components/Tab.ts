@@ -6,35 +6,32 @@ import Button from '@/components/materials/Button'
 export default () =>
   fics({
     name: 'tab',
-    data: () => ({
-      tabs: [{ text: 'Chat' }, { query: '?tab=logs', text: 'Logs' }],
-      currentPath: ''
-    }),
-    html: ({ data: { tabs }, template, setData, setProps }) => {
-      const button = Button()
-      const { pathname, search } = window.location
-      const path = `${pathname}${search}`
-      setData('currentPath', path)
+    children: [Button()],
+    data: () => ({ tabs: [{ text: 'Chat' }, { query: '?tab=logs', text: 'Logs' }], path: '' }),
+    html: ({ children: { button }, data: { tabs, path }, template, setData, setProps }) => template`
+      <div class="buttons mb-7 gap-4">
+        ${tabs.map(({ query, text }) => {
+          const href = `/chat${query ?? ''}`
 
-      return template`
-        <div class="buttons mb-7 gap-4">
-          ${tabs.map(({ query, text }) => {
-            const href = `/chat${query ?? ''}`
-
-            return template`
-              ${setProps(button, {
-                isDisabled: href === path,
-                text,
-                click: () => {
-                  goto(href, { reload: true })
-                  setData('currentPath', href)
-                }
-              })}
-            `
-          })}
-        </div>
-      `
-    },
+          return template`
+            ${setProps(button, {
+              isDisabled: href === path,
+              text,
+              click: () => {
+                goto(href, { reload: true })
+                setData('path', href)
+              }
+            })}
+          `
+        })}
+      </div>
+    `,
     css: { div: { '&.buttons': { ...flexCenter('x') } } },
+    hooks: {
+      created: ({ setData }) => {
+        const { pathname, search } = window.location
+        setData('path', `${pathname}${search}`)
+      }
+    },
     options: { ssr: false }
   })
