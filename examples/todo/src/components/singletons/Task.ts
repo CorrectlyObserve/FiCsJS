@@ -31,15 +31,13 @@ interface Data {
 const loadingIcon = Icon('loading')
 const checkIcon = Icon('check')
 const circleIcon = Icon('circle')
-const input = Input()
-const textarea = Textarea()
-const button = Button()
 const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
 const { sm } = breakpoints
 
 export default () =>
   fics<Data, { lang: string }>({
     name: 'task',
+    children: [Input(), Textarea(), Button()],
     data: () => ({
       task: {} as Task,
       title: '',
@@ -57,7 +55,7 @@ export default () =>
     }),
     props: [
       {
-        descendant: [checkIcon, circleIcon],
+        descendant: () => [checkIcon, circleIcon],
         values: ({ setData }) => ({
           click:
             ({ getData }) =>
@@ -68,7 +66,7 @@ export default () =>
         })
       },
       {
-        descendant: input,
+        descendant: ({ children: { input } }) => input,
         values: ({ setData }) => ({
           id: 'title',
           label: ({ getData }) => getData('title'),
@@ -83,7 +81,7 @@ export default () =>
         })
       },
       {
-        descendant: textarea,
+        descendant: ({ children: { textarea } }) => textarea,
         values: ({ setData }) => ({
           id: 'description',
           label: ({ getData }) => getData('description'),
@@ -96,7 +94,7 @@ export default () =>
         })
       },
       {
-        descendant: button,
+        descendant: ({ children: { button } }) => button,
         values: ({ props: { lang }, setData }) => ({
           isDisabled: ({ getData }) => getData('isError'),
           buttonText: ({ getData }) => getData('buttonText'),
@@ -116,6 +114,7 @@ export default () =>
       }
     ],
     html: ({
+      children: { input, textarea, button },
       data: {
         heading,
         task,
@@ -138,7 +137,8 @@ export default () =>
               <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
             </div>
           </fieldset>
-          <fieldset>${input}</fieldset><fieldset>${textarea}</fieldset>
+          <fieldset>${input}</fieldset>
+          <fieldset>${textarea}</fieldset>
           ${Object.entries(datetimes).map(
             ([key, value]) => template`<p>${value}${convertTimestamp(task[key as Datetime])}</p>`
           )}
