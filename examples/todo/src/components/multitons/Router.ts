@@ -5,23 +5,19 @@ import Task from '@/components/singletons/Task'
 import NotFound from '@/components/multitons/NotFound'
 import { breakpoints } from '@/utils'
 
-const tasks = Tasks()
-const task = Task()
-const notFound = NotFound()
 const xs = calc([variable('xs'), -1], '*')
 
 export default () =>
   ficsRouter({
-    props: [
-      {
-        descendant: [tasks, task, notFound],
-        values: () => ({ lang: ({ getData }) => getData('lang') })
-      }
-    ],
+    children: [Tasks(), Task(), NotFound()],
+    props: {
+      descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
+      values: ({}) => ({ lang: ({ getData }) => getData('lang') })
+    },
     pages: [
       {
         path: '/',
-        content: ({ template }) => {
+        content: ({ children: { tasks, task }, template }) => {
           const queryId = parseInt(getParams('query').id)
 
           if (isNaN(queryId)) return tasks
@@ -31,9 +27,9 @@ export default () =>
             : template`<div class="container">${tasks}${task}</div>`
         }
       },
-      { path: '/:id', content: () => task }
+      { path: '/:id', content: ({ children: { task } }) => task }
     ],
-    notFound: { content: () => notFound },
+    notFound: { content: ({ children: { notFound } }) => notFound },
     css: {
       ':host': {
         position: 'relative',
