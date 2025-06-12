@@ -20,7 +20,6 @@ interface Data {
   unapplicable: string
 }
 
-const input = Input()
 const addIcon = Icon('add')
 const squareIcon = Icon('square')
 const checkSquareIcon = Icon('check-square')
@@ -31,11 +30,12 @@ const { sm, lg } = breakpoints
 export default () =>
   fics<Data, { lang: string; click?: (id: number) => void }>({
     name: 'tasks',
+    children: [Input()],
     data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
     deferredData: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
     props: [
       {
-        descendant: input,
+        descendant: ({ children: { input } }) => input,
         values: ({ setData }) => ({
           value: ({ getData }) => getData('value'),
           placeholder: ({ getData }) => getData('placeholder'),
@@ -55,7 +55,7 @@ export default () =>
         })
       },
       {
-        descendant: addIcon,
+        descendant: () => addIcon,
         values: ({ setData }) => ({
           click:
             ({ getData }) =>
@@ -72,7 +72,7 @@ export default () =>
         })
       },
       {
-        descendant: [squareIcon, checkSquareIcon],
+        descendant: () => [squareIcon, checkSquareIcon],
         values: ({ setData }) => ({
           click:
             ({ getData }) =>
@@ -82,6 +82,7 @@ export default () =>
       }
     ],
     html: ({
+      children: { input },
       data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
       props: { lang },
       template,
