@@ -3,14 +3,16 @@ import { goto } from 'ficsjs/router'
 import Icon from '@/components/materials/Icon'
 import { MessageCircleMore } from 'lucide-static'
 
-const icon = Icon()
-
 export default () =>
   fics({
     name: 'chat-button',
     className: 'fixed bottom-8 right-4',
-    props: [{ descendant: icon, values: () => ({ icon: MessageCircleMore, isLarge: true }) }],
-    html: ({ template }) => template`
+    children: [Icon()],
+    props: {
+      descendant: ({ children: { icon } }) => icon,
+      values: () => ({ icon: MessageCircleMore, isLarge: true })
+    },
+    html: ({ children: { icon }, template }) => template`
       <button class="clickable text-white" aria-label="go to the chat page">${icon}</button>
     `,
     css: { ':host > button.clickable:focus': { scale: 0.8 } },
