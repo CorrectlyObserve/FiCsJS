@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { rotate, scale, variable } from 'ficsjs/style'
+import { rotate, variable } from 'ficsjs/style'
 import { white } from '@/utils'
 
 export default (icon: string) =>
@@ -11,7 +11,7 @@ export default (icon: string) =>
       button: ({ data: { icon }, props: { color } }) => ({
         background: 'none',
         padding: variable('xs'),
-        '&:focus': { transform: scale(0.8) },
+        '&:focus': { scale: 0.8 },
         '&.loading': {
           display: 'block',
           marginInline: 'auto',
