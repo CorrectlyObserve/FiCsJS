@@ -1,4 +1,4 @@
-import { scale, variable } from 'ficsjs/style'
+import { variable } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils'
 
 export default {
@@ -23,7 +23,7 @@ export default {
     outline: 'none',
     '&:not([aria-disabled="true"])': {
       '&:hover': { cursor: 'pointer', opacity: 0.5 },
-      '&:focus': { transform: scale(0.8) }
+      '&:focus': { scale: 0.8 }
     }
   },
   label: {
