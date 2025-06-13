@@ -15,8 +15,6 @@ export const remToPx = (rem: number | string): number => {
 
 export const rotate = (degree: number): string => (isNaN(degree) ? '' : `rotate(${degree}deg)`)
 
-export const scale = (decimal: number): string => `scale(${decimal})`
-
 export const variable = (variable: string): string =>
   `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
 
