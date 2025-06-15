@@ -2,7 +2,7 @@ import { isBrowser } from './helpers'
 import type { Queue } from './types'
 
 const ids: Record<string, true> = {}
-const getQueueId = (queue: Queue): string => `${queue.uniqueId}-${queue.key}`
+const getQueueId = ({ uniqueId, key }: Queue): string => `${uniqueId}-${key}`
 
 const dequeue = (queue: Queue): void => {
   queue.func()
