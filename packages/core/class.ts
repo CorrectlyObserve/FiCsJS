@@ -279,12 +279,13 @@ export default class FiCsElement<D extends object, P extends object> {
               if (checkType(_value, 'function')) continue
 
               const tree: PropsTree = {
-                uniqueId,
                 numberId: parseInt(uniqueId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
                 keys,
-                propsKey: key,
-                propsValue: () =>
-                  value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
+                setProps: () =>
+                  _descendant.#setProps(
+                    key,
+                    value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
+                  )
               }
 
               const last: number = this.#propsTrees.length - 1
@@ -1229,16 +1230,8 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#infiniteScroll(this.#getShadowRoot(this.#components.values().next().value!))
         }, 're-render')
 
-      for (const { uniqueId, keys, propsKey, propsValue } of this.#propsTrees)
-        if (checkType(key, 'string') && keys[key]) {
-          const setProps = (children: Children): void => {
-            for (const child of Object.values(children))
-              if (child.#uniqueId === uniqueId) child.#setProps(propsKey, propsValue())
-              else setProps(child.#children)
-          }
-
-          setProps(this.#children)
-        }
+      for (const { keys, setProps } of this.#propsTrees)
+        if (checkType(key, 'string') && keys[key]) setProps()
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
