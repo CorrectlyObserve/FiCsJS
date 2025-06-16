@@ -245,8 +245,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #initProps(propsChain: PropsChain<P>): void {
     if (!this.#isInitialized) {
-      for (const chainKey of [this.#inheritedId, this.#uniqueId])
-        for (const [key, value] of Object.entries(propsChain.get(chainKey) ?? {}))
+      const entries = (id: string): [string, P][] => Object.entries(propsChain.get(id) ?? {})
+
+      for (const [key, value] of entries(this.#inheritedId))
+        if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
+
+      if (this.#inheritedId !== this.#uniqueId)
+        for (const [key, value] of entries(this.#uniqueId))
           this.#props[key as keyof P] = value as P[keyof P]
 
       for (const { descendant, values } of this.#propsSources) {
