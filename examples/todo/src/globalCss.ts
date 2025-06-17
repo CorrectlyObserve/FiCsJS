@@ -1,4 +1,4 @@
-import { variable } from 'ficsjs/style'
+import { cssVar } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils'
 
 const hover = { cursor: 'pointer', opacity: 0.5 }
@@ -6,17 +6,17 @@ const hover = { cursor: 'pointer', opacity: 0.5 }
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
   '*[tabindex], button, label, a': {
-    transition: variable('transition'),
-    '&:not(button)': { '&:hover': hover, '&:focus': { color: variable('red'), outline: 'none' } }
+    transition: cssVar('transition'),
+    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } }
   },
   'h2, p, button, label, span': { color: white, textAlign: 'center' },
   h2: {
-    fontSize: variable('lg'),
-    marginBottom: variable('xl'),
+    fontSize: cssVar('lg'),
+    marginBottom: cssVar('xl'),
     lineHeight: 1.5,
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('lg') }
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
   },
-  'p, button, label, span': { fontSize: variable('md'), lineHeight: 1.2 },
+  'p, button, label, span': { fontSize: cssVar('md'), lineHeight: 1.2 },
   button: {
     border: 'none',
     outline: 'none',
