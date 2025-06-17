@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { getParams, goto } from 'ficsjs/router'
-import { calc, flexCenter, variable } from 'ficsjs/style'
+import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
@@ -154,34 +154,34 @@ export default () =>
     css: {
       'div.container': {
         width: sm,
-        maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
+        maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
         marginInline: 'auto',
         [`@media (max-width: ${sm})`]: { width: '100%' },
         fieldset: {
           display: 'flex',
           flexDirection: 'column',
-          marginBottom: variable('md'),
+          marginBottom: cssVar('md'),
           border: 0,
-          label: { paddingBottom: variable('xs') },
+          label: { paddingBottom: cssVar('xs') },
           div: { display: 'flex', span: { ...flexCenter('y') } }
         },
         p: {
-          marginBottom: variable('xs'),
+          marginBottom: cssVar('xs'),
           textAlign: 'left',
-          '&:last-of-type': { marginBottom: variable('xl') }
+          '&:last-of-type': { marginBottom: cssVar('xl') }
         },
         '> div': {
           display: 'flex',
           flexDirection: 'column',
-          marginTop: variable('md'),
+          marginTop: cssVar('md'),
           span: {
-            padding: variable('md'),
+            padding: cssVar('md'),
             marginInline: 'auto',
             textDecoration: 'underline',
-            transition: variable('transition'),
-            '&:first-of-type': { color: variable('red'), '&:focus': { opacity: 0.2 } },
+            transition: cssVar('transition'),
+            '&:first-of-type': { color: cssVar('red'), '&:focus': { opacity: 0.2 } },
             '&:hover': { cursor: 'pointer', opacity: 0.5 },
-            [`@media (max-width: ${sm})`]: { paddingBlock: variable('md') }
+            [`@media (max-width: ${sm})`]: { paddingBlock: cssVar('md') }
           }
         }
       }
