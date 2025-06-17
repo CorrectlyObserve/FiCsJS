@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { goto, getParams } from 'ficsjs/router'
-import { calc, flexCenter, remToPx, variable } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
@@ -121,7 +121,7 @@ export default () =>
                       </span>
                     </div>
                     ${setProps(trashIcon, {
-                      color: variable('red'),
+                      color: cssVar('red'),
                       click: async () => {
                         if (window.confirm(confirmation)) {
                           setData('tasks', await deleteTask(id))
@@ -139,29 +139,29 @@ export default () =>
     css: {
       div: {
         '&.menu': {
-          marginBottom: variable('xl'),
+          marginBottom: cssVar('xl'),
           div: {
             ...flexCenter('xy'),
-            marginBottom: variable('md'),
+            marginBottom: cssVar('md'),
             '&:last-child': { marginBottom: 0 },
-            'f-input': { marginRight: variable('md') }
+            'f-input': { marginRight: cssVar('md') }
           },
           [`@media (max-width: ${sm})`]: {
-            marginBottom: variable('md'),
-            div: { marginBottom: variable('xs'), 'f-input': { marginRight: 0 } }
+            marginBottom: cssVar('md'),
+            div: { marginBottom: cssVar('xs'), 'f-input': { marginRight: 0 } }
           }
         },
         '&.task': {
           ...flexCenter('y'),
           width: sm,
-          maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
+          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
           marginInline: 'auto',
-          marginBottom: variable('xs'),
+          marginBottom: cssVar('xs'),
           '&:last-child': { marginBottom: 0 },
           [`@media (max-width: ${sm})`]: { width: '100%' },
           div: {
             width: `${calc(
-              [calc(['100%', variable('xl')], '-'), calc([variable('xs'), 2], '*')],
+              [calc(['100%', cssVar('xl')], '-'), calc([cssVar('xs'), 2], '*')],
               '-'
             )}`,
             ...flexCenter('y'),
@@ -169,15 +169,15 @@ export default () =>
               width: '100%',
               display: 'flex',
               textAlign: 'left',
-              marginInline: variable('xs'),
+              marginInline: cssVar('xs'),
               overflowX: 'hidden',
-              transition: `${variable('transition')} allow-discrete`,
+              transition: `${cssVar('transition')} allow-discrete`,
               '&.done': { textDecoration: 'line-through' },
               a: {
                 width: '100%',
                 display: 'inline-block',
                 color: 'inherit',
-                paddingBlock: variable('xs'),
+                paddingBlock: cssVar('xs'),
                 lineHeight: 'inherit',
                 outline: 'none',
                 whiteSpace: 'nowrap',
@@ -188,7 +188,7 @@ export default () =>
             }
           }
         },
-        span: { transition: variable('transition'), '&:hover': { opacity: 0.5 } }
+        span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
       }
     },
     actions: {
