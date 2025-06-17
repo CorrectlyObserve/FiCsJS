@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, color, flexCenter, variable } from 'ficsjs/style'
+import { calc, color, cssVar, flexCenter } from 'ficsjs/style'
 import { white } from '@/utils'
 
 interface Props {
@@ -18,8 +18,7 @@ export default () =>
   fics<{ isComposing: boolean }, Props>({
     name: 'input',
     data: () => ({ isComposing: false }),
-    html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) =>
-      template`
+    html: ({ props: { id, label, isError, error, value, placeholder }, template, show }) => template`
       <div>
         ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
         <p ${show(!!isError)}>${error}</p>
@@ -29,21 +28,21 @@ export default () =>
     css: {
       div: ({ props: { isError } }) => ({
         ...flexCenter('x', 'column'),
-        label: { paddingBottom: variable('xs') },
+        label: { paddingBottom: cssVar('xs') },
         p: {
-          fontSize: variable('sm'),
-          color: variable('error'),
-          marginBottom: variable('xs'),
+          fontSize: cssVar('sm'),
+          color: cssVar('error'),
+          marginBottom: cssVar('xs'),
           textAlign: 'left'
         },
         input: {
-          minWidth: calc([variable('md'), 20], '*'),
-          maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-          background: isError ? variable('error') : color({ hex: white, rate: 0.1 }),
-          fontSize: variable('md'),
+          minWidth: calc([cssVar('md'), 20], '*'),
+          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+          background: isError ? cssVar('error') : color({ hex: white, rate: 0.1 }),
+          fontSize: cssVar('md'),
           color: white,
-          padding: `${calc([variable('xs'), 1.5], '*')} ${variable('md')}`,
-          borderRadius: variable('xs'),
+          padding: `${calc([cssVar('xs'), 1.5], '*')} ${cssVar('md')}`,
+          borderRadius: cssVar('xs'),
           border: 'none',
           outline: 'none',
           lineHeight: 1.5,
@@ -51,7 +50,7 @@ export default () =>
           '&:hover': { cursor: 'pointer' },
           '&:focus': {
             background: color({ hex: white, rate: 0.8 }),
-            color: variable('black'),
+            color: cssVar('black'),
             cursor: 'auto'
           }
         }
