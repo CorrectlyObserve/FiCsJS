@@ -41,8 +41,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
   readonly #ficsIdName: string = 'fics-id'
   readonly #generator: Generator<number> = uid()
-  readonly #uniqueId: string
-  readonly #inheritedId: string
+  readonly #instanceId: string
+  readonly #componentId: string
   readonly #name: string
   readonly #children: Children = {}
   readonly #isBrowser: boolean
@@ -73,8 +73,8 @@ export default class FiCsElement<D extends object, P extends object> {
   constructor({
     name,
     isExceptional,
-    uniqueId,
-    inheritedId,
+    instanceId,
+    componentId,
     children,
     data,
     deferredData,
@@ -98,8 +98,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#uniqueId = uniqueId ?? `${this.#ficsIdName}${generator.next().value}`
-    this.#inheritedId = inheritedId ?? this.#uniqueId
+    this.#instanceId = instanceId ?? `${this.#ficsIdName}${generator.next().value}`
+    this.#componentId = componentId ?? this.#instanceId
 
     if (!nameGenerators[name]) nameGenerators[name] = uid()
     names[name] = nameGenerators[name].next().value
@@ -123,7 +123,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (children)
       for (const child of children)
-        this.#children[child.#nameKey] = inheritedId ? child : child.#clone()
+        this.#children[child.#nameKey] = componentId ? child : child.#clone()
 
     this.#isBrowser = isBrowser()
 
@@ -161,7 +161,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     this.#html = html
-    this.#showAttr = `${this.#uniqueId}-show-syntax`
+    this.#showAttr = `${this.#instanceId}-show-syntax`
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
@@ -179,10 +179,10 @@ export default class FiCsElement<D extends object, P extends object> {
   #clone(hasIndividualProps?: boolean): FiCsElement<D, P> {
     return new FiCsElement({
       name: this.#nameKey,
-      uniqueId: hasIndividualProps
-        ? `${this.#uniqueId}-${this.#generator.next().value}`
-        : this.#uniqueId,
-      inheritedId: this.#inheritedId,
+      instanceId: hasIndividualProps
+        ? `${this.#instanceId}-${this.#generator.next().value}`
+        : this.#instanceId,
+      componentId: this.#componentId,
       children: Object.values(this.#children).map(child => child.#clone(hasIndividualProps)),
       data: () => this.#data,
       deferredData: this.#deferredData,
@@ -229,7 +229,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #enqueue(func: () => void, key: Queue['key']): void {
-    enqueue({ uniqueId: this.#uniqueId, func, key })
+    enqueue({ instanceId: this.#instanceId, func, key })
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
@@ -247,11 +247,11 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!this.#isInitialized) {
       const entries = (id: string): [string, P][] => Object.entries(propsChain.get(id) ?? {})
 
-      for (const [key, value] of entries(this.#inheritedId))
+      for (const [key, value] of entries(this.#componentId))
         if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
 
-      if (this.#inheritedId !== this.#uniqueId)
-        for (const [key, value] of entries(this.#uniqueId))
+      if (this.#componentId !== this.#instanceId)
+        for (const [key, value] of entries(this.#instanceId))
           this.#props[key as keyof P] = value as P[keyof P]
 
       for (const { descendant, values } of this.#propsSources) {
@@ -263,12 +263,12 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const _descendant of Array.isArray(returned) ? returned : [returned]) {
           if (checkType(_descendant, 'undefined')) continue
 
-          const uniqueId: string = _descendant.#uniqueId
+          const instanceId: string = _descendant.#instanceId
 
           for (const [key, value] of Object.entries(values(this.#getDataPropsMethods(true)))) {
-            const chain: Record<string, P> = propsChain.get(uniqueId) ?? {}
+            const chain: Record<string, P> = propsChain.get(instanceId) ?? {}
 
-            if (key in chain && propsChain.has(uniqueId)) continue
+            if (key in chain && propsChain.has(instanceId)) continue
 
             if (checkType(value, 'function') && /getData/.test(value.toString())) {
               const keys: Record<string, true> = { [key]: true }
@@ -279,12 +279,12 @@ export default class FiCsElement<D extends object, P extends object> {
                 }
               })
 
-              propsChain.set(uniqueId, { ...chain, [key]: _value })
+              propsChain.set(instanceId, { ...chain, [key]: _value })
 
               if (checkType(_value, 'function')) continue
 
               const tree: PropsTree = {
-                numberId: parseInt(uniqueId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                numberId: parseInt(instanceId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
                 keys,
                 setProps: () =>
                   _descendant.#setProps(
@@ -308,7 +308,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
                 this.#propsTrees.splice(min, 0, tree)
               } else this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
-            } else propsChain.set(uniqueId, { ...chain, [key]: value })
+            } else propsChain.set(instanceId, { ...chain, [key]: value })
           }
         }
       }
@@ -343,8 +343,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #convertTemplate(): string {
-    const sanitized: unique symbol = Symbol(`${this.#uniqueId}-sanitized`)
-    const unsanitized: unique symbol = Symbol(`${this.#uniqueId}-unsanitized`)
+    const sanitized: unique symbol = Symbol(`${this.#instanceId}-sanitized`)
+    const unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`)
 
     const _convertTemplate = (
       templates: TemplateStringsArray,
@@ -403,10 +403,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     return contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
-        const uniqueId: string = curr.#uniqueId
+        const instanceId: string = curr.#instanceId
 
-        if (!(uniqueId in this.#childrenStore)) this.#childrenStore[uniqueId] = curr
-        curr = `<${this.#varTag} ${this.#ficsIdName}="${uniqueId}"></${this.#varTag}>`
+        if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
+        curr = `<${this.#varTag} ${this.#ficsIdName}="${instanceId}"></${this.#varTag}>`
       }
 
       return `${prev}${curr}`
@@ -450,14 +450,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (isElement(childNode)) {
           if (childNode.localName === this.#varTag) {
-            const uniqueId: string | null = childNode.getAttribute(this.#ficsIdName)
+            const instanceId: string | null = childNode.getAttribute(this.#ficsIdName)
 
-            if (!uniqueId || !(uniqueId in this.#childrenStore))
+            if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
-                `The element ${childNode} does not have a valid uniqueId in ${this.#name}...`
+                `The element ${childNode} does not have a valid instanceId in ${this.#name}...`
               )
 
-            const child: FiCsElement<D, P> = this.#childrenStore[uniqueId]
+            const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
             child.#initProps(this.#propsChain)
             child.#callback('created')
             child.#enqueue(() => child.#define(), 'define')
@@ -979,7 +979,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addEventListener(element, Object.entries(value))
 
           that.#removeChildNodes(this)
-          that.#setProperty(this, that.#ficsIdName, that.#uniqueId)
+          that.#setProperty(this, that.#ficsIdName, that.#instanceId)
 
           if (!that.#components.has(this)) that.#components.add(this)
         }
@@ -1147,12 +1147,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const prev: string = html.slice(0, varBeginIndex)
           const next: string = applyDescendant(html.slice(varEndIndex + varEnd.length))
-          const uniqueId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
+          const instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
 
-          if (!(uniqueId in that.#childrenStore))
-            throw new Error(`The element does not have a valid uniqueId in ${that.#name}...`)
+          if (!(instanceId in that.#childrenStore))
+            throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-          return `${prev}${render(that.#childrenStore[uniqueId])}${next}`
+          return `${prev}${render(that.#childrenStore[instanceId])}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
