@@ -47,13 +47,13 @@ export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, 
 
 export type Descendant = FiCsElement<any, any>
 
-export type Excluded = 'isExceptional' | 'uniqueId' | 'inheritedId' | 'clonedCss'
+export type Excluded = 'isExceptional' | 'instanceId' | 'componentId' | 'clonedCss'
 
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
-  uniqueId?: string
-  inheritedId?: string
+  instanceId?: string
+  componentId?: string
   children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
@@ -143,7 +143,7 @@ export interface PropsTree {
 }
 
 export interface Queue {
-  uniqueId: string
+  instanceId: string
   func: () => void
   key: 'define' | 're-render' | 'fetch'
 }
