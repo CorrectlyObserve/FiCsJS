@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
-import { variable } from 'ficsjs/style'
+import { cssVar } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Button from '@/components/materials/Button'
 import { breakpoints, getPath } from '@/utils'
@@ -41,8 +41,8 @@ export default () =>
         : template`${icon}`,
     css: {
       p: {
-        marginBottom: variable('xl'),
-        [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: variable('lg') }
+        marginBottom: cssVar('xl'),
+        [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
       }
     },
     hooks: {
