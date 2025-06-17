@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { rotate, variable } from 'ficsjs/style'
+import { cssVar, rotate } from 'ficsjs/style'
 import { white } from '@/utils'
 
 export default (icon: string) =>
@@ -10,20 +10,20 @@ export default (icon: string) =>
     css: {
       button: ({ data: { icon }, props: { color } }) => ({
         background: 'none',
-        padding: variable('xs'),
+        padding: cssVar('xs'),
         '&:focus': { scale: 0.8 },
         '&.loading': {
           display: 'block',
           marginInline: 'auto',
           span: {
-            width: variable('2xl'),
-            height: variable('2xl'),
+            width: cssVar('2xl'),
+            height: cssVar('2xl'),
             animation: 'loading 1.5s infinite linear'
           }
         },
         span: {
-          width: variable('xl'),
-          height: variable('xl'),
+          width: cssVar('xl'),
+          height: cssVar('xl'),
           display: 'block',
           maskImage: `url("/icons/${icon}.svg")`,
           background: color ?? white
