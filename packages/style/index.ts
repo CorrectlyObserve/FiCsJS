@@ -6,6 +6,9 @@ import { flexCenter } from './flexCenter'
 export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
   `calc(${values.join(` ${operator} `)})`
 
+export const cssVar = (variable: string): string =>
+  `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
+
 export const remToPx = (rem: number | string): number => {
   browserError()
 
@@ -14,8 +17,5 @@ export const remToPx = (rem: number | string): number => {
 }
 
 export const rotate = (degree: number): string => (isNaN(degree) ? '' : `rotate(${degree}deg)`)
-
-export const variable = (variable: string): string =>
-  `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
 
 export { absoluteCenter, color, flexCenter }
