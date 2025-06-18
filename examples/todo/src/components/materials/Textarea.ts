@@ -14,47 +14,46 @@ interface Props {
 const lineHeight = 1.5
 const paddingY: string = calc([cssVar('xs'), 1.5], '*')
 
-export default () =>
-  fics<{}, Props>({
-    name: 'textarea',
-    html: ({ props: { id, label, placeholder, value }, template }) => template`
-      <div>
-        ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
-        <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
-      </div>
-    `,
-    css: {
-      div: {
-        ...flexCenter('x', 'column'),
-        label: { paddingBottom: cssVar('xs') },
-        textarea: {
-          minWidth: calc([cssVar('md'), 20], '*'),
-          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
-          height: calc([calc([paddingY, 2], '*'), calc([cssVar('md'), lineHeight, 6], '*')], '+'),
-          background: color({ hex: white, rate: 0.1 }),
-          fontSize: cssVar('md'),
-          color: white,
-          padding: `${paddingY} ${cssVar('md')}`,
-          borderRadius: cssVar('xs'),
-          border: 'none',
-          outline: 'none',
-          lineHeight,
-          resize: 'none',
-          '&:hover': { cursor: 'pointer' },
-          '&:focus': {
-            background: color({ hex: white, rate: 0.8 }),
-            color: cssVar('black'),
-            cursor: 'auto'
-          }
-        }
-      }
-    },
-    actions: {
+export default fics<{}, Props>({
+  name: 'textarea',
+  html: ({ props: { id, label, placeholder, value }, template }) => template`
+    <div>
+      ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
+      <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
+    </div>
+  `,
+  css: {
+    div: {
+      ...flexCenter('x', 'column'),
+      label: { paddingBottom: cssVar('xs') },
       textarea: {
-        input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
-        blur: ({ props: { value, blur } }) => {
-          if (value !== '' && blur) blur()
+        minWidth: calc([cssVar('md'), 20], '*'),
+        maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+        height: calc([calc([paddingY, 2], '*'), calc([cssVar('md'), lineHeight, 6], '*')], '+'),
+        background: color({ hex: white, rate: 0.1 }),
+        fontSize: cssVar('md'),
+        color: white,
+        padding: `${paddingY} ${cssVar('md')}`,
+        borderRadius: cssVar('xs'),
+        border: 'none',
+        outline: 'none',
+        lineHeight,
+        resize: 'none',
+        '&:hover': { cursor: 'pointer' },
+        '&:focus': {
+          background: color({ hex: white, rate: 0.8 }),
+          color: cssVar('black'),
+          cursor: 'auto'
         }
       }
     }
-  })
+  },
+  actions: {
+    textarea: {
+      input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
+      blur: ({ props: { value, blur } }) => {
+        if (value !== '' && blur) blur()
+      }
+    }
+  }
+})
