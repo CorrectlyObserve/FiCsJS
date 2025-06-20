@@ -13,47 +13,46 @@ interface Data {
   buttonText: string
 }
 
-export default () =>
-  fics<Data, { lang: string }>({
-    name: 'not-found',
-    children: [Button(), Icon('loading')],
-    data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
-    deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
-    props: {
-      descendant: ({ children: { button } }) => button,
-      values: ({ props: { lang } }) => ({
-        buttonText: ({ getData }) => getData('buttonText'),
-        click: () => goto(getPath(lang, '/'))
-      })
+export default fics<Data, { lang: string }>({
+  name: 'not-found',
+  children: [Button, Icon('loading')],
+  data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
+  deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: ({ props: { lang } }) => ({
+      buttonText: ({ getData }) => getData('buttonText'),
+      click: () => goto(getPath(lang, '/'))
+    })
+  },
+  html: ({
+    children: { button, icon },
+    data: {
+      seconds,
+      heading,
+      descriptions: [start, end]
     },
-    html: ({
-      children: { button, icon },
-      data: {
-        seconds,
-        heading,
-        descriptions: [start, end]
-      },
-      template,
-      isDeferred
-    }) =>
-      isDeferred
-        ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
-        : template`${icon}`,
-    css: {
-      p: {
-        marginBottom: cssVar('xl'),
-        [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
-      }
-    },
-    hooks: {
-      mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
-        poll(
-          ({ times }) => {
-            if (times === seconds - 1) goto(getPath(lang, '/'))
-            setData('seconds', seconds - times - 1)
-          },
-          { interval: 1000, max: seconds }
-        )
-    },
-    options: { lazyLoad: true }
-  })
+    template,
+    isDeferred
+  }) =>
+    isDeferred
+      ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
+      : template`${icon}`,
+  css: {
+    p: {
+      marginBottom: cssVar('xl'),
+      [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+    }
+  },
+  hooks: {
+    mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
+      poll(
+        ({ times }) => {
+          if (times === seconds - 1) goto(getPath(lang, '/'))
+          setData('seconds', seconds - times - 1)
+        },
+        { interval: 1000, max: seconds }
+      )
+  },
+  options: { lazyLoad: true }
+})
