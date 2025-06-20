@@ -40,7 +40,6 @@ const generator: Generator<number> = uid()
 export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
   readonly #ficsIdName: string = 'fics-id'
-  readonly #generator: Generator<number> = uid()
   readonly #instanceId: string
   readonly #componentId: string
   readonly #name: string
@@ -61,6 +60,8 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
+  readonly #clonedSelves: Map<string, Descendant> = new Map()
+  readonly #propsChain: PropsChain<P> = new Map()
   readonly #propsTrees: PropsTree[] = new Array()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #varTag = 'f-var'
@@ -68,7 +69,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
-  #propsChain: PropsChain<P> = new Map()
 
   constructor({
     name,
@@ -88,7 +88,8 @@ export default class FiCsElement<D extends object, P extends object> {
     actions,
     options,
     scroll,
-    sse
+    sse,
+    setIndividualProps
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
@@ -169,6 +170,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (actions && this.#isBrowser) this.#actions = { ...actions }
     if (scroll && this.#isBrowser) this.#scroll = { ...scroll, isEnabled: false }
     if (sse && this.#isBrowser) this.#sse = { ...sse }
+    if (setIndividualProps) this.setIndividualProps = setIndividualProps
   }
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
@@ -176,14 +178,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
-  #clone(hasIndividualProps?: boolean): FiCsElement<D, P> {
+  #clone(instanceId?: string): FiCsElement<D, P> {
     return new FiCsElement({
       name: this.#nameKey,
-      instanceId: hasIndividualProps
-        ? `${this.#instanceId}-${this.#generator.next().value}`
-        : this.#instanceId,
+      instanceId: instanceId ?? this.#instanceId,
       componentId: this.#componentId,
-      children: Object.values(this.#children).map(child => child.#clone(hasIndividualProps)),
+      children: Object.values(this.#children),
       data: () => this.#data,
       deferredData: this.#deferredData,
       props: this.#propsSources,
@@ -193,7 +193,25 @@ export default class FiCsElement<D extends object, P extends object> {
       clonedCss: this.#css,
       actions: this.#actions,
       hooks: this.#hooks,
-      options: this.#options
+      options: this.#options,
+      scroll: this.#scroll,
+      sse: this.#sse,
+      setIndividualProps: (key: string, props: P): FiCsElement<D, P> => {
+        const instanceId: string = `${this.#instanceId}-${key}`
+        const clonedSelf: Descendant | undefined = this.#clonedSelves.get(instanceId)
+
+        if (clonedSelf) {
+          for (const [key, value] of Object.entries({ ...props })) clonedSelf.#setProps(key, value)
+
+          return clonedSelf
+        }
+
+        const cloned: Descendant = this.#clone(instanceId)
+        for (const [key, value] of Object.entries({ ...props })) cloned.#setProps(key, value)
+
+        this.#clonedSelves.set(instanceId, cloned)
+        return cloned
+      }
     })
   }
 
@@ -313,7 +331,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      this.#propsChain = new Map(propsChain)
+      for (const [key, value] of propsChain) this.#propsChain.set(key, value)
       this.#isInitialized = true
     }
   }
@@ -388,15 +406,6 @@ export default class FiCsElement<D extends object, P extends object> {
       ): Sanitized<D, P> => ({ [sanitized]: _convertTemplate(templates, variables) }),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
-      setProps: (instance: Descendant, props: object): Descendant => {
-        const descendant: Descendant = instance.#clone(true)
-
-        for (const [key, value] of Object.entries({ ...instance.#props, ...props }))
-          descendant.#setProps(key, value)
-
-        descendant.#initProps(this.#propsChain)
-        return descendant
-      },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred
     })[sanitized]
@@ -1119,6 +1128,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#newElements.clear()
     }
+  }
+
+  setIndividualProps(key: string, props: P): FiCsElement<D, P> {
+    throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
   }
 
   toString(data?: Partial<D>): string {
