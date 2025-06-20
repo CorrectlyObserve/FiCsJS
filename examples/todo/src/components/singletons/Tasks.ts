@@ -27,175 +27,171 @@ const loadingIcon = Icon('loading')
 const trashIcon = Icon('trash')
 const { sm, lg } = breakpoints
 
-export default () =>
-  fics<Data, { lang: string; click?: (id: number) => void }>({
-    name: 'tasks',
-    children: [Input()],
-    data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-    deferredData: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
-    props: [
-      {
-        descendant: ({ children: { input } }) => input,
-        values: ({ setData }) => ({
-          value: ({ getData }) => getData('value'),
-          placeholder: ({ getData }) => getData('placeholder'),
-          input: (value: string) => setData('value', value),
-          enterKey:
-            ({ getData }) =>
-            async () => {
-              const value = getData('value')
+export default fics<Data, { lang: string; click?: (id: number) => void }>({
+  name: 'tasks',
+  children: [Input],
+  data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
+  deferredData: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
+  props: [
+    {
+      descendant: ({ children: { input } }) => input,
+      values: ({ setData }) => ({
+        value: ({ getData }) => getData('value'),
+        placeholder: ({ getData }) => getData('placeholder'),
+        input: (value: string) => setData('value', value),
+        enterKey:
+          ({ getData }) =>
+          async () => {
+            const value = getData('value')
 
-              if (value !== '') {
-                const tasks: Task[] = await addTask(value)
+            if (value !== '') {
+              const tasks: Task[] = await addTask(value)
 
-                setData('tasks', tasks)
-                setData('value', '')
-              }
+              setData('tasks', tasks)
+              setData('value', '')
             }
-        })
-      },
-      {
-        descendant: () => addIcon,
-        values: ({ setData }) => ({
-          click:
-            ({ getData }) =>
-            async () => {
-              const value = getData('value')
+          }
+      })
+    },
+    {
+      descendant: () => addIcon,
+      values: ({ setData }) => ({
+        click:
+          ({ getData }) =>
+          async () => {
+            const value = getData('value')
 
-              if (value !== '') {
-                const tasks: Task[] = await addTask(value)
+            if (value !== '') {
+              const tasks: Task[] = await addTask(value)
 
-                setData('tasks', tasks)
-                setData('value', '')
-              }
+              setData('tasks', tasks)
+              setData('value', '')
             }
-        })
-      },
-      {
-        descendant: () => [squareIcon, checkSquareIcon],
-        values: ({ setData }) => ({
-          click:
-            ({ getData }) =>
-            () =>
-              setData('isShown', !getData('isShown'))
-        })
-      }
-    ],
-    html: ({
-      children: { input },
-      data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
-      props: { lang },
-      template,
-      setData,
-      setProps,
-      isDeferred
-    }) => {
-      if (!isDeferred) return template`${loadingIcon}`
+          }
+      })
+    },
+    {
+      descendant: () => [squareIcon, checkSquareIcon],
+      values: ({ setData }) => ({
+        click:
+          ({ getData }) =>
+          () =>
+            setData('isShown', !getData('isShown'))
+      })
+    }
+  ],
+  html: ({
+    children: { input },
+    data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
+    props: { lang },
+    template,
+    setData,
+    setProps,
+    isDeferred
+  }) => {
+    if (!isDeferred) return template`${loadingIcon}`
 
-      if (!isShown) tasks = tasks.filter(task => !task.completedAt)
+    if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
-      const { offsetWidth } = document.documentElement
+    const { offsetWidth } = document.documentElement
 
-      return template`
-        <h2>${heading}</h2>
-        <div class="menu">
-          <div>${input}${addIcon}</div>
-          <div>
-            ${isShown ? checkSquareIcon : squareIcon}
-            <span role="button" tabindex="0">${checkbox}</span>
-          </div>
+    return template`
+      <h2>${heading}</h2>
+      <div class="menu">
+        <div>${input}${addIcon}</div>
+        <div>
+          ${isShown ? checkSquareIcon : squareIcon}
+          <span role="button" tabindex="0">${checkbox}</span>
         </div>
-        ${
-          tasks.length > 0
-            ? tasks.map(
-                ({ id, title, completedAt }) => template`
-                  <div class="task" key="${id}">
-                    <div>
-                      ${setProps(Icon(completedAt ? 'check' : 'circle'), {
-                        click: async () => {
-                          setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
-                        }
-                      })}
-                      <span class="${completedAt ? 'done' : ''}">
-                        <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
-                      </span>
-                    </div>
-                    ${setProps(trashIcon, {
-                      color: cssVar('red'),
+      </div>
+      ${
+        tasks.length > 0
+          ? tasks.map(
+              ({ id, title, completedAt }) => template`
+                <div class="task" key="${id}">
+                  <div>
+                    ${setProps(Icon(completedAt ? 'check' : 'circle'), {
                       click: async () => {
-                        if (window.confirm(confirmation)) {
-                          setData('tasks', await deleteTask(id))
-                          if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
-                        }
+                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                       }
                     })}
+                    <span class="${completedAt ? 'done' : ''}">
+                      <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
+                    </span>
                   </div>
-                `
-              )
-            : template`<p>${unapplicable}</p>`
-        }
-      `
-    },
-    css: {
-      div: {
-        '&.menu': {
-          marginBottom: cssVar('xl'),
-          div: {
-            ...flexCenter('xy'),
-            marginBottom: cssVar('md'),
-            '&:last-child': { marginBottom: 0 },
-            'f-input': { marginRight: cssVar('md') }
-          },
-          [`@media (max-width: ${sm})`]: {
-            marginBottom: cssVar('md'),
-            div: { marginBottom: cssVar('xs'), 'f-input': { marginRight: 0 } }
-          }
-        },
-        '&.task': {
-          ...flexCenter('y'),
-          width: sm,
-          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
-          marginInline: 'auto',
-          marginBottom: cssVar('xs'),
+                  ${setProps(trashIcon, {
+                    color: cssVar('red'),
+                    click: async () => {
+                      if (window.confirm(confirmation)) {
+                        setData('tasks', await deleteTask(id))
+                        if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
+                      }
+                    }
+                  })}
+                </div>
+              `
+            )
+          : template`<p>${unapplicable}</p>`
+      }
+    `
+  },
+  css: {
+    div: {
+      '&.menu': {
+        marginBottom: cssVar('xl'),
+        div: {
+          ...flexCenter('xy'),
+          marginBottom: cssVar('md'),
           '&:last-child': { marginBottom: 0 },
-          [`@media (max-width: ${sm})`]: { width: '100%' },
-          div: {
-            width: `${calc(
-              [calc(['100%', cssVar('xl')], '-'), calc([cssVar('xs'), 2], '*')],
-              '-'
-            )}`,
-            ...flexCenter('y'),
-            span: {
+          'f-input': { marginRight: cssVar('md') }
+        },
+        [`@media (max-width: ${sm})`]: {
+          marginBottom: cssVar('md'),
+          div: { marginBottom: cssVar('xs'), 'f-input': { marginRight: 0 } }
+        }
+      },
+      '&.task': {
+        ...flexCenter('y'),
+        width: sm,
+        maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+        marginInline: 'auto',
+        marginBottom: cssVar('xs'),
+        '&:last-child': { marginBottom: 0 },
+        [`@media (max-width: ${sm})`]: { width: '100%' },
+        div: {
+          width: `${calc([calc(['100%', cssVar('xl')], '-'), calc([cssVar('xs'), 2], '*')], '-')}`,
+          ...flexCenter('y'),
+          span: {
+            width: '100%',
+            display: 'flex',
+            textAlign: 'left',
+            marginInline: cssVar('xs'),
+            overflowX: 'hidden',
+            transition: `${cssVar('transition')} allow-discrete`,
+            '&.done': { textDecoration: 'line-through' },
+            a: {
               width: '100%',
-              display: 'flex',
-              textAlign: 'left',
-              marginInline: cssVar('xs'),
+              display: 'inline-block',
+              color: 'inherit',
+              paddingBlock: cssVar('xs'),
+              lineHeight: 'inherit',
+              outline: 'none',
+              whiteSpace: 'nowrap',
               overflowX: 'hidden',
-              transition: `${cssVar('transition')} allow-discrete`,
-              '&.done': { textDecoration: 'line-through' },
-              a: {
-                width: '100%',
-                display: 'inline-block',
-                color: 'inherit',
-                paddingBlock: cssVar('xs'),
-                lineHeight: 'inherit',
-                outline: 'none',
-                whiteSpace: 'nowrap',
-                overflowX: 'hidden',
-                textDecoration: 'none',
-                textOverflow: 'ellipsis'
-              }
+              textDecoration: 'none',
+              textOverflow: 'ellipsis'
             }
           }
-        },
-        span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
-      }
-    },
-    actions: {
-      'div.menu span': {
-        click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
-      }
-    },
-    hooks: { mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks)) },
-    options: { lazyLoad: true }
-  })
+        }
+      },
+      span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
+    }
+  },
+  hooks: { mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks)) },
+  actions: {
+    'div.menu span': {
+      click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
+    }
+  },
+  options: { lazyLoad: true }
+})
