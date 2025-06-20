@@ -33,13 +33,14 @@ import type {
   Style
 } from './types'
 
-const names: Record<string, number> = {}
-const nameGenerators: Record<string, Generator<number>> = {}
+const ficsIdName = 'fics-id' as const
 const generator: Generator<number> = uid()
+const nameGenerators: Record<string, Generator<number>> = {}
+const names: Record<string, number> = {}
+const varTag = 'f-var' as const
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
-  readonly #ficsIdName: string = 'fics-id'
   readonly #instanceId: string
   readonly #componentId: string
   readonly #name: string
@@ -64,7 +65,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #propsChain: PropsChain<P> = new Map()
   readonly #propsTrees: PropsTree[] = new Array()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
-  readonly #varTag = 'f-var'
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
@@ -99,7 +99,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${this.#ficsIdName}${generator.next().value}`
+    this.#instanceId = instanceId ?? `${ficsIdName}${generator.next().value}`
     this.#componentId = componentId ?? this.#instanceId
 
     if (!nameGenerators[name]) nameGenerators[name] = uid()
@@ -302,7 +302,7 @@ export default class FiCsElement<D extends object, P extends object> {
               if (checkType(_value, 'function')) continue
 
               const tree: PropsTree = {
-                numberId: parseInt(instanceId.replace(new RegExp(`^${this.#ficsIdName}`), '')),
+                numberId: parseInt(instanceId.replace(new RegExp(`^${ficsIdName}`), '')),
                 keys,
                 setProps: () =>
                   _descendant.#setProps(
@@ -415,7 +415,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const instanceId: string = curr.#instanceId
 
         if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
-        curr = `<${this.#varTag} ${this.#ficsIdName}="${instanceId}"></${this.#varTag}>`
+        curr = `<${varTag} ${ficsIdName}="${instanceId}"></${varTag}>`
       }
 
       return `${prev}${curr}`
@@ -458,8 +458,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         if (isElement(childNode)) {
-          if (childNode.localName === this.#varTag) {
-            const instanceId: string | null = childNode.getAttribute(this.#ficsIdName)
+          if (childNode.localName === varTag) {
+            const instanceId: string | null = childNode.getAttribute(ficsIdName)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -531,7 +531,7 @@ export default class FiCsElement<D extends object, P extends object> {
               if (oldChildNode instanceof HTMLElement) {
                 oldChildNode.setAttribute(name, value)
 
-                if (name !== that.#ficsIdName) that.#setProperty(oldChildNode, name, value)
+                if (name !== ficsIdName) that.#setProperty(oldChildNode, name, value)
               } else oldChildNode.setAttributeNS(namespaceURI, name, value)
             }
 
@@ -642,7 +642,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!(oldChildNode as any)[that.#convertStr(that.#ficsIdName, 'camel')]
+                  !!(oldChildNode as any)[that.#convertStr(ficsIdName, 'camel')]
                 )
                   continue
 
@@ -988,7 +988,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addEventListener(element, Object.entries(value))
 
           that.#removeChildNodes(this)
-          that.#setProperty(this, that.#ficsIdName, that.#instanceId)
+          that.#setProperty(this, ficsIdName, that.#instanceId)
 
           if (!that.#components.has(this)) that.#components.add(this)
         }
@@ -1150,8 +1150,8 @@ export default class FiCsElement<D extends object, P extends object> {
           `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
 
         const applyDescendant = (html: string): string => {
-          const varBegin: string = `<${that.#varTag} ${that.#ficsIdName}="`
-          const varEnd: string = `"></${that.#varTag}>`
+          const varBegin: string = `<${varTag} ${ficsIdName}="`
+          const varEnd: string = `"></${varTag}>`
 
           const varBeginIndex: number = html.indexOf(varBegin)
           const varEndIndex: number = html.indexOf(varEnd)
