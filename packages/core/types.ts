@@ -47,12 +47,7 @@ export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, 
 
 export type Descendant = FiCsElement<any, any>
 
-export type Excluded =
-  | 'isExceptional'
-  | 'instanceId'
-  | 'componentId'
-  | 'clonedCss'
-  | 'setIndividualProps'
+export type Excluded = 'isExceptional' | 'instanceId' | 'componentId' | 'clonedCss'
 
 export interface FiCs<D extends object, P extends object> {
   name: string
@@ -73,7 +68,6 @@ export interface FiCs<D extends object, P extends object> {
   options?: OptionParams
   scroll?: Omit<Scroll<D, P>, 'isEnabled'>
   sse?: ServerSentEvents<D, P>
-  setIndividualProps?: (key: string, props: P) => FiCsElement<D, P>
 }
 
 export interface GlobalCssContent {
