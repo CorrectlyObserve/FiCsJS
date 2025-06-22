@@ -88,8 +88,7 @@ export default class FiCsElement<D extends object, P extends object> {
     actions,
     options,
     scroll,
-    sse,
-    setIndividualProps
+    sse
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
@@ -170,7 +169,6 @@ export default class FiCsElement<D extends object, P extends object> {
     if (actions && this.#isBrowser) this.#actions = { ...actions }
     if (scroll && this.#isBrowser) this.#scroll = { ...scroll, isEnabled: false }
     if (sse && this.#isBrowser) this.#sse = { ...sse }
-    if (setIndividualProps) this.setIndividualProps = setIndividualProps
   }
 
   #convertStr(str: string, type: 'kebab' | 'camel'): string {
@@ -195,23 +193,7 @@ export default class FiCsElement<D extends object, P extends object> {
       hooks: this.#hooks,
       options: this.#options,
       scroll: this.#scroll,
-      sse: this.#sse,
-      setIndividualProps: (key: string, props: P): FiCsElement<D, P> => {
-        const instanceId: string = `${this.#instanceId}-${key}`
-        const clonedSelf: Descendant | undefined = this.#clonedSelves.get(instanceId)
-
-        if (clonedSelf) {
-          for (const [key, value] of Object.entries({ ...props })) clonedSelf.#setProps(key, value)
-
-          return clonedSelf
-        }
-
-        const cloned: Descendant = this.#clone(instanceId)
-        for (const [key, value] of Object.entries({ ...props })) cloned.#setProps(key, value)
-
-        this.#clonedSelves.set(instanceId, cloned)
-        return cloned
-      }
+      sse: this.#sse
     })
   }
 
@@ -396,6 +378,26 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return converted as HtmlContent<D, P>[]
     }
+
+    for (const child of Object.values(this.#children))
+      child.setIndividualProps = (key: string, props: P): FiCsElement<D, P> => {
+        const instanceId: string = `${child.#instanceId}-${key}`
+        const clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId)
+        const cloneProps = (descendant: Descendant): Descendant => {
+          for (const [key, value] of Object.entries({ ...props })) descendant.#setProps(key, value)
+          return descendant
+        }
+
+        if (clonedSelf) return cloneProps(clonedSelf)
+
+        const cloned: Descendant = cloneProps(child.#clone(instanceId))
+
+        for (const [key, value] of Object.entries(cloned.#children))
+          cloned.#children[key] = value.#clone(`${value.#instanceId}-in-${instanceId}`)
+
+        child.#clonedSelves.set(instanceId, cloned)
+        return cloned
+      }
 
     const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#getDataPropsMethods(),
