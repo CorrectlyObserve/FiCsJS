@@ -13,3 +13,15 @@ h1 {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+.clickable {
+  @apply transition duration-200 ease-out;
+
+  &:not([aria-disabled='true']) {
+    @apply cursor-pointer hover:opacity-50 focus:scale-95;
+  }
+
+  &[aria-disabled='true'] {
+    @apply opacity-20 cursor-not-allowed;
+  }
+}
