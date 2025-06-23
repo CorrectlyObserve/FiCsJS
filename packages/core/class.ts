@@ -22,8 +22,8 @@ import type {
   OptionParams,
   PollingOptions,
   Props,
+  PropsBinding,
   PropsChain,
-  PropsTree,
   Queue,
   Sanitized,
   Scroll,
@@ -37,6 +37,7 @@ const ficsIdName = 'fics-id' as const
 const generator: Generator<number> = uid()
 const nameGenerators: Record<string, Generator<number>> = {}
 const names: Record<string, number> = {}
+const propsMap: Map<string, PropsBinding[]> = new Map()
 const varTag = 'f-var' as const
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -63,7 +64,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
-  readonly #propsTrees: PropsTree[] = new Array()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
@@ -105,6 +105,8 @@ export default class FiCsElement<D extends object, P extends object> {
     names[name] = nameGenerators[name].next().value
     this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
 
+    propsMap.set(this.#instanceId, [])
+
     if (options) {
       const { ssr, lazyLoad, rootMargin }: OptionParams = options
 
@@ -123,7 +125,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (children)
       for (const child of children)
-        this.#children[child.#nameKey] = componentId ? child : child.#clone()
+        this.#children[child.#nameKey] = instanceId ? child : child.#clone()
 
     this.#isBrowser = isBrowser()
 
@@ -201,6 +203,16 @@ export default class FiCsElement<D extends object, P extends object> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
 
+  async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
+    const { key, ..._options }: CrudOptions<D> = options ?? {}
+    const isKeyEnabled: boolean = !!(key && checkType(this.getData(key), 'boolean'))
+
+    if (isKeyEnabled) this.setData(key as keyof D, true as D[keyof D])
+    const json: T = await fetch(api, _options).then(res => res.json())
+    if (isKeyEnabled) setTimeout(() => this.setData(key as keyof D, false as D[keyof D]), 0)
+    return json
+  }
+
   #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
     const base: DataPropsMethods<D, P> = {
       ...this.#getDataProps(),
@@ -211,14 +223,8 @@ export default class FiCsElement<D extends object, P extends object> {
     return (isCrud ? { ...base, crud: this.#crud.bind(this) } : base) as DataPropsMethods<D, P, B>
   }
 
-  async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
-    const { key, ..._options }: CrudOptions<D> = options ?? {}
-    const isKeyEnabled: boolean = !!(key && checkType(this.getData(key), 'boolean'))
-
-    if (isKeyEnabled) this.setData(key as keyof D, true as D[keyof D])
-    const json: T = await fetch(api, _options).then(res => res.json())
-    if (isKeyEnabled) setTimeout(() => this.setData(key as keyof D, false as D[keyof D]), 0)
-    return json
+  #getPropsBindings(instanceId?: string): PropsBinding[] {
+    return propsMap.get(instanceId ?? this.#instanceId) ?? []
   }
 
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
@@ -243,7 +249,7 @@ export default class FiCsElement<D extends object, P extends object> {
     } else if (this.#props[key] !== value) this.#props[key] = value
   }
 
-  #initProps(propsChain: PropsChain<P>): void {
+  #initProps(propsChain: PropsChain<P>, parentId?: string): void {
     if (!this.#isInitialized) {
       const entries = (id: string): [string, P][] => Object.entries(propsChain.get(id) ?? {})
 
@@ -255,10 +261,16 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#props[key as keyof P] = value as P[keyof P]
 
       for (const { descendant, values } of this.#propsSources) {
-        const returned: SingleOrArray<Descendant> = descendant({
-          children: this.#children,
-          getChildren: (instance: Descendant): Children => instance.#children
-        })
+        const addGetChildren = (children: Children): void => {
+          for (const child of Object.values(children)) {
+            child.getChildren = (): Children => child.#children
+            addGetChildren(child.#children)
+          }
+        }
+
+        addGetChildren(this.#children)
+
+        const returned: SingleOrArray<Descendant> = descendant({ children: this.#children })
 
         for (const _descendant of Array.isArray(returned) ? returned : [returned]) {
           if (checkType(_descendant, 'undefined')) continue
@@ -271,10 +283,10 @@ export default class FiCsElement<D extends object, P extends object> {
             if (key in chain && propsChain.has(instanceId)) continue
 
             if (checkType(value, 'function') && /getData/.test(value.toString())) {
-              const keys: Record<string, true> = { [key]: true }
+              const propsKeys: Record<string, true> = { [key]: true }
               const _value: any = value({
                 getData: <K extends keyof D>(_key: K): D[K] => {
-                  if (key !== _key) keys[_key as string] = true
+                  if (key !== _key) propsKeys[_key as string] = true
                   return this.getData(_key)
                 }
               })
@@ -283,19 +295,21 @@ export default class FiCsElement<D extends object, P extends object> {
 
               if (checkType(_value, 'function')) continue
 
-              const tree: PropsTree = {
-                numberId: parseInt(instanceId.replace(new RegExp(`^${ficsIdName}`), '')),
-                keys,
-                setProps: () =>
-                  _descendant.#setProps(
-                    key,
-                    value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) })
-                  )
+              const propsBindings: PropsBinding[] = this.#getPropsBindings()
+              const last: number = propsBindings.length - 1
+              const start: number = instanceId.indexOf(ficsIdName) + ficsIdName.length
+              const end: number = instanceId.indexOf('-', start)
+              const newBinding: PropsBinding = {
+                instanceId,
+                numberId: parseInt(instanceId.slice(start, end === -1 ? undefined : end)),
+                propsKeys,
+                propsKey: key,
+                propsValue: () =>
+                  value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) }),
+                setProps: (value: unknown) => _descendant.#setProps(key, value)
               }
-
-              const last: number = this.#propsTrees.length - 1
               const isLargerNumberId = (index: number): boolean =>
-                this.#propsTrees[index].numberId >= tree.numberId
+                propsBindings[index].numberId >= newBinding.numberId
 
               if (last > 2) {
                 let min: number = 0
@@ -306,14 +320,39 @@ export default class FiCsElement<D extends object, P extends object> {
                   isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
                 }
 
-                this.#propsTrees.splice(min, 0, tree)
-              } else this.#propsTrees[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](tree)
+                propsBindings.splice(min, 0, newBinding)
+              } else
+                propsBindings[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](newBinding)
+
+              propsMap.set(this.#instanceId, propsBindings)
             } else propsChain.set(instanceId, { ...chain, [key]: value })
           }
         }
       }
 
       for (const [key, value] of propsChain) this.#propsChain.set(key, value)
+
+      if (parentId) {
+        const propsBindings: PropsBinding[] = this.#getPropsBindings(parentId)
+
+        for (const [index, { instanceId, propsKey, ...args }] of Object.entries(propsBindings))
+          for (const child of Object.values(this.#children))
+            if (child.#componentId === instanceId && child.#instanceId !== instanceId) {
+              const _index: number = parseInt(index) + 1
+
+              propsMap.set(parentId, [
+                ...propsBindings.slice(0, _index),
+                {
+                  ...args,
+                  instanceId: child.#instanceId,
+                  propsKey,
+                  setProps: (value: unknown) => child.#setProps(propsKey, value)
+                },
+                ...propsBindings.slice(_index)
+              ])
+            }
+      }
+
       this.#isInitialized = true
     }
   }
@@ -390,13 +429,20 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (clonedSelf) return cloneProps(clonedSelf)
 
-        const cloned: Descendant = cloneProps(child.#clone(instanceId))
+        const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
+          const cloned: Descendant = cloneProps(child.#clone(instanceId))
 
-        for (const [key, value] of Object.entries(cloned.#children))
-          cloned.#children[key] = value.#clone(`${value.#instanceId}-in-${instanceId}`)
+          for (const [key, _child] of Object.entries(cloned.#children))
+            cloned.#children[key] = cloneRecursively(
+              _child,
+              `${_child.#instanceId}-in-${instanceId}`
+            )
 
-        child.#clonedSelves.set(instanceId, cloned)
-        return cloned
+          child.#clonedSelves.set(instanceId, cloned)
+          return cloned
+        }
+
+        return cloneRecursively(child, instanceId)
       }
 
     const contents: HtmlContent<D, P>[] = this.#html({
@@ -469,7 +515,7 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
             const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
-            child.#initProps(this.#propsChain)
+            child.#initProps(this.#propsChain, this.#instanceId)
             child.#callback('created')
             child.#enqueue(() => child.#define(), 'define')
 
@@ -985,9 +1031,9 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#addHtml(this.#shadowRoot, true)
           that.#addCss(this.#shadowRoot, [])
 
-          for (const [selector, value] of Object.entries(that.#actions))
+          for (const [selector, action] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
-              that.#addEventListener(element, Object.entries(value))
+              that.#addEventListener(element, Object.entries(action))
 
           that.#removeChildNodes(this)
           that.#setProperty(this, ficsIdName, that.#instanceId)
@@ -1064,10 +1110,10 @@ export default class FiCsElement<D extends object, P extends object> {
                   )
                 }
 
-                for (const [handler, value] of Object.entries(actions))
-                  Array.isArray(value)
-                    ? addEventListener(this.#eventSource, handler, value[0], value[1])
-                    : addEventListener(this.#eventSource, handler, value)
+                for (const [handler, method] of Object.entries(actions))
+                  Array.isArray(method)
+                    ? addEventListener(this.#eventSource, handler, method[0], method[1])
+                    : addEventListener(this.#eventSource, handler, method)
               }
             }
 
@@ -1112,7 +1158,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
 
     if (this.#isBrowser) {
-      for (const [selector, value] of Object.entries(this.#actions)) {
+      for (const [selector, action] of Object.entries(this.#actions)) {
         const addAllElements = (elements: Element[] | Set<Element>): void => {
           for (const element of elements) {
             if (element instanceof Element && !this.#newElements.has(element))
@@ -1125,20 +1171,28 @@ export default class FiCsElement<D extends object, P extends object> {
         addAllElements(this.#newElements)
 
         for (const element of this.#getElements(component, selector))
-          if (this.#newElements.has(element)) this.#addEventListener(element, Object.entries(value))
+          if (this.#newElements.has(element))
+            this.#addEventListener(element, Object.entries(action))
       }
 
       this.#newElements.clear()
     }
   }
 
-  setIndividualProps(key: string, props: P): FiCsElement<D, P> {
+  getChildren(): Children {
+    throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
+  }
+
+  setIndividualProps(_1: string, _2: P): FiCsElement<D, P> {
     throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
   }
 
   toString(data?: Partial<D>): string {
-    const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
-      that.#initProps(this.#propsChain)
+    const render = (
+      that: FiCsElement<D, P>,
+      { data, parentId }: { data?: Partial<D>; parentId?: string }
+    ): string => {
+      that.#initProps(this.#propsChain, parentId)
 
       if (that.#options.ssr) {
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
@@ -1167,7 +1221,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!(instanceId in that.#childrenStore))
             throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-          return `${prev}${render(that.#childrenStore[instanceId])}${next}`
+          return `${prev}${render(that.#childrenStore[instanceId], { parentId: that.#instanceId })}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
@@ -1230,7 +1284,7 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data))
         this.setData(key as keyof D, value as D[keyof D])
 
-    return render(this, data)
+    return render(this, { data })
   }
 
   describe(parent?: HTMLElement): void {
@@ -1250,8 +1304,8 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#infiniteScroll(this.#getShadowRoot(this.#components.values().next().value!))
         }, 're-render')
 
-      for (const { keys, setProps } of this.#propsTrees)
-        if (checkType(key, 'string') && keys[key]) setProps()
+        for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
+          if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)

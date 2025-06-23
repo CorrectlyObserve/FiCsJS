@@ -123,10 +123,7 @@ export interface PollingOptions {
 }
 
 export interface Props<D, P> {
-  descendant: (params: {
-    children: Children
-    getChildren: (instance: Descendant) => Children
-  }) => SingleOrArray<Descendant>
+  descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
     params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
@@ -134,13 +131,16 @@ export interface Props<D, P> {
     | Record<string, any>
 }
 
-export type PropsChain<P> = Map<string, Record<string, P>>
-
-export interface PropsTree {
+export interface PropsBinding {
+  instanceId: string
   numberId: number
-  keys: Record<string, true>
-  setProps: () => void
+  propsKeys: Record<string, true>
+  propsKey: string
+  propsValue: () => unknown
+  setProps: (value: unknown) => void
 }
+
+export type PropsChain<P> = Map<string, Record<string, P>>
 
 export interface Queue {
   instanceId: string
