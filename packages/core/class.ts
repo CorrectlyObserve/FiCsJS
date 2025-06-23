@@ -64,6 +64,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
+  readonly #ancestorIds: string[] = new Array()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
@@ -249,7 +250,7 @@ export default class FiCsElement<D extends object, P extends object> {
     } else if (this.#props[key] !== value) this.#props[key] = value
   }
 
-  #initProps(propsChain: PropsChain<P>, parentId?: string): void {
+  #initProps(propsChain: PropsChain<P>, ancestorIds: string[]): void {
     if (!this.#isInitialized) {
       const entries = (id: string): [string, P][] => Object.entries(propsChain.get(id) ?? {})
 
@@ -332,15 +333,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
       for (const [key, value] of propsChain) this.#propsChain.set(key, value)
 
-      if (parentId) {
-        const propsBindings: PropsBinding[] = this.#getPropsBindings(parentId)
+      for (const ancestorId of ancestorIds) {
+        const propsBindings: PropsBinding[] = this.#getPropsBindings(ancestorId)
 
         for (const [index, { instanceId, propsKey, ...args }] of Object.entries(propsBindings))
           for (const child of Object.values(this.#children))
             if (child.#componentId === instanceId && child.#instanceId !== instanceId) {
               const _index: number = parseInt(index) + 1
 
-              propsMap.set(parentId, [
+              propsMap.set(ancestorId, [
                 ...propsBindings.slice(0, _index),
                 {
                   ...args,
@@ -351,8 +352,11 @@ export default class FiCsElement<D extends object, P extends object> {
                 ...propsBindings.slice(_index)
               ])
             }
+
+        this.#ancestorIds.push(ancestorId)
       }
 
+      this.#ancestorIds.push(this.#instanceId)
       this.#isInitialized = true
     }
   }
@@ -515,7 +519,7 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
             const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
-            child.#initProps(this.#propsChain, this.#instanceId)
+            child.#initProps(this.#propsChain, this.#ancestorIds)
             child.#callback('created')
             child.#enqueue(() => child.#define(), 'define')
 
@@ -1190,9 +1194,11 @@ export default class FiCsElement<D extends object, P extends object> {
   toString(data?: Partial<D>): string {
     const render = (
       that: FiCsElement<D, P>,
-      { data, parentId }: { data?: Partial<D>; parentId?: string }
+      propsChain: PropsChain<P>,
+      ancestorIds: string[],
+      data?: Partial<D>
     ): string => {
-      that.#initProps(this.#propsChain, parentId)
+      that.#initProps(propsChain, ancestorIds)
 
       if (that.#options.ssr) {
         const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
@@ -1221,7 +1227,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!(instanceId in that.#childrenStore))
             throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-          return `${prev}${render(that.#childrenStore[instanceId], { parentId: that.#instanceId })}${next}`
+          return `${prev}${render(that.#childrenStore[instanceId], propsChain, ancestorIds)}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
@@ -1284,11 +1290,11 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data))
         this.setData(key as keyof D, value as D[keyof D])
 
-    return render(this, { data })
+    return render(this, this.#propsChain, this.#ancestorIds, data)
   }
 
   describe(parent?: HTMLElement): void {
-    this.#initProps(this.#propsChain)
+    this.#initProps(this.#propsChain, this.#ancestorIds)
     this.#callback('created')
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
@@ -1304,8 +1310,8 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#infiniteScroll(this.#getShadowRoot(this.#components.values().next().value!))
         }, 're-render')
 
-        for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
-          if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
+      for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
+        if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
 
       if (this.#hooks.updated) {
         this.#throwKeyError(key)
