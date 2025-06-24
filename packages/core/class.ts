@@ -265,7 +265,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const addGetChildren = (children: Children): void => {
           for (const child of Object.values(children)) {
             child.getChildren = (): Children => child.#children
-            addGetChildren(child.#children)
+            addGetChildren(child.getChildren())
           }
         }
 
