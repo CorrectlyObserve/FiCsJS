@@ -1,10 +1,16 @@
 import { fics } from 'ficsjs'
 
 export default () =>
-  fics<{}, { isDisabled: boolean; text: string; click: () => void }>({
+  fics<{}, { isDisabled: boolean; buttonText: string; click: () => void }>({
     name: 'button',
-    html: ({ props: { isDisabled, text }, template }) => template`
-      <button class="clickable text-white border border-white p-3 rounded-lg" aria-disabled="${isDisabled}">${text}</button>
+    html: ({ props: { isDisabled, buttonText }, template, isBrowser }) => template`
+      <button
+        class="clickable text-white border border-white p-3 rounded-lg"
+        aria-disabled="${!isBrowser || isDisabled}"
+        aria-label="${buttonText}"
+      >
+        ${buttonText}
+      </button>
     `,
     actions: {
       button: {
