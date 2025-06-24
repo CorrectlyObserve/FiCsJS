@@ -36,7 +36,7 @@ const { sm } = breakpoints
 
 export default fics<Data, { lang: string }>({
   name: 'task',
-  children: [Input, Textarea, Button],
+  children: [Input(), Textarea(), Button()],
   data: () => ({
     task: {} as Task,
     title: '',
