@@ -5,17 +5,17 @@ import Button from '@/components/materials/Button'
 
 export default fics({
   name: 'tab',
-  children: [Button],
+  children: [Button()],
   data: () => ({ tabs: [{ text: 'Chat' }, { query: '?tab=logs', text: 'Logs' }], path: '' }),
   html: ({ children: { button }, data: { tabs, path }, template, setData }) => template`
-    <div class="buttons mb-7 gap-4">
+    <div class="mb-7 gap-4">
       ${tabs.map(({ query, text }) => {
         const href = `/chat${query ?? ''}`
 
         return template`
           ${button.setIndividualProps(text, {
             isDisabled: href === path,
-            text,
+            buttonText: text,
             click: () => {
               goto(href, { reload: true })
               setData('path', href)
@@ -25,7 +25,7 @@ export default fics({
       })}
     </div>
   `,
-  css: { div: { '&.buttons': { ...flexCenter('x') } } },
+  css: { div: { ...flexCenter('x') } },
   hooks: {
     created: ({ setData }) => {
       const { pathname, search } = window.location
