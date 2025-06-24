@@ -15,7 +15,7 @@ interface Data {
 
 export default fics<Data, { lang: string }>({
   name: 'not-found',
-  children: [Button, Icon('loading')],
+  children: [Button(), Icon('loading')],
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
   deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
   props: {
