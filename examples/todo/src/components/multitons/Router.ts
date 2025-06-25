@@ -40,7 +40,7 @@ export default ficsRouter({
         gap: cssVar('xl'),
         width: '100%',
         [`@container (width >= ${breakpoints.lg})`]: {
-          'f-task': {
+          '.task': {
             paddingLeft: cssVar('xl'),
             boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${color({ hex: '--black', rate: 0.5, isOpacity: false })}`
           }
