@@ -12,7 +12,7 @@ export default fics({
   data: () => ({ users, userId: NaN, methods: ['PUT', 'PATCH', 'DELETE'] as Method[] }),
   props: [
     {
-      descendant: ({ children: { crudButton }, getChildren }) => getChildren(crudButton).button,
+      descendant: ({ children: { crudButton } }) => crudButton.getChildren().button,
       values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
     },
     {
