@@ -18,6 +18,7 @@ export default () =>
   fics<{ isComposing: boolean }, Props>({
     name: 'input',
     data: () => ({ isComposing: false }),
+    className: 'input',
     html: ({
       props: { id, label, isError, error, value, placeholder },
       template,
