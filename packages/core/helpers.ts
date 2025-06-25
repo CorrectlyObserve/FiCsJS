@@ -26,6 +26,11 @@ export const checkType = <
     ? typeof param === 'object' && param !== null && !Array.isArray(param)
     : typeof param === type
 
+export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
+  if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+  return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
+}
+
 export const isBrowser = (): boolean => {
   try {
     return !checkType(window, 'undefined') && !checkType(document, 'undefined')
