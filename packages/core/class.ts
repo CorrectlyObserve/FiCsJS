@@ -104,7 +104,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!nameGenerators[name]) nameGenerators[name] = uid()
     names[name] = nameGenerators[name].next().value
-    this.#name = `f-${name}${names[name] > 1 ? `-${names[name]}` : ''}`
+    this.#name = `f-${name}${names[name] > 1 ? `${isBrowser() ? '' : '-server'}-${names[name]}` : ''}`
 
     propsMap.set(this.#instanceId, [])
 
@@ -126,7 +126,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (children)
       for (const child of children)
-        this.#children[child.#nameKey] = instanceId ? child : child.#clone()
+        this.#children[child.#nameKey] =
+          child.#convertStr(child.#nameKey, 'kebab') === child.#name.slice(2)
+            ? child.#clone()
+            : child
 
     this.#isBrowser = isBrowser()
 
@@ -359,30 +362,6 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#ancestorIds.push(this.#instanceId)
       this.#isInitialized = true
     }
-  }
-
-  #getClassName() {
-    if (!this.#className) return ''
-
-    return checkType(this.#className, 'function')
-      ? this.#className(this.#getDataProps())
-      : this.#className
-  }
-
-  #addClassName(component: HTMLElement): void {
-    if (!this.#className) return
-    component.setAttribute('class', this.#getClassName())
-  }
-
-  #getAttrs(): [string, string][] {
-    return Object.entries(
-      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
-    )
-  }
-
-  #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs())
-      component.setAttribute(this.#convertStr(key, 'kebab'), value)
   }
 
   #convertTemplate(): string {
@@ -936,6 +915,30 @@ export default class FiCsElement<D extends object, P extends object> {
         : addEventListener(handler, _value)
   }
 
+  #getClassName(): string {
+    if (!this.#className) return ''
+
+    return checkType(this.#className, 'function')
+      ? this.#className(this.#getDataProps())
+      : this.#className
+  }
+
+  #addClassName(component: HTMLElement): void {
+    if (!this.#className) return
+    component.setAttribute('class', this.#getClassName())
+  }
+
+  #getAttrs(): [string, string][] {
+    return Object.entries(
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+    )
+  }
+
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs())
+      component.setAttribute(this.#convertStr(key, 'kebab'), value)
+  }
+
   #infiniteScroll(shadowRoot: ShadowRoot): void {
     if ('area' in this.#scroll && !this.#scroll.isEnabled) {
       const { area, rootMargin, trigger, method }: Scroll<D, P> = this.#scroll
@@ -1030,8 +1033,6 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#isDeferred = true
             }, 'fetch')
 
-          that.#addClassName(this)
-          that.#addAttrs(this)
           that.#addHtml(this.#shadowRoot, true)
           that.#addCss(this.#shadowRoot, [])
 
@@ -1042,7 +1043,7 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#removeChildNodes(this)
           that.#setProperty(this, ficsIdName, that.#instanceId)
 
-          if (!that.#components.has(this)) that.#components.add(this)
+          if (that.#components.size === 0 && !that.#components.has(this)) that.#components.add(this)
         }
 
         async connectedCallback(): Promise<void> {
@@ -1061,6 +1062,8 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this), 0)
             }
 
+            that.#addClassName(this)
+            that.#addAttrs(this)
             that.#infiniteScroll(this.#shadowRoot)
 
             if ('path' in that.#sse) {
