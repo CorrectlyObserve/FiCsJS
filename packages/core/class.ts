@@ -1,5 +1,5 @@
 import { globalCss } from './globalCss'
-import { browserError, checkType, isBrowser, toArray, uid } from './helpers'
+import { browserError, checkType, convertStr, isBrowser, toArray, uid } from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -93,8 +93,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
-    name = this.#convertStr(name, 'kebab')
-    this.#nameKey = this.#convertStr(name, 'camel')
+    name = convertStr(name, 'kebab')
+    this.#nameKey = convertStr(name, 'camel')
 
     if (!isExceptional && { var: true, router: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
@@ -127,9 +127,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (children)
       for (const child of children)
         this.#children[child.#nameKey] =
-          child.#convertStr(child.#nameKey, 'kebab') === child.#name.slice(2)
-            ? child.#clone()
-            : child
+          convertStr(child.#nameKey, 'kebab') === child.#name.slice(2) ? child.#clone() : child
 
     this.#isBrowser = isBrowser()
 
@@ -175,11 +173,6 @@ export default class FiCsElement<D extends object, P extends object> {
     if (actions && this.#isBrowser) this.#actions = { ...actions }
     if (scroll && this.#isBrowser) this.#scroll = { ...scroll, isEnabled: false }
     if (sse && this.#isBrowser) this.#sse = { ...sse }
-  }
-
-  #convertStr(str: string, type: 'kebab' | 'camel'): string {
-    if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-    return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -463,7 +456,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProperty<V>(element: HTMLElement, property: string, value: V): void {
-    ;(element as any)[this.#convertStr(property, 'camel')] = value
+    ;(element as any)[convertStr(property, 'camel')] = value
   }
 
   #addHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
@@ -673,7 +666,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!(oldChildNode as any)[that.#convertStr(ficsIdName, 'camel')]
+                  !!(oldChildNode as any)[convertStr(ficsIdName, 'camel')]
                 )
                   continue
 
@@ -759,7 +752,7 @@ export default class FiCsElement<D extends object, P extends object> {
           )
             return prev
 
-          key = this.#convertStr(key, 'kebab')
+          key = convertStr(key, 'kebab')
           if (key.startsWith('webkit')) key = `-${key}`
 
           if (key.startsWith('@keyframes')) {
@@ -936,7 +929,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #addAttrs(component: HTMLElement): void {
     for (const [key, value] of this.#getAttrs())
-      component.setAttribute(this.#convertStr(key, 'kebab'), value)
+      component.setAttribute(convertStr(key, 'kebab'), value)
   }
 
   #infiniteScroll(shadowRoot: ShadowRoot): void {
@@ -1208,7 +1201,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const value: string = `${className} ${that
           .#getAttrs()
           .reduce(
-            (prev, [key, value]) => `${prev} ${that.#convertStr(key, 'kebab')}="${value}"`,
+            (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
             ''
           )}`.trim()
         const attrs = (name: string): string =>
