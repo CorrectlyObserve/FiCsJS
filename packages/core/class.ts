@@ -446,6 +446,30 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
+  #getClassName(): string {
+    if (!this.#className) return ''
+
+    return checkType(this.#className, 'function')
+      ? this.#className(this.#getDataProps())
+      : this.#className
+  }
+
+  #addClassName(component: HTMLElement): void {
+    if (!this.#className) return
+    component.className = this.#getClassName()
+  }
+
+  #getAttrs(): [string, string][] {
+    return Object.entries(
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+    )
+  }
+
+  #addAttrs(component: HTMLElement): void {
+    for (const [key, value] of this.#getAttrs())
+      component.setAttribute(convertStr(key, 'kebab'), value)
+  }
+
   #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
     return Array.from(parent.childNodes)
   }
@@ -496,6 +520,8 @@ export default class FiCsElement<D extends object, P extends object> {
             child.#enqueue(() => child.#define(), 'define')
 
             const component: HTMLElement = document.createElement(child.#name)
+            child.#addClassName(component)
+            child.#addAttrs(component)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
             index--
@@ -906,30 +932,6 @@ export default class FiCsElement<D extends object, P extends object> {
       Array.isArray(_value)
         ? addEventListener(handler, _value[0], _value[1])
         : addEventListener(handler, _value)
-  }
-
-  #getClassName(): string {
-    if (!this.#className) return ''
-
-    return checkType(this.#className, 'function')
-      ? this.#className(this.#getDataProps())
-      : this.#className
-  }
-
-  #addClassName(component: HTMLElement): void {
-    if (!this.#className) return
-    component.setAttribute('class', this.#getClassName())
-  }
-
-  #getAttrs(): [string, string][] {
-    return Object.entries(
-      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
-    )
-  }
-
-  #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs())
-      component.setAttribute(convertStr(key, 'kebab'), value)
   }
 
   #infiniteScroll(shadowRoot: ShadowRoot): void {
