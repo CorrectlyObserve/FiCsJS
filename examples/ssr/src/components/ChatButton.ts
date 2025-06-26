@@ -9,11 +9,12 @@ export default fics({
   children: [Icon()],
   props: {
     descendant: ({ children: { icon } }) => icon,
-    values: () => ({ svg: MessageCircleMore, isLarge: true })
+    values: () => ({
+      svg: MessageCircleMore,
+      isLarge: true,
+      areaLabel: 'Go to the chat page',
+      click: () => goto('/chat')
+    })
   },
-  html: ({ children: { icon }, template }) => template`
-    <button class="clickable text-white" aria-label="go to the chat page">${icon}</button>
-  `,
-  css: { ':host > button.clickable:focus': { scale: 0.8 } },
-  actions: { button: { click: [() => goto('/chat'), { throttle: 500, blur: true }] } }
+  html: ({ children: { icon }, template }) => template`${icon}`
 })
