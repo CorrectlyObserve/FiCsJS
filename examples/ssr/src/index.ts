@@ -6,5 +6,5 @@ import css from '@/.tailwindcss.txt'
 
 ficsCss(css)
 Link().describe()
-Users().describe()
-ChatButton().describe()
+Users.describe()
+ChatButton.describe()
