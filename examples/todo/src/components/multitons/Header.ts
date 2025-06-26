@@ -6,15 +6,14 @@ import Langs from '@/components/multitons/Langs'
 import { $lang } from '@/store'
 import { breakpoints, getPath } from '@/utils'
 
-const langs = Langs()
-
 export default () =>
   fics({
     name: 'header',
+    children: [Langs()],
     data: () => ({ lang: '', pathname: '' }),
     props: [
       {
-        descendant: langs,
+        descendant: ({ children: { langs } }) => langs,
         values: () => ({
           lang: ({ getData }) => getData('lang'),
           pathname: ({ getData }) => getData('pathname'),
@@ -25,11 +24,12 @@ export default () =>
         })
       }
     ],
-    html: ({ template }) =>
+    html: ({ children: { langs }, template }) =>
       template`<header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</d></header>`,
     css: {
       ':host': {
-        position: 'fixed',
+        position: 'sticky',
+        top: 0,
         width: '100vw',
         background: variable('black'),
         zIndex: 10,

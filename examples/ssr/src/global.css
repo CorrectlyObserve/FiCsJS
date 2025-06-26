@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
+  --font-sans: 'Times New Roman', serif;
   --text-xl: 2rem;
   --text-xl--line-height: 1.5;
   --text-base--line-height: 1.2;
@@ -11,4 +12,16 @@ h1 {
   background: linear-gradient(30deg, #b7282e 20%, #e198b4);
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.clickable {
+  @apply transition duration-200 ease-out;
+
+  &:not([aria-disabled='true']) {
+    @apply cursor-pointer hover:opacity-50 focus:scale-95;
+  }
+
+  &[aria-disabled='true'] {
+    @apply opacity-20 cursor-not-allowed;
+  }
 }

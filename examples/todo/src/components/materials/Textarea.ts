@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, color, flexCenter, variable } from 'ficsjs/style'
+import { calc, color, cssVar, flexCenter } from 'ficsjs/style'
 import { white } from '@/utils'
 
 interface Props {
@@ -12,13 +12,12 @@ interface Props {
 }
 
 const lineHeight = 1.5
-const paddingY: string = calc([variable('xs'), 1.5], '*')
+const paddingY: string = calc([cssVar('xs'), 1.5], '*')
 
 export default () =>
   fics<{}, Props>({
     name: 'textarea',
-    html: ({ props: { id, label, placeholder, value }, template }) =>
-      template`
+    html: ({ props: { id, label, placeholder, value }, template }) => template`
       <div>
         ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
         <textarea id="${id ?? ''}" placeholder="${placeholder}">${value}</textarea>
@@ -27,16 +26,16 @@ export default () =>
     css: {
       div: {
         ...flexCenter('x', 'column'),
-        label: { paddingBottom: variable('xs') },
+        label: { paddingBottom: cssVar('xs') },
         textarea: {
-          minWidth: calc([variable('md'), 20], '*'),
-          maxWidth: calc([calc([variable('md'), 30], '*'), calc([variable('xl'), 2], '*')], '-'),
-          height: calc([calc([paddingY, 2], '*'), calc([variable('md'), lineHeight, 6], '*')], '+'),
+          minWidth: calc([cssVar('md'), 20], '*'),
+          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+          height: calc([calc([paddingY, 2], '*'), calc([cssVar('md'), lineHeight, 6], '*')], '+'),
           background: color({ hex: white, rate: 0.1 }),
-          fontSize: variable('md'),
+          fontSize: cssVar('md'),
           color: white,
-          padding: `${paddingY} ${variable('md')}`,
-          borderRadius: variable('xs'),
+          padding: `${paddingY} ${cssVar('md')}`,
+          borderRadius: cssVar('xs'),
           border: 'none',
           outline: 'none',
           lineHeight,
@@ -44,7 +43,7 @@ export default () =>
           '&:hover': { cursor: 'pointer' },
           '&:focus': {
             background: color({ hex: white, rate: 0.8 }),
-            color: variable('black'),
+            color: cssVar('black'),
             cursor: 'auto'
           }
         }

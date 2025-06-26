@@ -1,37 +1,13 @@
 import { fics } from 'ficsjs'
+import Button from '@/components/materials/Button'
+import type { Method } from '@/types'
 
-interface Props {
-  id: number
-  method: 'put' | 'patch' | 'delete'
-  deleteMethod: (id: number) => void
-  updateMethod: (
-    { id, name }: { id: number; name: string },
-    method: Exclude<Props['method'], 'delete'>
-  ) => void
-}
-
-export default () =>
-  fics<{ isId: (id: number) => boolean }, Props>({
-    name: 'crud-button',
-    data: () => ({ isId: (id: number) => !isNaN(id) }),
-    html: ({ data: { isId }, props: { id, method }, template }) => template`
-      <button class="clickable text-white border border-white p-3 rounded-lg" aria-disabled="${!isId(id)}">
-        ${method.toUpperCase()}
-      </button>
-    `,
-    actions: {
-      button: {
-        click: [
-          ({ data: { isId }, props: { id, method, deleteMethod, updateMethod } }) => {
-            if (isId(id))
-              if (method === 'delete') deleteMethod(id)
-              else {
-                const name = prompt('Please enter a new user name.')
-                if (name) updateMethod({ id, name }, method)
-              }
-          },
-          { throttle: 500, blur: true }
-        ]
-      }
-    }
-  })
+export default fics<{}, { method: Method; click: (method: Method) => void }>({
+  name: 'crud-button',
+  children: [Button()],
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: ({ props: { method, click } }) => ({ buttonText: method, click: () => click(method) })
+  },
+  html: ({ children: { button }, template }) => template`${button}`
+})
