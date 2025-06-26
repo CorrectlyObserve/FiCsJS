@@ -10,10 +10,22 @@ import { CircleX } from 'lucide-static'
 export default fics({
   name: 'photos',
   children: [Icon(), Skeleton()],
-  data: () => ({ count: 0, photos: [] as Photo[], photo: {} as Photo, isLoading: false }),
+  data: () => ({
+    count: 0,
+    photos: [] as Photo[],
+    photo: {} as Omit<Photo, 'isLoaded'>,
+    isLoading: false
+  }),
   deferredData: async ({ data: { count }, crud }) =>
     await crud<Photo[]>(getPhotos(++count)).then(photos => ({ count, photos })),
-  props: { descendant: ({ children: { icon } }) => icon, values: () => ({ svg: CircleX }) },
+  props: {
+    descendant: ({ children: { icon } }) => icon,
+    values: ({ setData }) => ({
+      svg: CircleX,
+      areaLabel: 'Close the dialog',
+      click: () => setData('photo', {} as Photo)
+    })
+  },
   className: 'min-h-200',
   html: ({
     children: { icon, skelton },
@@ -51,8 +63,7 @@ export default fics({
         </div>
         ${isLoading ? skeletons : ''}
       <dialog class="rounded-xl" open ${show(!!id)}>
-        <button class="clickable block text-white ml-auto">${icon}</button>
-        <p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+        ${icon}<p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
       </dialog>
     `
   },
@@ -60,7 +71,8 @@ export default fics({
     img: { ...absoluteCenter('x'), top: 0 },
     dialog: {
       ...absoluteCenter('xy', 'fixed'),
-      background: `${color({ hex: '#282828', rate: 0.5 })}`
+      background: `${color({ hex: '#282828', rate: 0.5 })}`,
+      '.icon': { display: 'flex', justifyContent: 'end' }
     }
   },
   actions: {
@@ -75,9 +87,7 @@ export default fics({
             })
           ),
         { once: true }
-      ]
-    },
-    '.clickable': {
+      ],
       click: [
         ({
           data: {
@@ -89,9 +99,7 @@ export default fics({
         }) =>
           setData(
             'photo',
-            !!id && (key === id || key === undefined)
-              ? ({} as Photo)
-              : { id: key, author: photos[parseInt(key)]?.author, isLoaded: false }
+            key === id ? ({} as Photo) : { id: key, author: photos[parseInt(key)]?.author }
           ),
         { throttle: 500, blur: true }
       ]
