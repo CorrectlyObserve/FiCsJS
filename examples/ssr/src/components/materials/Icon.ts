@@ -1,19 +1,20 @@
 import { fics } from 'ficsjs'
-import { color } from 'ficsjs/style'
 
 export default () =>
-  fics<{}, { svg: string; isLarge?: string }>({
+  fics<{}, { svg: string; isLarge?: string; areaLabel: string; click: () => void }>({
     name: 'icon',
-    html: ({ props: { svg, isLarge }, template, html }) => template`
-      <span class="flex ${isLarge ? 'p-4' : 'p-3'}">${html(svg)}</span>
+    className: 'icon',
+    html: ({ props: { svg, isLarge, areaLabel }, template, html }) => template`
+      <button class="clickable flex text-white ${isLarge ? 'p-4' : 'p-3'}" aria-label="${areaLabel}">
+        ${html(svg)}
+      </button>
     `,
     css: {
-      span: ({ props: { isLarge } }) => {
-        const size = `${isLarge ? 2.5 : 1.25}rem`
-        return {
-          svg: { width: size, height: 'auto', stroke: 'currentColor' },
-          span: { width: size, height: size, background: color({ hex: '#fff', rate: 0.1 }) }
-        }
-      }
+      button: ({ props: { isLarge } }) => ({
+        svg: { width: `${isLarge ? 2.5 : 1.25}rem`, height: 'auto', stroke: 'currentColor' }
+      })
+    },
+    actions: {
+      button: { click: [({ props: { click } }) => click(), { throttle: 500, blur: true }] }
     }
   })
