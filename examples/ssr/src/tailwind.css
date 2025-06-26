@@ -3,8 +3,10 @@
 @import 'tailwindcss/utilities';
 
 @theme {
+  --font-sans: 'Times New Roman', serif;
   --text-base--line-height: 1.2;
   --text-sm--line-height: 1.2;
+  --color-dark: #282828;
   --color-red: #b7282e;
 }
 

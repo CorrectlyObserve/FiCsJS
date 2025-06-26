@@ -1,6 +1,9 @@
+export type Method = 'PUT' | 'PATCH' | 'DELETE'
+
 export interface Photo {
   id: string
   author: string
+  isLoaded: boolean
 }
 
 export interface User {
