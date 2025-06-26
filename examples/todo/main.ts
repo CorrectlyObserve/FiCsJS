@@ -1,6 +1,5 @@
 import { ficsCss } from 'ficsjs'
 import { ficsI18n, i18n } from 'ficsjs/i18n'
-import { getState, setState } from 'ficsjs/state'
 import Header from '@/components/multitons/Header'
 import Router from '@/components/multitons/Router'
 import Footer from '@/components/multitons/Footer'
@@ -22,12 +21,11 @@ if (lang === 'ja') {
   if (metaTag && metaTag?.hasAttribute('content')) metaTag.setAttribute('content', description)
 }
 
-setState($lang, lang)
+$lang.set(lang)
 
-Header().describe()
+Header.describe()
 
-const router = Router()
-router.setData('lang', getState($lang))
-router.describe()
+Router.setData('lang', lang)
+Router.describe()
 
-Footer().describe()
+Footer.describe()
