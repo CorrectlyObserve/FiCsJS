@@ -3,7 +3,7 @@ import {
   getPersistentState,
   setPersistentState
 } from 'ficsjs/persistent-state'
-import { createState } from 'ficsjs/state'
+import createState from 'ficsjs/state'
 import { Task } from '@/types'
 import { getTimestamp } from '@/utils'
 
