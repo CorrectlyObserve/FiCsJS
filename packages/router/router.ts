@@ -1,11 +1,11 @@
 import FiCsElement from '../core/class'
-import { browserError } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
 import goto from './goto'
 import { getPathParams, getRegExp, isPathParam, params } from './params'
 import type { FiCsRouter, PageContent, RouterData } from './types'
 
 export default <D extends RouterData, P extends object>({
+  children,
   props,
   pages,
   notFound,
@@ -15,6 +15,7 @@ export default <D extends RouterData, P extends object>({
   new FiCsElement<D, P>({
     name: 'router',
     isExceptional: true,
+    children,
     data: () => ({ pathname: '', lang: '' }) as D,
     props,
     html: ({ data: { pathname, lang }, template, setData, ...args }) => {
@@ -70,7 +71,6 @@ export default <D extends RouterData, P extends object>({
     css,
     hooks: {
       created: ({ setData }) => {
-        browserError()
         const { pathname, search }: { pathname: string; search: string } = window.location
 
         setData('pathname', pathname)

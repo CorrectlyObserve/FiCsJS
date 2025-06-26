@@ -22,6 +22,8 @@ export interface Bindings {
   css: number[]
 }
 
+export type Children = Record<string, Descendant>
+
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export interface CrudOptions<D> extends RequestInit {
@@ -45,13 +47,17 @@ export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, 
 
 export type Descendant = FiCsElement<any, any>
 
+export type Excluded = 'isExceptional' | 'instanceId' | 'componentId' | 'clonedCss'
+
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
-  ficsId?: string
+  instanceId?: string
+  componentId?: string
+  children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
-  props?: Props<D, P>[]
+  props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
@@ -60,6 +66,8 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
+  scroll?: Omit<Scroll<D, P>, 'isEnabled'>
+  sse?: ServerSentEvents<D, P>
 }
 
 export interface GlobalCssContent {
@@ -68,7 +76,7 @@ export interface GlobalCssContent {
 
 export type Html<D extends object, P extends object> = (
   params: DataPropsMethods<D, P> &
-    Omit<Syntaxes<D, P>, 'props'> & { isBrowser: boolean; isDeferred: boolean }
+    Omit<Syntaxes<D, P>, 'props'> & { children: Children; isBrowser: boolean; isDeferred: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -115,7 +123,7 @@ export interface PollingOptions {
 }
 
 export interface Props<D, P> {
-  descendant: SingleOrArray<Descendant>
+  descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
     params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
@@ -123,23 +131,47 @@ export interface Props<D, P> {
     | Record<string, any>
 }
 
-export type PropsChain<P> = Map<string, Record<string, P>>
-
-export interface PropsTree {
+export interface PropsBinding {
+  instanceId: string
   numberId: number
-  keys: Record<string, true>
-  setProps: () => void
+  propsKeys: Record<string, true>
+  propsKey: string
+  propsValue: () => unknown
+  setProps: (value: unknown) => void
 }
 
+export type PropsChain<P> = Map<string, Record<string, P>>
+
 export interface Queue {
-  ficsId: string
+  instanceId: string
   func: () => void
   key: 'define' | 're-render' | 'fetch'
 }
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
+export interface Scroll<D, P> {
+  isEnabled: boolean
+  area: string
+  rootMargin?: string
+  trigger?: ({ data }: { data: D }) => boolean
+  method: (params: DataPropsMethods<D, P, true>) => void
+}
+
+export interface ServerSentEvents<D, P> {
+  path: string
+  withCredentials?: boolean
+  onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+  onmessage?: (params: DataPropsMethods<D, P, true> & { event: MessageEvent }) => void
+  onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+  actions?: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+}
+
 export type SingleOrArray<T> = T | T[]
+
+export type SSEMethod<D, P> = (
+  params: DataPropsMethods<D, P, true> & { event: MessageEvent }
+) => void
 
 export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
 
@@ -155,5 +187,4 @@ export interface Syntaxes<D extends object, P extends object> {
   ) => Sanitized<D, P>
   html: (str: string) => Record<symbol, string>
   show: (condition: boolean) => string
-  setProps: (descendant: Descendant, props: object) => Descendant
 }

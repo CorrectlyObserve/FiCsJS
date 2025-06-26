@@ -1,10 +1,10 @@
 import { ficsCss } from 'ficsjs'
-import Link from '@/components/Link'
+import Link from '@/components/materials/Link'
 import Photos from '@/components/Photos'
-import Footer from '@/components/Footer'
+import ChatButton from '@/components/ChatButton'
 import css from '@/.tailwindcss.txt'
 
 ficsCss(css)
 Link().describe()
-Photos().describe()
-Footer().describe()
+Photos.describe()
+ChatButton.describe()
