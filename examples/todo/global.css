@@ -19,10 +19,10 @@ body {
   main {
     --padding: var(--xl);
     --header-padding: var(--md);
-    --header-hight: var(--xl) * 1.5 + var(--header-padding) * 2;
+    --header-height: var(--xl) * 1.5 + var(--header-padding) * 2;
     --footer-height: var(--sm) * 1.2 + var(--md);
 
-    min-height: calc(100vh - (var(--header-hight) + var(--footer-height) + var(--padding) * 2));
+    min-height: calc(100vh - (var(--header-height) + var(--footer-height) + var(--padding) * 2));
     padding: var(--padding);
   }
 
