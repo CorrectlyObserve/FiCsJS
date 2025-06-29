@@ -44,7 +44,7 @@ export default fics({
     if (!isBrowser || !isDeferred) return skeletons
 
     return template`
-      <div class="images">
+      <div class="photos">
         ${photos.map(
           ({ id, author, isLoaded }) => template`
             <div class="relative h-50" key="${id}-container">
@@ -123,7 +123,7 @@ export default fics({
     }
   },
   scroll: {
-    area: 'div.images',
+    area: 'div.photos',
     rootMargin: '100px 0px 0px 0px',
     trigger: ({ data: { photos } }) => photos.length > 0,
     method: async ({ data: { photos, count }, setData, crud }) =>
