@@ -88,6 +88,23 @@ export default fics({
           ),
         { once: true }
       ],
+      error: [
+        ({ data: { photos }, setData, event: { target }, attributes: { key } }) => {
+          setData(
+            'photos',
+            photos.map(photo => {
+              if (photo.id === key) photo.isLoaded = true
+              return photo
+            })
+          )
+
+          if (target) {
+            const img = target as HTMLImageElement
+            img.replaceWith(img.cloneNode(true))
+          }
+        },
+        { once: true }
+      ],
       click: [
         ({
           data: {
