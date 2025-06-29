@@ -11,13 +11,13 @@ export default fics({
   name: 'photos',
   children: [Icon(), Skeleton()],
   data: () => ({
-    count: 0,
+    page: 0,
     photos: [] as Photo[],
     photo: {} as Omit<Photo, 'isLoaded'>,
     isLoading: false
   }),
-  deferredData: async ({ data: { count }, crud }) =>
-    await crud<Photo[]>(getPhotos(++count)).then(photos => ({ count, photos })),
+  deferredData: async ({ data: { page }, crud }) =>
+    await crud<Photo[]>(getPhotos(++page)).then(photos => ({ page, photos })),
   props: {
     descendant: ({ children: { icon } }) => icon,
     values: ({ setData }) => ({
@@ -126,11 +126,11 @@ export default fics({
     area: 'div.photos',
     rootMargin: '100px 0px 0px 0px',
     trigger: ({ data: { photos } }) => photos.length > 0,
-    method: async ({ data: { photos, count }, setData, crud }) =>
-      await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
-        setData('count', count)
+    method: async ({ data: { photos, page }, setData, crud }) =>
+      await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
+        setData('page', page)
         setData('photos', [...photos, ...newPhotos])
-        goto(`/scroll?page=${count}`, { reload: false })
+        goto(`/scroll?page=${page}`, { reload: false })
       })
   }
 })
