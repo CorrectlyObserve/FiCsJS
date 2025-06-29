@@ -3,7 +3,7 @@ import { goto } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Skeleton from '@/components/materials/Skeleton'
-import { api, getPhotos } from '@/data/photos'
+import { api, getPhotos, LIMIT_LENGTH } from '@/data/photos'
 import type { Photo } from '@/types'
 import { CircleX } from 'lucide-static'
 
@@ -39,7 +39,7 @@ export default fics({
     isBrowser,
     isDeferred
   }) => {
-    const skeletons = template`${[...Array(5)].map(_ => template`${skelton}`)}`
+    const skeletons = template`${[...Array(LIMIT_LENGTH)].map(_ => template`${skelton}`)}`
 
     if (!isBrowser || !isDeferred) return skeletons
 
