@@ -6,7 +6,10 @@ import type { FiCsRouter, PageContent, RouterData } from './types'
 
 export default <D extends RouterData, P extends object>({
   children,
+  pathname,
   props,
+  className,
+  attributes,
   pages,
   notFound,
   css,
@@ -16,8 +19,10 @@ export default <D extends RouterData, P extends object>({
     name: 'router',
     isExceptional: true,
     children,
-    data: () => ({ pathname: '', lang: '' }) as D,
+    data: () => ({ pathname: pathname ?? '/', lang: '' }) as D,
     props,
+    className,
+    attributes,
     html: ({ data: { pathname, lang }, template, setData, ...args }) => {
       const setContent = (): Sanitized<D, P> => {
         const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
