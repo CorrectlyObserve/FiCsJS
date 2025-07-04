@@ -2,7 +2,8 @@
   "tasks": {
     "heading": "Task list",
     "placeholder": "Add new task",
-    "checkbox": "Show completed tasks",
+    "show": "Show completed tasks",
+    "hide": "Hide completed tasks",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
     "unapplicable": "There are no tasks..."
   },
