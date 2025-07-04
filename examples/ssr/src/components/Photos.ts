@@ -3,7 +3,7 @@ import { goto } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Skeleton from '@/components/materials/Skeleton'
-import { api, getPhotos } from '@/data/photos'
+import { api, getPhotos, LIMIT_LENGTH } from '@/data/photos'
 import type { Photo } from '@/types'
 import { CircleX } from 'lucide-static'
 
@@ -11,13 +11,13 @@ export default fics({
   name: 'photos',
   children: [Icon(), Skeleton()],
   data: () => ({
-    count: 0,
+    page: 0,
     photos: [] as Photo[],
     photo: {} as Omit<Photo, 'isLoaded'>,
     isLoading: false
   }),
-  deferredData: async ({ data: { count }, crud }) =>
-    await crud<Photo[]>(getPhotos(++count)).then(photos => ({ count, photos })),
+  deferredData: async ({ data: { page }, crud }) =>
+    await crud<Photo[]>(getPhotos(++page)).then(photos => ({ page, photos })),
   props: {
     descendant: ({ children: { icon } }) => icon,
     values: ({ setData }) => ({
@@ -28,7 +28,7 @@ export default fics({
   },
   className: 'min-h-200',
   html: ({
-    children: { icon, skelton },
+    children: { icon, skeleton },
     data: {
       photos,
       photo: { id, author },
@@ -39,16 +39,16 @@ export default fics({
     isBrowser,
     isDeferred
   }) => {
-    const skeletons = template`${[...Array(5)].map(_ => template`${skelton}`)}`
+    const skeletons = template`${[...Array(LIMIT_LENGTH)].map(_ => template`${skeleton}`)}`
 
     if (!isBrowser || !isDeferred) return skeletons
 
     return template`
-      <div class="images">
+      <div class="photos">
         ${photos.map(
           ({ id, author, isLoaded }) => template`
             <div class="relative h-50" key="${id}-container">
-              ${skelton}
+              ${skeleton}
               <img
                 class="clickable mx-auto"
                 src="${api}/id/${id}/200/200.webp?blur"
@@ -88,6 +88,23 @@ export default fics({
           ),
         { once: true }
       ],
+      error: [
+        ({ data: { photos }, setData, event: { target }, attributes: { key } }) => {
+          setData(
+            'photos',
+            photos.map(photo => {
+              if (photo.id === key) photo.isLoaded = true
+              return photo
+            })
+          )
+
+          if (target) {
+            const img = target as HTMLImageElement
+            img.replaceWith(img.cloneNode(true))
+          }
+        },
+        { once: true }
+      ],
       click: [
         ({
           data: {
@@ -106,14 +123,14 @@ export default fics({
     }
   },
   scroll: {
-    area: 'div.images',
+    area: 'div.photos',
     rootMargin: '100px 0px 0px 0px',
     trigger: ({ data: { photos } }) => photos.length > 0,
-    method: async ({ data: { photos, count }, setData, crud }) =>
-      await crud<Photo[]>(getPhotos(++count), { key: 'isLoading' }).then(newPhotos => {
-        setData('count', count)
+    method: async ({ data: { photos, page }, setData, crud }) =>
+      await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
+        setData('page', page)
         setData('photos', [...photos, ...newPhotos])
-        goto(`/scroll?page=${count}`, { reload: false })
+        goto(`/scroll?page=${page}`, { reload: false })
       })
   }
 })

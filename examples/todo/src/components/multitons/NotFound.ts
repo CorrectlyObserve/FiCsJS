@@ -2,8 +2,8 @@ import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
-import Icon from '@/components/materials/Icon'
 import Button from '@/components/materials/Button'
+import LoadingIcon from '@/components/multitons/LoadingIcon'
 import { breakpoints, getPath } from '@/utils'
 
 interface Data {
@@ -15,18 +15,24 @@ interface Data {
 
 export default fics<Data, { lang: string }>({
   name: 'not-found',
-  children: [Button(), Icon('loading')],
+  children: [Button(), LoadingIcon],
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
   deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
-  props: {
-    descendant: ({ children: { button } }) => button,
-    values: ({ props: { lang } }) => ({
-      buttonText: ({ getData }) => getData('buttonText'),
-      click: () => goto(getPath(lang, '/'))
-    })
-  },
+  props: [
+    {
+      descendant: ({ children: { button } }) => button,
+      values: ({ props: { lang } }) => ({
+        buttonText: ({ getData }) => getData('buttonText'),
+        click: () => goto(getPath(lang, '/'))
+      })
+    },
+    {
+      descendant: ({ children: { loadingIcon } }) => loadingIcon,
+      values: ({ props: { lang } }) => ({ lang })
+    }
+  ],
   html: ({
-    children: { button, icon },
+    children: { button, loadingIcon },
     data: {
       seconds,
       heading,
@@ -37,7 +43,7 @@ export default fics<Data, { lang: string }>({
   }) =>
     isDeferred
       ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
-      : template`${icon}`,
+      : template`${loadingIcon}`,
   css: {
     p: {
       marginBottom: cssVar('xl'),

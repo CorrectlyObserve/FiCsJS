@@ -3,6 +3,7 @@ import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { getParams, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
+import LoadingIcon from '@/components/multitons/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
@@ -10,6 +11,7 @@ import Button from '@/components/materials/Button'
 import { $tasks, completeTask, deleteTask, getTask, revertTask, updateTask } from '@/store'
 import type { Task } from '@/types'
 import { breakpoints, convertTimestamp, getPath } from '@/utils'
+import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
 
@@ -28,15 +30,12 @@ interface Data {
   confirmation: string
 }
 
-const loadingIcon = Icon('loading')
-const checkIcon = Icon('check')
-const circleIcon = Icon('circle')
 const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
 const { sm } = breakpoints
 
 export default fics<Data, { lang: string }>({
   name: 'task',
-  children: [Input(), Textarea(), Button()],
+  children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
   className: 'task',
   data: () => ({
     task: {} as Task,
@@ -55,7 +54,11 @@ export default fics<Data, { lang: string }>({
   }),
   props: [
     {
-      descendant: () => [checkIcon, circleIcon],
+      descendant: ({ children: { loadingIcon } }) => loadingIcon,
+      values: ({ props: { lang } }) => ({ lang })
+    },
+    {
+      descendant: ({ children: { icon } }) => icon,
       values: ({ setData }) => ({
         click:
           ({ getData }) =>
@@ -114,7 +117,7 @@ export default fics<Data, { lang: string }>({
     }
   ],
   html: ({
-    children: { input, textarea, button },
+    children: { loadingIcon, icon, input, textarea, button },
     data: {
       heading,
       task,
@@ -127,14 +130,19 @@ export default fics<Data, { lang: string }>({
   }) => {
     if (!isDeferred) return template`${loadingIcon}`
 
+    const label = task.completedAt ? revert : complete
+
     return template`
       <h2>${heading}</h2>
       <div class="container">
         <fieldset>
           <label>${status}</label>
           <div>
-            ${task.completedAt ? checkIcon : circleIcon}
-            <span role="button" tabindex="0">${task.completedAt ? revert : complete}</span>
+            ${icon.setIndividualProps('icon', {
+              svg: task.completedAt ? CircleCheckBig : Circle,
+              areaLabel: label
+            })}
+            <span role="button" tabindex="0">${label}</span>
           </div>
         </fieldset>
         <fieldset>${input}</fieldset>
