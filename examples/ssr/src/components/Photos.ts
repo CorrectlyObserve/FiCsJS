@@ -28,7 +28,7 @@ export default fics({
   },
   className: 'min-h-200',
   html: ({
-    children: { icon, skelton },
+    children: { icon, skeleton },
     data: {
       photos,
       photo: { id, author },
@@ -39,7 +39,7 @@ export default fics({
     isBrowser,
     isDeferred
   }) => {
-    const skeletons = template`${[...Array(LIMIT_LENGTH)].map(_ => template`${skelton}`)}`
+    const skeletons = template`${[...Array(LIMIT_LENGTH)].map(_ => template`${skeleton}`)}`
 
     if (!isBrowser || !isDeferred) return skeletons
 
@@ -48,7 +48,7 @@ export default fics({
         ${photos.map(
           ({ id, author, isLoaded }) => template`
             <div class="relative h-50" key="${id}-container">
-              ${skelton}
+              ${skeleton}
               <img
                 class="clickable mx-auto"
                 src="${api}/id/${id}/200/200.webp?blur"
