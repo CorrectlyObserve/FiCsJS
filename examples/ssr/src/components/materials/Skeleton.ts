@@ -3,9 +3,9 @@ import { color } from 'ficsjs/style'
 
 export default () =>
   fics({
-    name: 'skelton',
+    name: 'skeleton',
     html: ({ template }) => template`
-      <div class="skelton size-50 block mx-auto animate-pulse"></div>
+      <div class="skeleton size-50 block mx-auto animate-pulse"></div>
     `,
-    css: { 'div.skelton': { background: color({ hex: '#fff', rate: 0.05 }) } }
+    css: { 'div.skeleton': { background: color({ hex: '#fff', rate: 0.05 }) } }
   })
