@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
-import { cssVar, rotate } from 'ficsjs/style'
+import { spin } from 'ficsjs/animation'
+import { cssVar } from 'ficsjs/style'
 import { white } from '@/utils'
 
 interface Props {
@@ -10,7 +11,8 @@ interface Props {
   click?: () => void
 }
 
-const svgStyle = { height: 'auto', stroke: 'currentColor' } as const
+const svgStyle = (width: string) =>
+  ({ width: cssVar(width), height: 'auto', stroke: 'currentColor' }) as const
 
 export default () =>
   fics<{}, Props>({
@@ -23,17 +25,9 @@ export default () =>
         background: 'none',
         color: color ?? white,
         padding: cssVar('xs'),
-        svg: { width: cssVar('xl'), ...svgStyle },
+        svg: svgStyle('xl'),
         ...(isLoadingIcon
-          ? {
-              display: 'block',
-              marginInline: 'auto',
-              svg: { width: cssVar('2xl'), animation: 'loading 1.5s infinite linear', ...svgStyle },
-              '@keyframes loading': {
-                from: { transform: rotate(0) },
-                to: { transform: rotate(360) }
-              }
-            }
+          ? { display: 'block', marginInline: 'auto', svg: { ...svgStyle('2xl'), ...spin(1.5) } }
           : {})
       })
     },
