@@ -39,6 +39,11 @@ export const isBrowser = (): boolean => {
   }
 }
 
+export const numberError = (number: number): void => {
+  if (isNaN(number) || number < 0)
+    throw new Error(`The number ${number} must be a positive number...`)
+}
+
 export const toArray = <T>(param: SingleOrArray<T>): T[] =>
   Array.isArray(param) ? [...param] : [checkType(param, 'object') ? { ...param } : param]
 

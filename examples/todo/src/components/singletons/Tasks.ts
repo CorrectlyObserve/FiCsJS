@@ -3,36 +3,42 @@ import { i18n } from 'ficsjs/i18n'
 import { getPersistentState } from 'ficsjs/persistent-state'
 import { goto, getParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
+import LoadingIcon from '@/components/multitons/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
 import type { Task } from '@/types'
 import { breakpoints, getPath } from '@/utils'
+import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
   heading: string
   value: string
   placeholder: string
   isShown: boolean
-  checkbox: string
+  show: string
+  hide: string
   tasks: Task[]
+  texts: string[]
   confirmation: string
   unapplicable: string
 }
 
-const addIcon = Icon('add')
-const squareIcon = Icon('square')
-const checkSquareIcon = Icon('check-square')
-const loadingIcon = Icon('loading')
-const trashIcon = Icon('trash')
 const { sm, lg } = breakpoints
 
 export default fics<Data, { lang: string; click?: (id: number) => void }>({
   name: 'tasks',
-  children: [Input],
+  children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-  deferredData: ({ props: { lang } }) => i18n({ lang, key: 'tasks' }),
+  deferredData: async ({ props: { lang } }) => ({
+    ...(await i18n<Data>({ lang, key: 'tasks' })),
+    texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
+  }),
   props: [
+    {
+      descendant: ({ children: { loadingIcon } }) => loadingIcon,
+      values: ({ props: { lang } }) => ({ lang })
+    },
     {
       descendant: ({ children: { input } }) => input,
       values: ({ setData }) => ({
@@ -52,56 +58,59 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
             }
           }
       })
-    },
-    {
-      descendant: () => addIcon,
-      values: ({ setData }) => ({
-        click:
-          ({ getData }) =>
-          async () => {
-            const value = getData('value')
-
-            if (value !== '') {
-              const tasks: Task[] = await addTask(value)
-
-              setData('tasks', tasks)
-              setData('value', '')
-            }
-          }
-      })
-    },
-    {
-      descendant: () => [squareIcon, checkSquareIcon],
-      values: ({ setData }) => ({
-        click:
-          ({ getData }) =>
-          () =>
-            setData('isShown', !getData('isShown'))
-      })
     }
   ],
   html: ({
-    children: { input },
-    data: { heading, isShown, checkbox, tasks, confirmation, unapplicable },
+    children: { loadingIcon, icon, input },
+    data: {
+      heading,
+      value,
+      placeholder,
+      isShown,
+      show,
+      hide,
+      tasks,
+      texts,
+      confirmation,
+      unapplicable
+    },
     props: { lang },
     template,
     setData,
-    setProps,
     isDeferred
   }) => {
     if (!isDeferred) return template`${loadingIcon}`
 
     if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
+    const [complete, revert, _delete] = texts
     const { offsetWidth } = document.documentElement
 
     return template`
       <h2>${heading}</h2>
       <div class="menu">
-        <div>${input}${addIcon}</div>
         <div>
-          ${isShown ? checkSquareIcon : squareIcon}
-          <span role="button" tabindex="0">${checkbox}</span>
+          ${input}
+          ${icon.setIndividualProps('add', {
+            svg: Plus,
+            areaLabel: placeholder,
+            click: async () => {
+              if (value !== '') {
+                const tasks: Task[] = await addTask(value)
+
+                setData('tasks', tasks)
+                setData('value', '')
+              }
+            }
+          })}
+        </div>
+        <div>
+          ${icon.setIndividualProps('check', {
+            svg: isShown ? SquareCheck : Square,
+            areaLabel: isShown ? hide : show,
+            click: () => setData('isShown', !isShown)
+          })}
+          <span role="button" tabindex="0">${isShown ? hide : show}</span>
         </div>
       </div>
       ${
@@ -110,7 +119,9 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
               ({ id, title, completedAt }) => template`
                 <div class="task" key="${id}">
                   <div>
-                    ${setProps(Icon(completedAt ? 'check' : 'circle'), {
+                    ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
+                      svg: completedAt ? CircleCheckBig : Circle,
+                      areaLabel: completedAt ? revert : complete,
                       click: async () => {
                         setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                       }
@@ -119,7 +130,9 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
                       <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
                     </span>
                   </div>
-                  ${setProps(trashIcon, {
+                  ${icon.setIndividualProps(`${id}-delete`, {
+                    svg: Trash2,
+                    areaLabel: _delete,
                     color: cssVar('red'),
                     click: async () => {
                       if (window.confirm(confirmation)) {
@@ -142,12 +155,11 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
         div: {
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
-          '&:last-child': { marginBottom: 0 },
-          'f-input': { marginRight: cssVar('md') }
+          '&:last-child': { marginBottom: 0 }
         },
         [`@media (max-width: ${sm})`]: {
           marginBottom: cssVar('md'),
-          div: { marginBottom: cssVar('xs'), 'f-input': { marginRight: 0 } }
+          div: { marginBottom: cssVar('xs') }
         }
       },
       '&.task': {

@@ -3,7 +3,7 @@ import {
   getPersistentState,
   setPersistentState
 } from 'ficsjs/persistent-state'
-import { createState } from 'ficsjs/state'
+import createState from 'ficsjs/state'
 import { Task } from '@/types'
 import { getTimestamp } from '@/utils'
 
@@ -56,7 +56,7 @@ export const updateTask = async ({
     await setPersistentState<Task[]>($tasks, tasks)
     return tasks
   } catch (error) {
-    throw new Error(`Failed to update task: ${(error as Error).message}`)
+    throw new Error((error as Error).message)
   }
 }
 

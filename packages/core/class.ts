@@ -421,9 +421,12 @@ export default class FiCsElement<D extends object, P extends object> {
         return cloneRecursively(child, instanceId)
       }
 
+    const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods()
     const contents: HtmlContent<D, P>[] = this.#html({
-      ...this.#getDataPropsMethods(),
       children: this.#children,
+      data,
+      props,
+      setData,
       template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
