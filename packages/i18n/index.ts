@@ -1,11 +1,12 @@
 import { toArray } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
-import { createState, getState } from '../state/'
+import createState from '../state/'
+import State from '../state/state'
 
-let _directory = ''
+let _directory: State<string>
 
 export const ficsI18n = (directory: string) => {
-  _directory = createState<string>(directory)
+  _directory = createState(directory, { readonly: true })
 }
 
 export const i18n = async <T>({
@@ -17,7 +18,7 @@ export const i18n = async <T>({
   lang: string
   key: SingleOrArray<string>
 }): Promise<T> => {
-  if (!directory) directory = getState<string>(_directory)
+  if (!directory) directory = _directory.get()
 
   return await fetch(`${directory}/${lang}.json`)
     .then(res => res.json())

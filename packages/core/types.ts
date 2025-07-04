@@ -75,8 +75,8 @@ export interface GlobalCssContent {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataPropsMethods<D, P> &
-    Omit<Syntaxes<D, P>, 'props'> & { children: Children; isBrowser: boolean; isDeferred: boolean }
+  params: Omit<DataPropsMethods<D, P>, 'getData'> &
+    Omit<Syntaxes<D, P>, 'props'> & { isBrowser: boolean; isDeferred: boolean }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -180,6 +180,7 @@ interface StyleContent {
 }
 
 export interface Syntaxes<D extends object, P extends object> {
+  children: Children
   props: P
   template: (
     templates: TemplateStringsArray,

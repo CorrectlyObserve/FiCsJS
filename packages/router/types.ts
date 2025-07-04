@@ -1,4 +1,6 @@
 import type {
+  Attrs,
+  ClassName,
   Css,
   Children,
   Descendant,
@@ -12,7 +14,10 @@ import type {
 
 export interface FiCsRouter<D extends RouterData, P extends object> {
   children?: Descendant[]
+  pathname?: string
   props?: SingleOrArray<Props<D, P>>
+  className?: ClassName<D, P>
+  attributes?: Attrs<D, P>
   pages: (PageContent<D, P> & { path: string })[]
   notFound?: PageContent<D, P>
   css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
