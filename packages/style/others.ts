@@ -1,4 +1,4 @@
-import { browserError, checkType } from './../core/helpers'
+import { browserError, checkType, numberError } from './../core/helpers'
 
 export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
   `calc(${values.join(` ${operator} `)})`
@@ -9,8 +9,8 @@ export const cssVar = (variable: string): string =>
 export const remToPx = (rem: number | string): number => {
   browserError()
 
-  if (checkType(rem, 'string')) rem = parseFloat(rem)
+  if (checkType(rem, 'number')) numberError(rem)
+  else rem = parseFloat(rem)
+
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
-
-export const rotate = (degree: number): string => (isNaN(degree) ? '' : `rotate(${degree}deg)`)
