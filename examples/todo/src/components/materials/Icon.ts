@@ -12,12 +12,12 @@ interface Props {
 }
 
 const svgStyle = (width: string) =>
-  ({ width: cssVar(width), height: 'auto', stroke: 'currentColor' }) as const
+  ({ display: 'flex', width: cssVar(width), height: 'auto', stroke: 'currentColor' }) as const
 
 export default () =>
   fics<{}, Props>({
     name: 'icon',
-    html: ({ props: { svg, areaLabel }, template, html }) => template`
+    html: ({ props: { areaLabel, svg }, template, html }) => template`
       <button aria-label="${areaLabel}">${html(svg)}</button>
     `,
     css: {
