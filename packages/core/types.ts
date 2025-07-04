@@ -75,7 +75,7 @@ export interface GlobalCssContent {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: DataPropsMethods<D, P> &
+  params: Omit<DataPropsMethods<D, P>, 'getData'> &
     Omit<Syntaxes<D, P>, 'props'> & { isBrowser: boolean; isDeferred: boolean }
 ) => Sanitized<D, P>
 
