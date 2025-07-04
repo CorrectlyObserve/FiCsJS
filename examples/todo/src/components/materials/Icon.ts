@@ -10,6 +10,8 @@ interface Props {
   click?: () => void
 }
 
+const svgStyle = { height: 'auto', stroke: 'currentColor' } as const
+
 export default () =>
   fics<{}, Props>({
     name: 'icon',
@@ -21,16 +23,12 @@ export default () =>
         background: 'none',
         color: color ?? white,
         padding: cssVar('xs'),
-        svg: {
-          width: cssVar(isLoadingIcon ? '2xl' : 'xl'),
-          height: 'auto',
-          stroke: 'currentColor'
-        },
+        svg: { width: cssVar('xl'), ...svgStyle },
         ...(isLoadingIcon
           ? {
               display: 'block',
               marginInline: 'auto',
-              svg: { animation: 'loading 1.5s infinite linear' },
+              svg: { width: cssVar('2xl'), animation: 'loading 1.5s infinite linear', ...svgStyle },
               '@keyframes loading': {
                 from: { transform: rotate(0) },
                 to: { transform: rotate(360) }
