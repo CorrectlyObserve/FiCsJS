@@ -1,6 +1,5 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { getPersistentState } from 'ficsjs/persistent-state'
 import { goto, getParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
@@ -199,7 +198,7 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
       span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
     }
   },
-  hooks: { mounted: async ({ setData }) => setData('tasks', await getPersistentState($tasks)) },
+  hooks: { mounted: async ({ setData }) => setData('tasks', await $tasks.get()) },
   actions: {
     'div.menu span': {
       click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]

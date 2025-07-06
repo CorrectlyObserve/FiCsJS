@@ -1,7 +1,7 @@
 import { cssVar } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils'
 
-const hover = { cursor: 'pointer', opacity: 0.5 }
+const hover = { cursor: 'pointer', opacity: 0.5 } as const
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },

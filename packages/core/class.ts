@@ -196,7 +196,7 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #getDataProps(): DataProps<D, P> {
+  get #dataProps(): DataProps<D, P> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
 
@@ -212,7 +212,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
     const base: DataPropsMethods<D, P> = {
-      ...this.#getDataProps(),
+      ...this.#dataProps,
       setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
@@ -357,11 +357,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #convertTemplate(): string {
+  get #template(): string {
     const sanitized: unique symbol = Symbol(`${this.#instanceId}-sanitized`)
     const unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`)
 
-    const _convertTemplate = (
+    const convertTemplate = (
       templates: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
@@ -430,7 +430,7 @@ export default class FiCsElement<D extends object, P extends object> {
       template: (
         templates: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: _convertTemplate(templates, variables) }),
+      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       isBrowser: this.#isBrowser,
@@ -449,27 +449,27 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #getClassName(): string {
+  get #computedClassName(): string {
     if (!this.#className) return ''
 
     return checkType(this.#className, 'function')
-      ? this.#className(this.#getDataProps())
+      ? this.#className(this.#dataProps)
       : this.#className
   }
 
   #addClassName(component: HTMLElement): void {
     if (!this.#className) return
-    component.className = this.#getClassName()
+    component.className = this.#computedClassName
   }
 
-  #getAttrs(): [string, string][] {
+  get #computedAttrs(): [string, string][] {
     return Object.entries(
-      checkType(this.#attrs, 'function') ? this.#attrs(this.#getDataProps()) : (this.#attrs ?? [])
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#dataProps) : (this.#attrs ?? [])
     )
   }
 
   #addAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#getAttrs())
+    for (const [key, value] of this.#computedAttrs)
       component.setAttribute(convertStr(key, 'kebab'), value)
   }
 
@@ -490,7 +490,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const newChildNodes: ChildNode[] = this.#getChildNodes(
-      document.createRange().createContextualFragment(this.#convertTemplate())
+      document.createRange().createContextualFragment(this.#template)
     )
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
@@ -763,7 +763,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #getCss(): Css<D, P>[] {
+  get #computedCss(): Css<D, P>[] {
     return [...globalCss(), ...this.#css]
   }
 
@@ -772,7 +772,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     let topLevelCss: string = ''
     const convertCssContent = (style: Style<D, P>): string =>
-      Object.entries(checkType(style, 'function') ? style(this.#getDataProps()) : style).reduce(
+      Object.entries(checkType(style, 'function') ? style(this.#dataProps) : style).reduce(
         (prev, [key, value]) => {
           if (
             checkType(value, 'undefined') ||
@@ -823,7 +823,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #addCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
-    const css: Css<D, P>[] = this.#getCss()
+    const css: Css<D, P>[] = this.#computedCss
 
     if (css.length === 0) return
 
@@ -1024,7 +1024,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (that.#deferredData)
             that.#enqueue(async () => {
               for (const [key, value] of Object.entries(
-                await that.#deferredData!({ ...that.#getDataProps(), crud: that.#crud.bind(that) })
+                await that.#deferredData!({ ...that.#dataProps, crud: that.#crud.bind(that) })
               ))
                 that.setData(key as keyof D, value as D[keyof D])
 
@@ -1202,13 +1202,11 @@ export default class FiCsElement<D extends object, P extends object> {
       that.#initProps(propsChain, ancestorIds)
 
       if (that.#options.ssr) {
-        const className: string = that.#className ? `class="${that.#getClassName()}"` : ''
-        const value: string = `${className} ${that
-          .#getAttrs()
-          .reduce(
-            (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
-            ''
-          )}`.trim()
+        const className: string = that.#className ? `class="${that.#computedClassName}"` : ''
+        const value: string = `${className} ${that.#computedAttrs.reduce(
+          (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
+          ''
+        )}`.trim()
         const attrs = (name: string): string =>
           `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
 
@@ -1271,7 +1269,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         const html: string = applyShowAttr(
-          applyDescendant(that.#convertTemplate().replace(/>\s+</g, '><').replace(/\n\s/g, ''))
+          applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
         )
         const css = (_css: Css<D, P>[]): string =>
           _css.length > 0 ? `<style>${that.#convertCss({ css: _css, mode: 'ssr' })}</style>` : ''
@@ -1279,7 +1277,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
           <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
             <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-            <div ${attrs(that.#name)}>${html}${css(that.#getCss())}</div>
+            <div ${attrs(that.#name)}>${html}${css(that.#computedCss)}</div>
           </${that.#name}>
         `
       }
