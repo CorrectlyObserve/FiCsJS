@@ -6,7 +6,7 @@ const DB_NAME = 'PersistentStateDB' as const
 const STATE_STORE = 'states' as const
 const SNAPSHOT_STORE = 'snapshots' as const
 
-export class PersistentState<S> {
+export default class PersistentState<S> {
   #db!: IDBDatabase
   readonly #stateId: string
   readonly #state: S
@@ -110,16 +110,16 @@ export class PersistentState<S> {
     return isOnlyKey ? index.getKey(compositeId) : index.get(compositeId)
   }
 
-  async get(): Promise<State<S>> {
+  async get(): Promise<S> {
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(false, true)
     const req: IDBRequest<State<S> | undefined> = this.#getStateReq(store)
-    const state: State<S> | undefined = await this.#promisifyReq(req)
+    const result: State<S> | undefined = await this.#promisifyReq(req)
 
-    if (!state) throw new Error('The state is not found...')
+    if (!result) throw new Error('The state is not found...')
 
-    return state
+    return result.state
   }
 
   async set(newState: S): Promise<void> {
@@ -154,7 +154,7 @@ export class PersistentState<S> {
   async saveSnapshot(snapshotId: string): Promise<number> {
     await this.#init()
 
-    const { state }: { state: S } = await this.get()
+    const state: S = await this.get()
 
     return new Promise((resolve, reject) => {
       const store: IDBObjectStore = this.#getObjectStore(true)
@@ -179,23 +179,26 @@ export class PersistentState<S> {
     })
   }
 
-  async getAllSnapshots(): Promise<Snapshot<S>[]> {
+  async getAllSnapshots(): Promise<S[]> {
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(true, true)
-    return this.#promisifyReq<Snapshot<S>[]>(store.index('stateId').getAll(this.#stateId))
+    const req: IDBRequest<State<S>[]> = store.index('stateId').getAll(this.#stateId)
+    const result: State<S>[] = await this.#promisifyReq<State<S>[]>(req)
+
+    return result.map(snapshot => snapshot.state)
   }
 
-  async getSnapshot(snapshotId: string): Promise<Snapshot<S>> {
+  async getSnapshot(snapshotId: string): Promise<S> {
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(true, true)
     const req: IDBRequest<Snapshot<S>> = this.#getSnapshotReq(store, snapshotId)
-    const snapshot: Snapshot<S> = await this.#promisifyReq(req)
+    const result: Snapshot<S> = await this.#promisifyReq(req)
 
-    if (!snapshot) throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
+    if (!result) throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
 
-    return snapshot
+    return result.state
   }
 
   async deleteSnapshot(snapshotId: string): Promise<void> {
