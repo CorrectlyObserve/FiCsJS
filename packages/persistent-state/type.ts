@@ -1,13 +1,11 @@
-export interface Snapshot<S> {
-  id: number
-  state: S
-  name: string
-  createdAt: number
-  updatedAt: number
+export interface Snapshot<S> extends State<S> {
+  snapshotId: string
+  readonly: true
 }
 
 export interface State<S> {
-  id: string
+  id?: number
+  stateId: string
   state: S
   readonly: boolean
   createdAt: number

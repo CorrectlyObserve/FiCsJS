@@ -1,18 +1,14 @@
-import {
-  createPersistentState,
-  getPersistentState,
-  setPersistentState
-} from 'ficsjs/persistent-state'
+import createPersistentState from 'ficsjs/persistent-state'
 import createState from 'ficsjs/state'
 import { Task } from '@/types'
 import { getTimestamp } from '@/utils'
 
 export const $lang = createState<string>('en')
-export const $tasks = await createPersistentState<Task[]>([])
+export const $tasks = createPersistentState<Task[]>([])
 
 export const addTask = async (title: string): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+    const tasks: Task[] = await $tasks.get()
     const timestamp: number = getTimestamp()
     const newTask: Task = {
       id: timestamp,
@@ -24,7 +20,7 @@ export const addTask = async (title: string): Promise<Task[]> => {
     }
 
     tasks.push(newTask)
-    await setPersistentState<Task[]>($tasks, tasks)
+    await $tasks.set(tasks)
     return tasks
   } catch (error) {
     throw new Error((error as Error).message)
@@ -44,7 +40,7 @@ export const updateTask = async ({
   description: string
 }): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+    const tasks: Task[] = await $tasks.get()
     const task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
@@ -53,7 +49,7 @@ export const updateTask = async ({
     task.description = description
     task.updatedAt = getTimestamp()
 
-    await setPersistentState<Task[]>($tasks, tasks)
+    await $tasks.set(tasks)
     return tasks
   } catch (error) {
     throw new Error((error as Error).message)
@@ -62,7 +58,7 @@ export const updateTask = async ({
 
 export const completeTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+    const tasks: Task[] = await $tasks.get()
     const task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
@@ -71,7 +67,7 @@ export const completeTask = async (id: number): Promise<Task[]> => {
     task.updatedAt = timestamp
     task.completedAt = timestamp
 
-    await setPersistentState<Task[]>($tasks, tasks)
+    await $tasks.set(tasks)
     return tasks
   } catch (error) {
     throw new Error((error as Error).message)
@@ -80,15 +76,15 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 
 export const revertTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+    const tasks: Task[] = await $tasks.get()
     const task: Task | undefined = await getTask(tasks, id)
 
-    if(!task) throw new Error(`The task with id:${id} is not found...`)
+    if (!task) throw new Error(`The task with id:${id} is not found...`)
 
     task.updatedAt = getTimestamp()
     task.completedAt = undefined
 
-    await setPersistentState<Task[]>($tasks, tasks)
+    await $tasks.set(tasks)
     return tasks
   } catch (error) {
     throw new Error((error as Error).message)
@@ -97,13 +93,13 @@ export const revertTask = async (id: number): Promise<Task[]> => {
 
 export const deleteTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+    const tasks: Task[] = await $tasks.get()
     const taskIndex = tasks.findIndex(task => task.id === id)
 
     if (taskIndex === -1) throw new Error(`The task with id:${id} is not found...`)
 
     tasks.splice(taskIndex, 1)
-    await setPersistentState<Task[]>($tasks, tasks)
+    await $tasks.set(tasks)
     return tasks
   } catch (error) {
     throw new Error((error as Error).message)

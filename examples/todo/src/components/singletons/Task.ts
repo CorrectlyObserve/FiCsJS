@@ -1,6 +1,5 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { getPersistentState } from 'ficsjs/persistent-state'
 import { getParams, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
@@ -109,7 +108,7 @@ export default fics<Data, { lang: string }>({
             await updateTask({ id, title, description })
             completedAt ? await completeTask(id) : await revertTask(id)
 
-            const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+            const tasks: Task[] = await $tasks.get()
             setData('task', (await getTask(tasks, id))!)
             backToTaskList(lang)
           }
@@ -201,7 +200,7 @@ export default fics<Data, { lang: string }>({
 
       if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
 
-      const tasks: Task[] = await getPersistentState<Task[]>($tasks)
+      const tasks: Task[] = await $tasks.get()
       const task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
 
       if (!task) return goto(getPath(lang, '/404'))
