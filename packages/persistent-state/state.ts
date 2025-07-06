@@ -102,9 +102,9 @@ export default class PersistentState<S> {
     })
   }
 
-  #getSnapshotReq(store: IDBObjectStore, snapshot: string, isOnlyKey?: boolean): IDBRequest {
+  #getSnapshotReq(store: IDBObjectStore, snapshotId: string, isOnlyKey?: boolean): IDBRequest {
     const index: IDBIndex = store.index('compositeId')
-    const compositeId: [string, string] = [this.#stateId, snapshot]
+    const compositeId: [string, string] = [this.#stateId, snapshotId]
 
     return isOnlyKey ? index.getKey(compositeId) : index.get(compositeId)
   }
