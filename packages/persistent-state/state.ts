@@ -2,7 +2,6 @@ import { browserError, uid } from '../core/helpers'
 import type { Snapshot, State } from './type'
 
 const generator: Generator<number> = uid()
-const DB_NAME = 'PersistentStateDB' as const
 const STATE_STORE = 'states' as const
 const SNAPSHOT_STORE = 'snapshots' as const
 
@@ -46,7 +45,7 @@ export default class PersistentState<S> {
     if (this.#db) return
 
     const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
-      const req: IDBOpenDBRequest = indexedDB.open(DB_NAME, 1)
+      const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
 
       req.onupgradeneeded = () => {
         const { result }: { result: IDBDatabase } = req
