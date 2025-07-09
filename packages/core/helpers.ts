@@ -31,6 +31,9 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
 }
 
+export const isBlankObject = (param: unknown): boolean =>
+  checkType(param, 'object') && Object.keys(param).length === 0
+
 export const isBrowser = (): boolean => {
   try {
     return !checkType(window, 'undefined') && !checkType(document, 'undefined')
