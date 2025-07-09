@@ -66,7 +66,7 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
-  scroll?: Omit<Scroll<D, P>, 'isEnabled'>
+  scroll?: Omit<Scroll<D, P>, 'id' | 'indexes' | 'isEnabled'>
   sse?: ServerSentEvents<D, P>
 }
 
@@ -75,8 +75,15 @@ export interface GlobalCssContent {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: Omit<DataPropsMethods<D, P>, 'getData'> &
-    Omit<Syntaxes<D, P>, 'props'> & { isBrowser: boolean; isDeferred: boolean }
+  params: Omit<DataPropsMethods<D, P>, 'props' | 'getData'> &
+    Syntaxes<D, P> & {
+      isBrowser: boolean
+      isDeferred: boolean
+      virtualArray: <T>(
+        array: T[],
+        callback: (item: T, index: number) => Sanitized<D, P>
+      ) => Sanitized<D, P>
+    }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -151,11 +158,15 @@ export interface Queue {
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Scroll<D, P> {
-  isEnabled: boolean
-  area: string
   rootMargin?: string
   trigger?: ({ data }: { data: D }) => boolean
+  minLength: number
+  elementMinHight: number
+  buffer?: number
   method: (params: DataPropsMethods<D, P, true>) => void
+  id: string
+  indexes: { start: number; end: number }
+  isEnabled: boolean
 }
 
 export interface ServerSentEvents<D, P> {
