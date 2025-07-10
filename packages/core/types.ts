@@ -26,8 +26,8 @@ export type Children = Record<string, Descendant>
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
-export interface CrudOptions<D> extends RequestInit {
-  key?: keyof D
+export interface CrudOptions extends RequestInit {
+  key?: string
 }
 
 export type Css<D, P> =
@@ -38,7 +38,7 @@ export type Css<D, P> =
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions<D>): Promise<T> } } : {})
+} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions): Promise<T> } } : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
@@ -200,4 +200,5 @@ export interface Syntaxes<D extends object, P extends object> {
   ) => Sanitized<D, P>
   html: (str: string) => Record<symbol, string>
   show: (condition: boolean) => string
+  apiStatuses: Record<string, boolean>
 }
