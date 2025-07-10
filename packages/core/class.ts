@@ -1,5 +1,14 @@
 import { globalCss } from './globalCss'
-import { browserError, checkType, convertStr, isBrowser, toArray, uid } from './helpers'
+import {
+  browserError,
+  checkType,
+  convertStr,
+  isBlankObject,
+  isBrowser,
+  numberError,
+  toArray,
+  uid
+} from './helpers'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -30,7 +39,8 @@ import type {
   ServerSentEvents,
   SingleOrArray,
   SSEMethod,
-  Style
+  Style,
+  Syntaxes
 } from './types'
 
 const ficsIdName = 'fics-id' as const
@@ -152,7 +162,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (props) this.#propsSources = toArray(props)
+    if (props && toArray(props).length > 0) this.#propsSources = toArray(props)
     if (className)
       if (checkType(className, 'function')) {
         this.#bindings.isClassName = true
@@ -169,10 +179,17 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
-    if (hooks && this.#isBrowser) this.#hooks = { ...hooks }
-    if (actions && this.#isBrowser) this.#actions = { ...actions }
-    if (scroll && this.#isBrowser) this.#scroll = { ...scroll, isEnabled: false }
-    if (sse && this.#isBrowser) this.#sse = { ...sse }
+
+    if (!isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
+    if (!isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
+    if (scroll && !isBlankObject(scroll) && this.#isBrowser)
+      this.#scroll = {
+        ...scroll,
+        id: `${this.#componentId}-scroll`,
+        indexes: { start: 0, end: scroll.minLength },
+        isEnabled: false
+      }
+    if (sse && !isBlankObject(sse) && this.#isBrowser) this.#sse = { ...sse }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -362,7 +379,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`)
 
     const convertTemplate = (
-      templates: TemplateStringsArray,
+      strings: TemplateStringsArray,
       variables: (HtmlContent<D, P> | unknown)[]
     ): HtmlContent<D, P>[] => {
       const isSymbol = (variable: unknown, symbol: symbol): boolean =>
@@ -388,8 +405,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (const [index, template] of templates.entries())
-        sanitize(index, template, variables[index])
+      for (const [index, template] of strings.entries()) sanitize(index, template, variables[index])
 
       return converted as HtmlContent<D, P>[]
     }
@@ -422,19 +438,51 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
     const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods()
+    const template: Syntaxes<D, P>['template'] = (
+      strings: TemplateStringsArray,
+      ...variables: (HtmlContent<D, P> | unknown)[]
+    ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+
     const contents: HtmlContent<D, P>[] = this.#html({
       children: this.#children,
       data,
       props,
       setData,
       template: (
-        templates: TemplateStringsArray,
+        strings: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(templates, variables) }),
+      ): Sanitized<D, P> => template(strings, ...variables),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       isBrowser: this.#isBrowser,
-      isDeferred: this.#isDeferred
+      isDeferred: this.#isDeferred,
+      virtualScroll: <T>(
+        array: T[],
+        callback: (item: T, index: number) => Sanitized<D, P>
+      ): Sanitized<D, P> => {
+        if (!this.#scroll) return template`${array.map((item, index) => callback(item, index))}`
+
+        const {
+          minLength,
+          elementMinHight,
+          indexes: { start, end },
+          buffer,
+          id
+        }: Scroll<D, P> = this.#scroll
+
+        numberError(minLength)
+        numberError(elementMinHight)
+        if (buffer) numberError(buffer, false)
+
+        const height: number = elementMinHight * (end - start + (buffer ?? 0))
+        const endIndex: number = Array.isArray(array) ? array.length : end
+
+        return template`
+          <div id="${id}" style="height:${height}px; overflow-y:auto;">
+            ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
+          </div>
+        `
+      }
     })[sanitized]
 
     return contents.reduce((prev, curr) => {
@@ -937,16 +985,30 @@ export default class FiCsElement<D extends object, P extends object> {
         : addEventListener(handler, _value)
   }
 
-  #infiniteScroll(shadowRoot: ShadowRoot): void {
-    if ('area' in this.#scroll && !this.#scroll.isEnabled) {
-      const { area, rootMargin, trigger, method }: Scroll<D, P> = this.#scroll
+  #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
+    if (this.#scroll.isEnabled === false) {
+      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#scroll
       const _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
       if (checkType(_trigger, 'undefined') || _trigger) {
-        const root: Element | null = shadowRoot.querySelector(area)
+        const root: HTMLElement | null = shadowRoot.getElementById(id)
 
-        if (!root)
-          throw new Error(`The "${area}" is not found in the shadowRoot of ${this.#name}...`)
+        if (!root) throw new Error(`The "${id}" is not found in the shadowRoot of ${this.#name}...`)
+
+        this.#addEventListener(root, [
+          [
+            'scroll',
+            [
+              ({ event }) => {
+                const target = event.target as HTMLElement
+
+                const { scrollTop, scrollHeight, clientHeight } = target
+                console.log(scrollTop, scrollHeight, clientHeight)
+              },
+              { throttle: throttle ?? 0 }
+            ]
+          ]
+        ])
 
         let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
 
@@ -1062,7 +1124,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#addClassName(this)
             that.#addAttrs(this)
-            that.#infiniteScroll(this.#shadowRoot)
+            that.#infiniteVirtualScroll(this.#shadowRoot)
 
             if ('path' in that.#sse) {
               const {
@@ -1306,7 +1368,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (this.#isBrowser && this.#components.size > 0)
         this.#enqueue(() => {
           this.#reRender()
-          this.#infiniteScroll(this.#getShadowRoot(this.#components.values().next().value!))
+          this.#infiniteVirtualScroll(this.#getShadowRoot(this.#components.values().next().value!))
         }, 're-render')
 
       for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
