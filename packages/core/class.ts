@@ -901,6 +901,8 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
+    numberError(time, false)
+
     let timeout: ReturnType<typeof setTimeout> | undefined
 
     return (...args: Parameters<T>): void => {
@@ -913,6 +915,8 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
+    numberError(time, false)
+
     let lastTime: number = 0
 
     return (...args: Parameters<T>): void => {
@@ -1045,6 +1049,8 @@ export default class FiCsElement<D extends object, P extends object> {
         func: ({ times }: { times: number }) => void,
         { interval, max, exit }: PollingOptions
       ): void => {
+        if (max) numberError(interval)
+
         let times = 0
 
         const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
