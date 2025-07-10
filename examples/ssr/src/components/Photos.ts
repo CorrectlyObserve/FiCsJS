@@ -7,15 +7,12 @@ import { api, getPhotos, LIMIT_LENGTH } from '@/data/photos'
 import type { Photo } from '@/types'
 import { CircleX } from 'lucide-static'
 
+const PHOTO_SIZE = 200
+
 export default fics({
   name: 'photos',
   children: [Icon(), Skeleton()],
-  data: () => ({
-    page: 0,
-    photos: [] as Photo[],
-    photo: {} as Omit<Photo, 'isLoaded'>,
-    isLoading: false
-  }),
+  data: () => ({ page: 0, photos: [] as Photo[], photo: {} as Omit<Photo, 'isLoaded'> }),
   deferredData: async ({ data: { page }, crud }) =>
     await crud<Photo[]>(getPhotos(++page)).then(photos => ({ page, photos })),
   props: {
@@ -31,13 +28,14 @@ export default fics({
     children: { icon, skeleton },
     data: {
       photos,
-      photo: { id, author },
-      isLoading
+      photo: { id, author }
     },
     template,
     show,
+    apiStatuses: { isLoading },
     isBrowser,
-    isDeferred
+    isDeferred,
+    virtualScroll
   }) => {
     const skeletons = template`${[...Array(LIMIT_LENGTH)].map(_ => template`${skeleton}`)}`
 
@@ -45,13 +43,14 @@ export default fics({
 
     return template`
       <div class="photos">
-        ${photos.map(
+        ${virtualScroll(
+          photos,
           ({ id, author, isLoaded }) => template`
             <div class="relative h-50" key="${id}-container">
               ${skeleton}
               <img
                 class="clickable mx-auto"
-                src="${api}/id/${id}/200/200.webp?blur"
+                src="${api}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
                 alt="the image created by ${author}"
                 key="${id}"
                 tabindex="0"
@@ -60,8 +59,8 @@ export default fics({
             </div>
           `
         )}
-        </div>
-        ${isLoading ? skeletons : ''}
+      </div>
+      ${isLoading ? skeletons : ''}
       <dialog class="rounded-xl" open ${show(!!id)}>
         ${icon}<p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
       </dialog>
@@ -123,9 +122,11 @@ export default fics({
     }
   },
   scroll: {
-    area: 'div.photos',
     rootMargin: '100px 0px 0px 0px',
     trigger: ({ data: { photos } }) => photos.length > 0,
+    minLength: LIMIT_LENGTH,
+    elementMinHight: PHOTO_SIZE,
+    throttle: 200,
     method: async ({ data: { photos, page }, setData, crud }) =>
       await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
         setData('page', page)
