@@ -42,9 +42,14 @@ export const isBrowser = (): boolean => {
   }
 }
 
-export const numberError = (number: number): void => {
-  if (isNaN(number) || number < 0)
+export const numberError = (number: number, isOnlyPositive: boolean = true): void => {
+  if (isNaN(number)) throw new Error(`The number ${number} must be a number...`)
+
+  if (isOnlyPositive && number <= 0)
     throw new Error(`The number ${number} must be a positive number...`)
+
+  if (!isOnlyPositive && number < 0)
+    throw new Error(`The number ${number} must be a non-negative number...`)
 }
 
 export const toArray = <T>(param: SingleOrArray<T>): T[] =>
