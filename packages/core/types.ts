@@ -163,6 +163,7 @@ export interface Scroll<D, P> {
   minLength: number
   elementMinHight: number
   buffer?: number
+  throttle?: number
   method: (params: DataPropsMethods<D, P, true>) => void
   id: string
   indexes: { start: number; end: number }
