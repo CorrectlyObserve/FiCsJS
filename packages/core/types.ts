@@ -79,7 +79,7 @@ export type Html<D extends object, P extends object> = (
     Syntaxes<D, P> & {
       isBrowser: boolean
       isDeferred: boolean
-      virtualArray: <T>(
+      virtualScroll: <T>(
         array: T[],
         callback: (item: T, index: number) => Sanitized<D, P>
       ) => Sanitized<D, P>
