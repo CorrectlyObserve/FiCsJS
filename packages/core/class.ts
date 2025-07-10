@@ -72,9 +72,10 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
-  readonly #clonedSelves: Map<string, Descendant> = new Map()
+  readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
   readonly #ancestorIds: string[] = new Array()
+  readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
   readonly #components: Set<HTMLElement> = new Set()
@@ -217,13 +218,22 @@ export default class FiCsElement<D extends object, P extends object> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
 
-  async #crud<T>(api: string, options?: CrudOptions<D>): Promise<T> {
-    const { key, ..._options }: CrudOptions<D> = options ?? {}
-    const isKeyEnabled: boolean = !!(key && checkType(this.getData(key), 'boolean'))
+  async #crud<T>(api: string, options?: CrudOptions): Promise<T> {
+    const { key, ..._options }: CrudOptions = options ?? {}
 
-    if (isKeyEnabled) this.setData(key as keyof D, true as D[keyof D])
+    if (!key) return fetch(api, _options).then(res => res.json())
+
+    if (this.#apiStatuses.get(key) === true)
+      throw new Error(`The internal API status key "${key}" is already in progress...`)
+
+    this.#apiStatuses.set(key, true)
+    this.#enqueue(() => this.#reRender(true), 're-render')
+
     const json: T = await fetch(api, _options).then(res => res.json())
-    if (isKeyEnabled) setTimeout(() => this.setData(key as keyof D, false as D[keyof D]), 0)
+
+    this.#apiStatuses.set(key, false)
+    this.#enqueue(() => this.#reRender(true), 're-render')
+
     return json
   }
 
@@ -454,6 +464,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ): Sanitized<D, P> => template(strings, ...variables),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
+      apiStatuses: Object.fromEntries(this.#apiStatuses),
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
       virtualScroll: <T>(
@@ -1207,7 +1218,7 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #reRender(): void {
+  #reRender(isOnlyHtml?: boolean): void {
     const component: HTMLElement | undefined = this.#components.values().next().value
 
     if (!component) return
@@ -1215,16 +1226,16 @@ export default class FiCsElement<D extends object, P extends object> {
     const { isClassName, isAttr, css }: Bindings = this.#bindings
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
-    if (isClassName) {
+    if (!isOnlyHtml && isClassName) {
       component.classList.remove(...Array.from(component.classList))
       this.#addClassName(component)
     }
 
-    if (isAttr) this.#addAttrs(component)
+    if (!isOnlyHtml && isAttr) this.#addAttrs(component)
 
     this.#addHtml(shadowRoot)
 
-    if (css.length > 0)
+    if (!isOnlyHtml && css.length > 0)
       this.#addCss(
         shadowRoot,
         css.map(index => this.#css[index])
