@@ -66,7 +66,7 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams
-  scroll?: Omit<Scroll<D, P>, 'id' | 'indexes' | 'isEnabled'>
+  scroll?: ScrollParams<D, P>
   sse?: ServerSentEvents<D, P>
 }
 
@@ -157,17 +157,26 @@ export interface Queue {
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
-export interface Scroll<D, P> {
-  rootMargin?: string
-  trigger?: ({ data }: { data: D }) => boolean
-  minLength: number
-  elementMinHight: number
-  buffer?: number
-  throttle?: number
-  method: (params: DataPropsMethods<D, P, true>) => void
+export interface Scroll<D, P> extends ScrollParams<D, P> {
   id: string
   indexes: { start: number; end: number }
   isEnabled: boolean
+  totalHeight: number
+  elementHeights: Map<string, number>
+  prevTotalHeight: number
+  resizeObserver?: ResizeObserver
+  intersectionObserver?: IntersectionObserver
+  mutationObserver?: MutationObserver
+}
+
+export interface ScrollParams<D, P> {
+  minLength: number
+  elementMinHeight: number
+  trigger?: ({ data }: { data: D }) => boolean
+  rootMargin?: string
+  buffer?: number
+  throttle?: number
+  method: (params: DataPropsMethods<D, P, true>) => void
 }
 
 export interface ServerSentEvents<D, P> {
