@@ -122,10 +122,10 @@ export default fics({
     }
   },
   scroll: {
-    rootMargin: '100px 0px 0px 0px',
-    trigger: ({ data: { photos } }) => photos.length > 0,
     minLength: LIMIT_LENGTH,
-    elementMinHight: PHOTO_SIZE,
+    elementMinHeight: PHOTO_SIZE,
+    trigger: ({ data: { photos } }) => photos.length > 0,
+    rootMargin: '100px 0px 0px 0px',
     throttle: 200,
     method: async ({ data: { photos, page }, setData, crud }) =>
       await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
