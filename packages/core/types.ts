@@ -159,7 +159,8 @@ export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlC
 
 export interface Scroll<D, P> extends ScrollParams<D, P> {
   id: string
-  indexes: { start: number; end: number }
+  start: number
+  end: number
   isEnabled: boolean
   totalHeight: number
   elementHeights: Map<string, number>
@@ -169,7 +170,7 @@ export interface Scroll<D, P> extends ScrollParams<D, P> {
   mutationObserver?: MutationObserver
 }
 
-export interface ScrollParams<D, P> {
+interface ScrollParams<D, P> {
   minLength: number
   elementMinHeight: number
   trigger?: ({ data }: { data: D }) => boolean
