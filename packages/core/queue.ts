@@ -1,15 +1,13 @@
 import { isBrowser } from './helpers'
 import type { Queue } from './types'
 
-const ids: Record<string, true> = {}
-const getQueueId = ({ instanceId, key }: Queue): string => `${instanceId}-${key}`
-
-const dequeue = (queue: Queue): void => {
-  queue.func()
-  if (queue.key !== 'define') delete ids[getQueueId(queue)]
-}
-
-const queues: Queue[] = new Array()
+const ids: Record<string, true> = {},
+  getQueueId = ({ instanceId, key }: Queue): string => `${instanceId}-${key}`,
+  dequeue = (queue: Queue): void => {
+    queue.func()
+    if (queue.key !== 'define') delete ids[getQueueId(queue)]
+  },
+  queues: Queue[] = new Array()
 let isProcessing: boolean = false
 
 export const enqueue = (queue: Queue): void => {
