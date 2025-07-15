@@ -9,8 +9,8 @@ export const getRegExp = (path: string): RegExp =>
 export const getPathParams = (path: string): Record<string, string> => {
   browserError()
 
-  const regExps: string[] | null = getRegExp(path).exec(window.location.pathname)
-  const pathParams: Record<string, string> = {}
+  const regExps: string[] | null = getRegExp(path).exec(window.location.pathname),
+    pathParams: Record<string, string> = {}
 
   if (regExps && regExps.length > 0) {
     const names: string[] = (path.match(pathParam) ?? []).map(param => param.replace(/^\/:/, ''))
