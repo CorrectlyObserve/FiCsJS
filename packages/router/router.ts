@@ -36,9 +36,9 @@ export default <D extends RouterData, P extends object>({
           return _content instanceof FiCsElement ? template`${_content}` : _content
         }
 
-        const getLangPath = (path: string): string => `/${lang}${path}`
-        const isPathMatched = (path: string): boolean =>
-          pathname === path || pathname === getLangPath(path)
+        const getLangPath = (path: string): string => `/${lang}${path}`,
+          isPathMatched = (path: string): boolean =>
+            pathname === path || pathname === getLangPath(path)
 
         if (isPathMatched('/404') && notFound) return resolveContent(notFound)
 
