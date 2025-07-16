@@ -1,11 +1,11 @@
 import { toArray, uid } from '../core/helpers'
 import { Children as Descendants, Descendant, SingleOrArray } from '../core/types'
 
-const generator: Generator<number> = uid()
-const states: Map<string, unknown> = new Map()
-const writableStates: Set<string> = new Set()
-const observers: Map<string, () => void> = new Map()
-const syncs: Map<string, Map<Descendant, Set<string>>> = new Map()
+const generator: Generator<number> = uid(),
+  states: Map<string, unknown> = new Map(),
+  writableStates: Set<string> = new Set(),
+  observers: Map<string, () => void> = new Map(),
+  syncs: Map<string, Map<Descendant, Set<string>>> = new Map()
 
 export default class State<S> {
   #key: string
@@ -44,13 +44,7 @@ export default class State<S> {
     else throw new Error(`The "${this.#key}" is not defined in observers...`)
   }
 
-  sync({
-    state,
-    descendants
-  }: {
-    state: string
-    descendants: SingleOrArray<Descendants>
-  }): void {
+  sync({ state, descendants }: { state: string; descendants: SingleOrArray<Descendants> }): void {
     for (const _descendants of toArray(descendants))
       for (const [key, descendant] of Object.entries(_descendants)) {
         const sync: Map<Descendant, Set<string>> | undefined = syncs.get(state)
