@@ -39,48 +39,48 @@ export default ({
 
   if (isOpacity) return `rgba(${Object.values(rgb).join()}, ${Math.max(0, rate)})`
 
-  const { red, green, blue }: Rgb = rgb
-  const maxColorValue: number = 255
-  const r: number = red / maxColorValue
-  const g: number = green / maxColorValue
-  const b: number = blue / maxColorValue
-
-  const max: number = Math.max(r, g, b)
-  const min: number = Math.min(r, g, b)
-  const diff: number = max - min
-  const sectorAngle: number = 60
+  const { red, green, blue }: Rgb = rgb,
+    maxColorValue: number = 255,
+    r: number = red / maxColorValue,
+    g: number = green / maxColorValue,
+    b: number = blue / maxColorValue,
+    max: number = Math.max(r, g, b),
+    min: number = Math.min(r, g, b),
+    diff: number = max - min,
+    sectorAngle: number = 60
   let h: number = 0
 
   if (min !== max) {
     const hueCorrections: Record<number, number[]> = {
-      [r]: [b - g, 180],
-      [g]: [r - b, 300],
-      [b]: [g - r, 60]
-    }
-    const [hue, correction]: number[] = hueCorrections[min]
-    const colorWheelDegree: number = 360
+        [r]: [b - g, 180],
+        [g]: [r - b, 300],
+        [b]: [g - r, 60]
+      },
+      [hue, correction]: number[] = hueCorrections[min],
+      colorWheelDegree: number = 360
+
     h = (sectorAngle * (hue / diff) + correction + colorWheelDegree) % colorWheelDegree
   }
 
-  const s: number = max === 0 ? 0 : diff / max
-  const v: number = rate < 0 ? Math.min(1, max + Math.abs(rate)) : Math.max(0, max - max * rate)
+  const s: number = max === 0 ? 0 : diff / max,
+    v: number = rate < 0 ? Math.min(1, max + Math.abs(rate)) : Math.max(0, max - max * rate)
   let _rgb: Rgb = rgbKeys.reduce(
     (prev, curr) => ({ ...prev, [curr]: s > 0 ? 0 : Math.round(v * maxColorValue) }),
     {} as Rgb
   )
 
   if (s > 0) {
-    const integer: number = Math.floor(h / sectorAngle)
-    const decimal: number = h / sectorAngle - integer
-    const values: number[] = [v * (1 - s), v * (1 - s * decimal), v * (1 - s * (1 - decimal))]
-    const rgbs: number[][] = [
-      [v, values[2], values[0]],
-      [values[1], v, values[0]],
-      [values[0], v, values[2]],
-      [values[0], values[1], v],
-      [values[2], values[0], v],
-      [v, values[0], values[1]]
-    ]
+    const integer: number = Math.floor(h / sectorAngle),
+      decimal: number = h / sectorAngle - integer,
+      values: number[] = [v * (1 - s), v * (1 - s * decimal), v * (1 - s * (1 - decimal))],
+      rgbs: number[][] = [
+        [v, values[2], values[0]],
+        [values[1], v, values[0]],
+        [values[0], v, values[2]],
+        [values[0], values[1], v],
+        [values[2], values[0], v],
+        [v, values[0], values[1]]
+      ]
 
     _rgb = rgbs[integer % rgbs.length].reduce(
       (prev, curr, i) => ({ ...prev, [rgbKeys[i]]: Math.round(curr * maxColorValue) }),
