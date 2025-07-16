@@ -5,8 +5,8 @@ interface Center {
   transform: 'translate(-50%, -50%)' | 'translateX(-50%)' | 'translateY(-50%)'
 }
 
-const horizontal = { left: '50%' } as const
-const vertical = { top: '50%' } as const
+const horizontal = { left: '50%' } as const,
+  vertical = { top: '50%' } as const
 
 export function absoluteCenter(axis: 'x', position?: Position): Center & typeof horizontal
 export function absoluteCenter(axis: 'y', position?: Position): Center & typeof vertical
