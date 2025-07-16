@@ -5,8 +5,8 @@ interface Flex {
   flexDirection: Direction
 }
 
-const justifyCenter = { justifyContent: 'center' } as const
-const alignCenter = { alignItems: 'center' } as const
+const justifyCenter = { justifyContent: 'center' } as const,
+  alignCenter = { alignItems: 'center' } as const
 
 export function flexCenter(axis: 'x', direction?: Direction): Flex & typeof justifyCenter
 export function flexCenter(axis: 'y', direction?: Direction): Flex & typeof alignCenter
