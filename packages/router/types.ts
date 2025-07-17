@@ -29,9 +29,14 @@ export interface PageContent<D extends object, P extends object> {
   redirect?: string
 }
 
-export type Param = 'path' | 'query'
+export type Param = 'dynamicPaths' | 'queries'
 
 export interface RouterData {
   pathname: string
   lang: string
+}
+
+export interface RoutingOptions {
+  withHistory?: boolean
+  reload?: boolean
 }
