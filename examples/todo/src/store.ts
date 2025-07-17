@@ -8,16 +8,16 @@ export const $tasks = createPersistentState<Task[]>([])
 
 export const addTask = async (title: string): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get()
-    const timestamp: number = getTimestamp()
-    const newTask: Task = {
-      id: timestamp,
-      title,
-      description: '',
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      completedAt: undefined
-    }
+    const tasks: Task[] = await $tasks.get(),
+      timestamp: number = getTimestamp(),
+      newTask: Task = {
+        id: timestamp,
+        title,
+        description: '',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        completedAt: undefined
+      }
 
     tasks.push(newTask)
     await $tasks.set(tasks)
@@ -40,8 +40,8 @@ export const updateTask = async ({
   description: string
 }): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get()
-    const task: Task | undefined = await getTask(tasks, id)
+    const tasks: Task[] = await $tasks.get(),
+      task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
 
@@ -58,8 +58,8 @@ export const updateTask = async ({
 
 export const completeTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get()
-    const task: Task | undefined = await getTask(tasks, id)
+    const tasks: Task[] = await $tasks.get(),
+      task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
 
@@ -76,8 +76,8 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 
 export const revertTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get()
-    const task: Task | undefined = await getTask(tasks, id)
+    const tasks: Task[] = await $tasks.get(),
+      task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
 
@@ -93,8 +93,8 @@ export const revertTask = async (id: number): Promise<Task[]> => {
 
 export const deleteTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get()
-    const taskIndex = tasks.findIndex(task => task.id === id)
+    const tasks: Task[] = await $tasks.get(),
+      taskIndex = tasks.findIndex(task => task.id === id)
 
     if (taskIndex === -1) throw new Error(`The task with id:${id} is not found...`)
 
