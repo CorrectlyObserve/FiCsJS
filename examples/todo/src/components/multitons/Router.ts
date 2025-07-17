@@ -1,4 +1,4 @@
-import { ficsRouter, getParams } from 'ficsjs/router'
+import { ficsRouter, queryParams } from 'ficsjs/router'
 import { calc, color, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import Tasks from '@/components/singletons/Tasks'
 import Task from '@/components/singletons/Task'
@@ -17,7 +17,7 @@ export default ficsRouter({
     {
       path: '/',
       content: ({ children: { tasks, task }, template }) => {
-        const queryId = parseInt(getParams('query').id)
+        const queryId = parseInt(queryParams().id)
 
         if (isNaN(queryId)) return tasks
 
