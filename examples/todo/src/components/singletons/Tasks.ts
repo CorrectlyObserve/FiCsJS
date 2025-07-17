@@ -82,8 +82,8 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
 
     if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
-    const [complete, revert, _delete] = texts
-    const { offsetWidth } = document.documentElement
+    const [complete, revert, _delete] = texts,
+      { offsetWidth } = document.documentElement
 
     return template`
       <h2>${heading}</h2>
