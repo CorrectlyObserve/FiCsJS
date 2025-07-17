@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { goto } from 'ficsjs/router'
+import { goto, queryParams } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Skeleton from '@/components/materials/Skeleton'
@@ -74,6 +74,12 @@ export default fics({
       '.icon': { display: 'flex', justifyContent: 'end' }
     }
   },
+  hooks: {
+    created: ({ setData }) => {
+      const page = parseInt(queryParams().page)
+      if (!isNaN(page)) setData('page', page)
+    }
+  },
   actions: {
     img: {
       load: [
@@ -125,7 +131,6 @@ export default fics({
     minLength: LIMIT_LENGTH,
     elementMinHeight: PHOTO_SIZE,
     trigger: ({ data: { photos } }) => photos.length > 0,
-    rootMargin: '100px 0px 0px 0px',
     throttle: 200,
     method: async ({ data: { photos, page }, setData, crud }) =>
       await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
