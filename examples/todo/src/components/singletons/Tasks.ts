@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { goto, getParams } from 'ficsjs/router'
+import { goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
 import Icon from '@/components/materials/Icon'
@@ -136,7 +136,7 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
                     click: async () => {
                       if (window.confirm(confirmation)) {
                         setData('tasks', await deleteTask(id))
-                        if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
+                        if (parseInt(queryParams().id) === id) goto(getPath(lang, '/'))
                       }
                     }
                   })}
