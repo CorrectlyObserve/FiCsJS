@@ -1,11 +1,12 @@
 import { browserError } from '../core/helpers'
+import type { RoutingOptions } from './types'
 
 export default (
   href: string,
-  { history, reload }: { history?: boolean; reload?: boolean } = { history: true, reload: true }
+  { withHistory, reload }: RoutingOptions = { withHistory: true, reload: true }
 ): void => {
   browserError()
 
-  if (history) reload ? (window.location.href = href) : window.history.pushState({}, '', href)
-  else window.history.replaceState({}, '', href)
+  if (withHistory && reload) window.location.href = href
+  else window.history[withHistory ? 'pushState' : 'replaceState']({}, '', href)
 }
