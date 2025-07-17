@@ -1,7 +1,8 @@
 import FiCsElement from '../core/class'
 import type { Descendant, Sanitized } from '../core/types'
+import { dynamicPathParams, dynamicPathToRegExp, hasDynamicPaths } from './dynamicPaths'
 import goto from './goto'
-import { getPathParams, getRegExp, isPathParam, params } from './params'
+import { params } from './params'
 import type { FiCsRouter, PageContent, RouterData } from './types'
 
 export default <D extends RouterData, P extends object>({
@@ -28,7 +29,7 @@ export default <D extends RouterData, P extends object>({
         const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
           if (redirect) {
             setData('pathname', redirect)
-            goto(pathname, { history: false, reload: false })
+            goto(pathname, { withHistory: false, reload: false })
             return setContent()
           }
 
@@ -47,7 +48,7 @@ export default <D extends RouterData, P extends object>({
         for (const { path, content, redirect } of pages) {
           const langPath: string = getLangPath(path)
 
-          if (isPathParam(path) || isPathParam(langPath)) {
+          if (hasDynamicPaths(path) || hasDynamicPaths(langPath)) {
             dynamicPages.push({ path, content, redirect })
             continue
           }
@@ -58,11 +59,13 @@ export default <D extends RouterData, P extends object>({
         for (const { path, content, redirect } of dynamicPages) {
           const langPath: string = getLangPath(path)
 
-          if (getRegExp(path).test(pathname) || getRegExp(langPath).test(pathname)) {
-            params.set(
-              'path',
-              getPathParams(Object.keys(getPathParams(path)).length > 0 ? path : langPath)
-            )
+          if (
+            dynamicPathToRegExp(path).test(pathname) ||
+            dynamicPathToRegExp(langPath).test(pathname)
+          ) {
+            const keys: string[] = Object.keys(dynamicPathParams(path))
+            params.set('dynamicPaths', dynamicPathParams(keys.length > 0 ? path : langPath))
+
             return resolveContent({ content, redirect })
           }
         }
@@ -75,12 +78,7 @@ export default <D extends RouterData, P extends object>({
     },
     css,
     hooks: {
-      created: ({ setData }) => {
-        const { pathname, search }: { pathname: string; search: string } = window.location
-
-        setData('pathname', pathname)
-        params.set('query', Object.fromEntries(new URLSearchParams(search)))
-      },
+      created: ({ setData }) => setData('pathname', window.location.pathname),
       mounted: ({ setData }) =>
         window.addEventListener('popstate', () => setData('pathname', window.location.pathname))
     },
