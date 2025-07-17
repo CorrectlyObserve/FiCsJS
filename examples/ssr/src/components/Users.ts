@@ -21,8 +21,8 @@ export default fics({
         click:
           ({ getData }) =>
           async (method: Method) => {
-            const userId = getData('userId')
-            const options = { method, ...headers }
+            const userId = getData('userId'),
+              options = { method, ...headers }
 
             if (method === 'DELETE') {
               await crud<User>(`${api}/${userId}`, options)
@@ -55,8 +55,8 @@ export default fics({
     </div>
     <div class="space-y-4">
       ${users.map(user => {
-        const { id } = user
-        const keys: (keyof User)[] = ['id', 'name', 'email']
+        const { id } = user,
+          keys = ['id', 'name', 'email'] as const
 
         return template`
           <div class="clickable w-3xs space-y-2 mx-auto" key="${id}" tabindex="0">
