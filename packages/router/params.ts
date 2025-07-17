@@ -27,13 +27,21 @@ export const isPathParam = (path: string): boolean => pathParam.test(path)
 
 class Params {
   params: Record<Param, Record<string, string>> = { path: {}, query: {} }
+  #isBrowser: boolean = isBrowser()
+
+  constructor() {
+    if (this.#isBrowser) {
+      const { search }: { search: string } = window.location
+      this.params.query = Object.fromEntries(new URLSearchParams(search))
+    }
+  }
 
   set(param: Param, params: Record<string, string>): void {
-    this.params[param] = isBrowser() ? params : {}
+    this.params[param] = this.#isBrowser ? params : {}
   }
 
   get(param: Param): Record<string, string> {
-    return isBrowser() ? this.params[param] : {}
+    return this.#isBrowser ? this.params[param] : {}
   }
 }
 
