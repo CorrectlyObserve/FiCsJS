@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { getParams, goto } from 'ficsjs/router'
+import { dynamicPathParams, goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
 import Icon from '@/components/materials/Icon'
@@ -151,7 +151,7 @@ export default fics<Data, { lang: string }>({
         )}
         ${button}
         <div>
-          ${[_delete, isNaN(parseInt(getParams('path').id)) ? close : back].map(
+          ${[_delete, isNaN(parseInt(dynamicPathParams().id)) ? close : back].map(
             text => template`<span role="button" tabindex="0">${text}</span>`
           )}
         </div>
@@ -195,8 +195,8 @@ export default fics<Data, { lang: string }>({
   },
   hooks: {
     mounted: async ({ props: { lang }, setData }) => {
-      const paramId = parseInt(getParams('path').id),
-        queryId = parseInt(getParams('query').id)
+      const paramId = parseInt(dynamicPathParams().id),
+        queryId = parseInt(queryParams().id)
 
       if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
 
