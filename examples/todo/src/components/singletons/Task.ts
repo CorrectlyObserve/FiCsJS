@@ -29,8 +29,8 @@ interface Data {
   confirmation: string
 }
 
-const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
-const { sm } = breakpoints
+const backToTaskList = (lang: string) => goto(getPath(lang, '/')),
+  { sm } = breakpoints
 
 export default fics<Data, { lang: string }>({
   name: 'task',
@@ -195,13 +195,13 @@ export default fics<Data, { lang: string }>({
   },
   hooks: {
     mounted: async ({ props: { lang }, setData }) => {
-      const paramId = parseInt(getParams('path').id)
-      const queryId = parseInt(getParams('query').id)
+      const paramId = parseInt(getParams('path').id),
+        queryId = parseInt(getParams('query').id)
 
       if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
 
-      const tasks: Task[] = await $tasks.get()
-      const task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
+      const tasks: Task[] = await $tasks.get(),
+        task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
 
       if (!task) return goto(getPath(lang, '/404'))
       setData('task', task)
