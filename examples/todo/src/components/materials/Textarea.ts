@@ -11,8 +11,8 @@ interface Props {
   blur?: () => void
 }
 
-const lineHeight = 1.5
-const paddingY: string = calc([cssVar('xs'), 1.5], '*')
+const lineHeight = 1.5,
+  paddingY: string = calc([cssVar('xs'), 1.5], '*')
 
 export default () =>
   fics<{}, Props>({
