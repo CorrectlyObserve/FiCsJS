@@ -9,7 +9,7 @@ export const cssVar = (variable: string): string =>
 export const remToPx = (rem: number | string): number => {
   browserError()
 
-  if (checkType(rem, 'number')) numberError(rem)
+  if (checkType(rem, 'number')) numberError({ rem })
   else rem = parseFloat(rem)
 
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
