@@ -187,8 +187,12 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#scroll = {
         ...scroll,
         id: `${this.#componentId}-scroll`,
-        indexes: { start: 0, end: scroll.minLength },
-        isEnabled: false
+        start: 0,
+        end: scroll.minLength,
+        isEnabled: false,
+        totalHeight: NaN,
+        elementHeights: new Map(),
+        prevTotalHeight: NaN
       }
     if (sse && !isBlankObject(sse) && this.#isBrowser) this.#sse = { ...sse }
   }
@@ -473,19 +477,12 @@ export default class FiCsElement<D extends object, P extends object> {
       ): Sanitized<D, P> => {
         if (!this.#scroll) return template`${array.map((item, index) => callback(item, index))}`
 
-        const {
-          minLength,
-          elementMinHight,
-          indexes: { start, end },
-          buffer,
-          id
-        }: Scroll<D, P> = this.#scroll
+        const { minLength, elementMinHeight, start, end, buffer, id }: Scroll<D, P> = this.#scroll
 
-        numberError(minLength)
-        numberError(elementMinHight)
-        if (buffer) numberError(buffer, false)
+        numberError({ minLength, elementMinHeight })
+        if (buffer) numberError({ buffer }, false)
 
-        const height: number = elementMinHight * (end - start + (buffer ?? 0))
+        const height: number = elementMinHeight * (end - start + (buffer ?? 0))
         const endIndex: number = Array.isArray(array) ? array.length : end
 
         return template`
@@ -912,7 +909,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError(time, false)
+    numberError({ time }, false)
 
     let timeout: ReturnType<typeof setTimeout> | undefined
 
@@ -926,7 +923,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError(time, false)
+    numberError({ time }, false)
 
     let lastTime: number = 0
 
@@ -1060,7 +1057,7 @@ export default class FiCsElement<D extends object, P extends object> {
         func: ({ times }: { times: number }) => void,
         { interval, max, exit }: PollingOptions
       ): void => {
-        if (max) numberError(interval)
+        numberError({ interval, max })
 
         let times = 0
 
