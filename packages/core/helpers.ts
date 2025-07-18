@@ -42,14 +42,20 @@ export const isBrowser = (): boolean => {
   }
 }
 
-export const numberError = (number: number, isOnlyPositive: boolean = true): void => {
-  if (isNaN(number)) throw new Error(`The number ${number} must be a number...`)
+export const numberError = (
+  number: Record<string, number | undefined>,
+  isOnlyPositive: boolean = true
+): void => {
+  for (const [key, value] of Object.entries(number)) {
+    if (checkType(value, 'undefined')) continue
 
-  if (isOnlyPositive && number <= 0)
-    throw new Error(`The number ${number} must be a positive number...`)
+    if (isNaN(value)) throw new Error(`The ${key} must be a number...`)
 
-  if (!isOnlyPositive && number < 0)
-    throw new Error(`The number ${number} must be a non-negative number...`)
+    if (isOnlyPositive && value <= 0) throw new Error(`The ${key} must be a positive number...`)
+
+    if (!isOnlyPositive && value < 0)
+      throw new Error(`The number ${key} must be a non-negative number...`)
+  }
 }
 
 export const toArray = <T>(param: SingleOrArray<T>): T[] =>
