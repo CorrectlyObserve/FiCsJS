@@ -3,7 +3,7 @@ import { goto, queryParams } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Skeleton from '@/components/materials/Skeleton'
-import { api, getPhotos, LIMIT_LENGTH } from '@/data/photos'
+import { api, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import type { Photo } from '@/types'
 import { CircleX } from 'lucide-static'
 
@@ -37,7 +37,7 @@ export default fics({
     isDeferred,
     virtualScroll
   }) => {
-    const skeletons = template`${[...Array(LIMIT_LENGTH)].map(_ => template`${skeleton}`)}`
+    const skeletons = template`${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}`
 
     if (!isBrowser || !isDeferred) return skeletons
 
@@ -128,7 +128,7 @@ export default fics({
     }
   },
   scroll: {
-    minLength: LIMIT_LENGTH,
+    unit: UNIT_LENGTH,
     elementMinHeight: PHOTO_SIZE,
     trigger: ({ data: { photos } }) => photos.length > 0,
     throttle: 200,
