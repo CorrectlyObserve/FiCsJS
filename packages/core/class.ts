@@ -188,7 +188,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ...scroll,
         id: `${this.#componentId}-scroll`,
         start: 0,
-        end: scroll.minLength,
+        end: scroll.unit,
         isEnabled: false,
         totalHeight: NaN,
         elementHeights: new Map(),
@@ -480,9 +480,9 @@ export default class FiCsElement<D extends object, P extends object> {
       ): Sanitized<D, P> => {
         if (!this.#scroll) return template`${array.map((item, index) => callback(item, index))}`
 
-        const { minLength, elementMinHeight, start, end, buffer, id }: Scroll<D, P> = this.#scroll
+        const { unit, elementMinHeight, start, end, buffer, id }: Scroll<D, P> = this.#scroll
 
-        numberError({ minLength, elementMinHeight })
+        numberError({ unit, elementMinHeight })
         if (buffer) numberError({ buffer }, false)
 
         const height: number = elementMinHeight * (end - start + (buffer ?? 0))
