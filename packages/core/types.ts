@@ -27,7 +27,8 @@ export type Children = Record<string, Descendant>
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export interface CrudOptions extends RequestInit {
-  key?: string
+  key?: string,
+  delay?: number
 }
 
 export type Css<D, P> =
