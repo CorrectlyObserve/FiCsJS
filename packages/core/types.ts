@@ -27,7 +27,7 @@ export type Children = Record<string, Descendant>
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export interface CrudOptions extends RequestInit {
-  key?: string,
+  key?: string
   delay?: number
 }
 
@@ -172,7 +172,7 @@ export interface Scroll<D, P> extends ScrollParams<D, P> {
 }
 
 interface ScrollParams<D, P> {
-  minLength: number
+  unit: number
   elementMinHeight: number
   trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
