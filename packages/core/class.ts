@@ -223,15 +223,18 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #crud<T>(api: string, options?: CrudOptions): Promise<T> {
-    const { key, ..._options }: CrudOptions = options ?? {}
+    const { key, delay, ..._options }: CrudOptions = options ?? {}
 
     if (!key) return fetch(api, _options).then(res => res.json())
 
+    numberError({ delay })
+
     if (this.#apiStatuses.get(key) === true)
-      throw new Error(`The internal API status key "${key}" is already in progress...`)
+      console.warn(`The internal API status key "${key}" is already in progress...`)
 
     this.#apiStatuses.set(key, true)
     this.#enqueue(() => this.#reRender(true), 're-render')
+    await new Promise(resolve => setTimeout(resolve, delay ?? 0))
 
     const json: T = await fetch(api, _options).then(res => res.json())
 
