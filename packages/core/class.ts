@@ -829,12 +829,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const convertCssContent = (style: Style<D, P>): string =>
       Object.entries(checkType(style, 'function') ? style(this.#dataProps) : style).reduce(
         (prev, [key, value]) => {
-          if (
-            checkType(value, 'undefined') ||
-            value === '' ||
-            (checkType(value, 'object') && Object.keys(value).length === 0)
-          )
-            return prev
+          if (checkType(value, 'undefined') || value === '' || isBlankObject(value)) return prev
 
           key = convertStr(key, 'kebab')
           if (key.startsWith('webkit')) key = `-${key}`
