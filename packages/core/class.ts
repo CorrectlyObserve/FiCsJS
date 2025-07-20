@@ -1051,6 +1051,57 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #sendEventSource(): EventSource | undefined {
+    if (isBlankObject(this.#sse)) return undefined
+
+    const { path, withCredentials, onopen, onmessage, onerror, actions }: ServerSentEvents<D, P> =
+      this.#sse
+    const eventSource: EventSource = new EventSource(path, { withCredentials })
+
+    if (onopen)
+      eventSource.onopen = (event: Event): void =>
+        onopen({ ...this.#getDataPropsMethods(true), event })
+
+    if (onmessage)
+      eventSource.onmessage = (event: MessageEvent): void =>
+        onmessage({ ...this.#getDataPropsMethods(true), event })
+
+    if (onerror)
+      eventSource.onerror = (event: Event): void =>
+        onerror({ ...this.#getDataPropsMethods(true), event })
+
+    const addEventListener = (
+      handler: string,
+      method: SSEMethod<D, P>,
+      options?: ActionOptions
+    ): void => {
+      const { debounce, throttle, once }: ActionOptions = options ?? {}
+
+      if (debounce && throttle)
+        throw new Error('Debounce and throttle should not be combined in the same event handler...')
+
+      const callback = (event: MessageEvent): void =>
+        method({ ...this.#getDataPropsMethods(true), event })
+
+      eventSource.addEventListener(
+        handler,
+        debounce
+          ? this.#debounce(callback, debounce)
+          : throttle
+            ? this.#throttle(callback, throttle)
+            : callback,
+        { once }
+      )
+    }
+
+    for (const [handler, method] of Object.entries(actions))
+      Array.isArray(method)
+        ? addEventListener(handler, method[0], method[1])
+        : addEventListener(handler, method)
+
+    return eventSource
+  }
+
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     if (this.#hooks?.[key] === undefined) return
     if (key === 'mounted') {
@@ -1140,64 +1191,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#setClassNames(this)
             that.#setAttrs(this)
             that.#infiniteVirtualScroll(this.#shadowRoot)
-
-            if ('path' in that.#sse) {
-              const {
-                path,
-                withCredentials,
-                onopen,
-                onmessage,
-                onerror,
-                actions
-              }: ServerSentEvents<D, P> = that.#sse
-              this.#eventSource = new EventSource(path, { withCredentials })
-
-              if (onopen)
-                this.#eventSource.onopen = (event: Event): void =>
-                  onopen({ ...that.#getDataPropsMethods(true), event })
-
-              if (onmessage)
-                this.#eventSource.onmessage = (event: MessageEvent): void =>
-                  onmessage({ ...that.#getDataPropsMethods(true), event })
-
-              if (onerror)
-                this.#eventSource.onerror = (event: Event): void =>
-                  onerror({ ...that.#getDataPropsMethods(true), event })
-
-              if (actions) {
-                const addEventListener = (
-                  eventSource: EventSource,
-                  handler: string,
-                  method: SSEMethod<D, P>,
-                  options?: ActionOptions
-                ): void => {
-                  const { debounce, throttle, once }: ActionOptions = options ?? {}
-
-                  if (debounce && throttle)
-                    throw new Error(
-                      'Debounce and throttle should not be combined in the same event handler...'
-                    )
-
-                  const callback = (event: MessageEvent): void =>
-                    method({ ...that.#getDataPropsMethods(true), event })
-
-                  eventSource.addEventListener(
-                    handler,
-                    debounce
-                      ? that.#debounce(callback, debounce)
-                      : throttle
-                        ? that.#throttle(callback, throttle)
-                        : callback,
-                    { once }
-                  )
-                }
-
-                for (const [handler, method] of Object.entries(actions))
-                  Array.isArray(method)
-                    ? addEventListener(this.#eventSource, handler, method[0], method[1])
-                    : addEventListener(this.#eventSource, handler, method)
-              }
-            }
+            this.#eventSource = that.#sendEventSource()
 
             that.#callback('mounted')
             this.#isRendered = true
