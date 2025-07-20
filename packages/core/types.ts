@@ -187,7 +187,7 @@ export interface ServerSentEvents<D, P> {
   onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
   onmessage?: (params: DataPropsMethods<D, P, true> & { event: MessageEvent }) => void
   onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
-  actions?: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+  actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
 }
 
 export type SingleOrArray<T> = T | T[]
