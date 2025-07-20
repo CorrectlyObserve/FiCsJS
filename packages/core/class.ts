@@ -822,10 +822,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  get #computedCss(): Css<D, P>[] {
-    return [...globalCss(), ...this.#css]
-  }
-
   #cssToString({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
@@ -881,8 +877,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #addCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
-    const css: Css<D, P>[] = this.#computedCss
+  #buildCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
+    const css: Css<D, P>[] = [...globalCss(), ...this.#css]
 
     if (css.length === 0) return
 
@@ -894,7 +890,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#cssToString({ css: [':host{display:block}', ...css], mode: 'csr' }))
+    stylesheet.replaceSync(
+      this.#cssToString({ css: [':host{display:block}', ...css], mode: 'csr' })
+    )
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -1111,7 +1109,7 @@ export default class FiCsElement<D extends object, P extends object> {
             }, 'fetch')
 
           that.#addHtml(this.#shadowRoot, true)
-          that.#addCss(this.#shadowRoot, [])
+          that.#buildCss(this.#shadowRoot, [])
 
           for (const [selector, action] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
@@ -1236,7 +1234,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#addHtml(shadowRoot)
 
     if (!isOnlyHtml && css.length > 0)
-      this.#addCss(
+      this.#buildCss(
         shadowRoot,
         css.map(index => this.#css[index])
       )
@@ -1356,7 +1354,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
           <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
             <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-            <div ${attrs(that.#name)}>${html}${css(that.#computedCss)}</div>
+            <div ${attrs(that.#name)}>${html}${css([...globalCss(), ...this.#css])}</div>
           </${that.#name}>
         `
       }
