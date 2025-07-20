@@ -527,7 +527,7 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #addAttrs(component: HTMLElement): void {
+  #setAttrs(component: HTMLElement): void {
     for (const [key, value] of this.#computedAttrs)
       component.setAttribute(convertStr(key, 'kebab'), value)
   }
@@ -583,7 +583,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             const component: HTMLElement = document.createElement(child.#name)
             child.#addClassName(component)
-            child.#addAttrs(component)
+            child.#setAttrs(component)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
             index--
@@ -1138,7 +1138,7 @@ export default class FiCsElement<D extends object, P extends object> {
             }
 
             that.#addClassName(this)
-            that.#addAttrs(this)
+            that.#setAttrs(this)
             that.#infiniteVirtualScroll(this.#shadowRoot)
 
             if ('path' in that.#sse) {
@@ -1229,7 +1229,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#addClassName(component)
     }
 
-    if (!isOnlyHtml && isAttr) this.#addAttrs(component)
+    if (!isOnlyHtml && isAttr) this.#setAttrs(component)
 
     this.#addHtml(shadowRoot)
 
