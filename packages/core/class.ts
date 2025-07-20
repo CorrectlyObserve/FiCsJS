@@ -62,7 +62,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
-  readonly #className?: ClassName<D, P>
+  readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
   readonly #showAttr: string
@@ -167,8 +167,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (className)
       if (checkType(className, 'function')) {
         this.#bindings.isClassName = true
-        this.#className = className
-      } else this.#className = className.trim()
+        this.#classNames = className
+      } else this.#classNames = className.trim()
 
     if (attributes) {
       if (checkType(attributes, 'function')) this.#bindings.isAttr = true
@@ -206,7 +206,7 @@ export default class FiCsElement<D extends object, P extends object> {
       data: () => this.#data,
       deferredData: this.#deferredData,
       props: this.#propsSources,
-      className: this.#className,
+      className: this.#classNames,
       attributes: this.#attrs,
       html: this.#html,
       clonedCss: this.#css,
@@ -509,15 +509,15 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   get #computedClassName(): string {
-    if (!this.#className) return ''
+    if (!this.#classNames) return ''
 
-    return checkType(this.#className, 'function')
-      ? this.#className(this.#dataProps)
-      : this.#className
+    return checkType(this.#classNames, 'function')
+      ? this.#classNames(this.#dataProps)
+      : this.#classNames
   }
 
-  #addClassName(component: HTMLElement): void {
-    if (!this.#className) return
+  #setClassNames(component: HTMLElement): void {
+    if (!this.#classNames) return
     component.className = this.#computedClassName
   }
 
@@ -582,7 +582,7 @@ export default class FiCsElement<D extends object, P extends object> {
             child.#enqueue(() => child.#define(), 'define')
 
             const component: HTMLElement = document.createElement(child.#name)
-            child.#addClassName(component)
+            child.#setClassNames(component)
             child.#setAttrs(component)
             childNode.replaceWith(component)
             childNodes.splice(index, 1, component)
@@ -1137,7 +1137,7 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this), 0)
             }
 
-            that.#addClassName(this)
+            that.#setClassNames(this)
             that.#setAttrs(this)
             that.#infiniteVirtualScroll(this.#shadowRoot)
 
@@ -1226,7 +1226,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!isOnlyHtml && isClassName) {
       component.classList.remove(...Array.from(component.classList))
-      this.#addClassName(component)
+      this.#setClassNames(component)
     }
 
     if (!isOnlyHtml && isAttr) this.#setAttrs(component)
@@ -1279,7 +1279,7 @@ export default class FiCsElement<D extends object, P extends object> {
       that.#initProps(propsChain, ancestorIds)
 
       if (that.#options.ssr) {
-        const className: string = that.#className ? `class="${that.#computedClassName}"` : ''
+        const className: string = that.#classNames ? `class="${that.#computedClassName}"` : ''
         const value: string = `${className} ${that.#computedAttrs.reduce(
           (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
           ''
