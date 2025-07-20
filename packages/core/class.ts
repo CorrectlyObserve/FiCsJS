@@ -826,7 +826,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return [...globalCss(), ...this.#css]
   }
 
-  #convertCss({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
+  #cssToString({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
     if (css.length === 0) return ''
 
     let topLevelCss: string = ''
@@ -894,7 +894,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#convertCss({ css: [':host{display:block}', ...css], mode: 'csr' }))
+    stylesheet.replaceSync(this.#cssToString({ css: [':host{display:block}', ...css], mode: 'csr' }))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -1351,7 +1351,7 @@ export default class FiCsElement<D extends object, P extends object> {
           applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
         )
         const css = (_css: Css<D, P>[]): string =>
-          _css.length > 0 ? `<style>${that.#convertCss({ css: _css, mode: 'ssr' })}</style>` : ''
+          _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
         return `
           <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
