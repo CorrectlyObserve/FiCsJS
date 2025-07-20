@@ -545,7 +545,7 @@ export default class FiCsElement<D extends object, P extends object> {
     ;(element as any)[convertStr(property, 'camel')] = value
   }
 
-  #addHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
+  #buildHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
     const isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const newChildNodes: ChildNode[] = this.#getChildNodes(
@@ -1108,7 +1108,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#isDeferred = true
             }, 'fetch')
 
-          that.#addHtml(this.#shadowRoot, true)
+          that.#buildHtml(this.#shadowRoot, true)
           that.#buildCss(this.#shadowRoot, [])
 
           for (const [selector, action] of Object.entries(that.#actions))
@@ -1231,7 +1231,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!isOnlyHtml && isAttr) this.#setAttrs(component)
 
-    this.#addHtml(shadowRoot)
+    this.#buildHtml(shadowRoot)
 
     if (!isOnlyHtml && css.length > 0)
       this.#buildCss(
