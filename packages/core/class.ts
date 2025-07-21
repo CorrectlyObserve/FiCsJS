@@ -1046,12 +1046,13 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #sendEventSource(): EventSource | undefined {
+  #sendEventSource(): { eventSource: EventSource; removeListeners: () => void } | undefined {
     if (isBlankObject(this.#sse)) return undefined
 
     const { path, withCredentials, onopen, onmessage, onerror, actions }: ServerSentEvents<D, P> =
       this.#sse
     const eventSource: EventSource = new EventSource(path, { withCredentials })
+    const listeners: { handler: string; callback: (event: MessageEvent) => void }[] = []
 
     if (onopen)
       eventSource.onopen = (event: Event): void =>
@@ -1075,18 +1076,14 @@ export default class FiCsElement<D extends object, P extends object> {
       if (debounce && throttle)
         throw new Error('Debounce and throttle should not be combined in the same event handler...')
 
-      const callback = (event: MessageEvent): void =>
+      let callback = (event: MessageEvent): void =>
         method({ ...this.#getDataPropsMethods(true), event })
 
-      eventSource.addEventListener(
-        handler,
-        debounce
-          ? this.#debounce(callback, debounce)
-          : throttle
-            ? this.#throttle(callback, throttle)
-            : callback,
-        { once }
-      )
+      if (debounce) callback = this.#debounce(callback, debounce)
+      else if (throttle) callback = this.#throttle(callback, throttle)
+
+      eventSource.addEventListener(handler, callback, { once })
+      listeners.push({ handler, callback })
     }
 
     for (const [handler, method] of Object.entries(actions))
@@ -1094,7 +1091,13 @@ export default class FiCsElement<D extends object, P extends object> {
         ? addEventListener(handler, method[0], method[1])
         : addEventListener(handler, method)
 
-    return eventSource
+    return {
+      eventSource,
+      removeListeners: () => {
+        for (const { handler, callback } of listeners)
+          eventSource.removeEventListener(handler, callback)
+      }
+    }
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
@@ -1136,6 +1139,7 @@ export default class FiCsElement<D extends object, P extends object> {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
         #eventSource?: EventSource
+        #eventSourceRemoveListeners?: () => void
 
         constructor() {
           super()
@@ -1186,7 +1190,8 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#setClassNames(this)
             that.#setAttrs(this)
             that.#infiniteVirtualScroll(this.#shadowRoot)
-            this.#eventSource = that.#sendEventSource()
+            this.#eventSource = that.#sendEventSource()?.eventSource
+            this.#eventSourceRemoveListeners = that.#sendEventSource()?.removeListeners
 
             that.#callback('mounted')
             this.#isRendered = true
@@ -1195,6 +1200,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         disconnectedCallback(): void {
           this.#eventSource?.close()
+          this.#eventSourceRemoveListeners?.()
           that.#callback('destroyed')
         }
 
