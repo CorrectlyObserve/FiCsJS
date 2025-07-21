@@ -1139,7 +1139,7 @@ export default class FiCsElement<D extends object, P extends object> {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
         #eventSource?: EventSource
-        #eventSourceRemoveListeners?: () => void
+        #removeEventSourceListeners?: () => void
 
         constructor() {
           super()
@@ -1189,9 +1189,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#setClassNames(this)
             that.#setAttrs(this)
+
             that.#infiniteVirtualScroll(this.#shadowRoot)
-            this.#eventSource = that.#sendEventSource()?.eventSource
-            this.#eventSourceRemoveListeners = that.#sendEventSource()?.removeListeners
+
+            const {
+              eventSource,
+              removeListeners
+            }: { eventSource?: EventSource; removeListeners?: () => void } =
+              that.#sendEventSource() || {}
+            this.#eventSource = eventSource
+            this.#removeEventSourceListeners = removeListeners
 
             that.#callback('mounted')
             this.#isRendered = true
@@ -1200,7 +1207,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         disconnectedCallback(): void {
           this.#eventSource?.close()
-          this.#eventSourceRemoveListeners?.()
+          this.#removeEventSourceListeners?.()
           that.#callback('destroyed')
         }
 
