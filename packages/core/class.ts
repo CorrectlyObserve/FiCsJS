@@ -1235,22 +1235,21 @@ export default class FiCsElement<D extends object, P extends object> {
       )
 
     if (this.#isBrowser) {
-      for (const [selector, action] of Object.entries(this.#actions)) {
-        const addAllElements = (elements: Element[] | Set<Element>): void => {
-          for (const element of elements) {
-            if (element instanceof Element && !this.#newElements.has(element))
-              this.#newElements.add(element)
+      const addAllElements = (elements: Element[] | Set<Element>): void => {
+        for (const element of elements) {
+          if (element instanceof Element && !this.#newElements.has(element))
+            this.#newElements.add(element)
 
-            addAllElements(this.#getChildNodes(element) as Element[])
-          }
+          addAllElements(this.#getChildNodes(element) as Element[])
         }
+      }
 
-        addAllElements(this.#newElements)
+      addAllElements(this.#newElements)
 
+      for (const [selector, action] of Object.entries(this.#actions))
         for (const element of this.#getElements(component, selector))
           if (this.#newElements.has(element))
             this.#addEventListener(element, Object.entries(action))
-      }
 
       this.#newElements.clear()
     }
