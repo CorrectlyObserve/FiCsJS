@@ -68,6 +68,7 @@ export interface FiCs<D extends object, P extends object> {
   actions?: Actions<D, P>
   options?: OptionParams
   scroll?: ScrollParams<D, P>
+  ws?: WS<D, P>
   sse?: ServerSentEvents<D, P>
 }
 
@@ -185,7 +186,7 @@ export interface ServerSentEvents<D, P> {
   path: string
   withCredentials?: boolean
   onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
-  onmessage?: (params: DataPropsMethods<D, P, true> & { event: MessageEvent }) => void
+  onmessage?: SSEMethod<D, P>
   onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
   actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
 }
@@ -213,3 +214,30 @@ export interface Syntaxes<D extends object, P extends object> {
   show: (condition: boolean) => string
   apiStatuses: Record<string, boolean>
 }
+
+export interface WS<D, P> {
+  path: string
+  protocols?: SingleOrArray<string>
+  reconnect?: {
+    enabled?: boolean
+    max?: number
+    interval?: number
+    delay?: number
+  }
+  binaryActions?: string[]
+  onopen?: (params: WSParams<D, P> & { event: Event }) => void
+  onmessage?: WSMethod<D, P>
+  onerror?: (params: WSParams<D, P> & { event: CloseEvent }) => void
+  onSendError?: (params: WSParams<D, P> & { error: Error; value: WSValue }) => void
+  actions: Record<string, WSMethod<D, P> | [WSMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+}
+
+export type WSMethod<D, P> = (params: WSParams<D, P> & { event: MessageEvent }) => void
+
+export interface WSParams<D, P> extends DataPropsMethods<D, P, true> {
+  send: (value: WSValue) => void
+  readyState: number
+  bufferedAmount: number
+}
+
+export type WSValue = string | Blob | ArrayBuffer | ArrayBufferView
