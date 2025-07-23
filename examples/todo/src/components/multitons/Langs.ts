@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { fadeInOut } from 'ficsjs/animation'
 import { goto } from 'ficsjs/router'
 import { calc, cssVar } from 'ficsjs/style'
 import { breakpoints, getPath } from '@/utils'
@@ -15,7 +16,7 @@ export default fics<{ langs: string[]; isShown: boolean }, Props>({
   html: ({ data: { langs, isShown }, props: { lang }, template, show }) => template`
     <div class="container">
       <button class="lang">${lang.toUpperCase()}</button>
-      <div class="${('langs ' + (!isShown ? 'hidden' : '')).trim()}" ${show(isShown)}>
+      <div class="langs" ${show(isShown)}>
         ${langs.map(
           _lang => template`
             <button class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
@@ -36,13 +37,7 @@ export default fics<{ langs: string[]; isShown: boolean }, Props>({
         '&.lang:focus': { opacity: 0.5 },
         '&.selected': { color: cssVar('red') }
       },
-      div: {
-        position: 'absolute',
-        opacity: 1,
-        transition: `${cssVar('transition')} allow-discrete`,
-        '@starting-style': { opacity: 0 },
-        '&.hidden': { opacity: 0 }
-      }
+      '.langs': { ...fadeInOut(cssVar('transition')), position: 'absolute' }
     }
   },
   actions: {
