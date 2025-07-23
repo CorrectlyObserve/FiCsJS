@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { fadeInOut } from 'ficsjs/animation'
 import { goto, queryParams } from 'ficsjs/router'
 import { absoluteCenter, color } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
@@ -61,8 +62,8 @@ export default fics({
         )}
       </div>
       ${isLoading ? skeletons : ''}
-      <dialog class="rounded-xl" open ${show(!!id)}>
-        ${icon}<p class="text-base text-white mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
+      <dialog class="w-3xs rounded-xl" open ${show(!!id)}>
+        ${icon}<p class="text-base text-white text-center mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
       </dialog>
     `
   },
@@ -70,6 +71,7 @@ export default fics({
     img: { ...absoluteCenter('x'), top: 0 },
     dialog: {
       ...absoluteCenter('xy', 'fixed'),
+      ...fadeInOut('0.2s ease-out'),
       background: `${color({ hex: '#282828', rate: 0.5 })}`,
       '.icon': { display: 'flex', justifyContent: 'end' }
     }
