@@ -68,7 +68,7 @@ export interface FiCs<D extends object, P extends object> {
   actions?: Actions<D, P>
   options?: OptionParams
   scroll?: ScrollParams<D, P>
-  ws?: WS<D, P>
+  websocket?: WS<D, P>
   sse?: ServerSentEvents<D, P>
 }
 
