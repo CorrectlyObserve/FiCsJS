@@ -105,6 +105,8 @@ export interface Hooks<D, P> {
   adopted?: (params: DataPropsMethods<D, P, true>) => void
 }
 
+export type Listener = { handler: string; callback: (event: MessageEvent) => void, type: 'ws' | 'sse' }
+
 export type Method<D, P> = (
   params: DataPropsMethods<D, P, true> & {
     event: Event
