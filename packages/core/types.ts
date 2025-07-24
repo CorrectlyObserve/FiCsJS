@@ -105,7 +105,11 @@ export interface Hooks<D, P> {
   adopted?: (params: DataPropsMethods<D, P, true>) => void
 }
 
-export type Listener = { handler: string; callback: (event: MessageEvent) => void, type: 'ws' | 'sse' }
+export type Listener = {
+  handler: string
+  callback: (event: MessageEvent) => void
+  type: 'ws' | 'sse'
+}
 
 export type Method<D, P> = (
   params: DataPropsMethods<D, P, true> & {
@@ -237,7 +241,7 @@ export interface WS<D, P> {
 export type WSMethod<D, P> = (params: WSParams<D, P> & { event: MessageEvent }) => void
 
 export interface WSParams<D, P> extends DataPropsMethods<D, P, true> {
-  send: (value: WSValue) => void
+  wsSend: (value: WSValue) => void
   readyState: number
   bufferedAmount: number
 }
