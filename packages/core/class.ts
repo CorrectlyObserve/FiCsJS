@@ -40,7 +40,8 @@ import type {
   SingleOrArray,
   SSEMethod,
   Style,
-  Syntaxes
+  Syntaxes,
+  WS
 } from './types'
 
 const ficsIdName = 'fics-id' as const
@@ -71,6 +72,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
+  readonly #ws: WS<D, P> & { isUserClosed: boolean } = {} as WS<D, P> & { isUserClosed: boolean }
   readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
@@ -100,6 +102,7 @@ export default class FiCsElement<D extends object, P extends object> {
     actions,
     options,
     scroll,
+    websocket,
     sse
   }: FiCs<D, P>) {
     name = name.trim()
@@ -194,6 +197,10 @@ export default class FiCsElement<D extends object, P extends object> {
         elementHeights: new Map(),
         prevTotalHeight: NaN
       }
+
+    if (websocket && !isBlankObject(websocket) && this.#isBrowser)
+      this.#ws = { ...websocket, isUserClosed: false }
+
     if (sse && !isBlankObject(sse) && this.#isBrowser) this.#sse = { ...sse }
   }
 
@@ -1046,6 +1053,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #openWebSocket() {}
+
   #sendEventSource(): { eventSource: EventSource; removeListeners: () => void } | undefined {
     if (isBlankObject(this.#sse)) return undefined
 
@@ -1138,6 +1147,7 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
+        #webSocket?: WebSocket
         #eventSource?: EventSource
         #removeEventSourceListeners?: () => void
 
