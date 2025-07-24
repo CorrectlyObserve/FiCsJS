@@ -26,6 +26,7 @@ import type {
   Html,
   HtmlContent,
   Hooks,
+  Listener,
   Method,
   Options,
   OptionParams,
@@ -1059,13 +1060,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #openWebSocket() {}
 
-  #sendEventSource(): { eventSource: EventSource; removeListeners: () => void } | undefined {
+  #openEventSource(): { eventSource: EventSource; listeners: Listener[] } | undefined {
     if (isBlankObject(this.#sse)) return undefined
 
     const { path, withCredentials, onopen, onmessage, onerror, actions }: ServerSentEvents<D, P> =
       this.#sse
     const eventSource: EventSource = new EventSource(path, { withCredentials })
-    const listeners: { handler: string; callback: (event: MessageEvent) => void }[] = []
+    const listeners: Listener[] = []
 
     if (onopen)
       eventSource.onopen = (event: Event): void =>
@@ -1089,14 +1090,14 @@ export default class FiCsElement<D extends object, P extends object> {
       if (debounce && throttle)
         throw new Error('Debounce and throttle should not be combined in the same event handler...')
 
-      let callback = (event: MessageEvent): void =>
+      let callback: Listener['callback'] = (event: MessageEvent): void =>
         method({ ...this.#getDataPropsMethods(true), event })
 
       if (debounce) callback = this.#debounce(callback, debounce)
       else if (throttle) callback = this.#throttle(callback, throttle)
 
       eventSource.addEventListener(handler, callback, { once })
-      listeners.push({ handler, callback })
+      listeners.push({ handler, callback, type: 'sse' })
     }
 
     for (const [handler, method] of Object.entries(actions))
@@ -1104,13 +1105,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ? addEventListener(handler, method[0], method[1])
         : addEventListener(handler, method)
 
-    return {
-      eventSource,
-      removeListeners: () => {
-        for (const { handler, callback } of listeners)
-          eventSource.removeEventListener(handler, callback)
-      }
-    }
+    return { eventSource, listeners }
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
@@ -1151,9 +1146,9 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
-        #webSocket?: WebSocket
+        #ws?: WebSocket
         #eventSource?: EventSource
-        #removeEventSourceListeners?: () => void
+        #listeners: Listener[] = []
 
         constructor() {
           super()
@@ -1208,11 +1203,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
             const {
               eventSource,
-              removeListeners
-            }: { eventSource?: EventSource; removeListeners?: () => void } =
-              that.#sendEventSource() || {}
+              listeners: sseListeners
+            }: { eventSource?: EventSource; listeners?: Listener[] } = that.#openEventSource() || {}
             this.#eventSource = eventSource
-            this.#removeEventSourceListeners = removeListeners
+            if (sseListeners) this.#listeners = [...sseListeners]
 
             that.#callback('mounted')
             this.#isRendered = true
@@ -1221,7 +1215,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
         disconnectedCallback(): void {
           this.#eventSource?.close()
-          this.#removeEventSourceListeners?.()
+
+          for (const { handler, callback, type } of this.#listeners)
+            if (type === 'ws') this.#ws?.removeEventListener(handler, callback as EventListener)
+            else if (type === 'sse') this.#eventSource?.removeEventListener(handler, callback)
+
           that.#callback('destroyed')
         }
 
