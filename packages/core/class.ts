@@ -629,7 +629,11 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
-        if (oldChildNode instanceof Text && newChildNode instanceof Text)
+        if (
+          oldChildNode instanceof Text &&
+          newChildNode instanceof Text &&
+          oldChildNode.nodeValue === newChildNode.nodeValue
+        )
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const oldAttrs: NamedNodeMap = oldChildNode.attributes
