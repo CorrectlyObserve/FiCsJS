@@ -13,7 +13,7 @@ const PHOTO_SIZE = 200
 export default fics({
   name: 'photos',
   children: [Icon(), Skeleton()],
-  data: () => ({ page: 0, photos: [] as Photo[], photo: {} as Omit<Photo, 'isLoaded'> }),
+  data: () => ({ page: 0, photos: [] as Photo[], photoId: '', author: '' }),
   deferredData: async ({ data: { page }, crud }) =>
     await crud<Photo[]>(getPhotos(++page)).then(photos => ({ page, photos })),
   props: {
@@ -21,16 +21,13 @@ export default fics({
     values: ({ setData }) => ({
       svg: CircleX,
       areaLabel: 'Close the dialog',
-      click: () => setData('photo', {} as Photo)
+      click: () => setData('photoId', '')
     })
   },
   className: 'min-h-200',
   html: ({
     children: { icon, skeleton },
-    data: {
-      photos,
-      photo: { id, author }
-    },
+    data: { photos, photoId, author },
     template,
     show,
     apiStatuses: { isLoading },
@@ -62,7 +59,7 @@ export default fics({
         )}
       </div>
       ${isLoading ? skeletons : ''}
-      <dialog class="w-3xs rounded-xl" open ${show(!!id)}>
+      <dialog class="w-3xs rounded-xl" open ${show(photoId !== '')}>
         ${icon}<p class="text-base text-white text-center mx-4 mb-4 whitespace-nowrap">Created by ${author}</p>
       </dialog>
     `
@@ -113,18 +110,12 @@ export default fics({
         { once: true }
       ],
       click: [
-        ({
-          data: {
-            photos,
-            photo: { id }
-          },
-          setData,
-          attributes: { key }
-        }) =>
-          setData(
-            'photo',
-            key === id ? ({} as Photo) : { id: key, author: photos[parseInt(key)]?.author }
-          ),
+        ({ data: { photos, photoId }, setData, attributes: { key } }) => {
+          setData('photoId', photoId === key ? '' : key)
+
+          if (photoId !== key)
+            setData('author', photos.filter(({ id }) => id === key)[0]?.author ?? '')
+        },
         { throttle: 500, blur: true }
       ]
     }
