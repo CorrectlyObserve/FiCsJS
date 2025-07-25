@@ -1061,14 +1061,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #openWebSocket(): WebSocket | undefined {
     if (isBlankObject(this.#ws)) return undefined
-    const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws
-    const { protocol: _protocol, hostname }: { protocol: string; hostname: string } =
-      window.location
+    const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws,
+      { protocol: _protocol, hostname }: { protocol: string; hostname: string } = window.location
+
     const ws: WebSocket = new WebSocket(
-      `${_protocol.replace('http', 'ws')}//${hostname}${path}`,
-      protocols
-    )
-    const { send, binaryType, extensions, protocol, url }: WebSocket = ws
+        `${_protocol.replace('http', 'ws')}//${hostname}${path}`,
+        protocols
+      ),
+      { send, binaryType, extensions, protocol, url }: WebSocket = ws
+
     const params: () => Omit<WSParams<D, P>, 'event'> = () => ({
       ...this.#getDataPropsMethods(true),
       websocket: {
