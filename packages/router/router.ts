@@ -7,7 +7,7 @@ import type { FiCsRouter, PageContent, RouterData } from './types'
 
 export default <D extends RouterData, P extends object>({
   children,
-  pathname,
+  pathname = '/',
   props,
   className,
   attributes,
@@ -20,7 +20,7 @@ export default <D extends RouterData, P extends object>({
     name: 'router',
     isExceptional: true,
     children,
-    data: () => ({ pathname: pathname ?? '/', lang: '' }) as D,
+    data: () => ({ pathname, lang: '' }) as D,
     props,
     className,
     attributes,
