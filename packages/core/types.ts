@@ -224,12 +224,7 @@ export interface Syntaxes<D extends object, P extends object> {
 export interface WS<D, P> {
   path: string
   protocols?: SingleOrArray<string>
-  reconnect?: {
-    enabled?: boolean
-    max?: number
-    interval?: number
-    delay?: number
-  }
+  reconnect?: { interval: number; max?: number }
   onopen?: (params: WSParams<D, P> & { event: Event }) => void
   onmessage?: (params: WSParams<D, P> & { event: MessageEvent }) => void
   onerror?: (params: WSParams<D, P> & { event: Event }) => void
