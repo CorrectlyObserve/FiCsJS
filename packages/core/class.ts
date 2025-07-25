@@ -1091,25 +1091,19 @@ export default class FiCsElement<D extends object, P extends object> {
     return ws
   }
 
-  #openEventSource(): { eventSource: EventSource; listeners: Listener[] } | undefined {
+  #openEventSource(): { eventSource: EventSource; removeEventListeners: () => void } | undefined {
     if (isBlankObject(this.#sse)) return undefined
 
     const { path, withCredentials, onopen, onmessage, onerror, actions }: ServerSentEvents<D, P> =
-      this.#sse
-    const eventSource: EventSource = new EventSource(path, { withCredentials })
-    const listeners: Listener[] = []
+        this.#sse,
+      eventSource: EventSource = new EventSource(path, { withCredentials }),
+      params: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
+      listeners: Listener[] = []
 
-    if (onopen)
-      eventSource.onopen = (event: Event): void =>
-        onopen({ ...this.#getDataPropsMethods(true), event })
-
+    if (onopen) eventSource.onopen = (event: Event): void => onopen({ ...params, event })
     if (onmessage)
-      eventSource.onmessage = (event: MessageEvent): void =>
-        onmessage({ ...this.#getDataPropsMethods(true), event })
-
-    if (onerror)
-      eventSource.onerror = (event: Event): void =>
-        onerror({ ...this.#getDataPropsMethods(true), event })
+      eventSource.onmessage = (event: MessageEvent): void => onmessage({ ...params, event })
+    if (onerror) eventSource.onerror = (event: Event): void => onerror({ ...params, event })
 
     const addEventListener = (
       handler: string,
@@ -1136,7 +1130,13 @@ export default class FiCsElement<D extends object, P extends object> {
         ? addEventListener(handler, method[0], method[1])
         : addEventListener(handler, method)
 
-    return { eventSource, listeners }
+    return {
+      eventSource,
+      removeEventListeners: () => {
+        for (const { handler, callback } of listeners)
+          eventSource.removeEventListener(handler, callback)
+      }
+    }
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
@@ -1179,7 +1179,7 @@ export default class FiCsElement<D extends object, P extends object> {
         #isRendered: boolean = false
         #ws?: WebSocket
         #eventSource?: EventSource
-        #listeners: Listener[] = []
+        #removeEventListeners?: () => void
 
         constructor() {
           super()
@@ -1233,13 +1233,8 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#infiniteVirtualScroll(this.#shadowRoot)
 
             this.#ws = that.#openWebSocket()
-
-            const {
-              eventSource,
-              listeners: sseListeners
-            }: { eventSource?: EventSource; listeners?: Listener[] } = that.#openEventSource() || {}
-            this.#eventSource = eventSource
-            if (sseListeners) this.#listeners = [...sseListeners]
+            this.#eventSource = that.#openEventSource()?.eventSource
+            this.#removeEventListeners = that.#openEventSource()?.removeEventListeners
 
             that.#callback('mounted')
             this.#isRendered = true
@@ -1249,10 +1244,7 @@ export default class FiCsElement<D extends object, P extends object> {
         disconnectedCallback(): void {
           this.#ws?.close()
           this.#eventSource?.close()
-
-          for (const { handler, callback, type } of this.#listeners)
-            if (type === 'ws') this.#ws?.removeEventListener(handler, callback as EventListener)
-            else if (type === 'sse') this.#eventSource?.removeEventListener(handler, callback)
+          this.#removeEventListeners?.()
 
           that.#callback('destroyed')
         }
