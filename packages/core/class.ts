@@ -555,6 +555,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #buildHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
+    const isText = (childNode: ChildNode): childNode is Text => childNode instanceof Text
     const isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
     const newChildNodes: ChildNode[] = this.#getChildNodes(
@@ -565,7 +566,7 @@ export default class FiCsElement<D extends object, P extends object> {
       for (let index = 0; index < childNodes.length; index++) {
         const childNode: ChildNode = childNodes[index]
 
-        if (childNode instanceof Text && childNode.nodeValue) {
+        if (isText(childNode) && childNode.nodeValue) {
           childNode.nodeValue = childNode.nodeValue.trim()
 
           if (childNode.nodeValue === '') {
@@ -632,9 +633,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
       function patchChildNode(oldChildNode: ChildNode, newChildNode: ChildNode): void {
         if (
-          oldChildNode instanceof Text &&
-          newChildNode instanceof Text &&
-          oldChildNode.nodeValue === newChildNode.nodeValue
+          isText(oldChildNode) &&
+          isText(newChildNode) &&
+          oldChildNode.nodeValue !== newChildNode.nodeValue
         )
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
