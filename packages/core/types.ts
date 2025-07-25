@@ -230,20 +230,20 @@ export interface WS<D, P> {
     interval?: number
     delay?: number
   }
-  binaryActions?: string[]
   onopen?: (params: WSParams<D, P> & { event: Event }) => void
-  onmessage?: WSMethod<D, P>
-  onerror?: (params: WSParams<D, P> & { event: CloseEvent }) => void
-  onSendError?: (params: WSParams<D, P> & { error: Error; value: WSValue }) => void
-  actions: Record<string, WSMethod<D, P> | [WSMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+  onmessage?: (params: WSParams<D, P> & { event: MessageEvent }) => void
+  onerror?: (params: WSParams<D, P> & { event: Event }) => void
+  onclose?: (params: WSParams<D, P> & { event: CloseEvent }) => void
 }
-
-export type WSMethod<D, P> = (params: WSParams<D, P> & { event: MessageEvent }) => void
 
 export interface WSParams<D, P> extends DataPropsMethods<D, P, true> {
-  wsSend: (value: WSValue) => void
-  readyState: number
-  bufferedAmount: number
+  websocket: {
+    send: (value: string | Blob | ArrayBuffer | ArrayBufferView) => void
+    readyState: number
+    bufferedAmount: number
+    binaryType: BinaryType
+    url: string
+    protocol: string
+    extensions: string
+  }
 }
-
-export type WSValue = string | Blob | ArrayBuffer | ArrayBufferView
