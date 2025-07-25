@@ -25,3 +25,7 @@ h1 {
     @apply opacity-20 cursor-not-allowed;
   }
 }
+
+main {
+  min-height: calc(100vh - 64px - 35.99px);
+}
