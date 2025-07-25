@@ -42,7 +42,8 @@ import type {
   SSEMethod,
   Style,
   Syntaxes,
-  WS
+  WS,
+  WSParams
 } from './types'
 
 const ficsIdName = 'fics-id' as const
@@ -1058,7 +1059,36 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #openWebSocket() {}
+  #openWebSocket(): WebSocket | undefined {
+    if (isBlankObject(this.#ws)) return undefined
+    const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws
+    const { protocol: _protocol, hostname }: { protocol: string; hostname: string } =
+      window.location
+    const ws: WebSocket = new WebSocket(
+      `${_protocol.replace('http', 'ws')}//${hostname}${path}`,
+      protocols
+    )
+    const { send, binaryType, extensions, protocol, url }: WebSocket = ws
+    const params: () => Omit<WSParams<D, P>, 'event'> = () => ({
+      ...this.#getDataPropsMethods(true),
+      websocket: {
+        send,
+        readyState: ws.readyState,
+        bufferedAmount: ws.bufferedAmount,
+        binaryType,
+        url,
+        protocol,
+        extensions
+      }
+    })
+
+    if (onopen) ws.onopen = (event: Event): void => onopen({ ...params(), event })
+    if (onmessage) ws.onmessage = (event: MessageEvent): void => onmessage({ ...params(), event })
+    if (onerror) ws.onerror = (event: Event): void => onerror({ ...params(), event })
+    if (onclose) ws.onclose = (event: CloseEvent): void => onclose({ ...params(), event })
+
+    return ws
+  }
 
   #openEventSource(): { eventSource: EventSource; listeners: Listener[] } | undefined {
     if (isBlankObject(this.#sse)) return undefined
@@ -1201,6 +1231,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#infiniteVirtualScroll(this.#shadowRoot)
 
+            this.#ws = that.#openWebSocket()
+
             const {
               eventSource,
               listeners: sseListeners
@@ -1214,6 +1246,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         disconnectedCallback(): void {
+          this.#ws?.close()
           this.#eventSource?.close()
 
           for (const { handler, callback, type } of this.#listeners)
