@@ -1121,10 +1121,9 @@ export default class FiCsElement<D extends object, P extends object> {
       params: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
       listeners: Listener[] = []
 
-    if (onopen) eventSource.onopen = (event: Event): void => onopen({ ...params, event })
-    if (onmessage)
-      eventSource.onmessage = (event: MessageEvent): void => onmessage({ ...params, event })
-    if (onerror) eventSource.onerror = (event: Event): void => onerror({ ...params, event })
+    eventSource.onopen = (event: Event): void => onopen?.({ ...params, event })
+    eventSource.onmessage = (event: MessageEvent): void => onmessage?.({ ...params, event })
+    eventSource.onerror = (event: Event): void => onerror?.({ ...params, event })
 
     const addEventListener = (
       handler: string,
