@@ -37,8 +37,8 @@ import type {
   Queue,
   Sanitized,
   Scroll,
-  ServerSentEvents,
   SingleOrArray,
+  SSE,
   SSEMethod,
   Style,
   Syntaxes,
@@ -75,7 +75,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #ws: WS<D, P> & { isUserClosed: boolean } = {} as WS<D, P> & { isUserClosed: boolean }
-  readonly #sse: ServerSentEvents<D, P> = {} as ServerSentEvents<D, P>
+  readonly #sse: SSE<D, P> = {} as SSE<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
   readonly #ancestorIds: string[] = new Array()
@@ -1094,8 +1094,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #openEventSource(): { eventSource: EventSource; removeEventListeners: () => void } | undefined {
     if (isBlankObject(this.#sse)) return undefined
 
-    const { path, withCredentials, onopen, onmessage, onerror, actions }: ServerSentEvents<D, P> =
-        this.#sse,
+    const { path, withCredentials, onopen, onmessage, onerror, actions }: SSE<D, P> = this.#sse,
       eventSource: EventSource = new EventSource(path, { withCredentials }),
       params: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
       listeners: Listener[] = []
