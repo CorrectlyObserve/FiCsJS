@@ -1061,34 +1061,56 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #openWebSocket(): WebSocket | undefined {
     if (isBlankObject(this.#ws)) return undefined
+
     const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws,
       { protocol: _protocol, hostname }: { protocol: string; hostname: string } = window.location
+    let reconnectedCount: number = 0
 
-    const ws: WebSocket = new WebSocket(
-        `${_protocol.replace('http', 'ws')}//${hostname}${path}`,
-        protocols
-      ),
-      { send, binaryType, extensions, protocol, url }: WebSocket = ws
+    const connect = (): WebSocket => {
+      const ws: WebSocket = new WebSocket(
+          `${_protocol.replace('http', 'ws')}//${hostname}${path}`,
+          protocols
+        ),
+        params: () => Omit<WSParams<D, P>, 'event'> = () => ({
+          ...this.#getDataPropsMethods(true),
+          websocket: {
+            send: ws.send.bind(ws),
+            readyState: ws.readyState,
+            bufferedAmount: ws.bufferedAmount,
+            binaryType: ws.binaryType,
+            url: ws.url,
+            protocol: ws.protocol,
+            extensions: ws.extensions
+          }
+        })
 
-    const params: () => Omit<WSParams<D, P>, 'event'> = () => ({
-      ...this.#getDataPropsMethods(true),
-      websocket: {
-        send,
-        readyState: ws.readyState,
-        bufferedAmount: ws.bufferedAmount,
-        binaryType,
-        url,
-        protocol,
-        extensions
+      ws.onopen = (event: Event): void => onopen?.({ ...params(), event })
+      ws.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
+
+      const tryReconnecting = (): void => {
+        if (reconnect) {
+          const { interval, max }: WS<D, P>['reconnect'] = reconnect
+          if ((max && reconnectedCount < max) || !max) {
+            ws.close()
+            reconnectedCount++
+            setTimeout(connect, interval)
+          }
+        }
       }
-    })
 
-    if (onopen) ws.onopen = (event: Event): void => onopen({ ...params(), event })
-    if (onmessage) ws.onmessage = (event: MessageEvent): void => onmessage({ ...params(), event })
-    if (onerror) ws.onerror = (event: Event): void => onerror({ ...params(), event })
-    if (onclose) ws.onclose = (event: CloseEvent): void => onclose({ ...params(), event })
+      ws.onerror = (event: Event): void => {
+        onerror?.({ ...params(), event })
+        tryReconnecting()
+      }
+      ws.onclose = (event: CloseEvent): void => {
+        onclose?.({ ...params(), event })
+        tryReconnecting()
+      }
 
-    return ws
+      return ws
+    }
+
+    return connect()
   }
 
   #openEventSource(): { eventSource: EventSource; removeEventListeners: () => void } | undefined {
