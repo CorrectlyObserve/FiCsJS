@@ -6,7 +6,7 @@ import Users from './src/components/Users'
 import ChatButton from './src/components/ChatButton'
 import Photos from './src/components/Photos'
 import Tab from './src/components/Tab'
-import Logs from './src/components/Logs'
+import Router from './src/components/Router'
 
 const app = new Hono()
 
@@ -31,13 +31,13 @@ const template = ({
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${title}</title>
         <meta name="description" content="${description}" />
-        <link rel="stylesheet" type="text/css" href="./dist/global.css" />
+        <link rel="stylesheet" type="text/css" href="/dist/global.css" />
       </head>
-      <body class="bg-dark px-4 pb-4">
+      <body class="bg-dark px-4">
         <header class="py-2"><h1 class="text-xl text-center font-semibold">${title}</h1></header>
-        <main class="mb-8">${content}</main>
-        <footer class="text-sm text-white text-center"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="./dist${path}.js"></script>
+        <main class="pb-8">${content}</main>
+        <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
+        <script type="module" src="/dist/${path}.js"></script>
       </body>
     </html>
   `
@@ -78,11 +78,26 @@ app.get('/chat', c =>
   c.html(
     template({
       title: 'WebSocket and SSE',
-      description: 'This is a simple example of an WebSocket and a SSE with FiCsJS.',
+      description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
       content: `
         ${link.toString({ href: '/', text: 'Back to the top page' })}
         ${Tab.toString()}
-        ${Logs.toString()}
+        ${Router.toString()}
+      `,
+      path: '/chat'
+    })
+  )
+)
+
+app.get('/chat/tab', c =>
+  c.html(
+    template({
+      title: 'WebSocket and SSE',
+      description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
+      content: `
+        ${link.toString({ href: '/', text: 'Back to the top page' })}
+        ${Tab.toString()}
+        ${Router.toString()}
       `,
       path: '/chat'
     })
