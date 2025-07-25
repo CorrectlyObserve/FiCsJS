@@ -69,7 +69,7 @@ export interface FiCs<D extends object, P extends object> {
   options?: OptionParams
   scroll?: ScrollParams<D, P>
   websocket?: WS<D, P>
-  sse?: ServerSentEvents<D, P>
+  sse?: SSE<D, P>
 }
 
 export interface GlobalCssContent {
@@ -188,7 +188,9 @@ interface ScrollParams<D, P> {
   method: (params: DataPropsMethods<D, P, true>) => void
 }
 
-export interface ServerSentEvents<D, P> {
+export type SingleOrArray<T> = T | T[]
+
+export interface SSE<D, P> {
   path: string
   withCredentials?: boolean
   onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
@@ -196,8 +198,6 @@ export interface ServerSentEvents<D, P> {
   onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
   actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
 }
-
-export type SingleOrArray<T> = T | T[]
 
 export type SSEMethod<D, P> = (
   params: DataPropsMethods<D, P, true> & { event: MessageEvent }
