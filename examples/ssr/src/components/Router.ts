@@ -8,6 +8,6 @@ export default ficsRouter({
   children: [Tab, Talk, Logs],
   pages: [
     { path: '/chat', content: ({ children: { talk } }) => talk },
-    { path: '/chat/tab', content: ({ children: { logs } }) => logs }
+    { path: '/chat/logs', content: ({ children: { logs } }) => logs }
   ]
 })
