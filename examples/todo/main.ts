@@ -22,6 +22,10 @@ if (lang === 'ja') {
 }
 
 $lang.set(lang)
+$lang.subscribe(() => {
+  Header.setData('lang', $lang.get())
+  Router.setData('lang', $lang.get())
+})
 
 Header.describe()
 
