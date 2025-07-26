@@ -129,7 +129,7 @@ export default fics({
       await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
         setData('page', page)
         setData('photos', [...photos, ...newPhotos])
-        goto(`/scroll?page=${page}`, { reload: false })
+        goto(`/scroll?page=${page}`)
       })
   }
 })
