@@ -89,21 +89,6 @@ app.get('/chat', c =>
   )
 )
 
-app.get('/chat/tab', c =>
-  c.html(
-    template({
-      title: 'WebSocket and SSE',
-      description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
-      content: `
-        ${link.toString({ href: '/', text: 'Back to the top page' })}
-        ${Tab.toString()}
-        ${Router.toString()}
-      `,
-      path: '/chat'
-    })
-  )
-)
-
 let id = 0
 
 app.get('/sse', async c => {
