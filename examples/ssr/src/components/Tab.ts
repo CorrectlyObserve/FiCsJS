@@ -9,7 +9,7 @@ export default fics({
   data: () => ({
     tabs: [
       { href: '/chat', text: 'Chat' },
-      { href: '/chat/tab', text: 'Logs' }
+      { href: '/chat/logs', text: 'Logs' }
     ],
     current: ''
   }),
@@ -30,6 +30,5 @@ export default fics({
     </div>
   `,
   css: { div: { ...flexCenter('x') } },
-  hooks: { created: ({ setData }) => setData('current', window.location.pathname) },
-  options: { ssr: false }
+  hooks: { created: ({ setData }) => setData('current', window.location.pathname) }
 })
