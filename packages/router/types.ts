@@ -35,8 +35,3 @@ export interface RouterData {
   pathname: string
   lang: string
 }
-
-export interface RoutingOptions {
-  withHistory?: boolean
-  reload?: boolean
-}
