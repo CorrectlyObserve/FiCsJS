@@ -29,7 +29,7 @@ export default <D extends RouterData, P extends object>({
         const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
           if (redirect) {
             setData('pathname', redirect)
-            goto(pathname, { withHistory: false, reload: false })
+            goto(pathname, true)
             return setContent()
           }
 
@@ -79,8 +79,13 @@ export default <D extends RouterData, P extends object>({
     css,
     hooks: {
       created: ({ setData }) => setData('pathname', window.location.pathname),
-      mounted: ({ setData }) =>
+      mounted: ({ setData }) => {
         window.addEventListener('popstate', () => setData('pathname', window.location.pathname))
+        window.addEventListener('fics:navigate', (event: Event) => {
+          const { detail } = event as CustomEvent<{ href: string }>
+          setData('pathname', detail.href)
+        })
+      }
     },
     options
   })
