@@ -32,13 +32,6 @@ export default () =>
       })
     },
     actions: {
-      button: {
-        click: [
-          ({ props: { click } }) => {
-            if (click) click()
-          },
-          { throttle: 500, blur: true }
-        ]
-      }
+      button: { click: [({ props: { click } }) => click?.(), { throttle: 500, blur: true }] }
     }
   })
