@@ -105,6 +105,6 @@ app.get('/sse', async c => {
   })
 })
 
-app.notFound(c => c.redirect(c.req.path === '/chat/logs' ? '/chat' : '/'))
+app.notFound(c => c.redirect(c.req.path.startsWith('/chat/') ? '/chat' : '/'))
 
 export default { port: 5174, fetch: app.fetch }
