@@ -1,8 +1,10 @@
 import type {
+  Actions,
   Attrs,
   ClassName,
   Css,
   Children,
+  DataPropsMethods,
   Descendant,
   GlobalCssContent,
   OptionParams,
@@ -12,7 +14,23 @@ import type {
   Syntaxes
 } from '../core/types'
 
-export interface FiCsRouter<D extends RouterData, P extends object> {
+export type Content<D extends object, P extends object> = (
+  syntaxes: Omit<DataPropsMethods<D, P>, 'props' | 'getData'> &
+    Syntaxes<D, P> & { children: Children }
+) => Descendant | Sanitized<D, P>
+
+export interface FiCsLink<D extends { href: string }, P extends object> {
+  children?: Descendant[]
+  href: string
+  props?: SingleOrArray<Props<D, P>>
+  className?: ClassName<D, P>
+  attributes?: Attrs<D, P>
+  content: Content<D, P>
+  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  actions?: Actions<D, P>
+}
+
+export interface FiCsRouter<D extends { pathname: string; lang: string }, P extends object> {
   children?: Descendant[]
   pathname?: string
   props?: SingleOrArray<Props<D, P>>
@@ -25,13 +43,8 @@ export interface FiCsRouter<D extends RouterData, P extends object> {
 }
 
 export interface PageContent<D extends object, P extends object> {
-  content: (syntaxes: Syntaxes<D, P> & { children: Children }) => Descendant | Sanitized<D, P>
+  content: Content<D, P>
   redirect?: string
 }
 
 export type Param = 'dynamicPaths' | 'queries'
-
-export interface RouterData {
-  pathname: string
-  lang: string
-}
