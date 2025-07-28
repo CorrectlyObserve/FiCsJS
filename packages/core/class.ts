@@ -1,3 +1,4 @@
+import link from '../router/link'
 import { globalCss } from './globalCss'
 import {
   browserError,
@@ -112,7 +113,7 @@ export default class FiCsElement<D extends object, P extends object> {
     name = convertStr(name, 'kebab')
     this.#nameKey = convertStr(name, 'camel')
 
-    if (!isExceptional && { var: true, router: true }[name])
+    if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#instanceId = instanceId ?? `${ficsIdName}${generator.next().value}`
