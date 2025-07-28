@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { i18n } from 'ficsjs/i18n'
-import { goto, queryParams } from 'ficsjs/router'
+import { ficsLink, goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
 import Icon from '@/components/materials/Icon'
@@ -25,7 +25,7 @@ interface Data {
 
 const { sm, lg } = breakpoints
 
-export default fics<Data, { lang: string; click?: (id: number) => void }>({
+export default fics<Data, { lang: string }>({
   name: 'tasks',
   children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
@@ -125,9 +125,11 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
                         setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                       }
                     })}
-                    <span class="${completedAt ? 'done' : ''}">
-                      <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
-                    </span>
+                    ${ficsLink({
+                      href: getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id),
+                      content: ({ template }) =>
+                        template`<span class="${completedAt ? 'done' : ''}">${title}</span>`
+                    })}
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
