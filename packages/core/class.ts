@@ -1,4 +1,3 @@
-import link from '../router/link'
 import { globalCss } from './globalCss'
 import {
   browserError,
