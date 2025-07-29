@@ -59,6 +59,7 @@ export interface FiCs<D extends object, P extends object> {
   children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
+  i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
@@ -106,6 +107,10 @@ export interface Hooks<D, P> {
   }
   destroyed?: (params: DataPropsMethods<D, P, true>) => void
   adopted?: (params: DataPropsMethods<D, P, true>) => void
+}
+
+export interface I18n {
+  i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
 export type Listener = {
