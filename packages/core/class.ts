@@ -9,6 +9,7 @@ import {
   toArray,
   uid
 } from './helpers'
+import { i18n } from './i18n'
 import { enqueue } from './queue'
 import type {
   Actions,
@@ -26,6 +27,7 @@ import type {
   Html,
   HtmlContent,
   Hooks,
+  I18n,
   Listener,
   Method,
   Options,
@@ -62,6 +64,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #isBrowser: boolean
   readonly #data: D = {} as D
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
+  readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
   readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
@@ -94,6 +97,7 @@ export default class FiCsElement<D extends object, P extends object> {
     children,
     data,
     deferredData,
+    i18nData,
     props,
     className,
     attributes,
@@ -161,9 +165,11 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries({ ...data(), ...attrData })) {
         this.#data[key as keyof D] = value as D[keyof D]
 
-        if (deferredData && this.#isBrowser) {
-          this.#deferredData = deferredData
+        if ((deferredData || i18nData) && this.#isBrowser) {
           this.#isDeferred = false
+
+          if (deferredData) this.#deferredData = deferredData
+          if (i18nData) this.#i18nData = i18nData
         }
       }
     }
@@ -214,6 +220,7 @@ export default class FiCsElement<D extends object, P extends object> {
       children: Object.values(this.#children),
       data: () => this.#data,
       deferredData: this.#deferredData,
+      i18nData: this.#i18nData,
       props: this.#propsSources,
       className: this.#classNames,
       attributes: this.#attrs,
@@ -284,7 +291,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-        this.#enqueue(() => this.#reRender(), 're-render')
+        if (this.#components.size > 0) this.#enqueue(() => this.#reRender(), 're-render')
       }
     } else if (this.#props[key] !== value) this.#props[key] = value
   }
@@ -1209,12 +1216,23 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
-          if (that.#deferredData)
+          if (that.#deferredData || that.#i18nData)
             that.#enqueue(async () => {
-              for (const [key, value] of Object.entries(
-                await that.#deferredData!({ ...that.#dataProps, crud: that.#crud.bind(that) })
-              ))
-                that.setData(key as keyof D, value as D[keyof D])
+              if (that.#deferredData)
+                for (const [key, value] of Object.entries(
+                  await that.#deferredData!({ ...that.#dataProps, crud: that.#crud.bind(that) })
+                ))
+                  that.setData(key as keyof D, value as D[keyof D])
+
+              if (that.#i18nData)
+                for (const [key, value] of Object.entries(
+                  await that.#i18nData!({
+                    ...that.#dataProps,
+                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+                      i18n<T>({ lang, key })
+                  })
+                ))
+                  that.setData(key as keyof D, value as D[keyof D])
 
               that.#isDeferred = true
             }, 'fetch')
@@ -1277,13 +1295,39 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #reRender(isOnlyHtml?: boolean): void {
+  #_setData<K extends keyof D>(key: K, value: D[K]): void {
+    this.#data[key] = value
+
+    for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
+      if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
+
+    if (this.#hooks.updated) {
+      this.#throwKeyError(key)
+      this.#hooks.updated[key]?.({
+        setData: this.#getDataPropsMethods().setData,
+        datum: this.#data[key]
+      })
+    }
+  }
+
+  async #reRender(isOnlyHtml?: boolean): Promise<void> {
     const component: HTMLElement | undefined = this.#components.values().next().value
 
     if (!component) return
 
     const { isClassName, isAttr, css }: Bindings = this.#bindings
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+
+    if (this.#i18nData)
+      for (const [key, value] of Object.entries(
+        await this.#i18nData!({
+          ...this.#dataProps,
+          i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+            i18n<T>({ lang, key })
+        })
+      ))
+        if (this.#data[key as keyof D] !== value)
+          this.#_setData(key as keyof D, value as D[keyof D])
 
     if (!isOnlyHtml && isClassName) {
       component.classList.remove(...Array.from(component.classList))
@@ -1438,24 +1482,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
     if (this.#data[key] !== value) {
-      this.#data[key] = value
+      this.#_setData(key, value)
 
       if (this.#isBrowser && this.#components.size > 0)
         this.#enqueue(() => {
           this.#reRender()
           this.#infiniteVirtualScroll(this.#getShadowRoot(this.#components.values().next().value!))
         }, 're-render')
-
-      for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
-        if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
-
-      if (this.#hooks.updated) {
-        this.#throwKeyError(key)
-        this.#hooks.updated[key]?.({
-          setData: this.#getDataPropsMethods().setData,
-          datum: this.#data[key]
-        })
-      }
     }
   }
 
