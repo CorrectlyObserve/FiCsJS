@@ -3,7 +3,7 @@ import type { Descendant, Sanitized } from '../core/types'
 import goto from './goto'
 import type { FiCsLink } from './types'
 
-export default <D extends { href: string }, P extends object>({
+export default <P extends object>({
   children,
   href,
   props,
@@ -12,26 +12,18 @@ export default <D extends { href: string }, P extends object>({
   content,
   css,
   actions
-}: FiCsLink<D, P>): FiCsElement<D, P> =>
-  new FiCsElement<D, P>({
+}: FiCsLink<P>): FiCsElement<{}, P> =>
+  new FiCsElement<{}, P>({
     name: 'link',
     isExceptional: true,
     children,
-    data: () => ({ href }) as D,
     props,
     className,
     attributes,
-    html: ({ data: { href }, template, ...args }) => {
-      const _content: Descendant | Sanitized<D, P> = content({
-        data: { href } as D,
-        template,
-        ...args
-      })
-
+    html: ({ template, ...args }) => {
+      const _content: Descendant | Sanitized<{}, P> = content({ template, ...args })
       return template`
-        <a href="${href}">
-          ${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}
-        </a>
+        <a href="${href}">${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}</a>
       `
     },
     css: [
@@ -45,8 +37,8 @@ export default <D extends { href: string }, P extends object>({
       ...(css ? (Array.isArray(css) ? css : [css]) : [])
     ],
     actions: {
-      '> a[href]': {
-        click: ({ data: { href }, event }) => {
+      ':host > a[href]': {
+        click: ({ event, attributes: { href } }) => {
           event.preventDefault()
           goto(href)
         }
