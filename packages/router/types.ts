@@ -18,15 +18,15 @@ export type Content<D extends object, P extends object> = (
     Syntaxes<D, P> & { children: Children }
 ) => Descendant | Sanitized<D, P>
 
-export interface FiCsLink<D extends { href: string }, P extends object> {
+export interface FiCsLink<P extends object> {
   children?: Descendant[]
   href: string
-  props?: SingleOrArray<Props<D, P>>
-  className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
-  content: Content<D, P>
-  css?: SingleOrArray<CssContent<D, P> | string>
-  actions?: Actions<D, P>
+  props?: SingleOrArray<Props<{}, P>>
+  className?: ClassName<{}, P>
+  attributes?: Attrs<{}, P>
+  content: Content<{}, P>
+  css?: SingleOrArray<CssContent<{}, P> | string>
+  actions?: Actions<{}, P>
 }
 
 export interface FiCsRouter<D extends { pathname: string; lang: string }, P extends object> {
