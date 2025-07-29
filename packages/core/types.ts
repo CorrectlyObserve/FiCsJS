@@ -31,10 +31,11 @@ export interface CrudOptions extends RequestInit {
   delay?: number
 }
 
-export type Css<D, P> =
-  | string
-  | { [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined] }
-  | GlobalCssContent
+export type Css<D, P> = CssContent<D, P> | GlobalCss
+
+export interface CssContent<D, P> {
+  [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
+}
 
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
@@ -62,7 +63,7 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  css?: SingleOrArray<CssContent<D, P> | string>
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
@@ -71,6 +72,8 @@ export interface FiCs<D extends object, P extends object> {
   websocket?: WS<D, P>
   sse?: SSE<D, P>
 }
+
+export type GlobalCss = GlobalCssContent | string
 
 export interface GlobalCssContent {
   [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
