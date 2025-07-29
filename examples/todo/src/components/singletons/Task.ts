@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import { i18n } from 'ficsjs/i18n'
 import { dynamicPathParams, goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
@@ -47,7 +46,7 @@ export default fics<Data, { lang: string }>({
     texts: [],
     datetimes: {} as Record<Datetime, string>
   }),
-  deferredData: async ({ props: { lang } }) => ({
+  i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'task' })),
     confirmation: await i18n({ lang, key: ['tasks', 'confirmation'] })
   }),
