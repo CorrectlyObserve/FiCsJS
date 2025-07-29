@@ -1,5 +1,4 @@
-import { ficsCss } from 'ficsjs'
-import { ficsI18n, i18n } from 'ficsjs/i18n'
+import { ficsCss, ficsI18n, i18n } from 'ficsjs'
 import Header from '@/components/multitons/Header'
 import Router from '@/components/multitons/Router'
 import Footer from '@/components/multitons/Footer'
@@ -23,13 +22,16 @@ if (lang === 'ja') {
 
 $lang.set(lang)
 $lang.subscribe(() => {
-  Header.setData('lang', $lang.get())
-  Router.setData('lang', $lang.get())
+  const lang = $lang.get()
+
+  document.documentElement.lang = lang
+  Header.setData('lang', lang)
+  Router.setData('lang', lang)
 })
 
 Header.describe()
 
-Router.setData('lang', lang)
+Router.setData('lang', $lang.get())
 Router.describe()
 
 Footer.describe()
