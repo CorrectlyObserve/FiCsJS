@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import { i18n } from 'ficsjs/i18n'
 import { ficsLink, goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import LoadingIcon from '@/components/multitons/LoadingIcon'
@@ -29,7 +28,7 @@ export default fics<Data, { lang: string }>({
   name: 'tasks',
   children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-  deferredData: async ({ props: { lang } }) => ({
+  i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
     texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
   }),
