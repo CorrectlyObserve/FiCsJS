@@ -2,11 +2,10 @@ import type {
   Actions,
   Attrs,
   ClassName,
-  Css,
+  CssContent,
   Children,
   DataPropsMethods,
   Descendant,
-  GlobalCssContent,
   OptionParams,
   Props,
   Sanitized,
@@ -26,7 +25,7 @@ export interface FiCsLink<D extends { href: string }, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   content: Content<D, P>
-  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  css?: SingleOrArray<CssContent<D, P> | string>
   actions?: Actions<D, P>
 }
 
@@ -38,7 +37,7 @@ export interface FiCsRouter<D extends { pathname: string; lang: string }, P exte
   attributes?: Attrs<D, P>
   pages: (PageContent<D, P> & { path: string })[]
   notFound?: PageContent<D, P>
-  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  css?: SingleOrArray<CssContent<D, P> | string>
   options?: OptionParams
 }
 
