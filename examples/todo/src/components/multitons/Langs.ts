@@ -49,8 +49,10 @@ export default fics<{ langs: string[]; isShown: boolean }, Props>({
     },
     'button[key]': {
       click: [
-        ({ props: { pathname, getLang }, attributes }) =>
-          goto(getPath(getLang(attributes['key']), pathname)),
+        ({ props: { pathname, getLang }, setData, attributes }) => {
+          setData('isShown', false)
+          goto(getPath(getLang(attributes['key']), pathname))
+        },
         { throttle: 500, blur: true }
       ]
     }
