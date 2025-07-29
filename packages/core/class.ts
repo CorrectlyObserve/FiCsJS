@@ -918,8 +918,13 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    if (selector === '') return [component]
-    return Array.from(this.#getShadowRoot(component).querySelectorAll(`:host ${selector}`))
+    if (selector === ':host') return [component]
+
+    return Array.from(
+      this.#getShadowRoot(component).querySelectorAll(
+        selector.startsWith(':host') ? selector : `:host ${selector}`
+      )
+    )
   }
 
   #debounce<T extends (...args: any[]) => void>(
