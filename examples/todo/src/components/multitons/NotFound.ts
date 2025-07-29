@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
@@ -17,7 +16,7 @@ export default fics<Data, { lang: string }>({
   name: 'not-found',
   children: [Button(), LoadingIcon],
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
-  deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
+  i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
   props: [
     {
       descendant: ({ children: { button } }) => button,
