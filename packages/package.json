@@ -27,10 +27,6 @@
       "import": "./dist/animation/index.js",
       "types": "./dist/animation/index.d.ts"
     },
-    "./i18n": {
-      "import": "./dist/i18n/index.js",
-      "types": "./dist/i18n/index.d.ts"
-    },
     "./persistent-state": {
       "import": "./dist/persistent-state/index.js",
       "types": "./dist/persistent-state/index.d.ts"
