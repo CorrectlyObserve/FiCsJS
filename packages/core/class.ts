@@ -50,8 +50,8 @@ import type {
 
 const ficsIdName = 'fics-id' as const
 const generator: Generator<number> = uid()
-const nameGenerators: Record<string, Generator<number>> = {}
-const names: Record<string, number> = {}
+const nameGenerators: Map<string, Generator<number>> = new Map()
+const names: Map<string, number> = new Map()
 const propsMap: Map<string, PropsBinding[]> = new Map()
 const varTag = 'f-var' as const
 
@@ -122,9 +122,9 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#instanceId = instanceId ?? `${ficsIdName}${generator.next().value}`
     this.#componentId = componentId ?? this.#instanceId
 
-    if (!nameGenerators[name]) nameGenerators[name] = uid()
-    names[name] = nameGenerators[name].next().value
-    this.#name = `f-${name}${names[name] > 1 ? `${isBrowser() ? '' : '-server'}-${names[name]}` : ''}`
+    if (!nameGenerators.has(name)) nameGenerators.set(name, uid())
+    names.set(name, nameGenerators.get(name)!.next().value)
+    this.#name = `f-${name}${names.get(name)! > 1 ? `${isBrowser() ? '' : '-server'}-${names.get(name)}` : ''}`
 
     propsMap.set(this.#instanceId, [])
 
