@@ -1,11 +1,11 @@
 import { isBrowser } from './helpers'
 import type { Queue } from './types'
 
-const ids: Record<string, true> = {},
+const ids: Map<string, true> = new Map(),
   getQueueId = ({ instanceId, key }: Queue): string => `${instanceId}-${key}`,
   dequeue = (queue: Queue): void => {
     queue.func()
-    if (queue.key !== 'define') delete ids[getQueueId(queue)]
+    if (queue.key !== 'define') ids.delete(getQueueId(queue))
   },
   queues: Queue[] = new Array()
 let isProcessing: boolean = false
@@ -13,8 +13,8 @@ let isProcessing: boolean = false
 export const enqueue = (queue: Queue): void => {
   const queueId: string = getQueueId(queue)
 
-  if (!ids[queueId]) {
-    ids[queueId] = true
+  if (!ids.has(queueId)) {
+    ids.set(queueId, true)
     queues.push(queue)
 
     if (isBrowser() && queues.length > 0 && !isProcessing) {
