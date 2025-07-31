@@ -31,7 +31,7 @@ export interface FiCsLink<P extends object> {
 
 export interface FiCsRouter<D extends { pathname: string; lang: string }, P extends object> {
   children?: Descendant[]
-  pathname: string
+  pathname?: string
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
