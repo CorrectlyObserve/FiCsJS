@@ -77,7 +77,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
-  readonly #ws: WS<D, P> & { isUserClosed: boolean } = {} as WS<D, P> & { isUserClosed: boolean }
+  readonly #ws: WS<D, P> = {} as WS<D, P>
   readonly #sse: SSE<D, P> = {} as SSE<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
@@ -206,9 +206,7 @@ export default class FiCsElement<D extends object, P extends object> {
         prevTotalHeight: NaN
       }
 
-    if (websocket && !isBlankObject(websocket) && this.#isBrowser)
-      this.#ws = { ...websocket, isUserClosed: false }
-
+    if (websocket && !isBlankObject(websocket) && this.#isBrowser) this.#ws = { ...websocket }
     if (sse && !isBlankObject(sse) && this.#isBrowser) this.#sse = { ...sse }
   }
 
@@ -1079,7 +1077,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws,
       { protocol: _protocol, hostname }: { protocol: string; hostname: string } = window.location
-    let reconnectedCount: number = 0
+    let reconnectedCount: number = 0,
+      reconnectedTimer: Timer | null = null
 
     const connect = (): WebSocket => {
       const ws: WebSocket = new WebSocket(
@@ -1099,16 +1098,31 @@ export default class FiCsElement<D extends object, P extends object> {
           }
         })
 
-      ws.onopen = (event: Event): void => onopen?.({ ...params(), event })
+      ws.onopen = (event: Event): void => {
+        reconnectedCount = 0
+        if (reconnectedTimer) {
+          clearTimeout(reconnectedTimer)
+          reconnectedTimer = null
+        }
+
+        onopen?.({ ...params(), event })
+      }
       ws.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
 
       const tryReconnecting = (): void => {
-        if (reconnect) {
-          const { interval, max }: WS<D, P>['reconnect'] = reconnect
+        if (reconnect && !reconnectedTimer) {
+          const { interval, max, isExponential }: WS<D, P>['reconnect'] = reconnect
+
           if ((max && reconnectedCount < max) || !max) {
             ws.close()
-            reconnectedCount++
-            setTimeout(connect, interval)
+
+            reconnectedTimer = setTimeout(
+              () => {
+                reconnectedCount++
+                connect()
+              },
+              isExponential ? interval ** reconnectedCount : interval
+            )
           }
         }
       }
