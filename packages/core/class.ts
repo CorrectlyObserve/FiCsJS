@@ -981,7 +981,9 @@ export default class FiCsElement<D extends object, P extends object> {
       const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
 
       if (debounce && throttle)
-        throw new Error('Debounce and throttle should not be combined in the same event handler...')
+        throw new Error(
+          'Both "debounce" and "throttle" options cannot be specified at the same time...'
+        )
 
       const callback = (event: Event): void => {
         method({
@@ -1146,7 +1148,9 @@ export default class FiCsElement<D extends object, P extends object> {
       const { debounce, throttle, once }: ActionOptions = options ?? {}
 
       if (debounce && throttle)
-        throw new Error('Debounce and throttle should not be combined in the same event handler...')
+        throw new Error(
+          'Both "debounce" and "throttle" options cannot be specified at the same time...'
+        )
 
       let callback: Listener['callback'] = (event: MessageEvent): void =>
         method({ ...this.#getDataPropsMethods(true), event })
