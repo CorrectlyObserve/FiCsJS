@@ -1,11 +1,12 @@
 import FiCsElement from '../core/class'
+import { isBlankObject } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
 import { dynamicPathParams, dynamicPathToRegExp, hasDynamicPaths } from './dynamicPaths'
 import goto from './goto'
-import { params } from './params'
-import type { FiCsRouter, PageContent, RouterData } from './types'
+import { params, queryParams, searchParams } from './params'
+import type { FiCsRouter, PageContent } from './types'
 
-export default <D extends RouterData, P extends object>({
+export default <D extends { pathname: string; lang: string }, P extends object>({
   children,
   pathname = '/',
   props,
@@ -26,22 +27,37 @@ export default <D extends RouterData, P extends object>({
     attributes,
     html: ({ data: { pathname, lang }, template, setData, ...args }) => {
       const setContent = (): Sanitized<D, P> => {
-        const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
+        const resolveContent = (
+          { content, redirect }: PageContent<D, P>,
+          isWithoutHistory?: boolean
+        ): Sanitized<D, P> => {
           if (redirect) {
             setData('pathname', redirect)
-            goto(pathname, true)
+            goto(pathname, isWithoutHistory)
             return setContent()
           }
 
-          const _content: Descendant | Sanitized<D, P> = content({ template, ...args })
+          const _content: Descendant | Sanitized<D, P> = content({
+            data: { pathname, lang } as D,
+            template,
+            setData,
+            ...args
+          })
           return _content instanceof FiCsElement ? template`${_content}` : _content
         }
 
         const getLangPath = (path: string): string => `/${lang}${path}`,
-          isPathMatched = (path: string): boolean =>
-            pathname === path || pathname === getLangPath(path)
+          isPathMatched = (path: string): boolean => {
+            if (!isBlankObject(queryParams()))
+              path += Object.entries(queryParams()).reduce(
+                (prev, [key, value], index) => `${prev}${index === 0 ? '' : '&'}${key}=${value}`,
+                '?'
+              )
 
-        if (isPathMatched('/404') && notFound) return resolveContent(notFound)
+            return pathname === path || pathname === getLangPath(path)
+          }
+
+        if (isPathMatched('/404') && notFound) return resolveContent(notFound, true)
 
         const dynamicPages: (PageContent<D, P> & { path: string })[] = []
 
@@ -70,7 +86,7 @@ export default <D extends RouterData, P extends object>({
           }
         }
 
-        if (notFound) return resolveContent(notFound)
+        if (notFound) return resolveContent(notFound, true)
         throw new Error(`The "${pathname}" does not exist on pages...`)
       }
 
@@ -78,10 +94,20 @@ export default <D extends RouterData, P extends object>({
     },
     css,
     hooks: {
-      created: ({ setData }) => setData('pathname', window.location.pathname),
+      created: ({ setData }) => {
+        const { pathname, search }: { pathname: string; search: string } = window.location
+        params.set('queries', searchParams(search))
+        setData('pathname', pathname)
+      },
       mounted: ({ setData }) => {
-        window.addEventListener('popstate', () => setData('pathname', window.location.pathname))
+        window.addEventListener('popstate', () => {
+          const { pathname, search }: { pathname: string; search: string } = window.location
+          params.set('queries', searchParams(search))
+          setData('pathname', pathname)
+        })
         window.addEventListener('fics:navigate', (event: Event) => {
+          params.set('queries', searchParams(window.location.search))
+
           const { detail } = event as CustomEvent<{ href: string }>
           setData('pathname', detail.href)
         })
