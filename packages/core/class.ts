@@ -1481,7 +1481,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
           <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
             <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-            <div ${attrs(that.#name)}>${html}${css([...globalCss(), ...this.#css])}</div>
+            <div ${attrs(that.#name)}>${html}${css([...globalCss(), ...that.#css])}</div>
           </${that.#name}>
         `
       }
