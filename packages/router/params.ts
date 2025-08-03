@@ -8,7 +8,7 @@ class Params {
   constructor() {
     if (this.#isBrowser) {
       const { search }: { search: string } = window.location
-      this.#params.queries = Object.fromEntries(new URLSearchParams(search))
+      this.#params.queries = searchParams(search)
     }
   }
 
@@ -20,6 +20,9 @@ class Params {
     return this.#isBrowser ? this.#params[type] : {}
   }
 }
+
+export const searchParams = (url: string): Record<string, string> =>
+  Object.fromEntries(new URLSearchParams(url))
 
 export const params: Params = new Params()
 
