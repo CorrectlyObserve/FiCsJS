@@ -1,4 +1,4 @@
-import { cssVar } from 'ficsjs/style'
+import { calc, cssVar, oklch } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils'
 
 const hover = { cursor: 'pointer', opacity: 0.5 } as const
@@ -23,5 +23,21 @@ export default {
     '&:not([aria-disabled="true"])': { '&:hover': hover, '&:focus': { scale: 0.8 } }
   },
   label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
+  'input, textarea': {
+    minWidth: calc([cssVar('md'), 20], '*'),
+    fontSize: cssVar('md'),
+    color: white,
+    paddingInline: cssVar('md'),
+    borderRadius: cssVar('xs'),
+    border: 'none',
+    outline: 'none',
+    lineHeight: 1.5,
+    '&:hover': { cursor: 'pointer' },
+    '&:focus': {
+      background: oklch(white, { opacity: 0.8 }),
+      color: cssVar('black'),
+      cursor: 'auto'
+    }
+  },
   span: { width: 'fit-content' }
 }
