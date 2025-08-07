@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, color, cssVar, flexCenter } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import { white } from '@/utils'
 
 interface Props {
@@ -11,8 +11,7 @@ interface Props {
   blur?: () => void
 }
 
-const lineHeight = 1.5,
-  paddingY: string = calc([cssVar('xs'), 1.5], '*')
+const paddingY: string = calc([cssVar('xs'), 1.5], '*')
 
 export default () =>
   fics<{}, Props>({
@@ -28,24 +27,11 @@ export default () =>
         ...flexCenter('x', 'column'),
         label: { paddingBottom: cssVar('xs') },
         textarea: {
-          minWidth: calc([cssVar('md'), 20], '*'),
           maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
-          height: calc([calc([paddingY, 2], '*'), calc([cssVar('md'), lineHeight, 6], '*')], '+'),
-          background: color({ hex: white, rate: 0.1 }),
-          fontSize: cssVar('md'),
-          color: white,
-          padding: `${paddingY} ${cssVar('md')}`,
-          borderRadius: cssVar('xs'),
-          border: 'none',
-          outline: 'none',
-          lineHeight,
-          resize: 'none',
-          '&:hover': { cursor: 'pointer' },
-          '&:focus': {
-            background: color({ hex: white, rate: 0.8 }),
-            color: cssVar('black'),
-            cursor: 'auto'
-          }
+          height: calc([calc([paddingY, 2], '*'), calc([cssVar('md'), 1.5, 6], '*')], '+'),
+          background: oklch(white, { opacity: 0.1 }),
+          paddingBlock: paddingY,
+          resize: 'none'
         }
       }
     },
