@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { goto, queryParams } from 'ficsjs/router'
-import { absoluteCenter, color } from 'ficsjs/style'
+import { absoluteCenter, oklch } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Skeleton from '@/components/materials/Skeleton'
 import { api, getPhotos, UNIT_LENGTH } from '@/data/photos'
@@ -69,7 +69,7 @@ export default fics({
     dialog: {
       ...absoluteCenter('xy', 'fixed'),
       ...fadeInOut('0.2s ease-out'),
-      background: `${color({ hex: '#282828', rate: 0.5 })}`,
+      background: `${oklch('#282828', { opacity: 0.8 })}`,
       '.icon': { display: 'flex', justifyContent: 'end' }
     }
   },
