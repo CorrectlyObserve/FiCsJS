@@ -1,5 +1,5 @@
 import { ficsRouter, queryParams } from 'ficsjs/router'
-import { calc, color, cssVar, flexCenter, remToPx } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, oklch, remToPx } from 'ficsjs/style'
 import Tasks from '@/components/singletons/Tasks'
 import Task from '@/components/singletons/Task'
 import NotFound from '@/components/multitons/NotFound'
@@ -42,7 +42,7 @@ export default ficsRouter({
         [`@container (width >= ${breakpoints.lg})`]: {
           '.task': {
             paddingLeft: cssVar('xl'),
-            boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${color({ hex: '--black', rate: 0.5, isOpacity: false })}`
+            boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
           }
         }
       }
