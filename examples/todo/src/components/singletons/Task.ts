@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { dynamicPathParams, goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import LoadingIcon from '@/components/multitons/LoadingIcon'
+import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
