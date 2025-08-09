@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { absoluteCenter, cssVar, flexCenter } from 'ficsjs/style'
-import Langs from '@/components/multitons/Langs'
+import Langs from '@/components/Langs'
 import { $lang } from '@/store'
 import { breakpoints, getPath } from '@/utils'
 
