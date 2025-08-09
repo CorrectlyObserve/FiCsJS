@@ -2,7 +2,7 @@ import { ficsRouter, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch, remToPx } from 'ficsjs/style'
 import Tasks from '@/components/singletons/Tasks'
 import Task from '@/components/singletons/Task'
-import NotFound from '@/components/multitons/NotFound'
+import NotFound from '@/components/NotFound'
 import { breakpoints } from '@/utils'
 
 const xs = calc([cssVar('xs'), -1], '*')
