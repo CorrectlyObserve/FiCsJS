@@ -1,7 +1,7 @@
 import { ficsCss, ficsI18n, i18n } from 'ficsjs'
-import Header from '@/components/multitons/Header'
-import Router from '@/components/multitons/Router'
-import Footer from '@/components/multitons/Footer'
+import Header from '@/components/Header'
+import Router from '@/components/Router'
+import Footer from '@/components/Footer'
 import globalCss from '@/globalCss'
 import { $lang } from '@/store'
 
