@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { ficsLink, goto, queryParams } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
-import LoadingIcon from '@/components/multitons/LoadingIcon'
+import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
