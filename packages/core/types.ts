@@ -99,12 +99,7 @@ export type HtmlContent<D extends object, P extends object> =
 export interface Hooks<D, P> {
   created?: (params: DataPropsMethods<D, P, true>) => void
   mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
-  updated?: {
-    [K in keyof Partial<D>]: (params: {
-      datum: D[K]
-      setData: DataPropsMethods<D, P>['setData']
-    }) => void
-  }
+  updated?: { [K in keyof D]?: (params: DataPropsMethods<D, P, true>) => void }
   destroyed?: (params: DataPropsMethods<D, P, true>) => void
   adopted?: (params: DataPropsMethods<D, P, true>) => void
 }
