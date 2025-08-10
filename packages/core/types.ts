@@ -150,8 +150,8 @@ export interface Props<D, P> {
   values: (
     params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
-    | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => any>
-    | Record<string, any>
+    | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => unknown>
+    | Record<string, unknown>
 }
 
 export interface PropsBinding {
@@ -163,7 +163,7 @@ export interface PropsBinding {
   setProps: (value: unknown) => void
 }
 
-export type PropsChain<P> = Map<string, Record<string, P>>
+export type PropsChain<P> = Map<string, Partial<P>>
 
 export interface Queue {
   instanceId: string
