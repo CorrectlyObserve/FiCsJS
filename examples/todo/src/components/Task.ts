@@ -205,7 +205,7 @@ export default fics<Data, { lang: string }>({
       if (!task) return goto(getPath(lang, '/404'))
       setData('task', task)
     },
-    updated: { task: async ({ datum, setData }) => setData('isError', datum.title === '') }
+    updated: { task: async ({ data: { task }, setData }) => setData('isError', task.title === '') }
   },
   actions: {
     'fieldset label, fieldset span': {
