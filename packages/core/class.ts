@@ -323,20 +323,20 @@ export default class FiCsElement<D extends object, P extends object> {
           const instanceId: string = _descendant.#instanceId
 
           for (const [key, value] of Object.entries(values(this.#getDataPropsMethods(true)))) {
-            const chain: Record<string, P> = propsChain.get(instanceId) ?? {}
+            const chain: Partial<P> | undefined = propsChain.get(instanceId)
 
-            if (key in chain && propsChain.has(instanceId)) continue
+            if (chain && key in chain && propsChain.has(instanceId)) continue
 
             if (checkType(value, 'function') && /getData/.test(value.toString())) {
               const propsKeys: Record<string, true> = { [key]: true }
-              const _value: any = value({
+              const _value: P[keyof P] = value({
                 getData: <K extends keyof D>(_key: K): D[K] => {
                   if (key !== _key) propsKeys[_key as string] = true
                   return this.getData(_key)
                 }
               })
 
-              propsChain.set(instanceId, { ...chain, [key]: _value })
+              propsChain.set(instanceId, { ...chain, [key]: _value } as Partial<P>)
 
               if (checkType(_value, 'function')) continue
 
@@ -1324,12 +1324,12 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
       if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
 
-    if (this.#hooks.updated) {
+    const { data, ...args }: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
+      updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+
+    if (updated && key in updated) {
       this.#throwKeyError(key)
-      this.#hooks.updated[key]?.({
-        setData: this.#getDataPropsMethods().setData,
-        datum: this.#data[key]
-      })
+      updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
     }
   }
 
