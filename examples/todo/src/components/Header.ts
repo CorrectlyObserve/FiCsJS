@@ -1,27 +1,29 @@
 import { fics } from 'ficsjs'
+import { fadeInOut } from 'ficsjs/animation'
 import { goto } from 'ficsjs/router'
-import { absoluteCenter, cssVar, flexCenter } from 'ficsjs/style'
-import Langs from '@/components/Langs'
+import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import { $lang } from '@/store'
 import { breakpoints, getPath } from '@/utils'
 
 export default fics({
   name: 'header',
-  children: [Langs],
-  data: () => ({ lang: '', pathname: '' }),
-  props: {
-    descendant: ({ children: { langs } }) => langs,
-    values: ({}) => ({
-      lang: ({ getData }) => getData('lang'),
-      pathname: ({ getData }) => getData('pathname'),
-      getLang: (lang: string) => {
-        $lang.set(lang)
-        return lang
-      }
-    })
-  },
-  html: ({ children: { langs }, template }) => template`
-    <header><h1 tabindex="0">FiCs ToDo</h1><div>${langs}</div></header>
+  data: () => ({ langs: ['en', 'ja'], lang: '', isShown: false, pathname: '' }),
+  html: ({ data: { langs, lang, isShown }, template, show }) => template`
+    <header>
+      <h1 tabindex="0">FiCs ToDo</h1>
+      <div class="container">
+        <button class="lang">${lang.toUpperCase()}</button>
+        <div class="langs" ${show(isShown)}>
+          ${langs.map(
+            _lang => template`
+              <button class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
+                ${_lang.toUpperCase()}
+              </button>
+            `
+          )}
+        </div>
+      </div>
+    </header>
   `,
   css: {
     ':host': {
@@ -43,10 +45,19 @@ export default fics({
           lineHeight: 1.5,
           '&:focus': { opacity: 0.2 }
         },
-        '> div': {
+        'div.container': {
           ...absoluteCenter('y'),
           right: cssVar('xl'),
-          [`@media (max-width: ${breakpoints.sm})`]: { right: cssVar('xs') }
+          [`@media (max-width: ${breakpoints.sm})`]: { right: cssVar('xs') },
+          button: {
+            width: calc([cssVar('md'), 3], '*'),
+            background: cssVar('black'),
+            paddingBlock: cssVar('xs'),
+            [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: cssVar('md') },
+            '&.lang:focus': { opacity: 0.5 },
+            '&.selected': { color: cssVar('red') }
+          },
+          '.langs': { ...fadeInOut(cssVar('transition')), position: 'absolute' }
         }
       }
     }
@@ -62,5 +73,23 @@ export default fics({
       setData('pathname', `/${_pathname}`)
     }
   },
-  actions: { h1: { click: ({ data: { lang } }) => goto(getPath(lang, '/')) } }
+  actions: {
+    h1: { click: ({ data: { lang } }) => goto(getPath(lang, '/')) },
+    'button.lang': {
+      click: [
+        ({ data: { isShown }, setData }) => setData('isShown', !isShown),
+        { throttle: 500, blur: true }
+      ]
+    },
+    'button[key]': {
+      click: [
+        ({ data: { pathname }, setData, attributes: { key } }) => {
+          setData('isShown', false)
+          $lang.set(key)
+          goto(getPath(key, pathname))
+        },
+        { throttle: 500, blur: true }
+      ]
+    }
+  }
 })
