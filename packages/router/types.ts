@@ -29,8 +29,9 @@ export interface FiCsLink<P extends object> {
   actions?: Actions<{}, P>
 }
 
-export interface FiCsRouter<D extends { pathname: string; lang: string }, P extends object> {
+export interface FiCsRouter<D extends { pathname: string }, P extends object> {
   children?: Descendant[]
+  data?: () => Omit<D, 'pathname'>
   pathname?: string
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
