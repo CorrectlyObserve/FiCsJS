@@ -1,6 +1,6 @@
 import { browserError } from '../core/helpers'
 
-const dynamicPath: RegExp = /\/:[^\/]+(\?)?/g
+export const dynamicPath: RegExp = /\/:[^\/]+(\?)?/g
 
 export const dynamicPathToRegExp = (path: string): RegExp => {
   const common: string = '/([^/]+?)'
@@ -26,5 +26,3 @@ export const dynamicPathParams = (path: string): Record<string, string> => {
 
   return pathParams
 }
-
-export const hasDynamicPaths = (path: string): boolean => dynamicPath.test(path)
