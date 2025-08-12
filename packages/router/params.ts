@@ -26,6 +26,6 @@ export const searchParams = (url: string): Record<string, string> =>
 
 export const params: Params = new Params()
 
-export const dynamicPathParams = (): Record<string, string> => params.get('dynamicPaths')
+export const dynamicPaths = (): Record<string, string> => params.get('dynamicPaths')
 
-export const queryParams = (): Record<string, string> => params.get('queries')
+export const queries = (): Record<string, string> => params.get('queries')
