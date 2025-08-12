@@ -36,10 +36,14 @@ export interface FiCsRouter<D extends { pathname: string }> {
   props?: SingleOrArray<Props<D, {}>>
   className?: ClassName<D, {}>
   attributes?: Attrs<D, {}>
-  pages: (PageContent<D> & { path: string })[]
+  pages: Page<D>[]
   notFound?: PageContent<D>
   css?: SingleOrArray<CssContent<D, {}> | string>
   options?: OptionParams
+}
+
+export interface Page<D extends object> extends PageContent<D> {
+  path: string
 }
 
 export interface PageContent<D extends object> {
