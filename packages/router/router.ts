@@ -1,9 +1,9 @@
 import FiCsElement from '../core/class'
 import { isBlankObject } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
-import { dynamicPath, dynamicPathParams, dynamicPathToRegExp } from './dynamicPaths'
+import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
-import { params, queryParams, searchParams } from './params'
+import { params, queries, searchParams } from './params'
 import type { FiCsRouter, Page, PageContent } from './types'
 
 export default <D extends { pathname: string }>({
@@ -49,10 +49,10 @@ export default <D extends { pathname: string }>({
             return _content instanceof FiCsElement ? template`${_content}` : _content
           },
           isPathMatched = (path: string): boolean => {
-            const _queryParams: Record<string, string> = queryParams()
+            const _queries: Record<string, string> = queries()
 
-            if (!isBlankObject(_queryParams))
-              path += Object.entries(_queryParams).reduce(
+            if (!isBlankObject(_queries))
+              path += Object.entries(_queries).reduce(
                 (prev, [key, value], index) => `${prev}${index === 0 ? '' : '&'}${key}=${value}`,
                 '?'
               )
@@ -66,7 +66,7 @@ export default <D extends { pathname: string }>({
           dynamicPages: Page<D>[] = []
 
         for (const { path, ...args } of pages)
-          dynamicPath.test(path)
+          dynamicRegex.test(path)
             ? dynamicPages.push({ path, ...args })
             : staticPages.push({ path, ...args })
 
@@ -74,14 +74,11 @@ export default <D extends { pathname: string }>({
 
         if (staticPage) return resolveContent(staticPage)
 
-        for (const { path, ...args } of dynamicPages) {
-          if (dynamicPathToRegExp(path).test(pathname)) {
-            const keys: string[] = Object.keys(dynamicPathParams(path))
-            params.set('dynamicPaths', dynamicPathParams(keys.length > 0 ? path : ''))
-
+        for (const { path, ...args } of dynamicPages)
+          if (dynamicPathToRegex(path).test(pathname)) {
+            params.set('dynamicPaths', getDynamicPaths(path))
             return resolveContent({ ...args })
           }
-        }
 
         if (notFound) return resolveContent(notFound, true)
         throw new Error(`The "${pathname}" does not exist on pages...`)
