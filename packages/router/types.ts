@@ -29,21 +29,21 @@ export interface FiCsLink<P extends object> {
   actions?: Actions<{}, P>
 }
 
-export interface FiCsRouter<D extends { pathname: string }, P extends object> {
+export interface FiCsRouter<D extends { pathname: string }> {
   children?: Descendant[]
   data?: () => Omit<D, 'pathname'>
   pathname?: string
-  props?: SingleOrArray<Props<D, P>>
-  className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
-  pages: (PageContent<D, P> & { path: string })[]
-  notFound?: PageContent<D, P>
-  css?: SingleOrArray<CssContent<D, P> | string>
+  props?: SingleOrArray<Props<D, {}>>
+  className?: ClassName<D, {}>
+  attributes?: Attrs<D, {}>
+  pages: (PageContent<D> & { path: string })[]
+  notFound?: PageContent<D>
+  css?: SingleOrArray<CssContent<D, {}> | string>
   options?: OptionParams
 }
 
-export interface PageContent<D extends object, P extends object> {
-  content: Content<D, P>
+export interface PageContent<D extends object> {
+  content: Content<D, {}>
   redirect?: string
 }
 
