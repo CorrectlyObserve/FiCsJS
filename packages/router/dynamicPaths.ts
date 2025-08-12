@@ -10,11 +10,11 @@ export const dynamicPathToRegExp = (path: string): RegExp => {
   return new RegExp(`^${pattern}/?$`)
 }
 
-export const dynamicPathParams = (path: string): Record<string, string> => {
+export const dynamicPaths = (path: string): Record<string, string> => {
   browserError()
 
   const regExps: string[] | null = dynamicPathToRegExp(path).exec(window.location.pathname),
-    pathParams: Record<string, string> = {},
+    paths: Record<string, string> = {},
     names: string[] = []
   let match: RegExpExecArray | null
 
@@ -22,8 +22,8 @@ export const dynamicPathParams = (path: string): Record<string, string> => {
   while ((match = dynamicPath.exec(path))) names.push(match[1])
 
   if (regExps && regExps.length > 0)
-    for (const [index, value] of regExps.slice(1).entries()) pathParams[names[index]] = value ?? ''
-  else if (names.length > 0) for (const name of names) pathParams[name] = ''
+    for (const [index, value] of regExps.slice(1).entries()) paths[names[index]] = value ?? ''
+  else if (names.length > 0) for (const name of names) paths[name] = ''
 
-  return pathParams
+  return paths
 }
