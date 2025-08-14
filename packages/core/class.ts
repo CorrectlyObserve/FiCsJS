@@ -88,6 +88,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
+  #poll?: ReturnType<typeof setTimeout>
 
   constructor({
     name,
@@ -1193,25 +1194,28 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     if (this.#hooks?.[key] === undefined) return
     if (key === 'mounted') {
-      const poll = (
-        func: ({ times }: { times: number }) => void,
-        { interval, max, exit }: PollingOptions
-      ): void => {
-        numberError({ interval, max })
+      const that: FiCsElement<D, P> = this,
+        poll = (
+          func: ({ times }: { times: number }) => void,
+          { interval, max, exit }: PollingOptions
+        ): void => {
+          numberError({ interval, max })
 
-        let times = 0
+          let times = 0
 
-        const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
-          if ((max && times >= max) || (exit && exit())) {
-            clearTimeout(execute)
-            return
-          }
+          const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
+            if ((max && times >= max) || (exit && exit())) {
+              clearTimeout(execute)
+              return
+            }
 
-          func({ times })
-          times++
-          setTimeout(run, interval)
-        }, interval)
-      }
+            func({ times })
+            times++
+            that.#poll = setTimeout(run, interval)
+          }, interval)
+
+          that.#poll = execute
+        }
 
       this.#hooks[key]({ ...this.#getDataPropsMethods(true), poll })
     } else this.#hooks[key]({ ...this.#getDataPropsMethods(true) })
@@ -1304,6 +1308,11 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         disconnectedCallback(): void {
+          if (that.#poll) {
+            clearTimeout(that.#poll)
+            that.#poll = undefined
+          }
+
           this.#ws?.close()
           this.#eventSource?.close()
           this.#removeEventListeners?.()
