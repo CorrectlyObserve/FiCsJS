@@ -7,8 +7,8 @@ import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
 import Button from '@/components/materials/Button'
 import { $tasks, completeTask, deleteTask, getTask, revertTask, updateTask } from '@/store'
-import type { Task } from '@/types'
-import { breakpoints, convertTimestamp, getPath } from '@/utils'
+import type { Lang, Task } from '@/types'
+import { backToTop, breakpoints, convertTimestamp, getTimestamp } from '@/utils'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
@@ -28,10 +28,9 @@ interface Data {
   confirmation: string
 }
 
-const backToTaskList = (lang: string) => goto(getPath(lang, '/')),
-  { sm } = breakpoints
+const { sm } = breakpoints
 
-export default fics<Data, { lang: string }>({
+export default fics<Data, { lang: Lang }>({
   name: 'task',
   children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
   className: 'task',
@@ -62,7 +61,7 @@ export default fics<Data, { lang: string }>({
           ({ getData }) =>
           () => {
             const task: Task = getData('task')
-            setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() })
+            setData('task', { ...task, completedAt: task.completedAt ? undefined : getTimestamp() })
           }
       })
     },
@@ -109,7 +108,7 @@ export default fics<Data, { lang: string }>({
 
             const tasks: Task[] = await $tasks.get()
             setData('task', (await getTask(tasks, id))!)
-            backToTaskList(lang)
+            backToTop(lang)
           }
       })
     }
@@ -193,16 +192,16 @@ export default fics<Data, { lang: string }>({
     }
   },
   hooks: {
-    mounted: async ({ props: { lang }, setData }) => {
+    mounted: async ({ setData }) => {
       const paramId = parseInt(dynamicPaths().id),
         queryId = parseInt(queries().id)
 
-      if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
+      if (isNaN(paramId) && isNaN(queryId)) return goto('/404')
 
       const tasks: Task[] = await $tasks.get(),
         task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
 
-      if (!task) return goto(getPath(lang, '/404'))
+      if (!task) return goto('/404')
       setData('task', task)
     },
     updated: { task: async ({ data: { task }, setData }) => setData('isError', task.title === '') }
@@ -211,7 +210,7 @@ export default fics<Data, { lang: string }>({
     'fieldset label, fieldset span': {
       click: [
         ({ data: { task }, setData }) =>
-          setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() }),
+          setData('task', { ...task, completedAt: task.completedAt ? undefined : getTimestamp() }),
         { throttle: 500, blur: true }
       ]
     },
@@ -226,14 +225,14 @@ export default fics<Data, { lang: string }>({
         }) => {
           if (window.confirm(confirmation)) {
             await deleteTask(id)
-            backToTaskList(lang)
+            backToTop(lang)
           }
         },
         { throttle: 500, blur: true }
       ]
     },
     'div.container > div span:last-of-type': {
-      click: [({ props: { lang } }) => backToTaskList(lang), { throttle: 500, blur: true }]
+      click: [({ props: { lang } }) => backToTop(lang), { throttle: 500, blur: true }]
     }
   },
   options: { lazyLoad: true }
