@@ -1,12 +1,12 @@
 import { fics } from 'ficsjs'
-import { ficsLink, goto, queryParams } from 'ficsjs/router'
+import { ficsLink, queries } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
-import type { Task } from '@/types'
-import { breakpoints, getPath } from '@/utils'
+import type { Lang, Task } from '@/types'
+import { backToTop, breakpoints } from '@/utils'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -24,7 +24,7 @@ interface Data {
 
 const { sm, lg } = breakpoints
 
-export default fics<Data, { lang: string }>({
+export default fics<Data, { lang: Lang }>({
   name: 'tasks',
   children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
@@ -125,7 +125,7 @@ export default fics<Data, { lang: string }>({
                       }
                     })}
                     ${ficsLink({
-                      href: getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id),
+                      href: `/${lang}${offsetWidth >= remToPx(lg) ? `?id=${id}` : `/${id}`}`,
                       content: ({ template }) =>
                         template`<span class="${completedAt ? 'done' : ''}">${title}</span>`
                     })}
@@ -137,7 +137,7 @@ export default fics<Data, { lang: string }>({
                     click: async () => {
                       if (window.confirm(confirmation)) {
                         setData('tasks', await deleteTask(id))
-                        if (parseInt(queryParams().id) === id) goto(getPath(lang, '/'))
+                        if (parseInt(queries().id) === id) backToTop(lang)
                       }
                     }
                   })}
