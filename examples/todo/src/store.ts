@@ -1,9 +1,9 @@
 import createPersistentState from 'ficsjs/persistent-state'
 import createState from 'ficsjs/state'
-import { Task } from '@/types'
+import { Lang, Task } from '@/types'
 import { getTimestamp } from '@/utils'
 
-export const $lang = createState<string>('en')
+export const $lang = createState<Lang>('en')
 export const $tasks = createPersistentState<Task[]>([])
 
 export const addTask = async (title: string): Promise<Task[]> => {
