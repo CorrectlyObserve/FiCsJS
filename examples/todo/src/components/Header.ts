@@ -3,11 +3,12 @@ import { fadeInOut } from 'ficsjs/animation'
 import { goto } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import { $lang } from '@/store'
-import { breakpoints, getPath } from '@/utils'
+import type { Lang } from '@/types'
+import { backToTop, breakpoints } from '@/utils'
 
 export default fics({
   name: 'header',
-  data: () => ({ langs: ['en', 'ja'], lang: '', isShown: false, pathname: '' }),
+  data: () => ({ langs: ['en', 'ja'] as Lang[], lang: 'en' as Lang, isShown: false, pathname: '' }),
   html: ({ data: { langs, lang, isShown }, template, show }) => template`
     <header>
       <h1 tabindex="0">FiCs ToDo</h1>
@@ -74,7 +75,7 @@ export default fics({
     }
   },
   actions: {
-    h1: { click: ({ data: { lang } }) => goto(getPath(lang, '/')) },
+    h1: { click: ({ data: { lang } }) => backToTop(lang) },
     'button.lang': {
       click: [
         ({ data: { isShown }, setData }) => setData('isShown', !isShown),
@@ -85,8 +86,8 @@ export default fics({
       click: [
         ({ data: { pathname }, setData, attributes: { key } }) => {
           setData('isShown', false)
-          $lang.set(key)
-          goto(getPath(key, pathname))
+          $lang.set(key as Lang)
+          if (pathname !== '/404') goto(`/${key}${pathname}`)
         },
         { throttle: 500, blur: true }
       ]
