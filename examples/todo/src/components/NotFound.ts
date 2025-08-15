@@ -1,9 +1,9 @@
 import { fics } from 'ficsjs'
-import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import LoadingIcon from '@/components/LoadingIcon'
-import { breakpoints, getPath } from '@/utils'
+import { Lang } from '@/types'
+import { backToTop, breakpoints } from '@/utils'
 
 interface Data {
   seconds: number
@@ -12,7 +12,7 @@ interface Data {
   buttonText: string
 }
 
-export default fics<Data, { lang: string }>({
+export default fics<Data, { lang: Lang }>({
   name: 'not-found',
   children: [Button(), LoadingIcon],
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
@@ -22,7 +22,7 @@ export default fics<Data, { lang: string }>({
       descendant: ({ children: { button } }) => button,
       values: ({ props: { lang } }) => ({
         buttonText: ({ getData }) => getData('buttonText'),
-        click: () => goto(getPath(lang, '/'))
+        click: () => backToTop(lang)
       })
     },
     {
@@ -53,7 +53,7 @@ export default fics<Data, { lang: string }>({
     mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
       poll(
         ({ times }) => {
-          if (times === seconds - 1) goto(getPath(lang, '/'))
+          if (times === seconds - 1) backToTop(lang)
           setData('seconds', seconds - times - 1)
         },
         { interval: 1000, max: seconds }
