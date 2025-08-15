@@ -1,23 +1,26 @@
-import { ficsRouter, queryParams } from 'ficsjs/router'
+import { ficsRouter, queries } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch, remToPx } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
 import NotFound from '@/components/NotFound'
+import type { Lang } from '@/types'
 import { breakpoints } from '@/utils'
 
 const xs = calc([cssVar('xs'), -1], '*')
 
-export default ficsRouter({
+export default ficsRouter<{ lang: Lang; pathname: string }>({
   children: [Tasks, Task, NotFound],
+  data: () => ({ lang: 'en' }),
   props: {
     descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
     values: ({}) => ({ lang: ({ getData }) => getData('lang') })
   },
   pages: [
+    { path: '/', redirect: '/en' },
     {
-      path: '/',
+      path: '/:lang',
       content: ({ children: { tasks, task }, template }) => {
-        const queryId = parseInt(queryParams().id)
+        const queryId = parseInt(queries().id)
 
         if (isNaN(queryId)) return tasks
 
@@ -26,7 +29,7 @@ export default ficsRouter({
           : template`<div class="container">${tasks}${task}</div>`
       }
     },
-    { path: '/:id', content: ({ children: { task } }) => task }
+    { path: '/:lang/:id', content: ({ children: { task } }) => task }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
   css: {
