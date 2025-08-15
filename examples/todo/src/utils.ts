@@ -13,9 +13,6 @@ export const convertTimestamp = (timestamp: number): string => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-export const getPath = (lang: string, path: string): string =>
-  `${lang === 'en' ? '' : `/${lang}`}${path}`
-
 export const getTimestamp = (): number => Date.now()
 
 export const white: string = '#fff'
