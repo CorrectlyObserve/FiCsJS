@@ -47,7 +47,7 @@ export interface Page<D extends object> extends PageContent<D> {
 }
 
 export interface PageContent<D extends object> {
-  content: Content<D, {}>
+  content?: Content<D, {}>
   redirect?: string
 }
 
