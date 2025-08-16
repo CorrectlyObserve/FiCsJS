@@ -6,7 +6,7 @@ import NotFound from '@/components/NotFound'
 import type { Lang } from '@/types'
 import { breakpoints } from '@/utils'
 
-const xs = calc([cssVar('xs'), -1], '*')
+const xs = calc(`${cssVar('xs')} * -1`)
 
 export default ficsRouter<{ lang: Lang; pathname: string }>({
   children: [Tasks, Task, NotFound],
