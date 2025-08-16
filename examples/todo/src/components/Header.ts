@@ -51,7 +51,7 @@ export default fics({
           right: cssVar('xl'),
           [`@media (max-width: ${breakpoints.sm})`]: { right: cssVar('xs') },
           button: {
-            width: calc([cssVar('md'), 3], '*'),
+            width: calc(`${cssVar('md')} * 3`),
             background: cssVar('black'),
             paddingBlock: cssVar('xs'),
             [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: cssVar('md') },
