@@ -1,23 +1,28 @@
 import { isBrowser } from '../core/helpers'
-import type { Param } from './types'
+import type { ParamType } from './types'
 
 class Params {
   #isBrowser: boolean = isBrowser()
-  #params: Record<Param, Record<string, string>> = { dynamicPaths: {}, queries: {} }
+  #dynamicPaths: Record<string, string> = {}
+  #queries: Record<string, string> = {}
 
   constructor() {
-    if (this.#isBrowser) {
-      const { search }: { search: string } = window.location
-      this.#params.queries = searchParams(search)
-    }
+    if (this.#isBrowser) this.#queries = searchParams(window.location.search)
   }
 
-  set(type: Param, value: Record<string, string>): void {
-    this.#params[type] = this.#isBrowser ? value : {}
+  set(type: ParamType, value: Record<string, string>): void {
+    if (!this.#isBrowser)
+      throw new Error('Params can only be accessed in the browser environment...')
+
+    if (type === 'dynamicPaths') this.#dynamicPaths = value
+    else this.#queries = value
   }
 
-  get(type: Param): Record<string, string> {
-    return this.#isBrowser ? this.#params[type] : {}
+  get(type: ParamType): Record<string, string> {
+    if (!this.#isBrowser)
+      throw new Error('Params can only be accessed in the browser environment...')
+
+    return type === 'dynamicPaths' ? this.#dynamicPaths : this.#queries
   }
 }
 
