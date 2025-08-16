@@ -24,7 +24,8 @@ export default {
   },
   label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
   'input, textarea': {
-    minWidth: calc([cssVar('md'), 20], '*'),
+    minWidth: calc(`${cssVar('md')} * 20`),
+    maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
     fontSize: cssVar('md'),
     color: white,
     paddingInline: cssVar('md'),
