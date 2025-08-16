@@ -11,8 +11,6 @@ interface Props {
   blur?: () => void
 }
 
-const paddingY: string = calc([cssVar('xs'), 1.5], '*')
-
 export default () =>
   fics<{}, Props>({
     name: 'textarea',
@@ -27,10 +25,9 @@ export default () =>
         ...flexCenter('x', 'column'),
         label: { paddingBottom: cssVar('xs') },
         textarea: {
-          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
-          height: calc([calc([paddingY, 2], '*'), calc([cssVar('md'), 1.5, 6], '*')], '+'),
+          height: calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6)),
           background: oklch(white, { opacity: 0.1 }),
-          paddingBlock: paddingY,
+          paddingBlock: calc(`${cssVar('xs')} * 1.5`),
           resize: 'none'
         }
       }
