@@ -51,4 +51,4 @@ export interface PageContent<D extends object> {
   redirect?: string
 }
 
-export type Param = 'dynamicPaths' | 'queries'
+export type ParamType = 'dynamicPaths' | 'queries'
