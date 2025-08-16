@@ -165,14 +165,14 @@ export default fics<Data, { lang: Lang }>({
       '&.task': {
         ...flexCenter('y'),
         width: sm,
-        maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+        maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
         marginInline: 'auto',
         marginBottom: cssVar('xs'),
         '&:last-child': { marginBottom: 0 },
         [`@media (max-width: ${sm})`]: { width: '100%' },
         div: {
-          width: `${calc([calc(['100%', cssVar('xl')], '-'), calc([cssVar('xs'), 2], '*')], '-')}`,
           ...flexCenter('y'),
+          width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`),
           span: {
             width: '100%',
             display: 'flex',
