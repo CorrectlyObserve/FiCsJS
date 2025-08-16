@@ -159,7 +159,7 @@ export default fics<Data, { lang: Lang }>({
   css: {
     'div.container': {
       width: sm,
-      maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+      maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
       marginInline: 'auto',
       [`@media (max-width: ${sm})`]: { width: '100%' },
       fieldset: {
