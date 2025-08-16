@@ -29,24 +29,53 @@ export default <D extends { pathname: string }>({
     html: ({ data, template, setData, ...args }) => {
       const setContent = (): Sanitized<D, {}> => {
         const { pathname } = data,
-          resolveContent = (
+          staticPages: Page<D>[] = [],
+          dynamicPages: Page<D>[] = []
+
+        for (const { path, ...args } of pages)
+          dynamicRegex.test(path)
+            ? dynamicPages.push({ path, ...args })
+            : staticPages.push({ path, ...args })
+
+        const resolveContent = (
             { content, redirect }: PageContent<D>,
             isWithoutHistory?: boolean
           ): Sanitized<D, {}> => {
             if (redirect) {
-              setData('pathname', redirect)
-              goto(pathname, isWithoutHistory)
-              return setContent()
+              if (pathname !== redirect) {
+                setData('pathname', redirect)
+                goto(redirect, isWithoutHistory)
+              }
+
+              const staticPage: Page<D> | undefined = staticPages.find(
+                ({ path }) => path === redirect
+              )
+              if (staticPage) {
+                const { content, redirect } = staticPage
+                return resolveContent({ content, redirect })
+              }
+
+              for (const { path, ...args } of dynamicPages)
+                if (dynamicPathToRegex(path).test(redirect)) {
+                  params.set('dynamicPaths', getDynamicPaths(path))
+                  return resolveContent({ ...args })
+                }
+
+              throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
             }
 
-            const _content: Descendant | Sanitized<D, {}> = content({
-              data,
-              template,
-              setData,
-              ...args
-            })
+            if (content) {
+              const _content: Descendant | Sanitized<D, {}> = content({
+                data,
+                template,
+                setData,
+                ...args
+              })
 
-            return _content instanceof FiCsElement ? template`${_content}` : _content
+              return _content instanceof FiCsElement ? template`${_content}` : _content
+            }
+
+            throw new Error('Either "content" or "redirect" must be specified...')
           },
           isPathMatched = (path: string): boolean => {
             const _queries: Record<string, string> = queries()
@@ -62,17 +91,11 @@ export default <D extends { pathname: string }>({
 
         if (isPathMatched('/404') && notFound) return resolveContent(notFound, true)
 
-        const staticPages: Page<D>[] = [],
-          dynamicPages: Page<D>[] = []
-
-        for (const { path, ...args } of pages)
-          dynamicRegex.test(path)
-            ? dynamicPages.push({ path, ...args })
-            : staticPages.push({ path, ...args })
-
         const staticPage: Page<D> | undefined = staticPages.find(({ path }) => isPathMatched(path))
-
-        if (staticPage) return resolveContent(staticPage)
+        if (staticPage) {
+          const { content, redirect } = staticPage
+          return resolveContent({ content, redirect })
+        }
 
         for (const { path, ...args } of dynamicPages)
           if (dynamicPathToRegex(path).test(pathname)) {
