@@ -8,7 +8,7 @@ import Textarea from '@/components/materials/Textarea'
 import Button from '@/components/materials/Button'
 import { $tasks, completeTask, deleteTask, getTask, revertTask, updateTask } from '@/store'
 import type { Lang, Task } from '@/types'
-import { backToTop, breakpoints, convertTimestamp, getTimestamp } from '@/utils'
+import { breakpoints, convertTimestamp, getTimestamp } from '@/utils'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
@@ -95,7 +95,7 @@ export default fics<Data, { lang: Lang }>({
     },
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { lang }, setData }) => ({
+      values: ({ setData }) => ({
         isDisabled: ({ getData }) => getData('isError'),
         buttonText: ({ getData }) => getData('buttonText'),
         click:
@@ -108,7 +108,7 @@ export default fics<Data, { lang: Lang }>({
 
             const tasks: Task[] = await $tasks.get()
             setData('task', (await getTask(tasks, id))!)
-            backToTop(lang)
+            goto('/')
           }
       })
     }
@@ -220,19 +220,18 @@ export default fics<Data, { lang: Lang }>({
           data: {
             task: { id },
             confirmation
-          },
-          props: { lang }
+          }
         }) => {
           if (window.confirm(confirmation)) {
             await deleteTask(id)
-            backToTop(lang)
+            goto('/')
           }
         },
         { throttle: 500, blur: true }
       ]
     },
     'div.container > div span:last-of-type': {
-      click: [({ props: { lang } }) => backToTop(lang), { throttle: 500, blur: true }]
+      click: [() => goto('/'), { throttle: 500, blur: true }]
     }
   },
   options: { lazyLoad: true }
