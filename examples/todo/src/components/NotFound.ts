@@ -21,7 +21,10 @@ export default fics<Data, { lang: Lang }>({
   props: [
     {
       descendant: ({ children: { button } }) => button,
-      values: () => ({ buttonText: ({ getData }) => getData('buttonText'), click: () => goto('/') })
+      values: () => ({
+        buttonText: ({ getData }) => getData('buttonText'),
+        click: () => goto('/', true)
+      })
     },
     {
       descendant: ({ children: { loadingIcon } }) => loadingIcon,
@@ -51,7 +54,7 @@ export default fics<Data, { lang: Lang }>({
     mounted: ({ data: { seconds }, setData, poll }) =>
       poll(
         ({ times }) => {
-          if (times === seconds - 1) goto('/')
+          if (times === seconds - 1) goto('/', true)
           setData('seconds', seconds - times - 1)
         },
         { interval: 1000, max: seconds }
