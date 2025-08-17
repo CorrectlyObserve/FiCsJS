@@ -30,8 +30,5 @@ $lang.subscribe(() => {
 })
 
 Header.describe()
-
-Router.setData('lang', $lang.get())
 Router.describe()
-
 Footer.describe()
