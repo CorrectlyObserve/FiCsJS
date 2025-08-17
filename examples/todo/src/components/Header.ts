@@ -63,6 +63,7 @@ export default fics({
       }
     }
   },
+  hooks: { created: ({ setData }) => setData('lang', document.documentElement.lang as Lang) },
   actions: {
     h1: { click: () => goto('/') },
     'button.lang': {
@@ -74,7 +75,10 @@ export default fics({
     'button[key]': {
       click: [
         ({ setData, attributes: { key } }) => {
-          $lang.set(key as Lang)
+          const _key = key as Lang
+
+          $lang.set(_key)
+          setData('lang', _key)
           setData('isShown', false)
         },
         { throttle: 500, blur: true }
