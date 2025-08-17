@@ -1,9 +1,8 @@
 import FiCsElement from '../core/class'
-import { isBlankObject } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
-import { params, queries, searchParams } from './params'
+import { params, searchParams } from './params'
 import type { FiCsRouter, Page, PageContent } from './types'
 
 export default <D extends { pathname: string }>({
@@ -37,61 +36,47 @@ export default <D extends { pathname: string }>({
             ? dynamicPages.push({ path, ...args })
             : staticPages.push({ path, ...args })
 
-        const resolveContent = (
-            { content, redirect }: PageContent<D>,
-            isWithoutHistory?: boolean
-          ): Sanitized<D, {}> => {
-            if (redirect) {
-              if (pathname !== redirect) {
-                setData('pathname', redirect)
-                goto(redirect, isWithoutHistory)
-              }
-
-              const staticPage: Page<D> | undefined = staticPages.find(
-                ({ path }) => path === redirect
-              )
-              if (staticPage) {
-                const { content, redirect } = staticPage
-                return resolveContent({ content, redirect })
-              }
-
-              for (const { path, ...args } of dynamicPages)
-                if (dynamicPathToRegex(path).test(redirect)) {
-                  params.set('dynamicPaths', getDynamicPaths(path))
-                  return resolveContent({ ...args })
-                }
-
-              throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
+        const resolveContent = ({ content, redirect }: PageContent<D>): Sanitized<D, {}> => {
+          if (redirect) {
+            if (pathname !== redirect) {
+              setData('pathname', redirect)
+              goto(redirect, true)
             }
 
-            if (content) {
-              const _content: Descendant | Sanitized<D, {}> = content({
-                data,
-                template,
-                setData,
-                ...args
-              })
-
-              return _content instanceof FiCsElement ? template`${_content}` : _content
+            const staticPage: Page<D> | undefined = staticPages.find(
+              ({ path }) => path === redirect
+            )
+            if (staticPage) {
+              const { content, redirect } = staticPage
+              return resolveContent({ content, redirect })
             }
 
-            throw new Error('Either "content" or "redirect" must be specified...')
-          },
-          isPathMatched = (path: string): boolean => {
-            const _queries: Record<string, string> = queries()
+            for (const { path, ...args } of dynamicPages)
+              if (dynamicPathToRegex(path).test(redirect)) {
+                params.set('dynamicPaths', getDynamicPaths(path))
+                return resolveContent({ ...args })
+              }
 
-            if (!isBlankObject(_queries))
-              path += Object.entries(_queries).reduce(
-                (prev, [key, value], index) => `${prev}${index === 0 ? '' : '&'}${key}=${value}`,
-                '?'
-              )
-
-            return pathname === path
+            throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
           }
 
-        if (isPathMatched('/404') && notFound) return resolveContent(notFound, true)
+          if (content) {
+            const _content: Descendant | Sanitized<D, {}> = content({
+              data,
+              template,
+              setData,
+              ...args
+            })
 
-        const staticPage: Page<D> | undefined = staticPages.find(({ path }) => isPathMatched(path))
+            return _content instanceof FiCsElement ? template`${_content}` : _content
+          }
+
+          throw new Error('Either "content" or "redirect" must be specified...')
+        }
+
+        if (pathname === '/404' && notFound) return resolveContent(notFound)
+
+        const staticPage: Page<D> | undefined = staticPages.find(({ path }) => pathname === path)
         if (staticPage) {
           const { content, redirect } = staticPage
           return resolveContent({ content, redirect })
@@ -103,7 +88,10 @@ export default <D extends { pathname: string }>({
             return resolveContent({ ...args })
           }
 
-        if (notFound) return resolveContent(notFound, true)
+        if (notFound) {
+          goto('/404', true)
+          return resolveContent(notFound)
+        }
         throw new Error(`The "${pathname}" does not exist on pages...`)
       }
 
