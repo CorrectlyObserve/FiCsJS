@@ -1,9 +1,10 @@
 import { fics } from 'ficsjs'
+import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import LoadingIcon from '@/components/LoadingIcon'
 import { Lang } from '@/types'
-import { backToTop, breakpoints } from '@/utils'
+import { breakpoints } from '@/utils'
 
 interface Data {
   seconds: number
@@ -20,10 +21,7 @@ export default fics<Data, { lang: Lang }>({
   props: [
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { lang } }) => ({
-        buttonText: ({ getData }) => getData('buttonText'),
-        click: () => backToTop(lang)
-      })
+      values: () => ({ buttonText: ({ getData }) => getData('buttonText'), click: () => goto('/') })
     },
     {
       descendant: ({ children: { loadingIcon } }) => loadingIcon,
@@ -50,10 +48,10 @@ export default fics<Data, { lang: Lang }>({
     }
   },
   hooks: {
-    mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
+    mounted: ({ data: { seconds }, setData, poll }) =>
       poll(
         ({ times }) => {
-          if (times === seconds - 1) backToTop(lang)
+          if (times === seconds - 1) goto('/')
           setData('seconds', seconds - times - 1)
         },
         { interval: 1000, max: seconds }
