@@ -1,12 +1,12 @@
 import { fics } from 'ficsjs'
-import { ficsLink, queries } from 'ficsjs/router'
+import { ficsLink, goto, queries } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
 import type { Lang, Task } from '@/types'
-import { backToTop, breakpoints } from '@/utils'
+import { breakpoints } from '@/utils'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -72,7 +72,6 @@ export default fics<Data, { lang: Lang }>({
       confirmation,
       unapplicable
     },
-    props: { lang },
     template,
     setData,
     isDeferred
@@ -120,12 +119,11 @@ export default fics<Data, { lang: Lang }>({
                     ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
                       svg: completedAt ? CircleCheckBig : Circle,
                       areaLabel: completedAt ? revert : complete,
-                      click: async () => {
+                      click: async () =>
                         setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
-                      }
                     })}
                     ${ficsLink({
-                      href: `/${lang}${offsetWidth >= remToPx(lg) ? `?id=${id}` : `/${id}`}`,
+                      href: `/${offsetWidth >= remToPx(lg) ? `?id=` : ''}${id}`,
                       content: ({ template }) =>
                         template`<span class="${completedAt ? 'done' : ''}">${title}</span>`
                     })}
@@ -137,7 +135,7 @@ export default fics<Data, { lang: Lang }>({
                     click: async () => {
                       if (window.confirm(confirmation)) {
                         setData('tasks', await deleteTask(id))
-                        if (parseInt(queries().id) === id) backToTop(lang)
+                        if (parseInt(queries().id) === id) goto('/')
                       }
                     }
                   })}
