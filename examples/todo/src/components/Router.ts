@@ -19,11 +19,9 @@ export default ficsRouter<{ lang: Lang; pathname: string }>({
     {
       path: '/',
       content: ({ children: { tasks, task }, template }) => {
-        const queryId = parseInt(queries().id)
+        if (!queries().id) return tasks
 
-        if (isNaN(queryId)) return tasks
-
-        return document.documentElement.clientWidth < remToPx(breakpoints.lg)
+        return document.documentElement.offsetWidth < remToPx(breakpoints.lg)
           ? task
           : template`<div class="container">${tasks}${task}</div>`
       }
