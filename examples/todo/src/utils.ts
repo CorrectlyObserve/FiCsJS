@@ -1,8 +1,3 @@
-import { goto } from 'ficsjs/router'
-import type { Lang } from '@/types'
-
-export const backToTop = (lang: Lang): void => goto(`/${lang}`)
-
 export const breakpoints = { sm: '30rem', lg: '60rem' } as const
 
 export const convertTimestamp = (timestamp: number): string => {
