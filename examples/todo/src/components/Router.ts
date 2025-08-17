@@ -16,9 +16,8 @@ export default ficsRouter<{ lang: Lang; pathname: string }>({
     values: ({}) => ({ lang: ({ getData }) => getData('lang') })
   },
   pages: [
-    { path: '/', redirect: '/en' },
     {
-      path: '/:lang',
+      path: '/',
       content: ({ children: { tasks, task }, template }) => {
         const queryId = parseInt(queries().id)
 
@@ -29,7 +28,8 @@ export default ficsRouter<{ lang: Lang; pathname: string }>({
           : template`<div class="container">${tasks}${task}</div>`
       }
     },
-    { path: '/:lang/:id', content: ({ children: { task } }) => task }
+    { path: '/:id', content: ({ children: { task } }) => task },
+    { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
   css: {
