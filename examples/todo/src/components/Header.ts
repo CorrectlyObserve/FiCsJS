@@ -4,11 +4,11 @@ import { goto } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import { $lang } from '@/store'
 import type { Lang } from '@/types'
-import { backToTop, breakpoints } from '@/utils'
+import { breakpoints } from '@/utils'
 
 export default fics({
   name: 'header',
-  data: () => ({ langs: ['en', 'ja'] as Lang[], lang: 'en' as Lang, isShown: false, pathname: '' }),
+  data: () => ({ langs: ['en', 'ja'] as Lang[], lang: 'en' as Lang, isShown: false }),
   html: ({ data: { langs, lang, isShown }, template, show }) => template`
     <header>
       <h1 tabindex="0">FiCs ToDo</h1>
@@ -63,19 +63,8 @@ export default fics({
       }
     }
   },
-  hooks: {
-    created: ({ setData }) => {
-      setData('lang', $lang.get())
-
-      const { pathname, search } = window.location
-      let _pathname = `${pathname.substring(1)}${search}`
-      if (_pathname.split('/')[0] === $lang.get()) _pathname = _pathname.slice(3)
-
-      setData('pathname', `/${_pathname}`)
-    }
-  },
   actions: {
-    h1: { click: ({ data: { lang } }) => backToTop(lang) },
+    h1: { click: () => goto('/') },
     'button.lang': {
       click: [
         ({ data: { isShown }, setData }) => setData('isShown', !isShown),
@@ -84,10 +73,9 @@ export default fics({
     },
     'button[key]': {
       click: [
-        ({ data: { pathname }, setData, attributes: { key } }) => {
-          setData('isShown', false)
+        ({ setData, attributes: { key } }) => {
           $lang.set(key as Lang)
-          if (pathname !== '/404') goto(`/${key}${pathname}`)
+          setData('isShown', false)
         },
         { throttle: 500, blur: true }
       ]
