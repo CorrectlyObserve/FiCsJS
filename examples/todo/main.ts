@@ -25,7 +25,6 @@ $lang.subscribe(() => {
   const lang = $lang.get()
 
   document.documentElement.lang = lang
-  Header.setData('lang', lang)
   Router.setData('lang', lang)
 })
 
