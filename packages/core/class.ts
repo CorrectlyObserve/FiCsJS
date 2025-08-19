@@ -237,6 +237,29 @@ export default class FiCsElement<D extends object, P extends object> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
 
+  #internalSetData<K extends keyof D>(key: K, value: D[K], isNotRerendered?: boolean): void {
+    if (this.#data[key] !== value) {
+      this.#data[key] = value
+
+      for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
+        if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
+
+      const { data, ...args }: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
+        updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+
+      if (updated && key in updated) {
+        this.#throwKeyError(key)
+        updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
+      }
+
+      if (!isNotRerendered && this.#isBrowser && this.#components.size > 0)
+        this.#enqueue(() => {
+          this.#reRender()
+          this.#infiniteVirtualScroll(this.#getShadowRoot(this.#components.values().next().value!))
+        }, 're-render')
+    }
+  }
+
   async #crud<T>(api: string, options?: CrudOptions): Promise<T> {
     const { key, delay, ..._options }: CrudOptions = options ?? {}
 
@@ -262,7 +285,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
     const base: DataPropsMethods<D, P> = {
       ...this.#dataProps,
-      setData: <K extends keyof D>(key: K, value: D[K]): void => this.setData(key, value),
+      setData: <K extends keyof D>(key: K, value: D[K]): void => this.#internalSetData(key, value),
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
 
@@ -1249,7 +1272,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 for (const [key, value] of Object.entries(
                   await that.#deferredData!({ ...that.#dataProps, crud: that.#crud.bind(that) })
                 ))
-                  that.setData(key as keyof D, value as D[keyof D])
+                  that.#internalSetData(key as keyof D, value as D[keyof D])
 
               if (that.#i18nData)
                 for (const [key, value] of Object.entries(
@@ -1259,7 +1282,7 @@ export default class FiCsElement<D extends object, P extends object> {
                       i18n<T>({ lang, key })
                   })
                 ))
-                  that.setData(key as keyof D, value as D[keyof D])
+                  that.#internalSetData(key as keyof D, value as D[keyof D])
 
               that.#isDeferred = true
             }, 'fetch')
@@ -1327,21 +1350,6 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #_setData<K extends keyof D>(key: K, value: D[K]): void {
-    this.#data[key] = value
-
-    for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
-      if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
-
-    const { data, ...args }: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
-      updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
-
-    if (updated && key in updated) {
-      this.#throwKeyError(key)
-      updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
-    }
-  }
-
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
     const component: HTMLElement | undefined = this.#components.values().next().value
 
@@ -1359,7 +1367,7 @@ export default class FiCsElement<D extends object, P extends object> {
         })
       ))
         if (this.#data[key as keyof D] !== value)
-          this.#_setData(key as keyof D, value as D[keyof D])
+          this.#internalSetData(key as keyof D, value as D[keyof D], true)
 
     if (!isOnlyHtml && isClassName) {
       component.classList.remove(...Array.from(component.classList))
@@ -1513,15 +1521,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    if (this.#data[key] !== value) {
-      this.#_setData(key, value)
-
-      if (this.#isBrowser && this.#components.size > 0)
-        this.#enqueue(() => {
-          this.#reRender()
-          this.#infiniteVirtualScroll(this.#getShadowRoot(this.#components.values().next().value!))
-        }, 're-render')
-    }
+    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
+      throw new Error(`The "${key as string}" cannot be modified in the router component...`)
+    this.#internalSetData(key, value)
   }
 
   getData<K extends keyof D>(key: K): D[K] {
