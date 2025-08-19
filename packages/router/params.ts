@@ -7,7 +7,7 @@ class Params {
   #queries: Record<string, string> = {}
 
   constructor() {
-    if (this.#isBrowser) this.#queries = searchParams(window.location.search)
+    if (this.#isBrowser) this.#queries = getQueries()
   }
 
   set(type: ParamType, value: Record<string, string>): void {
@@ -26,11 +26,11 @@ class Params {
   }
 }
 
-export const searchParams = (url: string): Record<string, string> =>
-  Object.fromEntries(new URLSearchParams(url))
-
-export const params: Params = new Params()
+export const getQueries = (): Record<string, string> =>
+  isBrowser() ? Object.fromEntries(new URLSearchParams(window.location.search)) : {}
 
 export const dynamicPaths = (): Record<string, string> => params.get('dynamicPaths')
+
+export const params: Params = new Params()
 
 export const queries = (): Record<string, string> => params.get('queries')
