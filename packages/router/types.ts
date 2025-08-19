@@ -29,16 +29,16 @@ export interface FiCsLink<P extends object> {
   actions?: Actions<{}, P>
 }
 
-export interface FiCsRouter<D extends { pathname: string }> {
+export interface FiCsRouter<D extends object> {
   children?: Descendant[]
-  data?: () => Omit<D, 'pathname'>
+  data?: () => D
   pathname?: string
-  props?: SingleOrArray<Props<D, {}>>
-  className?: ClassName<D, {}>
-  attributes?: Attrs<D, {}>
+  props?: SingleOrArray<Props<RouterData<D>, {}>>
+  className?: ClassName<RouterData<D>, {}>
+  attributes?: Attrs<RouterData<D>, {}>
   pages: Page<D>[]
   notFound?: PageContent<D>
-  css?: SingleOrArray<CssContent<D, {}> | string>
+  css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
   options?: OptionParams
 }
 
@@ -47,8 +47,13 @@ export interface Page<D extends object> extends PageContent<D> {
 }
 
 export interface PageContent<D extends object> {
-  content?: Content<D, {}>
+  content?: Content<RouterData<D>, {}>
   redirect?: string
 }
 
 export type ParamType = 'dynamicPaths' | 'queries'
+
+export type RouterData<D extends object> = D & {
+  pathname: string
+  queries: Record<string, string>
+}
