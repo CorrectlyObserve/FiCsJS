@@ -1,12 +1,12 @@
 import { fics } from 'ficsjs'
 import { ficsLink, goto, queries } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
+import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
 import type { Lang, Task } from '@/types'
-import { breakpoints } from '@/utils'
+import { breakpoints, measureOffsetWidth } from '@/utils'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -22,7 +22,7 @@ interface Data {
   unapplicable: string
 }
 
-const { sm, lg } = breakpoints
+const { sm } = breakpoints
 
 export default fics<Data, { lang: Lang }>({
   name: 'tasks',
@@ -80,8 +80,7 @@ export default fics<Data, { lang: Lang }>({
 
     if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
-    const [complete, revert, _delete] = texts,
-      { offsetWidth } = document.documentElement
+    const [complete, revert, _delete] = texts
 
     return template`
       <h2>${heading}</h2>
@@ -123,7 +122,7 @@ export default fics<Data, { lang: Lang }>({
                         setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
                     ${ficsLink({
-                      href: `/${offsetWidth >= remToPx(lg) ? `?id=` : ''}${id}`,
+                      href: `/${measureOffsetWidth() ? '?id=' : ''}${id}`,
                       content: ({ template }) =>
                         template`<span class="${completedAt ? 'done' : ''}">${title}</span>`
                     })}
