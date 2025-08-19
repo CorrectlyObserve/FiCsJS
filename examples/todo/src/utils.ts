@@ -1,8 +1,10 @@
+import { remToPx } from 'ficsjs/style'
+
 export const breakpoints = { sm: '30rem', lg: '60rem' } as const
 
 export const convertTimestamp = (timestamp: number): string => {
-  const modifyFormat = (param: number) => param.toString().padStart(2, '0')
-  const date = new Date(timestamp),
+  const modifyFormat = (param: number) => param.toString().padStart(2, '0'),
+    date = new Date(timestamp),
     year = date.getFullYear(),
     month = modifyFormat(date.getMonth() + 1),
     day = modifyFormat(date.getDate()),
@@ -14,5 +16,8 @@ export const convertTimestamp = (timestamp: number): string => {
 }
 
 export const getTimestamp = (): number => Date.now()
+
+export const measureOffsetWidth = (): boolean =>
+  document.documentElement.offsetWidth >= remToPx(breakpoints.lg)
 
 export const white: string = '#fff'
