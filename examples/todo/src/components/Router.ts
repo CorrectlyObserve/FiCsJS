@@ -1,4 +1,4 @@
-import { ficsRouter, queries } from 'ficsjs/router'
+import { ficsRouter } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch, remToPx } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
@@ -8,7 +8,7 @@ import { breakpoints } from '@/utils'
 
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<{ lang: Lang; pathname: string }>({
+export default ficsRouter<{ lang: Lang }>({
   children: [Tasks, Task, NotFound],
   data: () => ({ lang: 'en' }),
   props: {
@@ -18,12 +18,12 @@ export default ficsRouter<{ lang: Lang; pathname: string }>({
   pages: [
     {
       path: '/',
-      content: ({ children: { tasks, task }, template }) => {
-        if (!queries().id) return tasks
+      content: ({ data: { queries }, children: { tasks, task }, template }) => {
+        if (!queries.id) return tasks
 
-        return document.documentElement.offsetWidth < remToPx(breakpoints.lg)
-          ? task
-          : template`<div class="container">${tasks}${task}</div>`
+        return document.documentElement.offsetWidth >= remToPx(breakpoints.lg)
+          ? template`<div class="container">${tasks}${task}</div>`
+          : task
       }
     },
     { path: '/:id', content: ({ children: { task } }) => task },
