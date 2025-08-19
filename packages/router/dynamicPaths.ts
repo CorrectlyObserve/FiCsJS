@@ -1,10 +1,10 @@
 import { browserError } from '../core/helpers'
 
 export const dynamicPathToRegex = (path: string): RegExp => {
-  const common: string = '/([^/]+?)'
-  const pattern: string = path.replace(dynamicRegex, (_1, _2, optional) =>
-    optional ? `(?:${common})?` : common
-  )
+  const common: string = '/([^/]+?)',
+    pattern: string = path.replace(dynamicRegex, (_1, _2, optional) =>
+      optional ? `(?:${common})?` : common
+    )
   return new RegExp(`^${pattern}/?$`)
 }
 
