@@ -1,10 +1,10 @@
 import { ficsRouter } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, oklch, remToPx } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
 import NotFound from '@/components/NotFound'
 import type { Lang } from '@/types'
-import { breakpoints } from '@/utils'
+import { breakpoints, measureOffsetWidth } from '@/utils'
 
 const xs = calc(`${cssVar('xs')} * -1`)
 
@@ -21,9 +21,7 @@ export default ficsRouter<{ lang: Lang }>({
       content: ({ data: { queries }, children: { tasks, task }, template }) => {
         if (!queries.id) return tasks
 
-        return document.documentElement.offsetWidth >= remToPx(breakpoints.lg)
-          ? template`<div class="container">${tasks}${task}</div>`
-          : task
+        return measureOffsetWidth() ? template`<div class="container">${tasks}${task}</div>` : task
       }
     },
     { path: '/:id', content: ({ children: { task } }) => task },
