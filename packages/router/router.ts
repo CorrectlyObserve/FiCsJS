@@ -2,10 +2,21 @@ import FiCsElement from '../core/class'
 import type { Descendant, Sanitized } from '../core/types'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
-import { params, searchParams } from './params'
-import type { FiCsRouter, Page, PageContent } from './types'
+import { getQueries, params } from './params'
+import type { FiCsRouter, Page, PageContent, RouterData } from './types'
 
-export default <D extends { pathname: string }>({
+const setRouterData = <D extends object>(
+  setData: <K extends keyof RouterData<D>>(key: K, value: RouterData<D>[K]) => void,
+  pathname: string
+): void => {
+  const queries: Record<string, string> = getQueries()
+
+  setData('pathname', pathname as RouterData<D>['pathname'])
+  setData('queries', queries as RouterData<D>['queries'])
+  params.set('queries', queries)
+}
+
+export default <D extends object>({
   children,
   data,
   pathname = '/',
@@ -16,17 +27,17 @@ export default <D extends { pathname: string }>({
   notFound,
   css,
   options
-}: FiCsRouter<D>): FiCsElement<D, {}> =>
-  new FiCsElement<D, {}>({
+}: FiCsRouter<D>): FiCsElement<RouterData<D>, {}> =>
+  new FiCsElement<RouterData<D>, {}>({
     name: 'router',
     isExceptional: true,
     children,
-    data: () => ({ ...data?.(), pathname }) as D,
+    data: () => ({ ...data?.(), pathname, queries: {} }) as RouterData<D>,
     props,
     className,
     attributes,
     html: ({ data, template, setData, ...args }) => {
-      const setContent = (): Sanitized<D, {}> => {
+      const setContent = (): Sanitized<RouterData<D>, {}> => {
         const { pathname } = data,
           staticPages: Page<D>[] = [],
           dynamicPages: Page<D>[] = []
@@ -36,10 +47,10 @@ export default <D extends { pathname: string }>({
             ? dynamicPages.push({ path, ...args })
             : staticPages.push({ path, ...args })
 
-        const resolveContent = ({ content, redirect }: PageContent<D>): Sanitized<D, {}> => {
+        const render = ({ content, redirect }: PageContent<D>): Sanitized<RouterData<D>, {}> => {
           if (redirect) {
             if (pathname !== redirect) {
-              setData('pathname', redirect)
+              setData('pathname', redirect as RouterData<D>['pathname'])
               goto(redirect, true)
             }
 
@@ -48,23 +59,30 @@ export default <D extends { pathname: string }>({
             )
             if (staticPage) {
               const { content, redirect } = staticPage
-              return resolveContent({ content, redirect })
+              return render({ content, redirect })
             }
 
             for (const { path, ...args } of dynamicPages)
               if (dynamicPathToRegex(path).test(redirect)) {
                 params.set('dynamicPaths', getDynamicPaths(path))
-                return resolveContent({ ...args })
+                return render({ ...args })
               }
 
             throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
           }
 
           if (content) {
-            const _content: Descendant | Sanitized<D, {}> = content({
+            const _content: Descendant | Sanitized<RouterData<D>, {}> = content({
               data,
               template,
-              setData,
+              setData: <K extends keyof RouterData<D>>(key: K, value: RouterData<D>[K]) => {
+                if (key === 'pathname' || key === 'queries')
+                  throw new Error(
+                    `The "${key as string}" cannot be modified in the router component...`
+                  )
+
+                setData(key, value)
+              },
               ...args
             })
 
@@ -74,23 +92,23 @@ export default <D extends { pathname: string }>({
           throw new Error('Either "content" or "redirect" must be specified...')
         }
 
-        if (pathname === '/404' && notFound) return resolveContent(notFound)
+        if (pathname === '/404' && notFound) return render(notFound)
 
         const staticPage: Page<D> | undefined = staticPages.find(({ path }) => pathname === path)
         if (staticPage) {
           const { content, redirect } = staticPage
-          return resolveContent({ content, redirect })
+          return render({ content, redirect })
         }
 
         for (const { path, ...args } of dynamicPages)
           if (dynamicPathToRegex(path).test(pathname)) {
             params.set('dynamicPaths', getDynamicPaths(path))
-            return resolveContent({ ...args })
+            return render({ ...args })
           }
 
         if (notFound) {
           goto('/404', true)
-          return resolveContent(notFound)
+          return render(notFound)
         }
         throw new Error(`The "${pathname}" does not exist on pages...`)
       }
@@ -99,22 +117,12 @@ export default <D extends { pathname: string }>({
     },
     css,
     hooks: {
-      created: ({ setData }) => {
-        const { pathname, search }: { pathname: string; search: string } = window.location
-        params.set('queries', searchParams(search))
-        setData('pathname', pathname)
-      },
+      created: ({ setData }) => setRouterData(setData, window.location.pathname),
       mounted: ({ setData }) => {
-        window.addEventListener('popstate', () => {
-          const { pathname, search }: { pathname: string; search: string } = window.location
-          params.set('queries', searchParams(search))
-          setData('pathname', pathname)
-        })
+        window.addEventListener('popstate', () => setRouterData(setData, window.location.pathname))
         window.addEventListener('fics:navigate', (event: Event) => {
-          params.set('queries', searchParams(window.location.search))
-
           const { detail } = event as CustomEvent<{ href: string }>
-          setData('pathname', detail.href)
+          setRouterData(setData, detail.href)
         })
       }
     },
