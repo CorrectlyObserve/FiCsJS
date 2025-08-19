@@ -129,7 +129,7 @@ export default class PersistentState<S> {
 
     req.onsuccess = () => {
       const { result }: { result: State<S> } = req
-      if (result.readonly) throw new Error('The state cannot be edited because this is readonly...')
+      if (result.readonly) throw new Error('The state is readonly...')
 
       store.put({ ...result, state: newState, updatedAt: Date.now() })
     }
