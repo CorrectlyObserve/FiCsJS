@@ -20,7 +20,6 @@ export default ficsRouter<{ lang: Lang }>({
       path: '/',
       content: ({ data: { queries }, children: { tasks, task }, template }) => {
         if (!queries.id) return tasks
-
         return measureOffsetWidth() ? template`<div class="container">${tasks}${task}</div>` : task
       }
     },
