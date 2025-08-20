@@ -121,8 +121,12 @@ export default <D extends object>({
       mounted: ({ setData }) => {
         window.addEventListener('popstate', () => setRouterData(setData, window.location.pathname))
         window.addEventListener('fics:navigate', (event: Event) => {
-          const { detail } = event as CustomEvent<{ href: string }>
-          setRouterData(setData, detail.href)
+          const {
+              detail: { href }
+            }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
+            { pathname }: { pathname: string } = new URL(href, window.location.origin)
+
+          setRouterData(setData, pathname)
         })
       }
     },
