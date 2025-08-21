@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
-import { goto, queryParams } from 'ficsjs/router'
+import { goto, queries } from 'ficsjs/router'
 import { absoluteCenter, oklch } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import Skeleton from '@/components/materials/Skeleton'
@@ -75,7 +75,7 @@ export default fics({
   },
   hooks: {
     created: ({ setData }) => {
-      const page = parseInt(queryParams().page)
+      const page = parseInt(queries().page)
       if (!isNaN(page)) setData('page', page)
     }
   },
