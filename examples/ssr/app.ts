@@ -74,7 +74,7 @@ app.get('/scroll', c =>
   )
 )
 
-app.get('/chat', c =>
+app.get('/websocket-sse', c =>
   c.html(
     template({
       title: 'WebSocket and SSE',
@@ -84,7 +84,7 @@ app.get('/chat', c =>
         ${Tab.toString()}
         ${Router.toString()}
       `,
-      path: '/chat'
+      path: '/websocket-sse'
     })
   )
 )
@@ -105,6 +105,6 @@ app.get('/sse', async c => {
   })
 })
 
-app.notFound(c => c.redirect(c.req.path.startsWith('/chat/') ? '/chat' : '/'))
+app.notFound(c => c.redirect(c.req.path.startsWith('/websocket-sse/') ? '/websocket-sse' : '/'))
 
 export default { port: 5174, fetch: app.fetch }
