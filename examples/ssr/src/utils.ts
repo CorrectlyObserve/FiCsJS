@@ -1,0 +1,1 @@
+export const CHAT_PAGE = '/websocket-sse' as const
