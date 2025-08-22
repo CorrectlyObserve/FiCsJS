@@ -7,6 +7,7 @@ import ChatButton from './src/components/ChatButton'
 import Photos from './src/components/Photos'
 import Tab from './src/components/Tab'
 import Router from './src/components/Router'
+import { CHAT_PAGE } from './src/utils'
 
 const app = new Hono()
 
@@ -74,7 +75,7 @@ app.get('/scroll', c =>
   )
 )
 
-app.get('/websocket-sse', c =>
+app.get(CHAT_PAGE, c =>
   c.html(
     template({
       title: 'WebSocket and SSE',
@@ -84,7 +85,7 @@ app.get('/websocket-sse', c =>
         ${Tab.toString()}
         ${Router.toString()}
       `,
-      path: '/websocket-sse'
+      path: CHAT_PAGE
     })
   )
 )
@@ -105,6 +106,6 @@ app.get('/sse', async c => {
   })
 })
 
-app.notFound(c => c.redirect(c.req.path.startsWith('/websocket-sse/') ? '/websocket-sse' : '/'))
+app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
 
 export default { port: 5174, fetch: app.fetch }
