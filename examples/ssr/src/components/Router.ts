@@ -1,13 +1,14 @@
 import { ficsRouter } from 'ficsjs/router'
 import Tab from '@/components/Tab'
-import Talk from '@/components/Talk'
+import Chat from '@/components/Chat'
 import Logs from '@/components/Logs'
+import { CHAT_PAGE } from '@/utils'
 
 export default ficsRouter({
-  pathname: '/chat',
-  children: [Tab, Talk, Logs],
+  pathname: CHAT_PAGE,
+  children: [Tab, Chat, Logs],
   pages: [
-    { path: '/chat', content: ({ children: { talk } }) => talk },
-    { path: '/chat/logs', content: ({ children: { logs } }) => logs }
+    { path: `${CHAT_PAGE}`, content: ({ children: { chat } }) => chat },
+    { path: `${CHAT_PAGE}/logs`, content: ({ children: { logs } }) => logs }
   ]
 })
