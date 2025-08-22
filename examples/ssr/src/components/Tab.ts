@@ -2,14 +2,15 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
+import { CHAT_PAGE } from '@/utils'
 
 export default fics({
   name: 'tab',
   children: [Button()],
   data: () => ({
     tabs: [
-      { href: '/chat', text: 'Chat' },
-      { href: '/chat/logs', text: 'Logs' }
+      { href: CHAT_PAGE, text: 'Chat' },
+      { href: `${CHAT_PAGE}/logs`, text: 'Logs' }
     ],
     current: ''
   }),
