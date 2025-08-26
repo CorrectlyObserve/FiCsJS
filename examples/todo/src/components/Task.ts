@@ -196,12 +196,12 @@ export default fics<Data, { lang: Lang }>({
       const paramId = parseInt(dynamicPaths().id),
         queryId = parseInt(queries().id)
 
-      if (isNaN(paramId) && isNaN(queryId)) return goto('/404')
+      if (isNaN(paramId) && isNaN(queryId)) return goto('/404', true)
 
       const tasks: Task[] = await $tasks.get(),
         task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
 
-      if (!task) return goto('/404')
+      if (!task) return goto('/404', true)
       setData('task', task)
     },
     updated: { task: async ({ data: { task }, setData }) => setData('isError', task.title === '') }
