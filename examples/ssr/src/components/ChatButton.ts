@@ -1,4 +1,5 @@
 import { fics } from 'ficsjs'
+import { oklch } from 'ficsjs/style'
 import Icon from '@/components/materials/Icon'
 import { CHAT_PAGE } from '@/utils'
 import { MessageCircleMore } from 'lucide-static'
@@ -12,5 +13,5 @@ export default fics({
     values: () => ({ svg: MessageCircleMore, areaLabel: 'Go to the chat page', isLarge: true })
   },
   html: ({ children: { icon }, template }) => template`<a href="${CHAT_PAGE}">${icon}</a>`,
-  css: { ':host': { background: '#282828' } }
+  css: { ':host': { background: oklch('#282828') } }
 })
