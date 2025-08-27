@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
-import { goto } from 'ficsjs/router'
+import { ficsLink } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import { $lang } from '@/store'
 import type { Lang } from '@/types'
@@ -11,7 +11,7 @@ export default fics({
   data: () => ({ langs: ['en', 'ja'] as Lang[], lang: 'en' as Lang, isShown: false }),
   html: ({ data: { langs, lang, isShown }, template, show }) => template`
     <header>
-      <h1 tabindex="0">FiCs ToDo</h1>
+      <h1>${ficsLink({ href: '/', content: ({ template }) => template`FiCs ToDo` })}</h1>
       <div class="container">
         <button class="lang">${lang.toUpperCase()}</button>
         <div class="langs" ${show(isShown)}>
@@ -43,8 +43,7 @@ export default fics({
           background: cssVar('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
-          lineHeight: 1.5,
-          '&:focus': { opacity: 0.2 }
+          lineHeight: 1.5
         },
         'div.container': {
           ...absoluteCenter('y'),
@@ -65,7 +64,6 @@ export default fics({
   },
   hooks: { created: ({ setData }) => setData('lang', document.documentElement.lang as Lang) },
   actions: {
-    h1: { click: () => goto('/') },
     'button.lang': {
       click: [
         ({ data: { isShown }, setData }) => setData('isShown', !isShown),
