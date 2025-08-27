@@ -9,6 +9,7 @@ export default {
     transition: cssVar('transition'),
     '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } }
   },
+  ':host > a': { '&:hover': { opacity: 1 } },
   'h2, p, button, label, span': { color: white, textAlign: 'center' },
   h2: {
     fontSize: cssVar('lg'),
