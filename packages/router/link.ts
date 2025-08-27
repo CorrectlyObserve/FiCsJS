@@ -38,10 +38,13 @@ export default <P extends object>({
     ],
     actions: {
       ':host > a[href]': {
-        click: ({ event, attributes: { href } }) => {
-          event.preventDefault()
-          goto(href)
-        }
+        click: [
+          ({ event, attributes: { href } }) => {
+            event.preventDefault()
+            goto(href)
+          },
+          { blur: true }
+        ]
       },
       ...actions
     }
