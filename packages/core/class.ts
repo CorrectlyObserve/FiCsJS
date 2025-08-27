@@ -907,7 +907,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length)
           const _selector: string = hostCss.slice(lastIndex + 1)
 
-          _curr += `${selector}{${hostCssContent}}${_selector}${content.slice(index)}`
+          _curr += `${selector}{${hostCssContent}${hostCssContent.length > 0 ? ';' : ''}${_selector}${content.slice(index)}}`
         } else _curr += `${selector}{${content}}`
       }
 
