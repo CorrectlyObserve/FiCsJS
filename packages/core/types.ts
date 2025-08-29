@@ -130,6 +130,16 @@ export interface Options {
 
 export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
 
+export interface PartialWS {
+  send: (value: WSValue) => void
+  readyState: () => number
+  bufferedAmount: () => number
+  binaryType: () => BinaryType
+  url: () => string
+  protocol: () => string
+  extensions: () => string
+}
+
 interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
 }
@@ -145,7 +155,16 @@ export interface Props<D, P> {
   values: (
     params: Omit<DataPropsMethods<D, P, true>, 'getData'>
   ) =>
-    | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => unknown>
+    | Record<
+        string,
+        ({
+          getData,
+          sendToWebsocket
+        }: {
+          getData: DataPropsMethods<D, P>['getData']
+          sendToWebsocket?: ((value: WSValue) => PartialWS['send']) | undefined
+        }) => unknown
+      >
     | Record<string, unknown>
 }
 
@@ -235,13 +254,7 @@ export interface WS<D, P> {
 }
 
 export interface WSParams<D, P> extends DataPropsMethods<D, P, true> {
-  websocket: {
-    send: (value: string | Blob | ArrayBuffer | ArrayBufferView) => void
-    readyState: number
-    bufferedAmount: number
-    binaryType: BinaryType
-    url: string
-    protocol: string
-    extensions: string
-  }
+  websocket: PartialWS
 }
+
+export type WSValue = string | Blob | ArrayBuffer | ArrayBufferView
