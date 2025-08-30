@@ -32,6 +32,7 @@ import type {
   Method,
   Options,
   OptionParams,
+  PartialWS,
   PollingOptions,
   Props,
   PropsBinding,
@@ -45,7 +46,8 @@ import type {
   Style,
   Syntaxes,
   WS,
-  WSParams
+  WSParams,
+  WSValue
 } from './types'
 
 const ficsIdName = 'fics-id' as const
@@ -88,6 +90,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
+  #partialWebSocket?: PartialWS
   #poll?: ReturnType<typeof setTimeout>
 
   constructor({
@@ -229,6 +232,7 @@ export default class FiCsElement<D extends object, P extends object> {
       hooks: this.#hooks,
       options: this.#options,
       scroll: this.#scroll,
+      websocket: this.#ws,
       sse: this.#sse
     })
   }
@@ -352,13 +356,27 @@ export default class FiCsElement<D extends object, P extends object> {
             if (chain && key in chain && propsChain.has(instanceId)) continue
 
             if (checkType(value, 'function') && /getData/.test(value.toString())) {
-              const propsKeys: Record<string, true> = { [key]: true }
-              const _value: P[keyof P] = value({
-                getData: <K extends keyof D>(_key: K): D[K] => {
-                  if (key !== _key) propsKeys[_key as string] = true
-                  return this.getData(_key)
-                }
-              })
+              const propsKeys: Record<string, true> = { [key]: true },
+                _value: P[keyof P] = value({
+                  getData: <K extends keyof D>(_key: K): D[K] => {
+                    if (key !== _key) propsKeys[_key as string] = true
+                    return this.getData(_key)
+                  },
+                  sendToWebsocket: (value: WSValue): void | undefined => {
+                    const {
+                        send,
+                        readyState
+                      }: {
+                        send?: PartialWS['send']
+                        readyState?: PartialWS['readyState']
+                      } = this.#partialWebSocket ?? {},
+                      STATUS_OPEN: number = 1
+
+                    return send && readyState && readyState() === STATUS_OPEN
+                      ? send(value)
+                      : undefined
+                  }
+                })
 
               propsChain.set(instanceId, { ...chain, [key]: _value } as Partial<P>)
 
@@ -1100,27 +1118,30 @@ export default class FiCsElement<D extends object, P extends object> {
     if (isBlankObject(this.#ws)) return undefined
 
     const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws,
-      { protocol: _protocol, hostname }: { protocol: string; hostname: string } = window.location
+      { protocol: _protocol, host }: { protocol: string; host: string } = window.location
     let reconnectedCount: number = 0,
       reconnectedTimer: Timer | null = null
 
     const connect = (): WebSocket => {
       const ws: WebSocket = new WebSocket(
-          `${_protocol.replace('http', 'ws')}//${hostname}${path}`,
+          `${_protocol.replace('http', 'ws')}//${host}${path}`,
           protocols
         ),
+        websocket: PartialWS = {
+          send: ws.send.bind(ws),
+          readyState: () => ws.readyState,
+          bufferedAmount: () => ws.bufferedAmount,
+          binaryType: () => ws.binaryType,
+          url: () => ws.url,
+          protocol: () => ws.protocol,
+          extensions: () => ws.extensions
+        },
         params: () => Omit<WSParams<D, P>, 'event'> = () => ({
           ...this.#getDataPropsMethods(true),
-          websocket: {
-            send: ws.send.bind(ws),
-            readyState: ws.readyState,
-            bufferedAmount: ws.bufferedAmount,
-            binaryType: ws.binaryType,
-            url: ws.url,
-            protocol: ws.protocol,
-            extensions: ws.extensions
-          }
+          websocket
         })
+
+      this.#partialWebSocket = websocket
 
       ws.onopen = (event: Event): void => {
         reconnectedCount = 0
