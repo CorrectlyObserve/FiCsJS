@@ -90,7 +90,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
-  #partialWebSocket?: PartialWS
+  #partialWebSocket?: { send: PartialWS['send']; isOpened: () => boolean }
   #poll?: ReturnType<typeof setTimeout>
 
   constructor({
@@ -363,18 +363,12 @@ export default class FiCsElement<D extends object, P extends object> {
                     return this.getData(_key)
                   },
                   sendToWebsocket: (value: WSValue): void | undefined => {
-                    const {
-                        send,
-                        readyState
-                      }: {
-                        send?: PartialWS['send']
-                        readyState?: PartialWS['readyState']
-                      } = this.#partialWebSocket ?? {},
-                      STATUS_OPEN: number = 1
+                    if (!this.#partialWebSocket) return undefined
 
-                    return send && readyState && readyState() === STATUS_OPEN
-                      ? send(value)
-                      : undefined
+                    const { send, isOpened }: { send: PartialWS['send']; isOpened: () => boolean } =
+                      this.#partialWebSocket
+
+                    return isOpened() ? send(value) : undefined
                   }
                 })
 
@@ -1141,7 +1135,10 @@ export default class FiCsElement<D extends object, P extends object> {
           websocket
         })
 
-      this.#partialWebSocket = websocket
+      this.#partialWebSocket = {
+        send: websocket.send,
+        isOpened: () => ws.readyState === WebSocket.OPEN
+      }
 
       ws.onopen = (event: Event): void => {
         reconnectedCount = 0
