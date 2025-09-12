@@ -199,8 +199,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
 
-    if (!isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
-    if (!isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
+    if (hooks && !isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
+    if (actions && !isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
     if (scroll && !isBlankObject(scroll) && this.#isBrowser)
       this.#scroll = {
         ...scroll,
