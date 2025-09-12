@@ -70,7 +70,6 @@ export interface FiCs<D extends object, P extends object> {
   actions?: Actions<D, P>
   options?: OptionParams<D, P>
   scroll?: ScrollParams<D, P>
-  websocket?: WS<D, P>
 }
 
 export type GlobalCss = GlobalCssContent | string
@@ -107,12 +106,6 @@ export interface I18n {
   i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
-export type Listener = {
-  handler: string
-  callback: (event: MessageEvent) => void
-  type: 'ws' | 'sse'
-}
-
 export type Method<D, P> = (
   params: DataPropsMethods<D, P, true> & {
     event: Event
@@ -125,6 +118,15 @@ export interface Options<D, P> {
   ssr: boolean
   lazyLoad?: boolean
   rootMargin?: string
+  websocket?: {
+    path: string
+    protocols?: SingleOrArray<string>
+    reconnect?: { interval: number; max?: number; isExponential?: boolean }
+    onopen?: (params: WebSocketParams<D, P> & { event: Event }) => void
+    onmessage?: (params: WebSocketParams<D, P> & { event: MessageEvent }) => void
+    onerror?: (params: WebSocketParams<D, P> & { event: Event }) => void
+    onclose?: (params: WebSocketParams<D, P> & { event: CloseEvent }) => void
+  }
   sse?: {
     path: string
     withCredentials?: boolean
@@ -136,16 +138,6 @@ export interface Options<D, P> {
 }
 
 export type OptionParams<D, P> = Omit<Options<D, P>, 'ssr'> & { ssr?: boolean }
-
-export interface PartialWS {
-  send: (value: WSValue) => void
-  readyState: () => number
-  bufferedAmount: () => number
-  binaryType: () => BinaryType
-  url: () => string
-  protocol: () => string
-  extensions: () => string
-}
 
 interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
@@ -169,7 +161,7 @@ export interface Props<D, P> {
           sendToWebsocket
         }: {
           getData: DataPropsMethods<D, P>['getData']
-          sendToWebsocket?: ((value: WSValue) => PartialWS['send']) | undefined
+          sendToWebsocket?: SendToWebsocket | undefined
         }) => unknown
       >
     | Record<string, unknown>
@@ -217,6 +209,8 @@ interface ScrollParams<D, P> {
   method: (params: DataPropsMethods<D, P, true>) => void
 }
 
+export type SendToWebsocket = (value: WebSocketValue) => void
+
 export type SingleOrArray<T> = T | T[]
 
 export type SSEMethod<D, P> = (
@@ -241,18 +235,16 @@ export interface Syntaxes<D extends object, P extends object> {
   apiStatuses: Record<string, boolean>
 }
 
-export interface WS<D, P> {
-  path: string
-  protocols?: SingleOrArray<string>
-  reconnect?: { interval: number; max?: number; isExponential?: boolean }
-  onopen?: (params: WSParams<D, P> & { event: Event }) => void
-  onmessage?: (params: WSParams<D, P> & { event: MessageEvent }) => void
-  onerror?: (params: WSParams<D, P> & { event: Event }) => void
-  onclose?: (params: WSParams<D, P> & { event: CloseEvent }) => void
+export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
+  websocket: {
+    send: (value: WebSocketValue) => void
+    readyState: () => number
+    bufferedAmount: () => number
+    binaryType: () => BinaryType
+    url: () => string
+    protocol: () => string
+    extensions: () => string
+  }
 }
 
-export interface WSParams<D, P> extends DataPropsMethods<D, P, true> {
-  websocket: PartialWS
-}
-
-export type WSValue = string | Blob | ArrayBuffer | ArrayBufferView
+export type WebSocketValue = string | Blob | ArrayBuffer | ArrayBufferView
