@@ -41,7 +41,6 @@ import type {
   Sanitized,
   Scroll,
   SingleOrArray,
-  SSE,
   SSEMethod,
   Style,
   Syntaxes,
@@ -77,10 +76,14 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #css: Css<D, P>[] = new Array()
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
-  readonly #options: Options = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #options: Options<D, P> = {
+    ssr: true,
+    lazyLoad: false,
+    rootMargin: '0px',
+    sse: undefined
+  }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #ws: WS<D, P> = {} as WS<D, P>
-  readonly #sse: SSE<D, P> = {} as SSE<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
   readonly #ancestorIds: string[] = new Array()
@@ -112,8 +115,7 @@ export default class FiCsElement<D extends object, P extends object> {
     actions,
     options,
     scroll,
-    websocket,
-    sse
+    websocket
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
@@ -133,7 +135,7 @@ export default class FiCsElement<D extends object, P extends object> {
     propsMap.set(this.#instanceId, [])
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin }: OptionParams = options
+      const { ssr, lazyLoad, rootMargin, sse }: OptionParams<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -146,6 +148,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         this.#options.rootMargin = rootMargin
       }
+
+      if (sse && !isBlankObject(sse)) this.#options.sse = { ...sse }
     }
 
     if (children)
@@ -211,7 +215,6 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
     if (websocket && !isBlankObject(websocket) && this.#isBrowser) this.#ws = { ...websocket }
-    if (sse && !isBlankObject(sse) && this.#isBrowser) this.#sse = { ...sse }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -232,8 +235,7 @@ export default class FiCsElement<D extends object, P extends object> {
       hooks: this.#hooks,
       options: this.#options,
       scroll: this.#scroll,
-      websocket: this.#ws,
-      sse: this.#sse
+      websocket: this.#ws
     })
   }
 
@@ -1185,9 +1187,12 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #openEventSource(): { eventSource: EventSource; removeEventListeners: () => void } | undefined {
-    if (isBlankObject(this.#sse)) return undefined
+    const sse: Options<D, P>['sse'] | undefined = this.#options.sse
 
-    const { path, withCredentials, onopen, onmessage, onerror, actions }: SSE<D, P> = this.#sse,
+    if (!sse || isBlankObject(sse)) return undefined
+
+    const { path, withCredentials, onopen, onmessage, onerror, actions }: Options<D, P>['sse'] =
+        sse,
       eventSource: EventSource = new EventSource(path, { withCredentials }),
       params: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
       listeners: Listener[] = []
@@ -1266,7 +1271,7 @@ export default class FiCsElement<D extends object, P extends object> {
     browserError()
 
     const that: FiCsElement<D, P> = this
-    const { lazyLoad, rootMargin }: Options = that.#options
+    const { lazyLoad, rootMargin }: OptionParams<D, P> = that.#options
 
     window.customElements.define(
       that.#name,
