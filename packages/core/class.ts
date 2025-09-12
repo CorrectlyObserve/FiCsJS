@@ -28,11 +28,9 @@ import type {
   HtmlContent,
   Hooks,
   I18n,
-  Listener,
   Method,
   Options,
   OptionParams,
-  PartialWS,
   PollingOptions,
   Props,
   PropsBinding,
@@ -40,13 +38,13 @@ import type {
   Queue,
   Sanitized,
   Scroll,
+  SendToWebsocket,
   SingleOrArray,
   SSEMethod,
   Style,
   Syntaxes,
-  WS,
-  WSParams,
-  WSValue
+  WebSocketParams,
+  WebSocketValue
 } from './types'
 
 const ficsIdName = 'fics-id' as const
@@ -80,10 +78,10 @@ export default class FiCsElement<D extends object, P extends object> {
     ssr: true,
     lazyLoad: false,
     rootMargin: '0px',
+    websocket: undefined,
     sse: undefined
   }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
-  readonly #ws: WS<D, P> = {} as WS<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #propsChain: PropsChain<P> = new Map()
   readonly #ancestorIds: string[] = new Array()
@@ -93,7 +91,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
-  #partialWebSocket?: { send: PartialWS['send']; isOpened: () => boolean }
+  #websocket?: { send: SendToWebsocket; isOpened: () => boolean }
   #poll?: ReturnType<typeof setTimeout>
 
   constructor({
@@ -114,8 +112,7 @@ export default class FiCsElement<D extends object, P extends object> {
     hooks,
     actions,
     options,
-    scroll,
-    websocket
+    scroll
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name cannot be empty....')
@@ -134,8 +131,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     propsMap.set(this.#instanceId, [])
 
+    this.#isBrowser = isBrowser()
+
     if (options) {
-      const { ssr, lazyLoad, rootMargin, sse }: OptionParams<D, P> = options
+      const { ssr, lazyLoad, rootMargin, websocket, sse }: OptionParams<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -149,15 +148,15 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#options.rootMargin = rootMargin
       }
 
-      if (sse && !isBlankObject(sse)) this.#options.sse = { ...sse }
+      if (websocket && !isBlankObject(websocket) && this.#isBrowser)
+        this.#options.websocket = { ...websocket }
+      if (sse && !isBlankObject(sse) && this.#isBrowser) this.#options.sse = { ...sse }
     }
 
     if (children)
       for (const child of children)
         this.#children[child.#nameKey] =
           convertStr(child.#nameKey, 'kebab') === child.#name.slice(2) ? child.#clone() : child
-
-    this.#isBrowser = isBrowser()
 
     if (data) {
       let attrData: Partial<D> = {}
@@ -213,8 +212,6 @@ export default class FiCsElement<D extends object, P extends object> {
         elementHeights: new Map(),
         prevTotalHeight: NaN
       }
-
-    if (websocket && !isBlankObject(websocket) && this.#isBrowser) this.#ws = { ...websocket }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -234,8 +231,7 @@ export default class FiCsElement<D extends object, P extends object> {
       actions: this.#actions,
       hooks: this.#hooks,
       options: this.#options,
-      scroll: this.#scroll,
-      websocket: this.#ws
+      scroll: this.#scroll
     })
   }
 
@@ -364,11 +360,11 @@ export default class FiCsElement<D extends object, P extends object> {
                     if (key !== _key) propsKeys[_key as string] = true
                     return this.getData(_key)
                   },
-                  sendToWebsocket: (value: WSValue): void | undefined => {
-                    if (!this.#partialWebSocket) return undefined
+                  sendToWebsocket: (value: WebSocketValue): void | undefined => {
+                    if (!this.#websocket) return undefined
 
-                    const { send, isOpened }: { send: PartialWS['send']; isOpened: () => boolean } =
-                      this.#partialWebSocket
+                    const { send, isOpened }: { send: SendToWebsocket; isOpened: () => boolean } =
+                      this.#websocket
 
                     return isOpened() ? send(value) : undefined
                   }
@@ -1111,39 +1107,50 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #openWebSocket(): WebSocket | undefined {
-    if (isBlankObject(this.#ws)) return undefined
+    const websocket: Options<D, P>['websocket'] | undefined = this.#options.websocket
 
-    const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WS<D, P> = this.#ws,
+    if (!websocket || isBlankObject(websocket)) return undefined
+
+    const {
+        path,
+        protocols,
+        reconnect,
+        onopen,
+        onmessage,
+        onerror,
+        onclose
+      }: Options<D, P>['websocket'] = websocket,
       { protocol: _protocol, host }: { protocol: string; host: string } = window.location
+
     let reconnectedCount: number = 0,
       reconnectedTimer: Timer | null = null
 
     const connect = (): WebSocket => {
-      const ws: WebSocket = new WebSocket(
-          `${_protocol.replace('http', 'ws')}//${host}${path}`,
+      const _websocket: WebSocket = new WebSocket(
+          `${_protocol.replace('http', '_websocket')}//${host}${path}`,
           protocols
         ),
-        websocket: PartialWS = {
-          send: ws.send.bind(ws),
-          readyState: () => ws.readyState,
-          bufferedAmount: () => ws.bufferedAmount,
-          binaryType: () => ws.binaryType,
-          url: () => ws.url,
-          protocol: () => ws.protocol,
-          extensions: () => ws.extensions
-        },
-        params: () => Omit<WSParams<D, P>, 'event'> = () => ({
+        params: () => Omit<WebSocketParams<D, P>, 'event'> = () => ({
           ...this.#getDataPropsMethods(true),
-          websocket
+          websocket: {
+            send: _websocket.send.bind(_websocket),
+            readyState: () => _websocket.readyState,
+            bufferedAmount: () => _websocket.bufferedAmount,
+            binaryType: () => _websocket.binaryType,
+            url: () => _websocket.url,
+            protocol: () => _websocket.protocol,
+            extensions: () => _websocket.extensions
+          }
         })
 
-      this.#partialWebSocket = {
-        send: websocket.send,
-        isOpened: () => ws.readyState === WebSocket.OPEN
+      this.#websocket = {
+        send: _websocket.send.bind(_websocket),
+        isOpened: () => _websocket.readyState === WebSocket.OPEN
       }
 
-      ws.onopen = (event: Event): void => {
+      _websocket.onopen = (event: Event): void => {
         reconnectedCount = 0
+
         if (reconnectedTimer) {
           clearTimeout(reconnectedTimer)
           reconnectedTimer = null
@@ -1151,14 +1158,18 @@ export default class FiCsElement<D extends object, P extends object> {
 
         onopen?.({ ...params(), event })
       }
-      ws.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
+      _websocket.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
 
-      const tryReconnecting = (): void => {
+      const autoReconnect = (): void => {
         if (reconnect && !reconnectedTimer) {
-          const { interval, max, isExponential }: WS<D, P>['reconnect'] = reconnect
+          const {
+            interval,
+            max,
+            isExponential
+          }: NonNullable<Options<D, P>['websocket']>['reconnect'] = reconnect
 
           if ((max && reconnectedCount < max) || !max) {
-            ws.close()
+            _websocket.close()
 
             reconnectedTimer = setTimeout(
               () => {
@@ -1171,16 +1182,16 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      ws.onerror = (event: Event): void => {
+      _websocket.onerror = (event: Event): void => {
         onerror?.({ ...params(), event })
-        tryReconnecting()
+        autoReconnect()
       }
-      ws.onclose = (event: CloseEvent): void => {
+      _websocket.onclose = (event: CloseEvent): void => {
         onclose?.({ ...params(), event })
-        tryReconnecting()
+        autoReconnect()
       }
 
-      return ws
+      return _websocket
     }
 
     return connect()
@@ -1195,7 +1206,7 @@ export default class FiCsElement<D extends object, P extends object> {
         sse,
       eventSource: EventSource = new EventSource(path, { withCredentials }),
       params: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
-      listeners: Listener[] = []
+      listeners: { handler: string; callback: (event: MessageEvent) => void }[] = []
 
     eventSource.onopen = (event: Event): void => onopen?.({ ...params, event })
     eventSource.onmessage = (event: MessageEvent): void => onmessage?.({ ...params, event })
@@ -1213,14 +1224,14 @@ export default class FiCsElement<D extends object, P extends object> {
           'Both "debounce" and "throttle" options cannot be specified at the same time...'
         )
 
-      let callback: Listener['callback'] = (event: MessageEvent): void =>
+      let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
         method({ ...this.#getDataPropsMethods(true), event })
 
       if (debounce) callback = this.#debounce(callback, debounce)
       else if (throttle) callback = this.#throttle(callback, throttle)
 
       eventSource.addEventListener(handler, callback, { once })
-      listeners.push({ handler, callback, type: 'sse' })
+      listeners.push({ handler, callback })
     }
 
     for (const [handler, method] of Object.entries(actions))
@@ -1278,7 +1289,7 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
-        #ws?: WebSocket
+        #websocket?: WebSocket
         #eventSource?: EventSource
         #removeEventListeners?: () => void
 
@@ -1344,9 +1355,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#infiniteVirtualScroll(this.#shadowRoot)
 
-            this.#ws = that.#openWebSocket()
-            this.#eventSource = that.#openEventSource()?.eventSource
-            this.#removeEventListeners = that.#openEventSource()?.removeEventListeners
+            this.#websocket = that.#openWebSocket()
+
+            const {
+              eventSource,
+              removeEventListeners
+            }: { eventSource?: EventSource; removeEventListeners?: () => void } =
+              that.#openEventSource() || {}
+
+            if (eventSource) this.#eventSource = eventSource
+            if (removeEventListeners) this.#removeEventListeners = removeEventListeners
 
             that.#callback('mounted')
             this.#isRendered = true
@@ -1359,7 +1377,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#poll = undefined
           }
 
-          this.#ws?.close()
+          this.#websocket?.close()
           this.#eventSource?.close()
           this.#removeEventListeners?.()
 
