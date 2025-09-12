@@ -68,10 +68,9 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
-  options?: OptionParams
+  options?: OptionParams<D, P>
   scroll?: ScrollParams<D, P>
   websocket?: WS<D, P>
-  sse?: SSE<D, P>
 }
 
 export type GlobalCss = GlobalCssContent | string
@@ -122,13 +121,21 @@ export type Method<D, P> = (
   }
 ) => void
 
-export interface Options {
+export interface Options<D, P> {
   ssr: boolean
   lazyLoad?: boolean
   rootMargin?: string
+  sse?: {
+    path: string
+    withCredentials?: boolean
+    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    onmessage?: SSEMethod<D, P>
+    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+  }
 }
 
-export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
+export type OptionParams<D, P> = Omit<Options<D, P>, 'ssr'> & { ssr?: boolean }
 
 export interface PartialWS {
   send: (value: WSValue) => void
@@ -211,15 +218,6 @@ interface ScrollParams<D, P> {
 }
 
 export type SingleOrArray<T> = T | T[]
-
-export interface SSE<D, P> {
-  path: string
-  withCredentials?: boolean
-  onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
-  onmessage?: SSEMethod<D, P>
-  onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
-  actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
-}
 
 export type SSEMethod<D, P> = (
   params: DataPropsMethods<D, P, true> & { event: MessageEvent }
