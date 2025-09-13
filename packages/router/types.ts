@@ -39,7 +39,7 @@ export interface FiCsRouter<D extends object> {
   pages: Page<D>[]
   notFound?: PageContent<D>
   css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
-  options?: OptionParams
+  options?: OptionParams<RouterData<D>, {}>
 }
 
 export interface Page<D extends object> extends PageContent<D> {
