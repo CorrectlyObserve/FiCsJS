@@ -15,9 +15,7 @@ export default <D extends object, P extends object>({
   hooks,
   actions,
   options,
-  scroll,
-  websocket,
-  sse
+  scroll
 }: Omit<FiCs<D, P>, Excluded>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
@@ -33,7 +31,5 @@ export default <D extends object, P extends object>({
     hooks,
     actions,
     options,
-    scroll,
-    websocket,
-    sse
+    scroll
   })
