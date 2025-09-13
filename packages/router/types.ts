@@ -6,6 +6,7 @@ import type {
   CssContent,
   DataPropsMethods,
   Descendant,
+  Hooks,
   OptionParams,
   Props,
   Sanitized,
@@ -39,6 +40,7 @@ export interface FiCsRouter<D extends object> {
   pages: Page<D>[]
   notFound?: PageContent<D>
   css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
+  hooks?: Hooks<RouterData<D>, {}>
   options?: OptionParams<RouterData<D>, {}>
 }
 
