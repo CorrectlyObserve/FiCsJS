@@ -26,6 +26,7 @@ export default <D extends object>({
   pages,
   notFound,
   css,
+  hooks,
   options
 }: FiCsRouter<D>): FiCsElement<RouterData<D>, {}> =>
   new FiCsElement<RouterData<D>, {}>({
@@ -117,8 +118,13 @@ export default <D extends object>({
     },
     css,
     hooks: {
-      created: ({ setData }) => setRouterData(setData, window.location.pathname),
-      mounted: ({ setData }) => {
+      created: ({ data, setData, getData, crud }) => {
+        hooks?.created?.({ data, props: {}, setData, getData, crud })
+        setRouterData(setData, window.location.pathname)
+      },
+      mounted: ({ data, setData, getData, crud, poll }) => {
+        hooks?.mounted?.({ data, props: {}, setData, getData, crud, poll })
+
         window.addEventListener('popstate', () => setRouterData(setData, window.location.pathname))
         window.addEventListener('fics:navigate', (event: Event) => {
           const {
@@ -128,7 +134,10 @@ export default <D extends object>({
 
           setRouterData(setData, pathname)
         })
-      }
+      },
+      updated: hooks?.updated,
+      destroyed: hooks?.destroyed,
+      adopted: hooks?.adopted
     },
     options
   })
