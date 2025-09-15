@@ -391,8 +391,8 @@ export default class FiCsElement<D extends object, P extends object> {
                 propsBindings[index].numberId >= newBinding.numberId
 
               if (last > 2) {
-                let min: number = 0
-                let max: number = last
+                let min: number = 0,
+                  max: number = last
 
                 while (min <= max) {
                   const mid: number = Math.floor((min + max) / 2)
@@ -720,14 +720,14 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        let oldStartIndex: number = 0
-        let oldEndIndex: number = oldChildNodes.length - 1
-        let oldStartNode: ChildNode = oldChildNodes[oldStartIndex]
-        let oldEndNode: ChildNode = oldChildNodes[oldEndIndex]
-        let newStartIndex: number = 0
-        let newEndIndex: number = newChildNodes.length - 1
-        let newStartNode: ChildNode = newChildNodes[newStartIndex]
-        let newEndNode: ChildNode = newChildNodes[newEndIndex]
+        let oldStartIndex: number = 0,
+          oldEndIndex: number = oldChildNodes.length - 1,
+          oldStartNode: ChildNode = oldChildNodes[oldStartIndex],
+          oldEndNode: ChildNode = oldChildNodes[oldEndIndex],
+          newStartIndex: number = 0,
+          newEndIndex: number = newChildNodes.length - 1,
+          newStartNode: ChildNode = newChildNodes[newStartIndex],
+          newEndNode: ChildNode = newChildNodes[newEndIndex]
         const keys: Record<string, true> = {}
 
         for (const newChildNode of newChildNodes) {
@@ -830,8 +830,8 @@ export default class FiCsElement<D extends object, P extends object> {
               const key: string | number | null = _getKey(newStartNode)
 
               if (checkType(key, 'number')) {
-                let _oldStartIndex: number = oldStartIndex
-                let reference: Element | null = null
+                let _oldStartIndex: number = oldStartIndex,
+                  reference: Element | null = null
 
                 while (_oldStartIndex <= oldEndIndex) {
                   const childNode = oldChildNodes[_oldStartIndex++]
@@ -1509,8 +1509,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
 
-          let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`
-          let remaining: string = prev.slice(styleIndex + styleAttr.length)
+          let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`,
+            remaining: string = prev.slice(styleIndex + styleAttr.length)
           const endIndex: number = remaining.indexOf('"')
 
           if (endIndex < 0) throw new Error('The style attribute is not closed...')
