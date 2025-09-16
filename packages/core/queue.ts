@@ -8,6 +8,7 @@ const ids: Map<string, true> = new Map(),
     if (queue.key !== 'define') ids.delete(getQueueId(queue))
   },
   queues: Queue[] = new Array()
+
 let isProcessing: boolean = false
 
 export const enqueue = (queue: Queue): void => {
