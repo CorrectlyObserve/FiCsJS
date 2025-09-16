@@ -47,12 +47,12 @@ import type {
   WebSocketValue
 } from './types'
 
-const ficsIdName = 'fics-id' as const
-const generator: Generator<number> = uid()
-const nameGenerators: Map<string, Generator<number>> = new Map()
-const names: Map<string, number> = new Map()
-const propsMap: Map<string, PropsBinding[]> = new Map()
-const varTag = 'f-var' as const
+const ficsIdName = 'fics-id' as const,
+  generator: Generator<number> = uid(),
+  nameGenerators: Map<string, Generator<number>> = new Map(),
+  names: Map<string, number> = new Map(),
+  propsMap: Map<string, PropsBinding[]> = new Map(),
+  varTag = 'f-var' as const
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
@@ -374,21 +374,21 @@ export default class FiCsElement<D extends object, P extends object> {
 
               if (checkType(_value, 'function')) continue
 
-              const propsBindings: PropsBinding[] = this.#getPropsBindings()
-              const last: number = propsBindings.length - 1
-              const start: number = instanceId.indexOf(ficsIdName) + ficsIdName.length
-              const end: number = instanceId.indexOf('-', start)
-              const newBinding: PropsBinding = {
-                instanceId,
-                numberId: parseInt(instanceId.slice(start, end === -1 ? undefined : end)),
-                propsKeys,
-                propsKey: key,
-                propsValue: () =>
-                  value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) }),
-                setProps: (value: unknown) => _descendant.#setProps(key, value)
-              }
-              const isLargerNumberId = (index: number): boolean =>
-                propsBindings[index].numberId >= newBinding.numberId
+              const propsBindings: PropsBinding[] = this.#getPropsBindings(),
+                last: number = propsBindings.length - 1,
+                start: number = instanceId.indexOf(ficsIdName) + ficsIdName.length,
+                end: number = instanceId.indexOf('-', start),
+                newBinding: PropsBinding = {
+                  instanceId,
+                  numberId: parseInt(instanceId.slice(start, end === -1 ? undefined : end)),
+                  propsKeys,
+                  propsKey: key,
+                  propsValue: () =>
+                    value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) }),
+                  setProps: (value: unknown) => _descendant.#setProps(key, value)
+                },
+                isLargerNumberId = (index: number): boolean =>
+                  propsBindings[index].numberId >= newBinding.numberId
 
               if (last > 2) {
                 let min: number = 0,
@@ -440,49 +440,50 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   get #template(): string {
-    const sanitized: unique symbol = Symbol(`${this.#instanceId}-sanitized`)
-    const unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`)
+    const sanitized: unique symbol = Symbol(`${this.#instanceId}-sanitized`),
+      unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`),
+      convertTemplate = (
+        strings: TemplateStringsArray,
+        variables: (HtmlContent<D, P> | unknown)[]
+      ): HtmlContent<D, P>[] => {
+        const converted: HtmlContent<D, P>[] = new Array(),
+          isSymbol = (variable: unknown, symbol: symbol): boolean =>
+            !!(variable && checkType(variable, 'object') && symbol in variable),
+          sanitize = (index: number, template: string, variable: unknown): void => {
+            if (isSymbol(variable, sanitized))
+              converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
+            else if (Array.isArray(variable)) {
+              converted.push(template)
+              for (const child of variable) sanitize(index, '', child)
+            } else if (isSymbol(variable, unsanitized))
+              converted.push(template, (variable as Record<symbol, string>)[unsanitized])
+            else {
+              if (template !== '') converted.push(template)
 
-    const convertTemplate = (
-      strings: TemplateStringsArray,
-      variables: (HtmlContent<D, P> | unknown)[]
-    ): HtmlContent<D, P>[] => {
-      const isSymbol = (variable: unknown, symbol: symbol): boolean =>
-        !!(variable && checkType(variable, 'object') && symbol in variable)
-      const converted: HtmlContent<D, P>[] = new Array()
+              variable = checkType(variable, 'string')
+                ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+                : (variable ?? '')
 
-      const sanitize = (index: number, template: string, variable: unknown): void => {
-        if (isSymbol(variable, sanitized))
-          converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
-        else if (Array.isArray(variable)) {
-          converted.push(template)
-          for (const child of variable) sanitize(index, '', child)
-        } else if (isSymbol(variable, unsanitized))
-          converted.push(template, (variable as Record<symbol, string>)[unsanitized])
-        else {
-          if (template !== '') converted.push(template)
+              if (variable !== '') converted.push(variable as HtmlContent<D, P>)
+            }
+          }
 
-          variable = checkType(variable, 'string')
-            ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-            : (variable ?? '')
+        for (const [index, template] of strings.entries())
+          sanitize(index, template, variables[index])
 
-          if (variable !== '') converted.push(variable as HtmlContent<D, P>)
-        }
+        return converted as HtmlContent<D, P>[]
       }
-
-      for (const [index, template] of strings.entries()) sanitize(index, template, variables[index])
-
-      return converted as HtmlContent<D, P>[]
-    }
 
     for (const child of Object.values(this.#children))
       child.setIndividualProps = (key: string, props: P): FiCsElement<D, P> => {
-        const instanceId: string = `${child.#instanceId}-${key}`
-        const clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId)
-        const cloneProps = (descendant: Descendant): Descendant => {
-          for (const [key, value] of Object.entries({ ...props })) descendant.#setProps(key, value)
-          return descendant
-        }
+        const instanceId: string = `${child.#instanceId}-${key}`,
+          clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
+          cloneProps = (descendant: Descendant): Descendant => {
+            for (const [key, value] of Object.entries({ ...props }))
+              descendant.#setProps(key, value)
+
+            return descendant
+          }
 
         if (clonedSelf) return cloneProps(clonedSelf)
 
@@ -502,11 +503,11 @@ export default class FiCsElement<D extends object, P extends object> {
         return cloneRecursively(child, instanceId)
       }
 
-    const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods()
-    const template: Syntaxes<D, P>['template'] = (
-      strings: TemplateStringsArray,
-      ...variables: (HtmlContent<D, P> | unknown)[]
-    ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+    const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods(),
+      template: Syntaxes<D, P>['template'] = (
+        strings: TemplateStringsArray,
+        ...variables: (HtmlContent<D, P> | unknown)[]
+      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
 
     const contents: HtmlContent<D, P>[] = this.#html({
       children: this.#children,
@@ -533,8 +534,8 @@ export default class FiCsElement<D extends object, P extends object> {
         numberError({ unit, elementMinHeight })
         if (buffer) numberError({ buffer }, false)
 
-        const height: number = elementMinHeight * (end - start + (buffer ?? 0))
-        const endIndex: number = Array.isArray(array) ? array.length : end
+        const height: number = elementMinHeight * (end - start + (buffer ?? 0)),
+          endIndex: number = Array.isArray(array) ? array.length : end
 
         return template`
           <div id="${id}" style="height:${height}px; overflow-y:auto;">
@@ -594,12 +595,12 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #buildHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
-    const isText = (childNode: ChildNode): childNode is Text => childNode instanceof Text
-    const isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element
-    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot)
-    const newChildNodes: ChildNode[] = this.#getChildNodes(
-      document.createRange().createContextualFragment(this.#template)
-    )
+    const isText = (childNode: ChildNode): childNode is Text => childNode instanceof Text,
+      isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element,
+      oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot),
+      newChildNodes: ChildNode[] = this.#getChildNodes(
+        document.createRange().createContextualFragment(this.#template)
+      )
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -678,9 +679,9 @@ export default class FiCsElement<D extends object, P extends object> {
         )
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
-          const oldAttrs: NamedNodeMap = oldChildNode.attributes
-          const newAttrs: NamedNodeMap = newChildNode.attributes
-          const oldAttrList: Record<string, string> = {}
+          const oldAttrs: NamedNodeMap = oldChildNode.attributes,
+            newAttrs: NamedNodeMap = newChildNode.attributes,
+            oldAttrList: Record<string, string> = {}
 
           for (let index = 0; index < oldAttrs.length; index++) {
             const { name, value }: { name: string; value: string } = oldAttrs[index]
@@ -728,13 +729,14 @@ export default class FiCsElement<D extends object, P extends object> {
           newEndIndex: number = newChildNodes.length - 1,
           newStartNode: ChildNode = newChildNodes[newStartIndex],
           newEndNode: ChildNode = newChildNodes[newEndIndex]
+
         const keys: Record<string, true> = {}
 
         for (const newChildNode of newChildNodes) {
           if (!isElement(newChildNode)) continue
 
-          const { localName }: { localName: string } = newChildNode
-          const key: string = getKey(newChildNode) ?? localName
+          const { localName }: { localName: string } = newChildNode,
+            key: string = getKey(newChildNode) ?? localName
 
           if (keys[key])
             console.warn(
@@ -746,8 +748,8 @@ export default class FiCsElement<D extends object, P extends object> {
           else keys[key] = true
         }
 
-        const dom: Map<string, ChildNode[]> = new Map()
-        const keyChildNodes: Map<string, ChildNode> = new Map()
+        const dom: Map<string, ChildNode[]> = new Map(),
+          keyChildNodes: Map<string, ChildNode> = new Map()
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
           if (isElement(childNode)) that.#newElements.add(childNode)
@@ -775,8 +777,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         const getMapKey = (childNode: ChildNode): string => {
-          const { nodeName }: { nodeName: string } = childNode
-          const key: string | null = isElement(childNode) ? getKey(childNode) : null
+          const { nodeName }: { nodeName: string } = childNode,
+            key: string | null = isElement(childNode) ? getKey(childNode) : null
 
           return key ? `${nodeName}-${key}` : nodeName
         }
@@ -908,14 +910,14 @@ export default class FiCsElement<D extends object, P extends object> {
         if (mode === 'ssr' && selector.startsWith(':host'))
           selector = selector.replace(':host', this.#name)
 
-        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style)
-        const index: number = content.indexOf('{')
+        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
+          index: number = content.indexOf('{')
 
         if (selector.startsWith(':host') && index > -1) {
-          const hostCss: string = content.slice(0, index)
-          const lastIndex: number = hostCss.lastIndexOf(';')
-          const hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length)
-          const _selector: string = hostCss.slice(lastIndex + 1)
+          const hostCss: string = content.slice(0, index),
+            lastIndex: number = hostCss.lastIndexOf(';'),
+            hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length),
+            _selector: string = hostCss.slice(lastIndex + 1)
 
           _curr += `${selector}{${hostCssContent}${hostCssContent.length > 0 ? ';' : ''}${_selector}${content.slice(index)}}`
         } else _curr += `${selector}{${content}}`
@@ -1055,12 +1057,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
     if (this.#scroll.isEnabled === false) {
-      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#scroll
-      const _trigger: boolean | undefined = trigger?.({ data: this.#data })
+      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#scroll,
+        _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
       if (checkType(_trigger, 'undefined') || _trigger) {
         const root: HTMLElement | null = shadowRoot.getElementById(id)
-
         if (!root) throw new Error(`The "${id}" is not found in the shadowRoot of ${this.#name}...`)
 
         this.#addEventListener(root, [
@@ -1068,9 +1069,9 @@ export default class FiCsElement<D extends object, P extends object> {
             'scroll',
             [
               ({ event }) => {
-                const target = event.target as HTMLElement
+                const target = event.target as HTMLElement,
+                  { scrollTop, scrollHeight, clientHeight } = target
 
-                const { scrollTop, scrollHeight, clientHeight } = target
                 console.log(scrollTop, scrollHeight, clientHeight)
               },
               { throttle: throttle ?? 0 }
@@ -1281,8 +1282,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #define(): void {
     browserError()
 
-    const that: FiCsElement<D, P> = this
-    const { lazyLoad, rootMargin }: OptionParams<D, P> = that.#options
+    const that: FiCsElement<D, P> = this,
+      { lazyLoad, rootMargin }: OptionParams<D, P> = that.#options
 
     window.customElements.define(
       that.#name,
@@ -1396,8 +1397,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!component) return
 
-    const { isClassName, isAttr, css }: Bindings = this.#bindings
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+    const { isClassName, isAttr, css }: Bindings = this.#bindings,
+      shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
     if (this.#i18nData)
       for (const [key, value] of Object.entries(
@@ -1464,26 +1465,25 @@ export default class FiCsElement<D extends object, P extends object> {
       that.#initProps(propsChain, ancestorIds)
 
       if (that.#options.ssr) {
-        const className: string = that.#classNames ? `class="${that.#computedClassName}"` : ''
-        const value: string = `${className} ${that.#computedAttrs.reduce(
-          (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
-          ''
-        )}`.trim()
-        const attrs = (name: string): string =>
-          `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
+        const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
+          value: string = `${className} ${that.#computedAttrs.reduce(
+            (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
+            ''
+          )}`.trim(),
+          attrs = (name: string): string =>
+            `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
 
         const applyDescendant = (html: string): string => {
-          const varBegin: string = `<${varTag} ${ficsIdName}="`
-          const varEnd: string = `"></${varTag}>`
-
-          const varBeginIndex: number = html.indexOf(varBegin)
-          const varEndIndex: number = html.indexOf(varEnd)
+          const varBegin: string = `<${varTag} ${ficsIdName}="`,
+            varEnd: string = `"></${varTag}>`,
+            varBeginIndex: number = html.indexOf(varBegin),
+            varEndIndex: number = html.indexOf(varEnd)
 
           if (varBeginIndex < 0 || varEndIndex < 0) return html
 
-          const prev: string = html.slice(0, varBeginIndex)
-          const next: string = applyDescendant(html.slice(varEndIndex + varEnd.length))
-          const instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
+          const prev: string = html.slice(0, varBeginIndex),
+            next: string = applyDescendant(html.slice(varEndIndex + varEnd.length)),
+            instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
 
           if (!(instanceId in that.#childrenStore))
             throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
@@ -1495,22 +1495,24 @@ export default class FiCsElement<D extends object, P extends object> {
           const showAttrIndex: number = html.indexOf(that.#showAttr)
           if (showAttrIndex < 0) return html
 
-          const openIndex: number = html.indexOf('<', showAttrIndex)
-          const closeIndex: number = html.indexOf('>', showAttrIndex)
-          const prev: string = html.slice(0, showAttrIndex)
+          const openIndex: number = html.indexOf('<', showAttrIndex),
+            closeIndex: number = html.indexOf('>', showAttrIndex),
+            prev: string = html.slice(0, showAttrIndex)
+
           let next: string = applyShowAttr(html.slice(showAttrIndex + that.#showAttr.length))
 
           if (openIndex > 0 && openIndex < closeIndex) return `${prev}${that.#showAttr}${next}`
 
-          const styleAttr: string = 'style="'
-          const styleIndex: number = prev.lastIndexOf(styleAttr)
-          const displayKey: string = 'display:'
-          const displayNone: string = `${displayKey}none`
+          const styleAttr: string = 'style="',
+            styleIndex: number = prev.lastIndexOf(styleAttr),
+            displayKey: string = 'display:',
+            displayNone: string = `${displayKey}none`
 
           if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
 
           let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`,
             remaining: string = prev.slice(styleIndex + styleAttr.length)
+
           const endIndex: number = remaining.indexOf('"')
 
           if (endIndex < 0) throw new Error('The style attribute is not closed...')
@@ -1531,10 +1533,10 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         const html: string = applyShowAttr(
-          applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
-        )
-        const css = (_css: Css<D, P>[]): string =>
-          _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
+            applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
+          ),
+          css = (_css: Css<D, P>[]): string =>
+            _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
         return `
           <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
