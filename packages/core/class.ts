@@ -824,12 +824,12 @@ export default class FiCsElement<D extends object, P extends object> {
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
             } else if (isElement(newStartNode)) {
               const _getKey = (element: Element): string | number | null => {
-                let key: string | number | null = getKey(element)
-                if (key && !isNaN(parseInt(key))) key = parseInt(key)
+                  let key: string | number | null = getKey(element)
+                  if (key && !isNaN(parseInt(key))) key = parseInt(key)
 
-                return key
-              }
-              const key: string | number | null = _getKey(newStartNode)
+                  return key
+                },
+                key: string | number | null = _getKey(newStartNode)
 
               if (checkType(key, 'number')) {
                 let _oldStartIndex: number = oldStartIndex,
