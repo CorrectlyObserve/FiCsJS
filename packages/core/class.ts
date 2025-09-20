@@ -825,8 +825,8 @@ export default class FiCsElement<D extends object, P extends object> {
             } else if (isElement(newStartNode)) {
               const _getKey = (element: Element): string | number | null => {
                   let key: string | number | null = getKey(element)
-                  if (key && !isNaN(parseInt(key))) key = parseInt(key)
 
+                  if (key && !isNaN(parseInt(key))) key = parseInt(key)
                   return key
                 },
                 key: string | number | null = _getKey(newStartNode)
