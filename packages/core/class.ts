@@ -682,7 +682,9 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const oldAttrs: NamedNodeMap = oldChildNode.attributes,
             newAttrs: NamedNodeMap = newChildNode.attributes,
-            oldAttrList: Record<string, string> = {}
+            oldAttrList: Record<string, string> = {},
+            isTextarea = (childNode: ChildNode): childNode is HTMLTextAreaElement =>
+              isHTMLElement(childNode) && childNode.localName === 'textarea'
 
           for (let index = 0; index < oldAttrs.length; index++) {
             const { name, value }: { name: string; value: string } = oldAttrs[index]
@@ -708,6 +710,9 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const name in oldAttrList)
             if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
             else oldChildNode.removeAttributeNS(namespaceURI, name)
+
+          if (isTextarea(oldChildNode) && isTextarea(newChildNode))
+            oldChildNode.value = newChildNode.value
 
           updateChildNodes(
             oldChildNode,
