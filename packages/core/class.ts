@@ -659,9 +659,10 @@ export default class FiCsElement<D extends object, P extends object> {
       let { activeElement }: { activeElement: Element | null } = shadowRoot
 
       const isSameNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean =>
-        oldChildNode.nodeName === newChildNode.nodeName
-
-      const getKey = (element: Element): string | null => element.getAttribute('key')
+          oldChildNode.nodeName === newChildNode.nodeName,
+        isHTMLElement = (childNode: ChildNode): childNode is HTMLElement =>
+          childNode instanceof HTMLElement,
+        getKey = (element: Element): string | null => element.getAttribute('key')
 
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
         const _isSameNode: boolean = isSameNode(oldChildNode, newChildNode)
@@ -694,7 +695,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const { name, value }: { name: string; value: string } = newAttrs[index]
 
             if (oldAttrList[name] !== value) {
-              if (oldChildNode instanceof HTMLElement) {
+              if (isHTMLElement(oldChildNode)) {
                 oldChildNode.setAttribute(name, value)
 
                 if (name !== ficsIdName) that.#setProperty(oldChildNode, name, value)
@@ -705,7 +706,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           for (const name in oldAttrList)
-            if (oldChildNode instanceof HTMLElement) oldChildNode.removeAttribute(name)
+            if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
             else oldChildNode.removeAttributeNS(namespaceURI, name)
 
           updateChildNodes(
@@ -763,7 +764,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const focusNode = (childNode: ChildNode): void => {
           if (
             activeElement &&
-            childNode instanceof HTMLElement &&
+            isHTMLElement(childNode) &&
             matchChildNode(childNode, activeElement)
           ) {
             activeElement = null
@@ -1112,6 +1113,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!websocket || isBlankObject(websocket)) return undefined
 
+    let reconnectedCount: number = 0,
+      reconnectedTimer: Timer | null = null
+
     const {
         path,
         protocols,
@@ -1121,79 +1125,75 @@ export default class FiCsElement<D extends object, P extends object> {
         onerror,
         onclose
       }: Options<D, P>['websocket'] = websocket,
-      { protocol: _protocol, host }: { protocol: string; host: string } = window.location
+      { protocol: _protocol, host }: { protocol: string; host: string } = window.location,
+      connect = (): WebSocket => {
+        const _websocket: WebSocket = new WebSocket(
+            `${_protocol.replace('http', '_websocket')}//${host}${path}`,
+            protocols
+          ),
+          params: () => Omit<WebSocketParams<D, P>, 'event'> = () => ({
+            ...this.#getDataPropsMethods(true),
+            websocket: {
+              send: _websocket.send.bind(_websocket),
+              readyState: () => _websocket.readyState,
+              bufferedAmount: () => _websocket.bufferedAmount,
+              binaryType: () => _websocket.binaryType,
+              url: () => _websocket.url,
+              protocol: () => _websocket.protocol,
+              extensions: () => _websocket.extensions
+            }
+          })
 
-    let reconnectedCount: number = 0,
-      reconnectedTimer: Timer | null = null
-
-    const connect = (): WebSocket => {
-      const _websocket: WebSocket = new WebSocket(
-          `${_protocol.replace('http', '_websocket')}//${host}${path}`,
-          protocols
-        ),
-        params: () => Omit<WebSocketParams<D, P>, 'event'> = () => ({
-          ...this.#getDataPropsMethods(true),
-          websocket: {
-            send: _websocket.send.bind(_websocket),
-            readyState: () => _websocket.readyState,
-            bufferedAmount: () => _websocket.bufferedAmount,
-            binaryType: () => _websocket.binaryType,
-            url: () => _websocket.url,
-            protocol: () => _websocket.protocol,
-            extensions: () => _websocket.extensions
-          }
-        })
-
-      this.#websocket = {
-        send: _websocket.send.bind(_websocket),
-        isOpened: () => _websocket.readyState === WebSocket.OPEN
-      }
-
-      _websocket.onopen = (event: Event): void => {
-        reconnectedCount = 0
-
-        if (reconnectedTimer) {
-          clearTimeout(reconnectedTimer)
-          reconnectedTimer = null
+        this.#websocket = {
+          send: _websocket.send.bind(_websocket),
+          isOpened: () => _websocket.readyState === WebSocket.OPEN
         }
 
-        onopen?.({ ...params(), event })
-      }
-      _websocket.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
+        _websocket.onopen = (event: Event): void => {
+          reconnectedCount = 0
 
-      const autoReconnect = (): void => {
-        if (reconnect && !reconnectedTimer) {
-          const {
-            interval,
-            max,
-            isExponential
-          }: NonNullable<Options<D, P>['websocket']>['reconnect'] = reconnect
+          if (reconnectedTimer) {
+            clearTimeout(reconnectedTimer)
+            reconnectedTimer = null
+          }
 
-          if ((max && reconnectedCount < max) || !max) {
-            _websocket.close()
+          onopen?.({ ...params(), event })
+        }
+        _websocket.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
 
-            reconnectedTimer = setTimeout(
-              () => {
-                reconnectedCount++
-                connect()
-              },
-              isExponential ? interval ** reconnectedCount : interval
-            )
+        const autoReconnect = (): void => {
+          if (reconnect && !reconnectedTimer) {
+            const {
+              interval,
+              max,
+              isExponential
+            }: NonNullable<Options<D, P>['websocket']>['reconnect'] = reconnect
+
+            if ((max && reconnectedCount < max) || !max) {
+              _websocket.close()
+
+              reconnectedTimer = setTimeout(
+                () => {
+                  reconnectedCount++
+                  connect()
+                },
+                isExponential ? interval ** reconnectedCount : interval
+              )
+            }
           }
         }
-      }
 
-      _websocket.onerror = (event: Event): void => {
-        onerror?.({ ...params(), event })
-        autoReconnect()
-      }
-      _websocket.onclose = (event: CloseEvent): void => {
-        onclose?.({ ...params(), event })
-        autoReconnect()
-      }
+        _websocket.onerror = (event: Event): void => {
+          onerror?.({ ...params(), event })
+          autoReconnect()
+        }
+        _websocket.onclose = (event: CloseEvent): void => {
+          onclose?.({ ...params(), event })
+          autoReconnect()
+        }
 
-      return _websocket
-    }
+        return _websocket
+      }
 
     return connect()
   }
