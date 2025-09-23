@@ -1133,7 +1133,7 @@ export default class FiCsElement<D extends object, P extends object> {
       { protocol: _protocol, host }: { protocol: string; host: string } = window.location,
       connect = (): WebSocket => {
         const _websocket: WebSocket = new WebSocket(
-            `${_protocol.replace('http', '_websocket')}//${host}${path}`,
+            `${_protocol.replace('http', 'ws')}//${host}${path}`,
             protocols
           ),
           params: () => Omit<WebSocketParams<D, P>, 'event'> = () => ({
