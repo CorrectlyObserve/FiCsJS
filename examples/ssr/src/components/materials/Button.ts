@@ -7,7 +7,6 @@ export default () =>
       <button
         class="clickable text-white border border-white p-3 rounded-lg"
         ${!isBrowser || isDisabled ? 'disabled' : ''}
-        aria-disabled="${!isBrowser || isDisabled}"
         aria-label="${buttonText}"
       >
         ${buttonText}
