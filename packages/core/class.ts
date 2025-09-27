@@ -360,13 +360,13 @@ export default class FiCsElement<D extends object, P extends object> {
                     if (key !== _key) propsKeys[_key as string] = true
                     return this.getData(_key)
                   },
-                  sendToWebsocket: (value: WebSocketValue): void | undefined => {
-                    if (!this.#websocket) return undefined
+                  sendToWebsocket: (value: WebSocketValue): void => {
+                    if (!this.#websocket) return
 
                     const { send, isOpened }: { send: SendToWebsocket; isOpened: () => boolean } =
                       this.#websocket
 
-                    return isOpened() ? send(value) : undefined
+                    if (isOpened()) return send(value)
                   }
                 })
 
