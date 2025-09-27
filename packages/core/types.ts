@@ -161,7 +161,7 @@ export interface Props<D, P> {
           sendToWebsocket
         }: {
           getData: DataPropsMethods<D, P>['getData']
-          sendToWebsocket?: SendToWebsocket | undefined
+          sendToWebsocket?: SendToWebsocket
         }) => unknown
       >
     | Record<string, unknown>
