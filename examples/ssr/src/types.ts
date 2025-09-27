@@ -1,3 +1,5 @@
+export interface Message { user: string; comment: string }
+
 export type Method = 'PUT' | 'PATCH' | 'DELETE'
 
 export interface Photo {
