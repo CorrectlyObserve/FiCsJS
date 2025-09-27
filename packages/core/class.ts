@@ -1399,7 +1399,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
     const component: HTMLElement | undefined = this.#components.values().next().value
-
     if (!component) return
 
     const { isClassName, isAttr, css }: Bindings = this.#bindings,
