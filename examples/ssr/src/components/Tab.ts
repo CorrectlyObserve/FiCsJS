@@ -19,7 +19,7 @@ export default fics({
       ${tabs.map(
         ({ href, text }) => template`
           ${button.setIndividualProps(text, {
-            isDisabled: href === current,
+            isDisabled: current === '' || current === href,
             buttonText: text,
             click: () => {
               goto(href)
