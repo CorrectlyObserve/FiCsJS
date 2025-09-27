@@ -361,6 +361,7 @@ export default class FiCsElement<D extends object, P extends object> {
                     return this.getData(_key)
                   },
                   sendToWebsocket: (value: WebSocketValue): void => {
+                    console.log(this.#websocket)
                     if (!this.#websocket) return
 
                     const { send, isOpened }: { send: SendToWebsocket; isOpened: () => boolean } =
@@ -698,9 +699,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (oldAttrList[name] !== value) {
               if (isHTMLElement(oldChildNode)) {
-                oldChildNode.setAttribute(name, value)
+                const isBooleanProperty: boolean = value === ''
 
-                if (name !== ficsIdName) that.#setProperty(oldChildNode, name, value)
+                if (isBooleanProperty) (oldChildNode as any)[name] = true
+                else oldChildNode.setAttribute(name, value)
+
+                if (name !== ficsIdName)
+                  that.#setProperty(oldChildNode, name, isBooleanProperty ? true : value)
               } else oldChildNode.setAttributeNS(namespaceURI, name, value)
             }
 
