@@ -6,6 +6,7 @@ export default () =>
     html: ({ props: { isDisabled, buttonText }, template, isBrowser }) => template`
       <button
         class="clickable text-white border border-white p-3 rounded-lg"
+        ${!isBrowser || isDisabled ? 'disabled' : ''}
         aria-disabled="${!isBrowser || isDisabled}"
         aria-label="${buttonText}"
       >
@@ -13,13 +14,6 @@ export default () =>
       </button>
     `,
     actions: {
-      button: {
-        click: [
-          ({ props: { isDisabled, click } }) => {
-            if (!isDisabled) click()
-          },
-          { throttle: 500, blur: true }
-        ]
-      }
+      button: { click: [({ props: { click } }) => click(), { throttle: 500, blur: true }] }
     }
   })
