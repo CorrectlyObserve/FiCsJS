@@ -14,11 +14,11 @@
 .clickable {
   @apply transition duration-200 ease-out;
 
-  &:not([aria-disabled='true']) {
+  &:not([disabled]) {
     @apply cursor-pointer hover:opacity-50 focus:scale-95;
   }
 
-  &[aria-disabled='true'] {
+  &[disabled] {
     @apply opacity-20 cursor-not-allowed;
   }
 }
