@@ -93,7 +93,7 @@ export default fics({
         { once: true }
       ],
       error: [
-        ({ data: { photos }, setData, event: { target }, attributes: { key } }) => {
+        ({ data: { photos }, setData, event: { currentTarget }, attributes: { key } }) => {
           setData(
             'photos',
             photos.map(photo => {
@@ -102,8 +102,8 @@ export default fics({
             })
           )
 
-          if (target) {
-            const img = target as HTMLImageElement
+          if (currentTarget) {
+            const img = currentTarget as HTMLImageElement
             img.replaceWith(img.cloneNode(true))
           }
         },
