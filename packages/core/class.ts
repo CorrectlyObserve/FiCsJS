@@ -44,6 +44,7 @@ import type {
   Style,
   Syntaxes,
   WebSocketParams,
+  WebSocketProp,
   WebSocketValue
 } from './types'
 
@@ -91,7 +92,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #components: Set<HTMLElement> = new Set()
   #isDeferred: boolean = true
   #isInitialized: boolean = false
-  #websocket?: { send: SendToWebsocket; isOpened: () => boolean }
+  #websocket?: WebSocketProp
   #poll?: ReturnType<typeof setTimeout>
 
   constructor({
@@ -353,7 +354,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (chain && key in chain && propsChain.has(instanceId)) continue
 
-            if (checkType(value, 'function') && /getData/.test(value.toString())) {
+            if (checkType(value, 'function') && /getData|sendToWebsocket/.test(value.toString())) {
               const propsKeys: Record<string, true> = { [key]: true },
                 _value: P[keyof P] = value({
                   getData: <K extends keyof D>(_key: K): D[K] => {
@@ -361,12 +362,9 @@ export default class FiCsElement<D extends object, P extends object> {
                     return this.getData(_key)
                   },
                   sendToWebsocket: (value: WebSocketValue): void => {
-                    console.log(this.#websocket)
                     if (!this.#websocket) return
 
-                    const { send, isOpened }: { send: SendToWebsocket; isOpened: () => boolean } =
-                      this.#websocket
-
+                    const { send, isOpened }: WebSocketProp = this.#websocket
                     if (isOpened()) return send(value)
                   }
                 })
