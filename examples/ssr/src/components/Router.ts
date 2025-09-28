@@ -1,11 +1,23 @@
 import { ficsRouter } from 'ficsjs/router'
 import Chat from '@/components/Chat'
 import { CHAT_PAGE } from '@/utils'
+import { $userName } from '@/store'
+import type { Message } from '@/types'
 
-export default ficsRouter<{ logs: string[] }>({
+export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   pathname: CHAT_PAGE,
   children: [Chat],
-  data: () => ({ logs: [] }),
+  data: () => ({ messages: [], logs: [] }),
+  props: {
+    descendant: ({ children: { chat } }) => chat,
+    values: ({}) => ({
+      messages: ({ getData }) => getData('messages'),
+      sendMessage:
+        ({ sendToWebsocket }) =>
+        (message: Message) =>
+          sendToWebsocket?.(JSON.stringify(message))
+    })
+  },
   pages: [
     { path: CHAT_PAGE, content: ({ children: { chat } }) => chat },
     {
@@ -18,6 +30,17 @@ export default ficsRouter<{ logs: string[] }>({
   ],
   css: { ':host p.mb-2:last-child': { 'margin-bottom': '0' } },
   options: {
+    websocket: {
+      path: '/ws',
+      onopen: ({ websocket: { send } }) => {
+        const userName = $userName.get()
+
+        if (userName !== '')
+          send(JSON.stringify({ user: 'System', comment: `Hello, ${userName}!` }))
+      },
+      onmessage: ({ data: { messages }, setData, event: { data } }) =>
+        setData('messages', [...messages, JSON.parse(data) as Message])
+    },
     sse: {
       path: '/sse',
       onopen: ({ setData }) => setData('logs', ['The server is connected.']),
