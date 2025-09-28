@@ -247,4 +247,9 @@ export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
   }
 }
 
+export interface WebSocketProp {
+  send: SendToWebsocket
+  isOpened: () => boolean
+}
+
 export type WebSocketValue = string | Blob | ArrayBuffer | ArrayBufferView
