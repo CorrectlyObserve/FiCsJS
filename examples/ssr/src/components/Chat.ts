@@ -19,10 +19,10 @@ export default fics<
         ({ getData }) =>
         () => {
           const userName = $userName.get()
-          if (userName !== '') {
-            sendMessage({ userName, comment: getData('comment') })
-            setData('comment', '')
-          }
+          if (userName === '') return
+
+          sendMessage({ userName, comment: getData('comment') })
+          setData('comment', '')
         }
     })
   },
@@ -33,20 +33,15 @@ export default fics<
         <textarea id="message" class="text-white" placeholder="Please enter your message">${comment}</textarea>
         ${button}
       </div>
-      <div>
-        ${messages.map(({ userName, comment }) => {
-          console.log(userName, comment)
-          return template`<p class="text-white mb-2">${userName}: ${comment}</p>`
-        })}
-      </div>
+      ${messages.map(({ userName, comment }) => template`<p class="text-white mt-2">${userName}: ${comment}</p>`)}
     </div>
   `,
   hooks: {
     created: () => {
-      if ($userName.get() === '') {
-        const newUserName = prompt('Please enter your name.')
-        newUserName ? $userName.set(newUserName) : (window.location.href = '/')
-      }
+      if ($userName.get() !== '') return
+
+      const newUserName = prompt('Please enter your name.')
+      newUserName ? $userName.set(newUserName) : (window.location.href = '/')
     }
   },
   actions: {
