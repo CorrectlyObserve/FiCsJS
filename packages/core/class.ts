@@ -594,18 +594,23 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #buildHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
-    const isText = (childNode: ChildNode): childNode is Text => childNode instanceof Text,
-      isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element,
-      oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot),
+    const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot),
       newChildNodes: ChildNode[] = this.#getChildNodes(
         document.createRange().createContextualFragment(this.#template)
-      )
+      ),
+      isText = (childNode: ChildNode): childNode is Text => childNode instanceof Text,
+      isElement = (childNode: ChildNode): childNode is Element => childNode instanceof Element,
+      isHTMLElement = (childNode: ChildNode | ParentNode): childNode is HTMLElement =>
+        childNode instanceof HTMLElement,
+      isTextarea = (childNode: ChildNode | ParentNode): childNode is HTMLTextAreaElement =>
+        isHTMLElement(childNode) && childNode.localName === 'textarea'
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
-        const childNode: ChildNode = childNodes[index]
+        const childNode: ChildNode = childNodes[index],
+          parentNode: ParentNode | null = childNode.parentNode
 
-        if (isText(childNode) && childNode.nodeValue) {
+        if (isText(childNode) && childNode.nodeValue && (!parentNode || !isTextarea(parentNode))) {
           childNode.nodeValue = childNode.nodeValue.trim()
 
           if (childNode.nodeValue === '') {
@@ -659,8 +664,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const isSameNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean =>
           oldChildNode.nodeName === newChildNode.nodeName,
-        isHTMLElement = (childNode: ChildNode): childNode is HTMLElement =>
-          childNode instanceof HTMLElement,
         getKey = (element: Element): string | null => element.getAttribute('key')
 
       const matchChildNode = (oldChildNode: ChildNode, newChildNode: ChildNode): boolean => {
@@ -681,9 +684,7 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const oldAttrs: NamedNodeMap = oldChildNode.attributes,
             newAttrs: NamedNodeMap = newChildNode.attributes,
-            oldAttrList: Record<string, string> = {},
-            isTextarea = (childNode: ChildNode): childNode is HTMLTextAreaElement =>
-              isHTMLElement(childNode) && childNode.localName === 'textarea'
+            oldAttrList: Record<string, string> = {}
 
           for (let index = 0; index < oldAttrs.length; index++) {
             const { name, value }: { name: string; value: string } = oldAttrs[index]
