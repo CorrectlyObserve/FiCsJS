@@ -36,7 +36,7 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
         const userName = $userName.get()
 
         if (userName !== '')
-          send(JSON.stringify({ user: 'System', comment: `Hello, ${userName}!` }))
+          send(JSON.stringify({ userName: 'System', comment: `Hello, ${userName}!` }))
       },
       onmessage: ({ data: { messages }, setData, event: { data } }) =>
         setData('messages', [...messages, JSON.parse(data) as Message])
