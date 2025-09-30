@@ -1,4 +1,4 @@
-export interface Message { user: string; comment: string }
+export interface Message { userName: string; comment: string }
 
 export type Method = 'PUT' | 'PATCH' | 'DELETE'
 
