@@ -1,13 +1,16 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { createBunWebSocket } from 'hono/bun'
+import type { ServerWebSocket } from 'bun'
 import Link from './src/components/materials/Link'
 import Users from './src/components/Users'
 import ChatButton from './src/components/ChatButton'
 import Photos from './src/components/Photos'
 import Tab from './src/components/Tab'
 import Router from './src/components/Router'
-import { CHAT_PAGE } from './src/utils'
+import { Message } from './src/types'
+import { CHAT_PAGE, getCurrentDatetime } from './src/utils'
 
 const app = new Hono()
 
@@ -90,22 +93,63 @@ app.get(CHAT_PAGE, c =>
   )
 )
 
-let id = 0
+const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
+const messages: Message[] = []
+const sseClients = new Set<(sseMessage: { event: 'log'; data: string }) => Promise<void>>()
 
-app.get('/sse', async c => {
-  return streamSSE(c, async stream => {
-    while (true) {
-      const message = `It is ${new Date().toISOString()}`
-      await stream.writeSSE({
-        data: message,
-        event: 'time-update',
-        id: String(id++)
+app.get(
+  '/ws',
+  upgradeWebSocket(() => ({
+    onMessage({ data }, ws): void {
+      if (typeof data !== 'string') throw new Error('The data is not a string...')
+
+      const message: Message = JSON.parse(data)
+
+      if (!message.userName) throw new Error('The userName is required in the message...')
+
+      if (message.comment) {
+        ws.send(JSON.stringify(message))
+        for (const send of sseClients)
+          void send({ event: 'log', data: `${getCurrentDatetime()}: ${message.userName} sent a message.` })
+
+        messages.push(message)
+        const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
+        setTimeout(() => ws.send(JSON.stringify({ ...pickedMessage, userName: 'Server' })), 500)
+
+        for (const send of sseClients)
+          void send({ event: 'log', data: `${getCurrentDatetime()}: Server sent a message.` })
+        return
+      }
+
+      ws.send(JSON.stringify({ userName: 'Server', comment: `Hello, ${message.userName}!` }))
+      for (const send of sseClients)
+        void send({ event: 'log', data: `${getCurrentDatetime()}: ${message.userName} joined the chat.` })
+    },
+    onClose: () => {
+      for (const send of sseClients)
+        void send({ event: 'log', data: `${getCurrentDatetime()}: The connection was closed.` })
+    }
+  }))
+)
+
+app.get('/sse', async c =>
+  streamSSE(c, async stream => {
+    const sender = (sseMessage: { event: 'log'; data: string }) => stream.writeSSE(sseMessage),
+      abortSignal: AbortSignal | undefined = c.req.raw?.signal
+
+    sseClients.add(sender)
+
+    try {
+      await new Promise<void>(resolve => {
+        if (!abortSignal || abortSignal.aborted) return resolve()
+        abortSignal.addEventListener?.('abort', () => resolve(), { once: true })
       })
-      await stream.sleep(1000)
+    } finally {
+      sseClients.delete(sender)
     }
   })
-})
+)
 
 app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
 
-export default { port: 5174, fetch: app.fetch }
+export default { port: 5174, fetch: app.fetch, websocket }
