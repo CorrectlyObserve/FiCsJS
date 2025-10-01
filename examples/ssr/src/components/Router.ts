@@ -34,9 +34,9 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
       path: '/ws',
       onopen: ({ websocket: { send } }) => {
         const userName = $userName.get()
+        if (userName === '') return
 
-        if (userName !== '')
-          send(JSON.stringify({ userName: 'System', comment: `Hello, ${userName}!` }))
+        send(JSON.stringify({ userName }))
       },
       onmessage: ({ data: { messages }, setData, event: { data } }) =>
         setData('messages', [...messages, JSON.parse(data) as Message])
@@ -45,8 +45,7 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
       path: '/sse',
       onopen: ({ setData }) => setData('logs', ['The server is connected.']),
       actions: {
-        'time-update': ({ data: { logs }, setData, event: { data } }) =>
-          setData('logs', [...logs, data])
+        log: ({ data: { logs }, setData, event: { data } }) => setData('logs', [...logs, data])
       }
     }
   }
