@@ -53,8 +53,13 @@ export const numberError = (
   }
 }
 
-export const toArray = <T>(param: SingleOrArray<T>): T[] =>
-  Array.isArray(param) ? [...param] : [checkType(param, 'object') ? { ...param } : param]
+export const toArray = <T>(param: SingleOrArray<T>): T[] => {
+  if (Array.isArray(param)) return [...param]
+
+  const isPlain: boolean =
+    checkType(param, 'object') && Object.prototype.toString.call(param) === '[object Object]'
+  return isPlain ? [{ ...param }] : [param]
+}
 
 export function* uid(): Generator<number> {
   let n: number = 1
