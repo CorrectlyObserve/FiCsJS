@@ -46,10 +46,10 @@ export const numberError = (
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
 
-    if (isOnlyPositive && value <= 0) throw new Error(`The ${key} must be a positive number...`)
-
-    if (!isOnlyPositive && value < 0)
-      throw new Error(`The number ${key} must be a non-negative number...`)
+    if ((isOnlyPositive && value <= 0) || (!isOnlyPositive && value < 0))
+      throw new Error(
+        `The ${key} must be a ${isOnlyPositive ? 'positive' : 'non-negative'} number...`
+      )
   }
 }
 
