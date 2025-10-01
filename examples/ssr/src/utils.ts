@@ -1,6 +1,6 @@
 export const CHAT_PAGE = '/websocket-sse' as const
 
-export const getDatetime = (): string => {
+export const getCurrentDatetime = (): string => {
   const FORMAT = '2-digit' as const,
     options: Intl.DateTimeFormatOptions = {
       year: 'numeric',
