@@ -34,13 +34,8 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
 export const isBlankObject = (param: unknown): boolean =>
   checkType(param, 'object') && Object.keys(param).length === 0
 
-export const isBrowser = (): boolean => {
-  try {
-    return !checkType(window, 'undefined') && !checkType(document, 'undefined')
-  } catch (_) {
-    return false
-  }
-}
+export const isBrowser = (): boolean =>
+  typeof window !== 'undefined' && typeof document !== 'undefined'
 
 export const numberError = (
   number: Record<string, number | undefined>,
