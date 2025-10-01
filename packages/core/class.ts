@@ -182,7 +182,11 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (props && toArray(props).length > 0) this.#propsSources = toArray(props)
+    if (props) {
+      const propsArray: Props<D, P>[] = toArray(props)
+      if (propsArray.length > 0) this.#propsSources = propsArray
+    }
+
     if (className)
       if (checkType(className, 'function')) {
         this.#bindings.isClassName = true
@@ -836,7 +840,7 @@ export default class FiCsElement<D extends object, P extends object> {
               const _getKey = (element: Element): string | number | null => {
                   let key: string | number | null = getKey(element)
 
-                  if (key && !isNaN(parseInt(key))) key = parseInt(key)
+                  if (key && !Number.isFinite(parseInt(key))) key = parseInt(key)
                   return key
                 },
                 key: string | number | null = _getKey(newStartNode)
