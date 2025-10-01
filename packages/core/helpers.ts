@@ -38,13 +38,13 @@ export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
 
 export const numberError = (
-  number: Record<string, number | undefined>,
+  numbers: Record<string, number | undefined>,
   isOnlyPositive: boolean = true
 ): void => {
-  for (const [key, value] of Object.entries(number)) {
+  for (const [key, value] of Object.entries(numbers)) {
     if (checkType(value, 'undefined')) continue
 
-    if (isNaN(value)) throw new Error(`The ${key} must be a number...`)
+    if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
 
     if (isOnlyPositive && value <= 0) throw new Error(`The ${key} must be a positive number...`)
 
