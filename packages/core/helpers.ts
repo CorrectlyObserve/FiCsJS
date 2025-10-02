@@ -4,9 +4,7 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
-export const checkType = <
-  T extends 'string' | 'number' | 'boolean' | 'function' | 'object' | 'undefined'
->(
+export const checkType = <T extends 'string' | 'number' | 'boolean' | 'function' | 'object'>(
   param: unknown,
   type: T
 ): param is T extends 'string'
@@ -19,9 +17,7 @@ export const checkType = <
         ? Function
         : T extends 'object'
           ? object
-          : T extends 'undefined'
-            ? undefined
-            : never =>
+          : never =>
   type === 'object'
     ? typeof param === 'object' && param !== null && !Array.isArray(param)
     : typeof param === type
@@ -42,7 +38,7 @@ export const numberError = (
   isOnlyPositive: boolean = true
 ): void => {
   for (const [key, value] of Object.entries(numbers)) {
-    if (checkType(value, 'undefined')) continue
+    if (value === undefined) continue
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
 
