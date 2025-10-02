@@ -140,7 +140,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin !== '' && rootMargin !== '0px' && !checkType(rootMargin, 'undefined')) {
+      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
         if (!lazyLoad)
           throw new Error(
             `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
@@ -349,7 +349,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const returned: SingleOrArray<Descendant> = descendant({ children: this.#children })
 
         for (const _descendant of Array.isArray(returned) ? returned : [returned]) {
-          if (checkType(_descendant, 'undefined')) continue
+          if (_descendant === undefined) continue
 
           const instanceId: string = _descendant.#instanceId
 
@@ -898,7 +898,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const convertCssContent = (style: Style<D, P>): string =>
       Object.entries(checkType(style, 'function') ? style(this.#dataProps) : style).reduce(
         (prev, [key, value]) => {
-          if (checkType(value, 'undefined') || value === '' || isBlankObject(value)) return prev
+          if (value === undefined || value === '' || isBlankObject(value)) return prev
 
           key = convertStr(key, 'kebab')
           if (key.startsWith('webkit')) key = `-${key}`
@@ -1074,7 +1074,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#scroll,
         _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
-      if (checkType(_trigger, 'undefined') || _trigger) {
+      if (_trigger === undefined || _trigger) {
         const root: HTMLElement | null = shadowRoot.getElementById(id)
         if (!root) throw new Error(`The "${id}" is not found in the shadowRoot of ${this.#name}...`)
 
