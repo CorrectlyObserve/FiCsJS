@@ -161,7 +161,7 @@ export interface Props<D, P> {
           sendToWebsocket
         }: {
           getData: DataPropsMethods<D, P>['getData']
-          sendToWebsocket?: SendToWebsocket
+          sendToWebsocket?: (value: WebSocketValue) => void
         }) => unknown
       >
     | Record<string, unknown>
@@ -202,8 +202,6 @@ interface ScrollParams<D, P> {
   throttle?: number
   method: (params: DataPropsMethods<D, P, true>) => void
 }
-
-export type SendToWebsocket = (value: WebSocketValue) => void
 
 export type SingleOrArray<T> = T | T[]
 
@@ -248,7 +246,7 @@ export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
 }
 
 export interface WebSocketProp {
-  send: SendToWebsocket
+  send: (value: WebSocketValue) => void
   isOpened: () => boolean
 }
 
