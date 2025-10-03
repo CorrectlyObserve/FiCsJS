@@ -178,12 +178,6 @@ export interface PropsBinding {
 
 export type PropsChain<P> = Map<string, Partial<P>>
 
-export interface Queue {
-  instanceId: string
-  func: () => void
-  key: 'define' | 're-render' | 'fetch'
-}
-
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Scroll<D, P> extends ScrollParams<D, P> {
@@ -233,6 +227,12 @@ export interface Syntaxes<D extends object, P extends object> {
   html: (str: string) => Record<symbol, string>
   show: (condition: boolean) => string
   apiStatuses: Record<string, boolean>
+}
+
+export interface Task {
+  instanceId: string
+  func: () => void
+  key: 'define' | 're-render' | 'fetch'
 }
 
 export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
