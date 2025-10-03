@@ -1,32 +1,81 @@
 import { isBrowser } from './helpers'
-import type { Queue } from './types'
+import type { Task } from './types'
 
-const ids: Map<string, true> = new Map(),
-  getQueueId = ({ instanceId, key }: Queue): string => `${instanceId}-${key}`,
-  dequeue = (queue: Queue): void => {
-    queue.func()
-    if (queue.key !== 'define') ids.delete(getQueueId(queue))
+let isProcessing: boolean = false,
+  isReRendering: boolean = false
+
+const ids: Set<string> = new Set(),
+  queue: Task[] = new Array(),
+  reRenderQueue: Task[] = new Array(),
+  getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
+  dequeue = (task: Task): void => {
+    try {
+      task.func()
+    } finally {
+      if (task.key !== 'define') ids.delete(getQueueId(task))
+    }
   },
-  queues: Queue[] = new Array()
+  drainQueue = (): void => {
+    if (isProcessing || queue.length === 0) return
 
-let isProcessing: boolean = false
+    isProcessing = true
 
-export const enqueue = (queue: Queue): void => {
-  const queueId: string = getQueueId(queue)
+    try {
+      while (true) {
+        const batch: Task[] = queue.splice(0)
+        if (batch.length === 0) break
 
-  if (!ids.has(queueId)) {
-    ids.set(queueId, true)
-    queues.push(queue)
-
-    if (isBrowser() && queues.length > 0 && !isProcessing) {
-      isProcessing = true
-
-      while (queues.length > 0) {
-        const queue: Queue = queues.shift()!
-        queue.key === 're-render' ? setTimeout(() => dequeue(queue), 0) : dequeue(queue)
+        for (const task of batch)
+          if (task.key === 're-render') reRenderQueue.push(task)
+          else
+            try {
+              dequeue(task)
+            } catch (error) {
+              const { instanceId, key }: Task = task
+              console.error(
+                `The task has instanceId ${instanceId} and key "${key}" failed to process...`
+              )
+            }
       }
 
+      scheduleReRenders()
+    } finally {
       isProcessing = false
     }
+  },
+  scheduleReRenders = (): void => {
+    if (isReRendering || reRenderQueue.length === 0) return
+
+    isReRendering = true
+
+    setTimeout(() => {
+      try {
+        const batch: Task[] = reRenderQueue.splice(0)
+        for (const task of batch)
+          try {
+            dequeue(task)
+          } catch (error) {
+            console.error(
+              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`
+            )
+          }
+      } finally {
+        isReRendering = false
+        drainQueue()
+        scheduleReRenders()
+      }
+    }, 0)
+  }
+
+export const enqueue = (task: Task): void => {
+  if (!isBrowser()) return
+
+  const queueId: string = getQueueId(task)
+
+  if (!ids.has(queueId)) {
+    ids.add(queueId)
+    queue.push(task)
+
+    drainQueue()
   }
 }
