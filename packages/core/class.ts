@@ -35,7 +35,6 @@ import type {
   Props,
   PropsBinding,
   PropsChain,
-  Queue,
   Sanitized,
   Scroll,
   SendToWebsocket,
@@ -43,6 +42,7 @@ import type {
   SSEMethod,
   Style,
   Syntaxes,
+  Task,
   WebSocketParams,
   WebSocketProp,
   WebSocketValue
@@ -310,7 +310,7 @@ export default class FiCsElement<D extends object, P extends object> {
       )
   }
 
-  #enqueue(func: () => void, key: Queue['key']): void {
+  #enqueue(func: () => void, key: Task['key']): void {
     enqueue({ instanceId: this.#instanceId, func, key })
   }
 
