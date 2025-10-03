@@ -37,7 +37,6 @@ import type {
   PropsChain,
   Sanitized,
   Scroll,
-  SendToWebsocket,
   SingleOrArray,
   SSEMethod,
   Style,
