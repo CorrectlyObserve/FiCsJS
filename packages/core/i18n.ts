@@ -1,11 +1,49 @@
 import { toArray } from '../core/helpers'
-import type { SingleOrArray } from '../core/types'
+import type { SingleOrArray, Translations } from '../core/types'
 
 let _directory: string = ''
-const caches: Map<string, any> = new Map()
+const translationsCache: Map<string, Translations> = new Map(),
+  promiseCache: Map<string, Promise<Translations>> = new Map(),
+  getUrl = (lang: string): string => `${_directory}/${lang}.json`,
+  fetchTranslations = async (lang: string): Promise<Translations> => {
+    if (translationsCache.has(lang)) return translationsCache.get(lang)!
+    if (promiseCache.has(lang)) return promiseCache.get(lang)!
+
+    const promise: () => Promise<Translations> = async (): Promise<Translations> => {
+      try {
+        const url: string = getUrl(lang),
+          res: Response = await fetch(url)
+
+        if (!res.ok)
+          throw new Error(
+            `${res.status} ${res.statusText}: The request to load the ${url} was failed...`
+          )
+
+        const json: Translations = await res.json()
+
+        translationsCache.set(lang, json)
+        return json
+      } catch (error) {
+        throw error
+      } finally {
+        promiseCache.delete(lang)
+      }
+    }
+
+    const translations: Promise<Translations> = promise()
+
+    promiseCache.set(lang, translations)
+    return translations
+  }
 
 export const ficsI18n = (directory: string): void => {
-  _directory = directory
+  const normalized: string = directory.replace(/\/+$/, '')
+
+  if (_directory && _directory !== normalized) {
+    translationsCache.clear()
+    promiseCache.clear()
+  }
+  _directory = normalized
 }
 
 export const i18n = async <T>({
@@ -15,21 +53,22 @@ export const i18n = async <T>({
   lang: string
   key: SingleOrArray<string>
 }): Promise<T> => {
-  const json: string = `${_directory}/${lang}.json`
+  if (_directory === '')
+    throw new Error('The ficsI18n function cannot be called before this function...')
 
-  if (!caches.has(lang))
-    caches.set(
-      lang,
-      await fetch(json)
-        .then(res => res.json())
-        .catch(error => {
-          throw new Error(error)
-        })
-    )
+  if (lang === '') throw new Error('The "lang" must be a non-empty string...')
 
-  key = toArray(key)
-  let i18n: T | undefined = key.reduce((prev, curr) => prev && prev[curr], caches.get(lang))
+  const url: string = getUrl(lang),
+    keys: string[] = toArray(key),
+    translations: Translations = await fetchTranslations(lang)
 
-  if (i18n) return i18n
-  throw new Error(`The ${key.join('.')} does not exist in the ${json}...`)
+  if (keys.length === 0) return translations as T
+
+  let _translations: Translations | undefined = translations
+  for (const _key of keys) _translations = _translations?.[_key] as Translations | undefined
+
+  if (_translations === undefined)
+    throw new Error(`Key "${keys.join('.')}" does not exist in the ${url}...`)
+
+  return _translations as T
 }
