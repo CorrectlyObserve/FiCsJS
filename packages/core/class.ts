@@ -634,6 +634,7 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
             const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
+            // console.log(child.#name, child.#components.values().next().value?.parentNode)
             child.#initProps(this.#propsChain, this.#ancestorIds)
             child.#callback('created')
             child.#enqueue(() => child.#define(), 'define')
@@ -701,7 +702,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (oldAttrList[name] !== value) {
               if (isHTMLElement(oldChildNode)) {
-                const isBooleanProperty: boolean = value === ''
+                const isBooleanProperty: boolean = name !== 'class' && value === ''
 
                 if (isBooleanProperty) (oldChildNode as any)[name] = true
                 else oldChildNode.setAttribute(name, value)
