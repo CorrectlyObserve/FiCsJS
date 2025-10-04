@@ -6,8 +6,10 @@ export function calc(arg: string | '+' | '-' | '*' | '/', ...rest: (string | num
   return `calc(${checkType(arg, 'string') && rest.length === 0 ? arg : rest.join(` ${arg} `)})`
 }
 
-export const cssVar = (variable: string): string =>
-  `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
+export const cssVar = (variable: string): string => {
+  variable = variable.trim()
+  return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
+}
 
 export const remToPx = (rem: number | string): number => {
   browserError()
