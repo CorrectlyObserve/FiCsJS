@@ -233,6 +233,8 @@ export interface Task {
   key: 'define' | 're-render' | 'fetch'
 }
 
+export type Translations = Record<string, unknown>
+
 export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
   websocket: {
     send: (value: WebSocketValue) => void
