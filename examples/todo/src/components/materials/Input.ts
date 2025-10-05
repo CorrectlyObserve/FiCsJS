@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
-import { white } from '@/utils'
+import { white } from '@/utils/others'
 
 interface Props {
   id?: string
