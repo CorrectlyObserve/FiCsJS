@@ -4,7 +4,7 @@ import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import LoadingIcon from '@/components/LoadingIcon'
 import { Lang } from '@/types'
-import { breakpoints } from '@/utils'
+import { breakpoints } from '@/utils/others'
 
 interface Data {
   seconds: number
