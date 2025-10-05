@@ -1,5 +1,5 @@
 import { calc, cssVar, oklch } from 'ficsjs/style'
-import { breakpoints, white } from '@/utils'
+import { breakpoints, white } from '@/utils/others'
 
 const hover = { cursor: 'pointer', opacity: 0.5 } as const
 
