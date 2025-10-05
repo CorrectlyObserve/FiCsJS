@@ -1,7 +1,7 @@
 import createPersistentState from 'ficsjs/persistent-state'
 import createState from 'ficsjs/state'
 import { Lang, Task } from '@/types'
-import { getTimestamp } from '@/utils'
+import { getTimestamp } from '@/utils/others'
 
 export const $lang = createState<Lang>('en')
 export const $tasks = createPersistentState<Task[]>([])
