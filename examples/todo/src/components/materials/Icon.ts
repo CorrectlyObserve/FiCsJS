@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
 import { cssVar } from 'ficsjs/style'
-import { white } from '@/utils'
+import { white } from '@/utils/others'
 
 interface Props {
   svg: string
