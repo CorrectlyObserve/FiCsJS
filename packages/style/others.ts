@@ -1,18 +1,19 @@
 import { browserError, checkType, numberError } from './../core/helpers'
+import type { Operator } from './types'
 
-export function calc(expression: string): string
-export function calc(operator: '+' | '-' | '*' | '/', ...values: (string | number)[]): string
-export function calc(arg: string | '+' | '-' | '*' | '/', ...rest: (string | number)[]): string {
+export function calc(expression: string): Readonly<string>
+export function calc(operator: Operator, ...remaining: (string | number)[]): Readonly<string>
+export function calc(arg: string | Operator, ...remaining: (string | number)[]): Readonly<string> {
   arg = arg.trim()
-  return `calc(${checkType(arg, 'string') && rest.length === 0 ? arg : rest.join(` ${arg} `)})`
+  return `calc(${checkType(arg, 'string') && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
 }
 
-export const cssVar = (variable: string): string => {
+export const cssVar = (variable: string): Readonly<string> => {
   variable = variable.trim()
   return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
 }
 
-export const remToPx = (rem: number | string): number => {
+export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
 
   checkType(rem, 'number') ? numberError({ rem }) : (rem = parseFloat(rem.trim()))
