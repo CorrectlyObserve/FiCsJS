@@ -4,7 +4,7 @@ import { ficsLink } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import { $lang } from '@/store'
 import type { Lang } from '@/types'
-import { breakpoints } from '@/utils'
+import { breakpoints } from '@/utils/others'
 
 export default fics({
   name: 'header',
