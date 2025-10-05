@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { cssVar, oklch } from 'ficsjs/style'
-import { white } from '@/utils'
+import { white } from '@/utils/others'
 
 export default () =>
   fics<{}, { isDisabled?: boolean; buttonText: string; click: () => void }>({
