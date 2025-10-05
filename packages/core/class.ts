@@ -88,7 +88,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
-  readonly #components: Set<HTMLElement> = new Set()
+  readonly #components: { element?: HTMLElement } = {}
   #isDeferred: boolean = true
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
@@ -258,10 +258,12 @@ export default class FiCsElement<D extends object, P extends object> {
         updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
       }
 
-      if (!isNotRerendered && this.#isBrowser && this.#components.size > 0)
+      const { element }: { element?: HTMLElement } = this.#components
+
+      if (!isNotRerendered && this.#isBrowser && element)
         this.#enqueue(() => {
           this.#reRender()
-          this.#infiniteVirtualScroll(this.#getShadowRoot(this.#components.values().next().value!))
+          this.#infiniteVirtualScroll(this.#getShadowRoot(element)!)
         }, 're-render')
     }
   }
@@ -319,7 +321,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-        if (this.#components.size > 0) this.#enqueue(() => this.#reRender(), 're-render')
+        if (this.#components.element) this.#enqueue(() => this.#reRender(), 're-render')
       }
     } else if (this.#props[key] !== value) this.#props[key] = value
   }
@@ -634,10 +636,12 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
             const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
-            // console.log(child.#name, child.#components.values().next().value?.parentNode)
-            child.#initProps(this.#propsChain, this.#ancestorIds)
-            child.#callback('created')
-            child.#enqueue(() => child.#define(), 'define')
+
+            if (!child.#components.element) {
+              child.#initProps(this.#propsChain, this.#ancestorIds)
+              child.#callback('created')
+              child.#enqueue(() => child.#define(), 'define')
+            }
 
             const component: HTMLElement = document.createElement(child.#name)
             child.#setClassNames(component)
@@ -1345,7 +1349,7 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#removeChildNodes(this)
           that.#setProperty(this, ficsIdName, that.#instanceId)
 
-          if (that.#components.size === 0 && !that.#components.has(this)) that.#components.add(this)
+          if (!that.#components.element) that.#components.element = this
         }
 
         async connectedCallback(): Promise<void> {
@@ -1406,11 +1410,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
-    const component: HTMLElement | undefined = this.#components.values().next().value
-    if (!component) return
+    const { element }: { element?: HTMLElement } = this.#components
+    if (!element) return
 
     const { isClassName, isAttr, css }: Bindings = this.#bindings,
-      shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+      shadowRoot: ShadowRoot = this.#getShadowRoot(element)
 
     if (this.#i18nData)
       for (const [key, value] of Object.entries(
@@ -1424,11 +1428,11 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#internalSetData(key as keyof D, value as D[keyof D], true)
 
     if (!isOnlyHtml && isClassName) {
-      component.classList.remove(...Array.from(component.classList))
-      this.#setClassNames(component)
+      element.classList.remove(...Array.from(element.classList))
+      this.#setClassNames(element)
     }
 
-    if (!isOnlyHtml && isAttr) this.#setAttrs(component)
+    if (!isOnlyHtml && isAttr) this.#setAttrs(element)
 
     this.#buildHtml(shadowRoot)
 
@@ -1451,9 +1455,9 @@ export default class FiCsElement<D extends object, P extends object> {
       addAllElements(this.#newElements)
 
       for (const [selector, action] of Object.entries(this.#actions))
-        for (const element of this.#getElements(component, selector))
-          if (this.#newElements.has(element))
-            this.#addEventListener(element, Object.entries(action))
+        for (const _element of this.#getElements(element, selector))
+          if (this.#newElements.has(_element))
+            this.#addEventListener(_element, Object.entries(action))
 
       this.#newElements.clear()
     }
