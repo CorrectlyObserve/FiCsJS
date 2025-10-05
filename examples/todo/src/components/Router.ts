@@ -4,7 +4,7 @@ import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
 import NotFound from '@/components/NotFound'
 import type { Lang } from '@/types'
-import { breakpoints, measureOffsetWidth } from '@/utils'
+import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
 const xs = calc(`${cssVar('xs')} * -1`)
 
@@ -18,10 +18,13 @@ export default ficsRouter<{ lang: Lang }>({
   pages: [
     {
       path: '/',
-      content: ({ data: { queries }, children: { tasks, task }, template }) => {
-        if (!queries.id) return tasks
-        return measureOffsetWidth() ? template`<div class="container">${tasks}${task}</div>` : task
-      }
+      content: ({
+        data: {
+          queries: { id }
+        },
+        children: { tasks, task },
+        template
+      }) => (id ? (measureOffsetWidth() ? template`${tasks}${task}` : task) : tasks)
     },
     { path: '/:id', content: ({ children: { task } }) => task },
     { path: '/redirect', redirect: '/' }
@@ -29,19 +32,16 @@ export default ficsRouter<{ lang: Lang }>({
   notFound: { content: ({ children: { notFound } }) => notFound },
   css: {
     ':host': {
-      position: 'relative',
+      ...flexCenter('x'),
+      position: 'absolute',
+      containerType: 'inline-size',
+      gap: cssVar('xl'),
+      width: '100%',
       minHeight: cssVar('min-height'),
-      'div.container': {
-        ...flexCenter('x'),
-        position: 'absolute',
-        containerType: 'inline-size',
-        gap: cssVar('xl'),
-        width: '100%',
-        [`@container (width >= ${breakpoints.lg})`]: {
-          '.task': {
-            paddingLeft: cssVar('xl'),
-            boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
-          }
+      [`@container (width >= ${breakpoints.lg})`]: {
+        '.task': {
+          paddingLeft: cssVar('xl'),
+          boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
         }
       }
     }
