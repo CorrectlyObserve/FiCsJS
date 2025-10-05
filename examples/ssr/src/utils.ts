@@ -26,7 +26,7 @@ const datetimeCache: { format?: Intl.DateTimeFormat } = {},
     return format
   }
 
-export const getCurrentDatetime = (): string => {
+export const getTimestamp = (): string => {
   const map = new Map(
       getDatetimeFormat()
         .formatToParts(new Date())
