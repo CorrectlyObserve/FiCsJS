@@ -10,7 +10,7 @@ import Photos from './src/components/Photos'
 import Tab from './src/components/Tab'
 import Router from './src/components/Router'
 import { Message } from './src/types'
-import { CHAT_PAGE, getCurrentDatetime } from './src/utils'
+import { CHAT_PAGE, getTimestamp } from './src/utils'
 
 const app = new Hono()
 
@@ -104,30 +104,31 @@ app.get(
       if (typeof data !== 'string') throw new Error('The data is not a string...')
 
       const message: Message = JSON.parse(data)
-
       if (!message.userName) throw new Error('The userName is required in the message...')
+
+      const { userName } = message
 
       if (message.comment) {
         ws.send(JSON.stringify(message))
         for (const send of sseClients)
-          void send({ event: 'log', data: `${getCurrentDatetime()}: ${message.userName} sent a message.` })
+          void send({ event: 'log', data: `${getTimestamp()}: ${userName} sent a message.` })
 
         messages.push(message)
         const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
         setTimeout(() => ws.send(JSON.stringify({ ...pickedMessage, userName: 'Server' })), 500)
 
         for (const send of sseClients)
-          void send({ event: 'log', data: `${getCurrentDatetime()}: Server sent a message.` })
+          void send({ event: 'log', data: `${getTimestamp()}: Server sent a message.` })
         return
       }
 
-      ws.send(JSON.stringify({ userName: 'Server', comment: `Hello, ${message.userName}!` }))
+      ws.send(JSON.stringify({ userName: 'Server', comment: `Hello, ${userName}!` }))
       for (const send of sseClients)
-        void send({ event: 'log', data: `${getCurrentDatetime()}: ${message.userName} joined the chat.` })
+        void send({ event: 'log', data: `${getTimestamp()}: ${userName} joined the chat.` })
     },
     onClose: () => {
       for (const send of sseClients)
-        void send({ event: 'log', data: `${getCurrentDatetime()}: The connection was closed.` })
+        void send({ event: 'log', data: `${getTimestamp()}: The connection was closed.` })
     }
   }))
 )
