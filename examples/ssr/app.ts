@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { serveStatic } from '@hono/node-server/serve-static'
-import { createBunWebSocket } from 'hono/bun'
+import { createBunWebSocket, serveStatic } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import Link from './src/components/materials/Link'
 import Users from './src/components/Users'
@@ -41,7 +40,7 @@ const template = ({
         <header class="py-2"><h1 class="text-xl text-center font-semibold">${title}</h1></header>
         <main class="pb-8">${content}</main>
         <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="/dist/${path}.js"></script>
+        <script type="module" src="/dist${path.replace(/^\/+/, '')}.js"></script>
       </body>
     </html>
   `
@@ -93,9 +92,9 @@ app.get(CHAT_PAGE, c =>
   )
 )
 
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>()
-const messages: Message[] = []
-const sseClients = new Set<(sseMessage: { event: 'log'; data: string }) => Promise<void>>()
+const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
+  messages: Message[] = [],
+  sseClients = new Set<(sseMessage: { event: 'log'; data: string }) => Promise<void>>()
 
 app.get(
   '/ws',
