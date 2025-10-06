@@ -40,8 +40,26 @@ export default <P extends object>({
       ':host > a[href]': {
         click: [
           ({ event, attributes: { href } }) => {
+            href = href.trim()
+            if (href === '') return
+
+            const { defaultPrevented, button, metaKey, ctrlKey, shiftKey, altKey }: MouseEvent =
+              event as MouseEvent
+
+            if (defaultPrevented || button !== 0 || metaKey || ctrlKey || shiftKey || altKey) return
+
+            let url: URL
+            try {
+              url = new URL(href, document.baseURI)
+            } catch {
+              return
+            }
+
+            const { origin, pathname, search, hash }: URL = url
+            if (origin !== window.location.origin) return
+
             event.preventDefault()
-            goto(href)
+            goto(`${pathname}${search}${hash}`)
           },
           { blur: true }
         ]
