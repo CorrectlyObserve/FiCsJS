@@ -1,5 +1,6 @@
 import FiCsElement from '../core/class'
 import type { Descendant, Sanitized } from '../core/types'
+import CUSTOM_EVENT_NAME from './customEvent'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
 import { getQueries, params } from './params'
@@ -126,7 +127,7 @@ export default <D extends object>({
         hooks?.mounted?.({ data, props: {}, setData, getData, crud, poll })
 
         window.addEventListener('popstate', () => setRouterData(setData, window.location.pathname))
-        window.addEventListener('fics:navigate', (event: Event) => {
+        window.addEventListener(CUSTOM_EVENT_NAME, (event: Event) => {
           const {
               detail: { href }
             }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
