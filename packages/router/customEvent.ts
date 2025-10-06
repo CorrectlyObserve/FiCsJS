@@ -1,0 +1,1 @@
+export default 'fics:navigate' as const
