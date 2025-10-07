@@ -1,4 +1,4 @@
-import { toArray } from '../core/helpers'
+import { normalizePath, toArray } from '../core/helpers'
 import type { SingleOrArray, Translations } from '../core/types'
 
 let _directory: string = ''
@@ -37,7 +37,7 @@ const translationsCache: Map<string, Translations> = new Map(),
   }
 
 export const ficsI18n = (directory: string): void => {
-  const normalized: string = directory.replace(/\/+$/, '')
+  const normalized: string = normalizePath(directory)
 
   if (_directory && _directory !== normalized) {
     translationsCache.clear()
