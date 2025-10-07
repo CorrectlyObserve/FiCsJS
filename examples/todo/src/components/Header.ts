@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
-import { $lang } from '@/store'
+import { $lang } from '@/stores'
 import type { Lang } from '@/types'
 import { breakpoints } from '@/utils/others'
 
