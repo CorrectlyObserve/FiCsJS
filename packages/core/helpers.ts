@@ -33,6 +33,9 @@ export const isBlankObject = (param: unknown): boolean =>
 export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
 
+export const normalizePath = (path: string): string =>
+  path === '/' ? '/' : path.replace(/\/+$/, '')
+
 export const numberError = (
   numbers: Record<string, number | undefined>,
   isOnlyPositive: boolean = true
