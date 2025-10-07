@@ -3,7 +3,7 @@ import Header from '@/components/Header'
 import Router from '@/components/Router'
 import Footer from '@/components/Footer'
 import globalCss from '@/globalCss'
-import { $lang } from '@/store'
+import { $lang } from '@/stores'
 
 ficsCss(globalCss)
 ficsI18n('/i18n')
