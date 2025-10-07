@@ -1,5 +1,5 @@
 import { browserError } from '../core/helpers'
-import CUSTOM_EVENT_NAME from './customEvent'
+import CUSTOM_EVENT_NAME from './const'
 
 export default (href: string, isWithoutHistory?: boolean): void => {
   browserError()
