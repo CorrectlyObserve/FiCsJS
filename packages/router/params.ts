@@ -1,5 +1,5 @@
 import { isBrowser } from '../core/helpers'
-import CUSTOM_EVENT_NAME from './customEvent'
+import CUSTOM_EVENT_NAME from './const'
 import type { ParamType } from './types'
 
 class Params {
