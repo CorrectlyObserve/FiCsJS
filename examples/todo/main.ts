@@ -21,7 +21,7 @@ if (lang === 'ja') {
 }
 
 $lang.set(lang)
-$lang.subscribe(lang => {
+$lang.subscribe('lang', lang => {
   document.documentElement.lang = lang
   Router.setData('lang', lang)
 })
