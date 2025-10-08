@@ -88,7 +88,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
-  readonly #components: { element?: HTMLElement } = {}
+  readonly #cache: { component?: HTMLElement } = {}
   #isDeferred: boolean = true
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
@@ -258,12 +258,12 @@ export default class FiCsElement<D extends object, P extends object> {
         updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
       }
 
-      const { element }: { element?: HTMLElement } = this.#components
+      const { component }: { component?: HTMLElement } = this.#cache
 
-      if (!isNotRerendered && this.#isBrowser && element)
+      if (!isNotRerendered && this.#isBrowser && component)
         this.#enqueue(() => {
           this.#reRender()
-          this.#infiniteVirtualScroll(this.#getShadowRoot(element)!)
+          this.#infiniteVirtualScroll(this.#getShadowRoot(component)!)
         }, 're-render')
     }
   }
@@ -321,7 +321,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-        if (this.#components.element) this.#enqueue(() => this.#reRender(), 're-render')
+        if (this.#cache.component) this.#enqueue(() => this.#reRender(), 're-render')
       }
     } else if (this.#props[key] !== value) this.#props[key] = value
   }
@@ -637,7 +637,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
 
-            if (!child.#components.element) {
+            if (!child.#cache.component) {
               child.#initProps(this.#propsChain, this.#ancestorIds)
               child.#callback('created')
               child.#enqueue(() => child.#define(), 'define')
@@ -726,6 +726,8 @@ export default class FiCsElement<D extends object, P extends object> {
           if (isTextarea(oldChildNode) && isTextarea(newChildNode))
             oldChildNode.value = newChildNode.value
 
+          if (!!(oldChildNode as any)[convertStr(ficsIdName, 'camel')]) return
+
           updateChildNodes(
             oldChildNode,
             that.#getChildNodes(oldChildNode),
@@ -770,7 +772,7 @@ export default class FiCsElement<D extends object, P extends object> {
           keyChildNodes: Map<string, ChildNode> = new Map()
 
         const insertBefore = (childNode: ChildNode, before: ChildNode | null): void => {
-          if (isElement(childNode)) that.#newElements.add(childNode)
+          if (isElement(childNode) && !childNode.isConnected) that.#newElements.add(childNode)
 
           parentNode.insertBefore(
             childNode,
@@ -844,7 +846,7 @@ export default class FiCsElement<D extends object, P extends object> {
               const _getKey = (element: Element): string | number | null => {
                   let key: string | number | null = getKey(element)
 
-                  if (key && !Number.isFinite(parseInt(key))) key = parseInt(key)
+                  if (key && Number.isFinite(parseInt(key))) key = parseInt(key)
                   return key
                 },
                 key: string | number | null = _getKey(newStartNode)
@@ -1314,7 +1316,6 @@ export default class FiCsElement<D extends object, P extends object> {
         constructor() {
           super()
           this.#shadowRoot = this.attachShadow({ mode: 'open' })
-          if (!lazyLoad) this.#init()
         }
 
         #init() {
@@ -1349,7 +1350,7 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#removeChildNodes(this)
           that.#setProperty(this, ficsIdName, that.#instanceId)
 
-          if (!that.#components.element) that.#components.element = this
+          that.#cache.component = this
         }
 
         async connectedCallback(): Promise<void> {
@@ -1366,7 +1367,7 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
               setTimeout(() => observer.observe(this), 0)
-            }
+            } else this.#init()
 
             that.#setClassNames(this)
             that.#setAttrs(this)
@@ -1410,11 +1411,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
-    const { element }: { element?: HTMLElement } = this.#components
-    if (!element) return
+    const { component }: { component?: HTMLElement } = this.#cache
+    if (!component) return
 
     const { isClassName, isAttr, css }: Bindings = this.#bindings,
-      shadowRoot: ShadowRoot = this.#getShadowRoot(element)
+      shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
     if (this.#i18nData)
       for (const [key, value] of Object.entries(
@@ -1428,11 +1429,11 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#internalSetData(key as keyof D, value as D[keyof D], true)
 
     if (!isOnlyHtml && isClassName) {
-      element.classList.remove(...Array.from(element.classList))
-      this.#setClassNames(element)
+      component.classList.remove(...Array.from(component.classList))
+      this.#setClassNames(component)
     }
 
-    if (!isOnlyHtml && isAttr) this.#setAttrs(element)
+    if (!isOnlyHtml && isAttr) this.#setAttrs(component)
 
     this.#buildHtml(shadowRoot)
 
@@ -1455,9 +1456,9 @@ export default class FiCsElement<D extends object, P extends object> {
       addAllElements(this.#newElements)
 
       for (const [selector, action] of Object.entries(this.#actions))
-        for (const _element of this.#getElements(element, selector))
-          if (this.#newElements.has(_element))
-            this.#addEventListener(_element, Object.entries(action))
+        for (const element of this.#getElements(component, selector))
+          if (this.#newElements.has(element))
+            this.#addEventListener(element, Object.entries(action))
 
       this.#newElements.clear()
     }
