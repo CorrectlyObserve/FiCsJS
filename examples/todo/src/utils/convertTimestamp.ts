@@ -25,13 +25,18 @@ const datetimeCache: { format?: Intl.DateTimeFormat } = {},
   }
 
 export default (timestamp: number): string => {
+  if (!Number.isFinite(timestamp)) return ''
+
+  const date = new Date(timestamp)
+  if (!Number.isFinite(date.getTime())) return ''
+
   const map = new Map(
       getDatetimeFormat()
-        .formatToParts(new Date(timestamp))
+        .formatToParts(date)
         .map(({ type, value }) => [type, value])
     ),
-    date = dateKeys.map(key => map.get(key)).join('-'),
-    time = timeKeys.map(key => map.get(key)).join(':')
+    dateStr = dateKeys.map(key => map.get(key)).join('-'),
+    timeStr = timeKeys.map(key => map.get(key)).join(':')
 
-  return `${date} ${time}`
+  return `${dateStr} ${timeStr}`
 }
