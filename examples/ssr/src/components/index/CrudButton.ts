@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import Button from '@/components/materials/Button'
+import Button from '@/components/Button'
 import type { Method } from '@/types'
 
 export default fics<{}, { method: Method; click: (method: Method) => void }>({
