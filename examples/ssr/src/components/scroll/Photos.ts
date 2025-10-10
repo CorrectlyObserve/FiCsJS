@@ -2,8 +2,8 @@ import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { goto, queries } from 'ficsjs/router'
 import { absoluteCenter, oklch } from 'ficsjs/style'
-import Icon from '@/components/materials/Icon'
-import Skeleton from '@/components/materials/Skeleton'
+import Icon from '@/components/Icon'
+import Skeleton from '@/components/scroll/Skeleton'
 import { api, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import type { Photo } from '@/types'
 import { CircleX } from 'lucide-static'
@@ -12,7 +12,7 @@ const PHOTO_SIZE = 200
 
 export default fics({
   name: 'photos',
-  children: [Icon(), Skeleton()],
+  children: [Icon(), Skeleton],
   data: () => ({ page: 0, photos: [] as Photo[], photoId: '', author: '' }),
   deferredData: async ({ data: { page }, crud }) =>
     await crud<Photo[]>(getPhotos(++page)).then(photos => ({ page, photos })),
