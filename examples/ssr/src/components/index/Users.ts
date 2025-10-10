@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
-import CrudButton from '@/components/CrudButton'
+import CrudButton from '@/components/index/CrudButton'
 import { api, users } from '@/data/users'
 import type { Method, User } from '@/types'
 
