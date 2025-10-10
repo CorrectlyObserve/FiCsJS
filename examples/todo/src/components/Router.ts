@@ -24,7 +24,7 @@ export default ficsRouter<{ lang: Lang }>({
         },
         children: { tasks, task },
         template
-      }) => (id ? (measureOffsetWidth() ? template`${tasks}${task}` : task) : tasks)
+      }) => (id ? (measureOffsetWidth() ? template`${Tasks}${task}` : task) : Tasks)
     },
     { path: '/:id', content: ({ children: { task } }) => task },
     { path: '/redirect', redirect: '/' }
