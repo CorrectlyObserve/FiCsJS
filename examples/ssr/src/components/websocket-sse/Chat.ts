@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import Button from '@/components/materials/Button'
+import Button from '@/components/Button'
 import { $userName } from '@/store'
 import type { Message } from '@/types'
 
