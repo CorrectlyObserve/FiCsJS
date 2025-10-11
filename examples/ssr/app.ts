@@ -2,12 +2,12 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { createBunWebSocket, serveStatic } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
-import Link from './src/components/materials/Link'
-import Users from './src/components/Users'
+import Link from './src/components/Link'
+import Users from './src/components/index/Users'
 import ChatButton from './src/components/ChatButton'
-import Photos from './src/components/Photos'
-import Tab from './src/components/Tab'
-import Router from './src/components/Router'
+import Photos from './src/components/scroll/Photos'
+import Tab from './src/components/websocket-sse/Tab'
+import Router from './src/components/websocket-sse/Router'
 import { Message } from './src/types'
 import { CHAT_PAGE, getTimestamp } from './src/utils'
 
@@ -40,12 +40,13 @@ const template = ({
         <header class="py-2"><h1 class="text-xl text-center font-semibold">${title}</h1></header>
         <main class="pb-8">${content}</main>
         <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="/dist${path.replace(/^\/+/, '')}.js"></script>
+        <script type="module" src="/dist/${path.replace(/^\/+/, '')}.js"></script>
       </body>
     </html>
   `
 
 const link = Link()
+const chatButton = ChatButton()
 app.get('/', c =>
   c.html(
     template({
@@ -54,7 +55,7 @@ app.get('/', c =>
       content: `
         ${link.toString({ href: '/scroll', text: 'Go to the scroll page' })}
         ${Users.toString()}
-        ${ChatButton.toString()}
+        ${chatButton.toString()}
       `,
       path: '/index'
     })
@@ -70,7 +71,7 @@ app.get('/scroll', c =>
       content: `
         ${link.toString({ href: '/', text: 'Back to the top page' })}
         ${Photos.toString()}
-        ${ChatButton.toString()}
+        ${chatButton.toString()}
       `,
       path: '/scroll'
     })
