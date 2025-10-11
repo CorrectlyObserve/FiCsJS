@@ -3,18 +3,32 @@ import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
 import NotFound from '@/components/NotFound'
-import type { Lang } from '@/types'
+import { $tasks } from '@/stores'
+import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<{ lang: Lang }>({
+export default ficsRouter<{ lang: Lang; tasks: TaskType[] }>({
   children: [Tasks, Task, NotFound],
-  data: () => ({ lang: 'en' }),
-  props: {
-    descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
-    values: ({}) => ({ lang: ({ getData }) => getData('lang') })
-  },
+  data: () => ({ lang: 'en', tasks: [] }),
+  props: [
+    {
+      descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
+      values: () => ({ lang: ({ getData }) => getData('lang') })
+    },
+    {
+      descendant: ({ children: { tasks } }) => tasks,
+      values: ({ setData }) => ({
+        tasks: ({ getData }) => getData('tasks'),
+        setTasks: (tasks: TaskType[]) => setData('tasks', tasks)
+      })
+    },
+    {
+      descendant: ({ children: { task } }) => task,
+      values: ({ setData }) => ({ updateTasks: (tasks: TaskType[]) => setData('tasks', tasks) })
+    }
+  ],
   pages: [
     {
       path: '/',
@@ -24,7 +38,7 @@ export default ficsRouter<{ lang: Lang }>({
         },
         children: { tasks, task },
         template
-      }) => (id ? (measureOffsetWidth() ? template`${Tasks}${task}` : task) : Tasks)
+      }) => (id ? (measureOffsetWidth() ? template`${tasks}${task}` : task) : tasks)
     },
     { path: '/:id', content: ({ children: { task } }) => task },
     { path: '/redirect', redirect: '/' }
@@ -45,5 +59,6 @@ export default ficsRouter<{ lang: Lang }>({
         }
       }
     }
-  }
+  },
+  hooks: { mounted: async ({ setData }) => setData('tasks', await $tasks.get()) }
 })
