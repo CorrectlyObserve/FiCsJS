@@ -31,7 +31,7 @@ interface Data {
 
 const { sm } = breakpoints
 
-export default fics<Data, { lang: Lang }>({
+export default fics<Data, { lang: Lang; updateTasks: (tasks: Task[]) => void }>({
   name: 'task',
   children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
   className: 'task',
@@ -96,7 +96,7 @@ export default fics<Data, { lang: Lang }>({
     },
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ setData }) => ({
+      values: ({ props: { updateTasks }, setData }) => ({
         isDisabled: ({ getData }) => getData('isError'),
         buttonText: ({ getData }) => getData('buttonText'),
         click:
@@ -109,6 +109,8 @@ export default fics<Data, { lang: Lang }>({
 
             const tasks: Task[] = await $tasks.get()
             setData('task', (await getTask(tasks, id))!)
+            updateTasks(tasks.map(task => (task.id === id ? getData('task') : task)))
+
             goto('/')
           }
       })
