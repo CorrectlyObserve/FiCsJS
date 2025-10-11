@@ -4,9 +4,9 @@ import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
-import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
+import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/stores'
 import type { Lang, Task } from '@/types'
-import { breakpoints, measureOffsetWidth } from '@/utils'
+import { breakpoints, measureOffsetWidth } from '@/utils/others'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -16,7 +16,6 @@ interface Data {
   isShown: boolean
   show: string
   hide: string
-  tasks: Task[]
   texts: string[]
   confirmation: string
   unapplicable: string
@@ -24,7 +23,7 @@ interface Data {
 
 const { sm } = breakpoints
 
-export default fics<Data, { lang: Lang }>({
+export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[]) => void }>({
   name: 'tasks',
   children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
@@ -39,7 +38,7 @@ export default fics<Data, { lang: Lang }>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ setData }) => ({
+      values: ({ props: { setTasks }, setData }) => ({
         value: ({ getData }) => getData('value'),
         placeholder: ({ getData }) => getData('placeholder'),
         input: (value: string) => setData('value', value),
@@ -49,9 +48,7 @@ export default fics<Data, { lang: Lang }>({
             const value = getData('value')
 
             if (value !== '') {
-              const tasks: Task[] = await addTask(value)
-
-              setData('tasks', tasks)
+              setTasks(await addTask(value))
               setData('value', '')
             }
           }
@@ -60,18 +57,8 @@ export default fics<Data, { lang: Lang }>({
   ],
   html: ({
     children: { loadingIcon, icon, input },
-    data: {
-      heading,
-      value,
-      placeholder,
-      isShown,
-      show,
-      hide,
-      tasks,
-      texts,
-      confirmation,
-      unapplicable
-    },
+    data: { heading, value, placeholder, isShown, show, hide, texts, confirmation, unapplicable },
+    props: { tasks, setTasks },
     template,
     setData,
     isDeferred
@@ -92,9 +79,7 @@ export default fics<Data, { lang: Lang }>({
             areaLabel: placeholder,
             click: async () => {
               if (value !== '') {
-                const tasks: Task[] = await addTask(value)
-
-                setData('tasks', tasks)
+                setTasks(await addTask(value))
                 setData('value', '')
               }
             }
@@ -119,7 +104,7 @@ export default fics<Data, { lang: Lang }>({
                       svg: completedAt ? CircleCheckBig : Circle,
                       areaLabel: completedAt ? revert : complete,
                       click: async () =>
-                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
+                        setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
                     ${ficsLink({
                       href: `/${measureOffsetWidth() ? '?id=' : ''}${id}`,
@@ -133,7 +118,7 @@ export default fics<Data, { lang: Lang }>({
                     color: cssVar('red'),
                     click: async () => {
                       if (window.confirm(confirmation)) {
-                        setData('tasks', await deleteTask(id))
+                        setTasks(await deleteTask(id))
                         if (parseInt(queries().id) === id) goto('/')
                       }
                     }
@@ -196,7 +181,7 @@ export default fics<Data, { lang: Lang }>({
       span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
     }
   },
-  hooks: { mounted: async ({ setData }) => setData('tasks', await $tasks.get()) },
+  hooks: { mounted: async ({ props: { setTasks } }) => setTasks(await $tasks.get()) },
   actions: {
     'div.menu span': {
       click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
