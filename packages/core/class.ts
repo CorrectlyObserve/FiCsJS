@@ -706,7 +706,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (oldAttrList[name] !== value) {
               if (isHTMLElement(oldChildNode)) {
-                const isBooleanProperty: boolean = name !== 'class' && value === ''
+                const isBooleanProperty: boolean =
+                  name !== 'class' && name !== 'value' && value === ''
 
                 if (isBooleanProperty) (oldChildNode as any)[name] = true
                 else oldChildNode.setAttribute(name, value)
