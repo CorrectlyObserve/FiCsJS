@@ -564,14 +564,24 @@ export default class FiCsElement<D extends object, P extends object> {
   get #computedClassName(): string {
     if (!this.#classNames) return ''
 
-    return checkType(this.#classNames, 'function')
+    const classNames: string = checkType(this.#classNames, 'function')
       ? this.#classNames(this.#dataProps)
       : this.#classNames
+
+    return classNames.trim()
   }
 
   #setClassNames(component: HTMLElement): void {
-    if (!this.#classNames) return
-    component.className = this.#computedClassName
+    if (this.#computedClassName === '') return
+
+    const oldClassNames: string[] = Array.from(component.classList),
+      newClassNames: Set<string> = new Set(this.#computedClassName.split(/\s+/))
+
+    for (const className of newClassNames)
+      if (!component.classList.contains(className)) component.classList.add(className)
+
+    for (const className of oldClassNames)
+      if (!newClassNames.has(className)) component.classList.remove(className)
   }
 
   get #computedAttrs(): [string, string][] {
@@ -1341,6 +1351,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#isDeferred = true
             }, 'fetch')
 
+          that.#setClassNames(this)
           that.#buildHtml(this.#shadowRoot, true)
           that.#buildCss(this.#shadowRoot, [])
 
@@ -1370,7 +1381,6 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this), 0)
             } else this.#init()
 
-            that.#setClassNames(this)
             that.#setAttrs(this)
 
             that.#infiniteVirtualScroll(this.#shadowRoot)
@@ -1429,11 +1439,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (this.#data[key as keyof D] !== value)
           this.#internalSetData(key as keyof D, value as D[keyof D], true)
 
-    if (!isOnlyHtml && isClassName) {
-      component.classList.remove(...Array.from(component.classList))
-      this.#setClassNames(component)
-    }
-
+    if (!isOnlyHtml && isClassName) this.#setClassNames(component)
     if (!isOnlyHtml && isAttr) this.#setAttrs(component)
 
     this.#buildHtml(shadowRoot)
