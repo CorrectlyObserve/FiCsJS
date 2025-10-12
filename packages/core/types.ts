@@ -16,12 +16,6 @@ export type Attrs<D, P> =
   | Record<string, string>
   | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
-export interface Bindings {
-  isClassName: boolean
-  isAttr: boolean
-  css: number[]
-}
-
 export type Children = Record<string, Descendant>
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
