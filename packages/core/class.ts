@@ -572,10 +572,9 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setClassNames(component: HTMLElement): void {
-    if (this.#computedClassName === '') return
-
     const oldClassNames: string[] = Array.from(component.classList),
-      newClassNames: Set<string> = new Set(this.#computedClassName.split(/\s+/))
+      newClassNames: Set<string> =
+        this.#computedClassName === '' ? new Set() : new Set(this.#computedClassName.split(/\s+/))
 
     for (const className of newClassNames)
       if (!component.classList.contains(className)) component.classList.add(className)
@@ -585,14 +584,40 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   get #computedAttrs(): [string, string][] {
-    return Object.entries(
-      checkType(this.#attrs, 'function') ? this.#attrs(this.#dataProps) : (this.#attrs ?? [])
-    )
+    if (!this.#attrs) return []
+
+    const attrs: [string, string][] = []
+    for (const [key, value] of Object.entries(
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#dataProps) : this.#attrs
+    ))
+      attrs.push([key.trim(), value.trim()])
+
+    return attrs
+  }
+
+  #isBooleanAttr(attr: string, value: string): boolean {
+    return attr !== 'class' && attr !== 'value' && value === ''
   }
 
   #setAttrs(component: HTMLElement): void {
-    for (const [key, value] of this.#computedAttrs)
-      component.setAttribute(convertStr(key, 'kebab'), value)
+    const { attributes }: { attributes: NamedNodeMap } = component,
+      oldAttrs: Record<string, string> = {},
+      newAttrNames: Set<string> = new Set()
+
+    for (let index = 0; index < attributes.length; index++) {
+      const { name, value }: { name: string; value: string } = attributes[index]
+      oldAttrs[name] = value
+    }
+
+    for (let [key, value] of this.#computedAttrs) {
+      if (oldAttrs[key] !== value)
+        if (this.#isBooleanAttr(key, value)) (component as any)[convertStr(key, 'camel')] = true
+        else component.setAttribute(key, value)
+
+      newAttrNames.add(key)
+    }
+
+    for (const key in oldAttrs) if (!newAttrNames.has(key)) component.removeAttribute(key)
   }
 
   #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
@@ -700,8 +725,8 @@ export default class FiCsElement<D extends object, P extends object> {
         )
           oldChildNode.nodeValue = newChildNode.nodeValue
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
-          const oldAttrs: NamedNodeMap = oldChildNode.attributes,
-            newAttrs: NamedNodeMap = newChildNode.attributes,
+          const { attributes: oldAttrs }: { attributes: NamedNodeMap } = oldChildNode,
+            { attributes: newAttrs }: { attributes: NamedNodeMap } = newChildNode,
             oldAttrList: Record<string, string> = {}
 
           for (let index = 0; index < oldAttrs.length; index++) {
@@ -716,14 +741,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (oldAttrList[name] !== value) {
               if (isHTMLElement(oldChildNode)) {
-                const isBooleanProperty: boolean =
-                  name !== 'class' && name !== 'value' && value === ''
-
-                if (isBooleanProperty) (oldChildNode as any)[name] = true
+                if (that.#isBooleanAttr(name, value)) (oldChildNode as any)[name] = true
                 else oldChildNode.setAttribute(name, value)
 
                 if (name !== ficsIdName)
-                  that.#setProperty(oldChildNode, name, isBooleanProperty ? true : value)
+                  that.#setProperty(
+                    oldChildNode,
+                    name,
+                    that.#isBooleanAttr(name, value) ? true : value
+                  )
               } else oldChildNode.setAttributeNS(namespaceURI, name, value)
             }
 
@@ -1352,6 +1378,7 @@ export default class FiCsElement<D extends object, P extends object> {
             }, 'fetch')
 
           that.#setClassNames(this)
+          that.#setAttrs(this)
           that.#buildHtml(this.#shadowRoot, true)
           that.#buildCss(this.#shadowRoot, [])
 
@@ -1381,10 +1408,7 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this), 0)
             } else this.#init()
 
-            that.#setAttrs(this)
-
             that.#infiniteVirtualScroll(this.#shadowRoot)
-
             this.#websocket = that.#openWebSocket()
 
             const {
@@ -1490,11 +1514,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (that.#options.ssr) {
         const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
-          value: string = `${className} ${that.#computedAttrs.reduce(
-            (prev, [key, value]) => `${prev} ${convertStr(key, 'kebab')}="${value}"`,
+          classNameAndAttrs: string = `${className} ${that.#computedAttrs.reduce(
+            (prev, [key, value]) => `${prev} ${key}="${value}"`,
             ''
           )}`.trim(),
-          attrs = (name: string): string =>
+          slotAttrs = (name: string): string =>
             `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
 
         const applyDescendant = (html: string): string => {
@@ -1563,9 +1587,9 @@ export default class FiCsElement<D extends object, P extends object> {
             _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
         return `
-          <${that.#name}${value.length > 0 ? ` ${value}` : ''}>
+          <${that.#name}${classNameAndAttrs.length > 0 ? ` ${classNameAndAttrs}` : ''}>
             <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-            <div ${attrs(that.#name)}>${html}${css([...globalCss(), ...that.#css])}</div>
+            <div ${slotAttrs(that.#name)}>${html}${css([...globalCss(), ...that.#css])}</div>
           </${that.#name}>
         `
       }
