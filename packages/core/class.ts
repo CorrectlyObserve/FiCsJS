@@ -15,7 +15,6 @@ import type {
   Actions,
   ActionOptions,
   Attrs,
-  Bindings,
   Children,
   ClassName,
   CrudOptions,
@@ -66,12 +65,12 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #props: P = {} as P
-  readonly #bindings: Bindings = { isClassName: false, isAttr: false, css: new Array() }
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
+  readonly #boundCss: number[] = new Array()
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options<D, P> = {
@@ -187,15 +186,9 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     if (className)
-      if (checkType(className, 'function')) {
-        this.#bindings.isClassName = true
-        this.#classNames = className
-      } else this.#classNames = className.trim()
+      this.#classNames = checkType(className, 'function') ? className : className.trim()
 
-    if (attributes) {
-      if (checkType(attributes, 'function')) this.#bindings.isAttr = true
-      this.#attrs = attributes
-    }
+    if (attributes) this.#attrs = attributes
 
     this.#html = html
     this.#showAttr = `${this.#instanceId}-show-syntax`
@@ -617,7 +610,8 @@ export default class FiCsElement<D extends object, P extends object> {
       newAttrNames.add(key)
     }
 
-    for (const key in oldAttrs) if (!newAttrNames.has(key)) component.removeAttribute(key)
+    for (const key in oldAttrs)
+      if (key !== 'class' && !newAttrNames.has(key)) component.removeAttribute(key)
   }
 
   #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
@@ -992,7 +986,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
         if (checkType(content, 'string')) continue
-        if (checkType(Object.values(content)[0], 'function')) this.#bindings.css.push(index)
+        if (checkType(Object.values(content)[0], 'function')) this.#boundCss.push(index)
       }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
@@ -1449,8 +1443,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const { component }: { component?: HTMLElement } = this.#cache
     if (!component) return
 
-    const { isClassName, isAttr, css }: Bindings = this.#bindings,
-      shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
     if (this.#i18nData)
       for (const [key, value] of Object.entries(
@@ -1463,15 +1456,15 @@ export default class FiCsElement<D extends object, P extends object> {
         if (this.#data[key as keyof D] !== value)
           this.#internalSetData(key as keyof D, value as D[keyof D], true)
 
-    if (!isOnlyHtml && isClassName) this.#setClassNames(component)
-    if (!isOnlyHtml && isAttr) this.#setAttrs(component)
+    if (!isOnlyHtml) this.#setClassNames(component)
+    if (!isOnlyHtml) this.#setAttrs(component)
 
     this.#buildHtml(shadowRoot)
 
-    if (!isOnlyHtml && css.length > 0)
+    if (!isOnlyHtml && this.#boundCss.length > 0)
       this.#buildCss(
         shadowRoot,
-        css.map(index => this.#css[index])
+        this.#boundCss.map(index => this.#css[index])
       )
 
     if (this.#isBrowser) {
