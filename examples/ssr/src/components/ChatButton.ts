@@ -11,8 +11,13 @@ export default () =>
     children: [Icon()],
     props: {
       descendant: ({ children: { icon } }) => icon,
-      values: () => ({ svg: MessageCircleMore, areaLabel: 'Go to the chat page', isLarge: true })
+      values: () => ({
+        svg: MessageCircleMore,
+        areaLabel: 'Go to the chat page',
+        isLarge: true,
+        click: () => (window.location.href = CHAT_PAGE)
+      })
     },
-    html: ({ children: { icon }, template }) => template`<a href="${CHAT_PAGE}">${icon}</a>`,
+    html: ({ children: { icon }, template }) => template`${icon}`,
     css: { ':host': { background: oklch('#282828') } }
   })
