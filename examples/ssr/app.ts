@@ -140,6 +140,10 @@ app.get('/sse', async c =>
 
     sseClients.add(sender)
 
+    const checkConnection = setInterval(() => {
+      void stream.writeSSE({ event: 'ping', data: 'ping' })
+    }, 30_000)
+
     try {
       await new Promise<void>(resolve => {
         if (!abortSignal || abortSignal.aborted) return resolve()
@@ -147,6 +151,7 @@ app.get('/sse', async c =>
       })
     } finally {
       sseClients.delete(sender)
+      clearInterval(checkConnection)
     }
   })
 )
