@@ -6,9 +6,11 @@ import { getTimestamp } from '@/utils/others'
 export const $lang = createState<Lang>('en')
 export const $tasks = createPersistentState<Task[]>([])
 
+export const getAllTasks = async (): Promise<Task[]> => await $tasks.get()
+
 export const addTask = async (title: string): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get(),
+    const tasks: Task[] = await getAllTasks(),
       timestamp: number = getTimestamp(),
       newTask: Task = {
         id: timestamp,
@@ -40,7 +42,7 @@ export const updateTask = async ({
   description: string
 }): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get(),
+    const tasks: Task[] = await getAllTasks(),
       task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
@@ -58,7 +60,7 @@ export const updateTask = async ({
 
 export const completeTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get(),
+    const tasks: Task[] = await getAllTasks(),
       task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
@@ -76,7 +78,7 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 
 export const revertTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get(),
+    const tasks: Task[] = await getAllTasks(),
       task: Task | undefined = await getTask(tasks, id)
 
     if (!task) throw new Error(`The task with id:${id} is not found...`)
@@ -93,7 +95,7 @@ export const revertTask = async (id: number): Promise<Task[]> => {
 
 export const deleteTask = async (id: number): Promise<Task[]> => {
   try {
-    const tasks: Task[] = await $tasks.get(),
+    const tasks: Task[] = await getAllTasks(),
       taskIndex = tasks.findIndex(task => task.id === id)
 
     if (taskIndex === -1) throw new Error(`The task with id:${id} is not found...`)
