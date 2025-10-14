@@ -4,7 +4,7 @@ import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
-import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/stores'
+import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
 import type { Lang, Task } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
@@ -55,6 +55,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
       })
     }
   ],
+  className: 'tasks',
   html: ({
     children: { loadingIcon, icon, input },
     data: { heading, value, placeholder, isShown, show, hide, texts, confirmation, unapplicable },
@@ -107,7 +108,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
                         setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
                     ${ficsLink({
-                      href: `/${measureOffsetWidth() ? '?id=' : ''}${id}`,
+                      href: `/${measureOffsetWidth() ? '?taskId=' : ''}${id}`,
                       content: ({ template }) =>
                         template`<span class="${completedAt ? 'done' : ''}">${title}</span>`
                     })}
@@ -181,7 +182,6 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
       span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
     }
   },
-  hooks: { mounted: async ({ props: { setTasks } }) => setTasks(await $tasks.get()) },
   actions: {
     'div.menu span': {
       click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
