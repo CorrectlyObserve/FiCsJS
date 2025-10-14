@@ -1,12 +1,12 @@
 import { fics } from 'ficsjs'
-import { dynamicPaths, goto, queries } from 'ficsjs/router'
+import { dynamicPaths, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
 import Button from '@/components/materials/Button'
-import { $tasks, completeTask, deleteTask, getTask, revertTask, updateTask } from '@/stores'
+import { completeTask, deleteTask, getAllTasks, getTask, revertTask, updateTask } from '@/stores'
 import type { Lang, Task } from '@/types'
 import convertTimestamp from '@/utils/convertTimestamp'
 import { breakpoints, getTimestamp } from '@/utils/others'
@@ -31,10 +31,9 @@ interface Data {
 
 const { sm } = breakpoints
 
-export default fics<Data, { lang: Lang; updateTasks: (tasks: Task[]) => void }>({
+export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Task[]) => void }>({
   name: 'task',
   children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
-  className: 'task',
   data: () => ({
     task: {} as Task,
     title: '',
@@ -105,17 +104,19 @@ export default fics<Data, { lang: Lang; updateTasks: (tasks: Task[]) => void }>(
             const { id, title, description, completedAt }: Task = getData('task')
 
             await updateTask({ id, title, description })
-            completedAt ? await completeTask(id) : await revertTask(id)
+            await (completedAt ? completeTask(id) : revertTask(id))
 
-            const tasks: Task[] = await $tasks.get()
-            setData('task', (await getTask(tasks, id))!)
-            updateTasks(tasks.map(task => (task.id === id ? getData('task') : task)))
+            const task: Task | undefined = await getTask(await getAllTasks(), id)
+            if (!task) return
 
+            setData('task', task)
+            updateTasks(await getAllTasks())
             goto('/')
           }
       })
     }
   ],
+  className: 'task',
   html: ({
     children: { loadingIcon, icon, input, textarea, button },
     data: {
@@ -152,7 +153,7 @@ export default fics<Data, { lang: Lang; updateTasks: (tasks: Task[]) => void }>(
         )}
         ${button}
         <div>
-          ${[_delete, isNaN(parseInt(dynamicPaths().id)) ? close : back].map(
+          ${[_delete, !Number.isFinite(parseInt(dynamicPaths().taskId)) ? close : back].map(
             text => template`<span role="button" tabindex="0">${text}</span>`
           )}
         </div>
@@ -195,14 +196,11 @@ export default fics<Data, { lang: Lang; updateTasks: (tasks: Task[]) => void }>(
     }
   },
   hooks: {
-    mounted: async ({ setData }) => {
-      const paramId = parseInt(dynamicPaths().id),
-        queryId = parseInt(queries().id)
+    mounted: async ({ props: { taskId }, setData }) => {
+      const id: number = parseInt(taskId)
+      if (!Number.isFinite(id)) return goto('/404', true)
 
-      if (isNaN(paramId) && isNaN(queryId)) return goto('/404', true)
-
-      const tasks: Task[] = await $tasks.get(),
-        task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
+      const task: Task | undefined = await getTask(await getAllTasks(), id)
 
       if (!task) return goto('/404', true)
       setData('task', task)
