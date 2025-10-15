@@ -31,7 +31,12 @@ export default <P extends object>({
         ':host': {
           display: 'block',
           width: '100%',
-          a: { display: 'block', textDecoration: 'none', '&:visited': { color: 'inherit' } }
+          a: {
+            display: 'block',
+            textDecoration: 'none',
+            lineHeight: 'inherit',
+            '&:visited': { color: 'inherit' }
+          }
         }
       },
       ...(css ? (Array.isArray(css) ? css : [css]) : [])
