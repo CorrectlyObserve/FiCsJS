@@ -158,4 +158,4 @@ app.get('/sse', async c =>
 
 app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
 
-export default { port: 5174, fetch: app.fetch, websocket }
+export default { port: 5174, host: '0.0.0.0', fetch: app.fetch, websocket }
