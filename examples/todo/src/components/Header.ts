@@ -6,12 +6,18 @@ import { $lang } from '@/stores'
 import type { Lang } from '@/types'
 import { breakpoints } from '@/utils/others'
 
+const link = ficsLink({
+  href: '/',
+  content: ({ template }) => template`FiCs ToDo`,
+  css: { ':host > a': { '&:hover': { opacity: 1 } } }
+})
+
 export default fics({
   name: 'header',
   data: () => ({ langs: ['en', 'ja'] as Lang[], lang: 'en' as Lang, isShown: false }),
   html: ({ data: { langs, lang, isShown }, template, show }) => template`
     <header>
-      <h1>${ficsLink({ href: '/', content: ({ template }) => template`FiCs ToDo` })}</h1>
+      <h1>${link}</h1>
       <div class="container">
         <button class="lang">${lang.toUpperCase()}</button>
         <div class="langs" ${show(isShown)}>
