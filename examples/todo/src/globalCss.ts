@@ -7,9 +7,9 @@ export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
   '*[tabindex], button, label, a': {
     transition: cssVar('transition'),
-    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } }
+    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } },
+    '&:is(a):focus > span': { color: 'inherit' }
   },
-  ':host > a': { '&:hover': { opacity: 1 } },
   'h2, p, button, label, span': { color: white, textAlign: 'center' },
   h2: {
     fontSize: cssVar('lg'),
