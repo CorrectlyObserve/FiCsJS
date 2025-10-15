@@ -9,7 +9,7 @@ import { breakpoints } from '@/utils/others'
 const link = ficsLink({
   href: '/',
   content: ({ template }) => template`FiCs ToDo`,
-  css: { ':host > a': { '&:hover': { opacity: 1 } } }
+  css: { ':host > a:hover': { opacity: 1 } }
 })
 
 export default fics({
