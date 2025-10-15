@@ -3,15 +3,15 @@ import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
 import NotFound from '@/components/NotFound'
-import { $tasks } from '@/stores'
+import { getAllTasks } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<{ lang: Lang; tasks: TaskType[] }>({
+export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: string }>({
   children: [Tasks, Task, NotFound],
-  data: () => ({ lang: 'en', tasks: [] }),
+  data: () => ({ lang: 'en', tasks: [], taskId: '' }),
   props: [
     {
       descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
@@ -26,21 +26,37 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[] }>({
     },
     {
       descendant: ({ children: { task } }) => task,
-      values: ({ setData }) => ({ updateTasks: (tasks: TaskType[]) => setData('tasks', tasks) })
+      values: ({ setData }) => ({
+        taskId: ({ getData }) => getData('taskId'),
+        updateTasks: (tasks: TaskType[]) => setData('tasks', tasks)
+      })
     }
   ],
   pages: [
     {
       path: '/',
       content: ({
-        data: {
-          queries: { id }
-        },
         children: { tasks, task },
-        template
-      }) => (id ? (measureOffsetWidth() ? template`${tasks}${task}` : task) : tasks)
+        data: {
+          queries: { taskId }
+        },
+        template,
+        setData
+      }) => {
+        if (taskId) {
+          setData('taskId', taskId)
+          return measureOffsetWidth() ? template`${tasks}${task}` : task
+        }
+        return tasks
+      }
     },
-    { path: '/:id', content: ({ children: { task } }) => task },
+    {
+      path: '/:taskId',
+      content: ({ children: { task }, data: { pathname }, setData }) => {
+        setData('taskId', pathname.split('/')[1])
+        return task
+      }
+    },
     { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
@@ -53,12 +69,12 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[] }>({
       width: '100%',
       minHeight: cssVar('min-height'),
       [`@container (width >= ${breakpoints.lg})`]: {
-        '.task': {
+        '.tasks + .task': {
           paddingLeft: cssVar('xl'),
           boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
         }
       }
     }
   },
-  hooks: { mounted: async ({ setData }) => setData('tasks', await $tasks.get()) }
+  hooks: { mounted: async ({ setData }) => setData('tasks', await getAllTasks()) }
 })
