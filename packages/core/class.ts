@@ -1454,8 +1454,10 @@ export default class FiCsElement<D extends object, P extends object> {
         if (this.#data[key as keyof D] !== value)
           this.#internalSetData(key as keyof D, value as D[keyof D], true)
 
-    if (!isOnlyHtml) this.#setClassNames(component)
-    if (!isOnlyHtml) this.#setAttrs(component)
+    if (!isOnlyHtml) {
+      this.#setClassNames(component)
+      this.#setAttrs(component)
+    }
 
     this.#buildHtml(this.#getShadowRoot(component))
 
