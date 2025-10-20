@@ -314,6 +314,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
+
+        const propsUpdated: Hooks<D, P>['propsUpdated'] | undefined = this.#hooks.propsUpdated
+
+        if (propsUpdated && key in propsUpdated) {
+          this.#throwKeyError(key, true)
+          propsUpdated[key]!(this.#getDataPropsMethods(true))
+        }
+
         if (this.#cache.component) this.#enqueue(() => this.#reRender(), 're-render')
       }
     } else if (this.#props[key] !== value) this.#props[key] = value
@@ -1135,7 +1143,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (lastChild) {
           const intersectionObserver: IntersectionObserver = new IntersectionObserver(
             async ([{ isIntersecting }]) => {
-              if (isIntersecting) method({ ...this.#getDataPropsMethods(true) })
+              if (isIntersecting) method(this.#getDataPropsMethods(true))
             },
             { rootMargin }
           )
@@ -1326,7 +1334,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
       this.#hooks[key]({ ...this.#getDataPropsMethods(true), poll })
-    } else this.#hooks[key]({ ...this.#getDataPropsMethods(true) })
+    } else if (key !== 'propsUpdated') this.#hooks[key](this.#getDataPropsMethods(true))
   }
 
   #define(): void {
