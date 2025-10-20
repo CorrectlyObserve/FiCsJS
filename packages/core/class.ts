@@ -436,6 +436,70 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  get #computedClassName(): string {
+    if (!this.#classNames) return ''
+
+    const classNames: string = checkType(this.#classNames, 'function')
+      ? this.#classNames(this.#dataProps)
+      : this.#classNames
+
+    return classNames.trim()
+  }
+
+  #setClassNames(component: HTMLElement): void {
+    const oldClassNames: string[] = Array.from(component.classList),
+      newClassNames: Set<string> =
+        this.#computedClassName === '' ? new Set() : new Set(this.#computedClassName.split(/\s+/))
+
+    for (const className of newClassNames)
+      if (!component.classList.contains(className)) component.classList.add(className)
+
+    for (const className of oldClassNames)
+      if (!newClassNames.has(className)) component.classList.remove(className)
+  }
+
+  get #computedAttrs(): [string, string][] {
+    if (!this.#attrs) return []
+
+    const attrs: [string, string][] = []
+    for (const [key, value] of Object.entries(
+      checkType(this.#attrs, 'function') ? this.#attrs(this.#dataProps) : this.#attrs
+    ))
+      attrs.push([key.trim(), value.trim()])
+
+    return attrs
+  }
+
+  #isBooleanAttr(attr: string, value: string): boolean {
+    return attr !== 'class' && attr !== 'value' && value === ''
+  }
+
+  #setAttrs(component: HTMLElement): void {
+    const { attributes }: { attributes: NamedNodeMap } = component,
+      oldAttrs: Record<string, string> = {},
+      newAttrNames: Set<string> = new Set()
+
+    for (let index = 0; index < attributes.length; index++) {
+      const { name, value }: { name: string; value: string } = attributes[index]
+      oldAttrs[name] = value
+    }
+
+    for (let [key, value] of this.#computedAttrs) {
+      if (oldAttrs[key] !== value)
+        if (this.#isBooleanAttr(key, value)) (component as any)[convertStr(key, 'camel')] = true
+        else component.setAttribute(key, value)
+
+      newAttrNames.add(key)
+    }
+
+    for (const key in oldAttrs)
+      if (key !== 'class' && !newAttrNames.has(key)) component.removeAttribute(key)
+  }
+
+  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
+    return Array.from(parent.childNodes)
+  }
+
   get #template(): string {
     const sanitized: unique symbol = Symbol(`${this.#instanceId}-sanitized`),
       unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`),
@@ -552,70 +616,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       return `${prev}${curr}`
     }, '') as string
-  }
-
-  get #computedClassName(): string {
-    if (!this.#classNames) return ''
-
-    const classNames: string = checkType(this.#classNames, 'function')
-      ? this.#classNames(this.#dataProps)
-      : this.#classNames
-
-    return classNames.trim()
-  }
-
-  #setClassNames(component: HTMLElement): void {
-    const oldClassNames: string[] = Array.from(component.classList),
-      newClassNames: Set<string> =
-        this.#computedClassName === '' ? new Set() : new Set(this.#computedClassName.split(/\s+/))
-
-    for (const className of newClassNames)
-      if (!component.classList.contains(className)) component.classList.add(className)
-
-    for (const className of oldClassNames)
-      if (!newClassNames.has(className)) component.classList.remove(className)
-  }
-
-  get #computedAttrs(): [string, string][] {
-    if (!this.#attrs) return []
-
-    const attrs: [string, string][] = []
-    for (const [key, value] of Object.entries(
-      checkType(this.#attrs, 'function') ? this.#attrs(this.#dataProps) : this.#attrs
-    ))
-      attrs.push([key.trim(), value.trim()])
-
-    return attrs
-  }
-
-  #isBooleanAttr(attr: string, value: string): boolean {
-    return attr !== 'class' && attr !== 'value' && value === ''
-  }
-
-  #setAttrs(component: HTMLElement): void {
-    const { attributes }: { attributes: NamedNodeMap } = component,
-      oldAttrs: Record<string, string> = {},
-      newAttrNames: Set<string> = new Set()
-
-    for (let index = 0; index < attributes.length; index++) {
-      const { name, value }: { name: string; value: string } = attributes[index]
-      oldAttrs[name] = value
-    }
-
-    for (let [key, value] of this.#computedAttrs) {
-      if (oldAttrs[key] !== value)
-        if (this.#isBooleanAttr(key, value)) (component as any)[convertStr(key, 'camel')] = true
-        else component.setAttribute(key, value)
-
-      newAttrNames.add(key)
-    }
-
-    for (const key in oldAttrs)
-      if (key !== 'class' && !newAttrNames.has(key)) component.removeAttribute(key)
-  }
-
-  #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
-    return Array.from(parent.childNodes)
   }
 
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
@@ -1443,8 +1443,6 @@ export default class FiCsElement<D extends object, P extends object> {
     const { component }: { component?: HTMLElement } = this.#cache
     if (!component) return
 
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
-
     if (this.#i18nData)
       for (const [key, value] of Object.entries(
         await this.#i18nData!({
@@ -1459,11 +1457,11 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isOnlyHtml) this.#setClassNames(component)
     if (!isOnlyHtml) this.#setAttrs(component)
 
-    this.#buildHtml(shadowRoot)
+    this.#buildHtml(this.#getShadowRoot(component))
 
     if (!isOnlyHtml && this.#boundCss.length > 0)
       this.#buildCss(
-        shadowRoot,
+        this.#getShadowRoot(component),
         this.#boundCss.map(index => this.#css[index])
       )
 
