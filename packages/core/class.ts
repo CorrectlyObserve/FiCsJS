@@ -314,14 +314,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (this.#props[key] !== value) {
         this.#props[key] = value
-
-        const propsUpdated: Hooks<D, P>['propsUpdated'] | undefined = this.#hooks.propsUpdated
-
-        if (propsUpdated && key in propsUpdated) {
-          this.#throwKeyError(key, true)
-          propsUpdated[key]!(this.#getDataPropsMethods(true))
-        }
-
         if (this.#cache.component) this.#enqueue(() => this.#reRender(), 're-render')
       }
     } else if (this.#props[key] !== value) this.#props[key] = value
@@ -1334,7 +1326,7 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
       this.#hooks[key]({ ...this.#getDataPropsMethods(true), poll })
-    } else if (key !== 'propsUpdated') this.#hooks[key](this.#getDataPropsMethods(true))
+    } else this.#hooks[key](this.#getDataPropsMethods(true))
   }
 
   #define(): void {
@@ -1392,6 +1384,18 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#setProperty(this, ficsIdName, that.#instanceId)
 
           that.#cache.component = this
+
+          that.#infiniteVirtualScroll(this.#shadowRoot)
+          this.#websocket = that.#openWebSocket()
+
+          const {
+            eventSource,
+            removeEventListeners
+          }: { eventSource?: EventSource; removeEventListeners?: () => void } =
+            that.#openEventSource() || {}
+
+          if (eventSource) this.#eventSource = eventSource
+          if (removeEventListeners) this.#removeEventListeners = removeEventListeners
         }
 
         async connectedCallback(): Promise<void> {
@@ -1409,18 +1413,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
               setTimeout(() => observer.observe(this), 0)
             } else this.#init()
-
-            that.#infiniteVirtualScroll(this.#shadowRoot)
-            this.#websocket = that.#openWebSocket()
-
-            const {
-              eventSource,
-              removeEventListeners
-            }: { eventSource?: EventSource; removeEventListeners?: () => void } =
-              that.#openEventSource() || {}
-
-            if (eventSource) this.#eventSource = eventSource
-            if (removeEventListeners) this.#removeEventListeners = removeEventListeners
 
             that.#callback('mounted')
             this.#isRendered = true
