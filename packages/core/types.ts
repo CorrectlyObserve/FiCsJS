@@ -92,7 +92,6 @@ export interface Hooks<D, P> {
   created?: (params: DataPropsMethods<D, P, true>) => void
   mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
   updated?: { [K in keyof D]?: (params: DataPropsMethods<D, P, true>) => void }
-  propsUpdated?: { [K in keyof P]?: (params: DataPropsMethods<D, P, true>) => void }
   destroyed?: (params: DataPropsMethods<D, P, true>) => void
   adopted?: (params: DataPropsMethods<D, P, true>) => void
 }
