@@ -41,5 +41,5 @@ export default {
       cursor: 'auto'
     }
   },
-  span: { width: 'fit-content' }
+  span: { width: 'fit-content', '&[role="button"]': { padding: cssVar('md') } }
 }
