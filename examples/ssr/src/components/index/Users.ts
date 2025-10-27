@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
-import CrudButton from '@/components/index/CrudButton'
+import Button from '@/components/Button'
 import { api, users } from '@/data/users'
 import type { Method, User } from '@/types'
 
@@ -8,15 +8,15 @@ const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8'
 
 export default fics({
   name: 'users',
-  children: [CrudButton],
+  children: [Button()],
   data: () => ({ users, userId: NaN, methods: ['PUT', 'PATCH', 'DELETE'] as Method[] }),
   props: [
     {
-      descendant: ({ children: { crudButton } }) => crudButton.getChildren().button,
+      descendant: ({ children: { button } }) => button,
       values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
     },
     {
-      descendant: ({ children: { crudButton } }) => crudButton,
+      descendant: ({ children: { button } }) => button,
       values: ({ setData, crud }) => ({
         click:
           ({ getData }) =>
@@ -49,9 +49,9 @@ export default fics({
       })
     }
   ],
-  html: ({ children: { crudButton }, data: { users, userId, methods }, template }) => template`
+  html: ({ children: { button }, data: { users, userId, methods }, template }) => template`
     <div class="buttons mb-7 gap-4">
-      ${methods.map(method => crudButton.setIndividualProps(method, { method }))}
+      ${methods.map(method => button.setIndividualProps(method, { buttonText: method }))}
     </div>
     <div class="space-y-4">
       ${users.map(user => {
