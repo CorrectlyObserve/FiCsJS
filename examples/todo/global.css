@@ -23,7 +23,7 @@ body {
     --footer-height: var(--sm) * 1.2 + var(--md);
 
     min-height: calc(100vh - (var(--header-height) + var(--footer-height) + var(--padding) * 2));
-    padding: var(--padding);
+    padding-block: var(--padding);
   }
 
   @media (max-width: 30rem) {
