@@ -138,7 +138,8 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
         div: {
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
-          '&:last-child': { marginBottom: 0 }
+          '&:last-child': { marginBottom: 0 },
+          span: { paddingLeft: 0 }
         },
         [`@media (max-width: ${sm})`]: {
           marginBottom: cssVar('md'),
@@ -178,8 +179,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
             }
           }
         }
-      },
-      span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
+      }
     }
   },
   actions: {
