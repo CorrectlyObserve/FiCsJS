@@ -1,17 +1,17 @@
-import { ficsRouter } from 'ficsjs/router'
+import { ficsRouter, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import Task from '@/components/Task'
 import NotFound from '@/components/NotFound'
-import { getAllTasks } from '@/stores'
+import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: string }>({
+export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | undefined }>({
   children: [Tasks, Task, NotFound],
-  data: () => ({ lang: 'en', tasks: [], taskId: '' }),
+  data: () => ({ lang: 'en', tasks: [], draft: undefined }),
   props: [
     {
       descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
@@ -27,9 +27,36 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: string }>({
     {
       descendant: ({ children: { task } }) => task,
       values: ({ setData }) => ({
-        taskId: ({ getData }) => getData('taskId'),
+        draft: ({ getData }) => getData('draft'),
+        editTask:
+          ({ getData }) =>
+          (newValue: Partial<TaskType>) => {
+            const draft: TaskType | undefined = getData('draft')
+            if (!draft) return
+
+            setData('draft', { ...draft, ...newValue })
+          },
+        getTask:
+          ({ getData }) =>
+          () =>
+            getData('draft'),
         updateTasks: (tasks: TaskType[]) => setData('tasks', tasks)
       })
+    },
+    {
+      descendant: ({ children: { task } }) => task.getChildren().input,
+      values: () => ({
+        isError: ({ getData }) => getData('draft')?.title === '',
+        value: ({ getData }) => getData('draft')?.title
+      })
+    },
+    {
+      descendant: ({ children: { task } }) => task.getChildren().textarea,
+      values: () => ({ value: ({ getData }) => getData('draft')?.description })
+    },
+    {
+      descendant: ({ children: { task } }) => task.getChildren().button,
+      values: () => ({ isDisabled: ({ getData }) => getData('draft')?.title === '' })
     }
   ],
   pages: [
@@ -40,23 +67,13 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: string }>({
         data: {
           queries: { taskId }
         },
-        template,
-        setData
+        template
       }) => {
-        if (taskId) {
-          setData('taskId', taskId)
-          return measureOffsetWidth() ? template`${tasks}${task}` : task
-        }
+        if (taskId) return measureOffsetWidth() ? template`${tasks}${task}` : task
         return tasks
       }
     },
-    {
-      path: '/:taskId',
-      content: ({ children: { task }, data: { pathname }, setData }) => {
-        setData('taskId', pathname.split('/')[1])
-        return task
-      }
-    },
+    { path: '/:taskId', content: ({ children: { task } }) => task },
     { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
@@ -76,5 +93,37 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: string }>({
       }
     }
   },
-  hooks: { mounted: async ({ setData }) => setData('tasks', await getAllTasks()) }
+  hooks: {
+    mounted: async ({ setData }) => setData('tasks', await getAllTasks()),
+    updated: {
+      pathname: async ({ data: { pathname }, setData }) => {
+        pathname = pathname.replace(/^\//, '')
+        if (pathname === '') return
+
+        const id = parseInt(pathname)
+        if (!Number.isFinite(id)) return setData('pathname', '/404')
+
+        const task: TaskType | undefined = await getTask(await getAllTasks(), id)
+        if (!task) return goto('/404', true)
+
+        setData('draft', task)
+      },
+      queries: async ({
+        data: {
+          queries: { taskId }
+        },
+        setData
+      }) => {
+        if (!taskId) return
+
+        const id = parseInt(taskId)
+        if (!Number.isFinite(id)) return goto('/404', true)
+
+        const task: TaskType | undefined = await getTask(await getAllTasks(), id)
+        if (!task) return goto('/404', true)
+
+        setData('draft', task)
+      }
+    }
+  }
 })
