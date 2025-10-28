@@ -58,12 +58,17 @@ export default fics({
           button: {
             width: calc(`${cssVar('md')} * 3`),
             background: cssVar('black'),
-            paddingBlock: cssVar('xs'),
+            paddingBlock: cssVar('md'),
             [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: cssVar('md') },
             '&.lang:focus': { opacity: 0.5 },
             '&.selected': { color: cssVar('red') }
           },
-          '.langs': { ...fadeInOut(cssVar('transition')), position: 'absolute' }
+          '.langs': {
+            ...fadeInOut(cssVar('transition')),
+            display: 'flex',
+            position: 'absolute',
+            right: 0
+          }
         }
       }
     }
