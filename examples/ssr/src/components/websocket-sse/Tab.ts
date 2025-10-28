@@ -17,8 +17,8 @@ export default fics({
   html: ({ children: { button }, data: { tabs, current }, template, setData }) => template`
     <div class="container mb-7 mx-auto gap-4">
       ${tabs.map(
-        ({ href, text }) => template`
-          ${button.setIndividualProps(text, {
+        ({ href, text }, index) => template`
+          ${button.setIndividualProps(index, {
             isDisabled: current === '' || current === href,
             buttonText: text,
             click: () => {
