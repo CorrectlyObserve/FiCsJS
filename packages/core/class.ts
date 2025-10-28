@@ -536,7 +536,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
     for (const child of Object.values(this.#children))
-      child.setIndividualProps = (key: string, props: P): FiCsElement<D, P> => {
+      child.setIndividualProps = (key: string | number, props: P): FiCsElement<D, P> => {
         const instanceId: string = `${child.#instanceId}-${key}`,
           clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
           cloneProps = (descendant: Descendant): Descendant => {
@@ -1492,7 +1492,7 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
   }
 
-  setIndividualProps(_1: string, _2: P): FiCsElement<D, P> {
+  setIndividualProps(_1: string | number, _2: P): FiCsElement<D, P> {
     throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
   }
 
