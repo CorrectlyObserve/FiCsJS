@@ -51,7 +51,7 @@ export default fics({
   ],
   html: ({ children: { button }, data: { users, userId, methods }, template }) => template`
     <div class="buttons mb-7 gap-4">
-      ${methods.map(method => button.setIndividualProps(method, { buttonText: method }))}
+      ${methods.map((method, index) => button.setIndividualProps(index, { buttonText: method }))}
     </div>
     <div class="space-y-4">
       ${users.map(user => {
