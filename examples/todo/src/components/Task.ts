@@ -16,9 +16,8 @@ type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
   heading: string
-  task: Task
   title: string
-  isError: boolean
+  isError: (task: Task) => boolean
   error: string
   placeholders: string[]
   description: string
@@ -29,15 +28,22 @@ interface Data {
   confirmation: string
 }
 
+interface Props {
+  lang: Lang
+  draft: Task
+  editTask: (newValue: Partial<Task>) => void
+  getTask: () => Task
+  updateTasks: (tasks: Task[]) => void
+}
+
 const { sm } = breakpoints
 
-export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Task[]) => void }>({
+export default fics<Data, Props>({
   name: 'task',
   children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
   data: () => ({
-    task: {} as Task,
     title: '',
-    isError: false,
+    isError: (task: Task) => task?.title === '',
     error: '',
     placeholders: [],
     description: '',
@@ -56,63 +62,51 @@ export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Tas
     },
     {
       descendant: ({ children: { icon } }) => icon,
-      values: ({ setData }) => ({
-        click:
-          ({ getData }) =>
-          () => {
-            const task: Task = getData('task')
-            setData('task', { ...task, completedAt: task.completedAt ? undefined : getTimestamp() })
-          }
+      values: ({ props: { editTask, getTask } }) => ({
+        click: () => {
+          const draft = getTask()
+          if ('completedAt' in draft)
+            editTask({ completedAt: draft.completedAt ? undefined : getTimestamp() })
+        }
       })
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ setData }) => ({
+      values: ({ props: { editTask } }) => ({
         id: 'title',
         label: ({ getData }) => getData('title'),
-        isError: ({ getData }) => getData('isError'),
         error: ({ getData }) => getData('error'),
-        value: ({ getData }) => getData('task').title,
         placeholder: ({ getData }) => getData('placeholders')[0],
-        input:
-          ({ getData }) =>
-          (title: string) =>
-            setData('task', { ...getData('task'), title })
+        input: (title: string) => editTask({ title })
       })
     },
     {
       descendant: ({ children: { textarea } }) => textarea,
-      values: ({ setData }) => ({
+      values: ({ props: { editTask } }) => ({
         id: 'description',
         label: ({ getData }) => getData('description'),
         placeholder: ({ getData }) => getData('placeholders')[1],
-        value: ({ getData }) => getData('task').description,
-        input:
-          ({ getData }) =>
-          (description: string) =>
-            setData('task', { ...getData('task'), description })
+        input: (description: string) => editTask({ description })
       })
     },
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { updateTasks }, setData }) => ({
-        isDisabled: ({ getData }) => getData('isError'),
+      values: ({ props: { draft, editTask, getTask: _getTask, updateTasks } }) => ({
         buttonText: ({ getData }) => getData('buttonText'),
-        click:
-          ({ getData }) =>
-          async () => {
-            const { id, title, description, completedAt }: Task = getData('task')
+        click: async () => {
+          const { id, title, description, completedAt }: Task = _getTask()
+          console.log(draft)
 
-            await updateTask({ id, title, description })
-            await (completedAt ? completeTask(id) : revertTask(id))
+          await updateTask({ id, title, description })
+          await (completedAt ? completeTask(id) : revertTask(id))
 
-            const task: Task | undefined = await getTask(await getAllTasks(), id)
-            if (!task) return
+          const task: Task | undefined = await getTask(await getAllTasks(), id)
+          if (!task) return
 
-            setData('task', task)
-            updateTasks(await getAllTasks())
-            goto('/')
-          }
+          editTask(task)
+          updateTasks(await getAllTasks())
+          goto('/')
+        }
       })
     }
   ],
@@ -121,17 +115,17 @@ export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Tas
     children: { loadingIcon, icon, input, textarea, button },
     data: {
       heading,
-      task,
       status,
       texts: [complete, revert, _delete, back, close],
       datetimes
     },
+    props: { draft },
     template,
     isDeferred
   }) => {
     if (!isDeferred) return template`${loadingIcon}`
 
-    const label = task.completedAt ? revert : complete
+    const label = draft?.completedAt ? revert : complete
 
     return template`
       <h2>${heading}</h2>
@@ -140,7 +134,7 @@ export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Tas
           <label>${status}</label>
           <div>
             ${icon.setIndividualProps('icon', {
-              svg: task.completedAt ? CircleCheckBig : Circle,
+              svg: draft?.completedAt ? CircleCheckBig : Circle,
               areaLabel: label
             })}
             <span role="button" tabindex="0">${label}</span>
@@ -149,7 +143,7 @@ export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Tas
         <fieldset>${input}</fieldset>
         <fieldset>${textarea}</fieldset>
         ${Object.entries(datetimes).map(
-          ([key, value]) => template`<p>${value}${convertTimestamp(task[key as Datetime])}</p>`
+          ([key, value]) => template`<p>${value}${convertTimestamp(draft?.[key as Datetime])}</p>`
         )}
         ${button}
         <div>
@@ -195,32 +189,24 @@ export default fics<Data, { lang: Lang; taskId: string; updateTasks: (tasks: Tas
       }
     }
   },
-  hooks: {
-    mounted: async ({ props: { taskId }, setData }) => {
-      const id: number = parseInt(taskId)
-      if (!Number.isFinite(id)) return goto('/404', true)
-
-      const task: Task | undefined = await getTask(await getAllTasks(), id)
-
-      if (!task) return goto('/404', true)
-      setData('task', task)
-    },
-    updated: { task: async ({ data: { task }, setData }) => setData('isError', task.title === '') }
-  },
   actions: {
     'fieldset label, fieldset span': {
       click: [
-        ({ data: { task }, setData }) =>
-          setData('task', { ...task, completedAt: task.completedAt ? undefined : getTimestamp() }),
+        ({
+          props: {
+            draft: { completedAt },
+            editTask
+          }
+        }) => editTask({ completedAt: completedAt ? undefined : getTimestamp() }),
         { throttle: 500, blur: true }
       ]
     },
     'div.container > div span:first-of-type': {
       click: [
         async ({
-          data: {
-            task: { id },
-            confirmation
+          data: { confirmation },
+          props: {
+            draft: { id }
           }
         }) => {
           if (window.confirm(confirmation)) {
