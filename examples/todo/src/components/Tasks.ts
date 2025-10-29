@@ -21,7 +21,29 @@ interface Data {
   unapplicable: string
 }
 
-const { sm } = breakpoints
+const { sm } = breakpoints,
+  link = ({ id, title, completedAt }: Partial<Task>) =>
+    ficsLink({
+      href: `/${measureOffsetWidth() ? '?taskId=' : ''}${id}`,
+      content: ({ template }) =>
+        template`<span class="${completedAt ? 'done' : ''}">${title}</span>`,
+      css: {
+        ':host': {
+          width: calc(`100% - ${cssVar('xl')} * 1.5`),
+          a: {
+            display: 'flex',
+            paddingBlock: cssVar('md'),
+            lineHeight: 1,
+            span: {
+              lineHeight: 'inherit',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }
+          }
+        }
+      }
+    })
 
 export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[]) => void }>({
   name: 'tasks',
@@ -107,11 +129,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
                       click: async () =>
                         setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
-                    ${ficsLink({
-                      href: `/${measureOffsetWidth() ? '?taskId=' : ''}${id}`,
-                      content: ({ template }) =>
-                        template`<span class="${completedAt ? 'done' : ''}">${title}</span>`
-                    })}
+                    ${link({ id, title, completedAt })}
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
@@ -139,7 +157,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
           '&:last-child': { marginBottom: 0 },
-          span: { paddingLeft: 0 }
+          span: { paddingLeft: 0, lineHeight: 1 }
         },
         [`@media (max-width: ${sm})`]: {
           marginBottom: cssVar('md'),
@@ -156,28 +174,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
         [`@media (max-width: ${sm})`]: { width: '100%' },
         div: {
           ...flexCenter('y'),
-          width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`),
-          span: {
-            width: '100%',
-            display: 'flex',
-            textAlign: 'left',
-            marginInline: cssVar('xs'),
-            overflowX: 'hidden',
-            transition: `${cssVar('transition')} allow-discrete`,
-            '&.done': { textDecoration: 'line-through' },
-            a: {
-              width: '100%',
-              display: 'inline-block',
-              color: 'inherit',
-              paddingBlock: cssVar('xs'),
-              lineHeight: 'inherit',
-              outline: 'none',
-              whiteSpace: 'nowrap',
-              overflowX: 'hidden',
-              textDecoration: 'none',
-              textOverflow: 'ellipsis'
-            }
-          }
+          width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`)
         }
       }
     }
