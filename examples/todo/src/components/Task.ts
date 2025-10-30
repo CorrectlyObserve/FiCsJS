@@ -39,7 +39,7 @@ interface Props {
 const { sm } = breakpoints
 
 export default fics<Data, Props>({
-  name: 'task',
+  name: 'task-detail',
   children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
   data: () => ({
     title: '',
@@ -110,7 +110,7 @@ export default fics<Data, Props>({
       })
     }
   ],
-  className: 'task',
+  className: 'task-detail',
   html: ({
     children: { loadingIcon, icon, input, textarea, button },
     data: {
