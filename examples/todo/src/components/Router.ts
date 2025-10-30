@@ -1,7 +1,7 @@
 import { ficsRouter, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
-import TaskDetail from '@/components/Task'
+import TaskDetail from '@/components/TaskDetail'
 import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
