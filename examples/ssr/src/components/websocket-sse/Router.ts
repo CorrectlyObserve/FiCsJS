@@ -1,6 +1,6 @@
 import { ficsRouter } from 'ficsjs/router'
 import Chat from '@/components/websocket-sse/Chat'
-import { CHAT_PAGE } from '@/utils'
+import { CHAT_PAGE, getTimestamp } from '@/utils'
 import { $userName } from '@/store'
 import type { Message } from '@/types'
 
@@ -40,7 +40,7 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
     },
     sse: {
       path: '/sse',
-      onopen: ({ setData }) => setData('logs', ['The server is connected.']),
+      onopen: ({ setData }) => setData('logs', [`${getTimestamp()}: The server is connected.`]),
       actions: {
         log: ({ data: { logs }, setData, event: { data } }) => setData('logs', [...logs, data])
       }
