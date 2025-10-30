@@ -1,7 +1,7 @@
 import { ficsRouter, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
-import Task from '@/components/Task'
+import TaskDetail from '@/components/Task'
 import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
@@ -10,11 +10,11 @@ import { breakpoints, measureOffsetWidth } from '@/utils/others'
 const xs = calc(`${cssVar('xs')} * -1`)
 
 export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | undefined }>({
-  children: [Tasks, Task, NotFound],
+  children: [Tasks, TaskDetail, NotFound],
   data: () => ({ lang: 'en', tasks: [], draft: undefined }),
   props: [
     {
-      descendant: ({ children: { tasks, task, notFound } }) => [tasks, task, notFound],
+      descendant: ({ children: { tasks, taskDetail, notFound } }) => [tasks, taskDetail, notFound],
       values: () => ({ lang: ({ getData }) => getData('lang') })
     },
     {
@@ -25,7 +25,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | und
       })
     },
     {
-      descendant: ({ children: { task } }) => task,
+      descendant: ({ children: { taskDetail } }) => taskDetail,
       values: ({ setData }) => ({
         draft: ({ getData }) => getData('draft'),
         editTask:
@@ -44,18 +44,18 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | und
       })
     },
     {
-      descendant: ({ children: { task } }) => task.getChildren().input,
+      descendant: ({ children: { taskDetail } }) => taskDetail.getChildren().input,
       values: () => ({
         isError: ({ getData }) => getData('draft')?.title === '',
         value: ({ getData }) => getData('draft')?.title
       })
     },
     {
-      descendant: ({ children: { task } }) => task.getChildren().textarea,
+      descendant: ({ children: { taskDetail } }) => taskDetail.getChildren().textarea,
       values: () => ({ value: ({ getData }) => getData('draft')?.description })
     },
     {
-      descendant: ({ children: { task } }) => task.getChildren().button,
+      descendant: ({ children: { taskDetail } }) => taskDetail.getChildren().button,
       values: () => ({ isDisabled: ({ getData }) => getData('draft')?.title === '' })
     }
   ],
@@ -63,17 +63,17 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | und
     {
       path: '/',
       content: ({
-        children: { tasks, task },
+        children: { tasks, taskDetail },
         data: {
           queries: { taskId }
         },
         template
       }) => {
-        if (taskId) return measureOffsetWidth() ? template`${tasks}${task}` : task
+        if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetail}` : taskDetail
         return tasks
       }
     },
-    { path: '/:taskId', content: ({ children: { task } }) => task },
+    { path: '/:taskId', content: ({ children: { taskDetail } }) => taskDetail },
     { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
@@ -86,7 +86,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | und
       width: '100%',
       minHeight: cssVar('min-height'),
       [`@container (width >= ${breakpoints.lg})`]: {
-        '.tasks + .task': {
+        '.tasks + .task-detail': {
           paddingLeft: cssVar('xl'),
           boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
         }
