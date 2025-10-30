@@ -10,12 +10,9 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   data: () => ({ messages: [], logs: [] }),
   props: {
     descendant: ({ children: { chat } }) => chat,
-    values: ({}) => ({
+    values: ({ sendToWebsocket }) => ({
       messages: ({ getData }) => getData('messages'),
-      sendMessage:
-        ({ sendToWebsocket }) =>
-        (message: Message) =>
-          sendToWebsocket?.(JSON.stringify(message))
+      sendMessage: (message: Message) => sendToWebsocket(JSON.stringify(message))
     })
   },
   pages: [
