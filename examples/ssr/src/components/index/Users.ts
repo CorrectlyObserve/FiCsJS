@@ -50,7 +50,7 @@ export default fics({
     }
   ],
   html: ({ children: { button }, data: { users, userId, methods }, template }) => template`
-    <div class="buttons mb-7 gap-4">
+    <div class="buttons mb-6 gap-4">
       ${methods.map((method, index) => button.setIndividualProps(index, { buttonText: method }))}
     </div>
     <div class="space-y-4">
@@ -73,9 +73,7 @@ export default fics({
       })}
     </div>
   `,
-  css: {
-    div: { '&.buttons': { ...flexCenter('x') }, '&.space-y-4': { ...flexCenter('x', 'column') } }
-  },
+  css: { div: { '&.buttons': flexCenter('x'), '&.space-y-4': flexCenter('x', 'column') } },
   hooks: {
     mounted: async ({ setData, getData, crud }) => {
       const users = getData('users')
