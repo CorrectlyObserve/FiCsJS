@@ -236,7 +236,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return { data: { ...this.#data }, props: { ...this.#props } }
   }
 
-  #internalSetData<K extends keyof D>(key: K, value: D[K], isNotRerendered?: boolean): void {
+  #internalSetData<K extends keyof D>(key: K, value: D[K], isInRerendering?: boolean): void {
     if (this.#data[key] !== value) {
       this.#data[key] = value
 
@@ -253,7 +253,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const { component }: { component?: HTMLElement } = this.#cache
 
-      if (!isNotRerendered && this.#isBrowser && component)
+      if (!isInRerendering && this.#isBrowser && component)
         this.#enqueue(() => {
           this.#reRender()
           this.#infiniteVirtualScroll(this.#getShadowRoot(component)!)
@@ -436,6 +436,35 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#ancestorIds.push(this.#instanceId)
       this.#isInitialized = true
     }
+  }
+
+  async #fetchData(isInRerendering?: boolean): Promise<void> {
+    if (!this.#deferredData && !this.#i18nData) return
+
+    let entries: [string, unknown][] = []
+
+    if (this.#deferredData)
+      entries = [
+        ...Object.entries(
+          await this.#deferredData({ ...this.#dataProps, crud: this.#crud.bind(this) })
+        )
+      ]
+
+    if (this.#i18nData)
+      entries = [
+        ...entries,
+        ...Object.entries(
+          await this.#i18nData({
+            ...this.#dataProps,
+            i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+              i18n<T>({ lang, key })
+          })
+        )
+      ]
+
+    for (const [key, value] of entries)
+      if (!isInRerendering || this.#data[key as keyof D] !== value)
+        this.#internalSetData(key as keyof D, value as D[keyof D], isInRerendering)
   }
 
   get #computedClassName(): string {
@@ -1354,22 +1383,7 @@ export default class FiCsElement<D extends object, P extends object> {
         #init() {
           if (that.#deferredData || that.#i18nData)
             that.#enqueue(async () => {
-              if (that.#deferredData)
-                for (const [key, value] of Object.entries(
-                  await that.#deferredData!({ ...that.#dataProps, crud: that.#crud.bind(that) })
-                ))
-                  that.#internalSetData(key as keyof D, value as D[keyof D])
-
-              if (that.#i18nData)
-                for (const [key, value] of Object.entries(
-                  await that.#i18nData!({
-                    ...that.#dataProps,
-                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-                      i18n<T>({ lang, key })
-                  })
-                ))
-                  that.#internalSetData(key as keyof D, value as D[keyof D])
-
+              await that.#fetchData()
               that.#isDeferred = true
             }, 'fetch')
 
@@ -1445,16 +1459,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const { component }: { component?: HTMLElement } = this.#cache
     if (!component) return
 
-    if (this.#i18nData)
-      for (const [key, value] of Object.entries(
-        await this.#i18nData!({
-          ...this.#dataProps,
-          i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-            i18n<T>({ lang, key })
-        })
-      ))
-        if (this.#data[key as keyof D] !== value)
-          this.#internalSetData(key as keyof D, value as D[keyof D], true)
+    this.#fetchData(true)
 
     if (!isOnlyHtml) {
       this.#setClassNames(component)
