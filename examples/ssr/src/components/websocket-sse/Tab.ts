@@ -15,7 +15,7 @@ export default fics({
     current: ''
   }),
   html: ({ children: { button }, data: { tabs, current }, template, setData }) => template`
-    <div class="container mb-7 mx-auto gap-4">
+    <div class="container mb-6 mx-auto gap-4">
       ${tabs.map(
         ({ href, text }, index) => template`
           ${button.setIndividualProps(index, {
@@ -30,6 +30,6 @@ export default fics({
       )}
     </div>
   `,
-  css: { ':host div.container': { ...flexCenter('x') } },
+  css: { ':host div.container': flexCenter('x') },
   hooks: { mounted: ({ setData }) => setData('current', window.location.pathname) }
 })
