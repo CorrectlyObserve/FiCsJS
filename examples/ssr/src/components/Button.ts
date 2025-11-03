@@ -5,7 +5,7 @@ export default () =>
     name: 'button',
     html: ({ props: { isDisabled, buttonText }, template, isBrowser }) => template`
       <button
-        class="clickable text-white border border-white p-3 rounded-lg"
+        class="clickable w-24 text-white border border-white p-3 rounded-lg"
         ${!isBrowser || isDisabled ? 'disabled' : ''}
         aria-label="${buttonText}"
       >
