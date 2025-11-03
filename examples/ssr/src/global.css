@@ -7,6 +7,7 @@
   --text-xl--line-height: 1.5;
   --text-base--line-height: 1.2;
   --color-dark: oklch(0.2768 0 0);
+  --footer-height: 35.99px;
 }
 
 body {
@@ -32,5 +33,6 @@ h1 {
 }
 
 main {
-  min-height: calc(100vh - 64px - 35.99px);
+  --header-height: 64px;
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
 }
