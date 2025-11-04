@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { ficsLink, goto, queries } from 'ficsjs/router'
+import { ficsLink, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
@@ -19,6 +19,13 @@ interface Data {
   texts: string[]
   confirmation: string
   unapplicable: string
+}
+
+interface Props {
+  lang: Lang
+  tasks: Task[]
+  taskId: number
+  setTasks: (tasks: Task[]) => void
 }
 
 const { sm } = breakpoints,
@@ -45,7 +52,7 @@ const { sm } = breakpoints,
       }
     })
 
-export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[]) => void }>({
+export default fics<Data, Props>({
   name: 'tasks',
   children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
@@ -81,7 +88,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
   html: ({
     children: { loadingIcon, icon, input },
     data: { heading, value, placeholder, isShown, show, hide, texts, confirmation, unapplicable },
-    props: { tasks, setTasks },
+    props: { tasks, taskId, setTasks },
     template,
     setData,
     isDeferred
@@ -138,7 +145,7 @@ export default fics<Data, { lang: Lang; tasks: Task[]; setTasks: (tasks: Task[])
                     click: async () => {
                       if (window.confirm(confirmation)) {
                         setTasks(await deleteTask(id))
-                        if (parseInt(queries().id) === id) goto('/')
+                        if (taskId === id) goto('/')
                       }
                     }
                   })}
