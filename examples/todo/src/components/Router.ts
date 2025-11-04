@@ -7,11 +7,18 @@ import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
+interface Data {
+  lang: Lang
+  tasks: TaskType[]
+  taskId: number
+  draft: TaskType | undefined
+}
+
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | undefined }>({
+export default ficsRouter<Data>({
   children: [Tasks, TaskDetail, NotFound],
-  data: () => ({ lang: 'en', tasks: [], draft: undefined }),
+  data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
   props: [
     {
       descendant: ({ children: { tasks, taskDetail, notFound } }) => [tasks, taskDetail, notFound],
@@ -21,6 +28,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | und
       descendant: ({ children: { tasks } }) => tasks,
       values: ({ setData }) => ({
         tasks: ({ getData }) => getData('tasks'),
+        taskId: ({ getData }) => getData('taskId'),
         setTasks: (tasks: TaskType[]) => setData('tasks', tasks)
       })
     },
@@ -118,6 +126,8 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; draft: TaskType | und
 
         const id = parseInt(taskId)
         if (!Number.isFinite(id)) return goto('/404', true)
+
+        setData('taskId', id)
 
         const task: TaskType | undefined = await getTask(await getAllTasks(), id)
         if (!task) return goto('/404', true)
