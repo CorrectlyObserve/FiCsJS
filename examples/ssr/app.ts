@@ -95,27 +95,40 @@ app.get(CHAT_PAGE, c =>
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
   messages: Message[] = [],
+  wsClients = new Set<ServerWebSocket>(),
+  wsClientUsernames = new Map<ServerWebSocket, string>(),
   sseClients = new Set<(sseMessage: { event: 'log'; data: string }) => Promise<void>>()
 
 app.get(
   '/ws',
   upgradeWebSocket(() => ({
+    onOpen(_event, { raw }): void {
+      if (raw) wsClients.add(raw)
+    },
     onMessage({ data }, ws): void {
       if (typeof data !== 'string') throw new Error('The data is not a string...')
 
-      const message: Message = JSON.parse(data)
-      if (!message.userName) throw new Error('The userName is required in the message...')
+      const message: Message = JSON.parse(data),
+        { userName } = message
 
-      const { userName } = message
+      if (!userName) throw new Error('The userName is required in the message...')
+
+      const { raw } = ws
+      if (raw && !wsClientUsernames.has(raw)) wsClientUsernames.set(raw, userName)
 
       if (message.comment) {
-        ws.send(JSON.stringify(message))
+        for (const client of wsClients) client.send(JSON.stringify(message))
+
         for (const send of sseClients)
           void send({ event: 'log', data: `${getTimestamp()}: ${userName} sent a message.` })
 
         messages.push(message)
         const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
-        setTimeout(() => ws.send(JSON.stringify({ ...pickedMessage, userName: 'Server' })), 500)
+
+        setTimeout(() => {
+          for (const client of wsClients)
+            client.send(JSON.stringify({ ...pickedMessage, userName: 'Server' }))
+        }, 500)
 
         for (const send of sseClients)
           void send({ event: 'log', data: `${getTimestamp()}: Server sent a message.` })
@@ -126,9 +139,26 @@ app.get(
       for (const send of sseClients)
         void send({ event: 'log', data: `${getTimestamp()}: ${userName} joined the chat.` })
     },
-    onClose: () => {
-      for (const send of sseClients)
-        void send({ event: 'log', data: `${getTimestamp()}: The connection was closed.` })
+    onClose(_event, { raw }): void {
+      if (raw) {
+        wsClients.delete(raw)
+        wsClientUsernames.delete(raw)
+
+        const userName = wsClientUsernames.get(raw)
+
+        if (userName) {
+          for (const client of wsClients)
+            client.send(
+              JSON.stringify({ userName: 'Server', comment: `See you later, ${userName}.` })
+            )
+
+          for (const send of sseClients)
+            void send({
+              event: 'log',
+              data: `${getTimestamp()}: The ${userName}'s connection was closed.`
+            })
+        }
+      }
     }
   }))
 )
