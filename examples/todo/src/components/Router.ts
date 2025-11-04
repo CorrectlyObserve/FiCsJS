@@ -1,7 +1,7 @@
 import { ficsRouter, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
-import TaskDetail from '@/components/TaskDetail'
+import TaskDetail from '@/components/TaskDetails'
 import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
@@ -21,7 +21,11 @@ export default ficsRouter<Data>({
   data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
   props: [
     {
-      descendant: ({ children: { tasks, taskDetail, notFound } }) => [tasks, taskDetail, notFound],
+      descendant: ({ children: { tasks, taskDetails, notFound } }) => [
+        tasks,
+        taskDetails,
+        notFound
+      ],
       values: () => ({ lang: ({ getData }) => getData('lang') })
     },
     {
@@ -33,7 +37,7 @@ export default ficsRouter<Data>({
       })
     },
     {
-      descendant: ({ children: { taskDetail } }) => taskDetail,
+      descendant: ({ children: { taskDetails } }) => taskDetails,
       values: ({ setData }) => ({
         draft: ({ getData }) => getData('draft'),
         editTask:
@@ -52,18 +56,18 @@ export default ficsRouter<Data>({
       })
     },
     {
-      descendant: ({ children: { taskDetail } }) => taskDetail.getChildren().input,
+      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().input,
       values: () => ({
         isError: ({ getData }) => getData('draft')?.title === '',
         value: ({ getData }) => getData('draft')?.title
       })
     },
     {
-      descendant: ({ children: { taskDetail } }) => taskDetail.getChildren().textarea,
+      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().textarea,
       values: () => ({ value: ({ getData }) => getData('draft')?.description })
     },
     {
-      descendant: ({ children: { taskDetail } }) => taskDetail.getChildren().button,
+      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().button,
       values: () => ({ isDisabled: ({ getData }) => getData('draft')?.title === '' })
     }
   ],
@@ -71,17 +75,17 @@ export default ficsRouter<Data>({
     {
       path: '/',
       content: ({
-        children: { tasks, taskDetail },
+        children: { tasks, taskDetails },
         data: {
           queries: { taskId }
         },
         template
       }) => {
-        if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetail}` : taskDetail
+        if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
         return tasks
       }
     },
-    { path: '/:taskId', content: ({ children: { taskDetail } }) => taskDetail },
+    { path: '/:taskId', content: ({ children: { taskDetails } }) => taskDetails },
     { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
