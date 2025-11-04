@@ -37,3 +37,5 @@ export const getTimestamp = (): string => {
 
   return `${date} ${time}`
 }
+
+export const WEBSOCKET_PATH = '/ws' as const
