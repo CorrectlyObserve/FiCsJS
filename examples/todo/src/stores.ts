@@ -32,24 +32,33 @@ export const addTask = async (title: string): Promise<Task[]> => {
 export const getTask = async (tasks: Task[], id: number): Promise<Task | undefined> =>
   tasks.find(task => task.id === id)
 
+const searchTask = async (tasks: Task[], id: number): Promise<Task> => {
+  const task: Task | undefined = await getTask(tasks, id)
+
+  if (!task) throw new Error(`The task with id:${id} is not found...`)
+  return task
+}
+
 export const updateTask = async ({
   id,
   title,
-  description
+  description,
+  completedAt
 }: {
   id: number
   title: string
   description: string
+  completedAt: number | undefined
 }): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getAllTasks(),
-      task: Task | undefined = await getTask(tasks, id)
-
-    if (!task) throw new Error(`The task with id:${id} is not found...`)
+      task: Task | undefined = await searchTask(tasks, id),
+      timestamp: number = getTimestamp()
 
     task.title = title
     task.description = description
-    task.updatedAt = getTimestamp()
+    task.updatedAt = timestamp
+    task.completedAt = completedAt ? timestamp : undefined
 
     await $tasks.set(tasks)
     return tasks
@@ -61,11 +70,9 @@ export const updateTask = async ({
 export const completeTask = async (id: number): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getAllTasks(),
-      task: Task | undefined = await getTask(tasks, id)
+      task: Task | undefined = await searchTask(tasks, id),
+      timestamp: number = getTimestamp()
 
-    if (!task) throw new Error(`The task with id:${id} is not found...`)
-
-    const timestamp: number = getTimestamp()
     task.updatedAt = timestamp
     task.completedAt = timestamp
 
@@ -79,9 +86,7 @@ export const completeTask = async (id: number): Promise<Task[]> => {
 export const revertTask = async (id: number): Promise<Task[]> => {
   try {
     const tasks: Task[] = await getAllTasks(),
-      task: Task | undefined = await getTask(tasks, id)
-
-    if (!task) throw new Error(`The task with id:${id} is not found...`)
+      task: Task | undefined = await searchTask(tasks, id)
 
     task.updatedAt = getTimestamp()
     task.completedAt = undefined
