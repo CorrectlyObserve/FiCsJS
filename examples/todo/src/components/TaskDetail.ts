@@ -6,7 +6,7 @@ import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/materials/Textarea'
 import Button from '@/components/materials/Button'
-import { completeTask, deleteTask, getAllTasks, getTask, revertTask, updateTask } from '@/stores'
+import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
 import type { Lang, Task } from '@/types'
 import convertTimestamp from '@/utils/convertTimestamp'
 import { breakpoints, getTimestamp } from '@/utils/others'
@@ -91,14 +91,11 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { draft, editTask, getTask: _getTask, updateTasks } }) => ({
+      values: ({ props: { editTask, getTask: _getTask, updateTasks } }) => ({
         buttonText: ({ getData }) => getData('buttonText'),
         click: async () => {
           const { id, title, description, completedAt }: Task = _getTask()
-          console.log(draft)
-
-          await updateTask({ id, title, description })
-          await (completedAt ? completeTask(id) : revertTask(id))
+          await updateTask({ id, title, description, completedAt })
 
           const task: Task | undefined = await getTask(await getAllTasks(), id)
           if (!task) return
