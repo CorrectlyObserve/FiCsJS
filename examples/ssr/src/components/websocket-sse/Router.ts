@@ -1,8 +1,8 @@
 import { ficsRouter } from 'ficsjs/router'
 import Chat from '@/components/websocket-sse/Chat'
-import { CHAT_PAGE, getTimestamp } from '@/utils'
 import { $userName } from '@/store'
 import type { Message } from '@/types'
+import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from '@/utils'
 
 export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   pathname: CHAT_PAGE,
@@ -28,7 +28,7 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   css: { ':host p.mb-2:last-child': { 'margin-bottom': '0' } },
   options: {
     websocket: {
-      path: '/ws',
+      path: WEBSOCKET_PATH,
       onopen: ({ websocket: { send } }) => {
         const userName = $userName.get()
         if (userName === '') return
