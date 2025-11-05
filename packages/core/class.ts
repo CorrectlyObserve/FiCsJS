@@ -675,15 +675,15 @@ export default class FiCsElement<D extends object, P extends object> {
         const childNode: ChildNode = childNodes[index],
           parentNode: ParentNode | null = childNode.parentNode
 
-        if (isText(childNode) && childNode.nodeValue && (!parentNode || !isTextarea(parentNode))) {
-          childNode.nodeValue = childNode.nodeValue.trim()
-
-          if (childNode.nodeValue === '') {
-            childNode.parentNode?.removeChild(childNode)
-            childNodes.splice(index, 1)
-            index--
-            continue
-          }
+        if (
+          isText(childNode) &&
+          childNode?.nodeValue === '' &&
+          (!parentNode || !isTextarea(parentNode))
+        ) {
+          childNode.parentNode?.removeChild(childNode)
+          childNodes.splice(index, 1)
+          index--
+          continue
         }
 
         if (isElement(childNode)) {
