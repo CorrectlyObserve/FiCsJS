@@ -1,3 +1,5 @@
+import { oklch } from 'ficsjs/style'
+
 export const CHAT_PAGE = '/websocket-sse' as const
 
 const datetimeCache: { format?: Intl.DateTimeFormat } = {},
@@ -39,3 +41,5 @@ export const getTimestamp = (): string => {
 }
 
 export const WEBSOCKET_PATH = '/ws' as const
+
+export const white = (opacity: number = 1) => oklch('#fff', { opacity })
