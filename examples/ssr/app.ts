@@ -134,9 +134,12 @@ app.get(
         if (raw && !wsClientUsernames.has(raw)) {
           wsClientUsernames.set(raw, userName)
 
-          try {
-            ws.send(JSON.stringify({ userName: SERVER_NAME, comment: `Hello, ${userName}!` }))
-          } catch {}
+          for (const client of wsClients)
+            try {
+              client.send(JSON.stringify({ userName: SERVER_NAME, comment: `Hello, ${userName}!` }))
+            } catch {
+              wsClients.delete(client)
+            }
 
           for (const send of sseClients)
             void send({ event: SSE_NAME, data: `${getTimestamp()}: ${userName} joined the chat.` })
