@@ -1,12 +1,9 @@
 @import 'tailwindcss';
+@import './variables.css';
 
 @theme {
-  --font-sans: 'Times New Roman', serif;
   --text-xl: 2rem;
-  --text-lg: 1.5rem;
   --text-xl--line-height: 1.5;
-  --text-base--line-height: 1.2;
-  --color-dark: oklch(0.2768 0 0);
   --footer-height: 35.99px;
 }
 
@@ -20,16 +17,8 @@ h1 {
   -webkit-text-fill-color: transparent;
 }
 
-.clickable {
-  @apply transition duration-200 ease-out;
-
-  &:not([disabled]) {
-    @apply cursor-pointer hover:opacity-50 focus:scale-95 focus:opacity-20 focus:outline-none;
-  }
-
-  &[disabled] {
-    @apply opacity-20 cursor-not-allowed;
-  }
+.clickable[disabled] {
+  @apply opacity-20;
 }
 
 main {
