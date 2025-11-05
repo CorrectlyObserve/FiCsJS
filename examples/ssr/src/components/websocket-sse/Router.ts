@@ -1,4 +1,5 @@
 import { ficsRouter } from 'ficsjs/router'
+import { cssVar } from 'ficsjs/style'
 import Chat from '@/components/websocket-sse/Chat'
 import { $userName } from '@/store'
 import type { Message } from '@/types'
@@ -20,12 +21,16 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
     {
       path: `${CHAT_PAGE}/logs`,
       content: ({ data: { logs }, template }) => template`
-        <h2 class="text-lg text-white text-center">Logs</h2>
-        ${logs.map(log => template`<p class="text-white mb-2">${log}</p>`)}
+        <h2 class="text-lg text-white text-center mb-6">Logs</h2>
+        <div class="w-fit mx-auto">
+          ${logs.map(log => template`<p class="text-white mb-4">${log}</p>`)}
+        </div>
       `
     }
   ],
-  css: { ':host p.mb-2:last-child': { 'margin-bottom': '0' } },
+  css: {
+    ':host div': { maxWidth: cssVar('chat-width'), 'p:last-child': { 'margin-bottom': '0' } }
+  },
   options: {
     websocket: {
       path: WEBSOCKET_PATH,
