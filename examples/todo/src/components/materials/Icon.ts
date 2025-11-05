@@ -23,7 +23,7 @@ export default () =>
     css: {
       button: ({ props: { color, isLoadingIcon } }) => ({
         background: 'none',
-        color: color ?? white,
+        color: color ?? white(),
         padding: cssVar('xs'),
         svg: svgStyle('xl'),
         ...(isLoadingIcon
