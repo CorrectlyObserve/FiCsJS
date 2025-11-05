@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
+import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
@@ -26,7 +26,7 @@ export default () =>
         label: { paddingBottom: cssVar('xs') },
         textarea: {
           height: calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6)),
-          background: oklch(white, { opacity: 0.1 }),
+          background: white(0.1),
           paddingBlock: calc(`${cssVar('xs')} * 1.5`),
           resize: 'none'
         }
