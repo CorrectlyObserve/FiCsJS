@@ -129,18 +129,34 @@ app.get(
       }
 
       if (!comment) {
+        const { raw } = ws
+
+        if (raw && !wsClientUsernames.has(raw)) {
+          wsClientUsernames.set(raw, userName)
+
+          try {
+            ws.send(JSON.stringify({ userName: SERVER_NAME, comment: `Hello, ${userName}!` }))
+          } catch {}
+
+          for (const send of sseClients)
+            void send({ event: SSE_NAME, data: `${getTimestamp()}: ${userName} joined the chat.` })
+        } else
+          ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The comment is required.' }))
+
+        return
+      }
+
+      if (!comment || comment.trim() === '') {
         ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The comment is required.' }))
         return
       }
 
-      const { raw } = ws,
-        isFirstMessage = raw && !wsClientUsernames.has(raw)
-      if (isFirstMessage) wsClientUsernames.set(raw, userName)
-
       for (const client of wsClients)
         try {
           client.send(JSON.stringify(message))
-        } catch {}
+        } catch {
+          wsClients.delete(client)
+        }
 
       for (const send of sseClients)
         void send({ event: SSE_NAME, data: `${getTimestamp()}: ${userName} sent a message.` })
@@ -152,18 +168,13 @@ app.get(
         for (const client of wsClients)
           try {
             client.send(JSON.stringify({ ...pickedMessage, userName: SERVER_NAME }))
-          } catch {}
+          } catch {
+            wsClients.delete(client)
+          }
       }, 500)
 
       for (const send of sseClients)
         void send({ event: SSE_NAME, data: `${getTimestamp()}: Server sent a message.` })
-
-      if (isFirstMessage) {
-        ws.send(JSON.stringify({ userName: SERVER_NAME, comment: `Hello, ${userName}!` }))
-
-        for (const send of sseClients)
-          void send({ event: SSE_NAME, data: `${getTimestamp()}: ${userName} joined the chat.` })
-      }
     },
     onClose(_event, { raw }): void {
       if (raw) {
@@ -178,7 +189,9 @@ app.get(
               client.send(
                 JSON.stringify({ userName: SERVER_NAME, comment: `See you later, ${userName}.` })
               )
-            } catch {}
+            } catch {
+              wsClients.delete(client)
+            }
 
           for (const send of sseClients)
             void send({
