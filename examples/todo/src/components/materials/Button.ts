@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { cssVar, oklch } from 'ficsjs/style'
+import { cssVar } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 export default () =>
@@ -17,7 +17,7 @@ export default () =>
           borderRadius: cssVar('xs'),
           '&[aria-disabled="true"]': {
             background: 'none',
-            color: oklch(white, { opacity: 0.2 }),
+            color: white(0.2),
             cursor: 'not-allowed'
           }
         }
