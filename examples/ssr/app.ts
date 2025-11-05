@@ -99,7 +99,8 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
   wsClients = new Set<ServerWebSocket>(),
   wsClientUsernames = new Map<ServerWebSocket, string>(),
   SSE_NAME = 'log' as const,
-  sseClients = new Set<(sseMessage: { event: typeof SSE_NAME; data: string }) => Promise<void>>()
+  sseClients = new Set<(sseMessage: { event: typeof SSE_NAME; data: string }) => Promise<void>>(),
+  pendingSseMessages: { event: typeof SSE_NAME; data: string }[] = []
 
 app.get(
   WEBSOCKET_PATH,
@@ -141,8 +142,13 @@ app.get(
               wsClients.delete(client)
             }
 
-          for (const send of sseClients)
-            void send({ event: SSE_NAME, data: `${getTimestamp()}: ${userName} joined the chat.` })
+          const joinMessage = {
+            event: SSE_NAME,
+            data: `${getTimestamp()}: ${userName} joined the chat.`
+          }
+
+          if (sseClients.size > 0) for (const send of sseClients) send(joinMessage)
+          else pendingSseMessages.push(joinMessage)
         } else
           ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The comment is required.' }))
 
@@ -174,7 +180,7 @@ app.get(
           } catch {
             wsClients.delete(client)
           }
-      }, 500)
+      }, 1000)
 
       for (const send of sseClients)
         void send({ event: SSE_NAME, data: `${getTimestamp()}: Server sent a message.` })
@@ -214,6 +220,11 @@ app.get('/sse', async c =>
       abortSignal: AbortSignal | undefined = c.req.raw?.signal
 
     sseClients.add(sender)
+
+    if (pendingSseMessages.length > 0) {
+      for (const message of pendingSseMessages) sender(message)
+      pendingSseMessages.length = 0
+    }
 
     const checkConnection = setInterval(() => {
       void stream.writeSSE({ event: 'ping', data: 'ping' })
