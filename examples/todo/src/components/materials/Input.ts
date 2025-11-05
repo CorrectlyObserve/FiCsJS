@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
+import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
@@ -47,9 +47,9 @@ export default () =>
           textAlign: 'left'
         },
         input: {
-          background: isError ? cssVar('error') : oklch(white, { opacity: 0.1 }),
+          background: isError ? cssVar('error') : white(0.1),
           paddingBlock: calc(`${cssVar('xs')} * 1.5`),
-          '&::placeholder': isError ? { color: white, opacity: 0.5 } : {}
+          '&::placeholder': isError ? { color: white(), opacity: 0.5 } : {}
         }
       })
     },
