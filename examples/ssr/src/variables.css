@@ -1,0 +1,10 @@
+@theme {
+  --font-sans: 'Times New Roman', serif;
+  --text-lg: 1.5rem;
+  --text-base--line-height: 1.2;
+  --color-dark: oklch(0.2768 0 0);
+}
+
+:root {
+  --chat-width: 43rem;
+}
