@@ -7,4 +7,4 @@ export const getTimestamp = (): number => Date.now()
 export const measureOffsetWidth = (): boolean =>
   document.documentElement.offsetWidth >= remToPx(breakpoints.lg)
 
-export const white: string = oklch('#fff')
+export const white = (opacity: number = 1) => oklch('#fff', { opacity })
