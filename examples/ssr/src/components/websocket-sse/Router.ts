@@ -35,8 +35,10 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
 
         send(JSON.stringify({ userName }))
       },
-      onmessage: ({ data: { messages }, setData, event: { data } }) =>
-        setData('messages', [...messages, JSON.parse(data) as Message])
+      onmessage: ({ data: { messages }, setData, event: { data } }) => {
+        const { userName, comment }: Message = JSON.parse(data)
+        if (userName && comment) setData('messages', [...messages, { userName, comment }])
+      }
     },
     sse: {
       path: '/sse',
