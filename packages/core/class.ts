@@ -1464,7 +1464,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const { component }: { component?: HTMLElement } = this.#cache
     if (!component) return
 
-    this.#fetchData(true)
+    await this.#fetchData(true)
 
     if (!isOnlyHtml) {
       this.#setClassNames(component)
