@@ -137,6 +137,14 @@ export default ficsRouter<Data>({
         if (!task) return goto('/404', true)
 
         setData('draft', task)
+      },
+      tasks: ({ data: { tasks, draft }, setData }) => {
+        if (!draft) return
+
+        const { id, updatedAt } = draft,
+          updatedDraft = tasks.find(task => task.id === id)
+
+        if (updatedDraft && updatedDraft.updatedAt !== updatedAt) setData('draft', updatedDraft)
       }
     }
   }
