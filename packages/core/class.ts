@@ -384,7 +384,12 @@ export default class FiCsElement<D extends object, P extends object> {
                   propsKey: key,
                   propsValue: () =>
                     value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) }),
-                  setProps: (value: unknown) => _descendant.#setProps(key, value)
+                  setProps: (value: unknown) => {
+                    _descendant.#setProps(key, value)
+
+                    for (const clonedInstance of _descendant.#clonedSelves.values())
+                      clonedInstance.#setProps(key, value)
+                  }
                 },
                 isLargerNumberId = (index: number): boolean =>
                   propsBindings[index].numberId >= newBinding.numberId
