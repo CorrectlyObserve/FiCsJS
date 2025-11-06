@@ -200,11 +200,13 @@ export default fics<Data, Props>({
         async ({
           data: { confirmation },
           props: {
-            draft: { id }
+            draft: { id },
+            updateTasks
           }
         }) => {
           if (window.confirm(confirmation)) {
             await deleteTask(id)
+            updateTasks(await getAllTasks())
             goto('/')
           }
         },
