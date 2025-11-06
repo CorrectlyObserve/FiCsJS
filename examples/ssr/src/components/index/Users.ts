@@ -10,45 +10,40 @@ export default fics({
   name: 'users',
   children: [Button()],
   data: () => ({ users, userId: NaN, methods: ['PUT', 'PATCH', 'DELETE'] as Method[] }),
-  props: [
-    {
-      descendant: ({ children: { button } }) => button,
-      values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
-    },
-    {
-      descendant: ({ children: { button } }) => button,
-      values: ({ setData, crud }) => ({
-        click:
-          ({ getData }) =>
-          async (method: Method) => {
-            const userId = getData('userId'),
-              options = { method, ...headers }
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: ({ setData, crud }) => ({
+      isDisabled: ({ getData }) => isNaN(getData('userId')),
+      click:
+        ({ getData }) =>
+        async (method: Method) => {
+          const userId = getData('userId'),
+            options = { method, ...headers }
 
-            if (method === 'DELETE') {
-              await crud<User>(`${api}/${userId}`, options)
+          if (method === 'DELETE') {
+            await crud<User>(`${api}/${userId}`, options)
+            setData(
+              'users',
+              getData('users').filter(({ id }) => id !== userId)
+            )
+          } else {
+            const name = prompt('Please enter a new user name.')
+            if (name) {
+              await crud<User>(`${api}/${userId}`, {
+                ...options,
+                body: JSON.stringify({ id: userId, name })
+              })
               setData(
                 'users',
-                getData('users').filter(({ id }) => id !== userId)
+                getData('users').map(user => (user.id === userId ? { ...user, name } : user))
               )
-            } else {
-              const name = prompt('Please enter a new user name.')
-              if (name) {
-                await crud<User>(`${api}/${userId}`, {
-                  ...options,
-                  body: JSON.stringify({ id: userId, name })
-                })
-                setData(
-                  'users',
-                  getData('users').map(user => (user.id === userId ? { ...user, name } : user))
-                )
-              }
             }
-
-            setData('userId', NaN)
           }
-      })
-    }
-  ],
+
+          setData('userId', NaN)
+        }
+    })
+  },
   html: ({ children: { button }, data: { users, userId, methods }, template }) => template`
     <div class="buttons mb-6 gap-4">
       ${methods.map((method, index) => button.setIndividualProps(index, { buttonText: method }))}
