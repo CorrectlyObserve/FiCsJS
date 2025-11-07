@@ -4,7 +4,6 @@
 @theme {
   --text-xl: 2rem;
   --text-xl--line-height: 1.5;
-  --footer-height: 35.99px;
 }
 
 body {
@@ -22,6 +21,5 @@ h1 {
 }
 
 main {
-  --header-height: 64px;
   min-height: calc(100vh - var(--header-height) - var(--footer-height));
 }
