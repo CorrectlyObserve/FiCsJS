@@ -6,5 +6,7 @@
 }
 
 :root {
+  --header-height: 64px;
+  --footer-height: 35.99px;
   --chat-width: 43rem;
 }
