@@ -5,7 +5,14 @@ import { $userName } from '@/store'
 import type { Message } from '@/types'
 import { white } from '@/utils'
 
-const MARGIN_BOTTOM = '2rem' as const
+const LINK_HEIGHT = '3.75rem' as const, // (3rem (height) + 12px (margin bottom)) / 16
+  TAB_HEIGHT = '4.625rem' as const, // (50px (height) + 24px (margin bottom)) / 16
+  H2_HEIGHT = '37.33px' as const,
+  H2_MARGIN_BOTTOM = '1.5rem' as const,
+  FIXED_AREA_HEIGHT = '7.5rem' as const, // 1.5rem * 3 (textarea) + 0.75rem * 2 (padding) + 1.5rem (margin top)
+  MAIN_MARGIN_BOTTOM = '2rem' as const,
+  BODY_HEIGHT =
+    `calc(${LINK_HEIGHT} + ${TAB_HEIGHT} + ${H2_HEIGHT} + ${H2_MARGIN_BOTTOM} + ${FIXED_AREA_HEIGHT} + ${MAIN_MARGIN_BOTTOM})` as const
 
 export default fics<
   { comment: string },
@@ -30,15 +37,19 @@ export default fics<
         }
     })
   },
-  html: ({ children: { button }, data: { comment }, props: { messages }, template }) => template`
-    <div>
-      <h2 class="text-lg text-white text-center">Chat</h2>
-      <div class="w-10.75 h-full block mx-auto">
+  html: ({ children: { button }, data: { comment }, props: { messages }, template }) => {
+    const currentUserName = $userName.get()
+
+    return template`
+      <h2 class="text-lg text-white text-center mb-6">Chat</h2>
+      <div class="w-full block mx-auto overflow-y-auto">
         ${messages.map(
           ({ userName, comment }, index) => template`
-            <div class="w-full" key="${index}">
-              <p class="text-white mb-2">${userName}</p>
-              <p class="text-white px-3 py-2 mb-4 rounded-lg whitespace-pre-line">${comment}</p>
+            <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
+              <div>
+                <p class="text-white mb-2">${userName}</p>
+                <p class="text-white px-3 py-2 rounded-lg whitespace-pre-line">${comment}</p>
+              </div>
             </div>
           `
         )}
@@ -47,14 +58,23 @@ export default fics<
         <textarea id="message" class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none" placeholder="Please enter your message" rows="3">${comment}</textarea>
         ${button}
       </div>
-    </div>
-  `,
+    `
+  },
   css: {
     div: {
-      '[key] p:last-child': { background: white(0.1) },
-      '.fixed': {
+      '&.block': {
+        maxHeight: calc(
+          `100vh - ${cssVar('header-height')} - ${BODY_HEIGHT} - ${cssVar('footer-height')}`
+        ),
+        maxWidth: cssVar('chat-width'),
+        'div[key]': {
+          '&:last-child': { marginBottom: '0' },
+          div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
+        }
+      },
+      '&.fixed': {
         ...flexCenter('xy'),
-        bottom: calc(`${cssVar('footer-height')} + ${MARGIN_BOTTOM}`),
+        bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
         textarea: {
           '&:hover': { opacity: 0.5 },
           '&:focus': { background: white(0.05), opacity: 1 }
@@ -73,7 +93,22 @@ export default fics<
   actions: {
     textarea: {
       input: ({ setData, event: { currentTarget } }) =>
-        setData('comment', (currentTarget as HTMLTextAreaElement).value)
+        setData('comment', (currentTarget as HTMLTextAreaElement).value),
+      keydown: ({ getData, props: { sendMessage }, setData, event }) => {
+        const keyboardEvent = event as KeyboardEvent
+
+        if (keyboardEvent.shiftKey && keyboardEvent.key === 'Enter') {
+          keyboardEvent.preventDefault()
+
+          const userName = $userName.get()
+          const comment = getData('comment')
+
+          if (userName === '' || comment === '') return
+
+          sendMessage({ userName, comment })
+          setData('comment', '')
+        }
+      }
     }
   }
 })
