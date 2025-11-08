@@ -611,6 +611,7 @@ export default class FiCsElement<D extends object, P extends object> {
       data,
       props,
       setData,
+      crud: this.#crud.bind(this),
       template: (
         strings: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
