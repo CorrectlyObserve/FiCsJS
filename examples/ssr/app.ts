@@ -96,31 +96,31 @@ app.get(CHAT_PAGE, c =>
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
   createServerMessage = (comment: string): string =>
     JSON.stringify({ userName: 'Server', comment }),
-  createSseMessage = (message: string): SSEMessage => ({
-    event: 'log',
-    data: `${getTimestamp()}: ${message}`
-  }),
   messages: Message[] = [],
   wsClients = new Set<ServerWebSocket>(),
   wsClientUsernames = new Map<ServerWebSocket, string>(),
-  broadcastMessage = (message: string): void => {
+  broadcastMessage = (message: string | Message): void => {
     for (const client of wsClients)
       try {
-        client.send(message)
+        client.send(
+          typeof message === 'string' ? createServerMessage(message) : JSON.stringify(message)
+        )
       } catch {
         wsClients.delete(client)
       }
   },
   sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
-  broadcastSseMessage = (message: SSEMessage): void => {
+  broadcastSseMessage = (message: string): void => {
     for (const send of sseClients)
       try {
-        send(message)
+        void send({
+          event: 'log',
+          data: `${getTimestamp()}: ${message}`
+        })
       } catch {
         sseClients.delete(send)
       }
-  },
-  pendingSseMessages: SSEMessage[] = []
+  }
 
 app.get(
   WEBSOCKET_PATH,
@@ -154,12 +154,7 @@ app.get(
 
         if (raw && !wsClientUsernames.has(raw)) {
           wsClientUsernames.set(raw, userName)
-          broadcastMessage(createServerMessage(`Hello, ${userName}!`))
-
-          const joinMessage: SSEMessage = createSseMessage(`${userName} joined the chat.`)
-
-          if (sseClients.size > 0) broadcastSseMessage(joinMessage)
-          else pendingSseMessages.push(joinMessage)
+          ws.send(createServerMessage(`Hello, ${userName}!`))
         } else ws.send(createServerMessage('The comment is required.'))
 
         return
@@ -170,15 +165,15 @@ app.get(
         return
       }
 
-      broadcastMessage(JSON.stringify(message))
-      broadcastSseMessage(createSseMessage(`${userName} sent a message.`))
+      broadcastMessage(message)
+      broadcastSseMessage(`${userName} sent a message.`)
 
       messages.push(message)
       const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
 
       setTimeout(() => {
-        broadcastMessage(createServerMessage(pickedMessage.comment))
-        broadcastSseMessage(createSseMessage(`Server sent a message.`))
+        broadcastMessage(pickedMessage.comment)
+        broadcastSseMessage(`Server sent a message.`)
       }, 1000)
     },
     onClose(_event, { raw }): void {
@@ -189,8 +184,8 @@ app.get(
         wsClientUsernames.delete(raw)
 
         if (userName) {
-          broadcastMessage(createServerMessage(`See you later, ${userName}.`))
-          broadcastSseMessage(createSseMessage(`The ${userName}'s connection was closed.`))
+          broadcastMessage(`See you later, ${userName}.`)
+          broadcastSseMessage(`The ${userName}'s connection was closed.`)
         }
       }
     }
@@ -203,11 +198,6 @@ app.get('/sse', async c =>
       abortSignal: AbortSignal | undefined = c.req.raw?.signal
 
     sseClients.add(sender)
-
-    if (pendingSseMessages.length > 0) {
-      for (const message of pendingSseMessages) sender(message)
-      pendingSseMessages.length = 0
-    }
 
     const checkConnection = setInterval(() => {
       void stream.writeSSE({ event: 'ping', data: 'ping' })
