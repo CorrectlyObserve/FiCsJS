@@ -24,7 +24,7 @@ export default fics<
   props: {
     descendant: ({ children: { button } }) => button,
     values: ({ props: { sendMessage }, setData }) => ({
-      isDisabled: ({ getData }) => getData('comment') === '',
+      isDisabled: ({ getData }) => getData('comment').trim() === '',
       buttonText: 'Send',
       click:
         ({ getData }) =>
@@ -54,7 +54,7 @@ export default fics<
           `
         )}
       </div>
-      <div class="fixed right-0 gap-4 w-full bg-dark px-4 mt-6">
+      <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
         <textarea id="message" class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none" placeholder="Please enter your message" rows="3">${comment}</textarea>
         ${button}
       </div>
@@ -64,7 +64,7 @@ export default fics<
     div: {
       '&.block': {
         maxHeight: calc(
-          `100vh - ${cssVar('header-height')} - ${BODY_HEIGHT} - ${cssVar('footer-height')}`
+          `100dvh - ${cssVar('header-height')} - ${BODY_HEIGHT} - ${cssVar('footer-height')}`
         ),
         maxWidth: cssVar('chat-width'),
         'div[key]': {
@@ -72,7 +72,7 @@ export default fics<
           div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
         }
       },
-      '&.fixed': {
+      '&.absolute': {
         ...flexCenter('xy'),
         bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
         textarea: {
@@ -95,19 +95,19 @@ export default fics<
       input: ({ setData, event: { currentTarget } }) =>
         setData('comment', (currentTarget as HTMLTextAreaElement).value),
       keydown: ({ getData, props: { sendMessage }, setData, event }) => {
-        const keyboardEvent = event as KeyboardEvent
+        if (window.matchMedia('(pointer: coarse)').matches) return
 
-        if (keyboardEvent.shiftKey && keyboardEvent.key === 'Enter') {
-          keyboardEvent.preventDefault()
+        const userName = $userName.get(),
+          comment = getData('comment'),
+          keyboardEvent = event as KeyboardEvent,
+          isEnterKey = keyboardEvent.key === 'Enter'
 
-          const userName = $userName.get()
-          const comment = getData('comment')
+        if (userName === '' || comment.trim() === '' || !isEnterKey || !keyboardEvent.shiftKey)
+          return
 
-          if (userName === '' || comment === '') return
-
-          sendMessage({ userName, comment })
-          setData('comment', '')
-        }
+        keyboardEvent.preventDefault()
+        sendMessage({ userName, comment })
+        setData('comment', '')
       }
     }
   }
