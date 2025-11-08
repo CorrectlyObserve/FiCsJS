@@ -47,7 +47,8 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
     },
     sse: {
       path: '/sse',
-      onopen: ({ setData }) => setData('logs', [`${getTimestamp()}: The server is connected.`]),
+      onopen: ({ setData }) =>
+        setData('logs', [`${getTimestamp()}: ${$userName.get()} joined the chat.`]),
       actions: {
         log: ({ data: { logs }, setData, event: { data } }) => setData('logs', [...logs, data])
       }
