@@ -21,5 +21,5 @@ h1 {
 }
 
 main {
-  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  min-height: calc(100dvh - var(--header-height) - var(--footer-height));
 }
