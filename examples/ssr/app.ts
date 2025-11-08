@@ -112,6 +112,14 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
       }
   },
   sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
+  broadcastSseMessage = (message: SSEMessage): void => {
+    for (const send of sseClients)
+      try {
+        send(message)
+      } catch {
+        sseClients.delete(send)
+      }
+  },
   pendingSseMessages: SSEMessage[] = []
 
 app.get(
@@ -150,7 +158,7 @@ app.get(
 
           const joinMessage: SSEMessage = createSseMessage(`${userName} joined the chat.`)
 
-          if (sseClients.size > 0) for (const send of sseClients) void send(joinMessage)
+          if (sseClients.size > 0) broadcastSseMessage(joinMessage)
           else pendingSseMessages.push(joinMessage)
         } else ws.send(createServerMessage('The comment is required.'))
 
@@ -163,15 +171,15 @@ app.get(
       }
 
       broadcastMessage(JSON.stringify(message))
-
-      for (const send of sseClients) void send(createSseMessage(`${userName} sent a message.`))
+      broadcastSseMessage(createSseMessage(`${userName} sent a message.`))
 
       messages.push(message)
       const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
 
-      setTimeout(() => broadcastMessage(createServerMessage(pickedMessage.comment)), 1000)
-
-      for (const send of sseClients) void send(createSseMessage(`Server sent a message.`))
+      setTimeout(() => {
+        broadcastMessage(createServerMessage(pickedMessage.comment))
+        broadcastSseMessage(createSseMessage(`Server sent a message.`))
+      }, 1000)
     },
     onClose(_event, { raw }): void {
       if (raw) {
@@ -182,9 +190,7 @@ app.get(
 
         if (userName) {
           broadcastMessage(createServerMessage(`See you later, ${userName}.`))
-
-          for (const send of sseClients)
-            void send(createSseMessage(`The ${userName}'s connection was closed.`))
+          broadcastSseMessage(createSseMessage(`The ${userName}'s connection was closed.`))
         }
       }
     }
