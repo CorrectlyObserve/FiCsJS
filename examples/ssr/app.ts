@@ -103,6 +103,14 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
   messages: Message[] = [],
   wsClients = new Set<ServerWebSocket>(),
   wsClientUsernames = new Map<ServerWebSocket, string>(),
+  broadcastMessage = (message: string): void => {
+    for (const client of wsClients)
+      try {
+        client.send(message)
+      } catch {
+        wsClients.delete(client)
+      }
+  },
   sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
   pendingSseMessages: SSEMessage[] = []
 
@@ -138,13 +146,7 @@ app.get(
 
         if (raw && !wsClientUsernames.has(raw)) {
           wsClientUsernames.set(raw, userName)
-
-          for (const client of wsClients)
-            try {
-              client.send(createServerMessage(`Hello, ${userName}!`))
-            } catch {
-              wsClients.delete(client)
-            }
+          broadcastMessage(createServerMessage(`Hello, ${userName}!`))
 
           const joinMessage: SSEMessage = createSseMessage(`${userName} joined the chat.`)
 
@@ -155,31 +157,19 @@ app.get(
         return
       }
 
-      if (!comment || comment.trim() === '') {
+      if (comment.trim() === '') {
         ws.send(createServerMessage('The comment is required.'))
         return
       }
 
-      for (const client of wsClients)
-        try {
-          client.send(JSON.stringify(message))
-        } catch {
-          wsClients.delete(client)
-        }
+      broadcastMessage(JSON.stringify(message))
 
       for (const send of sseClients) void send(createSseMessage(`${userName} sent a message.`))
 
       messages.push(message)
       const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
 
-      setTimeout(() => {
-        for (const client of wsClients)
-          try {
-            client.send(createServerMessage(pickedMessage.comment))
-          } catch {
-            wsClients.delete(client)
-          }
-      }, 1000)
+      setTimeout(() => broadcastMessage(createServerMessage(pickedMessage.comment)), 1000)
 
       for (const send of sseClients) void send(createSseMessage(`Server sent a message.`))
     },
@@ -191,12 +181,7 @@ app.get(
         wsClientUsernames.delete(raw)
 
         if (userName) {
-          for (const client of wsClients)
-            try {
-              client.send(createServerMessage(`See you later, ${userName}.`))
-            } catch {
-              wsClients.delete(client)
-            }
+          broadcastMessage(createServerMessage(`See you later, ${userName}.`))
 
           for (const send of sseClients)
             void send(createSseMessage(`The ${userName}'s connection was closed.`))
