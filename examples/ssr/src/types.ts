@@ -8,6 +8,11 @@ export interface Photo {
   isLoaded: boolean
 }
 
+export interface SSEMessage {
+  event: 'log'
+  data: string
+}
+
 export interface User {
   id: number
   name: string
