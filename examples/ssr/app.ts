@@ -111,14 +111,11 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
   },
   sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
   broadcastSseMessage = (message: string): void => {
-    for (const send of sseClients)
+    for (const sender of sseClients)
       try {
-        void send({
-          event: 'log',
-          data: `${getTimestamp()}: ${message}`
-        })
+        void sender({ event: 'log', data: `${getTimestamp()}: ${message}` })
       } catch {
-        sseClients.delete(send)
+        sseClients.delete(sender)
       }
   }
 
@@ -173,7 +170,7 @@ app.get(
 
       setTimeout(() => {
         broadcastMessage(pickedMessage.comment)
-        broadcastSseMessage(`Server sent a message.`)
+        broadcastSseMessage(`The server sent a message.`)
       }, 1000)
     },
     onClose(_event, { raw }): void {
@@ -192,7 +189,7 @@ app.get(
   }))
 )
 
-app.get('/sse', async c =>
+app.get('/sse', c =>
   streamSSE(c, async stream => {
     const sender = (sseMessage: SSEMessage) => stream.writeSSE(sseMessage),
       abortSignal: AbortSignal | undefined = c.req.raw?.signal
