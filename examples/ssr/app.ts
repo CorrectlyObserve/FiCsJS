@@ -148,7 +148,7 @@ app.get(
 
           const joinMessage: SSEMessage = createSseMessage(`${userName} joined the chat.`)
 
-          if (sseClients.size > 0) for (const send of sseClients) send(joinMessage)
+          if (sseClients.size > 0) for (const send of sseClients) void send(joinMessage)
           else pendingSseMessages.push(joinMessage)
         } else ws.send(createServerMessage('The comment is required.'))
 
