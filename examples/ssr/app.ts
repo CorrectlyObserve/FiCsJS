@@ -8,7 +8,7 @@ import ChatButton from './src/components/ChatButton'
 import Photos from './src/components/scroll/Photos'
 import Tab from './src/components/websocket-sse/Tab'
 import Router from './src/components/websocket-sse/Router'
-import { Message } from './src/types'
+import { SSEMessage, Message } from './src/types'
 import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from './src/utils'
 
 const app = new Hono()
@@ -94,13 +94,17 @@ app.get(CHAT_PAGE, c =>
 )
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
-  SERVER_NAME = 'Server' as const,
+  createServerMessage = (comment: string): string =>
+    JSON.stringify({ userName: 'Server', comment }),
+  createSseMessage = (message: string): SSEMessage => ({
+    event: 'log',
+    data: `${getTimestamp()}: ${message}`
+  }),
   messages: Message[] = [],
   wsClients = new Set<ServerWebSocket>(),
   wsClientUsernames = new Map<ServerWebSocket, string>(),
-  SSE_NAME = 'log' as const,
-  sseClients = new Set<(sseMessage: { event: typeof SSE_NAME; data: string }) => Promise<void>>(),
-  pendingSseMessages: { event: typeof SSE_NAME; data: string }[] = []
+  sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
+  pendingSseMessages: SSEMessage[] = []
 
 app.get(
   WEBSOCKET_PATH,
@@ -110,7 +114,7 @@ app.get(
     },
     onMessage({ data }, ws): void {
       if (typeof data !== 'string') {
-        ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The data must be a string.' }))
+        ws.send(createServerMessage('The data must be a string.'))
         return
       }
 
@@ -118,14 +122,14 @@ app.get(
       try {
         message = JSON.parse(data) as Message
       } catch {
-        ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'This is an invalid JSON.' }))
+        ws.send(createServerMessage('This is an invalid JSON.'))
         return
       }
 
       const { userName, comment } = message
 
       if (!userName || userName.trim() === '') {
-        ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The userName is required.' }))
+        ws.send(createServerMessage('The userName is required.'))
         return
       }
 
@@ -137,26 +141,22 @@ app.get(
 
           for (const client of wsClients)
             try {
-              client.send(JSON.stringify({ userName: SERVER_NAME, comment: `Hello, ${userName}!` }))
+              client.send(createServerMessage(`Hello, ${userName}!`))
             } catch {
               wsClients.delete(client)
             }
 
-          const joinMessage = {
-            event: SSE_NAME,
-            data: `${getTimestamp()}: ${userName} joined the chat.`
-          }
+          const joinMessage: SSEMessage = createSseMessage(`${userName} joined the chat.`)
 
           if (sseClients.size > 0) for (const send of sseClients) send(joinMessage)
           else pendingSseMessages.push(joinMessage)
-        } else
-          ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The comment is required.' }))
+        } else ws.send(createServerMessage('The comment is required.'))
 
         return
       }
 
       if (!comment || comment.trim() === '') {
-        ws.send(JSON.stringify({ userName: SERVER_NAME, comment: 'The comment is required.' }))
+        ws.send(createServerMessage('The comment is required.'))
         return
       }
 
@@ -167,8 +167,7 @@ app.get(
           wsClients.delete(client)
         }
 
-      for (const send of sseClients)
-        void send({ event: SSE_NAME, data: `${getTimestamp()}: ${userName} sent a message.` })
+      for (const send of sseClients) void send(createSseMessage(`${userName} sent a message.`))
 
       messages.push(message)
       const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
@@ -176,14 +175,13 @@ app.get(
       setTimeout(() => {
         for (const client of wsClients)
           try {
-            client.send(JSON.stringify({ ...pickedMessage, userName: SERVER_NAME }))
+            client.send(createServerMessage(pickedMessage.comment))
           } catch {
             wsClients.delete(client)
           }
       }, 1000)
 
-      for (const send of sseClients)
-        void send({ event: SSE_NAME, data: `${getTimestamp()}: Server sent a message.` })
+      for (const send of sseClients) void send(createSseMessage(`Server sent a message.`))
     },
     onClose(_event, { raw }): void {
       if (raw) {
@@ -195,18 +193,13 @@ app.get(
         if (userName) {
           for (const client of wsClients)
             try {
-              client.send(
-                JSON.stringify({ userName: SERVER_NAME, comment: `See you later, ${userName}.` })
-              )
+              client.send(createServerMessage(`See you later, ${userName}.`))
             } catch {
               wsClients.delete(client)
             }
 
           for (const send of sseClients)
-            void send({
-              event: SSE_NAME,
-              data: `${getTimestamp()}: The ${userName}'s connection was closed.`
-            })
+            void send(createSseMessage(`The ${userName}'s connection was closed.`))
         }
       }
     }
@@ -215,8 +208,7 @@ app.get(
 
 app.get('/sse', async c =>
   streamSSE(c, async stream => {
-    const sender = (sseMessage: { event: typeof SSE_NAME; data: string }) =>
-        stream.writeSSE(sseMessage),
+    const sender = (sseMessage: SSEMessage) => stream.writeSSE(sseMessage),
       abortSignal: AbortSignal | undefined = c.req.raw?.signal
 
     sseClients.add(sender)
