@@ -67,7 +67,7 @@ export default <D extends object>({
 
             if (pathname !== redirectedPath) {
               setData('pathname', redirectedPath as RouterData<D>['pathname'])
-              goto(redirect, true)
+              goto(redirect, { isWithoutHistory: true })
             }
 
             if (staticPage) {
@@ -131,7 +131,7 @@ export default <D extends object>({
         if (notFound) {
           setData('pathname', '/404' as RouterData<D>['pathname'])
           params.set('dynamicPaths', {})
-          goto('/404', true)
+          goto('/404', { isWithoutHistory: true })
           return render(notFound)
         }
         throw new Error(`The "${pathname}" does not exist on pages...`)
