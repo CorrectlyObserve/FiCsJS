@@ -251,12 +251,9 @@ export default class FiCsElement<D extends object, P extends object> {
         updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
       }
 
-      const { component }: { component?: HTMLElement } = this.#cache
-
-      if (!isInRerendering && this.#isBrowser && component)
+      if (!isInRerendering && this.#isBrowser && this.#cache.component)
         this.#enqueue(() => {
           this.#reRender()
-          this.#infiniteVirtualScroll(this.#getShadowRoot(component)!)
         }, 're-render')
     }
   }
@@ -448,7 +445,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     let entries: [string, unknown][] = []
 
-    if (this.#deferredData)
+    if (this.#deferredData && !isInRerendering)
       entries = [
         ...Object.entries(
           await this.#deferredData({ ...this.#dataProps, crud: this.#crud.bind(this) })
@@ -1472,11 +1469,14 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#setAttrs(component)
     }
 
-    this.#buildHtml(this.#getShadowRoot(component))
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+
+    this.#buildHtml(shadowRoot)
+    this.#infiniteVirtualScroll(shadowRoot)
 
     if (!isOnlyHtml && this.#boundCss.length > 0)
       this.#buildCss(
-        this.#getShadowRoot(component),
+        shadowRoot,
         this.#boundCss.map(index => this.#css[index])
       )
 
