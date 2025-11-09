@@ -441,34 +441,34 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  async #fetchData(isInRerendering?: boolean): Promise<void> {
-    if (!this.#deferredData && !this.#i18nData) return
+  // async #fetchData(isInRerendering?: boolean): Promise<void> {
+  //   if (!this.#deferredData && !this.#i18nData) return
 
-    let entries: [string, unknown][] = []
+  //   let entries: [string, unknown][] = []
 
-    if (this.#deferredData && !isInRerendering)
-      entries = [
-        ...Object.entries(
-          await this.#deferredData({ ...this.#dataProps, crud: this.#crud.bind(this) })
-        )
-      ]
+  //   if (this.#deferredData && !isInRerendering)
+  //     entries = [
+  //       ...Object.entries(
+  //         await this.#deferredData({ ...this.#dataProps, crud: this.#crud.bind(this) })
+  //       )
+  //     ]
 
-    if (this.#i18nData)
-      entries = [
-        ...entries,
-        ...Object.entries(
-          await this.#i18nData({
-            ...this.#dataProps,
-            i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-              i18n<T>({ lang, key })
-          })
-        )
-      ]
+  //   if (this.#i18nData)
+  //     entries = [
+  //       ...entries,
+  //       ...Object.entries(
+  //         await this.#i18nData({
+  //           ...this.#dataProps,
+  //           i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+  //             i18n<T>({ lang, key })
+  //         })
+  //       )
+  //     ]
 
-    for (const [key, value] of entries)
-      if (!isInRerendering || this.#data[key as keyof D] !== value)
-        this.#internalSetData(key as keyof D, value as D[keyof D], isInRerendering)
-  }
+  //   for (const [key, value] of entries)
+  //     if (!isInRerendering || this.#data[key as keyof D] !== value)
+  //       this.#internalSetData(key as keyof D, value as D[keyof D], isInRerendering)
+  // }
 
   get #computedClassName(): string {
     if (!this.#classNames) return ''
@@ -1387,8 +1387,23 @@ export default class FiCsElement<D extends object, P extends object> {
         #init() {
           if (that.#deferredData || that.#i18nData)
             that.#enqueue(async () => {
-              await that.#fetchData()
-              that.#isDeferred = true
+              if (that.#deferredData)
+                for (const [key, value] of Object.entries(
+                  await that.#deferredData({ ...that.#dataProps, crud: that.#crud.bind(that) })
+                ))
+                  that.#internalSetData(key as keyof D, value as D[keyof D])
+
+              if (that.#i18nData)
+                for (const [key, value] of Object.entries(
+                  await that.#i18nData({
+                    ...that.#dataProps,
+                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+                      i18n<T>({ lang, key })
+                  })
+                ))
+                  that.#internalSetData(key as keyof D, value as D[keyof D])
+
+                that.#isDeferred = true
             }, 'fetch')
 
           that.#setClassNames(this)
@@ -1463,7 +1478,17 @@ export default class FiCsElement<D extends object, P extends object> {
     const { component }: { component?: HTMLElement } = this.#cache
     if (!component) return
 
-    await this.#fetchData(true)
+    if (this.#i18nData)
+      for (const [key, value] of Object.entries(
+        await this.#i18nData({
+          ...this.#dataProps,
+          i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+            i18n<T>({ lang, key })
+        })
+      )) {
+        const _key: keyof D = key as keyof D
+        if (this.#data[_key] !== value) this.#internalSetData(_key, value as D[keyof D], true)
+      }
 
     if (!isOnlyHtml) {
       this.#setClassNames(component)
