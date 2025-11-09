@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 
 export default () =>
   fics({
-    name: 'link',
+    name: 'back-link',
     data: () => ({ href: '', text: '' }),
     html: ({ data: { href, text }, template }) => template`
       <p class="text-base text-white text-center leading-none">

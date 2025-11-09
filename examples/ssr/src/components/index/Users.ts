@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
-import CrudButton from '@/components/CrudButton'
+import Button from '@/components/Button'
 import { api, users } from '@/data/users'
 import type { Method, User } from '@/types'
 
@@ -8,27 +8,31 @@ const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8'
 
 export default fics({
   name: 'users',
-  children: [CrudButton],
+  children: [Button()],
   data: () => ({ users, userId: NaN, methods: ['PUT', 'PATCH', 'DELETE'] as Method[] }),
-  props: [
-    {
-      descendant: ({ children: { crudButton } }) => crudButton.getChildren().button,
-      values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
-    },
-    {
-      descendant: ({ children: { crudButton } }) => crudButton,
-      values: ({ setData, crud }) => ({
-        click:
-          ({ getData }) =>
-          async (method: Method) => {
-            const userId = getData('userId')
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: ({}) => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
+  },
+  html: ({
+    children: { button },
+    data: { users, userId, methods },
+    setData,
+    crud,
+    template
+  }) => template`
+    <div class="buttons mb-6 gap-4">
+      ${methods.map((method, index) =>
+        button.setIndividualProps(index, {
+          buttonText: method,
+          click: async () => {
             const options = { method, ...headers }
 
             if (method === 'DELETE') {
               await crud<User>(`${api}/${userId}`, options)
               setData(
                 'users',
-                getData('users').filter(({ id }) => id !== userId)
+                users.filter(({ id }) => id !== userId)
               )
             } else {
               const name = prompt('Please enter a new user name.')
@@ -39,24 +43,20 @@ export default fics({
                 })
                 setData(
                   'users',
-                  getData('users').map(user => (user.id === userId ? { ...user, name } : user))
+                  users.map(user => (user.id === userId ? { ...user, name } : user))
                 )
               }
             }
 
             setData('userId', NaN)
           }
-      })
-    }
-  ],
-  html: ({ children: { crudButton }, data: { users, userId, methods }, template }) => template`
-    <div class="buttons mb-7 gap-4">
-      ${methods.map(method => crudButton.setIndividualProps(method, { method }))}
+        })
+      )}
     </div>
     <div class="space-y-4">
       ${users.map(user => {
-        const { id } = user
-        const keys: (keyof User)[] = ['id', 'name', 'email']
+        const { id } = user,
+          keys = ['id', 'name', 'email'] as const
 
         return template`
           <div class="clickable w-3xs space-y-2 mx-auto" key="${id}" tabindex="0">
@@ -73,9 +73,7 @@ export default fics({
       })}
     </div>
   `,
-  css: {
-    div: { '&.buttons': { ...flexCenter('x') }, '&.space-y-4': { ...flexCenter('x', 'column') } }
-  },
+  css: { div: { '&.buttons': flexCenter('x'), '&.space-y-4': flexCenter('x', 'column') } },
   hooks: {
     mounted: async ({ setData, getData, crud }) => {
       const users = getData('users')

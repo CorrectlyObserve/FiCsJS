@@ -1,9 +1,9 @@
 import { browserError, uid } from '../core/helpers'
 import type { Snapshot, State } from './type'
 
-const generator: Generator<number> = uid()
-const STATE_STORE = 'states' as const
-const SNAPSHOT_STORE = 'snapshots' as const
+const generator: Generator<number> = uid(),
+  STATE_STORE = 'states' as const,
+  SNAPSHOT_STORE = 'snapshots' as const
 
 export default class PersistentState<S> {
   #db!: IDBDatabase
@@ -20,8 +20,8 @@ export default class PersistentState<S> {
   }
 
   #getObjectStore(isSnapshot?: boolean, isReadonly?: boolean): IDBObjectStore {
-    const storeName: string = isSnapshot ? SNAPSHOT_STORE : STATE_STORE
-    const mode: IDBTransactionMode = isReadonly ? 'readonly' : 'readwrite'
+    const storeName: string = isSnapshot ? SNAPSHOT_STORE : STATE_STORE,
+      mode: IDBTransactionMode = isReadonly ? 'readonly' : 'readwrite'
 
     return this.#db.transaction(storeName, mode).objectStore(storeName)
   }
@@ -81,8 +81,8 @@ export default class PersistentState<S> {
     })
 
     if (!state) {
-      const store: IDBObjectStore = this.#getObjectStore()
-      const now: number = Date.now()
+      const store: IDBObjectStore = this.#getObjectStore(),
+        now: number = Date.now()
 
       store.add({
         stateId: this.#stateId,
@@ -103,8 +103,8 @@ export default class PersistentState<S> {
   }
 
   #getSnapshotReq(store: IDBObjectStore, snapshotId: string, isOnlyKey?: boolean): IDBRequest {
-    const index: IDBIndex = store.index('compositeId')
-    const compositeId: [string, string] = [this.#stateId, snapshotId]
+    const index: IDBIndex = store.index('compositeId'),
+      compositeId: [string, string] = [this.#stateId, snapshotId]
 
     return isOnlyKey ? index.getKey(compositeId) : index.get(compositeId)
   }
@@ -112,9 +112,9 @@ export default class PersistentState<S> {
   async get(): Promise<S> {
     await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore(false, true)
-    const req: IDBRequest<State<S> | undefined> = this.#getStateReq(store)
-    const result: State<S> | undefined = await this.#promisifyReq(req)
+    const store: IDBObjectStore = this.#getObjectStore(false, true),
+      req: IDBRequest<State<S> | undefined> = this.#getStateReq(store),
+      result: State<S> | undefined = await this.#promisifyReq(req)
 
     if (!result) throw new Error('The state is not found...')
 
@@ -124,12 +124,12 @@ export default class PersistentState<S> {
   async set(newState: S): Promise<void> {
     await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore()
-    const req: IDBRequest<State<S>> = this.#getStateReq(store)
+    const store: IDBObjectStore = this.#getObjectStore(),
+      req: IDBRequest<State<S>> = this.#getStateReq(store)
 
     req.onsuccess = () => {
       const { result }: { result: State<S> } = req
-      if (result.readonly) throw new Error('The state cannot be edited because this is readonly...')
+      if (result.readonly) throw new Error('The state is readonly...')
 
       store.put({ ...result, state: newState, updatedAt: Date.now() })
     }
@@ -140,9 +140,9 @@ export default class PersistentState<S> {
   async delete(): Promise<void> {
     await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore()
-    const req: IDBRequest<IDBValidKey | undefined> = this.#getStateReq(store, true)
-    const validKey: IDBValidKey | undefined = await this.#promisifyReq(req)
+    const store: IDBObjectStore = this.#getObjectStore(),
+      req: IDBRequest<IDBValidKey | undefined> = this.#getStateReq(store, true),
+      validKey: IDBValidKey | undefined = await this.#promisifyReq(req)
 
     if (!validKey) throw new Error('The state is not found...')
 
@@ -156,21 +156,22 @@ export default class PersistentState<S> {
     const state: S = await this.get()
 
     return new Promise((resolve, reject) => {
-      const store: IDBObjectStore = this.#getObjectStore(true)
-      const req: IDBRequest<Snapshot<S>> = this.#getSnapshotReq(store, snapshotId)
+      const store: IDBObjectStore = this.#getObjectStore(true),
+        req: IDBRequest<Snapshot<S>> = this.#getSnapshotReq(store, snapshotId)
+
       req.onsuccess = () => {
         if (req.result)
           return reject(new Error(`The snapshot with snapshot id:${snapshotId} already exists...`))
 
-        const now: number = Date.now()
-        const _req: IDBRequest<IDBValidKey> = store.add({
-          stateId: this.#stateId,
-          snapshotId,
-          state,
-          readonly: true,
-          createdAt: now,
-          updatedAt: now
-        })
+        const now: number = Date.now(),
+          _req: IDBRequest<IDBValidKey> = store.add({
+            stateId: this.#stateId,
+            snapshotId,
+            state,
+            readonly: true,
+            createdAt: now,
+            updatedAt: now
+          })
         _req.onsuccess = () => resolve(_req.result as number)
         _req.onerror = () => reject(_req.error)
       }
@@ -181,9 +182,9 @@ export default class PersistentState<S> {
   async getAllSnapshots(): Promise<S[]> {
     await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore(true, true)
-    const req: IDBRequest<State<S>[]> = store.index('stateId').getAll(this.#stateId)
-    const result: State<S>[] = await this.#promisifyReq<State<S>[]>(req)
+    const store: IDBObjectStore = this.#getObjectStore(true, true),
+      req: IDBRequest<State<S>[]> = store.index('stateId').getAll(this.#stateId),
+      result: State<S>[] = await this.#promisifyReq<State<S>[]>(req)
 
     return result.map(snapshot => snapshot.state)
   }
@@ -191,9 +192,9 @@ export default class PersistentState<S> {
   async getSnapshot(snapshotId: string): Promise<S> {
     await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore(true, true)
-    const req: IDBRequest<Snapshot<S>> = this.#getSnapshotReq(store, snapshotId)
-    const result: Snapshot<S> = await this.#promisifyReq(req)
+    const store: IDBObjectStore = this.#getObjectStore(true, true),
+      req: IDBRequest<Snapshot<S>> = this.#getSnapshotReq(store, snapshotId),
+      result: Snapshot<S> = await this.#promisifyReq(req)
 
     if (!result) throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
 
@@ -203,9 +204,9 @@ export default class PersistentState<S> {
   async deleteSnapshot(snapshotId: string): Promise<void> {
     await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore(true)
-    const req: IDBRequest<IDBValidKey | undefined> = this.#getSnapshotReq(store, snapshotId, true)
-    const validKey: IDBValidKey | undefined = await this.#promisifyReq(req)
+    const store: IDBObjectStore = this.#getObjectStore(true),
+      req: IDBRequest<IDBValidKey | undefined> = this.#getSnapshotReq(store, snapshotId, true),
+      validKey: IDBValidKey | undefined = await this.#promisifyReq(req)
 
     if (!validKey) throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
 

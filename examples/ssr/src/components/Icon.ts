@@ -1,10 +1,10 @@
 import { fics } from 'ficsjs'
 
 export default () =>
-  fics<{}, { svg: string; isLarge?: string; areaLabel: string; click: () => void }>({
+  fics<{}, { svg: string; areaLabel: string; isLarge?: string; click?: () => void }>({
     name: 'icon',
     className: 'icon',
-    html: ({ props: { svg, isLarge, areaLabel }, template, html }) => template`
+    html: ({ props: { svg, areaLabel, isLarge }, template, html }) => template`
       <button class="clickable flex text-white ${isLarge ? 'p-4' : 'p-3'}" aria-label="${areaLabel}">
         ${html(svg)}
       </button>
@@ -15,6 +15,6 @@ export default () =>
       })
     },
     actions: {
-      button: { click: [({ props: { click } }) => click(), { throttle: 500, blur: true }] }
+      button: { click: [({ props: { click } }) => click?.(), { throttle: 500, blur: true }] }
     }
   })

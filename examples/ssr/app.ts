@@ -1,12 +1,15 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { serveStatic } from '@hono/node-server/serve-static'
-import Link from './src/components/materials/Link'
-import Users from './src/components/Users'
+import { createBunWebSocket, serveStatic } from 'hono/bun'
+import type { ServerWebSocket } from 'bun'
+import Link from './src/components/Link'
+import Users from './src/components/index/Users'
 import ChatButton from './src/components/ChatButton'
-import Photos from './src/components/Photos'
-import Tab from './src/components/Tab'
-import Logs from './src/components/Logs'
+import Photos from './src/components/scroll/Photos'
+import Tab from './src/components/websocket-sse/Tab'
+import Router from './src/components/websocket-sse/Router'
+import { SSEMessage, Message } from './src/types'
+import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from './src/utils'
 
 const app = new Hono()
 
@@ -31,18 +34,19 @@ const template = ({
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${title}</title>
         <meta name="description" content="${description}" />
-        <link rel="stylesheet" type="text/css" href="./dist/global.css" />
+        <link rel="stylesheet" type="text/css" href="/dist/global.css" />
       </head>
-      <body class="bg-dark px-4 pb-4">
+      <body class="bg-dark px-4">
         <header class="py-2"><h1 class="text-xl text-center font-semibold">${title}</h1></header>
-        <main class="mb-8">${content}</main>
-        <footer class="text-sm text-white text-center"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="./dist${path}.js"></script>
+        <main class="pb-8">${content}</main>
+        <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
+        <script type="module" src="/dist/${path.replace(/^\/+/, '')}.js"></script>
       </body>
     </html>
   `
 
 const link = Link()
+const chatButton = ChatButton()
 app.get('/', c =>
   c.html(
     template({
@@ -51,7 +55,7 @@ app.get('/', c =>
       content: `
         ${link.toString({ href: '/scroll', text: 'Go to the scroll page' })}
         ${Users.toString()}
-        ${ChatButton.toString()}
+        ${chatButton.toString()}
       `,
       path: '/index'
     })
@@ -67,42 +71,147 @@ app.get('/scroll', c =>
       content: `
         ${link.toString({ href: '/', text: 'Back to the top page' })}
         ${Photos.toString()}
-        ${ChatButton.toString()}
+        ${chatButton.toString()}
       `,
       path: '/scroll'
     })
   )
 )
 
-app.get('/chat', c =>
+app.get(CHAT_PAGE, c =>
   c.html(
     template({
       title: 'WebSocket and SSE',
-      description: 'This is a simple example of an WebSocket and a SSE with FiCsJS.',
+      description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
       content: `
         ${link.toString({ href: '/', text: 'Back to the top page' })}
         ${Tab.toString()}
-        ${Logs.toString()}
+        ${Router.toString()}
       `,
-      path: '/chat'
+      path: CHAT_PAGE
     })
   )
 )
 
-let id = 0
+const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
+  createServerMessage = (comment: string): string =>
+    JSON.stringify({ userName: 'Server', comment }),
+  messages: Message[] = [],
+  wsClients = new Set<ServerWebSocket>(),
+  wsClientUsernames = new Map<ServerWebSocket, string>(),
+  broadcastMessage = (message: string | Message): void => {
+    for (const client of wsClients)
+      try {
+        client.send(
+          typeof message === 'string' ? createServerMessage(message) : JSON.stringify(message)
+        )
+      } catch {
+        wsClients.delete(client)
+      }
+  },
+  sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
+  broadcastSseMessage = (message: string): void => {
+    for (const sender of sseClients)
+      try {
+        void sender({ event: 'log', data: `${getTimestamp()}: ${message}` })
+      } catch {
+        sseClients.delete(sender)
+      }
+  }
 
-app.get('/sse', async c => {
-  return streamSSE(c, async stream => {
-    while (true) {
-      const message = `It is ${new Date().toISOString()}`
-      await stream.writeSSE({
-        data: message,
-        event: 'time-update',
-        id: String(id++)
+app.get(
+  WEBSOCKET_PATH,
+  upgradeWebSocket(() => ({
+    onOpen(_event, { raw }): void {
+      if (raw) wsClients.add(raw)
+    },
+    onMessage({ data }, ws): void {
+      if (typeof data !== 'string') {
+        ws.send(createServerMessage('The data must be a string.'))
+        return
+      }
+
+      let message: Message
+      try {
+        message = JSON.parse(data) as Message
+      } catch {
+        ws.send(createServerMessage('This is an invalid JSON.'))
+        return
+      }
+
+      const { userName, comment } = message
+
+      if (!userName || userName.trim() === '') {
+        ws.send(createServerMessage('The userName is required.'))
+        return
+      }
+
+      if (!comment) {
+        const { raw } = ws
+
+        if (raw && !wsClientUsernames.has(raw)) {
+          wsClientUsernames.set(raw, userName)
+          ws.send(createServerMessage(`Hello, ${userName}!`))
+        } else ws.send(createServerMessage('The comment is required.'))
+
+        return
+      }
+
+      if (comment.trim() === '') {
+        ws.send(createServerMessage('The comment is required.'))
+        return
+      }
+
+      broadcastMessage(message)
+      broadcastSseMessage(`${userName} sent a message.`)
+
+      messages.push(message)
+      const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
+
+      setTimeout(() => {
+        broadcastMessage(pickedMessage.comment)
+        broadcastSseMessage(`The server sent a message.`)
+      }, 1000)
+    },
+    onClose(_event, { raw }): void {
+      if (raw) {
+        const userName = wsClientUsernames.get(raw)
+
+        wsClients.delete(raw)
+        wsClientUsernames.delete(raw)
+
+        if (userName) {
+          broadcastMessage(`See you later, ${userName}.`)
+          broadcastSseMessage(`The ${userName}'s connection was closed.`)
+        }
+      }
+    }
+  }))
+)
+
+app.get('/sse', c =>
+  streamSSE(c, async stream => {
+    const sender = (sseMessage: SSEMessage) => stream.writeSSE(sseMessage),
+      abortSignal: AbortSignal | undefined = c.req.raw?.signal
+
+    sseClients.add(sender)
+
+    const checkConnection = setInterval(() => {
+      void stream.writeSSE({ event: 'ping', data: 'ping' })
+    }, 30_000)
+
+    try {
+      await new Promise<void>(resolve => {
+        if (!abortSignal || abortSignal.aborted) return resolve()
+        abortSignal.addEventListener?.('abort', () => resolve(), { once: true })
       })
-      await stream.sleep(1000)
+    } finally {
+      sseClients.delete(sender)
+      clearInterval(checkConnection)
     }
   })
-})
+)
 
-export default { port: 5174, fetch: app.fetch }
+app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
+
+export default { port: 5174, host: '0.0.0.0', fetch: app.fetch, websocket }

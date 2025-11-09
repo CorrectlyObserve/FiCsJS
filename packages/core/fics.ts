@@ -6,6 +6,7 @@ export default <D extends object, P extends object>({
   children,
   data,
   deferredData,
+  i18nData,
   props,
   className,
   attributes,
@@ -14,14 +15,14 @@ export default <D extends object, P extends object>({
   hooks,
   actions,
   options,
-  scroll,
-  sse
+  scroll
 }: Omit<FiCs<D, P>, Excluded>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
     children,
     data,
     deferredData,
+    i18nData,
     props,
     className,
     attributes,
@@ -30,6 +31,5 @@ export default <D extends object, P extends object>({
     hooks,
     actions,
     options,
-    scroll,
-    sse
+    scroll
   })
