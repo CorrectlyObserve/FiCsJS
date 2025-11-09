@@ -1631,7 +1631,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (data)
       for (const [key, value] of Object.entries(data))
-        this.setData(key as keyof D, value as D[keyof D])
+        this.#internalSetData(key as keyof D, value as D[keyof D])
 
     return render(this, this.#propsChain, this.#ancestorIds, data)
   }
