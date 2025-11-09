@@ -38,16 +38,16 @@ export const normalizePath = (path: string): string =>
 
 export const numberError = (
   numbers: Record<string, number | undefined>,
-  isOnlyPositive: boolean = true
+  isPositiveRequired: boolean = true
 ): void => {
   for (const [key, value] of Object.entries(numbers)) {
     if (value === undefined) continue
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
 
-    if ((isOnlyPositive && value <= 0) || (!isOnlyPositive && value < 0))
+    if ((isPositiveRequired && value <= 0) || (!isPositiveRequired && value < 0))
       throw new Error(
-        `The ${key} must be a ${isOnlyPositive ? 'positive' : 'non-negative'} number...`
+        `The ${key} must be a ${isPositiveRequired ? 'positive' : 'non-negative'} number...`
       )
   }
 }
