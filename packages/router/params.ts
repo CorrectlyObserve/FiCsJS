@@ -1,41 +1,43 @@
-import { browserError, isBrowser } from '../core/helpers'
-import type { Param } from './types'
-
-const pathParam: RegExp = /\/:[^\/]+/g
-
-export const getRegExp = (path: string): RegExp =>
-  new RegExp(`^${path.replaceAll(pathParam, `\/([^/]+?)`)}\/?$`)
-
-export const getPathParams = (path: string): Record<string, string> => {
-  browserError()
-
-  const regExps: string[] | null = getRegExp(path).exec(window.location.pathname)
-  const pathParams: Record<string, string> = {}
-
-  if (regExps && regExps.length > 0) {
-    const names: string[] = (path.match(pathParam) ?? []).map(param => param.replace(/^\/:/, ''))
-
-    if (names.length > 0)
-      for (const [index, value] of regExps.slice(1).entries())
-        pathParams[names[index]] = value ?? ''
-  }
-
-  return pathParams
-}
-
-export const isPathParam = (path: string): boolean => pathParam.test(path)
+import { isBrowser } from '../core/helpers'
+import CUSTOM_EVENT_NAME from './const'
+import type { ParamType } from './types'
 
 class Params {
-  params: Record<Param, Record<string, string>> = { path: {}, query: {} }
+  #isBrowser: boolean = isBrowser()
+  #dynamicPaths: Record<string, string> = {}
+  #queries: Record<string, string> = {}
 
-  set(param: Param, params: Record<string, string>): void {
-    this.params[param] = isBrowser() ? params : {}
+  constructor() {
+    if (!this.#isBrowser) return
+
+    this.#saveQueries()
+    window.addEventListener('popstate', this.#saveQueries.bind(this))
+    window.addEventListener(CUSTOM_EVENT_NAME, this.#saveQueries.bind(this))
   }
 
-  get(param: Param): Record<string, string> {
-    return isBrowser() ? this.params[param] : {}
+  #saveQueries(): void {
+    this.#queries = getQueries()
+  }
+
+  set(type: ParamType, value: Record<string, string>): void {
+    if (!this.#isBrowser)
+      throw new Error('Params can only be accessed in the browser environment...')
+
+    type === 'dynamicPaths' ? (this.#dynamicPaths = { ...value }) : (this.#queries = { ...value })
+  }
+
+  get(type: ParamType): Record<string, string> {
+    if (!this.#isBrowser)
+      throw new Error('Params can only be accessed in the browser environment...')
+
+    return type === 'dynamicPaths' ? { ...this.#dynamicPaths } : { ...this.#queries }
   }
 }
 
+export const getQueries = (): Record<string, string> =>
+  isBrowser() ? Object.fromEntries(new URLSearchParams(window.location.search)) : {}
+
 export const params: Params = new Params()
-export const getParams = (param: Param): Record<string, string> => params.get(param)
+
+export const dynamicPaths = (): Record<string, string> => params.get('dynamicPaths')
+export const queries = (): Record<string, string> => params.get('queries')

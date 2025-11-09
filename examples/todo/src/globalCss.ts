@@ -1,5 +1,5 @@
-import { cssVar } from 'ficsjs/style'
-import { breakpoints, white } from '@/utils'
+import { calc, cssVar } from 'ficsjs/style'
+import { breakpoints, white } from '@/utils/others'
 
 const hover = { cursor: 'pointer', opacity: 0.5 } as const
 
@@ -7,9 +7,10 @@ export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
   '*[tabindex], button, label, a': {
     transition: cssVar('transition'),
-    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } }
+    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } },
+    '&:is(a):focus > span': { color: 'inherit' }
   },
-  'h2, p, button, label, span': { color: white, textAlign: 'center' },
+  'h2, p, button, label, span': { color: white(), textAlign: 'center' },
   h2: {
     fontSize: cssVar('lg'),
     marginBottom: cssVar('xl'),
@@ -23,5 +24,22 @@ export default {
     '&:not([aria-disabled="true"])': { '&:hover': hover, '&:focus': { scale: 0.8 } }
   },
   label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
-  span: { width: 'fit-content' }
+  'input, textarea': {
+    minWidth: calc(`${cssVar('md')} * 20`),
+    maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
+    fontSize: cssVar('md'),
+    color: white(),
+    paddingInline: cssVar('md'),
+    borderRadius: cssVar('xs'),
+    border: 'none',
+    outline: 'none',
+    lineHeight: 1.5,
+    '&:hover': { cursor: 'pointer' },
+    '&:focus': {
+      background: white(0.8),
+      color: cssVar('black'),
+      cursor: 'auto'
+    }
+  },
+  span: { width: 'fit-content', '&[role="button"]': { padding: cssVar('md') } }
 }

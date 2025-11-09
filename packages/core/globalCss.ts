@@ -1,10 +1,10 @@
 import { toArray } from './helpers'
-import type { GlobalCssContent, SingleOrArray } from './types'
+import type { GlobalCss, SingleOrArray } from './types'
 
-let _globalCss: (GlobalCssContent | string)[] = new Array()
+let _globalCss: GlobalCss[] = new Array()
 
-export const ficsCss = (css: SingleOrArray<GlobalCssContent | string>): void => {
+export const ficsCss = (css: SingleOrArray<GlobalCss>): void => {
   _globalCss = toArray(css)
 }
 
-export const globalCss = (): (GlobalCssContent | string)[] => _globalCss
+export const globalCss = (): GlobalCss[] => _globalCss

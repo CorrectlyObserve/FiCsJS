@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
 import { cssVar } from 'ficsjs/style'
-import { white } from '@/utils'
+import { white } from '@/utils/others'
 
 interface Props {
   svg: string
@@ -23,7 +23,7 @@ export default () =>
     css: {
       button: ({ props: { color, isLoadingIcon } }) => ({
         background: 'none',
-        color: color ?? white,
+        color: color ?? white(),
         padding: cssVar('xs'),
         svg: svgStyle('xl'),
         ...(isLoadingIcon
@@ -32,13 +32,6 @@ export default () =>
       })
     },
     actions: {
-      button: {
-        click: [
-          ({ props: { click } }) => {
-            if (click) click()
-          },
-          { throttle: 500, blur: true }
-        ]
-      }
+      button: { click: [({ props: { click } }) => click?.(), { throttle: 500, blur: true }] }
     }
   })

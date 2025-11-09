@@ -1,3 +1,5 @@
+export type Lang = 'en' | 'ja'
+
 export interface Task {
   id: number
   title: string

@@ -1,10 +1,10 @@
 import { fics } from 'ficsjs'
-import { i18n } from 'ficsjs/i18n'
 import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
-import LoadingIcon from '@/components/multitons/LoadingIcon'
-import { breakpoints, getPath } from '@/utils'
+import LoadingIcon from '@/components/materials/LoadingIcon'
+import { Lang } from '@/types'
+import { breakpoints } from '@/utils/others'
 
 interface Data {
   seconds: number
@@ -13,17 +13,17 @@ interface Data {
   buttonText: string
 }
 
-export default fics<Data, { lang: string }>({
+export default fics<Data, { lang: Lang }>({
   name: 'not-found',
   children: [Button(), LoadingIcon],
   data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
-  deferredData: ({ props: { lang } }) => i18n<Data>({ lang, key: 'notFound' }),
+  i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
   props: [
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { lang } }) => ({
+      values: () => ({
         buttonText: ({ getData }) => getData('buttonText'),
-        click: () => goto(getPath(lang, '/'))
+        click: () => goto('/', { isWithoutHistory: true })
       })
     },
     {
@@ -51,10 +51,10 @@ export default fics<Data, { lang: string }>({
     }
   },
   hooks: {
-    mounted: ({ data: { seconds }, props: { lang }, setData, poll }) =>
+    mounted: ({ data: { seconds }, setData, poll }) =>
       poll(
         ({ times }) => {
-          if (times === seconds - 1) goto(getPath(lang, '/'))
+          if (times === seconds - 1) goto('/', { isWithoutHistory: true })
           setData('seconds', seconds - times - 1)
         },
         { interval: 1000, max: seconds }

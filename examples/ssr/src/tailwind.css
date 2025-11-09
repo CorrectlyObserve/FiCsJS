@@ -1,23 +1,21 @@
 @import 'tailwindcss/preflight';
 @import 'tailwindcss/theme';
 @import 'tailwindcss/utilities';
+@import './variables.css';
 
 @theme {
-  --font-sans: 'Times New Roman', serif;
-  --text-base--line-height: 1.2;
   --text-sm--line-height: 1.2;
-  --color-dark: #282828;
-  --color-red: #b7282e;
+  --color-red: oklch(0.512 0.1788 24.39);
 }
 
 .clickable {
   @apply transition duration-200 ease-out;
 
-  &:not([aria-disabled='true']) {
-    @apply cursor-pointer hover:opacity-50 focus:scale-95;
+  &:not([disabled]) {
+    @apply cursor-pointer hover:opacity-50 focus:scale-95 focus:opacity-20 focus:outline-none;
   }
 
-  &[aria-disabled='true'] {
+  &[disabled] {
     @apply opacity-20 cursor-not-allowed;
   }
 }

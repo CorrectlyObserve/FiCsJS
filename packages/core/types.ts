@@ -16,29 +16,25 @@ export type Attrs<D, P> =
   | Record<string, string>
   | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
-export interface Bindings {
-  isClassName: boolean
-  isAttr: boolean
-  css: number[]
-}
-
 export type Children = Record<string, Descendant>
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
-export interface CrudOptions<D> extends RequestInit {
-  key?: keyof D
+export interface CrudOptions extends RequestInit {
+  key?: string
+  delay?: number
 }
 
-export type Css<D, P> =
-  | string
-  | { [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined] }
-  | GlobalCssContent
+export type Css<D, P> = CssContent<D, P> | GlobalCss
+
+export interface CssContent<D, P> {
+  [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
+}
 
 export type DataProps<D, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions<D>): Promise<T> } } : {})
+} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions): Promise<T> } } : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
@@ -57,26 +53,35 @@ export interface FiCs<D extends object, P extends object> {
   children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
+  i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html<D, P>
-  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
+  css?: SingleOrArray<CssContent<D, P> | string>
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
-  options?: OptionParams
-  scroll?: Omit<Scroll<D, P>, 'isEnabled'>
-  sse?: ServerSentEvents<D, P>
+  options?: OptionParams<D, P>
+  scroll?: ScrollParams<D, P>
 }
+
+export type GlobalCss = GlobalCssContent | string
 
 export interface GlobalCssContent {
   [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
 }
 
 export type Html<D extends object, P extends object> = (
-  params: Omit<DataPropsMethods<D, P>, 'getData'> &
-    Omit<Syntaxes<D, P>, 'props'> & { isBrowser: boolean; isDeferred: boolean }
+  params: Omit<DataPropsMethods<D, P, true>, 'props' | 'getData'> &
+    Syntaxes<D, P> & {
+      isBrowser: boolean
+      isDeferred: boolean
+      virtualScroll: <T>(
+        array: T[],
+        callback: (item: T, index: number) => Sanitized<D, P>
+      ) => Sanitized<D, P>
+    }
 ) => Sanitized<D, P>
 
 export type HtmlContent<D extends object, P extends object> =
@@ -86,14 +91,13 @@ export type HtmlContent<D extends object, P extends object> =
 export interface Hooks<D, P> {
   created?: (params: DataPropsMethods<D, P, true>) => void
   mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
-  updated?: {
-    [K in keyof Partial<D>]: (params: {
-      datum: D[K]
-      setData: DataPropsMethods<D, P>['setData']
-    }) => void
-  }
+  updated?: { [K in keyof D]?: (params: DataPropsMethods<D, P, true>) => void }
   destroyed?: (params: DataPropsMethods<D, P, true>) => void
   adopted?: (params: DataPropsMethods<D, P, true>) => void
+}
+
+export interface I18n {
+  i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
 export type Method<D, P> = (
@@ -104,13 +108,30 @@ export type Method<D, P> = (
   }
 ) => void
 
-export interface Options {
+export interface Options<D, P> {
   ssr: boolean
   lazyLoad?: boolean
   rootMargin?: string
+  websocket?: {
+    path: string
+    protocols?: SingleOrArray<string>
+    reconnect?: { interval: number; max?: number; isExponential?: boolean }
+    onopen?: (params: WebSocketParams<D, P> & { event: Event }) => void
+    onmessage?: (params: WebSocketParams<D, P> & { event: MessageEvent }) => void
+    onerror?: (params: WebSocketParams<D, P> & { event: Event }) => void
+    onclose?: (params: WebSocketParams<D, P> & { event: CloseEvent }) => void
+  }
+  sse?: {
+    path: string
+    withCredentials?: boolean
+    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    onmessage?: SSEMethod<D, P>
+    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+  }
 }
 
-export type OptionParams = Omit<Options, 'ssr'> & { ssr?: boolean }
+export type OptionParams<D, P> = Omit<Options<D, P>, 'ssr'> & { ssr?: boolean }
 
 interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
@@ -125,10 +146,21 @@ export interface PollingOptions {
 export interface Props<D, P> {
   descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: Omit<DataPropsMethods<D, P, true>, 'getData'>
+    params: Omit<DataPropsMethods<D, P, true>, 'getData'> & {
+      sendToWebsocket: (value: WebSocketValue) => void
+    }
   ) =>
-    | Record<string, ({ getData }: { getData: DataPropsMethods<D, P>['getData'] }) => any>
-    | Record<string, any>
+    | Record<
+        string,
+        ({
+          getData,
+          sendToWebsocket
+        }: {
+          getData: DataPropsMethods<D, P>['getData']
+          sendToWebsocket?: (value: WebSocketValue) => void
+        }) => unknown
+      >
+    | Record<string, unknown>
 }
 
 export interface PropsBinding {
@@ -140,31 +172,31 @@ export interface PropsBinding {
   setProps: (value: unknown) => void
 }
 
-export type PropsChain<P> = Map<string, Record<string, P>>
-
-export interface Queue {
-  instanceId: string
-  func: () => void
-  key: 'define' | 're-render' | 'fetch'
-}
+export type PropsChain<P> = Map<string, Partial<P>>
 
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
-export interface Scroll<D, P> {
+export interface Scroll<D, P> extends ScrollParams<D, P> {
+  id: string
+  start: number
+  end: number
   isEnabled: boolean
-  area: string
-  rootMargin?: string
-  trigger?: ({ data }: { data: D }) => boolean
-  method: (params: DataPropsMethods<D, P, true>) => void
+  totalHeight: number
+  elementHeights: Map<string, number>
+  prevTotalHeight: number
+  resizeObserver?: ResizeObserver
+  intersectionObserver?: IntersectionObserver
+  mutationObserver?: MutationObserver
 }
 
-export interface ServerSentEvents<D, P> {
-  path: string
-  withCredentials?: boolean
-  onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
-  onmessage?: (params: DataPropsMethods<D, P, true> & { event: MessageEvent }) => void
-  onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
-  actions?: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
+interface ScrollParams<D, P> {
+  unit: number
+  elementMinHeight: number
+  trigger?: ({ data }: { data: D }) => boolean
+  rootMargin?: string
+  buffer?: number
+  throttle?: number
+  method: (params: DataPropsMethods<D, P, true>) => void
 }
 
 export type SingleOrArray<T> = T | T[]
@@ -188,4 +220,32 @@ export interface Syntaxes<D extends object, P extends object> {
   ) => Sanitized<D, P>
   html: (str: string) => Record<symbol, string>
   show: (condition: boolean) => string
+  apiStatuses: Record<string, boolean>
 }
+
+export interface Task {
+  instanceId: string
+  func: () => void
+  key: 'define' | 're-render' | 'fetch'
+}
+
+export type Translations = Record<string, unknown>
+
+export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
+  websocket: {
+    send: (value: WebSocketValue) => void
+    readyState: () => number
+    bufferedAmount: () => number
+    binaryType: () => BinaryType
+    url: () => string
+    protocol: () => string
+    extensions: () => string
+  }
+}
+
+export interface WebSocketProp {
+  send: (value: WebSocketValue) => void
+  isOpened: () => boolean
+}
+
+export type WebSocketValue = string | Blob | ArrayBuffer | ArrayBufferView

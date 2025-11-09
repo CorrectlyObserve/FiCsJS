@@ -1,5 +1,6 @@
 import goto from './goto'
-import { getParams } from './params'
+import ficsLink from './link'
+import { dynamicPaths, queries } from './params'
 import ficsRouter from './router'
 
-export { ficsRouter, getParams, goto }
+export { dynamicPaths, ficsLink, ficsRouter, goto, queries }

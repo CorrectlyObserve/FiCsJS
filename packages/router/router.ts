@@ -1,73 +1,139 @@
 import FiCsElement from '../core/class'
+import { normalizePath } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
+import CUSTOM_EVENT_NAME from './const'
+import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
-import { getPathParams, getRegExp, isPathParam, params } from './params'
-import type { FiCsRouter, PageContent, RouterData } from './types'
+import { getQueries, params } from './params'
+import type { FiCsRouter, Page, PageContent, RouterData } from './types'
 
-export default <D extends RouterData, P extends object>({
+const setRouterData = <D extends object>(
+  setData: <K extends keyof RouterData<D>>(key: K, value: RouterData<D>[K]) => void,
+  pathname: string
+): void => {
+  const queries: Record<string, string> = getQueries()
+
+  setData('pathname', pathname as RouterData<D>['pathname'])
+  setData('queries', queries as RouterData<D>['queries'])
+  params.set('queries', queries)
+}
+
+export default <D extends object>({
   children,
-  pathname,
+  data,
+  pathname = '/',
   props,
   className,
   attributes,
   pages,
   notFound,
   css,
+  hooks,
   options
-}: FiCsRouter<D, P>): FiCsElement<D, P> =>
-  new FiCsElement<D, P>({
+}: FiCsRouter<D>): FiCsElement<RouterData<D>, {}> => {
+  let removeEventListeners: () => void = () => {}
+
+  return new FiCsElement<RouterData<D>, {}>({
     name: 'router',
     isExceptional: true,
     children,
-    data: () => ({ pathname: pathname ?? '/', lang: '' }) as D,
+    data: () => ({ ...data?.(), pathname, queries: {} }) as RouterData<D>,
     props,
     className,
     attributes,
-    html: ({ data: { pathname, lang }, template, setData, ...args }) => {
-      const setContent = (): Sanitized<D, P> => {
-        const resolveContent = ({ content, redirect }: PageContent<D, P>): Sanitized<D, P> => {
+    html: ({ data, template, setData, ...args }) => {
+      let { pathname } = data
+      pathname = normalizePath(pathname)
+
+      const setContent = (): Sanitized<RouterData<D>, {}> => {
+        const staticPages: Page<D>[] = [],
+          dynamicPages: Page<D>[] = []
+
+        for (const { path, ..._args } of pages) {
+          dynamicRegex.lastIndex = 0
+
+          const _pages: Page<D>[] = dynamicRegex.test(path) ? dynamicPages : staticPages
+          _pages.push({ path, ..._args })
+        }
+
+        const render = ({ content, redirect }: PageContent<D>): Sanitized<RouterData<D>, {}> => {
           if (redirect) {
-            setData('pathname', redirect)
-            goto(pathname, { history: false, reload: false })
-            return setContent()
+            const redirectedPath: string = normalizePath(
+                new URL(redirect, window.location.origin).pathname
+              ),
+              staticPage: Page<D> | undefined = staticPages.find(
+                ({ path }) => normalizePath(path) === redirectedPath
+              )
+
+            if (pathname !== redirectedPath) {
+              setData('pathname', redirectedPath as RouterData<D>['pathname'])
+              goto(redirect, { isWithoutHistory: true })
+            }
+
+            if (staticPage) {
+              params.set('dynamicPaths', {})
+
+              const { content, redirect }: Page<D> = staticPage
+              return render({ content, redirect })
+            }
+
+            for (const { path, ..._args } of dynamicPages)
+              if (dynamicPathToRegex(path).test(redirectedPath)) {
+                params.set('dynamicPaths', getDynamicPaths(path))
+                return render({ ..._args })
+              }
+
+            throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
           }
 
-          const _content: Descendant | Sanitized<D, P> = content({ template, ...args })
-          return _content instanceof FiCsElement ? template`${_content}` : _content
-        }
+          if (content) {
+            const _content: Descendant | Sanitized<RouterData<D>, {}> = content({
+              data,
+              template,
+              setData: <K extends keyof RouterData<D>>(key: K, value: RouterData<D>[K]) => {
+                if (key === 'pathname' || key === 'queries')
+                  throw new Error(
+                    `The "${key as string}" cannot be modified in the router component...`
+                  )
 
-        const getLangPath = (path: string): string => `/${lang}${path}`
-        const isPathMatched = (path: string): boolean =>
-          pathname === path || pathname === getLangPath(path)
+                setData(key, value)
+              },
+              ...args
+            })
 
-        if (isPathMatched('/404') && notFound) return resolveContent(notFound)
-
-        const dynamicPages: (PageContent<D, P> & { path: string })[] = []
-
-        for (const { path, content, redirect } of pages) {
-          const langPath: string = getLangPath(path)
-
-          if (isPathParam(path) || isPathParam(langPath)) {
-            dynamicPages.push({ path, content, redirect })
-            continue
+            return _content instanceof FiCsElement ? template`${_content}` : _content
           }
 
-          if (isPathMatched(path)) return resolveContent({ content, redirect })
+          throw new Error('Either "content" or "redirect" must be specified...')
         }
 
-        for (const { path, content, redirect } of dynamicPages) {
-          const langPath: string = getLangPath(path)
+        if (pathname === '/404' && notFound) {
+          params.set('dynamicPaths', {})
+          return render(notFound)
+        }
 
-          if (getRegExp(path).test(pathname) || getRegExp(langPath).test(pathname)) {
-            params.set(
-              'path',
-              getPathParams(Object.keys(getPathParams(path)).length > 0 ? path : langPath)
-            )
-            return resolveContent({ content, redirect })
+        const staticPage: Page<D> | undefined = staticPages.find(
+          ({ path }) => pathname === normalizePath(path)
+        )
+        if (staticPage) {
+          params.set('dynamicPaths', {})
+
+          const { content, redirect }: Page<D> = staticPage
+          return render({ content, redirect })
+        }
+
+        for (const { path, ..._args } of dynamicPages)
+          if (dynamicPathToRegex(path).test(pathname)) {
+            params.set('dynamicPaths', getDynamicPaths(path))
+            return render({ ..._args })
           }
-        }
 
-        if (notFound) return resolveContent(notFound)
+        if (notFound) {
+          setData('pathname', '/404' as RouterData<D>['pathname'])
+          params.set('dynamicPaths', {})
+          goto('/404', { isWithoutHistory: true })
+          return render(notFound)
+        }
         throw new Error(`The "${pathname}" does not exist on pages...`)
       }
 
@@ -75,14 +141,38 @@ export default <D extends RouterData, P extends object>({
     },
     css,
     hooks: {
-      created: ({ setData }) => {
-        const { pathname, search }: { pathname: string; search: string } = window.location
-
-        setData('pathname', pathname)
-        params.set('query', Object.fromEntries(new URLSearchParams(search)))
+      created: ({ setData, ...args }) => {
+        hooks?.created?.({ setData, ...args })
+        setRouterData(setData, window.location.pathname)
       },
-      mounted: ({ setData }) =>
-        window.addEventListener('popstate', () => setData('pathname', window.location.pathname))
+      mounted: ({ setData, ...args }) => {
+        hooks?.mounted?.({ setData, ...args })
+
+        const onPopState: () => void = (): void => setRouterData(setData, window.location.pathname)
+        const onCustomEvent: (event: Event) => void = (event): void => {
+          const {
+              detail: { href }
+            }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
+            { pathname }: { pathname: string } = new URL(href, window.location.origin)
+
+          setRouterData(setData, pathname)
+        }
+
+        window.addEventListener('popstate', onPopState)
+        window.addEventListener(CUSTOM_EVENT_NAME, onCustomEvent)
+
+        removeEventListeners = (): void => {
+          window.removeEventListener('popstate', onPopState)
+          window.removeEventListener(CUSTOM_EVENT_NAME, onCustomEvent)
+        }
+      },
+      updated: hooks?.updated,
+      destroyed: ({ ...args }) => {
+        removeEventListeners()
+        hooks?.destroyed?.({ ...args })
+      },
+      adopted: hooks?.adopted
     },
     options
   })
+}

@@ -4,9 +4,7 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
-export const checkType = <
-  T extends 'string' | 'number' | 'boolean' | 'function' | 'object' | 'undefined'
->(
+export const checkType = <T extends 'string' | 'number' | 'boolean' | 'function' | 'object'>(
   param: unknown,
   type: T
 ): param is T extends 'string'
@@ -19,9 +17,7 @@ export const checkType = <
         ? Function
         : T extends 'object'
           ? object
-          : T extends 'undefined'
-            ? undefined
-            : never =>
+          : never =>
   type === 'object'
     ? typeof param === 'object' && param !== null && !Array.isArray(param)
     : typeof param === type
@@ -31,21 +27,38 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
 }
 
-export const isBrowser = (): boolean => {
-  try {
-    return !checkType(window, 'undefined') && !checkType(document, 'undefined')
-  } catch (_) {
-    return false
+export const isBlankObject = (param: unknown): boolean =>
+  checkType(param, 'object') && Reflect.ownKeys(param).length === 0
+
+export const isBrowser = (): boolean =>
+  typeof window !== 'undefined' && typeof document !== 'undefined'
+
+export const normalizePath = (path: string): string =>
+  path === '/' ? '/' : path.replace(/\/+$/, '')
+
+export const numberError = (
+  numbers: Record<string, number | undefined>,
+  isPositiveRequired: boolean = true
+): void => {
+  for (const [key, value] of Object.entries(numbers)) {
+    if (value === undefined) continue
+
+    if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
+
+    if ((isPositiveRequired && value <= 0) || (!isPositiveRequired && value < 0))
+      throw new Error(
+        `The ${key} must be a ${isPositiveRequired ? 'positive' : 'non-negative'} number...`
+      )
   }
 }
 
-export const numberError = (number: number): void => {
-  if (isNaN(number) || number < 0)
-    throw new Error(`The number ${number} must be a positive number...`)
-}
+export const toArray = <T>(param: SingleOrArray<T>): T[] => {
+  if (Array.isArray(param)) return [...param]
 
-export const toArray = <T>(param: SingleOrArray<T>): T[] =>
-  Array.isArray(param) ? [...param] : [checkType(param, 'object') ? { ...param } : param]
+  const isPlain: boolean =
+    checkType(param, 'object') && Object.prototype.toString.call(param) === '[object Object]'
+  return isPlain ? [{ ...param }] : [param]
+}
 
 export function* uid(): Generator<number> {
   let n: number = 1

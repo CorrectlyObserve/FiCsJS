@@ -1,20 +1,15 @@
-type Direction = 'row' | 'column'
+import type { Axis, Direction, Flex } from './types'
 
-interface Flex {
-  display: 'flex'
-  flexDirection: Direction
-}
+const justifyCenter = { justifyContent: 'center' } as const,
+  alignCenter = { alignItems: 'center' } as const
 
-const justifyCenter = { justifyContent: 'center' } as const
-const alignCenter = { alignItems: 'center' } as const
-
-export function flexCenter(axis: 'x', direction?: Direction): Flex & typeof justifyCenter
-export function flexCenter(axis: 'y', direction?: Direction): Flex & typeof alignCenter
+export function flexCenter(axis: 'x', direction?: Direction): Readonly<Flex & typeof justifyCenter>
+export function flexCenter(axis: 'y', direction?: Direction): Readonly<Flex & typeof alignCenter>
 export function flexCenter(
   axis: 'xy',
   direction?: Direction
-): Flex & typeof justifyCenter & typeof alignCenter
-export function flexCenter(axis: 'xy' | 'x' | 'y', direction: Direction = 'row'): Flex {
+): Readonly<Flex & typeof justifyCenter & typeof alignCenter>
+export function flexCenter(axis: Axis, direction: Direction = 'row'): Readonly<Flex> {
   return {
     display: 'flex',
     flexDirection: direction,

@@ -1,11 +1,15 @@
 import { browserError } from '../core/helpers'
+import CUSTOM_EVENT_NAME from './const'
 
 export default (
   href: string,
-  { history, reload }: { history?: boolean; reload?: boolean } = { history: true, reload: true }
+  { isWithoutHistory }: { isWithoutHistory: boolean } = { isWithoutHistory: false }
 ): void => {
   browserError()
 
-  if (history) reload ? (window.location.href = href) : window.history.pushState({}, '', href)
-  else window.history.replaceState({}, '', href)
+  href = href.trim()
+  if (href === '') return
+
+  window.history[isWithoutHistory ? 'replaceState' : 'pushState']({}, '', href)
+  window.dispatchEvent(new CustomEvent(CUSTOM_EVENT_NAME, { detail: { href } }))
 }

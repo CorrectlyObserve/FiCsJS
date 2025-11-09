@@ -1,27 +1,25 @@
 @import 'tailwindcss';
+@import './variables.css';
 
 @theme {
-  --font-sans: 'Times New Roman', serif;
   --text-xl: 2rem;
   --text-xl--line-height: 1.5;
-  --text-base--line-height: 1.2;
-  --color-dark: #282828;
+}
+
+body {
+  overscroll-behavior-x: none;
 }
 
 h1 {
-  background: linear-gradient(30deg, #b7282e 20%, #e198b4);
+  background: linear-gradient(30deg, oklch(0.512 0.1788 24.39) 20%, oklch(0.7596 0.094 354.9));
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.clickable {
-  @apply transition duration-200 ease-out;
+.clickable[disabled] {
+  @apply opacity-20;
+}
 
-  &:not([aria-disabled='true']) {
-    @apply cursor-pointer hover:opacity-50 focus:scale-95;
-  }
-
-  &[aria-disabled='true'] {
-    @apply opacity-20 cursor-not-allowed;
-  }
+main {
+  min-height: calc(100dvh - var(--header-height) - var(--footer-height));
 }

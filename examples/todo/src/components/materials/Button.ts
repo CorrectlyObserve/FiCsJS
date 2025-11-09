@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
-import { color, cssVar } from 'ficsjs/style'
-import { white } from '@/utils'
+import { cssVar } from 'ficsjs/style'
+import { white } from '@/utils/others'
 
 export default () =>
   fics<{}, { isDisabled?: boolean; buttonText: string; click: () => void }>({
@@ -9,17 +9,19 @@ export default () =>
       <button aria-disabled="${isDisabled}" aria-label="${buttonText}">${buttonText}</button>
     `,
     css: {
-      ':host': { textAlign: 'center' },
-      button: ({ props: { isDisabled } }) => ({
-        background: isDisabled ? color({ hex: white, rate: 0.1 }) : cssVar('gradation'),
-        padding: cssVar('md'),
-        borderRadius: cssVar('xs'),
-        '&[aria-disabled="true"]': {
-          background: 'none',
-          color: color({ hex: white, rate: 0.2 }),
-          cursor: 'not-allowed'
+      ':host': {
+        textAlign: 'center',
+        button: {
+          background: cssVar('gradation'),
+          padding: cssVar('md'),
+          borderRadius: cssVar('xs'),
+          '&[aria-disabled="true"]': {
+            background: 'none',
+            color: white(0.2),
+            cursor: 'not-allowed'
+          }
         }
-      })
+      }
     },
     actions: {
       button: {
