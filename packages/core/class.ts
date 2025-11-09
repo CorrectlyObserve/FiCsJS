@@ -441,35 +441,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  // async #fetchData(isInRerendering?: boolean): Promise<void> {
-  //   if (!this.#deferredData && !this.#i18nData) return
-
-  //   let entries: [string, unknown][] = []
-
-  //   if (this.#deferredData && !isInRerendering)
-  //     entries = [
-  //       ...Object.entries(
-  //         await this.#deferredData({ ...this.#dataProps, crud: this.#crud.bind(this) })
-  //       )
-  //     ]
-
-  //   if (this.#i18nData)
-  //     entries = [
-  //       ...entries,
-  //       ...Object.entries(
-  //         await this.#i18nData({
-  //           ...this.#dataProps,
-  //           i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-  //             i18n<T>({ lang, key })
-  //         })
-  //       )
-  //     ]
-
-  //   for (const [key, value] of entries)
-  //     if (!isInRerendering || this.#data[key as keyof D] !== value)
-  //       this.#internalSetData(key as keyof D, value as D[keyof D], isInRerendering)
-  // }
-
   get #computedClassName(): string {
     if (!this.#classNames) return ''
 
