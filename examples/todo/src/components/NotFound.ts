@@ -23,7 +23,7 @@ export default fics<Data, { lang: Lang }>({
       descendant: ({ children: { button } }) => button,
       values: () => ({
         buttonText: ({ getData }) => getData('buttonText'),
-        click: () => goto('/', true)
+        click: () => goto('/', { isWithoutHistory: true })
       })
     },
     {
@@ -54,7 +54,7 @@ export default fics<Data, { lang: Lang }>({
     mounted: ({ data: { seconds }, setData, poll }) =>
       poll(
         ({ times }) => {
-          if (times === seconds - 1) goto('/', true)
+          if (times === seconds - 1) goto('/', { isWithoutHistory: true })
           setData('seconds', seconds - times - 1)
         },
         { interval: 1000, max: seconds }
