@@ -82,25 +82,22 @@ export default fics({
   actions: {
     img: {
       load: [
-        ({ data: { photos }, setData, attributes: { key } }) =>
-          setData(
-            'photos',
-            photos.map(photo => {
-              if (photo.id === key) photo.isLoaded = true
-              return photo
-            })
-          ),
+        ({ data: { photos }, setData, attributes: { key } }) => {
+          const photo = photos.find(p => p.id === key)
+          if (photo && !photo.isLoaded) {
+            photo.isLoaded = true
+            setData('photos', [...photos])
+          }
+        },
         { once: true }
       ],
       error: [
         ({ data: { photos }, setData, event: { currentTarget }, attributes: { key } }) => {
-          setData(
-            'photos',
-            photos.map(photo => {
-              if (photo.id === key) photo.isLoaded = true
-              return photo
-            })
-          )
+          const photo = photos.find(p => p.id === key)
+          if (photo && !photo.isLoaded) {
+            photo.isLoaded = true
+            setData('photos', [...photos])
+          }
 
           if (currentTarget) {
             const img = currentTarget as HTMLImageElement
