@@ -1,13 +1,13 @@
 import { fics } from 'ficsjs'
-import { i18n } from 'ficsjs/i18n'
-import { goto, getParams } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, remToPx } from 'ficsjs/style'
-import LoadingIcon from '@/components/multitons/LoadingIcon'
+import { goto } from 'ficsjs/router'
+import { calc, cssVar, flexCenter } from 'ficsjs/style'
+import LoadingIcon from '@/components/materials/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
-import { $tasks, addTask, completeTask, deleteTask, revertTask } from '@/store'
-import type { Task } from '@/types'
-import { breakpoints, getPath } from '@/utils'
+import Link from '@/components/Tasks/Link'
+import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
+import type { Lang, Task } from '@/types'
+import { breakpoints } from '@/utils/others'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -17,19 +17,25 @@ interface Data {
   isShown: boolean
   show: string
   hide: string
-  tasks: Task[]
   texts: string[]
   confirmation: string
   unapplicable: string
 }
 
-const { sm, lg } = breakpoints
+interface Props {
+  lang: Lang
+  tasks: Task[]
+  taskId: number
+  setTasks: (tasks: Task[]) => void
+}
 
-export default fics<Data, { lang: string; click?: (id: number) => void }>({
+const { sm } = breakpoints
+
+export default fics<Data, Props>({
   name: 'tasks',
   children: [LoadingIcon, Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
-  deferredData: async ({ props: { lang } }) => ({
+  i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
     texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
   }),
@@ -40,7 +46,7 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ setData }) => ({
+      values: ({ props: { setTasks }, setData }) => ({
         value: ({ getData }) => getData('value'),
         placeholder: ({ getData }) => getData('placeholder'),
         input: (value: string) => setData('value', value),
@@ -50,30 +56,18 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
             const value = getData('value')
 
             if (value !== '') {
-              const tasks: Task[] = await addTask(value)
-
-              setData('tasks', tasks)
+              setTasks(await addTask(value))
               setData('value', '')
             }
           }
       })
     }
   ],
+  className: 'tasks',
   html: ({
     children: { loadingIcon, icon, input },
-    data: {
-      heading,
-      value,
-      placeholder,
-      isShown,
-      show,
-      hide,
-      tasks,
-      texts,
-      confirmation,
-      unapplicable
-    },
-    props: { lang },
+    data: { heading, value, placeholder, isShown, show, hide, texts, confirmation, unapplicable },
+    props: { tasks, taskId, setTasks },
     template,
     setData,
     isDeferred
@@ -83,7 +77,6 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
     if (!isShown) tasks = tasks.filter(task => !task.completedAt)
 
     const [complete, revert, _delete] = texts
-    const { offsetWidth } = document.documentElement
 
     return template`
       <h2>${heading}</h2>
@@ -95,9 +88,7 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
             areaLabel: placeholder,
             click: async () => {
               if (value !== '') {
-                const tasks: Task[] = await addTask(value)
-
-                setData('tasks', tasks)
+                setTasks(await addTask(value))
                 setData('value', '')
               }
             }
@@ -121,13 +112,10 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
                     ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
                       svg: completedAt ? CircleCheckBig : Circle,
                       areaLabel: completedAt ? revert : complete,
-                      click: async () => {
-                        setData('tasks', await (completedAt ? revertTask(id) : completeTask(id)))
-                      }
+                      click: async () =>
+                        setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
-                    <span class="${completedAt ? 'done' : ''}">
-                      <a href="${getPath(lang, (offsetWidth >= remToPx(lg) ? '/?id=' : '/') + id)}">${title}</a>
-                    </span>
+                    ${Link({ id, title, completedAt })}
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
@@ -135,8 +123,8 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
                     color: cssVar('red'),
                     click: async () => {
                       if (window.confirm(confirmation)) {
-                        setData('tasks', await deleteTask(id))
-                        if (parseInt(getParams('query').id) === id) goto(getPath(lang, '/'))
+                        setTasks(await deleteTask(id))
+                        if (taskId === id) goto('/')
                       }
                     }
                   })}
@@ -154,7 +142,8 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
         div: {
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
-          '&:last-child': { marginBottom: 0 }
+          '&:last-child': { marginBottom: 0 },
+          span: { paddingLeft: 0, lineHeight: 1 }
         },
         [`@media (max-width: ${sm})`]: {
           marginBottom: cssVar('md'),
@@ -164,41 +153,18 @@ export default fics<Data, { lang: string; click?: (id: number) => void }>({
       '&.task': {
         ...flexCenter('y'),
         width: sm,
-        maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+        maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
         marginInline: 'auto',
         marginBottom: cssVar('xs'),
         '&:last-child': { marginBottom: 0 },
         [`@media (max-width: ${sm})`]: { width: '100%' },
         div: {
-          width: `${calc([calc(['100%', cssVar('xl')], '-'), calc([cssVar('xs'), 2], '*')], '-')}`,
           ...flexCenter('y'),
-          span: {
-            width: '100%',
-            display: 'flex',
-            textAlign: 'left',
-            marginInline: cssVar('xs'),
-            overflowX: 'hidden',
-            transition: `${cssVar('transition')} allow-discrete`,
-            '&.done': { textDecoration: 'line-through' },
-            a: {
-              width: '100%',
-              display: 'inline-block',
-              color: 'inherit',
-              paddingBlock: cssVar('xs'),
-              lineHeight: 'inherit',
-              outline: 'none',
-              whiteSpace: 'nowrap',
-              overflowX: 'hidden',
-              textDecoration: 'none',
-              textOverflow: 'ellipsis'
-            }
-          }
+          width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`)
         }
-      },
-      span: { transition: cssVar('transition'), '&:hover': { opacity: 0.5 } }
+      }
     }
   },
-  hooks: { mounted: async ({ setData }) => setData('tasks', await $tasks.get()) },
   actions: {
     'div.menu span': {
       click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]

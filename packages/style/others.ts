@@ -1,16 +1,22 @@
 import { browserError, checkType, numberError } from './../core/helpers'
+import type { Operator } from './types'
 
-export const calc = (values: (string | number)[], operator: '+' | '-' | '*' | '/'): string =>
-  `calc(${values.join(` ${operator} `)})`
+export function calc(expression: string): Readonly<string>
+export function calc(operator: Operator, ...remaining: (string | number)[]): Readonly<string>
+export function calc(arg: string | Operator, ...remaining: (string | number)[]): Readonly<string> {
+  arg = arg.trim()
+  return `calc(${checkType(arg, 'string') && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
+}
 
-export const cssVar = (variable: string): string =>
-  `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
+export const cssVar = (variable: string): Readonly<string> => {
+  variable = variable.trim()
+  return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
+}
 
-export const remToPx = (rem: number | string): number => {
+export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
 
-  if (checkType(rem, 'number')) numberError(rem)
-  else rem = parseFloat(rem)
+  checkType(rem, 'number') ? numberError({ rem }) : (rem = parseFloat(rem.trim()))
 
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }

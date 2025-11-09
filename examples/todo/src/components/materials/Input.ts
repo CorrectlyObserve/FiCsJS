@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
-import { calc, color, cssVar, flexCenter } from 'ficsjs/style'
-import { white } from '@/utils'
+import { calc, cssVar, flexCenter } from 'ficsjs/style'
+import { white } from '@/utils/others'
 
 interface Props {
   id?: string
@@ -27,7 +27,13 @@ export default () =>
       <div>
         ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
         <p ${show(!!isError)}>${error}</p>
-        <input id="${id ?? ''}" value="${value}" placeholder="${placeholder}" type="text" />
+        <input
+          name="${label ?? 'input'}"
+          id="${id ? `id="${id}"` : ''}"
+          value="${value}"
+          placeholder="${placeholder}"
+          type="text"
+        />
       </div>
     `,
     css: {
@@ -41,23 +47,9 @@ export default () =>
           textAlign: 'left'
         },
         input: {
-          minWidth: calc([cssVar('md'), 20], '*'),
-          maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
-          background: isError ? cssVar('error') : color({ hex: white, rate: 0.1 }),
-          fontSize: cssVar('md'),
-          color: white,
-          padding: `${calc([cssVar('xs'), 1.5], '*')} ${cssVar('md')}`,
-          borderRadius: cssVar('xs'),
-          border: 'none',
-          outline: 'none',
-          lineHeight: 1.5,
-          '&::placeholder': isError ? { color: white, opacity: 0.5 } : {},
-          '&:hover': { cursor: 'pointer' },
-          '&:focus': {
-            background: color({ hex: white, rate: 0.8 }),
-            color: cssVar('black'),
-            cursor: 'auto'
-          }
+          background: isError ? cssVar('error') : white(0.1),
+          paddingBlock: calc(`${cssVar('xs')} * 1.5`),
+          '&::placeholder': isError ? { color: white(), opacity: 0.5 } : {}
         }
       })
     },

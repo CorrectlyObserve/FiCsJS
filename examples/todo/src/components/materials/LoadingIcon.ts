@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import Icon from '@/components/materials/Icon'
 import { Loader } from 'lucide-static'
 
-export default fics<{}, { lang: string }>({
+export default fics<{}, { lang: 'en' | 'ja' }>({
   name: 'loading-icon',
   children: [Icon()],
   props: {

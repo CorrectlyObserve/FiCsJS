@@ -1,24 +1,23 @@
 import { fics } from 'ficsjs'
-import { i18n } from 'ficsjs/i18n'
-import { getParams, goto } from 'ficsjs/router'
+import { dynamicPaths, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import LoadingIcon from '@/components/multitons/LoadingIcon'
+import LoadingIcon from '@/components/materials/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
-import Textarea from '@/components/materials/Textarea'
+import Textarea from '@/components/TaskDetails/Textarea'
 import Button from '@/components/materials/Button'
-import { $tasks, completeTask, deleteTask, getTask, revertTask, updateTask } from '@/store'
-import type { Task } from '@/types'
-import { breakpoints, convertTimestamp, getPath } from '@/utils'
+import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
+import type { Lang, Task } from '@/types'
+import convertTimestamp from '@/utils/convertTimestamp'
+import { breakpoints, getTimestamp } from '@/utils/others'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
   heading: string
-  task: Task
   title: string
-  isError: boolean
+  isError: (task: Task) => boolean
   error: string
   placeholders: string[]
   description: string
@@ -29,17 +28,22 @@ interface Data {
   confirmation: string
 }
 
-const backToTaskList = (lang: string) => goto(getPath(lang, '/'))
+interface Props {
+  lang: Lang
+  draft: Task
+  editTask: (newValue: Partial<Task>) => void
+  getTask: () => Task
+  updateTasks: (tasks: Task[]) => void
+}
+
 const { sm } = breakpoints
 
-export default fics<Data, { lang: string }>({
-  name: 'task',
+export default fics<Data, Props>({
+  name: 'task-details',
   children: [LoadingIcon, Icon(), Input(), Textarea(), Button()],
-  className: 'task',
   data: () => ({
-    task: {} as Task,
     title: '',
-    isError: false,
+    isError: (task: Task) => task?.title === '',
     error: '',
     placeholders: [],
     description: '',
@@ -47,7 +51,7 @@ export default fics<Data, { lang: string }>({
     texts: [],
     datetimes: {} as Record<Datetime, string>
   }),
-  deferredData: async ({ props: { lang } }) => ({
+  i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'task' })),
     confirmation: await i18n({ lang, key: ['tasks', 'confirmation'] })
   }),
@@ -58,78 +62,67 @@ export default fics<Data, { lang: string }>({
     },
     {
       descendant: ({ children: { icon } }) => icon,
-      values: ({ setData }) => ({
-        click:
-          ({ getData }) =>
-          () => {
-            const task: Task = getData('task')
-            setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() })
-          }
+      values: ({ props: { editTask, getTask } }) => ({
+        click: () => {
+          const draft = getTask()
+          if ('completedAt' in draft)
+            editTask({ completedAt: draft.completedAt ? undefined : getTimestamp() })
+        }
       })
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ setData }) => ({
+      values: ({ props: { editTask } }) => ({
         id: 'title',
         label: ({ getData }) => getData('title'),
-        isError: ({ getData }) => getData('isError'),
         error: ({ getData }) => getData('error'),
-        value: ({ getData }) => getData('task').title,
         placeholder: ({ getData }) => getData('placeholders')[0],
-        input:
-          ({ getData }) =>
-          (title: string) =>
-            setData('task', { ...getData('task'), title })
+        input: (title: string) => editTask({ title })
       })
     },
     {
       descendant: ({ children: { textarea } }) => textarea,
-      values: ({ setData }) => ({
+      values: ({ props: { editTask } }) => ({
         id: 'description',
         label: ({ getData }) => getData('description'),
         placeholder: ({ getData }) => getData('placeholders')[1],
-        value: ({ getData }) => getData('task').description,
-        input:
-          ({ getData }) =>
-          (description: string) =>
-            setData('task', { ...getData('task'), description })
+        input: (description: string) => editTask({ description })
       })
     },
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { lang }, setData }) => ({
-        isDisabled: ({ getData }) => getData('isError'),
+      values: ({ props: { editTask, getTask: _getTask, updateTasks } }) => ({
         buttonText: ({ getData }) => getData('buttonText'),
-        click:
-          ({ getData }) =>
-          async () => {
-            const { id, title, description, completedAt }: Task = getData('task')
+        click: async () => {
+          const { id, title, description, completedAt }: Task = _getTask()
+          await updateTask({ id, title, description, completedAt })
 
-            await updateTask({ id, title, description })
-            completedAt ? await completeTask(id) : await revertTask(id)
+          const task: Task | undefined = await getTask(await getAllTasks(), id)
+          if (!task) return
 
-            const tasks: Task[] = await $tasks.get()
-            setData('task', (await getTask(tasks, id))!)
-            backToTaskList(lang)
-          }
+          editTask(task)
+          updateTasks(await getAllTasks())
+          goto('/')
+        }
       })
     }
   ],
+  className: 'task-detail',
   html: ({
     children: { loadingIcon, icon, input, textarea, button },
     data: {
       heading,
-      task,
       status,
       texts: [complete, revert, _delete, back, close],
       datetimes
     },
+    props: { draft },
     template,
     isDeferred
   }) => {
     if (!isDeferred) return template`${loadingIcon}`
 
-    const label = task.completedAt ? revert : complete
+    const label = draft?.completedAt ? revert : complete
 
     return template`
       <h2>${heading}</h2>
@@ -138,7 +131,7 @@ export default fics<Data, { lang: string }>({
           <label>${status}</label>
           <div>
             ${icon.setIndividualProps('icon', {
-              svg: task.completedAt ? CircleCheckBig : Circle,
+              svg: draft?.completedAt ? CircleCheckBig : Circle,
               areaLabel: label
             })}
             <span role="button" tabindex="0">${label}</span>
@@ -147,11 +140,11 @@ export default fics<Data, { lang: string }>({
         <fieldset>${input}</fieldset>
         <fieldset>${textarea}</fieldset>
         ${Object.entries(datetimes).map(
-          ([key, value]) => template`<p>${value}${convertTimestamp(task[key as Datetime])}</p>`
+          ([key, value]) => template`<p>${value}${convertTimestamp(draft?.[key as Datetime])}</p>`
         )}
         ${button}
         <div>
-          ${[_delete, isNaN(parseInt(getParams('path').id)) ? close : back].map(
+          ${[_delete, !Number.isFinite(parseInt(dynamicPaths().taskId)) ? close : back].map(
             text => template`<span role="button" tabindex="0">${text}</span>`
           )}
         </div>
@@ -161,7 +154,7 @@ export default fics<Data, { lang: string }>({
   css: {
     'div.container': {
       width: sm,
-      maxWidth: calc([calc([cssVar('md'), 30], '*'), calc([cssVar('xl'), 2], '*')], '-'),
+      maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
       marginInline: 'auto',
       [`@media (max-width: ${sm})`]: { width: '100%' },
       fieldset: {
@@ -170,7 +163,7 @@ export default fics<Data, { lang: string }>({
         marginBottom: cssVar('md'),
         border: 0,
         label: { paddingBottom: cssVar('xs') },
-        div: { display: 'flex', span: { ...flexCenter('y') } }
+        div: { display: 'flex', span: { ...flexCenter('y'), paddingLeft: 0, lineHeight: 1 } }
       },
       p: {
         marginBottom: cssVar('xs'),
@@ -182,59 +175,46 @@ export default fics<Data, { lang: string }>({
         flexDirection: 'column',
         marginTop: cssVar('md'),
         span: {
-          padding: cssVar('md'),
           marginInline: 'auto',
           textDecoration: 'underline',
-          transition: cssVar('transition'),
           '&:first-of-type': { color: cssVar('red'), '&:focus': { opacity: 0.2 } },
-          '&:hover': { cursor: 'pointer', opacity: 0.5 },
           [`@media (max-width: ${sm})`]: { paddingBlock: cssVar('md') }
         }
       }
     }
   },
-  hooks: {
-    mounted: async ({ props: { lang }, setData }) => {
-      const paramId = parseInt(getParams('path').id)
-      const queryId = parseInt(getParams('query').id)
-
-      if (isNaN(paramId) && isNaN(queryId)) return goto(getPath(lang, '/404'))
-
-      const tasks: Task[] = await $tasks.get()
-      const task: Task | undefined = await getTask(tasks, isNaN(paramId) ? queryId : paramId)
-
-      if (!task) return goto(getPath(lang, '/404'))
-      setData('task', task)
-    },
-    updated: { task: async ({ datum, setData }) => setData('isError', datum.title === '') }
-  },
   actions: {
     'fieldset label, fieldset span': {
       click: [
-        ({ data: { task }, setData }) =>
-          setData('task', { ...task, completedAt: task.completedAt ? undefined : Date.now() }),
+        ({
+          props: {
+            draft: { completedAt },
+            editTask
+          }
+        }) => editTask({ completedAt: completedAt ? undefined : getTimestamp() }),
         { throttle: 500, blur: true }
       ]
     },
     'div.container > div span:first-of-type': {
       click: [
         async ({
-          data: {
-            task: { id },
-            confirmation
-          },
-          props: { lang }
+          data: { confirmation },
+          props: {
+            draft: { id },
+            updateTasks
+          }
         }) => {
           if (window.confirm(confirmation)) {
             await deleteTask(id)
-            backToTaskList(lang)
+            updateTasks(await getAllTasks())
+            goto('/')
           }
         },
         { throttle: 500, blur: true }
       ]
     },
     'div.container > div span:last-of-type': {
-      click: [({ props: { lang } }) => backToTaskList(lang), { throttle: 500, blur: true }]
+      click: [() => goto('/'), { throttle: 500, blur: true }]
     }
   },
   options: { lazyLoad: true }

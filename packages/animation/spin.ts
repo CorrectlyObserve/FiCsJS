@@ -1,7 +1,7 @@
 import { numberError } from './../core/helpers'
 
 export default (time: number) => {
-  numberError(time)
+  numberError({ time })
 
   return {
     animation: `spin ${time}s infinite linear`,

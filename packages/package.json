@@ -11,7 +11,7 @@
     "Web Components"
   ],
   "license": "MIT",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "files": [
     "dist",
@@ -26,10 +26,6 @@
     "./animation": {
       "import": "./dist/animation/index.js",
       "types": "./dist/animation/index.d.ts"
-    },
-    "./i18n": {
-      "import": "./dist/i18n/index.js",
-      "types": "./dist/i18n/index.d.ts"
     },
     "./persistent-state": {
       "import": "./dist/persistent-state/index.js",

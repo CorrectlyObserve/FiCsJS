@@ -19,6 +19,6 @@
     "@types/bun": "^1.2.5",
     "cssnano": "^7.0.6",
     "postcss-cli": "^11.0.1",
-    "tailwindcss": "^4.0.17"
+    "tailwindcss": "^4.1.11"
   }
 }

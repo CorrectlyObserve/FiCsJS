@@ -1,10 +1,12 @@
 import type {
+  Actions,
   Attrs,
-  ClassName,
-  Css,
   Children,
+  ClassName,
+  CssContent,
+  DataPropsMethods,
   Descendant,
-  GlobalCssContent,
+  Hooks,
   OptionParams,
   Props,
   Sanitized,
@@ -12,26 +14,48 @@ import type {
   Syntaxes
 } from '../core/types'
 
-export interface FiCsRouter<D extends RouterData, P extends object> {
+export type Content<D extends object, P extends object> = (
+  syntaxes: Omit<DataPropsMethods<D, P>, 'props' | 'getData'> &
+    Syntaxes<D, P> & { children: Children }
+) => Descendant | Sanitized<D, P>
+
+export interface FiCsLink<P extends object> {
   children?: Descendant[]
-  pathname?: string
-  props?: SingleOrArray<Props<D, P>>
-  className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
-  pages: (PageContent<D, P> & { path: string })[]
-  notFound?: PageContent<D, P>
-  css?: SingleOrArray<Exclude<Css<D, P>, GlobalCssContent>>
-  options?: OptionParams
+  href: string
+  props?: SingleOrArray<Props<{}, P>>
+  className?: ClassName<{}, P>
+  attributes?: Attrs<{}, P>
+  content: Content<{}, P>
+  css?: SingleOrArray<CssContent<{}, P> | string>
+  actions?: Actions<{}, P>
 }
 
-export interface PageContent<D extends object, P extends object> {
-  content: (syntaxes: Syntaxes<D, P> & { children: Children }) => Descendant | Sanitized<D, P>
+export interface FiCsRouter<D extends object> {
+  children?: Descendant[]
+  data?: () => D
+  pathname?: string
+  props?: SingleOrArray<Props<RouterData<D>, {}>>
+  className?: ClassName<RouterData<D>, {}>
+  attributes?: Attrs<RouterData<D>, {}>
+  pages: Page<D>[]
+  notFound?: PageContent<D>
+  css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
+  hooks?: Hooks<RouterData<D>, {}>
+  options?: OptionParams<RouterData<D>, {}>
+}
+
+export interface Page<D extends object> extends PageContent<D> {
+  path: string
+}
+
+export interface PageContent<D extends object> {
+  content?: Content<RouterData<D>, {}>
   redirect?: string
 }
 
-export type Param = 'path' | 'query'
+export type ParamType = 'dynamicPaths' | 'queries'
 
-export interface RouterData {
+export type RouterData<D extends object> = D & {
   pathname: string
-  lang: string
+  queries: Record<string, string>
 }
