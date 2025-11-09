@@ -51,7 +51,8 @@ const ficsIdName = 'fics-id' as const,
   nameGenerators: Map<string, Generator<number>> = new Map(),
   names: Map<string, number> = new Map(),
   propsMap: Map<string, PropsBinding[]> = new Map(),
-  varTag = 'f-var' as const
+  varTag = 'f-var' as const,
+  host = ':host' as const
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
@@ -992,13 +993,13 @@ export default class FiCsElement<D extends object, P extends object> {
       for (let [selector, style] of Object.entries(curr)) {
         if (Array.isArray(style) && style[1] !== mode) continue
 
-        if (mode === 'ssr' && selector.startsWith(':host'))
-          selector = selector.replace(':host', this.#name)
+        if (mode === 'ssr' && selector.startsWith(host))
+          selector = selector.replace(host, this.#name)
 
         const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
           index: number = content.indexOf('{')
 
-        if (selector.startsWith(':host') && index > -1) {
+        if (selector.startsWith(host) && index > -1) {
           const hostCss: string = content.slice(0, index),
             lastIndex: number = hostCss.lastIndexOf(';'),
             hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length),
@@ -1026,7 +1027,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
     stylesheet.replaceSync(
-      this.#cssToString({ css: [':host{display:block}', ...css], mode: 'csr' })
+      this.#cssToString({ css: [`${host}{display:block}`, ...css], mode: 'csr' })
     )
   }
 
@@ -1037,11 +1038,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    if (selector === ':host') return [component]
+    if (selector === host) return [component]
 
     return Array.from(
       this.#getShadowRoot(component).querySelectorAll(
-        selector.startsWith(':host') ? selector : `:host ${selector}`
+        selector.startsWith(host) ? selector : `${host} ${selector}`
       )
     )
   }
