@@ -25,9 +25,8 @@ const datetimeCache: { format?: Intl.DateTimeFormat } = {},
   }
 
 export default (timestamp: number): string => {
-  if (!Number.isFinite(timestamp)) return ''
-
   const date = new Date(timestamp)
+
   if (!Number.isFinite(date.getTime())) return ''
 
   const map = new Map(
