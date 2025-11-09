@@ -1374,7 +1374,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 ))
                   that.#internalSetData(key as keyof D, value as D[keyof D])
 
-                that.#isDeferred = true
+              that.#isDeferred = true
             }, 'fetch')
 
           that.#setClassNames(this)
