@@ -3,6 +3,7 @@ import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { api, users } from '@/data/users'
 import type { Method, User } from '@/types'
+import { GripVertical } from 'lucide-static'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
 
@@ -19,7 +20,8 @@ export default fics({
     data: { users, userId, methods },
     setData,
     crud,
-    template
+    template,
+    html
   }) => template`
     <div class="buttons mb-6 gap-4">
       ${methods.map((method, index) =>
@@ -53,27 +55,36 @@ export default fics({
         })
       )}
     </div>
-    <div class="space-y-4">
+    <div class="w-fit mx-auto space-y-4">
       ${users.map(user => {
         const { id } = user,
           keys = ['id', 'name', 'email'] as const
 
         return template`
-          <div class="clickable w-3xs space-y-2 mx-auto" key="${id}" tabindex="0">
-            ${keys.map((key, index) => {
-              const _key = keys[index]
-              return template`
-                <p class="text-base ${userId === id ? 'text-red' : 'text-white'}" key="${id}-${key}">
-                  ${_key.charAt(0).toUpperCase() + _key.slice(1)}: ${user[key]}
-                </p>
-              `
-            })}
+          <div key="${id}">
+            <div
+              class="text-white p-3 cursor-grab" tabindex="0"
+              aria-label="Move user id ${id}"
+              key="${id}-grid"
+            >
+              ${html(GripVertical)}
+            </div>
+            <div class="clickable space-y-2" key="${id}-info" tabindex="0">
+              ${keys.map((key, index) => {
+                const _key = keys[index]
+                return template`
+                  <p class="text-base ${userId === id ? 'text-red' : 'text-white'}" key="${id}-${key}">
+                    ${_key.charAt(0).toUpperCase() + _key.slice(1)}: ${user[key]}
+                  </p>
+                `
+              })}
+            </div>
           </div>
         `
       })}
     </div>
   `,
-  css: { div: { '&.buttons': flexCenter('x'), '&.space-y-4': flexCenter('x', 'column') } },
+  css: { div: { '&.buttons': flexCenter('x'), '&.w-fit > div': flexCenter('y') } },
   hooks: {
     mounted: async ({ setData, getData, crud }) => {
       const users = getData('users')
@@ -88,10 +99,10 @@ export default fics({
     }
   },
   actions: {
-    'div > div': {
+    'div.w-fit > div > div:last-child': {
       click: [
         ({ setData, getData, attributes: { key } }) => {
-          const userId = parseInt(key)
+          const userId = parseInt(key.replace(/-info/, ''))
           setData('userId', getData('userId') === userId ? NaN : userId)
         },
         { throttle: 500, blur: true }
