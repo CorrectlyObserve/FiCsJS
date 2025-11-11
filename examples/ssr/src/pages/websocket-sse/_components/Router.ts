@@ -1,6 +1,6 @@
 import { ficsRouter } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
-import Chat from '@/components/websocket-sse/Chat'
+import Chat from '@/pages/websocket-sse/_components/Chat'
 import { $userName } from '@/store'
 import type { Message } from '@/types'
 import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from '@/utils'
