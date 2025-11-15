@@ -30,7 +30,7 @@ const ids: Set<string> = new Set(),
           else
             try {
               dequeue(task)
-            } catch (error) {
+            } catch {
               const { instanceId, key }: Task = task
               console.error(
                 `The task has instanceId ${instanceId} and key "${key}" failed to process...`
@@ -54,7 +54,7 @@ const ids: Set<string> = new Set(),
         for (const task of batch)
           try {
             dequeue(task)
-          } catch (error) {
+          } catch {
             console.error(
               `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`
             )
