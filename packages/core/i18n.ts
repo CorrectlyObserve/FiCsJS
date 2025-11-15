@@ -16,7 +16,7 @@ const translationsCache: Map<string, Translations> = new Map(),
 
         if (!res.ok)
           throw new Error(
-            `${res.status} ${res.statusText}: The request to load the ${url} was failed...`
+            `${res.status} ${res.statusText}: The request to load the ${url} failed...`
           )
 
         const json: Translations = await res.json()
