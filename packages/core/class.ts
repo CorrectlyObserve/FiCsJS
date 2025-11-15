@@ -260,25 +260,79 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #crud<T>(api: string, options?: CrudOptions): Promise<T> {
-    const { key, delay, ..._options }: CrudOptions = options ?? {}
+    const { key, onChunk, delay, ..._options }: CrudOptions = options ?? {},
+      method = _options.method?.toUpperCase() ?? 'GET'
 
-    if (!key) return fetch(api, _options).then(res => res.json())
+    if (onChunk && method !== 'GET')
+      throw new Error('The stream option is only available for GET requests...')
+
+    if (method === 'HEAD')
+      throw new Error('The HEAD method is not supported in the crud function...')
+
+    const readStream = async (res: Response, isNDJSON: boolean): Promise<T> => {
+      const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
+      if (!reader) throw new Error('The Streams API is not available in this environment...')
+
+      const decoder: TextDecoder = new TextDecoder(),
+        chunks: string[] = []
+
+      let index: number = 0
+
+      while (true) {
+        const { done, value }: { done: boolean; value?: Uint8Array } = await reader.read()
+        if (done) break
+
+        const chunk: string = decoder.decode(value, { stream: true })
+        chunks.push(chunk)
+        onChunk?.(chunk, index++)
+      }
+
+      const parsedChunk: string = chunks.join('')
+
+      if (isNDJSON)
+        return parsedChunk
+          .split(/\r?\n/)
+          .filter(line => line.trim())
+          .map(line => JSON.parse(line)) as T
+
+      return JSON.parse(parsedChunk)
+    }
+
+    const handleRes = async (): Promise<T> => {
+      const res: Response = await fetch(api, _options)
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}: The request failed...`)
+
+      const contentType: string | null = res.headers.get('content-type'),
+        isJson: boolean = contentType?.startsWith('application/json') ?? false,
+        isNDJSON: boolean = contentType?.startsWith('application/x-ndjson') ?? false
+
+      if (res.status === 204 || (!isJson && !isNDJSON))
+        throw new Error('The response content is empty or invalid JSON...')
+
+      try {
+        return onChunk ? await readStream(res, isNDJSON) : await res.json()
+      } catch (error) {
+        throw error
+      }
+    }
+
+    if (!key) return handleRes()
 
     numberError({ delay })
 
-    if (this.#apiStatuses.get(key) === true)
+    if (this.#apiStatuses.get(key))
       console.warn(`The internal API status key "${key}" is already in progress...`)
 
     this.#apiStatuses.set(key, true)
     this.#enqueue(() => this.#reRender(true), 're-render')
     await new Promise(resolve => setTimeout(resolve, delay ?? 0))
 
-    const json: T = await fetch(api, _options).then(res => res.json())
-
-    this.#apiStatuses.set(key, false)
-    this.#enqueue(() => this.#reRender(true), 're-render')
-
-    return json
+    try {
+      return await handleRes()
+    } finally {
+      this.#apiStatuses.set(key, false)
+      this.#enqueue(() => this.#reRender(true), 're-render')
+    }
   }
 
   #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
