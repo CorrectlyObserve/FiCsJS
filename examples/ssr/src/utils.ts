@@ -2,6 +2,8 @@ import { oklch } from 'ficsjs/style'
 
 export const CHAT_PAGE = '/websocket-sse' as const
 
+export const dark = (opacity: number = 1) => oklch('#282828', { opacity })
+
 const datetimeCache: { format?: Intl.DateTimeFormat } = {},
   FORMAT = '2-digit' as const,
   dateKeys = ['year', 'month', 'day'] as const,
