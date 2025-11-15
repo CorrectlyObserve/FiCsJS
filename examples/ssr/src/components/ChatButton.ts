@@ -1,7 +1,6 @@
 import { fics } from 'ficsjs'
-import { oklch } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { CHAT_PAGE } from '@/utils'
+import { CHAT_PAGE, dark } from '@/utils'
 import { MessageCircleMore } from 'lucide-static'
 
 export default () =>
@@ -19,5 +18,5 @@ export default () =>
       })
     },
     html: ({ children: { icon }, template }) => template`${icon}`,
-    css: { ':host': { background: oklch('#282828') } }
+    css: { ':host': { background: dark() } }
   })
