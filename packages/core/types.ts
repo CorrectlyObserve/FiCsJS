@@ -22,7 +22,9 @@ export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export interface CrudOptions extends RequestInit {
   key?: string
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string, index: number) => void
+  timeout?: number
+  retry?: number
   delay?: number
 }
 
