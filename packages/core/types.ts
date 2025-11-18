@@ -25,7 +25,8 @@ export interface CrudOptions extends RequestInit {
   onChunk?: (chunk: string, index: number) => void
   timeout?: number
   retry?: number
-  delay?: number
+  delay?: number,
+  isFlushNotified?: boolean
 }
 
 export type Css<D, P> = CssContent<D, P> | GlobalCss
