@@ -260,8 +260,12 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #crud<T>(api: string, options?: CrudOptions): Promise<T> {
-    const { key, onChunk, delay, ..._options }: CrudOptions = options ?? {},
-      method = _options.method?.toUpperCase() ?? 'GET'
+    const { key, onChunk, timeout, retry, delay, isFlushNotified, ..._options }: CrudOptions =
+      options ?? {}
+
+    numberError({ timeout, retry, delay })
+
+    const method: string = _options.method?.toUpperCase() ?? 'GET'
 
     if (onChunk && method !== 'GET')
       throw new Error('The stream option is only available for GET requests...')
@@ -269,7 +273,34 @@ export default class FiCsElement<D extends object, P extends object> {
     if (method === 'HEAD')
       throw new Error('The HEAD method is not supported in the crud function...')
 
-    const readStream = async (res: Response, isNDJSON: boolean): Promise<T> => {
+    const fetchRes = async (): Promise<Response> => {
+      let attempt: number = 0
+
+      while (true) {
+        const controller: AbortController = new AbortController()
+        const { signal }: { signal: AbortSignal } = controller
+
+        let timeoutId: ReturnType<typeof setTimeout> | undefined
+        if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
+
+        try {
+          const res: Response = await fetch(api, { ..._options, signal })
+          if (timeoutId) clearTimeout(timeoutId)
+          return res
+        } catch (error) {
+          if (timeoutId) clearTimeout(timeoutId)
+          if (signal.aborted) throw new Error('The request aborted due to a timeout...')
+          if (retry && attempt < retry) {
+            attempt++
+            await new Promise(r => setTimeout(r, delay ?? 0))
+            continue
+          }
+          throw error
+        }
+      }
+    }
+
+    const readStream = async (res: Response, isNDJson: boolean): Promise<T> => {
       const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
       if (!reader) throw new Error('The Streams API is not available in this environment...')
 
@@ -287,9 +318,15 @@ export default class FiCsElement<D extends object, P extends object> {
         onChunk?.(chunk, index++)
       }
 
+      const rest: string = decoder.decode()
+      if (rest) {
+        chunks.push(rest)
+        if (isFlushNotified) onChunk?.(rest, index++)
+      }
+
       const parsedChunk: string = chunks.join('')
 
-      if (isNDJSON)
+      if (isNDJson)
         return parsedChunk
           .split(/\r?\n/)
           .filter(line => line.trim())
@@ -299,26 +336,24 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     const handleRes = async (): Promise<T> => {
-      const res: Response = await fetch(api, _options)
+      const res: Response = await fetchRes()
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}: The request failed...`)
 
       const contentType: string | null = res.headers.get('content-type'),
         isJson: boolean = contentType?.startsWith('application/json') ?? false,
-        isNDJSON: boolean = contentType?.startsWith('application/x-ndjson') ?? false
+        isNDJson: boolean = contentType?.startsWith('application/x-ndjson') ?? false
 
-      if (res.status === 204 || (!isJson && !isNDJSON))
+      if (res.status === 204 || (!isJson && !isNDJson))
         throw new Error('The response content is empty or invalid JSON...')
 
       try {
-        return onChunk ? await readStream(res, isNDJSON) : await res.json()
+        return onChunk || isNDJson ? await readStream(res, isNDJson) : await res.json()
       } catch (error) {
         throw error
       }
     }
 
-    if (!key) return handleRes()
-
-    numberError({ delay })
+    if (!key) return await handleRes()
 
     if (this.#apiStatuses.get(key))
       console.warn(`The internal API status key "${key}" is already in progress...`)
@@ -1030,7 +1065,7 @@ export default class FiCsElement<D extends object, P extends object> {
             hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length),
             _selector: string = hostCss.slice(lastIndex + 1)
 
-          _curr += `${selector}{${hostCssContent}${hostCssContent.length > 0 ? ';' : ''}${_selector}${content.slice(index)}}`
+          _curr += `${selector}{${hostCssContent}${hostCssContent.length ? ';' : ''}${_selector}${content.slice(index)}}`
         } else _curr += `${selector}{${content}}`
       }
 
@@ -1644,7 +1679,7 @@ export default class FiCsElement<D extends object, P extends object> {
             _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
         return `
-          <${that.#name}${classNameAndAttrs.length > 0 ? ` ${classNameAndAttrs}` : ''}>
+          <${that.#name}${classNameAndAttrs.length ? ` ${classNameAndAttrs}` : ''}>
             <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
             <div ${slotAttrs(that.#name)}>${html}${css([...globalCss(), ...that.#css])}</div>
           </${that.#name}>
