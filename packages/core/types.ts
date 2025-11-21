@@ -25,7 +25,7 @@ export interface CrudOptions extends RequestInit {
   onChunk?: (chunk: string, index: number) => void
   timeout?: number
   retry?: number
-  delay?: number,
+  delay?: number
   isFlushNotified?: boolean
 }
 
@@ -128,9 +128,9 @@ export interface Options<D, P> {
   sse?: {
     path: string
     withCredentials?: boolean
-    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event; close: () => void }) => void
     onmessage?: SSEMethod<D, P>
-    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
   }
 }
@@ -206,7 +206,7 @@ interface ScrollParams<D, P> {
 export type SingleOrArray<T> = T | T[]
 
 export type SSEMethod<D, P> = (
-  params: DataPropsMethods<D, P, true> & { event: MessageEvent }
+  params: DataPropsMethods<D, P, true> & { event: MessageEvent; close: () => void }
 ) => void
 
 export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
