@@ -357,6 +357,10 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  get #bindCrud(): Crud {
+    return this.#crud.bind(this) as Crud
+  }
+
   #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
     const base: DataPropsMethods<D, P> = {
       ...this.#dataProps,
@@ -364,11 +368,7 @@ export default class FiCsElement<D extends object, P extends object> {
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
 
-    return (isCrud ? { ...base, crud: this.#crud.bind(this) as Crud } : base) as DataPropsMethods<
-      D,
-      P,
-      B
-    >
+    return (isCrud ? { ...base, crud: this.#bindCrud } : base) as DataPropsMethods<D, P, B>
   }
 
   #getPropsBindings(instanceId?: string): PropsBinding[] {
@@ -660,7 +660,7 @@ export default class FiCsElement<D extends object, P extends object> {
       data,
       props,
       setData,
-      crud: this.#crud.bind(this) as Crud,
+      crud: this.#bindCrud,
       template: (
         strings: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
@@ -1444,10 +1444,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#enqueue(async () => {
               if (that.#deferredData)
                 for (const [key, value] of Object.entries(
-                  await that.#deferredData({
-                    ...that.#dataProps,
-                    crud: that.#crud.bind(that) as Crud
-                  })
+                  await that.#deferredData({ ...that.#dataProps, crud: that.#bindCrud })
                 ))
                   that.#internalSetData(key as keyof D, value as D[keyof D])
 
