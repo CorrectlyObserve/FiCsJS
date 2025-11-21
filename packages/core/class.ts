@@ -1351,12 +1351,22 @@ export default class FiCsElement<D extends object, P extends object> {
     const { path, withCredentials, onopen, onmessage, onerror, actions }: Options<D, P>['sse'] =
         sse,
       eventSource: EventSource = new EventSource(path, { withCredentials }),
-      params: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
-      listeners: { handler: string; callback: (event: MessageEvent) => void }[] = []
+      listeners: { handler: string; callback: (event: MessageEvent) => void }[] = [],
+      removeEventListeners = () => {
+        for (const { handler, callback } of listeners)
+          eventSource.removeEventListener(handler, callback)
+      },
+      getParams = (): DataPropsMethods<D, P, true> & { close: () => void } => ({
+        ...this.#getDataPropsMethods(true),
+        close: () => {
+          removeEventListeners()
+          eventSource.close()
+        }
+      })
 
-    eventSource.onopen = (event: Event): void => onopen?.({ ...params, event })
-    eventSource.onmessage = (event: MessageEvent): void => onmessage?.({ ...params, event })
-    eventSource.onerror = (event: Event): void => onerror?.({ ...params, event })
+    eventSource.onopen = (event: Event): void => onopen?.({ ...getParams(), event })
+    eventSource.onmessage = (event: MessageEvent): void => onmessage?.({ ...getParams(), event })
+    eventSource.onerror = (event: Event): void => onerror?.({ ...getParams(), event })
 
     const addEventListener = (
       handler: string,
@@ -1371,7 +1381,7 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
       let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
-        method({ ...this.#getDataPropsMethods(true), event })
+        method({ ...getParams(), event })
 
       if (debounce) callback = this.#debounce(callback, debounce)
       else if (throttle) callback = this.#throttle(callback, throttle)
@@ -1385,13 +1395,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ? addEventListener(handler, method[0], method[1])
         : addEventListener(handler, method)
 
-    return {
-      eventSource,
-      removeEventListeners: () => {
-        for (const { handler, callback } of listeners)
-          eventSource.removeEventListener(handler, callback)
-      }
-    }
+    return { eventSource, removeEventListeners }
   }
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
