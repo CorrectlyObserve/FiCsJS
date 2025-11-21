@@ -195,6 +195,7 @@ app.get('/sse', c =>
       abortSignal: AbortSignal | undefined = c.req.raw?.signal
 
     sseClients.add(sender)
+    void stream.writeSSE({ event: 'ping', data: 'ping' })
 
     const checkConnection = setInterval(() => {
       void stream.writeSSE({ event: 'ping', data: 'ping' })
