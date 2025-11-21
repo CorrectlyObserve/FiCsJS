@@ -3,11 +3,11 @@ import { streamSSE } from 'hono/streaming'
 import { createBunWebSocket, serveStatic } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import Link from './src/components/Link'
-import Users from './src/components/index/Users'
+import Users from './src/pages/_components/Users'
 import ChatButton from './src/components/ChatButton'
-import Photos from './src/components/scroll/Photos'
-import Tab from './src/components/websocket-sse/Tab'
-import Router from './src/components/websocket-sse/Router'
+import Photos from './src/pages/scroll/_components/Photos'
+import Tab from './src/pages/websocket-sse/_components/Tab'
+import Router from './src/pages/websocket-sse/_components/Router'
 import { SSEMessage, Message } from './src/types'
 import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from './src/utils'
 
@@ -211,6 +211,52 @@ app.get('/sse', c =>
     }
   })
 )
+
+app.get('/stream', c => {
+  const RANDOM_LENGTH = 300
+  const CHUNK_SIZE = 10
+  const signal: AbortSignal | undefined = c.req.raw?.signal
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const chars = [...Array(36)].map((_, i) => i.toString(36)).join('')
+      const random: string[] = []
+
+      for (let i = 0; i < RANDOM_LENGTH; i++) {
+        const char = chars.charAt(Math.floor(Math.random() * chars.length))
+        random.push(Math.random() < 0.5 ? char.toUpperCase() : char)
+      }
+
+      const fullText = random.join('')
+
+      for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
+        if (signal?.aborted) {
+          controller.close()
+          return
+        }
+        const index = Math.floor(i / CHUNK_SIZE),
+          chunk = fullText.slice(i, i + CHUNK_SIZE),
+          eventData = `data: ${JSON.stringify({ chunk, index })}\n\n`
+
+        controller.enqueue(encoder.encode(eventData))
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+
+      controller.enqueue(encoder.encode(`event: complete\ndata: \n\n`))
+      controller.close()
+    }
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    }
+  })
+})
 
 app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
 
