@@ -20,14 +20,19 @@ export type Children = Record<string, Descendant>
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
+export type Crud = {
+  <T>(api: string, options?: CrudOptions): Promise<T>
+  (api: string, options: CrudStreamOptions): Promise<void>
+}
+
 export interface CrudOptions extends RequestInit {
   key?: string
-  onChunk?: (chunk: string, index: number) => void
   timeout?: number
   retry?: number
   delay?: number
-  isFlushNotified?: boolean
 }
+
+export type CrudStreamOptions = CrudOptions & { onChunk: (chunk: string, index: number) => void }
 
 export type Css<D, P> = CssContent<D, P> | GlobalCss
 
@@ -35,10 +40,9 @@ export interface CssContent<D, P> {
   [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
 }
 
-export type DataProps<D, P, B extends boolean = false> = {
-  data: D
-  props: P
-} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions): Promise<T> } } : {})
+export type DataProps<D, P, B extends boolean = false> = { data: D; props: P } & (B extends true
+  ? { crud: Crud }
+  : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
