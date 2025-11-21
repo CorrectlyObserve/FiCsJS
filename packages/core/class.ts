@@ -17,7 +17,9 @@ import type {
   Attrs,
   Children,
   ClassName,
+  Crud,
   CrudOptions,
+  CrudStreamOptions,
   Css,
   DataProps,
   DataPropsMethods,
@@ -259,9 +261,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  async #crud<T>(api: string, options?: CrudOptions): Promise<T> {
-    const { key, onChunk, timeout, retry, delay, isFlushNotified, ..._options }: CrudOptions =
-      options ?? {}
+  #crud<T>(api: string, options?: CrudOptions): Promise<T>
+  #crud(api: string, options: CrudStreamOptions): Promise<void>
+  async #crud<T>(api: string, options?: CrudOptions | CrudStreamOptions): Promise<T | void> {
+    const { key, timeout, retry, delay, ..._options }: CrudOptions = options ?? {},
+      { onChunk } = options && 'onChunk' in options ? (options as CrudStreamOptions) : {}
 
     numberError({ timeout, retry, delay })
 
@@ -273,84 +277,67 @@ export default class FiCsElement<D extends object, P extends object> {
     if (method === 'HEAD')
       throw new Error('The HEAD method is not supported in the crud function...')
 
-    const fetchRes = async (): Promise<Response> => {
-      let attempt: number = 0
+    const handleRes = async (): Promise<T | void> => {
+      const res: Response = await (async () => {
+        let attempt: number = 0
 
-      while (true) {
-        const controller: AbortController = new AbortController()
-        const { signal }: { signal: AbortSignal } = controller
+        while (true) {
+          const controller: AbortController = new AbortController(),
+            { signal }: { signal: AbortSignal } = controller
+          let timeoutId: ReturnType<typeof setTimeout> | undefined
 
-        let timeoutId: ReturnType<typeof setTimeout> | undefined
-        if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
+          if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
 
-        try {
-          const res: Response = await fetch(api, { ..._options, signal })
-          if (timeoutId) clearTimeout(timeoutId)
-          return res
-        } catch (error) {
-          if (timeoutId) clearTimeout(timeoutId)
-          if (signal.aborted) throw new Error('The request aborted due to a timeout...')
-          if (retry && attempt < retry) {
-            attempt++
-            await new Promise(r => setTimeout(r, delay ?? 0))
-            continue
+          try {
+            const res: Response = await fetch(api, { ..._options, signal })
+
+            if (timeoutId) clearTimeout(timeoutId)
+            return res
+          } catch (error) {
+            if (timeoutId) clearTimeout(timeoutId)
+            if (signal.aborted) throw new Error('The request aborted due to a timeout...')
+            if (retry && attempt < retry) {
+              attempt++
+              await new Promise(r => setTimeout(r, delay ?? 0))
+              continue
+            }
+            throw error
           }
-          throw error
         }
-      }
-    }
+      })()
 
-    const readStream = async (res: Response, isNDJson: boolean): Promise<T> => {
-      const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
-      if (!reader) throw new Error('The Streams API is not available in this environment...')
-
-      const decoder: TextDecoder = new TextDecoder(),
-        chunks: string[] = []
-
-      let index: number = 0
-
-      while (true) {
-        const { done, value }: { done: boolean; value?: Uint8Array } = await reader.read()
-        if (done) break
-
-        const chunk: string = decoder.decode(value, { stream: true })
-        chunks.push(chunk)
-        onChunk?.(chunk, index++)
-      }
-
-      const rest: string = decoder.decode()
-      if (rest) {
-        chunks.push(rest)
-        if (isFlushNotified) onChunk?.(rest, index++)
-      }
-
-      const parsedChunk: string = chunks.join('')
-
-      if (isNDJson)
-        return parsedChunk
-          .split(/\r?\n/)
-          .filter(line => line.trim())
-          .map(line => JSON.parse(line)) as T
-
-      return JSON.parse(parsedChunk)
-    }
-
-    const handleRes = async (): Promise<T> => {
-      const res: Response = await fetchRes()
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}: The request failed...`)
+      if (res.status === 204) throw new Error('The response content is empty...')
 
-      const contentType: string | null = res.headers.get('content-type'),
-        isJson: boolean = contentType?.startsWith('application/json') ?? false,
-        isNDJson: boolean = contentType?.startsWith('application/x-ndjson') ?? false
+      const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
+        isJson: boolean = contentType.startsWith('application/json'),
+        isEventStream: boolean = contentType.startsWith('text/event-stream'),
+        readStream = async (): Promise<void> => {
+          const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
+          if (!reader) throw new Error('The Streams option is not available in this environment...')
 
-      if (res.status === 204 || (!isJson && !isNDJson))
-        throw new Error('The response content is empty or invalid JSON...')
+          const decoder: TextDecoder = new TextDecoder()
+          let index: number = 0
 
-      try {
-        return onChunk || isNDJson ? await readStream(res, isNDJson) : await res.json()
-      } catch (error) {
-        throw error
+          while (true) {
+            const { done, value }: { done: boolean; value?: Uint8Array } = await reader.read()
+            if (done) break
+
+            const chunk: string = decoder.decode(value, { stream: true })
+            onChunk?.(chunk, index++)
+          }
+        }
+
+      if (onChunk) {
+        if (!isEventStream)
+          throw new Error('The Stream API can only be used for text/event-stream responses...')
+
+        return await readStream()
       }
+
+      if (!isJson)
+        throw new Error('The response is required to have a content-type of application/json...')
+      return (await res.json()) as T
     }
 
     if (!key) return await handleRes()
@@ -377,7 +364,11 @@ export default class FiCsElement<D extends object, P extends object> {
       getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
     }
 
-    return (isCrud ? { ...base, crud: this.#crud.bind(this) } : base) as DataPropsMethods<D, P, B>
+    return (isCrud ? { ...base, crud: this.#crud.bind(this) as Crud } : base) as DataPropsMethods<
+      D,
+      P,
+      B
+    >
   }
 
   #getPropsBindings(instanceId?: string): PropsBinding[] {
@@ -669,7 +660,7 @@ export default class FiCsElement<D extends object, P extends object> {
       data,
       props,
       setData,
-      crud: this.#crud.bind(this),
+      crud: this.#crud.bind(this) as Crud,
       template: (
         strings: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
@@ -1453,7 +1444,10 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#enqueue(async () => {
               if (that.#deferredData)
                 for (const [key, value] of Object.entries(
-                  await that.#deferredData({ ...that.#dataProps, crud: that.#crud.bind(that) })
+                  await that.#deferredData({
+                    ...that.#dataProps,
+                    crud: that.#crud.bind(that) as Crud
+                  })
                 ))
                   that.#internalSetData(key as keyof D, value as D[keyof D])
 
