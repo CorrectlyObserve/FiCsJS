@@ -1,13 +1,14 @@
 import { ficsRouter } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Chat from '@/pages/websocket-sse/_components/Chat'
+import Stream from '@/pages/websocket-sse/_components/Stream'
 import { $userName } from '@/store'
 import type { Message } from '@/types'
-import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from '@/utils'
+import { API_PATHS, CHAT_PAGE, getTimestamp } from '@/utils'
 
 export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   pathname: CHAT_PAGE,
-  children: [Chat],
+  children: [Chat, Stream],
   data: () => ({ messages: [], logs: [] }),
   props: {
     descendant: ({ children: { chat } }) => chat,
@@ -26,14 +27,15 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
           ${logs.map(log => template`<p class="text-white mb-4">${log}</p>`)}
         </div>
       `
-    }
+    },
+    { path: `${CHAT_PAGE}/stream`, content: ({ children: { stream } }) => stream }
   ],
   css: {
     ':host div': { maxWidth: cssVar('chat-width'), 'p:last-child': { 'margin-bottom': '0' } }
   },
   options: {
     websocket: {
-      path: WEBSOCKET_PATH,
+      path: API_PATHS.ws,
       onopen: ({ websocket: { send } }) => {
         const userName = $userName.get()
         if (userName === '') return
@@ -46,7 +48,7 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
       }
     },
     sse: {
-      path: '/sse',
+      path: API_PATHS.log,
       onopen: ({ setData }) =>
         setData('logs', [`${getTimestamp()}: ${$userName.get()} joined the chat.`]),
       actions: {
