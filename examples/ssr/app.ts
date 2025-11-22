@@ -9,7 +9,7 @@ import Photos from './src/pages/scroll/_components/Photos'
 import Tab from './src/pages/websocket-sse/_components/Tab'
 import Router from './src/pages/websocket-sse/_components/Router'
 import { SSEMessage, Message } from './src/types'
-import { CHAT_PAGE, getTimestamp, WEBSOCKET_PATH } from './src/utils'
+import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
 
 const app = new Hono()
 
@@ -120,7 +120,7 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
   }
 
 app.get(
-  WEBSOCKET_PATH,
+  API_PATHS.ws,
   upgradeWebSocket(() => ({
     onOpen(_event, { raw }): void {
       if (raw) wsClients.add(raw)
@@ -189,7 +189,7 @@ app.get(
   }))
 )
 
-app.get('/sse', c =>
+app.get(API_PATHS.log, c =>
   streamSSE(c, async stream => {
     const sender = (sseMessage: SSEMessage) => stream.writeSSE(sseMessage),
       abortSignal: AbortSignal | undefined = c.req.raw?.signal
@@ -213,41 +213,40 @@ app.get('/sse', c =>
   })
 )
 
-app.get('/stream', c => {
-  const RANDOM_LENGTH = 300
-  const CHUNK_SIZE = 10
-  const signal: AbortSignal | undefined = c.req.raw?.signal
-  const encoder = new TextEncoder()
+app.get(API_PATHS.stream, c => {
+  const RANDOM_LENGTH = 300,
+    CHUNK_SIZE = 10,
+    signal: AbortSignal | undefined = c.req.raw?.signal,
+    encoder = new TextEncoder(),
+    stream = new ReadableStream({
+      async start(controller) {
+        const chars = [...Array(36)].map((_, i) => i.toString(36)).join(','),
+          random: string[] = []
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const chars = [...Array(36)].map((_, i) => i.toString(36)).join('')
-      const random: string[] = []
-
-      for (let i = 0; i < RANDOM_LENGTH; i++) {
-        const char = chars.charAt(Math.floor(Math.random() * chars.length))
-        random.push(Math.random() < 0.5 ? char.toUpperCase() : char)
-      }
-
-      const fullText = random.join('')
-
-      for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
-        if (signal?.aborted) {
-          controller.close()
-          return
+        for (let i = 0; i < RANDOM_LENGTH; i++) {
+          const char = chars.charAt(Math.floor(Math.random() * chars.length))
+          random.push(Math.random() < 0.5 ? char.toUpperCase() : char)
         }
-        const index = Math.floor(i / CHUNK_SIZE),
-          chunk = fullText.slice(i, i + CHUNK_SIZE),
-          eventData = `data: ${JSON.stringify({ chunk, index })}\n\n`
 
-        controller.enqueue(encoder.encode(eventData))
-        await new Promise(resolve => setTimeout(resolve, 100))
+        const fullText = random.join('')
+
+        for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
+          if (signal?.aborted) {
+            controller.close()
+            return
+          }
+          const index = Math.floor(i / CHUNK_SIZE),
+            chunk = fullText.slice(i, i + CHUNK_SIZE),
+            eventData = `data: ${JSON.stringify({ chunk, index })}\n\n`
+
+          controller.enqueue(encoder.encode(eventData))
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+
+        controller.enqueue(encoder.encode(`event: complete\ndata: \n\n`))
+        controller.close()
       }
-
-      controller.enqueue(encoder.encode(`event: complete\ndata: \n\n`))
-      controller.close()
-    }
-  })
+    })
 
   return new Response(stream, {
     headers: {
