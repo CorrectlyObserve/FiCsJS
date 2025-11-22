@@ -1,5 +1,11 @@
 import { oklch } from 'ficsjs/style'
 
+export const API_PATHS = {
+  ws: '/api/ws',
+  log: '/api/log',
+  stream: '/api/stream'
+} as const
+
 export const CHAT_PAGE = '/websocket-sse' as const
 
 export const dark = (opacity: number = 1) => oklch('#282828', { opacity })
@@ -41,7 +47,5 @@ export const getTimestamp = (): string => {
 
   return `${date} ${time}`
 }
-
-export const WEBSOCKET_PATH = '/ws' as const
 
 export const white = (opacity: number = 1) => oklch('#fff', { opacity })
