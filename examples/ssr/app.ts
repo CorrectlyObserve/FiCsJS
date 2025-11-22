@@ -214,13 +214,13 @@ app.get(API_PATHS.log, c =>
 )
 
 app.get(API_PATHS.stream, c => {
-  const RANDOM_LENGTH = 300,
+  const RANDOM_LENGTH = 1000,
     CHUNK_SIZE = 10,
     signal: AbortSignal | undefined = c.req.raw?.signal,
     encoder = new TextEncoder(),
     stream = new ReadableStream({
       async start(controller) {
-        const chars = [...Array(36)].map((_, i) => i.toString(36)).join(','),
+        const chars = [...Array(36)].map((_, i) => i.toString(36)).join(''),
           random: string[] = []
 
         for (let i = 0; i < RANDOM_LENGTH; i++) {
