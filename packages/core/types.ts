@@ -215,7 +215,7 @@ export type SSEMethod<D, P> = (
 
 export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
 
-interface StyleContent {
+export interface StyleContent {
   [key: string]: string | number | undefined | StyleContent
 }
 
