@@ -1,10 +1,10 @@
 import { globalCss } from './globalCss'
 import {
   browserError,
-  checkType,
   convertStr,
   isBlankObject,
   isBrowser,
+  isObject,
   numberError,
   toArray,
   uid
@@ -41,6 +41,7 @@ import type {
   SingleOrArray,
   SSEMethod,
   Style,
+  StyleContent,
   Syntaxes,
   Task,
   WebSocketParams,
@@ -188,9 +189,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (propsArray.length > 0) this.#propsSources = propsArray
     }
 
-    if (className)
-      this.#classNames = checkType(className, 'function') ? className : className.trim()
-
+    if (className) this.#classNames = typeof className === 'function' ? className : className.trim()
     if (attributes) this.#attrs = attributes
 
     this.#html = html
@@ -244,7 +243,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#data[key] = value
 
       for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
-        if (checkType(key, 'string') && propsKeys[key]) setProps(propsValue())
+        if (typeof key === 'string' && propsKeys[key]) setProps(propsValue())
 
       const { data, ...args }: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
         updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
@@ -438,7 +437,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (chain && key in chain && propsChain.has(instanceId)) continue
 
-            if (checkType(value, 'function') && /getData/.test(value.toString())) {
+            if (typeof value === 'function' && /getData/.test(value.toString())) {
               const propsKeys: Record<string, true> = { [key]: true },
                 _value: P[keyof P] = value({
                   getData: <K extends keyof D>(_key: K): D[K] => {
@@ -449,7 +448,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
               propsChain.set(instanceId, { ...chain, [key]: _value } as Partial<P>)
 
-              if (checkType(_value, 'function')) continue
+              if (typeof _value === 'function') continue
 
               const propsBindings: PropsBinding[] = this.#getPropsBindings(),
                 last: number = propsBindings.length - 1,
@@ -524,9 +523,8 @@ export default class FiCsElement<D extends object, P extends object> {
   get #computedClassName(): string {
     if (!this.#classNames) return ''
 
-    const classNames: string = checkType(this.#classNames, 'function')
-      ? this.#classNames(this.#dataProps)
-      : this.#classNames
+    const classNames: string =
+      typeof this.#classNames === 'function' ? this.#classNames(this.#dataProps) : this.#classNames
 
     return classNames.trim()
   }
@@ -548,7 +546,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const attrs: [string, string][] = []
     for (const [key, value] of Object.entries(
-      checkType(this.#attrs, 'function') ? this.#attrs(this.#dataProps) : this.#attrs
+      typeof this.#attrs === 'function' ? this.#attrs(this.#dataProps) : this.#attrs
     ))
       attrs.push([key.trim(), value.trim()])
 
@@ -594,7 +592,7 @@ export default class FiCsElement<D extends object, P extends object> {
       ): HtmlContent<D, P>[] => {
         const converted: HtmlContent<D, P>[] = new Array(),
           isSymbol = (variable: unknown, symbol: symbol): boolean =>
-            !!(variable && checkType(variable, 'object') && symbol in variable),
+            !!(variable && isObject(variable) && symbol in variable),
           sanitize = (index: number, template: string, variable: unknown): void => {
             if (isSymbol(variable, sanitized))
               converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
@@ -606,9 +604,10 @@ export default class FiCsElement<D extends object, P extends object> {
             else {
               if (template !== '') converted.push(template)
 
-              variable = checkType(variable, 'string')
-                ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-                : (variable ?? '')
+              variable =
+                typeof variable === 'string'
+                  ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
+                  : (variable ?? '')
 
               if (variable !== '') converted.push(variable as HtmlContent<D, P>)
             }
@@ -968,7 +967,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 },
                 key: string | number | null = _getKey(newStartNode)
 
-              if (checkType(key, 'number')) {
+              if (typeof key === 'number') {
                 let _oldStartIndex: number = oldStartIndex,
                   reference: Element | null = null
 
@@ -980,7 +979,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
                     if (
                       isSameNode(newStartNode, childNode) &&
-                      checkType(_key, 'number') &&
+                      typeof _key === 'number' &&
                       _key > key
                     ) {
                       reference = childNode
@@ -1019,7 +1018,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     let topLevelCss: string = ''
     const convertCssContent = (style: Style<D, P>): string =>
-      Object.entries(checkType(style, 'function') ? style(this.#dataProps) : style).reduce(
+      Object.entries(typeof style === 'function' ? style(this.#dataProps) : style).reduce(
         (prev, [key, value]) => {
           if (value === undefined || value === '' || isBlankObject(value)) return prev
 
@@ -1031,13 +1030,14 @@ export default class FiCsElement<D extends object, P extends object> {
             return prev
           }
 
-          return `${prev}${key}${checkType(value, 'string') || checkType(value, 'number') ? `:${value};` : `{${convertCssContent(value)}}`}`
+          const isApplicableType: boolean = typeof value === 'string' || typeof value === 'number'
+          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCssContent(value as StyleContent)}}`}`
         },
         ''
       )
 
     return css.reduce((prev, curr) => {
-      if (checkType(curr, 'string')) return `${prev}${curr}`
+      if (typeof curr === 'string') return `${prev}${curr}`
 
       let _curr: string = ''
 
@@ -1071,8 +1071,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (additional.length === 0)
       for (const [index, content] of this.#css.entries()) {
-        if (checkType(content, 'string')) continue
-        if (checkType(Object.values(content)[0], 'function')) this.#boundCss.push(index)
+        if (typeof content === 'string') continue
+        if (typeof Object.values(content)[0] === 'function') this.#boundCss.push(index)
       }
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
