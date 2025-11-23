@@ -4,6 +4,8 @@ import Icon from '@/components/Icon'
 import { API_PATHS, dark } from '@/utils'
 import { RefreshCcw } from 'lucide-static'
 
+let streamSession = 0
+
 export default fics({
   name: 'stream',
   children: [Icon()],
@@ -29,20 +31,21 @@ export default fics({
     ${
       isAccumulated
         ? template`
-          <p class="max-w-full text-white mx-auto break-words">${accumulatedChunk}</p>
+          <p class="max-w-full text-white mx-auto whitespace-pre-wrap break-words">${accumulatedChunk}</p>
         `
         : template`
           <div class="w-fit mx-auto">
-            ${chunks.map(chunk => template`<p class="text-white mb-4">${chunk}</p>`)}
+            ${chunks.map((chunk, index) => template`<p class="text-white mb-4" key="${index}">${chunk}</p>`)}
           </div>
         `
     }
-    <span class="fixed bottom-8 right-4" style="background: ${dark()}">${icon}</span>
+    <span class="fixed bottom-8 right-4">${icon}</span>
   `,
   css: {
     ':host': {
       '> p': { width: cssVar('chat-width'), lineHeight: 2 },
-      'div p:last-child': { 'margin-bottom': '0' }
+      'div p:last-child': { 'margin-bottom': '0' },
+      span: { background: dark() }
     }
   },
   hooks: {
@@ -50,9 +53,12 @@ export default fics({
       isAccumulated: ({ data: { isAccumulated }, setData, getData, crud }) => {
         if (isAccumulated) {
           let buffer = ''
+          const currentSession = ++streamSession
 
           void crud(API_PATHS.stream, {
             onChunk: (chunked: string) => {
+              if (streamSession !== currentSession) return
+
               buffer += chunked
 
               const blocks = buffer.split('\n\n')
@@ -71,7 +77,7 @@ export default fics({
 
                 if (data)
                   try {
-                    const { chunk } = JSON.parse(data) as { chunk?: string; index: number }
+                    const { chunk } = JSON.parse(data) as { chunk?: string }
                     if (chunk) setData('accumulatedChunk', `${getData('accumulatedChunk')}${chunk}`)
                   } catch {}
 
@@ -80,7 +86,10 @@ export default fics({
               }
             }
           })
-        } else setData('accumulatedChunk', '')
+        } else {
+          setData('accumulatedChunk', '')
+          streamSession++
+        }
       }
     }
   },
