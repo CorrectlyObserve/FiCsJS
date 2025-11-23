@@ -115,7 +115,7 @@ export default ficsRouter<Data>({
         const id = parseInt(pathname)
         if (!Number.isFinite(id)) return setData('pathname', '/404')
 
-        const task: TaskType | undefined = await getTask(await getAllTasks(), id)
+        const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
 
         setData('draft', task)
@@ -133,7 +133,7 @@ export default ficsRouter<Data>({
 
         setData('taskId', id)
 
-        const task: TaskType | undefined = await getTask(await getAllTasks(), id)
+        const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
 
         setData('draft', task)
