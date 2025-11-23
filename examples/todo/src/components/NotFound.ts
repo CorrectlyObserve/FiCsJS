@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
-import LoadingIcon from '@/components/materials/LoadingIcon'
+import LoadingIcon from '@/components/LoadingIcon'
 import { Lang } from '@/types'
 import { breakpoints } from '@/utils/others'
 
