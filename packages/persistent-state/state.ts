@@ -7,6 +7,7 @@ const generator: Generator<number> = uid(),
 
 export default class PersistentState<S> {
   #db!: IDBDatabase
+  #initPromise?: Promise<void>
   readonly #stateId: string
   readonly #state: S
   readonly #readonly: boolean = false
@@ -43,56 +44,64 @@ export default class PersistentState<S> {
 
   async #init(): Promise<void> {
     if (this.#db) return
+    if (this.#initPromise) return this.#initPromise
 
-    const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
-      const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
+    this.#initPromise = (async () => {
+      const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
+        const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
 
-      req.onupgradeneeded = () => {
-        const { result }: { result: IDBDatabase } = req
+        req.onupgradeneeded = () => {
+          const { result }: { result: IDBDatabase } = req
 
-        if (!result.objectStoreNames.contains(STATE_STORE)) {
-          const store: IDBObjectStore = result.createObjectStore(STATE_STORE, {
-            keyPath: 'id',
-            autoIncrement: true
-          })
-          store.createIndex('stateId', 'stateId', { unique: true })
+          if (!result.objectStoreNames.contains(STATE_STORE)) {
+            const store: IDBObjectStore = result.createObjectStore(STATE_STORE, {
+              keyPath: 'id',
+              autoIncrement: true
+            })
+            store.createIndex('stateId', 'stateId', { unique: true })
+          }
+
+          if (!result.objectStoreNames.contains(SNAPSHOT_STORE)) {
+            const store = result.createObjectStore(SNAPSHOT_STORE, {
+              keyPath: 'id',
+              autoIncrement: true
+            })
+            store.createIndex('stateId', 'stateId', { unique: false })
+            store.createIndex('compositeId', ['stateId', 'snapshotId'], { unique: true })
+          }
         }
 
-        if (!result.objectStoreNames.contains(SNAPSHOT_STORE)) {
-          const store = result.createObjectStore(SNAPSHOT_STORE, {
-            keyPath: 'id',
-            autoIncrement: true
-          })
-          store.createIndex('stateId', 'stateId', { unique: false })
-          store.createIndex('compositeId', ['stateId', 'snapshotId'], { unique: true })
-        }
-      }
-
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(req.error)
-    })
-
-    this.#db = db
-
-    const state: State<S> | undefined = await new Promise(resolve => {
-      const req: IDBRequest<State<S>> = this.#getStateReq(this.#getObjectStore(false, true))
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => resolve(undefined)
-    })
-
-    if (!state) {
-      const store: IDBObjectStore = this.#getObjectStore(),
-        now: number = Date.now()
-
-      store.add({
-        stateId: this.#stateId,
-        state: this.#state,
-        readonly: this.#readonly,
-        createdAt: now,
-        updatedAt: now
+        req.onsuccess = () => resolve(req.result)
+        req.onerror = () => reject(req.error)
       })
-      await this.#awaitTransaction(store)
-    }
+
+      this.#db = db
+
+      const state: State<S> | undefined = await new Promise(resolve => {
+        const req: IDBRequest<State<S>> = this.#getStateReq(this.#getObjectStore(false, true))
+        req.onsuccess = () => resolve(req.result)
+        req.onerror = () => resolve(undefined)
+      })
+
+      if (!state) {
+        const store: IDBObjectStore = this.#getObjectStore(),
+          now: number = Date.now()
+
+        store.add({
+          stateId: this.#stateId,
+          state: this.#state,
+          readonly: this.#readonly,
+          createdAt: now,
+          updatedAt: now
+        })
+        await this.#awaitTransaction(store)
+      }
+    })().catch(error => {
+      this.#initPromise = undefined
+      throw error
+    })
+
+    return this.#initPromise
   }
 
   #promisifyReq<T>(req: IDBRequest<T>): Promise<T> {
