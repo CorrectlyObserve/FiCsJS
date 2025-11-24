@@ -8,6 +8,7 @@ const generator: Generator<number> = uid(),
 export default class PersistentState<S> {
   #db!: IDBDatabase
   #initPromise?: Promise<void>
+  #retry: number = 0
   readonly #stateId: string
   readonly #state: S
   readonly #readonly: boolean = false
@@ -75,6 +76,11 @@ export default class PersistentState<S> {
         req.onerror = () => reject(req.error)
       })
 
+      db.onversionchange = () => {
+        db.close()
+        window.location.reload()
+      }
+
       this.#db = db
 
       const state: State<S> | undefined = await new Promise(resolve => {
@@ -96,7 +102,11 @@ export default class PersistentState<S> {
         })
         await this.#awaitTransaction(store)
       }
-    })().catch(error => {
+
+      this.#retry = 0
+    })().catch(async error => {
+      this.#retry++
+      await new Promise(resolve => setTimeout(resolve, Math.min(100 * 1.5 ** this.#retry, 30_000)))
       this.#initPromise = undefined
       throw error
     })
