@@ -28,7 +28,7 @@ export type Crud = {
 export interface CrudOptions extends RequestInit {
   key?: string
   timeout?: number
-  retry?: number
+  maxRetry?: number
   delay?: number
 }
 
