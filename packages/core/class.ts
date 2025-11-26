@@ -263,10 +263,10 @@ export default class FiCsElement<D extends object, P extends object> {
   #crud<T>(api: string, options?: CrudOptions): Promise<T>
   #crud(api: string, options: CrudStreamOptions): Promise<void>
   async #crud<T>(api: string, options?: CrudOptions | CrudStreamOptions): Promise<T | void> {
-    const { key, timeout, retry, delay, ..._options }: CrudOptions = options ?? {},
+    const { key, timeout, maxRetry, delay, ..._options }: CrudOptions = options ?? {},
       { onChunk } = options && 'onChunk' in options ? (options as CrudStreamOptions) : {}
 
-    numberError({ timeout, retry, delay })
+    numberError({ timeout, maxRetry, delay })
 
     const method: string = _options.method?.toUpperCase() ?? 'GET'
 
@@ -295,9 +295,9 @@ export default class FiCsElement<D extends object, P extends object> {
           } catch (error) {
             if (timeoutId) clearTimeout(timeoutId)
             if (signal.aborted) throw new Error('The request aborted due to a timeout...')
-            if (retry && attempt < retry) {
+            if (maxRetry && attempt < maxRetry) {
               attempt++
-              await new Promise(r => setTimeout(r, delay ?? 0))
+              await new Promise(resolve => setTimeout(resolve, delay ?? 0))
               continue
             }
             throw error
