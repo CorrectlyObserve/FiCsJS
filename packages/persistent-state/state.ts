@@ -1,24 +1,39 @@
-import { browserError, uid } from '../core/helpers'
-import type { Snapshot, State } from './type'
+import { browserError, numberError, uid } from '../core/helpers'
+import type { Backoff, Snapshot, State } from './type'
 
 const generator: Generator<number> = uid(),
   STATE_STORE = 'states' as const,
   SNAPSHOT_STORE = 'snapshots' as const
 
 export default class PersistentState<S> {
-  #db!: IDBDatabase
-  #initPromise?: Promise<void>
-  #retry: number = 0
   readonly #stateId: string
   readonly #state: S
   readonly #readonly: boolean = false
+  readonly #backoff: Backoff = {
+    maxRetry: 10,
+    interval: 100,
+    multiplier: 1.5,
+    maxDelay: 30_000,
+    jitter: 100
+  }
+  #db!: IDBDatabase
+  #initPromise?: Promise<void>
+  #retry: number = 0
 
-  constructor(state: S, options?: { readonly: boolean }) {
+  constructor(state: S, options?: { readonly?: boolean; backoff?: Partial<Backoff> }) {
     browserError()
 
     this.#stateId = `fics-persistent-state-${generator.next().value}`
     this.#state = state
-    if (options) this.#readonly = options.readonly
+    if (options) {
+      const { readonly, backoff }: { readonly?: boolean; backoff?: Partial<Backoff> } = options
+
+      if (readonly) this.#readonly = readonly
+      if (backoff) {
+        numberError(backoff)
+        this.#backoff = { ...this.#backoff, ...backoff }
+      }
+    }
   }
 
   #getObjectStore(isSnapshot?: boolean, isReadonly?: boolean): IDBObjectStore {
@@ -74,6 +89,8 @@ export default class PersistentState<S> {
 
         req.onsuccess = () => resolve(req.result)
         req.onerror = () => reject(req.error)
+        req.onblocked = () =>
+          console.warn('Please close other tabs to complete the IndexedDB upgrade...')
       })
 
       db.onversionchange = () => {
@@ -106,7 +123,18 @@ export default class PersistentState<S> {
       this.#retry = 0
     })().catch(async error => {
       this.#retry++
-      await new Promise(resolve => setTimeout(resolve, Math.min(100 * 1.5 ** this.#retry, 30_000)))
+
+      const { maxRetry, interval, multiplier, maxDelay, jitter }: Backoff = this.#backoff
+
+      if (this.#retry > maxRetry) {
+        this.#initPromise = undefined
+        throw error
+      }
+
+      const delay: number =
+        Math.min(interval * multiplier ** (this.#retry - 1), maxDelay) + Math.random() * jitter
+
+      await new Promise(resolve => setTimeout(resolve, this.#retry - 1 === 0 ? 0 : delay))
       this.#initPromise = undefined
       throw error
     })
