@@ -19,7 +19,6 @@ export default class PersistentState<S> {
   readonly #isForcedUpgrade: boolean = false
   #db!: IDBDatabase
   #initPromise?: Promise<void>
-  #retry: number = 0
 
   constructor(
     state: S,
@@ -52,9 +51,19 @@ export default class PersistentState<S> {
     return this.#db.transaction(storeName, mode).objectStore(storeName)
   }
 
-  #getStateReq(store: IDBObjectStore, isOnlyKey?: boolean): IDBRequest {
+  #getStateReq<T>(store: IDBObjectStore, isOnlyKey?: boolean): IDBRequest<T> {
     const index: IDBIndex = store.index('stateId')
-    return isOnlyKey ? index.getKey(this.#stateId) : index.get(this.#stateId)
+
+    return isOnlyKey
+      ? (index.getKey(this.#stateId) as unknown as IDBRequest<T>)
+      : index.get(this.#stateId)
+  }
+
+  #promisifyReq<T>(req: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result)
+      req.onerror = () => reject(req.error)
+    })
   }
 
   async #awaitTransaction(store: IDBObjectStore): Promise<void> {
@@ -71,98 +80,103 @@ export default class PersistentState<S> {
     if (this.#db) return
     if (this.#initPromise) return this.#initPromise
 
+    let attempt = 0
+
     this.#initPromise = (async () => {
-      const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
-        const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
+      while (true)
+        try {
+          const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
+            const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
 
-        req.onupgradeneeded = () => {
-          const { result }: { result: IDBDatabase } = req
+            req.onupgradeneeded = () => {
+              const { result }: { result: IDBDatabase } = req
 
-          if (!result.objectStoreNames.contains(STATE_STORE)) {
-            const store: IDBObjectStore = result.createObjectStore(STATE_STORE, {
-              keyPath: 'id',
-              autoIncrement: true
-            })
-            store.createIndex('stateId', 'stateId', { unique: true })
+              if (!result.objectStoreNames.contains(STATE_STORE)) {
+                const store: IDBObjectStore = result.createObjectStore(STATE_STORE, {
+                  keyPath: 'id',
+                  autoIncrement: true
+                })
+                store.createIndex('stateId', 'stateId', { unique: true })
+              }
+
+              if (!result.objectStoreNames.contains(SNAPSHOT_STORE)) {
+                const store = result.createObjectStore(SNAPSHOT_STORE, {
+                  keyPath: 'id',
+                  autoIncrement: true
+                })
+                store.createIndex('stateId', 'stateId', { unique: false })
+                store.createIndex('compositeId', ['stateId', 'snapshotId'], { unique: true })
+              }
+            }
+
+            req.onsuccess = () => resolve(req.result)
+            req.onerror = () => reject(req.error)
+            req.onblocked = () =>
+              console.warn('Please close other tabs to complete the IndexedDB upgrade...')
+          })
+
+          db.onversionchange = () => {
+            db.close()
+            if (this.#isForcedUpgrade) window.location.reload()
           }
 
-          if (!result.objectStoreNames.contains(SNAPSHOT_STORE)) {
-            const store = result.createObjectStore(SNAPSHOT_STORE, {
-              keyPath: 'id',
-              autoIncrement: true
+          this.#db = db
+
+          const store: IDBObjectStore = this.#getObjectStore(false, true),
+            req: IDBRequest<State<S> | undefined> = this.#getStateReq(store),
+            state: State<S> | undefined = await this.#promisifyReq(req)
+
+          if (!state) {
+            const store: IDBObjectStore = this.#getObjectStore(),
+              now: number = Date.now()
+
+            store.add({
+              stateId: this.#stateId,
+              state: this.#state,
+              readonly: this.#readonly,
+              createdAt: now,
+              updatedAt: now
             })
-            store.createIndex('stateId', 'stateId', { unique: false })
-            store.createIndex('compositeId', ['stateId', 'snapshotId'], { unique: true })
+            await this.#awaitTransaction(store)
           }
+
+          attempt = 0
+          return
+        } catch (error) {
+          attempt++
+
+          const { maxRetry, interval, multiplier, maxDelay, jitter }: Backoff = this.#backoff
+
+          if (attempt > maxRetry) {
+            this.#initPromise = undefined
+            throw error
+          }
+
+          const delay: number =
+            Math.min(interval * multiplier ** (attempt - 1), maxDelay) + Math.random() * jitter
+
+          await new Promise(resolve => setTimeout(resolve, attempt - 1 === 0 ? 0 : delay))
+          this.#initPromise = undefined
         }
-
-        req.onsuccess = () => resolve(req.result)
-        req.onerror = () => reject(req.error)
-        req.onblocked = () =>
-          console.warn('Please close other tabs to complete the IndexedDB upgrade...')
-      })
-
-      db.onversionchange = () => {
-        db.close()
-        if (this.#isForcedUpgrade) window.location.reload()
-      }
-
-      this.#db = db
-
-      const state: State<S> | undefined = await new Promise(resolve => {
-        const req: IDBRequest<State<S>> = this.#getStateReq(this.#getObjectStore(false, true))
-        req.onsuccess = () => resolve(req.result)
-        req.onerror = () => resolve(undefined)
-      })
-
-      if (!state) {
-        const store: IDBObjectStore = this.#getObjectStore(),
-          now: number = Date.now()
-
-        store.add({
-          stateId: this.#stateId,
-          state: this.#state,
-          readonly: this.#readonly,
-          createdAt: now,
-          updatedAt: now
-        })
-        await this.#awaitTransaction(store)
-      }
-
-      this.#retry = 0
-    })().catch(async error => {
-      this.#retry++
-
-      const { maxRetry, interval, multiplier, maxDelay, jitter }: Backoff = this.#backoff
-
-      if (this.#retry > maxRetry) {
-        this.#initPromise = undefined
-        throw error
-      }
-
-      const delay: number =
-        Math.min(interval * multiplier ** (this.#retry - 1), maxDelay) + Math.random() * jitter
-
-      await new Promise(resolve => setTimeout(resolve, this.#retry - 1 === 0 ? 0 : delay))
-      this.#initPromise = undefined
-      throw error
-    })
+    })()
 
     return this.#initPromise
   }
 
-  #promisifyReq<T>(req: IDBRequest<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(req.error)
-    })
-  }
+  #getSnapshotReq<T>(
+    store: IDBObjectStore,
+    snapshotId: string,
+    isOnlyKey?: boolean
+  ): IDBRequest<T> {
+    snapshotId = snapshotId.trim()
+    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
-  #getSnapshotReq(store: IDBObjectStore, snapshotId: string, isOnlyKey?: boolean): IDBRequest {
     const index: IDBIndex = store.index('compositeId'),
       compositeId: [string, string] = [this.#stateId, snapshotId]
 
-    return isOnlyKey ? index.getKey(compositeId) : index.get(compositeId)
+    return isOnlyKey
+      ? (index.getKey(compositeId) as unknown as IDBRequest<T>)
+      : index.get(compositeId)
   }
 
   async get(): Promise<S> {
@@ -184,15 +198,20 @@ export default class PersistentState<S> {
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(),
-      req: IDBRequest<State<S>> = this.#getStateReq(store)
+      req: IDBRequest<State<S> | undefined> = this.#getStateReq(store),
+      result = await this.#promisifyReq<State<S> | undefined>(req)
 
-    req.onsuccess = () => {
-      const { result }: { result: State<S> } = req
-      if (result.readonly) throw new Error('The state is readonly...')
-
-      store.put({ ...result, state: newState, updatedAt: Date.now() })
+    if (!result) {
+      store.transaction?.abort()
+      throw new Error('The state is not found...')
     }
 
+    if (result.readonly) {
+      store.transaction?.abort()
+      throw new Error('The state is readonly...')
+    }
+
+    store.put({ ...result, state: newState, updatedAt: Date.now() })
     await this.#awaitTransaction(store)
   }
 
@@ -213,10 +232,10 @@ export default class PersistentState<S> {
   }
 
   async saveSnapshot(snapshotId: string): Promise<number> {
-    await this.#init()
-
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
+
+    await this.#init()
 
     const state: Awaited<S> = await this.get(),
       store: IDBObjectStore = this.#getObjectStore(true),
@@ -255,6 +274,9 @@ export default class PersistentState<S> {
   }
 
   async getSnapshot(snapshotId: string): Promise<S> {
+    snapshotId = snapshotId.trim()
+    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
+
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(true, true),
@@ -270,6 +292,9 @@ export default class PersistentState<S> {
   }
 
   async deleteSnapshot(snapshotId: string): Promise<void> {
+    snapshotId = snapshotId.trim()
+    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
+
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(true),
