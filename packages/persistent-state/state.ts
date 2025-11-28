@@ -214,30 +214,34 @@ export default class PersistentState<S> {
 
   async saveSnapshot(snapshotId: string): Promise<number> {
     await this.#init()
+
     snapshotId = snapshotId.trim()
+    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
-    return new Promise((resolve, reject) => {
-      const store: IDBObjectStore = this.#getObjectStore(true),
-        req: IDBRequest<Snapshot<S>> = this.#getSnapshotReq(store, snapshotId)
+    const state: Awaited<S> = await this.get(),
+      store: IDBObjectStore = this.#getObjectStore(true),
+      existing: Snapshot<S> | undefined = await this.#promisifyReq<Snapshot<S> | undefined>(
+        this.#getSnapshotReq(store, snapshotId)
+      )
 
-      req.onsuccess = async () => {
-        if (req.result)
-          return reject(new Error(`The snapshot with snapshot id:${snapshotId} already exists...`))
+    if (existing) {
+      store.transaction?.abort()
+      throw new Error(`The snapshot with snapshot id:${snapshotId} already exists...`)
+    }
 
-        const now: number = Date.now(),
-          _req: IDBRequest<IDBValidKey> = store.add({
-            stateId: this.#stateId,
-            snapshotId,
-            state: await this.get(),
-            readonly: true,
-            createdAt: now,
-            updatedAt: now
-          })
-        _req.onsuccess = () => resolve(_req.result as number)
-        _req.onerror = () => reject(_req.error)
-      }
-      req.onerror = () => reject(req.error)
-    })
+    const now: number = Date.now(),
+      req: IDBRequest<IDBValidKey> = store.add({
+        stateId: this.#stateId,
+        snapshotId,
+        state,
+        readonly: true,
+        createdAt: now,
+        updatedAt: now
+      }),
+      key: IDBValidKey = await this.#promisifyReq<IDBValidKey>(req)
+
+    await this.#awaitTransaction(store)
+    return key as number
   }
 
   async getAllSnapshots(): Promise<S[]> {
