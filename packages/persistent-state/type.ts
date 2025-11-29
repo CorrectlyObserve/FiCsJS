@@ -6,6 +6,12 @@ export interface Backoff {
   jitter: number
 }
 
+export interface Options {
+  readonly?: boolean
+  backoff?: Partial<Backoff>
+  forcedUpgrade?: boolean
+}
+
 export interface Snapshot<S> extends State<S> {
   snapshotId: string
   readonly: true
