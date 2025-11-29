@@ -1,5 +1,5 @@
 import { browserError, numberError, uid } from '../core/helpers'
-import type { Backoff, Snapshot, State } from './type'
+import type { Backoff, Options, Snapshot, State } from './type'
 
 const generator: Generator<number> = uid(),
   STATE_STORE = 'states' as const,
@@ -20,20 +20,13 @@ export default class PersistentState<S> {
   #db!: IDBDatabase
   #initPromise?: Promise<void>
 
-  constructor(
-    state: S,
-    options?: { readonly?: boolean; backoff?: Partial<Backoff>; forcedUpgrade?: boolean }
-  ) {
+  constructor(state: S, options?: Options) {
     browserError()
 
     this.#stateId = `fics-persistent-state-${generator.next().value}`
     this.#state = state
     if (options) {
-      const {
-        readonly,
-        backoff,
-        forcedUpgrade
-      }: { readonly?: boolean; backoff?: Partial<Backoff>; forcedUpgrade?: boolean } = options
+      const { readonly, backoff, forcedUpgrade }: Options = options
 
       if (readonly) this.#readonly = readonly
       if (backoff) {
