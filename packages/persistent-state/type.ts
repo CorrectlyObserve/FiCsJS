@@ -12,6 +12,12 @@ export interface Options {
   forcedUpgrade?: boolean
 }
 
+export interface QueryOptions {
+  snapshotId?: string
+  isOnlyKey?: boolean
+  isAllSnapshots?: boolean
+}
+
 export interface Snapshot<S> extends State<S> {
   snapshotId: string
   readonly: true
