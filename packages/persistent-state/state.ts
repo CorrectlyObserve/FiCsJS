@@ -215,7 +215,7 @@ export default class PersistentState<S> {
     await this.#awaitTransaction(store)
   }
 
-  async delete(): Promise<void> {
+  async delete(options?: { cascade?: boolean }): Promise<void> {
     this.#assertAlive()
     await this.#init()
 
@@ -231,10 +231,20 @@ export default class PersistentState<S> {
     store.delete(key)
     this.#isDeleted = true
 
-    await this.#awaitTransaction(store)
+    if (options?.cascade) {
+      const store: IDBObjectStore = this.#getObjectStore(true),
+        allSnapshotsReq: IDBRequest<Snapshot<S>[]> = store.index('stateId').getAll(this.#stateId),
+        snapshots: Snapshot<S>[] = await this.#promisifyReq(allSnapshotsReq)
+
+      for (const { id } of snapshots) if (id !== undefined) store.delete(id)
+
+      await this.#awaitTransaction(store)
+    }
   }
 
   async saveSnapshot(snapshotId: string): Promise<number> {
+    this.#assertAlive()
+
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
@@ -267,6 +277,7 @@ export default class PersistentState<S> {
   }
 
   async getAllSnapshots(): Promise<S[]> {
+    this.#assertAlive()
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(true, true),
@@ -277,6 +288,8 @@ export default class PersistentState<S> {
   }
 
   async getSnapshot(snapshotId: string): Promise<S> {
+    this.#assertAlive()
+
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
@@ -295,6 +308,8 @@ export default class PersistentState<S> {
   }
 
   async deleteSnapshot(snapshotId: string): Promise<void> {
+    this.#assertAlive()
+
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
