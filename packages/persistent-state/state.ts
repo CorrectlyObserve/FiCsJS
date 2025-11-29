@@ -19,6 +19,7 @@ export default class PersistentState<S> {
   readonly #isForcedUpgrade: boolean = false
   #db!: IDBDatabase
   #initPromise?: Promise<void>
+  #isDeleted = false
 
   constructor(state: S, options?: Options) {
     browserError()
@@ -35,6 +36,10 @@ export default class PersistentState<S> {
       }
       if (forcedUpgrade) this.#isForcedUpgrade = forcedUpgrade
     }
+  }
+
+  #assertAlive(): void {
+    if (this.#isDeleted) throw new Error('This persistent state instance is deleted...')
   }
 
   #getObjectStore(isSnapshot?: boolean, isReadonly?: boolean): IDBObjectStore {
@@ -173,6 +178,7 @@ export default class PersistentState<S> {
   }
 
   async get(): Promise<S> {
+    this.#assertAlive()
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(false, true),
@@ -188,6 +194,7 @@ export default class PersistentState<S> {
   }
 
   async set(newState: S): Promise<void> {
+    this.#assertAlive()
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(),
@@ -209,18 +216,21 @@ export default class PersistentState<S> {
   }
 
   async delete(): Promise<void> {
+    this.#assertAlive()
     await this.#init()
 
     const store: IDBObjectStore = this.#getObjectStore(),
       req: IDBRequest<IDBValidKey | undefined> = this.#getStateReq(store, true),
-      validKey: IDBValidKey | undefined = await this.#promisifyReq(req)
+      key: IDBValidKey | undefined = await this.#promisifyReq(req)
 
-    if (!validKey) {
+    if (!key) {
       store.transaction?.abort()
       throw new Error('The state is not found...')
     }
 
-    store.delete(validKey)
+    store.delete(key)
+    this.#isDeleted = true
+
     await this.#awaitTransaction(store)
   }
 
@@ -292,14 +302,14 @@ export default class PersistentState<S> {
 
     const store: IDBObjectStore = this.#getObjectStore(true),
       req: IDBRequest<IDBValidKey | undefined> = this.#getSnapshotReq(store, snapshotId, true),
-      validKey: IDBValidKey | undefined = await this.#promisifyReq(req)
+      key: IDBValidKey | undefined = await this.#promisifyReq(req)
 
-    if (!validKey) {
+    if (!key) {
       store.transaction?.abort()
       throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
     }
 
-    store.delete(validKey)
+    store.delete(key)
     await this.#awaitTransaction(store)
   }
 }
