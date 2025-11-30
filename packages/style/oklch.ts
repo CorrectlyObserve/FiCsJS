@@ -56,7 +56,7 @@ const cache: Map<string, Oklch> = new Map(),
   },
   parseOklch = (literal: string): Oklch => {
     const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i)
-    if (!match) throw new Error('Invalid oklch() literal...')
+    if (!match) throw new Error('The oklch() literal is invalid...')
 
     const parts: string[] = match[1].split(/\s+/).filter(Boolean)
     if (parts.length < 3)
@@ -152,7 +152,7 @@ export default (
     if (darker > 0 && lighter > 0)
       throw new Error('Both "darker" and "lighter" options cannot be specified at the same time...')
 
-    let _l:number = oklch.l
+    let _l: number = oklch.l
 
     if (darker > 0) _l = Math.max(0, _l - darker)
     else if (lighter > 0) _l = Math.min(1, _l + lighter)
