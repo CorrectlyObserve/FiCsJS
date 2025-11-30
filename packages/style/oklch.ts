@@ -140,53 +140,28 @@ export default (
     opacity?: number
   }
 ): string => {
-  const resolved: string = convertCssVar(color)
+  const resolved: string = convertCssVar(color).trim()
+  let oklch: Oklch,
+    alpha: number = 1
 
-  if (/^\s*oklch\(/i.test(resolved)) {
-    const oklch: Oklch = parseOklch(resolved)
+  if (/^oklch\(/i.test(resolved)) {
+    oklch = parseOklch(resolved)
     cache.set(resolved, oklch)
-
-    const { darker = 0, lighter = 0, chroma = 1, opacity = 1 } = options ?? {}
-    numberError({ darker, lighter, chroma, opacity }, false)
-
-    if (darker > 0 && lighter > 0)
-      throw new Error('Both "darker" and "lighter" options cannot be specified at the same time...')
-
-    let _l: number = oklch.l
-
-    if (darker > 0) _l = Math.max(0, _l - darker)
-    else if (lighter > 0) _l = Math.min(1, _l + lighter)
-
-    const alpha = Math.max(0, Math.min(1, opacity))
-
-    return `oklch(${_l * 100}% ${oklch.c * chroma} ${oklch.h} / ${alpha})`
+  } else {
+    alpha = alphaFromHex(resolved)
+    oklch = hexToOklch(resolved)
   }
 
-  const hex: string = normalizeHex(convertCssVar(color))
-
-  const matcher: string | undefined = hex.match(/^oklch\((.*)\)/)?.[1]
-  if (matcher) {
-    const oklch: Oklch = { l: 0, c: 0, h: 0 },
-      keys: (keyof Oklch)[] = Object.keys(oklch) as (keyof Oklch)[]
-
-    for (const [index, value] of matcher.split(' ').entries())
-      oklch[keys[index]] = parseFloat(value)
-
-    cache.set(hex, oklch)
-  }
-
-  const { l, c, h }: Oklch = hexToOklch(hex),
-    { darker = 0, lighter = 0, chroma = 1, opacity = 1 } = options ?? {}
-
+  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 } = options ?? {}
   numberError({ darker, lighter, chroma, opacity }, false)
 
   if (darker > 0 && lighter > 0)
     throw new Error('Both "darker" and "lighter" options cannot be specified at the same time...')
 
-  let _l: number = l
+  let { l, c, h }: Oklch = oklch
 
-  if (darker > 0) _l = Math.max(0, l - darker)
-  else if (lighter > 0) _l = Math.min(1, l + lighter)
+  if (darker > 0) l = Math.max(0, l - darker)
+  else if (lighter > 0) l = Math.min(1, l + lighter)
 
-  return `oklch(${_l * 100}% ${c * chroma} ${h} / ${Math.max(0, Math.min(1, opacity * alphaFromHex(hex)))})`
+  return `oklch(${l * 100}% ${c * chroma} ${h} / ${Math.max(0, Math.min(1, opacity * alpha))})`
 }
