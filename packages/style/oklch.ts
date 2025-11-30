@@ -1,7 +1,7 @@
 import { browserError, numberError } from '../core/helpers'
 import { Lms, Oklab, Oklch, Rgb, Vector, Wave } from './types'
 
-const CSS_VAR: RegExp = /^var\(\s*--([^,)]+)\s*(?:,\s*(.+))?\s*\)$/,
+const CSS_VAR: RegExp = /^var\(\s*--([^,)]*)\s*(?:,\s*([^)]*))?\s*\)$/,
   MAX = 255 as const,
   THRESHOLD = 0.04045 as const,
   DIVISOR = 12.92 as const,
@@ -21,12 +21,12 @@ const CSS_VAR: RegExp = /^var\(\s*--([^,)]+)\s*(?:,\s*(.+))?\s*\)$/,
 
 const cache: Map<string, Oklch> = new Map(),
   convertCssVar = (str: string, seen: Set<string> = new Set()): string => {
-    str = str.trim()
-
-    const matchArray: RegExpMatchArray | null = str.match(CSS_VAR)
-    if (!matchArray) return str
-
     browserError()
+
+    str = str.trim()
+    const matchArray: RegExpMatchArray | null = str.match(CSS_VAR)
+
+    if (!matchArray) return str
 
     const [, name, fallback]: RegExpMatchArray = matchArray,
       resolved: string = getComputedStyle(document.documentElement)
@@ -38,8 +38,8 @@ const cache: Map<string, Oklch> = new Map(),
 
     if (resolved !== '') return convertCssVar(resolved, seen)
 
-    const _fallback: string = fallback?.trim()
-    if (_fallback !== '') return convertCssVar(_fallback, seen)
+    const _fallback: string | undefined = fallback?.trim()
+    if (_fallback) return convertCssVar(_fallback, seen)
 
     throw new Error(`The CSS variable "--${name}" is not defined and no fallback was provided.`)
   },
