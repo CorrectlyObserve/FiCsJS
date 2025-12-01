@@ -1153,7 +1153,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (debounce && throttle)
         throw new Error(
-          'Both "debounce" and "throttle" options cannot be specified at the same time...'
+          'Both "debounce" and "throttle" options cannot be used at the same time...'
         )
 
       const callback = (event: Event): void => {
@@ -1368,7 +1368,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (debounce && throttle)
         throw new Error(
-          'Both "debounce" and "throttle" options cannot be specified at the same time...'
+          'Both "debounce" and "throttle" options cannot be used at the same time...'
         )
 
       let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
