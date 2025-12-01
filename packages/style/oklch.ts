@@ -33,7 +33,10 @@ const cache: Map<string, Oklch> = new Map(),
         .getPropertyValue(`--${name}`)
         .trim()
 
-    if (seen.has(name)) throw new Error(`The CSS variable "--${name}" is detected circularly...`)
+    if (seen.has(name))
+      throw new Error(
+        `A circular CSS variable reference was detected for "--${name}" while resolving "${str}"...`
+      )
     seen.add(name)
 
     if (resolved !== '') return convertCssVar(resolved, seen)
@@ -41,13 +44,17 @@ const cache: Map<string, Oklch> = new Map(),
     const _fallback: string | undefined = fallback?.trim()
     if (_fallback) return convertCssVar(_fallback, seen)
 
-    throw new Error(`The CSS variable "--${name}" is not defined and no fallback was provided.`)
+    throw new Error(
+      `The CSS variable "--${name}" is not defined and no fallback was provided in "${str}"...`
+    )
   },
   normalizeHex = (hex: string): string => {
     hex = hex.replace(/^#/, '').toLowerCase()
 
     if (![3, 4, 6, 8].some(length => hex.length === length) || !/^[a-f\d]+$/.test(hex))
-      throw new Error(`The "${hex}" must be a valid HEX color code...`)
+      throw new Error(
+        `The HEX color "${hex}" is invalid; expected 3, 4, 6, or 8 hexadecimal digits...`
+      )
 
     if (hex.length === 3 || hex.length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
     if (hex.length === 8) hex = hex.slice(0, 6)
@@ -55,12 +62,17 @@ const cache: Map<string, Oklch> = new Map(),
     return hex
   },
   parseOklch = (literal: string): Oklch => {
-    const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i)
-    if (!match) throw new Error('The oklch() literal is invalid...')
+    const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i),
+      OKLCH_LITERAL = '"oklch(<lightness> <chroma> <hue>[/ <alpha>])"' as const
+
+    if (!match)
+      throw new Error(`The oklch() literal "${literal}" must match the format ${OKLCH_LITERAL}...`)
 
     const parts: string[] = match[1].split(/\s+/).filter(Boolean)
     if (parts.length < 3)
-      throw new Error('The oklch() literal must contain at least three values (L C H)...')
+      throw new Error(
+        `The oklch() literal "${literal}" must contain at least three values (L C H) like ${OKLCH_LITERAL}...`
+      )
 
     let [l, c, h]: (string | number)[] = parts
     l = l.endsWith('%') ? parseFloat(l) / 100 : parseFloat(l)
@@ -109,10 +121,12 @@ const cache: Map<string, Oklch> = new Map(),
 
     return { l: oklab.l, c: Math.hypot(_a, _b), h }
   },
+  cacheKey = (type: 'hex' | 'oklch', key: string): string => `${type}:${key}`,
   hexToOklch = (hex: string): Oklch => {
-    if (cache.has(hex)) return cache.get(hex)!
+    const rawKey: string = cacheKey('hex', hex)
+    if (cache.has(rawKey)) return cache.get(rawKey)!
 
-    const key: string = normalizeHex(convertCssVar(hex))
+    const key: string = cacheKey('hex', normalizeHex(convertCssVar(hex)))
     if (cache.has(key)) return cache.get(key)!
 
     const rgb: Rgb = hexToRgb(key),
@@ -146,7 +160,7 @@ export default (
 
   if (/^oklch\(/i.test(resolved)) {
     oklch = parseOklch(resolved)
-    cache.set(resolved, oklch)
+    cache.set(cacheKey('oklch', resolved), oklch)
   } else {
     alpha = alphaFromHex(resolved)
     oklch = hexToOklch(resolved)
@@ -156,7 +170,7 @@ export default (
   numberError({ darker, lighter, chroma, opacity }, false)
 
   if (darker > 0 && lighter > 0)
-    throw new Error('Both "darker" and "lighter" options cannot be specified at the same time...')
+    throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
 
   let { l, c, h }: Oklch = oklch
 
