@@ -21,12 +21,12 @@ const CSS_VAR: RegExp = /^var\(\s*--([^,)]*)\s*(?:,\s*([^)]*))?\s*\)$/,
 
 const cache: Map<string, Oklch> = new Map(),
   convertCssVar = (str: string, seen: Set<string> = new Set()): string => {
-    browserError()
-
     str = str.trim()
-    const matchArray: RegExpMatchArray | null = str.match(CSS_VAR)
 
+    const matchArray: RegExpMatchArray | null = str.match(CSS_VAR)
     if (!matchArray) return str
+
+    browserError()
 
     const [, name, fallback]: RegExpMatchArray = matchArray,
       resolved: string = getComputedStyle(document.documentElement)
@@ -37,6 +37,7 @@ const cache: Map<string, Oklch> = new Map(),
       throw new Error(
         `A circular CSS variable reference was detected for "--${name}" while resolving "${str}"...`
       )
+
     seen.add(name)
 
     if (resolved !== '') return convertCssVar(resolved, seen)
@@ -50,6 +51,12 @@ const cache: Map<string, Oklch> = new Map(),
   },
   normalizeHex = (hex: string): string => {
     hex = hex.replace(/^#/, '').toLowerCase()
+
+    const HEX = 'hex:' as const,
+      OKLCH = 'oklch:' as const
+
+    if (hex.startsWith(HEX)) hex = hex.slice(HEX.length)
+    else if (hex.startsWith(OKLCH)) hex = hex.slice(OKLCH.length)
 
     if (![3, 4, 6, 8].some(length => hex.length === length) || !/^[a-f\d]+$/.test(hex))
       throw new Error(
