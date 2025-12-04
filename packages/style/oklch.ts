@@ -58,13 +58,15 @@ const cache: Map<string, Oklch> = new Map(),
     if (hex.startsWith(HEX)) hex = hex.slice(HEX.length)
     else if (hex.startsWith(OKLCH)) hex = hex.slice(OKLCH.length)
 
-    if (![3, 4, 6, 8].some(length => hex.length === length) || !/^[a-f\d]+$/.test(hex))
+    const { length }: { length: number } = hex
+
+    if (![3, 4, 6, 8].some(_length => length === _length) || !/^[a-f\d]+$/.test(hex))
       throw new Error(
         `The HEX color "${hex}" is invalid; expected 3, 4, 6, or 8 hexadecimal digits...`
       )
 
-    if (hex.length === 3 || hex.length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
-    if (hex.length === 8) hex = hex.slice(0, 6)
+    if (length === 3 || length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
+    if (length === 8) hex = hex.slice(0, 6)
 
     return hex
   },
