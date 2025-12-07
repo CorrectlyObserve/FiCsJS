@@ -1,4 +1,12 @@
 import type { User } from '@/types'
 
-export const api = 'https://jsonplaceholder.typicode.com/users'
-export const users: User[] = await fetch(api).then(res => res.json())
+export const API_PATH = 'https://jsonplaceholder.typicode.com/users' as const
+
+const fetchUsers = async (): Promise<User[]> => {
+  const res = await fetch(API_PATH),
+    json: User[] = await res.json()
+
+  return json
+}
+
+export const users: User[] = await fetchUsers()
