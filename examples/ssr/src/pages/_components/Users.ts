@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { flexCenter, oklch } from 'ficsjs/style'
 import Button from '@/components/Button'
-import { api, users } from '@/data/users'
+import { API_PATH, users } from '@/data/users'
 import type { Method, User } from '@/types'
 import { white } from '@/utils'
 import { GripVertical } from 'lucide-static'
@@ -41,7 +41,7 @@ export default fics({
             const options = { method, ...headers }
 
             if (method === 'DELETE') {
-              await crud<User>(`${api}/${userId}`, options)
+              await crud<User>(`${API_PATH}/${userId}`, options)
               setData(
                 'users',
                 users.filter(({ id }) => id !== userId)
@@ -49,7 +49,7 @@ export default fics({
             } else {
               const name = prompt('Please enter a new user name.')
               if (name) {
-                await crud<User>(`${api}/${userId}`, {
+                await crud<User>(`${API_PATH}/${userId}`, {
                   ...options,
                   body: JSON.stringify({ id: userId, name })
                 })
@@ -115,7 +115,7 @@ export default fics({
       const users = getData('users')
       setData('users', [
         ...users,
-        await crud<User>(api, {
+        await crud<User>(API_PATH, {
           method: 'POST',
           body: JSON.stringify(users[Math.floor(Math.random() * users.length)]),
           headers
