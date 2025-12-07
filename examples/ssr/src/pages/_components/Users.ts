@@ -5,6 +5,7 @@ import { API_PATH, users } from '@/data/users'
 import type { Method, User } from '@/types'
 import { white } from '@/utils'
 import { GripVertical } from 'lucide-static'
+import { parse } from 'hono/utils/cookie'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' },
   USER_HEIGHT = '73.59px' as const
@@ -146,23 +147,30 @@ export default fics({
         const isHighlighted = getData('isHighlighted'),
           highlightedZone = getData('highlightedZone')
 
-        if (!isHighlighted(highlightedZone, parseInt(key))) return
+        let zoneIndex = parseInt(key)
+
+        if (!isHighlighted(highlightedZone, zoneIndex)) return
 
         setData('highlightedZone', null)
 
-        const draggingIndex = parseInt(drag.dataTransfer.getData('text/plain')),
-          droppedKey = parseInt(key),
-          droppedIndex = draggingIndex < droppedKey ? droppedKey - 1 : droppedKey,
-          users = getData('users'),
-          user = users.find(({ id }) => id === draggingIndex)
+        zoneIndex++
 
-        if (user)
-          if (drag.altKey) setData('users', users.splice(droppedIndex, 0, user))
-          else if (draggingIndex !== droppedIndex) {
-            const newUsers = users.filter(({ id }) => id !== draggingIndex)
-            newUsers.splice(droppedIndex, 0, user)
-            setData('users', newUsers)
-          }
+        const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
+          droppedIndex = fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex,
+          users = getData('users') as User[],
+          user = users[fromIndex]
+
+        if (!user) return
+
+        const isMoved = fromIndex !== droppedIndex
+
+        if (drag.altKey || isMoved) {
+          const newUsers = [...users]
+
+          if (isMoved) newUsers.splice(fromIndex, 1)
+          newUsers.splice(droppedIndex, 0, user)
+          setData('users', newUsers)
+        }
       }
     },
     'div[draggable="true"]': {
