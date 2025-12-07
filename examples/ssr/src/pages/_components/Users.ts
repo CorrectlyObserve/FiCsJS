@@ -5,7 +5,6 @@ import { API_PATH, users } from '@/data/users'
 import type { Method, User } from '@/types'
 import { white } from '@/utils'
 import { GripVertical } from 'lucide-static'
-import { parse } from 'hono/utils/cookie'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' },
   USER_HEIGHT = '73.59px' as const
@@ -167,7 +166,7 @@ export default fics({
         if (drag.altKey || isMoved) {
           const newUsers = [...users]
 
-          if (isMoved) newUsers.splice(fromIndex, 1)
+          if (!drag.altKey && isMoved) newUsers.splice(fromIndex, 1)
           newUsers.splice(droppedIndex, 0, user)
           setData('users', newUsers)
         }
