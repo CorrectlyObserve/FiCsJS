@@ -1,11 +1,13 @@
 import { fics } from 'ficsjs'
-import { flexCenter } from 'ficsjs/style'
+import { flexCenter, oklch } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { api, users } from '@/data/users'
 import type { Method, User } from '@/types'
+import { white } from '@/utils'
 import { GripVertical } from 'lucide-static'
 
-const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
+const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' },
+  USER_HEIGHT = '73.59px' as const
 
 export default fics({
   name: 'users',
@@ -14,10 +16,10 @@ export default fics({
     methods: ['PUT', 'PATCH', 'DELETE'] as Method[],
     users,
     userId: NaN,
-    draggingId: NaN,
+    draggingIndex: NaN,
     highlightedZone: null as HTMLElement | null,
-    isHighlighted: (highlightedZone: HTMLElement | null, zoneId: number) =>
-      highlightedZone?.getAttribute('key') === zoneId.toString()
+    isHighlighted: (highlightedZone: HTMLElement | null, zoneIndex: number) =>
+      highlightedZone?.getAttribute('key') === zoneIndex.toString()
   }),
   props: {
     descendant: ({ children: { button } }) => button,
@@ -25,7 +27,7 @@ export default fics({
   },
   html: ({
     children: { button },
-    data: { methods, users, userId, draggingId, highlightedZone, isHighlighted },
+    data: { methods, users, userId, draggingIndex, highlightedZone, isHighlighted },
     setData,
     crud,
     template,
@@ -64,13 +66,13 @@ export default fics({
       )}
     </div>
     <div class="w-fit mx-auto">
-      <div class="drop-zone h-4 ${isHighlighted(highlightedZone, -1) ? 'dragged-over' : ''}" key="-1"></div>
+      <div class="drop-zone ${isHighlighted(highlightedZone, -1) ? 'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' : 'h-4'}" key="-1"></div>
       ${users.map((user, index) => {
         const keys = ['id', 'name', 'email'] as const
 
         return template`
           <div
-            class="${draggingId === user.id ? 'dragging' : ''}"
+            class="${draggingIndex === index ? 'pointer-events-none' : ''}"
             key="${index}"
             draggable="true"
           >
@@ -92,7 +94,7 @@ export default fics({
               })}
             </div>
           </div>
-          <div class="drop-zone h-4 ${isHighlighted(highlightedZone, index) ? 'dragged-over' : ''}" key="${index}"></div>
+          <div class="drop-zone ${isHighlighted(highlightedZone, index) ? 'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' : 'h-4'}" key="${index}"></div>
         `
       })}
     </div>
@@ -101,14 +103,11 @@ export default fics({
     div: {
       '&.buttons': flexCenter('x'),
       '&.dragged-over': {
-        height: '3rem',
-        backgroundColor: 'rgba(70, 130, 230, 0.15)',
-        border: '1px dashed royalblue',
-        margin: '5px 0',
-        borderRadius: '4px'
+        height: USER_HEIGHT,
+        background: white(0.05),
+        borderColor: oklch('#4169e1')
       },
-      '&.w-fit > div': flexCenter('y'),
-      '&.dragging': { opacity: 0.4, pointerEvents: 'none' }
+      '&.w-fit > div': flexCenter('y')
     }
   },
   hooks: {
@@ -130,40 +129,98 @@ export default fics({
         const drag = event as DragEvent
         drag.preventDefault()
 
-        if (drag.dataTransfer) drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
+        if (!drag.dataTransfer) return
+        drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
       },
       dragleave: ({ setData, getData, attributes: { key } }) => {
         const highlightedZone = getData('highlightedZone'),
-          zoneId = highlightedZone?.getAttribute('key')
+          zoneIndex = highlightedZone?.getAttribute('key')
 
-        if (zoneId && zoneId === key) setData('highlightedZone', null)
+        if (zoneIndex && zoneIndex === key) setData('highlightedZone', null)
       },
       drop: ({ setData, getData, event, attributes: { key } }) => {
         const drag = event as DragEvent
         drag.preventDefault()
+        if (!drag.dataTransfer) return
 
-        if (drag.dataTransfer) {
-          const isHighlighted = getData('isHighlighted'),
+        const isHighlighted = getData('isHighlighted'),
+          highlightedZone = getData('highlightedZone')
+
+        if (!isHighlighted(highlightedZone, parseInt(key))) return
+
+        setData('highlightedZone', null)
+
+        const draggingIndex = parseInt(drag.dataTransfer.getData('text/plain')),
+          droppedKey = parseInt(key),
+          droppedIndex = draggingIndex < droppedKey ? droppedKey - 1 : droppedKey,
+          users = getData('users'),
+          user = users.find(({ id }) => id === draggingIndex)
+
+        if (user)
+          if (drag.altKey) setData('users', users.splice(droppedIndex, 0, user))
+          else if (draggingIndex !== droppedIndex) {
+            const newUsers = users.filter(({ id }) => id !== draggingIndex)
+            newUsers.splice(droppedIndex, 0, user)
+            setData('users', newUsers)
+          }
+      }
+    },
+    'div[draggable="true"]': {
+      dragstart: ({ setData, event, attributes: { key } }) => {
+        const drag = event as DragEvent
+        if (!drag.dataTransfer) return
+
+        drag.dataTransfer.setData('text/plain', key)
+        drag.dataTransfer.effectAllowed = 'copyMove'
+
+        setData('draggingIndex', parseInt(key))
+      },
+      dragover: [
+        ({ setData, getData, event, attributes: { key } }) => {
+          const drag = event as DragEvent
+          drag.preventDefault()
+          if (!drag.dataTransfer) return
+
+          drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
+
+          const { target } = event
+          if (!target) return
+
+          const draggingIndex = getData('draggingIndex'),
+            { top, height } = (target as HTMLElement).getBoundingClientRect(),
+            isAfter = drag.clientY > top + height / 2,
+            index = parseInt(key),
             highlightedZone = getData('highlightedZone')
 
-          if (!isHighlighted(highlightedZone, parseInt(key))) return
+          if (
+            !drag.altKey &&
+            ((index === draggingIndex - 1 && isAfter) ||
+              (index === draggingIndex + 1 && !isAfter) ||
+              index === draggingIndex)
+          ) {
+            if (highlightedZone) setData('highlightedZone', null)
+            return
+          }
 
-          setData('highlightedZone', null)
+          const targetElement = target as HTMLElement,
+            getSiblingDropZone = (targetElement: HTMLElement) => {
+              if (targetElement.getAttribute('draggable') === 'true') {
+                const sibling = targetElement[`${isAfter ? 'next' : 'previous'}ElementSibling`]
 
-          const draggingId = parseInt(drag.dataTransfer.getData('text/plain')),
-            droppedId = parseInt(key),
-            droppedIndex = draggingId < droppedId ? droppedId - 1 : droppedId,
-            users = getData('users'),
-            user = users.find(({ id }) => id === draggingId)
+                if (sibling && sibling.classList.contains('drop-zone')) return sibling
+              } else if (targetElement.parentElement)
+                return getSiblingDropZone(targetElement.parentElement)
+            },
+            targetZone = getSiblingDropZone(targetElement)
 
-          if (user)
-            if (drag.altKey) setData('users', users.splice(droppedIndex, 0, user))
-            else if (draggingId !== droppedIndex) {
-              const newUsers = users.filter(user => user.id !== draggingId)
-              newUsers.splice(droppedIndex, 0, user)
-              setData('users', newUsers)
-            }
-        }
+          if (targetZone && highlightedZone !== targetZone)
+            setData('highlightedZone', targetZone as HTMLElement)
+        },
+        { throttle: 500 }
+      ],
+      dragend: ({ setData, getData }) => {
+        setData('draggingIndex', NaN)
+        if (getData('highlightedZone')) setData('highlightedZone', null)
       }
     },
     'div[draggable="true"] > div:last-child': {
@@ -173,64 +230,7 @@ export default fics({
           setData('userId', getData('userId') === userId ? NaN : userId)
         },
         { throttle: 500, blur: true }
-      ],
-      dragstart: ({ setData, event, attributes: { key } }) => {
-        const drag = event as DragEvent
-        drag.preventDefault()
-
-        if (drag.dataTransfer) {
-          drag.dataTransfer.setData('text/plain', key)
-          drag.dataTransfer.effectAllowed = 'copyMove'
-          setData('draggingId', parseInt(key))
-        }
-      },
-      dragover: [
-        ({ setData, getData, event, attributes: { key } }) => {
-          const drag = event as DragEvent
-          drag.preventDefault()
-
-          if (drag.dataTransfer) drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
-
-          const { target } = event
-
-          if (target) {
-            const draggingId = getData('draggingId'),
-              { top, height } = (target as HTMLElement).getBoundingClientRect(),
-              isAfter = drag.clientY > top + height / 2,
-              index = parseInt(key),
-              highlightedZone = getData('highlightedZone')
-
-            if (
-              !drag.altKey &&
-              ((index === draggingId - 1 && isAfter) ||
-                (index === draggingId + 1 && !isAfter) ||
-                index === draggingId)
-            ) {
-              if (highlightedZone) setData('highlightedZone', null)
-              return
-            }
-
-            const targetElement = target as HTMLElement,
-              getSiblingDropZone = (targetElement: HTMLElement) => {
-                if (targetElement.getAttribute('draggable') === 'true') {
-                  const sibling = targetElement[`${isAfter ? 'next' : 'previous'}ElementSibling`]
-
-                  if (sibling && sibling.classList.contains('drop-zone')) return sibling
-                } else if (targetElement.parentElement)
-                  return getSiblingDropZone(targetElement.parentElement)
-              },
-              targetZone = getSiblingDropZone(targetElement)
-
-            if (targetZone && highlightedZone !== targetZone)
-              setData('highlightedZone', targetZone as HTMLElement)
-          }
-        },
-        { throttle: 500 }
-      ],
-      dragend: ({ setData, getData }) => {
-        setData('draggingId', NaN)
-        if (getData('highlightedZone')) setData('highlightedZone', null)
-      }
+      ]
     }
   }
 })
