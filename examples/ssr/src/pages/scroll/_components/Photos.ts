@@ -3,7 +3,7 @@ import { fadeInOut } from 'ficsjs/animation'
 import { goto, queries } from 'ficsjs/router'
 import { absoluteCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { api, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import Skeleton from '@/pages/scroll/_components/Skeleton'
 import type { Photo } from '@/types'
 import { dark } from '@/utils'
@@ -49,7 +49,7 @@ export default fics({
               ${skeleton}
               <img
                 class="clickable mx-auto"
-                src="${api}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
+                src="${API_PATH}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
                 alt="the image created by ${author}"
                 key="${id}"
                 tabindex="0"
