@@ -74,7 +74,7 @@ export default fics({
         return template`
           <div key="${index}-container" draggable="true">
             <div
-              class="text-white p-3 cursor-grab" tabindex="0"
+              class="${id === userId ? 'text-red' : 'text-white'} p-3 cursor-grab" tabindex="0"
               aria-label="Move user id: ${id}"
               key="${id}-grid"
             >
