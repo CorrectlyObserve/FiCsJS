@@ -74,17 +74,17 @@ export default fics({
         return template`
           <div
             class="${draggingIndex === index ? 'pointer-events-none' : ''}"
-            key="${index}"
+            key="${index}-container"
             draggable="true"
           >
             <div
               class="text-white p-3 cursor-grab" tabindex="0"
               aria-label="Move user id: ${id}"
-              key="${index}-grid"
+              key="${id}-grid"
             >
               ${html(GripVertical)}
             </div>
-            <div class="clickable space-y-2" key="${id}" tabindex="0">
+            <div class="clickable space-y-2" key="${id}-user" tabindex="0">
               ${keys.map(
                 key => template`
                   <p class="text-base ${id === userId ? 'text-red' : 'text-white'}" key="${id}-${key}">
@@ -143,12 +143,10 @@ export default fics({
         drag.preventDefault()
         if (!drag.dataTransfer) return
 
-        const isHighlighted = getData('isHighlighted'),
-          highlightedZone = getData('highlightedZone')
-
+        const isHighlighted = getData('isHighlighted')
         let zoneIndex = parseInt(key)
 
-        if (!isHighlighted(highlightedZone, zoneIndex)) return
+        if (!isHighlighted(getData('highlightedZone'), zoneIndex)) return
 
         setData('highlightedZone', null)
 
@@ -177,10 +175,12 @@ export default fics({
         const drag = event as DragEvent
         if (!drag.dataTransfer) return
 
-        drag.dataTransfer.setData('text/plain', key)
+        const index = parseInt(key)
+
+        drag.dataTransfer.setData('text/plain', index.toString())
         drag.dataTransfer.effectAllowed = 'copyMove'
 
-        setData('draggingIndex', parseInt(key))
+        setData('draggingIndex', index)
       },
       dragover: [
         ({ setData, getData, event, attributes: { key } }) => {
