@@ -6,7 +6,9 @@ import type { Method, User } from '@/types'
 import { white } from '@/utils'
 import { GripVertical } from 'lucide-static'
 
-const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' },
+const classNames =
+    'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' as const,
+  headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' },
   USER_HEIGHT = '73.59px' as const
 
 export default fics({
@@ -66,7 +68,7 @@ export default fics({
       )}
     </div>
     <div class="w-fit mx-auto">
-      <div class="drop-zone ${isHighlighted(highlightedZone, -1) ? 'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' : 'h-4'}" key="-1"></div>
+      <div class="drop-zone ${isHighlighted(highlightedZone, -1) ? classNames : 'h-4'}" key="-1"></div>
       ${users.map((user, index) => {
         const { id } = user,
           keys = ['id', 'name', 'email'] as const
@@ -90,7 +92,7 @@ export default fics({
               )}
             </div>
           </div>
-          <div class="drop-zone ${isHighlighted(highlightedZone, index) ? 'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' : 'h-4'}" key="${index}"></div>
+          <div class="drop-zone ${isHighlighted(highlightedZone, index) ? classNames : 'h-4'}" key="${index}"></div>
         `
       })}
     </div>
