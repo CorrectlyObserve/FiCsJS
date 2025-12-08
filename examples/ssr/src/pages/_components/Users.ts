@@ -27,7 +27,7 @@ export default fics({
   },
   html: ({
     children: { button },
-    data: { methods, users, userId, draggingIndex, highlightedZone, isHighlighted },
+    data: { methods, users, userId, highlightedZone, isHighlighted },
     setData,
     crud,
     template,
@@ -72,11 +72,7 @@ export default fics({
           keys = ['id', 'name', 'email'] as const
 
         return template`
-          <div
-            class="${draggingIndex === index ? 'pointer-events-none' : ''}"
-            key="${index}-container"
-            draggable="true"
-          >
+          <div key="${index}-container" draggable="true">
             <div
               class="text-white p-3 cursor-grab" tabindex="0"
               aria-label="Move user id: ${id}"
@@ -150,34 +146,32 @@ export default fics({
 
         setData('highlightedZone', null)
 
-        zoneIndex++
-
         const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
-          droppedIndex = fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex,
           users = getData('users') as User[],
           user = users[fromIndex]
 
         if (!user) return
 
         const newUsers = [...users]
+        zoneIndex++
 
         if (drag.altKey) {
           const newUser = await crud<User>(API_PATH, {
-            method: 'POST',
-            body: JSON.stringify(user),
-            headers
-          })
+              method: 'POST',
+              body: JSON.stringify(user),
+              headers
+            }),
+            maxId = newUsers.reduce((max, { id }) => (id > max ? id : max), 0)
 
-          newUsers.splice(droppedIndex, 0, {
-            ...newUser,
-            id: newUsers.reduce((max, { id }) => (id > max ? id : max), 0) + 1
-          })
-          setData('users', newUsers)
-        } else if (fromIndex !== droppedIndex) {
+          newUsers.splice(zoneIndex, 0, { ...newUser, id: maxId + 1 })
+        } else {
+          if (fromIndex === zoneIndex || fromIndex === zoneIndex - 1) return
+
           newUsers.splice(fromIndex, 1)
-          newUsers.splice(droppedIndex, 0, user)
-          setData('users', newUsers)
+          newUsers.splice(fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex, 0, user)
         }
+
+        setData('users', newUsers)
       }
     },
     'div[draggable="true"]': {
