@@ -68,7 +68,8 @@ export default fics({
     <div class="w-fit mx-auto">
       <div class="drop-zone ${isHighlighted(highlightedZone, -1) ? 'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' : 'h-4'}" key="-1"></div>
       ${users.map((user, index) => {
-        const keys = ['id', 'name', 'email'] as const
+        const { id } = user,
+          keys = ['id', 'name', 'email'] as const
 
         return template`
           <div
@@ -78,20 +79,19 @@ export default fics({
           >
             <div
               class="text-white p-3 cursor-grab" tabindex="0"
-              aria-label="Move user id: ${user.id}"
+              aria-label="Move user id: ${id}"
               key="${index}-grid"
             >
               ${html(GripVertical)}
             </div>
-            <div class="clickable space-y-2" key="${user.id}" tabindex="0">
-              ${keys.map((key, _index) => {
-                const _key = keys[_index]
-                return template`
-                  <p class="text-base ${user.id === userId ? 'text-red' : 'text-white'}" key="${index}-${key}">
-                    ${_key.charAt(0).toUpperCase() + _key.slice(1)}: ${user[key]}
+            <div class="clickable space-y-2" key="${id}" tabindex="0">
+              ${keys.map(
+                key => template`
+                  <p class="text-base ${id === userId ? 'text-red' : 'text-white'}" key="${id}-${key}">
+                    ${key.charAt(0).toUpperCase() + key.slice(1)}: ${user[key]}
                   </p>
                 `
-              })}
+              )}
             </div>
           </div>
           <div class="drop-zone ${isHighlighted(highlightedZone, index) ? 'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' : 'h-4'}" key="${index}"></div>
