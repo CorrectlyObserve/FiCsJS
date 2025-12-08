@@ -138,7 +138,7 @@ export default fics({
 
         if (zoneIndex && zoneIndex === key) setData('highlightedZone', null)
       },
-      drop: ({ setData, getData, event, attributes: { key } }) => {
+      drop: async ({ setData, getData, crud, event, attributes: { key } }) => {
         const drag = event as DragEvent
         drag.preventDefault()
         if (!drag.dataTransfer) return
@@ -159,12 +159,22 @@ export default fics({
 
         if (!user) return
 
-        const isMoved = fromIndex !== droppedIndex
+        const newUsers = [...users]
 
-        if (drag.altKey || isMoved) {
-          const newUsers = [...users]
+        if (drag.altKey) {
+          const newUser = await crud<User>(API_PATH, {
+            method: 'POST',
+            body: JSON.stringify(user),
+            headers
+          })
 
-          if (!drag.altKey && isMoved) newUsers.splice(fromIndex, 1)
+          newUsers.splice(droppedIndex, 0, {
+            ...newUser,
+            id: newUsers.reduce((max, { id }) => (id > max ? id : max), 0) + 1
+          })
+          setData('users', newUsers)
+        } else if (fromIndex !== droppedIndex) {
+          newUsers.splice(fromIndex, 1)
           newUsers.splice(droppedIndex, 0, user)
           setData('users', newUsers)
         }
