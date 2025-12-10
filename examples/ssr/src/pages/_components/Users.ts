@@ -7,7 +7,7 @@ import { white } from '@/utils'
 import { GripVertical } from 'lucide-static'
 
 const classNames =
-    'dragged-over my-4 rounded-sm border border-dashed transition duration-200 ease-out' as const,
+    'dragged-over rounded-sm border border-dashed transition duration-200 ease-out' as const,
   headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' },
   USER_HEIGHT = '73.59px' as const
 
@@ -68,10 +68,15 @@ export default fics({
       )}
     </div>
     <div class="w-fit mx-auto">
-      <div class="drop-zone ${isHighlighted(highlightedZone, -1) ? classNames : 'h-4'}" key="-1"></div>
+      <div
+        class="drop-zone ${isHighlighted(highlightedZone, -1) ? `${classNames} my-4` : 'h-4'}"
+        key="-1"
+      ></div>
       ${users.map((user, index) => {
         const { id } = user,
-          keys = ['id', 'name', 'email'] as const
+          keys = ['id', 'name', 'email'] as const,
+          isLast = index === users.length - 1,
+          _isHighlighted = isHighlighted(highlightedZone, index)
 
         return template`
           <div key="${index}-container" draggable="true">
@@ -92,7 +97,11 @@ export default fics({
               )}
             </div>
           </div>
-          <div class="drop-zone ${isHighlighted(highlightedZone, index) ? classNames : 'h-4'}" key="${index}"></div>
+          <div
+            class="drop-zone ${_isHighlighted ? `${classNames} ${isLast ? 'mt-4' : 'my-4'}` : 'h-4'}"
+            key="${index}"
+            ${isLast && _isHighlighted ? `style="margin-bottom: ${USER_HEIGHT}"` : ''}
+          ></div>
         `
       })}
     </div>
@@ -141,10 +150,9 @@ export default fics({
         drag.preventDefault()
         if (!drag.dataTransfer) return
 
-        const isHighlighted = getData('isHighlighted')
         let zoneIndex = parseInt(key)
 
-        if (!isHighlighted(getData('highlightedZone'), zoneIndex)) return
+        if (!getData('isHighlighted')(getData('highlightedZone'), zoneIndex)) return
 
         setData('highlightedZone', null)
 
@@ -229,7 +237,7 @@ export default fics({
           if (targetZone && highlightedZone !== targetZone)
             setData('highlightedZone', targetZone as HTMLElement)
         },
-        { throttle: 500 }
+        { throttle: 200 }
       ],
       dragend: ({ setData, getData }) => {
         setData('draggingIndex', NaN)
