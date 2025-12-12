@@ -30,43 +30,19 @@ export default fics({
       values: ({ children: { userContent }, crud, setData }) => ({
         array: ({ getData }) => getData('users'),
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
-        drop:
+        getNewItem:
           ({ getData }) =>
-          async ({
-            fromIndex,
-            zoneIndex,
-            altKey
-          }: {
-            fromIndex: number
-            zoneIndex: number
-            altKey: boolean
-          }) => {
-            const users = getData('users') as User[],
-              user = users[fromIndex]
+          async (user: User) => {
+            const newUser = await crud<User>(API_PATH, {
+                method: 'POST',
+                body: JSON.stringify(user),
+                headers
+              }),
+              maxId = getData('users').reduce((max, { id }) => (id > max ? id : max), 0)
 
-            if (!user) return
-
-            const newUsers = [...users]
-            zoneIndex++
-
-            if (altKey) {
-              const newUser = await crud<User>(API_PATH, {
-                  method: 'POST',
-                  body: JSON.stringify(user),
-                  headers
-                }),
-                maxId = newUsers.reduce((max, { id }) => (id > max ? id : max), 0)
-
-              newUsers.splice(zoneIndex, 0, { ...newUser, id: maxId + 1 })
-            } else {
-              if (fromIndex === zoneIndex || fromIndex === zoneIndex - 1) return
-
-              newUsers.splice(fromIndex, 1)
-              newUsers.splice(fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex, 0, user)
-            }
-
-            setData('users', newUsers)
-          }
+            return { ...newUser, id: maxId + 1 }
+          },
+        updateArray: (newArray: User[]) => setData('users', newArray)
       })
     },
     {
