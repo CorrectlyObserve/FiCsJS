@@ -17,6 +17,8 @@ interface Props<T> {
   updateArray: (newArray: T[]) => void
 }
 
+const draggable = '[draggable="true"]' as const
+
 export default <T>() =>
   fics<Data, Props<T>>({
     name: 'draggable',
@@ -35,10 +37,10 @@ export default <T>() =>
 
         if (element.getAttribute('draggable') === 'true') return element
 
-        const draggable = element.closest('[draggable="true"]')
-        if (!draggable) return null
+        const draggableElement = element.closest(draggable)
+        if (!draggableElement) return null
 
-        return draggable as HTMLElement
+        return draggableElement as HTMLElement
       }
     }),
     html: ({ data: { droppedZone, isHighlighted }, props: { array, slot }, template }) => {
@@ -125,9 +127,12 @@ export default <T>() =>
           }
 
           updateArray(newArray)
+
+          const { activeElement } = document
+          if (activeElement instanceof HTMLElement) activeElement.blur()
         }
       },
-      'div[draggable="true"]': {
+      [`div${draggable}`]: {
         dragstart: ({ data: { getDraggableElement }, setData, event, attributes: { key } }) => {
           const drag = event as DragEvent
           if (!drag.dataTransfer) return
@@ -181,29 +186,58 @@ export default <T>() =>
           setData('draggingIndex', NaN)
           if (getData('droppedZone')) setData('droppedZone', null)
         },
-        click: ({ data: { getDraggableElement }, event }) => {
-          const element = getDraggableElement(event.target)
-          if (!element) return
+        click: [
+          ({ data: { getDraggableElement }, event }) => {
+            const element = getDraggableElement(event.target)
+            if (!element) return
 
-          element.focus()
-        },
-        keydown: async ({ props: { array, updateArray }, event, attributes: { key } }) => {
+            element.focus()
+          },
+          { throttle: 500 }
+        ],
+        keydown: async ({
+          data: { getDraggableElement },
+          props: { array, updateArray },
+          event,
+          attributes: { key }
+        }) => {
           const keyEvent = event as KeyboardEvent,
-            isArrowUp = keyEvent.key === 'ArrowUp'
+            isArrowUp = keyEvent.key === 'ArrowUp',
+            isArrowDown = keyEvent.key === 'ArrowDown'
 
-          if (!isArrowUp && keyEvent.key !== 'ArrowDown') return
+          if (!isArrowUp && !isArrowDown) return
           keyEvent.preventDefault()
 
           const fromIndex = parseInt(key),
             item: T = array[fromIndex]
 
-          if ((isArrowUp && fromIndex === 0) || !item) return
+          if (
+            (isArrowUp && fromIndex === 0) ||
+            (isArrowDown && fromIndex === array.length - 1) ||
+            !item
+          )
+            return
 
-          const newArray: T[] = [...array]
+          const newArray: T[] = [...array],
+            newIndex = fromIndex + (isArrowUp ? -1 : 1)
+
           newArray.splice(fromIndex, 1)
-          newArray.splice(isArrowUp ? fromIndex - 1 : fromIndex + 1, 0, item)
+          newArray.splice(newIndex, 0, item)
 
           updateArray(newArray)
+
+          const draggableElement = getDraggableElement(event.target)
+          if (!draggableElement) return
+
+          const root = draggableElement.getRootNode()
+          if (root instanceof ShadowRoot || root instanceof Document)
+            setTimeout(() => {
+              const selector = `div${draggable}[key="${newIndex}-slot"]`,
+                element = root.querySelector(selector) as HTMLElement | null
+
+              if (!element) return
+              element.focus()
+            })
         }
       }
     }
