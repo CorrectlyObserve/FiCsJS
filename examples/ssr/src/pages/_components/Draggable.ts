@@ -13,7 +13,8 @@ interface Data {
 interface Props<T> {
   array: T[]
   slot: (item: T, index: number) => ReturnType<typeof fics>
-  drop: (params: { fromIndex: number; zoneIndex: number; altKey: boolean }) => Promise<void> | void
+  getNewItem: (item: T) => T | Promise<T>
+  updateArray: (newArray: T[]) => void
 }
 
 export default <T>() =>
@@ -91,7 +92,7 @@ export default <T>() =>
         },
         drop: async ({
           data: { isHighlighted },
-          props: { drop },
+          props: { array, getNewItem, updateArray },
           setData,
           getData,
           event,
@@ -104,11 +105,26 @@ export default <T>() =>
           if (!isHighlighted(getData('droppedZone'), key)) return
 
           setData('droppedZone', null)
-          await drop({
-            fromIndex: parseInt(drag.dataTransfer.getData('text/plain')),
-            zoneIndex: parseInt(key),
-            altKey: drag.altKey
-          })
+
+          const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
+            item: T = array[fromIndex]
+
+          if (!item) return
+
+          const newArray: T[] = [...array]
+          let zoneIndex = parseInt(key)
+
+          zoneIndex++
+
+          if (drag.altKey) newArray.splice(zoneIndex, 0, await getNewItem(item))
+          else {
+            if (fromIndex === zoneIndex || fromIndex === zoneIndex - 1) return
+
+            newArray.splice(fromIndex, 1)
+            newArray.splice(fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex, 0, item)
+          }
+
+          updateArray(newArray)
         }
       },
       'div[draggable="true"]': {
@@ -165,15 +181,29 @@ export default <T>() =>
           setData('draggingIndex', NaN)
           if (getData('droppedZone')) setData('droppedZone', null)
         },
-        keydown: async ({ props: { drop }, event, attributes: { key } }) => {
-          const KeyEvent = event as KeyboardEvent,
-            isArrowUp = KeyEvent.key === 'ArrowUp'
+        click: ({ data: { getDraggableElement }, event }) => {
+          const element = getDraggableElement(event.target)
+          if (!element) return
 
-          if (!isArrowUp && KeyEvent.key !== 'ArrowDown') return
-          KeyEvent.preventDefault()
+          element.focus()
+        },
+        keydown: async ({ props: { array, updateArray }, event, attributes: { key } }) => {
+          const keyEvent = event as KeyboardEvent,
+            isArrowUp = keyEvent.key === 'ArrowUp'
 
-          const fromIndex = parseInt(key)
-          await drop({ fromIndex, zoneIndex: isArrowUp ? fromIndex - 1 : fromIndex, altKey: false })
+          if (!isArrowUp && keyEvent.key !== 'ArrowDown') return
+          keyEvent.preventDefault()
+
+          const fromIndex = parseInt(key),
+            item: T = array[fromIndex]
+
+          if ((isArrowUp && fromIndex === 0) || !item) return
+
+          const newArray: T[] = [...array]
+          newArray.splice(fromIndex, 1)
+          newArray.splice(isArrowUp ? fromIndex - 1 : fromIndex + 1, 0, item)
+
+          updateArray(newArray)
         }
       }
     }
