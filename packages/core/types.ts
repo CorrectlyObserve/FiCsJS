@@ -154,7 +154,7 @@ export interface PollingOptions {
 export interface Props<D, P> {
   descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: Omit<DataPropsMethods<D, P, true>, 'getData'> & {
+    params: Omit<DataPropsMethods<D, P, true>, 'getData'> & { children: Children } & {
       sendToWebsocket: (value: WebSocketValue) => void
     }
   ) =>
