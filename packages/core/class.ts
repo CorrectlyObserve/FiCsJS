@@ -1528,7 +1528,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 { rootMargin }
               )
 
-              setTimeout(() => observer.observe(this), 0)
+              setTimeout(() => observer.observe(this))
             } else this.#init()
 
             that.#callback('mounted')
