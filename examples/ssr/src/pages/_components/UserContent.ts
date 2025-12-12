@@ -16,13 +16,13 @@ export default fics<{}, { user: User; userId: number; click: (userId: number) =>
 
     return template`
       <div
-        class="${textColor} p-3 cursor-grab" tabindex="0"
+        class="${textColor} p-3 cursor-grab"
         aria-label="Move user id: ${id}"
         key="${id}-grid"
       >
         ${html(GripVertical)}
       </div>
-      <div class="clickable space-y-2" key="${id}-user" tabindex="0">
+      <div class="clickable space-y-2" key="${id}-user">
         ${(['id', 'name', 'email'] as (keyof User)[]).map(
           key => template`
             <p class="text-base ${textColor}" key="${id}-${key}">
