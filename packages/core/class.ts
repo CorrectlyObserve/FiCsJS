@@ -374,6 +374,55 @@ export default class FiCsElement<D extends object, P extends object> {
     return propsMap.get(instanceId ?? this.#instanceId) ?? []
   }
 
+  #removePublicMethod = (params: {
+    children?: Children
+    method: 'getChildren' | 'setIndividualProps'
+  }): void => {
+    const { method }: { method: 'getChildren' | 'setIndividualProps' } = params
+
+    for (const child of Object.values(params.children ?? this.#children)) {
+      if (Object.prototype.hasOwnProperty.call(child, method))
+        if (method === 'getChildren') delete (child as { getChildren?: () => Children }).getChildren
+        else if (method === 'setIndividualProps')
+          delete (
+            child as { setIndividualProps?: (key: string | number, props: P) => FiCsElement<D, P> }
+          ).setIndividualProps
+
+      this.#removePublicMethod({ children: child.#children, method })
+    }
+  }
+
+  #addSetIndividualProps = (): void => {
+    for (const child of Object.values(this.#children))
+      child.setIndividualProps = (key: string | number, props: P): FiCsElement<D, P> => {
+        const instanceId: string = `${child.#instanceId}-${key}`,
+          clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
+          cloneProps = (descendant: Descendant): Descendant => {
+            for (const [key, value] of Object.entries({ ...props }))
+              descendant.#setProps(key, value)
+
+            return descendant
+          }
+
+        if (clonedSelf) return cloneProps(clonedSelf)
+
+        const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
+          const cloned: Descendant = cloneProps(child.#clone(instanceId))
+
+          for (const [key, _child] of Object.entries(cloned.#children))
+            cloned.#children[key] = cloneRecursively(
+              _child,
+              `${_child.#instanceId}-in-${instanceId}`
+            )
+
+          child.#clonedSelves.set(instanceId, cloned)
+          return cloned
+        }
+
+        return cloneRecursively(child, instanceId)
+      }
+  }
+
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
     if (!(key in (isProps ? this.#props : this.#data)))
       throw new Error(
@@ -407,20 +456,21 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const [key, value] of entries(this.#instanceId))
           this.#props[key as keyof P] = value as P[keyof P]
 
-      for (const { descendant, values } of this.#propsSources) {
-        const addGetChildren = (children: Children): void => {
-          for (const child of Object.values(children)) {
-            child.getChildren = (): Children => child.#children
-            addGetChildren(child.getChildren())
-          }
+      const addGetChildren = (children: Children = this.#children): void => {
+        for (const child of Object.values(children)) {
+          child.getChildren = (): Children => child.#children
+          addGetChildren(child.getChildren())
         }
+      }
 
-        addGetChildren(this.#children)
-
+      for (const { descendant, values } of this.#propsSources) {
+        addGetChildren()
         const returned: SingleOrArray<Descendant> = descendant({ children: this.#children })
 
         for (const _descendant of Array.isArray(returned) ? returned : [returned]) {
           if (_descendant === undefined) continue
+
+          this.#removePublicMethod({ method: 'getChildren' })
 
           const sendToWebsocket = (value: WebSocketValue): void => {
               if (!this.#websocket) return
@@ -431,7 +481,11 @@ export default class FiCsElement<D extends object, P extends object> {
             instanceId: string = _descendant.#instanceId
 
           for (const [key, value] of Object.entries(
-            values({ ...this.#getDataPropsMethods(true), sendToWebsocket })
+            values({
+              ...this.#getDataPropsMethods(true),
+              children: this.#children,
+              sendToWebsocket
+            })
           )) {
             const chain: Partial<P> | undefined = propsChain.get(instanceId)
 
@@ -492,6 +546,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
       for (const [key, value] of propsChain) this.#propsChain.set(key, value)
 
+      this.#addSetIndividualProps()
+
       for (const ancestorId of ancestorIds) {
         const propsBindings: PropsBinding[] = this.#getPropsBindings(ancestorId)
 
@@ -514,6 +570,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         this.#ancestorIds.push(ancestorId)
       }
+
+      this.#removePublicMethod({ method: 'setIndividualProps' })
 
       this.#ancestorIds.push(this.#instanceId)
       this.#isInitialized = true
@@ -619,34 +677,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return converted as HtmlContent<D, P>[]
       }
 
-    for (const child of Object.values(this.#children))
-      child.setIndividualProps = (key: string | number, props: P): FiCsElement<D, P> => {
-        const instanceId: string = `${child.#instanceId}-${key}`,
-          clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
-          cloneProps = (descendant: Descendant): Descendant => {
-            for (const [key, value] of Object.entries({ ...props }))
-              descendant.#setProps(key, value)
-
-            return descendant
-          }
-
-        if (clonedSelf) return cloneProps(clonedSelf)
-
-        const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
-          const cloned: Descendant = cloneProps(child.#clone(instanceId))
-
-          for (const [key, _child] of Object.entries(cloned.#children))
-            cloned.#children[key] = cloneRecursively(
-              _child,
-              `${_child.#instanceId}-in-${instanceId}`
-            )
-
-          child.#clonedSelves.set(instanceId, cloned)
-          return cloned
-        }
-
-        return cloneRecursively(child, instanceId)
-      }
+    this.#addSetIndividualProps()
 
     const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods(),
       template: Syntaxes<D, P>['template'] = (
@@ -1152,9 +1183,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
 
       if (debounce && throttle)
-        throw new Error(
-          'Both "debounce" and "throttle" options cannot be used at the same time...'
-        )
+        throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
 
       const callback = (event: Event): void => {
         method({
@@ -1367,9 +1396,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const { debounce, throttle, once }: ActionOptions = options ?? {}
 
       if (debounce && throttle)
-        throw new Error(
-          'Both "debounce" and "throttle" options cannot be used at the same time...'
-        )
+        throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
 
       let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
         method({ ...getParams(), event })
