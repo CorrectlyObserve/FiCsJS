@@ -167,7 +167,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (this.#isBrowser) {
         const component: HTMLElement | null = document.getElementById(this.#name)
         if (component) {
-          const attr: string | null = component.getAttribute(`data-${this.#name}`)
+          const attr: string | null = component.getAttribute(`data-${this.#instanceId}`)
           if (attr) attrData = { ...JSON.parse(attr) }
         }
       }
@@ -1076,7 +1076,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (Array.isArray(style) && style[1] !== mode) continue
 
         if (mode === 'ssr' && selector.startsWith(host))
-          selector = selector.replace(host, this.#name)
+          selector = selector.replace(host, `div#${this.#instanceId}`)
 
         const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
           index: number = content.indexOf('{')
@@ -1632,8 +1632,11 @@ export default class FiCsElement<D extends object, P extends object> {
             (prev, [key, value]) => `${prev} ${key}="${value}"`,
             ''
           )}`.trim(),
-          slotAttrs = (name: string): string =>
-            `id="${name}" slot="${name}"${data ? ` data-${name}='${JSON.stringify(data)}'` : ''}`
+          slotAttrs = [
+            `id="${that.#instanceId}"`,
+            `slot="${that.#instanceId}"`,
+            `${data ? `data-${that.#instanceId}='${JSON.stringify(data)}'` : ''}`
+          ].join(' ')
 
         const applyDescendant = (html: string): string => {
           const varBegin: string = `<${varTag} ${ficsIdName}="`,
@@ -1703,7 +1706,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return `
           <${that.#name}${classNameAndAttrs.length ? ` ${classNameAndAttrs}` : ''}>
             <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
-            <div ${slotAttrs(that.#name)}>${html}${css([...globalCss(), ...that.#css])}</div>
+            <div ${slotAttrs}>${html}${css([...globalCss(), ...that.#css])}</div>
           </${that.#name}>
         `
       }
