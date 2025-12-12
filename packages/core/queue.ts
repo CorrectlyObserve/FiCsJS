@@ -64,7 +64,7 @@ const ids: Set<string> = new Set(),
         drainQueue()
         scheduleReRenders()
       }
-    }, 0)
+    })
   }
 
 export const enqueue = (task: Task): void => {
