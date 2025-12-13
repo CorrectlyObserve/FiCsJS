@@ -21,6 +21,9 @@ export const isObject = (param: unknown): param is Record<string, unknown> =>
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
+/**
+  @remarks The function ignores undefined values.
+*/
 export const numberError = (
   numbers: Record<string, number | undefined>,
   isPositiveRequired: boolean = true
