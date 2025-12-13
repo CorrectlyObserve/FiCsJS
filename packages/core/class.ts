@@ -295,7 +295,9 @@ export default class FiCsElement<D extends object, P extends object> {
           } catch (error) {
             if (timeoutId) clearTimeout(timeoutId)
             if (signal.aborted)
-              throw new Error(`The request to "${api}" timed out after ${timeout}ms...`)
+              throw new Error(
+                `The request to "${api}" ${timeout && timeout > 0 ? `timed out after ${timeout}ms` : 'was aborted'}...`
+              )
             if (maxRetry && attempt < maxRetry) {
               attempt++
               await new Promise(resolve => setTimeout(resolve, delay ?? 0))
