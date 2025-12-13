@@ -44,7 +44,8 @@ export const getDynamicPaths = (path: string, pathname?: string): Record<string,
 
       try {
         paths[names[index]] = decodeURIComponent(raw)
-      } catch {
+      } catch (error) {
+        console.warn(error)
         paths[names[index]] = raw
       }
     }
