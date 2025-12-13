@@ -1,11 +1,12 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { goto, queries } from 'ficsjs/router'
-import { absoluteCenter, oklch } from 'ficsjs/style'
+import { absoluteCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import Skeleton from '@/components/scroll/Skeleton'
-import { api, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import Skeleton from '@/pages/scroll/_components/Skeleton'
 import type { Photo } from '@/types'
+import { dark } from '@/utils'
 import { CircleX } from 'lucide-static'
 
 const PHOTO_SIZE = 200
@@ -48,7 +49,7 @@ export default fics({
               ${skeleton}
               <img
                 class="clickable mx-auto"
-                src="${api}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
+                src="${API_PATH}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
                 alt="the image created by ${author}"
                 key="${id}"
                 tabindex="0"
@@ -69,7 +70,7 @@ export default fics({
     dialog: {
       ...absoluteCenter('xy', 'fixed'),
       ...fadeInOut('0.2s ease-out'),
-      background: `${oklch('#282828', { opacity: 0.8 })}`,
+      background: dark(0.8),
       '.icon': { display: 'flex', justifyContent: 'end' }
     }
   },

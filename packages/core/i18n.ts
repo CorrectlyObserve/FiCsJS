@@ -2,39 +2,9 @@ import { normalizePath, toArray } from '../core/helpers'
 import type { SingleOrArray, Translations } from '../core/types'
 
 let _directory: string = ''
+
 const translationsCache: Map<string, Translations> = new Map(),
-  promiseCache: Map<string, Promise<Translations>> = new Map(),
-  getUrl = (lang: string): string => `${_directory}/${lang}.json`,
-  fetchTranslations = async (lang: string): Promise<Translations> => {
-    if (translationsCache.has(lang)) return translationsCache.get(lang)!
-    if (promiseCache.has(lang)) return promiseCache.get(lang)!
-
-    const promise: () => Promise<Translations> = async (): Promise<Translations> => {
-      try {
-        const url: string = getUrl(lang),
-          res: Response = await fetch(url)
-
-        if (!res.ok)
-          throw new Error(
-            `${res.status} ${res.statusText}: The request to load the ${url} was failed...`
-          )
-
-        const json: Translations = await res.json()
-
-        translationsCache.set(lang, json)
-        return json
-      } catch (error) {
-        throw error
-      } finally {
-        promiseCache.delete(lang)
-      }
-    }
-
-    const translations: Promise<Translations> = promise()
-
-    promiseCache.set(lang, translations)
-    return translations
-  }
+  promiseCache: Map<string, Promise<Translations>> = new Map()
 
 export const ficsI18n = (directory: string): void => {
   const normalized: string = normalizePath(directory)
@@ -58,9 +28,35 @@ export const i18n = async <T>({
 
   if (lang === '') throw new Error('The "lang" must be a non-empty string...')
 
-  const url: string = getUrl(lang),
+  const url: string = `${_directory}/${lang}.json`,
     keys: string[] = toArray(key),
-    translations: Translations = await fetchTranslations(lang)
+    fetchTranslations = async (lang: string): Promise<Translations> => {
+      if (translationsCache.has(lang)) return translationsCache.get(lang)!
+      if (promiseCache.has(lang)) return promiseCache.get(lang)!
+
+      const translations: Promise<Translations> = (async (): Promise<Translations> => {
+        try {
+          const res: Response = await fetch(url)
+
+          if (!res.ok)
+            throw new Error(
+              `${res.status} ${res.statusText}: The request to load the ${url} failed...`
+            )
+
+          const json: Translations = await res.json()
+
+          translationsCache.set(lang, json)
+          return json
+        } finally {
+          promiseCache.delete(lang)
+        }
+      })()
+
+      promiseCache.set(lang, translations)
+      return translations
+    }
+
+  const translations: Translations = await fetchTranslations(lang)
 
   if (keys.length === 0) return translations as T
 
@@ -68,7 +64,7 @@ export const i18n = async <T>({
   for (const _key of keys) _translations = _translations?.[_key] as Translations | undefined
 
   if (_translations === undefined)
-    throw new Error(`Key "${keys.join('.')}" does not exist in the ${url}...`)
+    throw new Error(`The key "${keys.join('.')}" does not exist in the ${url}...`)
 
   return _translations as T
 }

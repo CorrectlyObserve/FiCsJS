@@ -20,9 +20,23 @@ export type Children = Record<string, Descendant>
 
 export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
 
+export type Crud = {
+  <T>(api: string, options?: CrudOptions): Promise<T>
+  (api: string, options: CrudStreamOptions): Promise<void>
+}
+
 export interface CrudOptions extends RequestInit {
   key?: string
+  timeout?: number
+  maxRetry?: number
   delay?: number
+}
+
+export type CrudStreamOptions = CrudOptions & {
+  /**
+    @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
+  */
+  onChunk: (chunk: string, index: number) => void
 }
 
 export type Css<D, P> = CssContent<D, P> | GlobalCss
@@ -31,10 +45,9 @@ export interface CssContent<D, P> {
   [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
 }
 
-export type DataProps<D, P, B extends boolean = false> = {
-  data: D
-  props: P
-} & (B extends true ? { crud: { <T>(api: string, options?: CrudOptions): Promise<T> } } : {})
+export type DataProps<D, P, B extends boolean = false> = { data: D; props: P } & (B extends true
+  ? { crud: Crud }
+  : {})
 
 export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
   setData: <K extends keyof D>(key: K, value: D[K]) => void
@@ -124,9 +137,9 @@ export interface Options<D, P> {
   sse?: {
     path: string
     withCredentials?: boolean
-    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event; close: () => void }) => void
     onmessage?: SSEMethod<D, P>
-    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event }) => void
+    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
   }
 }
@@ -146,7 +159,7 @@ export interface PollingOptions {
 export interface Props<D, P> {
   descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: Omit<DataPropsMethods<D, P, true>, 'getData'> & {
+    params: Omit<DataPropsMethods<D, P, true>, 'getData'> & { children: Children } & {
       sendToWebsocket: (value: WebSocketValue) => void
     }
   ) =>
@@ -202,12 +215,12 @@ interface ScrollParams<D, P> {
 export type SingleOrArray<T> = T | T[]
 
 export type SSEMethod<D, P> = (
-  params: DataPropsMethods<D, P, true> & { event: MessageEvent }
+  params: DataPropsMethods<D, P, true> & { event: MessageEvent; close: () => void }
 ) => void
 
 export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
 
-interface StyleContent {
+export interface StyleContent {
   [key: string]: string | number | undefined | StyleContent
 }
 

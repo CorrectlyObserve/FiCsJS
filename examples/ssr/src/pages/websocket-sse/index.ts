@@ -1,7 +1,7 @@
 import { ficsCss } from 'ficsjs'
 import Link from '@/components/Link'
-import Tab from '@/components/websocket-sse/Tab'
-import Router from '@/components/websocket-sse/Router'
+import Tab from '@/pages/websocket-sse/_components/Tab'
+import Router from '@/pages/websocket-sse/_components/Router'
 import css from '@/.tailwindcss.txt'
 
 ficsCss(css)
