@@ -71,7 +71,7 @@ const cache: Map<string, Oklch> = new Map(),
 
     return hex
   },
-  parseOklch = (literal: string): Oklch => {
+  parseOklch = (literal: string): Oklch & { a: number } => {
     const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i),
       OKLCH_LITERAL = '"oklch(<lightness> <chroma> <hue>[/ <alpha>])"' as const
 
@@ -84,13 +84,14 @@ const cache: Map<string, Oklch> = new Map(),
         `The oklch() literal "${literal}" must contain at least three values (L C H) like ${OKLCH_LITERAL}...`
       )
 
-    let [l, c, h]: (string | number)[] = parts
+    let [l, c, h, a]: (string | number)[] = parts
     l = l.endsWith('%') ? parseFloat(l) / 100 : parseFloat(l)
     c = parseFloat(c)
     h = parseFloat(h)
+    a = a === undefined ? 1 : parseFloat(a)
 
-    numberError({ l, c, h }, false)
-    return { l, c, h }
+    numberError({ l, c, h, a }, false)
+    return { l, c, h, a }
   },
   alphaFromHex = (hex: string): number => {
     hex = hex.replace(/^#/, '').toLowerCase()
@@ -174,12 +175,13 @@ export default (
   }
 ): string => {
   const resolved: string = convertCssVar(color).trim()
-  let oklch: Oklch,
-    alpha: number = 1
+  let oklch: Oklch, alpha: number
 
   if (/^oklch\(/i.test(resolved)) {
-    oklch = parseOklch(resolved)
-    cache.set(cacheKey('oklch', resolved), oklch)
+    const { a, ...args } = parseOklch(resolved)
+    oklch = args
+    alpha = a
+    cache.set(cacheKey('oklch', resolved), args)
   } else {
     alpha = alphaFromHex(resolved)
     oklch = hexToOklch(resolved)
