@@ -1,20 +1,17 @@
 import FiCsElement from '../core/class'
 import { normalizePath } from '../core/helpers'
-import type { Descendant, Sanitized } from '../core/types'
+import type { Data, Descendant, Sanitized } from '../core/types'
 import CUSTOM_EVENT_NAME from './const'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
 import { getQueries, params } from './params'
 import type { FiCsRouter, Page, PageContent, RouterData } from './types'
 
-const setRouterData = <D extends object>(
-  setData: <K extends keyof RouterData<D>>(key: K, value: RouterData<D>[K]) => void,
-  pathname: string
-): void => {
+const setRouterData = <D extends object>(data: Data<RouterData<D>>, pathname: string): void => {
   const queries: Record<string, string> = getQueries()
 
-  setData('pathname', pathname as RouterData<D>['pathname'])
-  setData('queries', queries as RouterData<D>['queries'])
+  data.pathname.set(pathname as RouterData<D>['pathname'])
+  data.queries.set(queries as RouterData<D>['queries'])
   params.set('queries', queries)
 }
 
@@ -41,9 +38,8 @@ export default <D extends object>({
     props,
     className,
     attributes,
-    html: ({ data, template, setData, ...args }) => {
-      let { pathname } = data
-      pathname = normalizePath(pathname)
+    html: ({ data, template, ...args }) => {
+      const pathname = normalizePath(data.pathname.get() as string)
 
       const setContent = (): Sanitized<RouterData<D>, {}> => {
         const staticPages: Page<D>[] = [],
@@ -66,7 +62,7 @@ export default <D extends object>({
               )
 
             if (pathname !== redirectedPath) {
-              setData('pathname', redirectedPath as RouterData<D>['pathname'])
+              data.pathname.set(redirectedPath as RouterData<D>['pathname'])
               goto(redirect, { isWithoutHistory: true })
             }
 
@@ -88,16 +84,13 @@ export default <D extends object>({
 
           if (content) {
             const _content: Descendant | Sanitized<RouterData<D>, {}> = content({
-              data,
+              ...Object.fromEntries(
+                Object.keys(data).map(key => {
+                  const _key = key as keyof D
+                  return [_key, data[_key].get()]
+                })
+              ),
               template,
-              setData: <K extends keyof RouterData<D>>(key: K, value: RouterData<D>[K]) => {
-                if (key === 'pathname' || key === 'queries')
-                  throw new Error(
-                    `The "${key as string}" cannot be modified in the router component...`
-                  )
-
-                setData(key, value)
-              },
               ...args
             })
 
@@ -129,7 +122,7 @@ export default <D extends object>({
           }
 
         if (notFound) {
-          setData('pathname', '/404' as RouterData<D>['pathname'])
+          data.pathname.set('/404' as RouterData<D>['pathname'])
           params.set('dynamicPaths', {})
           goto('/404', { isWithoutHistory: true })
           return render(notFound)
@@ -141,21 +134,21 @@ export default <D extends object>({
     },
     css,
     hooks: {
-      created: ({ setData, ...args }) => {
-        hooks?.created?.({ setData, ...args })
-        setRouterData(setData, window.location.pathname)
+      created: ({ data, ...args }) => {
+        hooks?.created?.({ data, ...args })
+        setRouterData(data, window.location.pathname)
       },
-      mounted: ({ setData, ...args }) => {
-        hooks?.mounted?.({ setData, ...args })
+      mounted: ({ data, ...args }) => {
+        hooks?.mounted?.({ data, ...args })
 
-        const onPopState: () => void = (): void => setRouterData(setData, window.location.pathname)
+        const onPopState: () => void = (): void => setRouterData(data, window.location.pathname)
         const onCustomEvent: (event: Event) => void = (event): void => {
           const {
               detail: { href }
             }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
             { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
-          setRouterData(setData, pathname)
+          setRouterData(data, pathname)
         }
 
         window.addEventListener('popstate', onPopState)
