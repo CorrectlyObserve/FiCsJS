@@ -21,8 +21,8 @@ import type {
   CrudOptions,
   CrudStreamOptions,
   Css,
+  Data,
   DataProps,
-  DataPropsMethods,
   Descendant,
   FiCs,
   Html,
@@ -64,7 +64,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
   readonly #children: Children = {}
   readonly #isBrowser: boolean
-  readonly #data: D = {} as D
+  readonly #data: Data<D> = {} as Data<D>
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
@@ -172,8 +172,26 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (const [key, value] of Object.entries({ ...data(), ...attrData })) {
-        this.#data[key as keyof D] = value as D[keyof D]
+      for (let [key, value] of Object.entries({ ...data(), ...attrData })) {
+        const _key = key.trim() as keyof D,
+          _value = value as D[keyof D],
+          symbol: unique symbol = Symbol(`${this.#instanceId}-${key}`)
+
+        this.#data[_key] = {
+          [symbol]: _value,
+          set: <K extends keyof D>(value: D[K]): void => {
+            if (this.#nameKey === 'router' && (_key === 'pathname' || _key === 'queries'))
+              throw new Error(
+                `The "${_key as string}" cannot be modified in the router component...`
+              )
+
+            this.#internalSetData(_key, value)
+          },
+          get: <K extends keyof D>(): D[K] => {
+            this.#throwKeyError(_key)
+            return this.#data[_key][symbol] as D[K]
+          }
+        }
 
         if ((deferredData || i18nData) && this.#isBrowser) {
           this.#isDeferred = false
@@ -219,7 +237,13 @@ export default class FiCsElement<D extends object, P extends object> {
       instanceId: instanceId ?? this.#instanceId,
       componentId: this.#componentId,
       children: Object.values(this.#children),
-      data: () => this.#data,
+      data: () =>
+        Object.fromEntries(
+          Object.keys(this.#data).map(key => {
+            const _key = key as keyof D
+            return [_key, this.#data[_key].get()]
+          })
+        ) as Partial<D>,
       deferredData: this.#deferredData,
       i18nData: this.#i18nData,
       props: this.#propsSources,
@@ -234,18 +258,22 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  get #dataProps(): DataProps<D, P> {
-    return { data: { ...this.#data }, props: { ...this.#props } }
+  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
+    return {
+      data: { ...this.#data },
+      props: { ...this.#props },
+      crud: isCrud ? this.#bindCrud : undefined
+    } as DataProps<D, P, B>
   }
 
   #internalSetData<K extends keyof D>(key: K, value: D[K], isInRerendering?: boolean): void {
-    if (this.#data[key] !== value) {
-      this.#data[key] = value
+    if (this.#data[key].get() !== value) {
+      this.#data[key].set(value)
 
       for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
         if (typeof key === 'string' && propsKeys[key]) setProps(propsValue())
 
-      const { data, ...args }: DataPropsMethods<D, P, true> = this.#getDataPropsMethods(true),
+      const { data, ...args }: DataProps<D, P, true> = this.#getDataProps(true),
         updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
 
       if (updated && key in updated) {
@@ -363,16 +391,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#crud.bind(this) as Crud
   }
 
-  #getDataPropsMethods<B extends boolean = false>(isCrud?: B): DataPropsMethods<D, P, B> {
-    const base: DataPropsMethods<D, P> = {
-      ...this.#dataProps,
-      setData: <K extends keyof D>(key: K, value: D[K]): void => this.#internalSetData(key, value),
-      getData: <K extends keyof D>(key: K): D[K] => this.getData(key)
-    }
-
-    return (isCrud ? { ...base, crud: this.#bindCrud } : base) as DataPropsMethods<D, P, B>
-  }
-
   #getPropsBindings(instanceId?: string): PropsBinding[] {
     return propsMap.get(instanceId ?? this.#instanceId) ?? []
   }
@@ -485,7 +503,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const [key, value] of Object.entries(
             values({
-              ...this.#getDataPropsMethods(true),
+              ...this.#getDataProps(true),
               children: this.#children,
               sendToWebsocket
             })
@@ -585,7 +603,9 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!this.#classNames) return ''
 
     const classNames: string =
-      typeof this.#classNames === 'function' ? this.#classNames(this.#dataProps) : this.#classNames
+      typeof this.#classNames === 'function'
+        ? this.#classNames(this.#getDataProps())
+        : this.#classNames
 
     return classNames.trim()
   }
@@ -607,7 +627,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const attrs: [string, string][] = []
     for (const [key, value] of Object.entries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#dataProps) : this.#attrs
+      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
     ))
       attrs.push([key.trim(), value.trim()])
 
@@ -682,17 +702,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#addSetIndividualProps()
 
-    const { data, props, setData }: DataPropsMethods<D, P> = this.#getDataPropsMethods(),
-      template: Syntaxes<D, P>['template'] = (
-        strings: TemplateStringsArray,
-        ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+    const template: Syntaxes<D, P>['template'] = (
+      strings: TemplateStringsArray,
+      ...variables: (HtmlContent<D, P> | unknown)[]
+    ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
 
     const contents: HtmlContent<D, P>[] = this.#html({
+      ...this.#getDataProps(),
       children: this.#children,
-      data,
-      props,
-      setData,
       crud: this.#bindCrud,
       template: (
         strings: TemplateStringsArray,
@@ -1052,7 +1069,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     let topLevelCss: string = ''
     const convertCssContent = (style: Style<D, P>): string =>
-      Object.entries(typeof style === 'function' ? style(this.#dataProps) : style).reduce(
+      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (value === undefined || value === '' || isBlankObject(value)) return prev
 
@@ -1190,7 +1207,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const callback = (event: Event): void => {
         method({
-          ...this.#getDataPropsMethods(true),
+          ...this.#getDataProps(true),
           event,
           attributes: attrs,
           value:
@@ -1253,7 +1270,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (lastChild) {
           const intersectionObserver: IntersectionObserver = new IntersectionObserver(
             async ([{ isIntersecting }]) => {
-              if (isIntersecting) method(this.#getDataPropsMethods(true))
+              if (isIntersecting) method(this.#getDataProps(true))
             },
             { rootMargin }
           )
@@ -1300,7 +1317,7 @@ export default class FiCsElement<D extends object, P extends object> {
             protocols
           ),
           params: () => Omit<WebSocketParams<D, P>, 'event'> = () => ({
-            ...this.#getDataPropsMethods(true),
+            ...this.#getDataProps(true),
             websocket: {
               send: _websocket.send.bind(_websocket),
               readyState: () => _websocket.readyState,
@@ -1379,8 +1396,8 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const { handler, callback } of listeners)
           eventSource.removeEventListener(handler, callback)
       },
-      getParams = (): DataPropsMethods<D, P, true> & { close: () => void } => ({
-        ...this.#getDataPropsMethods(true),
+      getParams = (): DataProps<D, P, true> & { close: () => void } => ({
+        ...this.#getDataProps(true),
         close: () => {
           removeEventListeners()
           eventSource.close()
@@ -1445,8 +1462,8 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#poll = execute
         }
 
-      this.#hooks[key]({ ...this.#getDataPropsMethods(true), poll })
-    } else this.#hooks[key](this.#getDataPropsMethods(true))
+      this.#hooks[key]({ ...this.#getDataProps(true), poll })
+    } else this.#hooks[key](this.#getDataProps(true))
   }
 
   #define(): void {
@@ -1474,14 +1491,14 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#enqueue(async () => {
               if (that.#deferredData)
                 for (const [key, value] of Object.entries(
-                  await that.#deferredData({ ...that.#dataProps, crud: that.#bindCrud })
+                  await that.#deferredData(that.#getDataProps(true))
                 ))
                   that.#internalSetData(key as keyof D, value as D[keyof D])
 
               if (that.#i18nData)
                 for (const [key, value] of Object.entries(
                   await that.#i18nData({
-                    ...that.#dataProps,
+                    ...that.#getDataProps(),
                     i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
                       i18n<T>({ lang, key })
                   })
@@ -1566,13 +1583,13 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#i18nData)
       for (const [key, value] of Object.entries(
         await this.#i18nData({
-          ...this.#dataProps,
+          ...this.#getDataProps(),
           i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
             i18n<T>({ lang, key })
         })
       )) {
         const _key: keyof D = key as keyof D
-        if (this.#data[_key] !== value) this.#internalSetData(_key, value as D[keyof D], true)
+        if (this.#data[_key].get() !== value) this.#internalSetData(_key, value as D[keyof D], true)
       }
 
     if (!isOnlyHtml) {
@@ -1739,6 +1756,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
   getData<K extends keyof D>(key: K): D[K] {
     this.#throwKeyError(key)
-    return this.#data[key]
+    return this.#data[key].get()
   }
 }
