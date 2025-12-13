@@ -142,7 +142,9 @@ const cache: Map<string, Oklch> = new Map(),
     const rawKey: string = cacheKey('hex', hex)
     if (cache.has(rawKey)) return cache.get(rawKey)!
 
-    const key: string = cacheKey('hex', normalizeHex(convertCssVar(hex)))
+    const normalizedHex: string = normalizeHex(convertCssVar(hex)),
+      key: string = cacheKey('hex', normalizedHex)
+
     if (cache.has(key)) return cache.get(key)!
 
     const rgb: Rgb = hexToRgb(key),
