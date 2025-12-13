@@ -307,7 +307,7 @@ export default class FiCsElement<D extends object, P extends object> {
       })()
 
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}: The request failed...`)
-      if (res.status === 204) throw new Error('The response content is empty...')
+      if (res.status === 204) return
 
       const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
         isJson: boolean = contentType.startsWith('application/json'),
