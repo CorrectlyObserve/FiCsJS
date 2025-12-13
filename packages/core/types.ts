@@ -179,8 +179,7 @@ export interface PropsBinding {
   numberId: number
   propsKeys: Record<string, true>
   propsKey: string
-  propsValue: () => unknown
-  setProps: (value: unknown) => void
+  setProps: () => void
 }
 
 export type PropsChain<P> = Map<string, Partial<P>>
