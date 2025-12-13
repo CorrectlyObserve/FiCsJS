@@ -52,14 +52,13 @@ const cache: Map<string, Oklch> = new Map(),
     )
   },
   normalizeHex = (hex: string): string => {
-    hex = hex.replace(/^#/, '').toLowerCase()
-
     const HEX = 'hex:' as const,
       OKLCH = 'oklch:' as const
 
     if (hex.startsWith(HEX)) hex = hex.slice(HEX.length)
     else if (hex.startsWith(OKLCH)) hex = hex.slice(OKLCH.length)
 
+    hex = hex.replace(/^#/, '').toLowerCase()
     const { length }: { length: number } = hex
 
     if (![3, 4, 6, 8].some(_length => length === _length) || !/^[a-f\d]+$/.test(hex))
