@@ -149,7 +149,7 @@ const cache: Map<string, Oklch> = new Map(),
 
     if (cache.has(key)) return cache.get(key)!
 
-    const rgb: Rgb = hexToRgb(key),
+    const rgb: Rgb = hexToRgb(normalizedHex),
       oklch: Oklch = rgbToOklch(rgb)
 
     for (const [key, decimalPlace] of Object.entries({ l: 4, c: 4, h: 2 })) {
