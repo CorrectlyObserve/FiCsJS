@@ -47,8 +47,6 @@ export const i18n = async <T>({
 
           translationsCache.set(lang, json)
           return json
-        } catch (error) {
-          throw error
         } finally {
           promiseCache.delete(lang)
         }
