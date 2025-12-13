@@ -33,10 +33,12 @@ const cache: Map<string, Oklch> = new Map(),
         .getPropertyValue(`--${name}`)
         .trim()
 
-    if (seen.has(name))
+    if (seen.has(name)) {
+      const cycle: string = [...seen, name].map(_name => `--${_name}`).join(' -> ')
       throw new Error(
-        `A circular CSS variable reference was detected for "--${name}" while resolving "${str}"...`
+        `A circular CSS variable reference was detected (${cycle}) while resolving "${str}"...`
       )
+    }
 
     seen.add(name)
 
