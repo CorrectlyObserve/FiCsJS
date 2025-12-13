@@ -8,7 +8,9 @@ export const $tasks = createPersistentState<Task[]>([])
 
 let setQueue: Promise<Task[]> = Promise.resolve([])
 const enqueue = (task: () => Promise<Task[]>): Promise<Task[]> => {
-    setQueue = setQueue.then(task, task)
+    setQueue = setQueue.then(task, error => {
+      throw error
+    })
     return setQueue
   },
   mutateTasks = async (mutate: (tasks: Task[], timestamp: number) => void): Promise<Task[]> => {
