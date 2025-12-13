@@ -1,10 +1,9 @@
 import type {
   Actions,
   Attrs,
-  Children,
   ClassName,
   CssContent,
-  DataPropsMethods,
+  DataProps,
   Descendant,
   Hooks,
   OptionParams,
@@ -15,8 +14,7 @@ import type {
 } from '../core/types'
 
 export type Content<D extends object, P extends object> = (
-  syntaxes: Omit<DataPropsMethods<D, P>, 'props' | 'getData'> &
-    Syntaxes<D, P> & { children: Children }
+  syntaxes: DataProps<D, P>['data'] & Syntaxes<D, P>
 ) => Descendant | Sanitized<D, P>
 
 export interface FiCsLink<P extends object> {
