@@ -116,6 +116,8 @@ export default <T>() =>
           const newArray: T[] = [...array]
           let zoneIndex = parseInt(key)
 
+          if (!Number.isFinite(zoneIndex)) throw new Error(`${key} is not a valid value...`)
+
           zoneIndex++
 
           if (drag.altKey) newArray.splice(zoneIndex, 0, await getNewItem(item))
