@@ -32,7 +32,12 @@ export interface CrudOptions extends RequestInit {
   delay?: number
 }
 
-export type CrudStreamOptions = CrudOptions & { onChunk: (chunk: string, index: number) => void }
+export type CrudStreamOptions = CrudOptions & {
+  /**
+    @warning The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
+  */
+  onChunk: (chunk: string, index: number) => void
+}
 
 export type Css<D, P> = CssContent<D, P> | GlobalCss
 
