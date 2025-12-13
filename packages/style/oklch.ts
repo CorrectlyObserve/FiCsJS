@@ -1,7 +1,7 @@
 import { browserError, numberError } from '../core/helpers'
 import { Lms, Oklab, Oklch, Rgb, Vector, Wave } from './types'
 
-const CSS_VAR: RegExp = /^var\(\s*--([^,)]*)\s*(?:,\s*([^)]*))?\s*\)$/,
+const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   MAX = 255 as const,
   THRESHOLD = 0.04045 as const,
   DIVISOR = 12.92 as const,
