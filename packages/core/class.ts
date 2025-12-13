@@ -270,8 +270,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (this.#data[key].get() !== value) {
       this.#data[key].set(value)
 
-      for (const { propsKeys, propsValue, setProps } of this.#getPropsBindings())
-        if (typeof key === 'string' && propsKeys[key]) setProps(propsValue())
+      for (const { propsKeys, setProps } of this.#getPropsBindings())
+        if (typeof key === 'string' && propsKeys[key]) setProps()
 
       const { data, ...args }: DataProps<D, P, true> = this.#getDataProps(true),
         updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
@@ -517,7 +517,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 _value: P[keyof P] = value({
                   getData: <K extends keyof D>(_key: K): D[K] => {
                     if (key !== _key) propsKeys[_key as string] = true
-                    return this.getData(_key)
+                    return this.#data[_key].get()
                   }
                 })
 
@@ -534,9 +534,8 @@ export default class FiCsElement<D extends object, P extends object> {
                   numberId: parseInt(instanceId.slice(start, end === -1 ? undefined : end)),
                   propsKeys,
                   propsKey: key,
-                  propsValue: () =>
-                    value({ getData: <K extends keyof D>(_key: K): D[K] => this.getData(_key) }),
-                  setProps: (value: unknown) => {
+                  setProps: () => {
+                    const value: D[keyof D] = this.#data[key as keyof D].get()
                     _descendant.#setProps(key, value)
 
                     for (const clonedInstance of _descendant.#clonedSelves.values())
@@ -583,7 +582,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   ...args,
                   instanceId: child.#instanceId,
                   propsKey,
-                  setProps: (value: unknown) => child.#setProps(propsKey, value)
+                  setProps: () => child.#setProps(propsKey, this.#data[propsKey as keyof D].get())
                 },
                 ...propsBindings.slice(_index)
               ])
