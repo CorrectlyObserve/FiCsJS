@@ -41,7 +41,7 @@ export default class State<S> {
       try {
         subscriber()
       } catch (error) {
-        console.error('The state subscriber threw an error:', error)
+        throw error
       }
   }
 

@@ -6,109 +6,83 @@ import { getTimestamp } from '@/utils/others'
 export const $lang = createState<Lang>('en')
 export const $tasks = createPersistentState<Task[]>([])
 
+let setQueue: Promise<Task[]> = Promise.resolve([])
+const enqueue = (task: () => Promise<Task[]>): Promise<Task[]> => {
+    setQueue = setQueue.then(task, error => {
+      throw error
+    })
+    return setQueue
+  },
+  mutateTasks = async (mutate: (tasks: Task[], timestamp: number) => void): Promise<Task[]> => {
+    const tasks: Task[] = [...(await getAllTasks())]
+
+    mutate(tasks, getTimestamp())
+    await $tasks.set(tasks)
+    return tasks
+  },
+  mutateTask = (id: number, mutate: (task: Task, timestamp: number) => void): Promise<Task[]> =>
+    mutateTasks((tasks, timestamp) => {
+      const task: Task | undefined = getTask(tasks, id)
+
+      if (!task) throw new Error(`The task with ID:${id} is not found...`)
+      mutate(task, timestamp)
+    })
+
 export const getAllTasks = async (): Promise<Task[]> => await $tasks.get()
 
-export const addTask = async (title: string): Promise<Task[]> => {
-  try {
-    const tasks: Task[] = await getAllTasks(),
-      timestamp: number = getTimestamp(),
-      newTask: Task = {
+export const addTask = async (title: string): Promise<Task[]> =>
+  enqueue(() =>
+    mutateTasks((tasks, timestamp) =>
+      tasks.push({
         id: timestamp,
         title,
         description: '',
         createdAt: timestamp,
         updatedAt: timestamp,
         completedAt: undefined
-      }
+      })
+    )
+  )
 
-    tasks.push(newTask)
-    await $tasks.set(tasks)
-    return tasks
-  } catch (error) {
-    throw new Error((error as Error).message)
-  }
-}
-
-export const getTask = async (tasks: Task[], id: number): Promise<Task | undefined> =>
+export const getTask = (tasks: Task[], id: number): Task | undefined =>
   tasks.find(task => task.id === id)
-
-const searchTask = async (tasks: Task[], id: number): Promise<Task> => {
-  const task: Task | undefined = await getTask(tasks, id)
-
-  if (!task) throw new Error(`The task with id:${id} is not found...`)
-  return task
-}
 
 export const updateTask = async ({
   id,
   title,
   description,
   completedAt
-}: {
-  id: number
-  title: string
-  description: string
-  completedAt: number | undefined
-}): Promise<Task[]> => {
-  try {
-    const tasks: Task[] = await getAllTasks(),
-      task: Task | undefined = await searchTask(tasks, id),
-      timestamp: number = getTimestamp()
+}: Omit<Task, 'createdAt' | 'updatedAt'>): Promise<Task[]> =>
+  enqueue(() =>
+    mutateTask(id, (task, timestamp) => {
+      task.title = title
+      task.description = description
+      task.updatedAt = timestamp
+      task.completedAt = completedAt ? timestamp : undefined
+    })
+  )
 
-    task.title = title
-    task.description = description
-    task.updatedAt = timestamp
-    task.completedAt = completedAt ? timestamp : undefined
+export const completeTask = async (id: number): Promise<Task[]> =>
+  enqueue(() =>
+    mutateTask(id, (task, timestamp) => {
+      task.updatedAt = timestamp
+      task.completedAt = timestamp
+    })
+  )
 
-    await $tasks.set(tasks)
-    return tasks
-  } catch (error) {
-    throw new Error((error as Error).message)
-  }
-}
+export const revertTask = async (id: number): Promise<Task[]> =>
+  enqueue(() =>
+    mutateTask(id, (task, timestamp) => {
+      task.updatedAt = timestamp
+      task.completedAt = undefined
+    })
+  )
 
-export const completeTask = async (id: number): Promise<Task[]> => {
-  try {
-    const tasks: Task[] = await getAllTasks(),
-      task: Task | undefined = await searchTask(tasks, id),
-      timestamp: number = getTimestamp()
-
-    task.updatedAt = timestamp
-    task.completedAt = timestamp
-
-    await $tasks.set(tasks)
-    return tasks
-  } catch (error) {
-    throw new Error((error as Error).message)
-  }
-}
-
-export const revertTask = async (id: number): Promise<Task[]> => {
-  try {
-    const tasks: Task[] = await getAllTasks(),
-      task: Task | undefined = await searchTask(tasks, id)
-
-    task.updatedAt = getTimestamp()
-    task.completedAt = undefined
-
-    await $tasks.set(tasks)
-    return tasks
-  } catch (error) {
-    throw new Error((error as Error).message)
-  }
-}
-
-export const deleteTask = async (id: number): Promise<Task[]> => {
-  try {
-    const tasks: Task[] = await getAllTasks(),
-      taskIndex = tasks.findIndex(task => task.id === id)
-
-    if (taskIndex === -1) throw new Error(`The task with id:${id} is not found...`)
-
-    tasks.splice(taskIndex, 1)
-    await $tasks.set(tasks)
-    return tasks
-  } catch (error) {
-    throw new Error((error as Error).message)
-  }
-}
+export const deleteTask = async (id: number): Promise<Task[]> =>
+  enqueue(() =>
+    mutateTasks(tasks => {
+      const taskIndex = tasks.findIndex(task => task.id === id)
+      if (taskIndex === -1) throw new Error(`The task with ID:${id} is not found...`)
+      tasks.splice(taskIndex, 1)
+    })
+  )
