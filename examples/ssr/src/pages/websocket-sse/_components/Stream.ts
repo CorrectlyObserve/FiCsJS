@@ -4,7 +4,8 @@ import Icon from '@/components/Icon'
 import { API_PATHS, dark } from '@/utils'
 import { RefreshCcw } from 'lucide-static'
 
-let streamSession = 0
+let streamSession = 0,
+  streamAbortController: AbortController | null
 
 export default fics({
   name: 'stream',
@@ -52,6 +53,9 @@ export default fics({
     updated: {
       isAccumulated: ({ data: { isAccumulated }, setData, getData, crud }) => {
         if (isAccumulated) {
+          if (streamAbortController) streamAbortController.abort()
+          streamAbortController = new AbortController()
+
           let buffer = ''
           const currentSession = ++streamSession
 
