@@ -93,9 +93,16 @@ const cache: Map<string, Oklch> = new Map(),
   },
   alphaFromHex = (hex: string): number => {
     hex = hex.replace(/^#/, '').toLowerCase()
-    if (hex.length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
+    const { length }: { length: number } = hex
 
-    return hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / MAX : 1
+    if (![3, 4, 6, 8].some(_length => length === _length) || !/^[a-f\d]+$/.test(hex))
+      throw new Error(
+        `The HEX color "${hex}" is invalid; expected 3, 4, 6, or 8 hexadecimal digits...`
+      )
+
+    if (length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
+
+    return length === 4 || length === 8 ? parseInt(hex.slice(6, 8), 16) / MAX : 1
   },
   toLinearSRgb = (c: number): number => {
     const v: number = c / MAX
