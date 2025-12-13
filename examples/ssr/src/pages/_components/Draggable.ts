@@ -1,0 +1,246 @@
+import { fics } from 'ficsjs'
+import { oklch } from 'ficsjs/style'
+import { white } from '@/utils'
+
+interface Data {
+  droppedZone: HTMLElement | null
+  isHighlighted: (droppedZone: HTMLElement | null, zoneIndex: string | number) => boolean
+  draggingIndex: number
+  height: number
+  getDraggableElement: (target: EventTarget | null) => HTMLElement | null
+}
+
+interface Props<T> {
+  array: T[]
+  slot: (item: T, index: number) => ReturnType<typeof fics>
+  getNewItem: (item: T) => T | Promise<T>
+  updateArray: (newArray: T[]) => void
+}
+
+const draggable = '[draggable="true"]' as const
+
+export default <T>() =>
+  fics<Data, Props<T>>({
+    name: 'draggable',
+    data: () => ({
+      droppedZone: null,
+      isHighlighted: (droppedZone: HTMLElement | null, zoneIndex: string | number) => {
+        if (typeof zoneIndex === 'number') zoneIndex = zoneIndex.toString()
+        return droppedZone?.getAttribute('key') === zoneIndex
+      },
+      draggingIndex: NaN,
+      height: 0,
+      getDraggableElement: (target: EventTarget | null) => {
+        if (!target) return null
+
+        const element = target as HTMLElement
+
+        if (element.getAttribute('draggable') === 'true') return element
+
+        const draggableElement = element.closest(draggable)
+        if (!draggableElement) return null
+
+        return draggableElement as HTMLElement
+      }
+    }),
+    html: ({ data: { droppedZone, isHighlighted }, props: { array, slot }, template }) => {
+      const base =
+          'dragged-over rounded-sm border border-dashed transition duration-200 ease-out' as const,
+        dropZone = (zoneIndex: number, classNames: string) => template`
+          <div
+            class="drop-zone ${isHighlighted(droppedZone, zoneIndex) ? `${base} ${classNames}` : 'h-4'}"
+            key="${zoneIndex}"
+          ></div>
+        `
+
+      return template`
+        ${dropZone(-1, 'my-4')}
+        ${array.map((item, index) => {
+          const isLast = index === array.length - 1,
+            classNames = isLast
+              ? isHighlighted(droppedZone, index)
+                ? 'mt-4 mb-height'
+                : 'mt-4'
+              : 'my-4'
+
+          return template`
+            <div key="${index}-slot" draggable="true" tabindex="0">${slot(item, index)}</div>
+            ${dropZone(index, classNames)}
+          `
+        })}
+      `
+    },
+    css: {
+      div: ({ data: { height } }) => ({
+        '&.dragged-over': {
+          height: `${height}px`,
+          background: white(0.05),
+          borderColor: oklch('#4169e1')
+        },
+        '&.mb-height': { marginBottom: `${height}px` }
+      })
+    },
+    actions: {
+      'div.drop-zone': {
+        dragover: ({ event }) => {
+          const drag = event as DragEvent
+          drag.preventDefault()
+
+          if (!drag.dataTransfer) return
+          drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
+        },
+        dragleave: ({ data: { isHighlighted }, setData, getData, attributes: { key } }) => {
+          if (isHighlighted(getData('droppedZone'), key)) setData('droppedZone', null)
+        },
+        drop: async ({
+          data: { isHighlighted },
+          props: { array, getNewItem, updateArray },
+          setData,
+          getData,
+          event,
+          attributes: { key }
+        }) => {
+          const drag = event as DragEvent
+          drag.preventDefault()
+          if (!drag.dataTransfer) return
+
+          if (!isHighlighted(getData('droppedZone'), key)) return
+
+          setData('droppedZone', null)
+
+          const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
+            item: T = array[fromIndex]
+
+          if (!item) return
+
+          const newArray: T[] = [...array]
+          let zoneIndex = parseInt(key)
+
+          if (!Number.isFinite(zoneIndex)) throw new Error(`${key} is not a valid value...`)
+
+          zoneIndex++
+
+          if (drag.altKey) newArray.splice(zoneIndex, 0, await getNewItem(item))
+          else {
+            if (fromIndex === zoneIndex || fromIndex === zoneIndex - 1) return
+
+            newArray.splice(fromIndex, 1)
+            newArray.splice(fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex, 0, item)
+          }
+
+          updateArray(newArray)
+
+          const { activeElement } = document
+          if (activeElement instanceof HTMLElement) activeElement.blur()
+        }
+      },
+      [`div${draggable}`]: {
+        dragstart: ({ data: { getDraggableElement }, setData, event, attributes: { key } }) => {
+          const drag = event as DragEvent
+          if (!drag.dataTransfer) return
+
+          const index = parseInt(key)
+
+          drag.dataTransfer.setData('text/plain', index.toString())
+          drag.dataTransfer.effectAllowed = 'copyMove'
+
+          setData('draggingIndex', index)
+
+          const { offsetHeight } = getDraggableElement(event.target) || {}
+          setData('height', offsetHeight || 0)
+        },
+        dragover: [
+          ({ data: { getDraggableElement }, setData, getData, event, attributes: { key } }) => {
+            const drag = event as DragEvent
+            drag.preventDefault()
+            if (!drag.dataTransfer) return
+
+            drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
+
+            const draggableElement = getDraggableElement(event.target)
+            if (!draggableElement) return
+
+            const index = parseInt(key),
+              { top, height } = draggableElement.getBoundingClientRect(),
+              isAfter = drag.clientY > top + height / 2,
+              draggingIndex = getData('draggingIndex'),
+              droppedZone = getData('droppedZone')
+
+            if (
+              !drag.altKey &&
+              ((index === draggingIndex - 1 && isAfter) ||
+                (index === draggingIndex + 1 && !isAfter) ||
+                index === draggingIndex)
+            ) {
+              if (droppedZone) setData('droppedZone', null)
+              return
+            }
+
+            const sibling = draggableElement[`${isAfter ? 'next' : 'previous'}ElementSibling`],
+              targetZone = sibling && sibling.classList.contains('drop-zone') ? sibling : null
+
+            if (targetZone && droppedZone !== targetZone)
+              setData('droppedZone', targetZone as HTMLElement)
+          },
+          { throttle: 200 }
+        ],
+        dragend: ({ setData, getData }) => {
+          setData('draggingIndex', NaN)
+          if (getData('droppedZone')) setData('droppedZone', null)
+        },
+        click: [
+          ({ data: { getDraggableElement }, event }) => {
+            const element = getDraggableElement(event.target)
+            if (!element) return
+
+            element.focus()
+          },
+          { throttle: 500 }
+        ],
+        keydown: async ({
+          data: { getDraggableElement },
+          props: { array, updateArray },
+          event,
+          attributes: { key }
+        }) => {
+          const keyEvent = event as KeyboardEvent,
+            isArrowUp = keyEvent.key === 'ArrowUp',
+            isArrowDown = keyEvent.key === 'ArrowDown'
+
+          if (!isArrowUp && !isArrowDown) return
+          keyEvent.preventDefault()
+
+          const fromIndex = parseInt(key),
+            item: T = array[fromIndex]
+
+          if (
+            (isArrowUp && fromIndex === 0) ||
+            (isArrowDown && fromIndex === array.length - 1) ||
+            !item
+          )
+            return
+
+          const newArray: T[] = [...array],
+            newIndex = fromIndex + (isArrowUp ? -1 : 1)
+
+          newArray.splice(fromIndex, 1)
+          newArray.splice(newIndex, 0, item)
+
+          updateArray(newArray)
+
+          const draggableElement = getDraggableElement(event.target)
+          if (!draggableElement) return
+
+          const root = draggableElement.getRootNode()
+          if (root instanceof ShadowRoot || root instanceof Document)
+            setTimeout(() => {
+              const selector = `div${draggable}[key="${newIndex}-slot"]`,
+                element = root.querySelector(selector) as HTMLElement | null
+
+              if (!element) return
+              element.focus()
+            })
+        }
+      }
+    }
+  })

@@ -1,19 +1,36 @@
 import { browserError } from '../core/helpers'
 
 export const dynamicPathToRegex = (path: string): RegExp => {
-  const common: string = '/([^/]+?)',
-    pattern: string = path.replace(dynamicRegex, (_1, _2, optional) =>
-      optional ? `(?:${common})?` : common
-    )
+  if (!path.startsWith('/')) path = `/${path}`
+
+  const escapeRegex = (param: string): string => param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    common = '/([^/]+?)' as const
+
+  let match: RegExpExecArray | null,
+    pattern: string = '',
+    lastIndex: number = 0
+
+  dynamicRegex.lastIndex = 0
+
+  while ((match = dynamicRegex.exec(path))) {
+    const staticPart: string = path.slice(lastIndex, match.index)
+    pattern += `${escapeRegex(staticPart)}${match[2] ? `(?:${common})?` : common}`
+
+    lastIndex = match.index + match[0].length
+  }
+  pattern += escapeRegex(path.slice(lastIndex))
+
   return new RegExp(`^${pattern}/?$`)
 }
 
 export const dynamicRegex: RegExp = /\/:([^\/?]+)(\?)?/g
 
-export const getDynamicPaths = (path: string): Record<string, string> => {
-  browserError()
+export const getDynamicPaths = (path: string, pathname?: string): Record<string, string> => {
+  if (pathname === undefined) browserError()
 
-  const regexes: string[] | null = dynamicPathToRegex(path).exec(window.location.pathname),
+  const regexes: RegExpExecArray | null = dynamicPathToRegex(path).exec(
+      pathname ?? window.location.pathname
+    ),
     paths: Record<string, string> = {},
     names: string[] = []
   let match: RegExpExecArray | null
@@ -22,7 +39,16 @@ export const getDynamicPaths = (path: string): Record<string, string> => {
   while ((match = dynamicRegex.exec(path))) names.push(match[1])
 
   if (regexes && regexes.length > 0)
-    for (const [index, value] of regexes.slice(1).entries()) paths[names[index]] = value ?? ''
+    for (const [index, value] of regexes.slice(1).entries()) {
+      const raw: string = value ?? ''
+
+      try {
+        paths[names[index]] = decodeURIComponent(raw)
+      } catch (error) {
+        console.warn(error)
+        paths[names[index]] = raw
+      }
+    }
   else if (names.length > 0) for (const name of names) paths[name] = ''
 
   return paths

@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import LoadingIcon from '@/components/materials/LoadingIcon'
+import LoadingIcon from '@/components/LoadingIcon'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Link from '@/components/Tasks/Link'
@@ -106,8 +106,8 @@ export default fics<Data, Props>({
       ${
         tasks.length > 0
           ? tasks.map(
-              ({ id, title, completedAt }) => template`
-                <div class="task" key="${id}">
+              ({ id, title, completedAt }, index) => template`
+                <div class="task" key="${index}">
                   <div>
                     ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
                       svg: completedAt ? CircleCheckBig : Circle,

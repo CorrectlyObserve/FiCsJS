@@ -1,11 +1,11 @@
-import { browserError, checkType, numberError } from './../core/helpers'
+import { browserError, numberError } from './../core/helpers'
 import type { Operator } from './types'
 
 export function calc(expression: string): Readonly<string>
 export function calc(operator: Operator, ...remaining: (string | number)[]): Readonly<string>
 export function calc(arg: string | Operator, ...remaining: (string | number)[]): Readonly<string> {
   arg = arg.trim()
-  return `calc(${checkType(arg, 'string') && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
+  return `calc(${typeof arg === 'string' && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
 }
 
 export const cssVar = (variable: string): Readonly<string> => {
@@ -16,7 +16,6 @@ export const cssVar = (variable: string): Readonly<string> => {
 export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
 
-  checkType(rem, 'number') ? numberError({ rem }) : (rem = parseFloat(rem.trim()))
-
+  typeof rem === 'number' ? numberError({ rem }) : (rem = parseFloat(rem.trim()))
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
