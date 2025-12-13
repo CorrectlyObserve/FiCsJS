@@ -186,6 +186,11 @@ export default class PersistentState<S> {
     return this.#initPromise
   }
 
+  #abortTransaction(store: IDBObjectStore, error: string): void {
+    if (store.transaction?.mode === 'readwrite') store.transaction.abort()
+    throw new Error(error)
+  }
+
   async get(): Promise<S> {
     this.#assertAlive()
     await this.#init()
@@ -193,11 +198,7 @@ export default class PersistentState<S> {
     const store: IDBObjectStore = this.#getObjectStore({ isReadonly: true }),
       state: State<S> | undefined = await this.#promisifyReq(store)
 
-    if (!state) {
-      store.transaction?.abort()
-      throw new Error('The state is not found...')
-    }
-
+    if (!state) throw new Error('The state is not found...')
     return state.state
   }
 
@@ -208,15 +209,9 @@ export default class PersistentState<S> {
     const store: IDBObjectStore = this.#getObjectStore(),
       state: State<S> | undefined = await this.#promisifyReq(store)
 
-    if (!state) {
-      store.transaction?.abort()
-      throw new Error('The state is not found...')
-    }
+    if (!state) return this.#abortTransaction(store, 'The state is not found...')
 
-    if (state.readonly) {
-      store.transaction?.abort()
-      throw new Error('The state is readonly...')
-    }
+    if (state.readonly) return this.#abortTransaction(store, 'The state is readonly...')
 
     store.put({ ...state, state: newState, updatedAt: Date.now() })
     await this.#awaitTransaction(store)
@@ -229,10 +224,7 @@ export default class PersistentState<S> {
     const store: IDBObjectStore = this.#getObjectStore(),
       key: IDBValidKey | undefined = await this.#promisifyReq(store, { isOnlyKey: true })
 
-    if (!key) {
-      store.transaction?.abort()
-      throw new Error('The state is not found...')
-    }
+    if (!key) return this.#abortTransaction(store, 'The state is not found...')
 
     store.delete(key)
     await this.#awaitTransaction(store)
@@ -258,10 +250,7 @@ export default class PersistentState<S> {
       snapshot: Snapshot<S> | undefined = await this.#promisifyReq(store, { snapshotId }),
       state: Awaited<S> = await this.get()
 
-    if (snapshot) {
-      store.transaction?.abort()
-      throw new Error(`The snapshot with snapshot ID:${snapshotId} already exists...`)
-    }
+    if (snapshot) throw new Error(`The snapshot with snapshot ID:${snapshotId} already exists...`)
 
     const now: number = Date.now(),
       req: IDBRequest<IDBValidKey> = store.add({
@@ -299,10 +288,7 @@ export default class PersistentState<S> {
     const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true, isReadonly: true }),
       snapshot: Snapshot<S> | undefined = await this.#promisifyReq(store, { snapshotId })
 
-    if (!snapshot) {
-      store.transaction?.abort()
-      throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
-    }
+    if (!snapshot) throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
 
     return snapshot.state
   }
@@ -321,10 +307,11 @@ export default class PersistentState<S> {
         isOnlyKey: true
       })
 
-    if (!key) {
-      store.transaction?.abort()
-      throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
-    }
+    if (!key)
+      return this.#abortTransaction(
+        store,
+        `The snapshot with snapshot ID:${snapshotId} is not found...`
+      )
 
     store.delete(key)
     await this.#awaitTransaction(store)
