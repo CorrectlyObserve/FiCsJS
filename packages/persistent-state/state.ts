@@ -194,7 +194,11 @@ export default class PersistentState<S> {
       state: State<S> | undefined = await this.#promisifyReq(store)
 
     if (!state) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error('The state is not found...')
     }
 
@@ -209,12 +213,20 @@ export default class PersistentState<S> {
       state: State<S> | undefined = await this.#promisifyReq(store)
 
     if (!state) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error('The state is not found...')
     }
 
     if (state.readonly) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error('The state is readonly...')
     }
 
@@ -230,7 +242,11 @@ export default class PersistentState<S> {
       key: IDBValidKey | undefined = await this.#promisifyReq(store, { isOnlyKey: true })
 
     if (!key) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error('The state is not found...')
     }
 
@@ -260,7 +276,11 @@ export default class PersistentState<S> {
       state: Awaited<S> = await this.get()
 
     if (snapshot) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error(`The snapshot with snapshot ID:${snapshotId} already exists...`)
     }
 
@@ -301,7 +321,11 @@ export default class PersistentState<S> {
       snapshot: Snapshot<S> | undefined = await this.#promisifyReq(store, { snapshotId })
 
     if (!snapshot) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
     }
 
@@ -323,7 +347,11 @@ export default class PersistentState<S> {
       })
 
     if (!key) {
-      store.transaction?.abort()
+      try {
+        store.transaction?.abort()
+      } catch {
+        // Transaction may already be inactive
+      }
       throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
     }
 
