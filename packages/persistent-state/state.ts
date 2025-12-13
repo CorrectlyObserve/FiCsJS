@@ -261,7 +261,7 @@ export default class PersistentState<S> {
 
     if (snapshot) {
       store.transaction?.abort()
-      throw new Error(`The snapshot with snapshot id:${snapshotId} already exists...`)
+      throw new Error(`The snapshot with snapshot ID:${snapshotId} already exists...`)
     }
 
     const now: number = Date.now(),
@@ -302,7 +302,7 @@ export default class PersistentState<S> {
 
     if (!snapshot) {
       store.transaction?.abort()
-      throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
+      throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
     }
 
     return snapshot.state
@@ -324,7 +324,7 @@ export default class PersistentState<S> {
 
     if (!key) {
       store.transaction?.abort()
-      throw new Error(`The snapshot with snapshot id:${snapshotId} is not found...`)
+      throw new Error(`The snapshot with snapshot ID:${snapshotId} is not found...`)
     }
 
     store.delete(key)
