@@ -235,14 +235,13 @@ export default class PersistentState<S> {
     }
 
     store.delete(key)
+    await this.#awaitTransaction(store)
     this.#isDeleted = true
 
     if (options?.cascade) {
       const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true })
 
-      for (const { id } of await this.#promisifyReq<Snapshot<S>[]>(store, { isAllSnapshots: true }))
-        if (id !== undefined) store.delete(id)
-
+      store.clear()
       await this.#awaitTransaction(store)
     }
   }
