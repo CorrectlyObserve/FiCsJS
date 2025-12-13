@@ -178,7 +178,7 @@ export default class PersistentState<S> {
           const delay: number =
             Math.min(interval * multiplier ** (attempt - 1), maxDelay) + Math.random() * jitter
 
-          await new Promise(resolve => setTimeout(resolve, attempt - 1 === 0 ? 0 : delay))
+          await new Promise(resolve => setTimeout(resolve, attempt === 1 ? 0 : delay))
           this.#initPromise = undefined
         }
     })()
