@@ -37,7 +37,12 @@ export default class State<S> {
 
     states.set(this.#key, value)
 
-    for (const subscriber of Array.from(this.#subscribers.values())) subscriber()
+    for (const subscriber of Array.from(this.#subscribers.values()))
+      try {
+        subscriber()
+      } catch (error) {
+        throw error
+      }
   }
 
   subscribe(key: string, callback: (state: S) => void): void {
