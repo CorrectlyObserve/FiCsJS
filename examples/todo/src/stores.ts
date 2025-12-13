@@ -14,11 +14,11 @@ const enqueue = (task: () => Promise<Task[]>): Promise<Task[]> => {
     return setQueue
   },
   mutateTasks = async (mutate: (tasks: Task[], timestamp: number) => void): Promise<Task[]> => {
-    const tasks: Task[] = await getAllTasks()
+    const tasks: Task[] = [...(await getAllTasks())]
 
     mutate(tasks, getTimestamp())
     await $tasks.set(tasks)
-    return [...tasks]
+    return tasks
   },
   mutateTask = (id: number, mutate: (task: Task, timestamp: number) => void): Promise<Task[]> =>
     mutateTasks((tasks, timestamp) => {
