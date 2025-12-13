@@ -172,7 +172,9 @@ export default class PersistentState<S> {
 
           if (attempt > maxRetry) {
             this.#initPromise = undefined
-            throw error
+            throw new Error(`PersistentState initialization failed after ${attempt} retries.`, {
+              cause: error
+            })
           }
 
           const delay: number =
