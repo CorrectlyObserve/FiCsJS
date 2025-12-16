@@ -44,11 +44,12 @@ export default <T>() =>
       }
     }),
     html: ({ data: { droppedZone, isHighlighted }, props: { array, slot }, template }) => {
-      const base =
+      const _isHighlighted = (zoneIndex: number) => isHighlighted(droppedZone, zoneIndex),
+        base =
           'dragged-over rounded-sm border border-dashed transition duration-200 ease-out' as const,
         dropZone = (zoneIndex: number, classNames: string) => template`
           <div
-            class="drop-zone ${isHighlighted(droppedZone, zoneIndex) ? `${base} ${classNames}` : 'h-4'}"
+            class="drop-zone ${_isHighlighted(zoneIndex) ? `${base} ${classNames}` : 'h-4'}"
             key="${zoneIndex}"
           ></div>
         `
@@ -57,11 +58,7 @@ export default <T>() =>
         ${dropZone(-1, 'my-4')}
         ${array.map((item, index) => {
           const isLast = index === array.length - 1,
-            classNames = isLast
-              ? isHighlighted(droppedZone, index)
-                ? 'mt-4 mb-height'
-                : 'mt-4'
-              : 'my-4'
+            classNames = isLast ? (_isHighlighted(index) ? 'mt-4 mb-height' : 'mt-4') : 'my-4'
 
           return template`
             <div key="${index}-slot" draggable="true" tabindex="0">${slot(item, index)}</div>
@@ -89,14 +86,12 @@ export default <T>() =>
           if (!drag.dataTransfer) return
           drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
         },
-        dragleave: ({ data: { isHighlighted }, setData, getData, attributes: { key } }) => {
-          if (isHighlighted(getData('droppedZone'), key)) setData('droppedZone', null)
+        dragleave: ({ data, attributes: { key } }) => {
+          if (data.isHighlighted(data.droppedZone, key)) data.droppedZone = null
         },
         drop: async ({
-          data: { isHighlighted },
+          data,
           props: { array, getNewItem, updateArray },
-          setData,
-          getData,
           event,
           attributes: { key }
         }) => {
@@ -104,9 +99,9 @@ export default <T>() =>
           drag.preventDefault()
           if (!drag.dataTransfer) return
 
-          if (!isHighlighted(getData('droppedZone'), key)) return
+          if (!data.isHighlighted(data.droppedZone, key)) return
 
-          setData('droppedZone', null)
+          data.droppedZone = null
 
           const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
             item: T = array[fromIndex]
@@ -135,7 +130,7 @@ export default <T>() =>
         }
       },
       [`div${draggable}`]: {
-        dragstart: ({ data: { getDraggableElement }, setData, event, attributes: { key } }) => {
+        dragstart: ({ data, event, attributes: { key } }) => {
           const drag = event as DragEvent
           if (!drag.dataTransfer) return
 
@@ -144,27 +139,26 @@ export default <T>() =>
           drag.dataTransfer.setData('text/plain', index.toString())
           drag.dataTransfer.effectAllowed = 'copyMove'
 
-          setData('draggingIndex', index)
+          data.draggingIndex = index
 
-          const { offsetHeight } = getDraggableElement(event.target) || {}
-          setData('height', offsetHeight || 0)
+          const { offsetHeight } = data.getDraggableElement(event.target) || {}
+          data.height = offsetHeight || 0
         },
         dragover: [
-          ({ data: { getDraggableElement }, setData, getData, event, attributes: { key } }) => {
+          ({ data, event, attributes: { key } }) => {
             const drag = event as DragEvent
             drag.preventDefault()
             if (!drag.dataTransfer) return
 
             drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
 
-            const draggableElement = getDraggableElement(event.target)
+            const draggableElement = data.getDraggableElement(event.target)
             if (!draggableElement) return
 
             const index = parseInt(key),
               { top, height } = draggableElement.getBoundingClientRect(),
               isAfter = drag.clientY > top + height / 2,
-              draggingIndex = getData('draggingIndex'),
-              droppedZone = getData('droppedZone')
+              { draggingIndex, droppedZone } = data
 
             if (
               !drag.altKey &&
@@ -172,7 +166,7 @@ export default <T>() =>
                 (index === draggingIndex + 1 && !isAfter) ||
                 index === draggingIndex)
             ) {
-              if (droppedZone) setData('droppedZone', null)
+              if (droppedZone) data.droppedZone = null
               return
             }
 
@@ -180,13 +174,13 @@ export default <T>() =>
               targetZone = sibling && sibling.classList.contains('drop-zone') ? sibling : null
 
             if (targetZone && droppedZone !== targetZone)
-              setData('droppedZone', targetZone as HTMLElement)
+              data.droppedZone = targetZone as HTMLElement
           },
           { throttle: 200 }
         ],
-        dragend: ({ setData, getData }) => {
-          setData('draggingIndex', NaN)
-          if (getData('droppedZone')) setData('droppedZone', null)
+        dragend: ({ data }) => {
+          data.draggingIndex = NaN
+          if (data.droppedZone) data.droppedZone = null
         },
         click: [
           ({ data: { getDraggableElement }, event }) => {
