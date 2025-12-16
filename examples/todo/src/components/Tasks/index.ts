@@ -46,18 +46,18 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ props: { setTasks }, setData }) => ({
+      values: ({ data, props: { setTasks } }) => ({
         value: ({ getData }) => getData('value'),
         placeholder: ({ getData }) => getData('placeholder'),
-        input: (value: string) => setData('value', value),
+        input: (value: string) => (data.value = value),
         enterKey:
           ({ getData }) =>
           async () => {
-            const value = getData('value')
+            const _value = getData('value')
 
-            if (value !== '') {
-              setTasks(await addTask(value))
-              setData('value', '')
+            if (_value !== '') {
+              setTasks(await addTask(_value))
+              data.value = ''
             }
           }
       })
@@ -66,17 +66,26 @@ export default fics<Data, Props>({
   className: 'tasks',
   html: ({
     children: { loadingIcon, icon, input },
-    data: { heading, value, placeholder, isShown, show, hide, texts, confirmation, unapplicable },
+    data,
     props: { tasks, taskId, setTasks },
     template,
-    setData,
     isDeferred
   }) => {
     if (!isDeferred) return template`${loadingIcon}`
 
-    if (!isShown) tasks = tasks.filter(task => !task.completedAt)
+    const {
+      heading,
+      value,
+      placeholder,
+      isShown,
+      show,
+      hide,
+      texts: [complete, revert, _delete],
+      confirmation,
+      unapplicable
+    } = data
 
-    const [complete, revert, _delete] = texts
+    if (!isShown) tasks = tasks.filter(({ completedAt }) => !completedAt)
 
     return template`
       <h2>${heading}</h2>
@@ -89,7 +98,7 @@ export default fics<Data, Props>({
             click: async () => {
               if (value !== '') {
                 setTasks(await addTask(value))
-                setData('value', '')
+                data.value = ''
               }
             }
           })}
@@ -98,7 +107,7 @@ export default fics<Data, Props>({
           ${icon.setIndividualProps('check', {
             svg: isShown ? SquareCheck : Square,
             areaLabel: isShown ? hide : show,
-            click: () => setData('isShown', !isShown)
+            click: () => (data.isShown = !data.isShown)
           })}
           <span role="button" tabindex="0">${isShown ? hide : show}</span>
         </div>
@@ -167,7 +176,7 @@ export default fics<Data, Props>({
   },
   actions: {
     'div.menu span': {
-      click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
+      click: [({ data }) => (data.isShown = !data.isShown), { blur: true }]
     }
   },
   options: { lazyLoad: true }
