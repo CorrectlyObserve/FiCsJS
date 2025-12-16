@@ -13,14 +13,14 @@ export default fics({
   data: () => ({ isAccumulated: false, accumulatedChunk: '', chunks: [] as string[] }),
   props: {
     descendant: ({ children: { icon } }) => icon,
-    values: ({ setData }) => ({
+    values: ({ data }) => ({
       svg: RefreshCcw,
       areaLabel: 'Open the data stream dialog',
       isLarge: true,
       click:
         ({ getData }) =>
         () =>
-          setData('isAccumulated', !getData('isAccumulated'))
+          (data.isAccumulated = !getData('isAccumulated'))
     })
   },
   html: ({
@@ -51,7 +51,9 @@ export default fics({
   },
   hooks: {
     updated: {
-      isAccumulated: ({ data: { isAccumulated }, setData, getData, crud }) => {
+      isAccumulated: ({ data, crud }) => {
+        const { isAccumulated, accumulatedChunk } = data
+
         if (isAccumulated) {
           if (streamAbortController) streamAbortController.abort()
           streamAbortController = new AbortController()
@@ -71,27 +73,25 @@ export default fics({
               for (const block of blocks) {
                 if (block.trim() === '') continue
 
-                let event: string | undefined, data: string | undefined
+                let event: string | undefined, chunkData: string | undefined
 
                 for (const line of block.split('\n'))
                   if (line.startsWith('event:')) {
                     const index = line.indexOf('data:')
                     event = line.slice('event:'.length, index > -1 ? index : undefined).trim()
-                  } else if (line.startsWith('data:')) data = line.slice('data:'.length).trim()
+                  } else if (line.startsWith('data:')) chunkData = line.slice('data:'.length).trim()
 
-                if (data)
-                  try {
-                    const { chunk } = JSON.parse(data) as { chunk?: string }
-                    if (chunk) setData('accumulatedChunk', `${getData('accumulatedChunk')}${chunk}`)
-                  } catch {}
+                if (chunkData) {
+                  const { chunk } = JSON.parse(chunkData) as { chunk?: string }
+                  if (chunk) data.accumulatedChunk = `${accumulatedChunk}${chunk}`
+                }
 
-                if (event === 'complete')
-                  setData('accumulatedChunk', `${getData('accumulatedChunk')}...`)
+                if (event === 'complete') data.accumulatedChunk = `${accumulatedChunk}...`
               }
             }
           })
         } else {
-          setData('accumulatedChunk', '')
+          data.accumulatedChunk = ''
           streamSession++
         }
       }
@@ -101,12 +101,12 @@ export default fics({
     ssr: false,
     sse: {
       path: API_PATHS.stream,
-      onmessage: ({ data: { chunks }, setData, event: { data } }) => {
+      onmessage: ({ data, event: { data: messageData } }) => {
         try {
-          const { chunk, index } = JSON.parse(data) as { chunk: string; index: number }
-          setData('chunks', [...chunks, `chunk[${index}]: ${chunk}`])
+          const { chunk, index } = JSON.parse(messageData) as { chunk: string; index: number }
+          data.chunks = [...data.chunks, `chunk[${index}]: ${chunk}`]
         } catch {
-          setData('chunks', [...chunks, `message: ${data}`])
+          data.chunks = [...data.chunks, `message: ${data}`]
         }
       },
       actions: { complete: ({ close }) => close() }
