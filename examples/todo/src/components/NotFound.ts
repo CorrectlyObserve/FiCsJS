@@ -51,14 +51,17 @@ export default fics<Data, { lang: Lang }>({
     }
   },
   hooks: {
-    mounted: ({ data: { seconds }, setData, poll }) =>
+    mounted: ({ data, poll }) => {
       poll(
         ({ times }) => {
+          const { seconds } = data
+
           if (times === seconds - 1) goto('/', { isWithoutHistory: true })
-          setData('seconds', seconds - times - 1)
+          data.seconds = seconds - times - 1
         },
-        { interval: 1000, max: seconds }
+        { interval: 1000, max: data.seconds }
       )
+    }
   },
   options: { lazyLoad: true }
 })
