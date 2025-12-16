@@ -30,29 +30,29 @@ export default ficsRouter<Data>({
     },
     {
       descendant: ({ children: { tasks } }) => tasks,
-      values: ({ setData }) => ({
+      values: ({ data }) => ({
         tasks: ({ getData }) => getData('tasks'),
         taskId: ({ getData }) => getData('taskId'),
-        setTasks: (tasks: TaskType[]) => setData('tasks', tasks)
+        setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails,
-      values: ({ setData }) => ({
+      values: ({ data }) => ({
         draft: ({ getData }) => getData('draft'),
         editTask:
           ({ getData }) =>
-          (newValue: Partial<TaskType>) => {
+          (value: Partial<TaskType>) => {
             const draft: TaskType | undefined = getData('draft')
             if (!draft) return
 
-            setData('draft', { ...draft, ...newValue })
+            data.draft = { ...draft, ...value }
           },
         getTask:
           ({ getData }) =>
           () =>
             getData('draft'),
-        updateTasks: (tasks: TaskType[]) => setData('tasks', tasks)
+        updateTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
     },
     {
@@ -74,14 +74,9 @@ export default ficsRouter<Data>({
   pages: [
     {
       path: '/',
-      content: ({
-        children: { tasks, taskDetails },
-        data: {
-          queries: { taskId }
-        },
-        template
-      }) => {
-        if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
+      content: ({ children: { tasks, taskDetails }, data: { queries }, template }) => {
+        if (queries.taskId)
+          return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
         return tasks
       }
     },
@@ -106,45 +101,42 @@ export default ficsRouter<Data>({
     }
   },
   hooks: {
-    mounted: async ({ setData }) => setData('tasks', await getAllTasks()),
+    mounted: async ({ data }) => (data.tasks = await getAllTasks()),
     updated: {
-      pathname: async ({ data: { pathname }, setData }) => {
-        pathname = pathname.replace(/^\//, '')
-        if (pathname === '') return
+      pathname: async ({ data }) => {
+        const _pathname = data.pathname.replace(/^\//, '')
+        if (_pathname === '') return
 
-        const id = parseInt(pathname)
-        if (!Number.isFinite(id)) return setData('pathname', '/404')
+        const id = parseInt(_pathname)
+        if (!Number.isFinite(id)) return (data.pathname = '/404')
 
         const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
 
-        setData('draft', task)
+        data.draft = task
       },
-      queries: async ({
-        data: {
-          queries: { taskId }
-        },
-        setData
-      }) => {
+      queries: async ({ data }) => {
+        const { taskId } = data.queries
         if (!taskId) return
 
         const id = parseInt(taskId)
         if (!Number.isFinite(id)) return goto('/404', { isWithoutHistory: true })
 
-        setData('taskId', id)
+        data.queries = { ...data.queries, taskId: id.toString() }
 
         const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
 
-        setData('draft', task)
+        data.draft = task
       },
-      tasks: ({ data: { tasks, draft }, setData }) => {
+      tasks: ({ data }) => {
+        const { tasks, draft } = data
         if (!draft) return
 
-        const { id, updatedAt } = draft,
+        const { id, updatedAt } = draft || {},
           updatedDraft = tasks.find(task => task.id === id)
 
-        if (updatedDraft && updatedDraft.updatedAt !== updatedAt) setData('draft', updatedDraft)
+        if (updatedDraft && updatedDraft.updatedAt !== updatedAt) data.draft = updatedDraft
       }
     }
   }
