@@ -23,7 +23,7 @@ export default fics<
   data: () => ({ comment: '' }),
   props: {
     descendant: ({ children: { button } }) => button,
-    values: ({ props: { sendMessage }, setData }) => ({
+    values: ({ data, props: { sendMessage } }) => ({
       isDisabled: ({ getData }) => getData('comment').trim() === '',
       buttonText: 'Send',
       click:
@@ -33,7 +33,7 @@ export default fics<
           if (userName === '') return
 
           sendMessage({ userName, comment: getData('comment') })
-          setData('comment', '')
+          data.comment = ''
         }
     })
   },
@@ -55,7 +55,13 @@ export default fics<
         )}
       </div>
       <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
-        <textarea id="message" class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none" placeholder="Please enter your message" rows="3">${comment}</textarea>
+        <textarea
+          id="message"
+          class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
+          placeholder="Please enter your message"
+          rows="3">
+            ${comment}
+          </textarea>
         ${button}
       </div>
     `
@@ -92,13 +98,13 @@ export default fics<
   },
   actions: {
     textarea: {
-      input: ({ setData, event: { currentTarget } }) =>
-        setData('comment', (currentTarget as HTMLTextAreaElement).value),
-      keydown: ({ getData, props: { sendMessage }, setData, event }) => {
+      input: ({ data, event: { currentTarget } }) =>
+        (data.comment = (currentTarget as HTMLTextAreaElement).value),
+      keydown: ({ data, props: { sendMessage }, event }) => {
         if (window.matchMedia('(pointer: coarse)').matches) return
 
-        const userName = $userName.get(),
-          comment = getData('comment'),
+        const userName = $userName.get()
+        const { comment } = data,
           keyboardEvent = event as KeyboardEvent,
           isEnterKey = keyboardEvent.key === 'Enter'
 
@@ -107,7 +113,7 @@ export default fics<
 
         keyboardEvent.preventDefault()
         sendMessage({ userName, comment })
-        setData('comment', '')
+        data.comment = ''
       }
     }
   }
