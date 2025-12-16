@@ -45,16 +45,8 @@ export interface CssContent<D extends object, P> {
   [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
 }
 
-export type Data<D extends object> = {
-  [key in keyof D]: {
-    [key: symbol]: D[key]
-    set: <K extends keyof D>(value: D[K]) => void
-    get: <K extends keyof D>() => D[K]
-  }
-}
-
 export type DataProps<D extends object, P, B extends boolean = false> = {
-  data: Data<D>
+  data: D
   props: P
 } & (B extends true ? { crud: Crud } : {})
 
@@ -163,13 +155,21 @@ export interface PollingOptions {
 export interface Props<D extends object, P> {
   descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: Omit<DataProps<D, P, true>, 'getData'> & { children: Children } & {
+    params: DataProps<D, P, true> & { children: Children } & {
       sendToWebsocket: (value: WebSocketValue) => void
     }
   ) =>
     | Record<
         string,
-        ({ sendToWebsocket }: { sendToWebsocket?: (value: WebSocketValue) => void }) => unknown
+        ({
+          getData,
+          sendToWebsocket
+        }: {
+          getData: <K extends keyof D>(
+            key: K
+          ) => D[K] extends (...args: infer A) => infer R ? (...args: A) => R : D[K]
+          sendToWebsocket?: (value: WebSocketValue) => void
+        }) => unknown
       >
     | Record<string, unknown>
 }
@@ -202,7 +202,7 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
 interface ScrollParams<D extends object, P> {
   unit: number
   elementMinHeight: number
-  trigger?: ({ data }: { data: Data<D> }) => boolean
+  trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
   buffer?: number
   throttle?: number
