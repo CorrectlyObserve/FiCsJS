@@ -14,7 +14,7 @@ import type {
 } from '../core/types'
 
 export type Content<D extends object, P extends object> = (
-  syntaxes: DataProps<D, P>['data'] & Syntaxes<D, P>
+  syntaxes: Omit<DataProps<D, P>, 'props'> & Syntaxes<D, P>
 ) => Descendant | Sanitized<D, P>
 
 export interface FiCsLink<P extends object> {
