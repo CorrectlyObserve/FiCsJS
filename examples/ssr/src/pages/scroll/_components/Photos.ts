@@ -15,14 +15,20 @@ export default fics({
   name: 'photos',
   children: [Icon(), Skeleton],
   data: () => ({ page: 0, photos: [] as Photo[], photoId: '', author: '' }),
-  deferredData: async ({ data: { page }, crud }) =>
-    await crud<Photo[]>(getPhotos(++page)).then(photos => ({ page, photos })),
+  deferredData: async ({ data, crud }) => {
+    data.page++
+
+    return await crud<Photo[]>(getPhotos(data.page)).then(photos => ({
+      page: data.page,
+      photos
+    }))
+  },
   props: {
     descendant: ({ children: { icon } }) => icon,
-    values: ({ setData }) => ({
+    values: ({ data }) => ({
       svg: CircleX,
       areaLabel: 'Close the dialog',
-      click: () => setData('photoId', '')
+      click: () => (data.photoId = '')
     })
   },
   className: 'min-h-200',
@@ -75,29 +81,33 @@ export default fics({
     }
   },
   hooks: {
-    created: ({ setData }) => {
-      const page = parseInt(queries().page)
-      if (!isNaN(page)) setData('page', page)
+    created: ({ data }) => {
+      const initialPage = parseInt(queries().page)
+      if (!isNaN(initialPage)) data.page = initialPage
     }
   },
   actions: {
     img: {
       load: [
-        ({ data: { photos }, setData, attributes: { key } }) => {
-          const photo = photos.find(p => p.id === key)
+        ({ data, attributes: { key } }) => {
+          const { photos } = data,
+            photo = photos.find(({ id }) => id === key)
+
           if (photo && !photo.isLoaded) {
             photo.isLoaded = true
-            setData('photos', [...photos])
+            data.photos = [...photos]
           }
         },
         { once: true }
       ],
       error: [
-        ({ data: { photos }, setData, event: { currentTarget }, attributes: { key } }) => {
-          const photo = photos.find(p => p.id === key)
+        ({ data, event: { currentTarget }, attributes: { key } }) => {
+          const { photos } = data,
+            photo = photos.find(({ id }) => id === key)
+
           if (photo && !photo.isLoaded) {
             photo.isLoaded = true
-            setData('photos', [...photos])
+            data.photos = [...photos]
           }
 
           if (currentTarget) {
@@ -108,11 +118,11 @@ export default fics({
         { once: true }
       ],
       click: [
-        ({ data: { photos, photoId }, setData, attributes: { key } }) => {
-          setData('photoId', photoId === key ? '' : key)
+        ({ data, attributes: { key } }) => {
+          const { photoId, photos } = data
 
-          if (photoId !== key)
-            setData('author', photos.filter(({ id }) => id === key)[0]?.author ?? '')
+          data.photoId = photoId === key ? '' : key
+          if (photoId !== key) data.author = photos.filter(({ id }) => id === key)[0]?.author ?? ''
         },
         { throttle: 500, blur: true }
       ]
@@ -123,11 +133,11 @@ export default fics({
     elementMinHeight: PHOTO_SIZE,
     trigger: ({ data: { photos } }) => photos.length > 0,
     throttle: 200,
-    method: async ({ data: { photos, page }, setData, crud }) =>
-      await crud<Photo[]>(getPhotos(++page), { key: 'isLoading' }).then(newPhotos => {
-        setData('page', page)
-        setData('photos', [...photos, ...newPhotos])
-        goto(`/scroll?page=${page}`)
+    method: async ({ data, crud }) =>
+      await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
+        data.page = data.page
+        data.photos = [...data.photos, ...photos]
+        goto(`/scroll?page=${data.page}`)
       })
   }
 })
