@@ -56,8 +56,12 @@ export default () =>
     actions: {
       input: {
         input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
-        compositionstart: ({ setData }) => setData('isComposing', true),
-        compositionend: ({ setData }) => setData('isComposing', false),
+        compositionstart: ({ data }) => {
+          data.isComposing = true
+        },
+        compositionend: ({ data }) => {
+          data.isComposing = false
+        },
         keydown: [
           ({ data: { isComposing }, props: { value, enterKey }, event }) => {
             if (
