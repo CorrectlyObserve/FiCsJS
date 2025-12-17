@@ -511,8 +511,11 @@ export default class FiCsElement<D extends object, P extends object> {
             if (chain && key in chain && propsChain.has(instanceId)) continue
 
             if (typeof value === 'function' && /getData/.test(value.toString())) {
-              const propsKeys: Record<string, true> = { [key]: true },
-                _value: P[keyof P] = value({
+              const computeValue = value as (args: {
+                  getData: <K extends keyof D>(key: K) => D[K]
+                }) => P[keyof P],
+                propsKeys: Record<string, true> = { [key]: true },
+                _value: P[keyof P] = computeValue({
                   getData: <K extends keyof D>(_key: K): D[typeof _key] => {
                     if (key !== _key) propsKeys[_key as string] = true
                     return this.#data[_key] as D[typeof _key]
@@ -533,15 +536,15 @@ export default class FiCsElement<D extends object, P extends object> {
                   propsKeys,
                   propsKey: key,
                   setProps: () => {
-                    const _key = key as keyof D
+                    const newValue: P[keyof P] = computeValue({
+                      getData: <K extends keyof D>(_key: K): D[typeof _key] =>
+                        this.#data[_key] as D[typeof _key]
+                    })
 
-                    if (_key in this.#data) {
-                      const value = this.#data[_key] as D[keyof D]
-                      _descendant.#setProps(_key, value)
+                    _descendant.#setProps(key as keyof P, newValue)
 
-                      for (const clonedInstance of _descendant.#clonedSelves.values())
-                        clonedInstance.#setProps(_key, value)
-                    }
+                    for (const clonedInstance of _descendant.#clonedSelves.values())
+                      clonedInstance.#setProps(key as keyof P, newValue)
                   }
                 },
                 isLargerNumberId = (index: number): boolean =>
