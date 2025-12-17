@@ -59,9 +59,8 @@ export default fics<
           id="message"
           class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
           placeholder="Please enter your message"
-          rows="3">
-            ${comment}
-          </textarea>
+          rows="3"
+        >${comment}</textarea>
         ${button}
       </div>
     `
