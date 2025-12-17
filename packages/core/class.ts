@@ -1097,7 +1097,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (Array.isArray(style) && style[1] !== mode) continue
 
         if (mode === 'ssr' && selector.startsWith(host))
-          selector = selector.replace(host, `div#${this.#instanceId}`)
+          selector = selector.replace(host, `div#${this.#name}`)
 
         const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
           index: number = content.indexOf('{')
