@@ -21,7 +21,6 @@ import type {
   CrudOptions,
   CrudStreamOptions,
   Css,
-  Data,
   DataProps,
   Descendant,
   FiCs,
@@ -64,7 +63,9 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #name: string
   readonly #children: Children = {}
   readonly #isBrowser: boolean
-  readonly #data: Data<D> = {} as Data<D>
+  readonly #rawData: D = {} as D
+  readonly #boundCache: Map<Function, D[keyof D]> = new Map()
+  readonly #data: D = {} as D
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
@@ -167,31 +168,14 @@ export default class FiCsElement<D extends object, P extends object> {
       if (this.#isBrowser) {
         const component: HTMLElement | null = document.getElementById(this.#name)
         if (component) {
-          const attr: string | null = component.getAttribute(`data-${this.#instanceId}`)
+          const attr: string | null = component.getAttribute(`data-${this.#name}`)
           if (attr) attrData = { ...JSON.parse(attr) }
         }
       }
 
       for (let [key, value] of Object.entries({ ...data(), ...attrData })) {
-        const _key = key.trim() as keyof D,
-          _value = value as D[keyof D],
-          symbol: unique symbol = Symbol(`${this.#instanceId}-${key}`)
-
-        this.#data[_key] = {
-          [symbol]: _value,
-          set: <K extends keyof D>(value: D[K]): void => {
-            if (this.#nameKey === 'router' && (_key === 'pathname' || _key === 'queries'))
-              throw new Error(
-                `The "${_key as string}" cannot be modified in the router component...`
-              )
-
-            this.#internalSetData(_key, value)
-          },
-          get: <K extends keyof D>(): D[K] => {
-            this.#throwKeyError(_key)
-            return this.#data[_key][symbol] as D[K]
-          }
-        }
+        const _key = key.trim() as keyof D
+        this.#rawData[_key] = value as D[typeof _key]
 
         if ((deferredData || i18nData) && this.#isBrowser) {
           this.#isDeferred = false
@@ -200,6 +184,27 @@ export default class FiCsElement<D extends object, P extends object> {
           if (i18nData) this.#i18nData = i18nData
         }
       }
+
+      this.#data = new Proxy(this.#rawData, {
+        get: (target, prop, receiver): D[keyof D] => {
+          const value: D[keyof D] = Reflect.get(target, prop, receiver)
+
+          if (typeof value === 'function') {
+            if (this.#boundCache.has(value)) return this.#boundCache.get(value)!
+
+            const bound: D[keyof D] = value.bind(this)
+
+            this.#boundCache.set(value, bound)
+            return bound
+          }
+
+          return value
+        },
+        set: (_1, prop, value, _2): boolean => {
+          this.#internalSetData(prop as keyof D, value)
+          return true
+        }
+      })
     }
 
     if (props) {
@@ -237,13 +242,7 @@ export default class FiCsElement<D extends object, P extends object> {
       instanceId: instanceId ?? this.#instanceId,
       componentId: this.#componentId,
       children: Object.values(this.#children),
-      data: () =>
-        Object.fromEntries(
-          Object.keys(this.#data).map(key => {
-            const _key = key as keyof D
-            return [_key, this.#data[_key].get()]
-          })
-        ) as Partial<D>,
+      data: () => this.#data as Partial<D>,
       deferredData: this.#deferredData,
       i18nData: this.#i18nData,
       props: this.#propsSources,
@@ -260,32 +259,31 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
     return {
-      data: { ...this.#data },
+      data: this.#data,
       props: { ...this.#props },
       crud: isCrud ? this.#bindCrud : undefined
     } as DataProps<D, P, B>
   }
 
   #internalSetData<K extends keyof D>(key: K, value: D[K], isInRerendering?: boolean): void {
-    if (this.#data[key].get() !== value) {
-      this.#data[key].set(value)
+    const currentValue: D[K] = this.#rawData[key]
+    if (Object.is(currentValue, value)) return
 
-      for (const { propsKeys, setProps } of this.#getPropsBindings())
-        if (typeof key === 'string' && propsKeys[key]) setProps()
+    this.#rawData[key] = value
 
-      const { data, ...args }: DataProps<D, P, true> = this.#getDataProps(true),
-        updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+    for (const { propsKeys, setProps } of this.#getPropsBindings())
+      if (typeof key === 'string' && propsKeys[key as string]) setProps()
 
-      if (updated && key in updated) {
-        this.#throwKeyError(key)
-        updated[key]!({ data: { ...data, [key]: this.#data[key] }, ...args })
-      }
+    const { data, ...args }: DataProps<D, P, true> = this.#getDataProps(true),
+      updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
 
-      if (!isInRerendering && this.#isBrowser && this.#cache.component)
-        this.#enqueue(() => {
-          this.#reRender()
-        }, 're-render')
+    if (updated && key in updated) {
+      this.#throwKeyError(key)
+      updated[key]!({ data: { ...data, [key]: value }, ...args })
     }
+
+    if (!isInRerendering && this.#isBrowser && this.#cache.component)
+      this.#enqueue(this.#reRender.bind(this), 're-render')
   }
 
   #crud<T>(api: string, options?: CrudOptions): Promise<T>
@@ -515,9 +513,9 @@ export default class FiCsElement<D extends object, P extends object> {
             if (typeof value === 'function' && /getData/.test(value.toString())) {
               const propsKeys: Record<string, true> = { [key]: true },
                 _value: P[keyof P] = value({
-                  getData: <K extends keyof D>(_key: K): D[K] => {
+                  getData: <K extends keyof D>(_key: K): D[typeof _key] => {
                     if (key !== _key) propsKeys[_key as string] = true
-                    return this.#data[_key].get()
+                    return this.#data[_key] as D[typeof _key]
                   }
                 })
 
@@ -535,11 +533,15 @@ export default class FiCsElement<D extends object, P extends object> {
                   propsKeys,
                   propsKey: key,
                   setProps: () => {
-                    const value: D[keyof D] = this.#data[key as keyof D].get()
-                    _descendant.#setProps(key, value)
+                    const _key = key as keyof D
 
-                    for (const clonedInstance of _descendant.#clonedSelves.values())
-                      clonedInstance.#setProps(key, value)
+                    if (_key in this.#data) {
+                      const value = this.#data[_key] as D[keyof D]
+                      _descendant.#setProps(_key, value)
+
+                      for (const clonedInstance of _descendant.#clonedSelves.values())
+                        clonedInstance.#setProps(_key, value)
+                    }
                   }
                 },
                 isLargerNumberId = (index: number): boolean =>
@@ -582,7 +584,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   ...args,
                   instanceId: child.#instanceId,
                   propsKey,
-                  setProps: () => child.#setProps(propsKey, this.#data[propsKey as keyof D].get())
+                  setProps: () => child.#setProps(propsKey, this.#data[propsKey as keyof D])
                 },
                 ...propsBindings.slice(_index)
               ])
@@ -1492,7 +1494,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 for (const [key, value] of Object.entries(
                   await that.#deferredData(that.#getDataProps(true))
                 ))
-                  that.#internalSetData(key as keyof D, value as D[keyof D])
+                  that.#data[key as keyof D] = value as D[keyof D]
 
               if (that.#i18nData)
                 for (const [key, value] of Object.entries(
@@ -1502,7 +1504,7 @@ export default class FiCsElement<D extends object, P extends object> {
                       i18n<T>({ lang, key })
                   })
                 ))
-                  that.#internalSetData(key as keyof D, value as D[keyof D])
+                  that.#data[key as keyof D] = value as D[keyof D]
 
               that.#isDeferred = true
             }, 'fetch')
@@ -1588,7 +1590,8 @@ export default class FiCsElement<D extends object, P extends object> {
         })
       )) {
         const _key: keyof D = key as keyof D
-        if (this.#data[_key].get() !== value) this.#internalSetData(_key, value as D[keyof D], true)
+        if (Object.is(this.#data[_key], value))
+          this.#internalSetData(_key, value as D[keyof D], true)
       }
 
     if (!isOnlyHtml) {
@@ -1651,10 +1654,10 @@ export default class FiCsElement<D extends object, P extends object> {
             (prev, [key, value]) => `${prev} ${key}="${value}"`,
             ''
           )}`.trim(),
-          slotAttrs = [
-            `id="${that.#instanceId}"`,
+          slotAttrs: string = [
+            `id="${that.#name}"`,
             `slot="${that.#instanceId}"`,
-            `${data ? `data-${that.#instanceId}='${JSON.stringify(data)}'` : ''}`
+            `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
           ].join(' ')
 
         const applyDescendant = (html: string): string => {
@@ -1723,8 +1726,8 @@ export default class FiCsElement<D extends object, P extends object> {
             _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
         return `
-          <${that.#name}${classNameAndAttrs.length ? ` ${classNameAndAttrs}` : ''}>
-            <template shadowrootmode="open"><slot name="${that.#name}"></slot></template>
+          <${[that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''].join(' ').trim()}>
+            <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
             <div ${slotAttrs}>${html}${css([...globalCss(), ...that.#css])}</div>
           </${that.#name}>
         `
@@ -1735,7 +1738,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (data)
       for (const [key, value] of Object.entries(data))
-        this.#internalSetData(key as keyof D, value as D[keyof D])
+        this.#data[key as keyof D] = value as D[keyof D]
 
     return render(this, this.#propsChain, this.#ancestorIds, data)
   }
@@ -1748,13 +1751,15 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
+    this.#throwKeyError(key)
     if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
       throw new Error(`The "${key as string}" cannot be modified in the router component...`)
-    this.#internalSetData(key, value)
+
+    this.#data[key as keyof D] = value as D[keyof D]
   }
 
-  getData<K extends keyof D>(key: K): D[K] {
+  getData<K extends keyof D>(key: K): D[typeof key] {
     this.#throwKeyError(key)
-    return this.#data[key].get()
+    return this.#data[key] as D[typeof key]
   }
 }
