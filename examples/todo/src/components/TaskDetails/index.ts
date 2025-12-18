@@ -107,7 +107,7 @@ export default fics<Data, Props>({
       })
     }
   ],
-  className: 'task-detail',
+  className: 'task-details',
   html: ({
     children: { loadingIcon, icon, input, textarea, button },
     data: {
