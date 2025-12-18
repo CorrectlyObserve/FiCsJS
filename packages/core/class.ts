@@ -272,8 +272,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#rawData[key] = value
 
-    if (key === 'lang') console.log(this.#name, key, value)
-
     for (const { propsKeys, setProps } of this.#getPropsBindings())
       if (typeof key === 'string' && propsKeys[key as string]) setProps()
 
