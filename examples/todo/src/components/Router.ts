@@ -74,9 +74,14 @@ export default ficsRouter<Data>({
   pages: [
     {
       path: '/',
-      content: ({ children: { tasks, taskDetails }, data: { queries }, template }) => {
-        if (queries.taskId)
-          return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
+      content: ({
+        children: { tasks, taskDetails },
+        data: {
+          queries: { taskId }
+        },
+        template
+      }) => {
+        if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
         return tasks
       }
     },
@@ -133,8 +138,8 @@ export default ficsRouter<Data>({
         const { tasks, draft } = data
         if (!draft) return
 
-        const { id, updatedAt } = draft || {},
-          updatedDraft = tasks.find(task => task.id === id)
+        const { id: taskId, updatedAt } = draft,
+          updatedDraft = tasks.find(({ id }) => id === taskId)
 
         if (updatedDraft && updatedDraft.updatedAt !== updatedAt) data.draft = updatedDraft
       }
