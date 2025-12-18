@@ -52,14 +52,14 @@ export default fics<Data, { lang: Lang }>({
   },
   hooks: {
     mounted: ({ data, poll }) => {
+      const { seconds } = data
+
       poll(
         ({ times }) => {
-          const { seconds } = data
-
           if (times === seconds - 1) goto('/', { isWithoutHistory: true })
           data.seconds = seconds - times - 1
         },
-        { interval: 1000, max: data.seconds }
+        { interval: 1000, max: seconds }
       )
     }
   },
