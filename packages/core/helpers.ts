@@ -19,8 +19,10 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
 export const deepEqual = (
   current: any,
   newValue: any,
-  seenCurrent = new WeakMap<any, any>(),
-  seenNew = new WeakMap<any, any>()
+  weekMaps: { current: WeakMap<any, any>; new: WeakMap<any, any> } = {
+    current: new WeakMap(),
+    new: new WeakMap()
+  }
 ): boolean => {
   if (Object.is(current, newValue)) return true
 
@@ -34,11 +36,11 @@ export const deepEqual = (
 
   if (current.constructor !== newValue.constructor) return false
 
-  if (seenCurrent.has(current) || seenNew.has(newValue))
-    return seenCurrent.get(current) === newValue && seenNew.get(newValue) === current
+  if (weekMaps.current.has(current) || weekMaps.new.has(newValue))
+    return weekMaps.current.get(current) === newValue && weekMaps.new.get(newValue) === current
 
-  seenCurrent.set(current, newValue)
-  seenNew.set(newValue, current)
+  weekMaps.current.set(current, newValue)
+  weekMaps.new.set(newValue, current)
 
   if (typeof Node !== 'undefined' && current instanceof Node) return current.isEqualNode(newValue)
 
@@ -52,7 +54,7 @@ export const deepEqual = (
 
     for (const [key, val] of current) {
       if (!newValue.has(key)) return false
-      if (deepEqual(val, newValue.get(key), seenCurrent, seenNew)) continue
+      if (deepEqual(val, newValue.get(key), weekMaps)) continue
       return false
     }
 
@@ -68,8 +70,8 @@ export const deepEqual = (
       if (newValue.has(_current)) continue
 
       isSame = false
-      for (const _newValue of newValue)
-        if (deepEqual(_current, _newValue, seenCurrent, seenNew)) {
+      for (const _new of newValue)
+        if (deepEqual(_current, _new, weekMaps)) {
           isSame = true
           break
         }
@@ -113,7 +115,7 @@ export const deepEqual = (
 
   for (const key of keys) {
     if (!Object.prototype.hasOwnProperty.call(newValue, key)) return false
-    if (!deepEqual(current[key], newValue[key], seenCurrent, seenNew)) return false
+    if (!deepEqual(current[key], newValue[key], weekMaps)) return false
   }
 
   return true
