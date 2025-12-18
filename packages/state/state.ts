@@ -1,4 +1,4 @@
-import { uid } from '../core/helpers'
+import { deepEqual, uid } from '../core/helpers'
 
 const generator: Generator<number> = uid(),
   states: Map<string, unknown> = new Map(),
@@ -33,7 +33,7 @@ export default class State<S> {
 
     if (!writableStates.has(this.#key)) throw new Error(`The "${this.#key}" is readonly...`)
 
-    if (Object.is(states.get(this.#key), value)) return
+    if (deepEqual(states.get(this.#key), value)) return
 
     states.set(this.#key, value)
 
