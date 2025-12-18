@@ -2,6 +2,7 @@ import { globalCss } from './globalCss'
 import {
   browserError,
   convertStr,
+  deepEqual,
   isBlankObject,
   isBrowser,
   isObject,
@@ -267,7 +268,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #internalSetData<K extends keyof D>(key: K, value: D[K], isInRerendering?: boolean): void {
     const currentValue: D[K] = this.#rawData[key]
-    if (Object.is(currentValue, value)) return
+    if (deepEqual(currentValue, value)) return
 
     this.#rawData[key] = value
 
@@ -1592,7 +1593,7 @@ export default class FiCsElement<D extends object, P extends object> {
         })
       )) {
         const _key: keyof D = key as keyof D
-        if (Object.is(this.#data[_key], value))
+        if (deepEqual(this.#data[_key], value))
           this.#internalSetData(_key, value as D[keyof D], true)
       }
 
