@@ -53,10 +53,10 @@ export default fics<Data, Props>({
         enterKey:
           ({ getData }) =>
           async () => {
-            const _value = getData('value')
+            const value = getData('value')
 
-            if (_value !== '') {
-              setTasks(await addTask(_value))
+            if (value !== '') {
+              setTasks(await addTask(value))
               data.value = ''
             }
           }
