@@ -10,8 +10,8 @@ import type { FiCsRouter, Page, PageContent, RouterData } from './types'
 const setRouterData = <D extends object>(data: RouterData<D>, pathname: string): void => {
   const queries: Record<string, string> = getQueries()
 
-  data.pathname = pathname as RouterData<D>['pathname']
-  data.queries = queries as RouterData<D>['queries']
+  data.pathname = pathname
+  data.queries = queries
   params.set('queries', queries)
 }
 
@@ -39,7 +39,7 @@ export default <D extends object>({
     className,
     attributes,
     html: ({ data, template, ...args }) => {
-      const pathname = normalizePath(data.pathname as string),
+      const pathname = normalizePath(data.pathname),
         setContent = (): Sanitized<RouterData<D>, {}> => {
           const staticPages: Page<D>[] = [],
             dynamicPages: Page<D>[] = []
@@ -61,7 +61,7 @@ export default <D extends object>({
                 )
 
               if (pathname !== redirectedPath) {
-                data.pathname = redirectedPath as RouterData<D>['pathname']
+                data.pathname = redirectedPath
                 goto(redirect, { isWithoutHistory: true })
               }
 
@@ -116,7 +116,7 @@ export default <D extends object>({
             }
 
           if (notFound) {
-            data.pathname = '/404' as RouterData<D>['pathname']
+            data.pathname = '/404'
             params.set('dynamicPaths', {})
             goto('/404', { isWithoutHistory: true })
             return render(notFound)
