@@ -272,6 +272,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#rawData[key] = value
 
+    if (key === 'lang') console.log(this.#name, key, value)
+
     for (const { propsKeys, setProps } of this.#getPropsBindings())
       if (typeof key === 'string' && propsKeys[key as string]) setProps()
 
@@ -1593,7 +1595,7 @@ export default class FiCsElement<D extends object, P extends object> {
         })
       )) {
         const _key: keyof D = key as keyof D
-        if (deepEqual(this.#data[_key], value))
+        if (!deepEqual(this.#data[_key], value))
           this.#internalSetData(_key, value as D[keyof D], true)
       }
 
