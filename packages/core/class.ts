@@ -274,12 +274,11 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const { propsKeys, setProps } of this.#getPropsBindings())
       if (typeof key === 'string' && propsKeys[key as string]) setProps()
 
-    const { data, ...args }: DataProps<D, P, true> = this.#getDataProps(true),
-      updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+    const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
 
     if (updated && key in updated) {
       this.#throwKeyError(key)
-      updated[key]!({ data: { ...data, [key]: value }, ...args })
+      updated[key]!(this.#getDataProps(true))
     }
 
     if (!isInRerendering && this.#isBrowser && this.#cache.component)
