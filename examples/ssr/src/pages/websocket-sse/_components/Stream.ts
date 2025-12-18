@@ -52,9 +52,7 @@ export default fics({
   hooks: {
     updated: {
       isAccumulated: ({ data, crud }) => {
-        const { isAccumulated, accumulatedChunk } = data
-
-        if (isAccumulated) {
+        if (data.isAccumulated) {
           if (streamAbortController) streamAbortController.abort()
           streamAbortController = new AbortController()
 
@@ -83,10 +81,10 @@ export default fics({
 
                 if (chunkData) {
                   const { chunk } = JSON.parse(chunkData) as { chunk?: string }
-                  if (chunk) data.accumulatedChunk = `${accumulatedChunk}${chunk}`
+                  if (chunk) data.accumulatedChunk = `${data.accumulatedChunk}${chunk}`
                 }
 
-                if (event === 'complete') data.accumulatedChunk = `${accumulatedChunk}...`
+                if (event === 'complete') data.accumulatedChunk = `${data.accumulatedChunk}...`
               }
             }
           })
