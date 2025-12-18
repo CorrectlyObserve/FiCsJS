@@ -9,6 +9,116 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
 }
 
+/**
+  @remarks
+  - **Map**: Keys are compared by reference. Values are deeply compared.
+  - **Set**: Values are compared deeply and order-independently (Complexity: O(N^2)).
+  - **Error**: Compared by `name` and `message`. The `stack` trace is ignored as it is environment-specific.
+  - **Opaque Objects**: `WeakMap`, `WeakSet`, and `Promise` always return `false` unless they share the same reference.
+*/
+export const deepEqual = (
+  current: any,
+  newValue: any,
+  seenCurrent = new WeakMap<any, any>(),
+  seenNew = new WeakMap<any, any>()
+): boolean => {
+  if (Object.is(current, newValue)) return true
+
+  if (
+    typeof current !== 'object' ||
+    current === null ||
+    typeof newValue !== 'object' ||
+    newValue === null
+  )
+    return false
+
+  if (current.constructor !== newValue.constructor) return false
+
+  if (seenCurrent.has(current) || seenNew.has(newValue))
+    return seenCurrent.get(current) === newValue && seenNew.get(newValue) === current
+
+  seenCurrent.set(current, newValue)
+  seenNew.set(newValue, current)
+
+  if (typeof Node !== 'undefined' && current instanceof Node) return current.isEqualNode(newValue)
+
+  if (typeof Window !== 'undefined' && current instanceof Window) return false
+
+  if (current instanceof Date) return current.getTime() === newValue.getTime()
+  if (current instanceof RegExp) return current.toString() === newValue.toString()
+
+  if (current instanceof Map) {
+    if (current.size !== newValue.size) return false
+
+    for (const [key, val] of current) {
+      if (!newValue.has(key)) return false
+      if (deepEqual(val, newValue.get(key), seenCurrent, seenNew)) continue
+      return false
+    }
+
+    return true
+  }
+
+  if (current instanceof Set) {
+    if (current.size !== newValue.size) return false
+
+    let isSame: boolean = false
+
+    for (const _current of current) {
+      if (newValue.has(_current)) continue
+
+      isSame = false
+      for (const _newValue of newValue)
+        if (deepEqual(_current, _newValue, seenCurrent, seenNew)) {
+          isSame = true
+          break
+        }
+
+      if (!isSame) return false
+    }
+
+    return true
+  }
+
+  if (current instanceof ArrayBuffer || ArrayBuffer.isView(current)) {
+    if (current.byteLength !== newValue.byteLength) return false
+
+    const toUint8Array = (arrayBuffer: ArrayBuffer | ArrayBufferView): Uint8Array => {
+        if (ArrayBuffer.isView(arrayBuffer))
+          return new Uint8Array(arrayBuffer.buffer, arrayBuffer.byteOffset, arrayBuffer.byteLength)
+
+        return new Uint8Array(arrayBuffer)
+      },
+      currentUint8Array = toUint8Array(current),
+      newUint8Array = toUint8Array(newValue)
+
+    for (let i = 0; i < currentUint8Array.length; i++)
+      if (currentUint8Array[i] !== newUint8Array[i]) return false
+
+    return true
+  }
+
+  if (current instanceof String || current instanceof Number || current instanceof Boolean)
+    return current.valueOf() === newValue.valueOf()
+
+  if (current instanceof Error)
+    return current.name === newValue.name && current.message === newValue.message
+
+  if (current instanceof WeakMap || current instanceof WeakSet || current instanceof Promise)
+    return false
+
+  const keys: (string | symbol)[] = Reflect.ownKeys(current)
+
+  if (keys.length !== Reflect.ownKeys(newValue).length) return false
+
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(newValue, key)) return false
+    if (!deepEqual(current[key], newValue[key], seenCurrent, seenNew)) return false
+  }
+
+  return true
+}
+
 export const isBlankObject = (param: unknown): boolean =>
   isObject(param) && Reflect.ownKeys(param).length === 0
 
