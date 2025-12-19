@@ -50,6 +50,8 @@ export type DataProps<D extends object, P, B extends boolean = false> = {
   props: P
 } & (B extends true ? { crud: Crud } : {})
 
+export type DataPropsValue<D extends object, P extends object> = D[keyof D] | P[keyof P]
+
 export type Descendant = FiCsElement<any, any>
 
 export type Excluded = 'isExceptional' | 'instanceId' | 'componentId' | 'clonedCss'
