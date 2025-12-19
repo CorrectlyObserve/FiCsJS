@@ -13,10 +13,12 @@ interface Data {
   buttonText: string
 }
 
+const MAX = 10 as const
+
 export default fics<Data, { lang: Lang }>({
   name: 'not-found',
   children: [Button(), LoadingIcon],
-  data: () => ({ seconds: 10, descriptions: [], buttonText: '' }),
+  data: () => ({ seconds: MAX, descriptions: [], buttonText: '' }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
   props: [
     {
@@ -52,14 +54,14 @@ export default fics<Data, { lang: Lang }>({
   },
   hooks: {
     mounted: ({ data, poll }) => {
-      const { seconds } = data
+      data.seconds = MAX
 
       poll(
         ({ times }) => {
-          if (times === seconds - 1) goto('/', { isWithoutHistory: true })
-          data.seconds = seconds - times - 1
+          if (times === MAX - 1) goto('/', { isWithoutHistory: true })
+          else data.seconds--
         },
-        { interval: 1000, max: seconds }
+        { interval: 1000, max: MAX }
       )
     }
   },
