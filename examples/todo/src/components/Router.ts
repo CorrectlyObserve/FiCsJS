@@ -98,7 +98,7 @@ export default ficsRouter<Data>({
       width: '100%',
       minHeight: cssVar('min-height'),
       [`@container (width >= ${breakpoints.lg})`]: {
-        '.tasks + .task-detail': {
+        '.tasks + .task-details': {
           paddingLeft: cssVar('xl'),
           boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
         }
