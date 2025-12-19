@@ -23,6 +23,7 @@ import type {
   CrudStreamOptions,
   Css,
   DataProps,
+  DataPropsValue,
   Descendant,
   FiCs,
   Html,
@@ -65,12 +66,15 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #children: Children = {}
   readonly #isBrowser: boolean
   readonly #rawData: D = {} as D
-  readonly #boundCache: Map<Function, D[keyof D]> = new Map()
   readonly #data: D = {} as D
+  readonly #dataSubscribers = new Map<keyof D, Set<() => void>>()
+  readonly #boundCache: Map<Function, DataPropsValue<D, P>> = new Map()
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
+  readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
+  readonly #propsSubscribers = new Map<keyof P, Set<() => void>>()
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
@@ -95,6 +99,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #newElements: Set<Element> = new Set()
   readonly #cache: { component?: HTMLElement } = {}
   #isDeferred: boolean = true
+  static #activeContext: { instance: Descendant; updater: () => void } | null = null
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
   #poll?: ReturnType<typeof setTimeout>
@@ -188,18 +193,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#data = new Proxy(this.#rawData, {
         get: (target, prop, receiver): D[keyof D] => {
-          const value: D[keyof D] = Reflect.get(target, prop, receiver)
+          if (FiCsElement.#activeContext) {
+            const key: keyof D = prop as keyof D
 
-          if (typeof value === 'function') {
-            if (this.#boundCache.has(value)) return this.#boundCache.get(value)!
-
-            const bound: D[keyof D] = value.bind(this)
-
-            this.#boundCache.set(value, bound)
-            return bound
+            if (!this.#dataSubscribers.has(key)) this.#dataSubscribers.set(key, new Set())
+            this.#dataSubscribers.get(key)!.add(FiCsElement.#activeContext.updater)
           }
 
-          return value
+          return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
         },
         set: (_1, prop, value, _2): boolean => {
           this.#internalSetData(prop as keyof D, value)
@@ -258,6 +259,18 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
+  #bindFunction(value: DataPropsValue<D, P>): DataPropsValue<D, P> {
+    if (typeof value === 'function') {
+      if (this.#boundCache.has(value)) return this.#boundCache.get(value)!
+
+      const bound: DataPropsValue<D, P> = value.bind(this)
+      this.#boundCache.set(value, bound)
+      return bound
+    }
+
+    return value
+  }
+
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
     return {
       data: this.#data,
@@ -271,6 +284,9 @@ export default class FiCsElement<D extends object, P extends object> {
     if (deepEqual(currentValue, value)) return
 
     this.#rawData[key] = value
+
+    const subscribers: Set<() => void> | undefined = this.#dataSubscribers.get(key)
+    if (subscribers) for (const updater of new Set(subscribers)) updater()
 
     for (const { propsKeys, setProps } of this.#getPropsBindings())
       if (typeof key === 'string' && propsKeys[key as string]) setProps()
