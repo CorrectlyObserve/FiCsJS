@@ -7,6 +7,7 @@ import {
   isBrowser,
   isObject,
   numberError,
+  routerSymbol,
   toArray,
   uid
 } from './helpers'
@@ -212,7 +213,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (deepEqual(this.#rawData[key], value)) return true
 
-          this.#rawData[key] = value
+          if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
+            if ((value as { [routerSymbol]: true; value: D[keyof D] })[routerSymbol])
+              this.#rawData[key] = value.value
+            else
+              throw new Error(
+                `The "${key as string}" cannot be modified in the router component...`
+              )
+          else this.#rawData[key] = value
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
           if (subscribers) for (const updater of subscribers) updater()
@@ -256,7 +264,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (deepEqual(this.#rawProps[key], value)) return true
 
-        if (this.#isBrowser && window.customElements.get(this.#name)) this.#throwKeyError(key, true)
+        if (this.#isBrowser && window.customElements.get(this.#name) && this.#cache.component)
+          this.#throwKeyError(key, true)
 
         this.#rawProps[key] = value
 
@@ -327,12 +336,27 @@ export default class FiCsElement<D extends object, P extends object> {
     return value
   }
 
+  #getPropsBindings(instanceId?: string): PropsBinding[] {
+    return propsMap.get(instanceId ?? this.#instanceId) ?? []
+  }
+
+  #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
+    if (!(key in (isProps ? this.#props : this.#data)))
+      throw new Error(
+        `The "${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
+      )
+  }
+
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
     return {
       data: this.#data,
       props: this.#props,
       crud: isCrud ? this.#bindCrud : undefined
     } as DataProps<D, P, B>
+  }
+
+  #enqueue(func: () => void, key: Task['key']): void {
+    enqueue({ instanceId: this.#instanceId, func, key })
   }
 
   #crud<T>(api: string, options?: CrudOptions): Promise<T>
@@ -438,10 +462,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#crud.bind(this) as Crud
   }
 
-  #getPropsBindings(instanceId?: string): PropsBinding[] {
-    return propsMap.get(instanceId ?? this.#instanceId) ?? []
-  }
-
   #removePublicMethod = (params: {
     children?: Children
     method: 'getChildren' | 'setIndividualProps'
@@ -488,30 +508,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
         return cloneRecursively(child, instanceId)
       }
-  }
-
-  #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
-    if (!(key in (isProps ? this.#props : this.#data)))
-      throw new Error(
-        `The "${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
-      )
-  }
-
-  #enqueue(func: () => void, key: Task['key']): void {
-    enqueue({ instanceId: this.#instanceId, func, key })
-  }
-
-  #setProps(key: keyof P, value: P[typeof key]): void {
-    if (deepEqual(this.#rawProps[key], value)) return
-
-    if (this.#isBrowser && window.customElements.get(this.#name)) this.#throwKeyError(key, true)
-
-    this.#rawProps[key] = value
-
-    const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
-    if (subscribers) for (const updater of subscribers) updater()
-
-    if (this.#isBrowser && this.#cache.component) this.#enqueue(() => this.#reRender(), 're-render')
   }
 
   #initProps(propsChain: PropsChain<P>, ancestorIds: string[]): void {
@@ -1810,10 +1806,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    this.#throwKeyError(key)
-    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-      throw new Error(`The "${key as string}" cannot be modified in the router component...`)
-
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
