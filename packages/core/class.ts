@@ -67,14 +67,19 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #isBrowser: boolean
   readonly #rawData: D = {} as D
   readonly #data: D = {} as D
-  readonly #dataSubscribers = new Map<keyof D, Set<() => void>>()
-  readonly #boundCache: Map<Function, DataPropsValue<D, P>> = new Map()
+  readonly #subscribers: {
+    data: Map<keyof D, Set<() => void>>
+    props: Map<keyof P, Set<() => void>>
+  } = { data: new Map(), props: new Map() }
+  readonly #cache: {
+    boundFunctions: Map<Function, DataPropsValue<D, P>>
+    component?: HTMLElement
+  } = { boundFunctions: new Map() }
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
-  readonly #propsSubscribers = new Map<keyof P, Set<() => void>>()
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html<D, P>
@@ -97,12 +102,12 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
-  readonly #cache: { component?: HTMLElement } = {}
-  #isDeferred: boolean = true
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
+  #isDeferred: boolean = true
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
   #poll?: ReturnType<typeof setTimeout>
+  #isInRerendering: boolean = false
 
   constructor({
     name,
@@ -196,14 +201,35 @@ export default class FiCsElement<D extends object, P extends object> {
           if (FiCsElement.#activeContext) {
             const key: keyof D = prop as keyof D
 
-            if (!this.#dataSubscribers.has(key)) this.#dataSubscribers.set(key, new Set())
-            this.#dataSubscribers.get(key)!.add(FiCsElement.#activeContext.updater)
+            if (!this.#subscribers.data.has(key)) this.#subscribers.data.set(key, new Set())
+            this.#subscribers.data.get(key)!.add(FiCsElement.#activeContext.updater)
           }
 
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
         },
-        set: (_1, prop, value, _2): boolean => {
-          this.#internalSetData(prop as keyof D, value)
+        set: (_, prop, value): boolean => {
+          const key: keyof D = prop as keyof D
+
+          if (deepEqual(this.#rawData[key], value)) return true
+
+          this.#rawData[key] = value
+
+          const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
+          if (subscribers) for (const updater of subscribers) updater()
+
+          for (const { propsKeys, setProps } of this.#getPropsBindings())
+            if (typeof key === 'string' && propsKeys[key as string]) setProps()
+
+          const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+
+          if (updated && key in updated) {
+            this.#throwKeyError(key)
+            updated[key]!(this.#getDataProps(true))
+          }
+
+          if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
+            this.#enqueue(this.#reRender.bind(this), 're-render')
+
           return true
         }
       })
@@ -213,6 +239,36 @@ export default class FiCsElement<D extends object, P extends object> {
       const propsArray: Props<D, P>[] = toArray(props)
       if (propsArray.length > 0) this.#propsSources = propsArray
     }
+
+    this.#props = new Proxy(this.#rawProps, {
+      get: (target, prop, receiver): P[keyof P] => {
+        if (FiCsElement.#activeContext) {
+          const key: keyof P = prop as keyof P
+
+          if (!this.#subscribers.props.has(key)) this.#subscribers.props.set(key, new Set())
+          this.#subscribers.props.get(key)!.add(FiCsElement.#activeContext.updater)
+        }
+
+        return this.#bindFunction(Reflect.get(target, prop, receiver)) as P[keyof P]
+      },
+      set: (_, prop, value): true => {
+        const key: keyof P = prop as keyof P
+
+        if (deepEqual(this.#rawProps[key], value)) return true
+
+        if (this.#isBrowser && window.customElements.get(this.#name)) this.#throwKeyError(key, true)
+
+        this.#rawProps[key] = value
+
+        const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
+        if (subscribers) for (const updater of subscribers) updater()
+
+        if (this.#isBrowser && this.#cache.component)
+          this.#enqueue(() => this.#reRender(), 're-render')
+
+        return true
+      }
+    })
 
     if (className) this.#classNames = typeof className === 'function' ? className : className.trim()
     if (attributes) this.#attrs = attributes
@@ -261,10 +317,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #bindFunction(value: DataPropsValue<D, P>): DataPropsValue<D, P> {
     if (typeof value === 'function') {
-      if (this.#boundCache.has(value)) return this.#boundCache.get(value)!
+      if (this.#cache.boundFunctions.has(value)) return this.#cache.boundFunctions.get(value)!
 
       const bound: DataPropsValue<D, P> = value.bind(this)
-      this.#boundCache.set(value, bound)
+      this.#cache.boundFunctions.set(value, bound)
       return bound
     }
 
@@ -274,32 +330,9 @@ export default class FiCsElement<D extends object, P extends object> {
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
     return {
       data: this.#data,
-      props: { ...this.#props },
+      props: this.#props,
       crud: isCrud ? this.#bindCrud : undefined
     } as DataProps<D, P, B>
-  }
-
-  #internalSetData<K extends keyof D>(key: K, value: D[K], isInRerendering?: boolean): void {
-    const currentValue: D[K] = this.#rawData[key]
-    if (deepEqual(currentValue, value)) return
-
-    this.#rawData[key] = value
-
-    const subscribers: Set<() => void> | undefined = this.#dataSubscribers.get(key)
-    if (subscribers) for (const updater of new Set(subscribers)) updater()
-
-    for (const { propsKeys, setProps } of this.#getPropsBindings())
-      if (typeof key === 'string' && propsKeys[key as string]) setProps()
-
-    const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
-
-    if (updated && key in updated) {
-      this.#throwKeyError(key)
-      updated[key]!(this.#getDataProps(true))
-    }
-
-    if (!isInRerendering && this.#isBrowser && this.#cache.component)
-      this.#enqueue(this.#reRender.bind(this), 're-render')
   }
 
   #crud<T>(api: string, options?: CrudOptions): Promise<T>
@@ -433,8 +466,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const instanceId: string = `${child.#instanceId}-${key}`,
           clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
           cloneProps = (descendant: Descendant): Descendant => {
-            for (const [key, value] of Object.entries({ ...props }))
-              descendant.#setProps(key, value)
+            for (const [key, value] of Object.entries({ ...props })) descendant.#props[key] = value
 
             return descendant
           }
@@ -470,14 +502,16 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #setProps(key: keyof P, value: P[typeof key]): void {
-    if (this.#isBrowser) {
-      if (window.customElements.get(this.#name)) this.#throwKeyError(key, true)
+    if (deepEqual(this.#rawProps[key], value)) return
 
-      if (this.#props[key] !== value) {
-        this.#props[key] = value
-        if (this.#cache.component) this.#enqueue(() => this.#reRender(), 're-render')
-      }
-    } else if (this.#props[key] !== value) this.#props[key] = value
+    if (this.#isBrowser && window.customElements.get(this.#name)) this.#throwKeyError(key, true)
+
+    this.#rawProps[key] = value
+
+    const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
+    if (subscribers) for (const updater of subscribers) updater()
+
+    if (this.#isBrowser && this.#cache.component) this.#enqueue(() => this.#reRender(), 're-render')
   }
 
   #initProps(propsChain: PropsChain<P>, ancestorIds: string[]): void {
@@ -557,10 +591,10 @@ export default class FiCsElement<D extends object, P extends object> {
                         this.#data[_key] as D[typeof _key]
                     })
 
-                    _descendant.#setProps(key as keyof P, newValue)
+                    _descendant.#props[key as keyof P] = newValue
 
                     for (const clonedInstance of _descendant.#clonedSelves.values())
-                      clonedInstance.#setProps(key as keyof P, newValue)
+                      clonedInstance.#props[key as keyof P] = newValue
                   }
                 },
                 isLargerNumberId = (index: number): boolean =>
@@ -603,7 +637,8 @@ export default class FiCsElement<D extends object, P extends object> {
                   ...args,
                   instanceId: child.#instanceId,
                   propsKey,
-                  setProps: () => child.#setProps(propsKey, this.#data[propsKey as keyof D])
+                  setProps: () =>
+                    (child.#props[propsKey as keyof P] = this.#data[propsKey as keyof D])
                 },
                 ...propsBindings.slice(_index)
               ])
@@ -1597,56 +1632,61 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
-    const { component }: { component?: HTMLElement } = this.#cache
-    if (!component) return
+    this.#isInRerendering = true
 
-    if (this.#i18nData)
-      for (const [key, value] of Object.entries(
-        await this.#i18nData({
-          ...this.#getDataProps(),
-          i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-            i18n<T>({ lang, key })
-        })
-      )) {
-        const _key: keyof D = key as keyof D
-        if (!deepEqual(this.#data[_key], value))
-          this.#internalSetData(_key, value as D[keyof D], true)
-      }
+    try {
+      const { component }: { component?: HTMLElement } = this.#cache
+      if (!component) return
 
-    if (!isOnlyHtml) {
-      this.#setClassNames(component)
-      this.#setAttrs(component)
-    }
-
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
-
-    this.#buildHtml(shadowRoot)
-    this.#infiniteVirtualScroll(shadowRoot)
-
-    if (!isOnlyHtml && this.#boundCss.length > 0)
-      this.#buildCss(
-        shadowRoot,
-        this.#boundCss.map(index => this.#css[index])
-      )
-
-    if (this.#isBrowser) {
-      const addAllElements = (elements: Element[] | Set<Element>): void => {
-        for (const element of elements) {
-          if (element instanceof Element && !this.#newElements.has(element))
-            this.#newElements.add(element)
-
-          addAllElements(this.#getChildNodes(element) as Element[])
+      if (this.#i18nData)
+        for (const [key, value] of Object.entries(
+          await this.#i18nData({
+            ...this.#getDataProps(),
+            i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+              i18n<T>({ lang, key })
+          })
+        )) {
+          const _key: keyof D = key as keyof D
+          if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
         }
+
+      if (!isOnlyHtml) {
+        this.#setClassNames(component)
+        this.#setAttrs(component)
       }
 
-      addAllElements(this.#newElements)
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
-      for (const [selector, action] of Object.entries(this.#actions))
-        for (const element of this.#getElements(component, selector))
-          if (this.#newElements.has(element))
-            this.#addEventListener(element, Object.entries(action))
+      this.#buildHtml(shadowRoot)
+      this.#infiniteVirtualScroll(shadowRoot)
 
-      this.#newElements.clear()
+      if (!isOnlyHtml && this.#boundCss.length > 0)
+        this.#buildCss(
+          shadowRoot,
+          this.#boundCss.map(index => this.#css[index])
+        )
+
+      if (this.#isBrowser) {
+        const addAllElements = (elements: Element[] | Set<Element>): void => {
+          for (const element of elements) {
+            if (element instanceof Element && !this.#newElements.has(element))
+              this.#newElements.add(element)
+
+            addAllElements(this.#getChildNodes(element) as Element[])
+          }
+        }
+
+        addAllElements(this.#newElements)
+
+        for (const [selector, action] of Object.entries(this.#actions))
+          for (const element of this.#getElements(component, selector))
+            if (this.#newElements.has(element))
+              this.#addEventListener(element, Object.entries(action))
+
+        this.#newElements.clear()
+      }
+    } finally {
+      this.#isInRerendering = false
     }
   }
 
