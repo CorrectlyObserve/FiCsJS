@@ -17,10 +17,7 @@ export default fics({
       svg: RefreshCcw,
       areaLabel: 'Open the data stream dialog',
       isLarge: true,
-      click:
-        ({ getData }) =>
-        () =>
-          (data.isAccumulated = !getData('isAccumulated'))
+      click: () => (data.isAccumulated = !data.isAccumulated)
     })
   },
   html: ({
