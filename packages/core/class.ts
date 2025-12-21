@@ -87,13 +87,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #boundCss: number[] = new Array()
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
-  readonly #options: Options<D, P> = {
-    ssr: true,
-    lazyLoad: false,
-    rootMargin: '0px',
-    websocket: undefined,
-    sse: undefined
-  }
+  readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
