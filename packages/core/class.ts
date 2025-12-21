@@ -24,7 +24,6 @@ import type {
   CrudStreamOptions,
   Css,
   DataProps,
-  DataPropsValue,
   Descendant,
   FiCs,
   Html,
@@ -71,7 +70,7 @@ export default class FiCsElement<D extends object, P extends object> {
     props: Map<keyof P, Set<() => void>>
   } = { data: new Map(), props: new Map() }
   readonly #cache: {
-    boundFunctions: Map<Function, DataPropsValue<D, P>>
+    boundFunctions: Map<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
   } = { boundFunctions: new Map() }
   readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
@@ -305,11 +304,11 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #bindFunction(value: DataPropsValue<D, P>): DataPropsValue<D, P> {
+  #bindFunction(value: D[keyof D] | P[keyof P]): D[keyof D] | P[keyof P] {
     if (typeof value === 'function') {
       if (this.#cache.boundFunctions.has(value)) return this.#cache.boundFunctions.get(value)!
 
-      const bound: DataPropsValue<D, P> = value.bind(this)
+      const bound: D[keyof D] | P[keyof P] = value.bind(this)
       this.#cache.boundFunctions.set(value, bound)
       return bound
     }
