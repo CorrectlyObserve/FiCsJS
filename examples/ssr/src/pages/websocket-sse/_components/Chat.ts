@@ -24,17 +24,15 @@ export default fics<
   props: {
     descendant: ({ children: { button } }) => button,
     values: ({ data, props: { sendMessage } }) => ({
-      isDisabled: ({ getData }) => getData('comment').trim() === '',
+      isDisabled: data.comment.trim() === '',
       buttonText: 'Send',
-      click:
-        ({ getData }) =>
-        () => {
-          const userName = $userName.get()
-          if (userName === '') return
+      click: () => {
+        const userName = $userName.get()
+        if (userName === '') return
 
-          sendMessage({ userName, comment: getData('comment') })
-          data.comment = ''
-        }
+        sendMessage({ userName, comment: data.comment })
+        data.comment = ''
+      }
     })
   },
   html: ({ children: { button }, data: { comment }, props: { messages }, template }) => {
