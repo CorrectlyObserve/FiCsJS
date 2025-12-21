@@ -32,7 +32,6 @@ interface Props {
   lang: Lang
   draft: Task
   editTask: (newValue: Partial<Task>) => void
-  getTask: () => Task
   updateTasks: (tasks: Task[]) => void
 }
 
@@ -62,9 +61,8 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { icon } }) => icon,
-      values: ({ props: { editTask, getTask } }) => ({
+      values: ({ props: { draft, editTask } }) => ({
         click: () => {
-          const draft = getTask()
           if ('completedAt' in draft)
             editTask({ completedAt: draft.completedAt ? undefined : getTimestamp() })
         }
@@ -72,29 +70,29 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ props: { editTask } }) => ({
+      values: ({ data: { title, error, placeholders }, props: { editTask } }) => ({
         id: 'title',
-        label: ({ getData }) => getData('title'),
-        error: ({ getData }) => getData('error'),
-        placeholder: ({ getData }) => getData('placeholders')[0],
+        label: title,
+        error: error,
+        placeholder: placeholders[0],
         input: (title: string) => editTask({ title })
       })
     },
     {
       descendant: ({ children: { textarea } }) => textarea,
-      values: ({ props: { editTask } }) => ({
+      values: ({ data: { description, placeholders }, props: { editTask } }) => ({
         id: 'description',
-        label: ({ getData }) => getData('description'),
-        placeholder: ({ getData }) => getData('placeholders')[1],
+        label: description,
+        placeholder: placeholders[1],
         input: (description: string) => editTask({ description })
       })
     },
     {
       descendant: ({ children: { button } }) => button,
-      values: ({ props: { editTask, getTask: _getTask, updateTasks } }) => ({
-        buttonText: ({ getData }) => getData('buttonText'),
+      values: ({ data: { buttonText }, props: { draft, editTask, updateTasks } }) => ({
+        buttonText,
         click: async () => {
-          const { id, title, description, completedAt }: Task = _getTask()
+          const { id, title, description, completedAt }: Task = draft
           await updateTask({ id, title, description, completedAt })
 
           const task: Task | undefined = getTask(await getAllTasks(), id)
