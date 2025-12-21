@@ -23,8 +23,8 @@ export default fics<Data, { lang: Lang }>({
   props: [
     {
       descendant: ({ children: { button } }) => button,
-      values: () => ({
-        buttonText: ({ getData }) => getData('buttonText'),
+      values: ({ data: { buttonText } }) => ({
+        buttonText,
         click: () => goto('/', { isWithoutHistory: true })
       })
     },
