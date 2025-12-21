@@ -18,7 +18,7 @@ const MAX = 10 as const
 export default fics<Data, { lang: Lang }>({
   name: 'not-found',
   children: [Button(), LoadingIcon],
-  data: () => ({ seconds: MAX, descriptions: [], buttonText: '' }),
+  data: () => ({ seconds: MAX }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
   props: [
     {
