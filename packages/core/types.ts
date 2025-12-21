@@ -54,8 +54,6 @@ export type DataPropsValue<D extends object, P extends object> = D[keyof D] | P[
 
 export type Descendant = FiCsElement<any, any>
 
-export type Excluded = 'isExceptional' | 'instanceId' | 'componentId' | 'clonedCss'
-
 export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
