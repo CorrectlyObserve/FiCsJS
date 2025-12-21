@@ -26,49 +26,38 @@ export default ficsRouter<Data>({
         taskDetails,
         notFound
       ],
-      values: () => ({ lang: ({ getData }) => getData('lang') })
+      values: ({ data: { lang } }) => ({ lang })
     },
     {
       descendant: ({ children: { tasks } }) => tasks,
       values: ({ data }) => ({
-        tasks: ({ getData }) => getData('tasks'),
-        taskId: ({ getData }) => getData('taskId'),
+        tasks: data.tasks,
+        taskId: data.taskId,
         setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails,
       values: ({ data }) => ({
-        draft: ({ getData }) => getData('draft'),
-        editTask:
-          ({ getData }) =>
-          (value: Partial<TaskType>) => {
-            const draft: TaskType | undefined = getData('draft')
-            if (!draft) return
-
-            data.draft = { ...draft, ...value }
-          },
-        getTask:
-          ({ getData }) =>
-          () =>
-            getData('draft'),
+        draft: data.draft,
+        editTask: (value: Partial<TaskType>) => {
+          if (!data.draft) return
+          data.draft = { ...data.draft, ...value }
+        },
         updateTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().input,
-      values: () => ({
-        isError: ({ getData }) => getData('draft')?.title === '',
-        value: ({ getData }) => getData('draft')?.title
-      })
+      values: ({ data: { draft } }) => ({ isError: draft?.title === '', value: draft?.title })
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().textarea,
-      values: () => ({ value: ({ getData }) => getData('draft')?.description })
+      values: ({ data: { draft } }) => ({ data: draft?.description })
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().button,
-      values: () => ({ isDisabled: ({ getData }) => getData('draft')?.title === '' })
+      values: ({ data: { draft } }) => ({ isDisabled: draft?.title === '' })
     }
   ],
   pages: [
