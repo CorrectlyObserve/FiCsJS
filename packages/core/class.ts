@@ -253,6 +253,9 @@ export default class FiCsElement<D extends object, P extends object> {
         const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
         if (subscribers) for (const updater of subscribers) updater()
 
+        if (this.#clonedSelves.size > 0)
+          for (const clone of this.#clonedSelves.values()) clone.#props[key] = value
+
         if (this.#isBrowser && this.#cache.component)
           this.#enqueue(() => this.#reRender(), 're-render')
 
@@ -503,7 +506,7 @@ export default class FiCsElement<D extends object, P extends object> {
       addGetChildren()
 
       const descendants: Descendant[] = toArray(descendant({ children: this.#children })).filter(
-        (descendant: Descendant) => descendant instanceof FiCsElement
+        (descendant: Descendant): descendant is Descendant => descendant !== undefined
       )
 
       this.#removePublicMethod({ method: 'getChildren' })
@@ -523,8 +526,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   this.#websocket?.isOpened() && this.#websocket.send(value)
               })
             ))
-              for (const cloned of [_descendant, ..._descendant.#clonedSelves.values()])
-                cloned.#props[key] = value
+              _descendant.#props[key] = value
         } finally {
           FiCsElement.#activeContext = null
         }
