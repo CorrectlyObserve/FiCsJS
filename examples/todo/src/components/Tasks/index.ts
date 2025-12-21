@@ -46,21 +46,21 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ data, props: { setTasks } }) => ({
-        value: ({ getData }) => getData('value'),
-        placeholder: ({ getData }) => getData('placeholder'),
-        input: (value: string) => (data.value = value),
-        enterKey:
-          ({ getData }) =>
-          async () => {
-            const value = getData('value')
+      values: ({ data, props: { setTasks } }) => {
+        const { value, placeholder } = data
 
+        return {
+          value,
+          placeholder,
+          input: (value: string) => (data.value = value),
+          enterKey: async () => {
             if (value !== '') {
               setTasks(await addTask(value))
               data.value = ''
             }
           }
-      })
+        }
+      }
     }
   ],
   className: 'tasks',
