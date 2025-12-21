@@ -55,14 +55,12 @@ const ficsIdName = 'fics-id' as const,
   generator: Generator<number> = uid(),
   nameGenerators: Map<string, Generator<number>> = new Map(),
   names: Map<string, number> = new Map(),
-  propsMap: Map<string, PropsBinding[]> = new Map(),
   varTag = 'f-var' as const,
   host = ':host' as const
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
   readonly #instanceId: string
-  readonly #componentId: string
   readonly #name: string
   readonly #children: Children = {}
   readonly #isBrowser: boolean
@@ -98,8 +96,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
   readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
-  readonly #propsChain: PropsChain<P> = new Map()
-  readonly #ancestorIds: string[] = new Array()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
@@ -114,7 +110,6 @@ export default class FiCsElement<D extends object, P extends object> {
     name,
     isExceptional,
     instanceId,
-    componentId,
     children,
     data,
     deferredData,
@@ -139,13 +134,10 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#instanceId = instanceId ?? `${ficsIdName}${generator.next().value}`
-    this.#componentId = componentId ?? this.#instanceId
 
     if (!nameGenerators.has(name)) nameGenerators.set(name, uid())
     names.set(name, nameGenerators.get(name)!.next().value)
     this.#name = `f-${name}${names.get(name)! > 1 ? `${isBrowser() ? '' : '-server'}-${names.get(name)}` : ''}`
-
-    propsMap.set(this.#instanceId, [])
 
     this.#isBrowser = isBrowser()
 
@@ -225,11 +217,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
           if (subscribers) for (const updater of subscribers) updater()
 
-          for (const { propsKeys, setProps } of this.#getPropsBindings())
-            if (typeof key === 'string' && propsKeys[key as string]) setProps()
-
           const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
-
           if (updated && key in updated) {
             this.#throwKeyError(key)
             updated[key]!(this.#getDataProps(true))
@@ -293,7 +281,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (scroll && !isBlankObject(scroll) && this.#isBrowser)
       this.#scroll = {
         ...scroll,
-        id: `${this.#componentId}-scroll`,
+        id: `${this.#instanceId}-scroll`,
         start: 0,
         end: scroll.unit,
         isEnabled: false,
@@ -307,7 +295,6 @@ export default class FiCsElement<D extends object, P extends object> {
     return new FiCsElement({
       name: this.#nameKey,
       instanceId: instanceId ?? this.#instanceId,
-      componentId: this.#componentId,
       children: Object.values(this.#children),
       data: () => this.#data as Partial<D>,
       deferredData: this.#deferredData,
@@ -334,10 +321,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     return value
-  }
-
-  #getPropsBindings(instanceId?: string): PropsBinding[] {
-    return propsMap.get(instanceId ?? this.#instanceId) ?? []
   }
 
   #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
@@ -486,6 +469,9 @@ export default class FiCsElement<D extends object, P extends object> {
         const instanceId: string = `${child.#instanceId}-${key}`,
           clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
           cloneProps = (descendant: Descendant): Descendant => {
+            for (const [key, value] of Object.entries(child.#rawProps))
+              if (!(key in props)) descendant.#props[key] = value
+
             for (const [key, value] of Object.entries({ ...props })) descendant.#props[key] = value
 
             return descendant
@@ -510,144 +496,53 @@ export default class FiCsElement<D extends object, P extends object> {
       }
   }
 
-  #initProps(propsChain: PropsChain<P>, ancestorIds: string[]): void {
-    if (!this.#isInitialized) {
-      const entries = (id: string): [string, P][] => Object.entries(propsChain.get(id) ?? {})
+  #initProps(): void {
+    if (this.#isInitialized) return
 
-      for (const [key, value] of entries(this.#componentId))
-        if (!(key in this.#props)) this.#props[key as keyof P] = value as P[keyof P]
-
-      if (this.#componentId !== this.#instanceId)
-        for (const [key, value] of entries(this.#instanceId))
-          this.#props[key as keyof P] = value as P[keyof P]
-
-      const addGetChildren = (children: Children = this.#children): void => {
-        for (const child of Object.values(children)) {
-          child.getChildren = (): Children => child.#children
-          addGetChildren(child.getChildren())
-        }
+    const addGetChildren = (children: Children = this.#children): void => {
+      for (const child of Object.values(children)) {
+        child.getChildren = (): Children => child.#children
+        addGetChildren(child.getChildren())
       }
-
-      for (const { descendant, values } of this.#propsSources) {
-        addGetChildren()
-        const returned: SingleOrArray<Descendant> = descendant({ children: this.#children })
-
-        for (const _descendant of Array.isArray(returned) ? returned : [returned]) {
-          if (_descendant === undefined) continue
-
-          this.#removePublicMethod({ method: 'getChildren' })
-
-          const sendToWebsocket = (value: WebSocketValue): void => {
-              if (!this.#websocket) return
-
-              const { send, isOpened }: WebSocketProp = this.#websocket
-              if (isOpened()) return send(value)
-            },
-            instanceId: string = _descendant.#instanceId
-
-          for (const [key, value] of Object.entries(
-            values({
-              ...this.#getDataProps(true),
-              children: this.#children,
-              sendToWebsocket
-            })
-          )) {
-            const chain: Partial<P> | undefined = propsChain.get(instanceId)
-
-            if (chain && key in chain && propsChain.has(instanceId)) continue
-
-            if (typeof value === 'function' && /getData/.test(value.toString())) {
-              const computeValue = value as (args: {
-                  getData: <K extends keyof D>(key: K) => D[K]
-                }) => P[keyof P],
-                propsKeys: Record<string, true> = { [key]: true },
-                _value: P[keyof P] = computeValue({
-                  getData: <K extends keyof D>(_key: K): D[typeof _key] => {
-                    if (key !== _key) propsKeys[_key as string] = true
-                    return this.#data[_key] as D[typeof _key]
-                  }
-                })
-
-              propsChain.set(instanceId, { ...chain, [key]: _value } as Partial<P>)
-
-              if (typeof _value === 'function') continue
-
-              const propsBindings: PropsBinding[] = this.#getPropsBindings(),
-                last: number = propsBindings.length - 1,
-                start: number = instanceId.indexOf(ficsIdName) + ficsIdName.length,
-                end: number = instanceId.indexOf('-', start),
-                newBinding: PropsBinding = {
-                  instanceId,
-                  numberId: parseInt(instanceId.slice(start, end === -1 ? undefined : end)),
-                  propsKeys,
-                  propsKey: key,
-                  setProps: () => {
-                    const newValue: P[keyof P] = computeValue({
-                      getData: <K extends keyof D>(_key: K): D[typeof _key] =>
-                        this.#data[_key] as D[typeof _key]
-                    })
-
-                    _descendant.#props[key as keyof P] = newValue
-
-                    for (const clonedInstance of _descendant.#clonedSelves.values())
-                      clonedInstance.#props[key as keyof P] = newValue
-                  }
-                },
-                isLargerNumberId = (index: number): boolean =>
-                  propsBindings[index].numberId >= newBinding.numberId
-
-              if (last > 2) {
-                let min: number = 0,
-                  max: number = last
-
-                while (min <= max) {
-                  const mid: number = Math.floor((min + max) / 2)
-                  isLargerNumberId(mid) ? (min = mid + 1) : (max = mid - 1)
-                }
-
-                propsBindings.splice(min, 0, newBinding)
-              } else
-                propsBindings[last < 0 || isLargerNumberId(last) ? 'push' : 'unshift'](newBinding)
-
-              propsMap.set(this.#instanceId, propsBindings)
-            } else propsChain.set(instanceId, { ...chain, [key]: value })
-          }
-        }
-      }
-
-      for (const [key, value] of propsChain) this.#propsChain.set(key, value)
-
-      this.#addSetIndividualProps()
-
-      for (const ancestorId of ancestorIds) {
-        const propsBindings: PropsBinding[] = this.#getPropsBindings(ancestorId)
-
-        for (const [index, { instanceId, propsKey, ...args }] of Object.entries(propsBindings))
-          for (const child of Object.values(this.#children))
-            if (child.#componentId === instanceId && child.#instanceId !== instanceId) {
-              const _index: number = parseInt(index) + 1
-
-              propsMap.set(ancestorId, [
-                ...propsBindings.slice(0, _index),
-                {
-                  ...args,
-                  instanceId: child.#instanceId,
-                  propsKey,
-                  setProps: () =>
-                    (child.#props[propsKey as keyof P] = this.#data[propsKey as keyof D])
-                },
-                ...propsBindings.slice(_index)
-              ])
-            }
-
-        this.#ancestorIds.push(ancestorId)
-      }
-
-      this.#removePublicMethod({ method: 'setIndividualProps' })
-
-      this.#ancestorIds.push(this.#instanceId)
-      this.#isInitialized = true
     }
+
+    for (const { descendant, values } of this.#propsSources) {
+      addGetChildren()
+
+      const descendants: Descendant[] = toArray(descendant({ children: this.#children })).filter(
+        (descendant: Descendant) => descendant instanceof FiCsElement
+      )
+
+      this.#removePublicMethod({ method: 'getChildren' })
+
+      if (descendants.length === 0) continue
+
+      const updater = (): void => {
+        FiCsElement.#activeContext = { instance: this, updater }
+
+        try {
+          for (const _descendant of descendants)
+            for (const [key, value] of Object.entries(
+              values({
+                ...this.#getDataProps(true),
+                children: this.#children,
+                sendToWebsocket: (value: WebSocketValue) =>
+                  this.#websocket?.isOpened() && this.#websocket.send(value)
+              })
+            ))
+              for (const cloned of [_descendant, ..._descendant.#clonedSelves.values()])
+                cloned.#props[key] = value
+        } finally {
+          FiCsElement.#activeContext = null
+        }
+      }
+
+      updater()
+    }
+
+    this.#addSetIndividualProps()
+    this.#removePublicMethod({ method: 'setIndividualProps' })
+    this.#isInitialized = true
   }
 
   get #computedClassName(): string {
@@ -854,7 +749,7 @@ export default class FiCsElement<D extends object, P extends object> {
             const child: FiCsElement<D, P> = this.#childrenStore[instanceId]
 
             if (!child.#cache.component) {
-              child.#initProps(this.#propsChain, this.#ancestorIds)
+              child.#initProps()
               child.#callback('created')
               child.#enqueue(() => child.#define(), 'define')
             }
@@ -1695,13 +1590,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   toString(data?: Partial<D>): string {
-    const render = (
-      that: FiCsElement<D, P>,
-      propsChain: PropsChain<P>,
-      ancestorIds: string[],
-      data?: Partial<D>
-    ): string => {
-      that.#initProps(propsChain, ancestorIds)
+    const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
+      that.#initProps()
 
       if (that.#options.ssr) {
         const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
@@ -1730,7 +1620,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!(instanceId in that.#childrenStore))
             throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-          return `${prev}${render(that.#childrenStore[instanceId], propsChain, ancestorIds)}${next}`
+          return `${prev}${render(that.#childrenStore[instanceId])}${next}`
         }
 
         const applyShowAttr = (html: string): string => {
@@ -1795,11 +1685,11 @@ export default class FiCsElement<D extends object, P extends object> {
       for (const [key, value] of Object.entries(data))
         this.#data[key as keyof D] = value as D[keyof D]
 
-    return render(this, this.#propsChain, this.#ancestorIds, data)
+    return render(this, data)
   }
 
   describe(parent?: HTMLElement): void {
-    this.#initProps(this.#propsChain, this.#ancestorIds)
+    this.#initProps()
     this.#callback('created')
     this.#enqueue(() => this.#define(), 'define')
     if (parent) parent.append(document.createElement(this.#name))
