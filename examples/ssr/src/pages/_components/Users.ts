@@ -23,36 +23,31 @@ export default fics({
   props: [
     {
       descendant: ({ children: { button } }) => button,
-      values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
+      values: ({ data: { userId } }) => ({ isDisabled: isNaN(userId) })
     },
     {
       descendant: ({ children: { draggable } }) => draggable,
-      values: ({ children: { userContent }, data, crud }) => ({
-        array: ({ getData }) => getData('users'),
+      values: ({ data, children: { userContent }, crud }) => ({
+        array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
-        getNewItem:
-          ({ getData }) =>
-          async (user: User) => {
-            const newUser = await crud<User>(API_PATH, {
-                method: 'POST',
-                body: JSON.stringify(user),
-                headers
-              }),
-              maxId = getData('users').reduce((max, { id }) => (id > max ? id : max), 0)
+        getNewItem: async (user: User) => {
+          const newUser = await crud<User>(API_PATH, {
+              method: 'POST',
+              body: JSON.stringify(user),
+              headers
+            }),
+            maxId = data.users.reduce((max, { id }) => (id > max ? id : max), 0)
 
-            return { ...newUser, id: maxId + 1 }
-          },
+          return { ...newUser, id: maxId + 1 }
+        },
         updateArray: (newArray: User[]) => (data.users = newArray)
       })
     },
     {
       descendant: ({ children: { userContent } }) => userContent,
       values: ({ data }) => ({
-        userId: ({ getData }) => getData('userId'),
-        click:
-          ({ getData }) =>
-          (userId: number) =>
-            (data.userId = getData('userId') === userId ? NaN : userId)
+        userId: data.userId,
+        click: (userId: number) => (data.userId = data.userId === userId ? NaN : userId)
       })
     }
   ],
