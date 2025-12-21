@@ -152,7 +152,7 @@ export const numberError = (
   }
 }
 
-export const routerSymbol: unique symbol = Symbol('router')
+export const routerSymbol: unique symbol = Symbol.for('__fics_router__')
 
 export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   if (Array.isArray(param)) return [...param]
