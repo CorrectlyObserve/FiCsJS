@@ -94,10 +94,11 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #newElements: Set<Element> = new Set()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
   #isDeferred: boolean = true
+  #isInRerendering: boolean = false
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
   #poll?: ReturnType<typeof setTimeout>
-  #isInRerendering: boolean = false
+  #hasDescribed: boolean = false
 
   constructor({
     name,
@@ -1670,15 +1671,28 @@ export default class FiCsElement<D extends object, P extends object> {
   describe(parent?: HTMLElement): void {
     this.#initProps()
     this.#callback('created')
-    this.#enqueue(() => this.#define(), 'define')
+    this.#enqueue(() => {
+      this.#define()
+      this.#hasDescribed = true
+    }, 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
+    if (!this.#hasDescribed)
+      throw new Error(
+        `The setData method cannot be called before calling the describe method in ${this.#name}...`
+      )
+
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
   getData<K extends keyof D>(key: K): D[typeof key] {
+    if (!this.#hasDescribed)
+      throw new Error(
+        `The getData method cannot be called before calling the describe method in ${this.#name}...`
+      )
+
     return this.#data[key] as D[typeof key]
   }
 }
