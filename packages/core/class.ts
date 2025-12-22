@@ -525,8 +525,10 @@ export default class FiCsElement<D extends object, P extends object> {
                 sendToWebsocket: (value: WebSocketValue) =>
                   this.#websocket?.isOpened() && this.#websocket.send(value)
               })
-            ))
+            )) {
+              console.log(_descendant.#name, _descendant.#props) // DEBUG
               _descendant.#props[key] = value
+            }
         } finally {
           FiCsElement.#activeContext = null
         }
@@ -606,8 +608,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   get #template(): string {
-    const sanitized: unique symbol = Symbol(`${this.#instanceId}-sanitized`),
-      unsanitized: unique symbol = Symbol(`${this.#instanceId}-unsanitized`),
+    const sanitized: unique symbol = Symbol.for(`__${this.#instanceId}-sanitized__`),
+      unsanitized: unique symbol = Symbol.for(`__${this.#instanceId}-unsanitized__`),
       convertTemplate = (
         strings: TemplateStringsArray,
         variables: (HtmlContent<D, P> | unknown)[]
