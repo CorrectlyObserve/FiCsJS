@@ -1,3 +1,4 @@
+import consts from './constants'
 import { globalCss } from './globalCss'
 import {
   browserError,
@@ -7,7 +8,6 @@ import {
   isBrowser,
   isObject,
   numberError,
-  routerSymbol,
   toArray,
   uid
 } from './helpers'
@@ -50,12 +50,9 @@ import type {
   WebSocketValue
 } from './types'
 
-const ficsIdName = 'fics-id' as const,
-  generator: Generator<number> = uid(),
+const generator: Generator<number> = uid(),
   nameGenerators: Map<string, Generator<number>> = new Map(),
-  names: Map<string, number> = new Map(),
-  varTag = 'f-var' as const,
-  host = ':host' as const
+  names: Map<string, number> = new Map()
 
 export default class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
@@ -127,7 +124,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${ficsIdName}${generator.next().value}`
+    this.#instanceId = instanceId ?? `${consts.FICS_ID_ATTR}${generator.next().value}`
 
     if (!nameGenerators.has(name)) nameGenerators.set(name, uid())
     names.set(name, nameGenerators.get(name)!.next().value)
@@ -200,7 +197,9 @@ export default class FiCsElement<D extends object, P extends object> {
           if (deepEqual(this.#rawData[key], value)) return true
 
           if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-            if ((value as { [routerSymbol]: true; value: D[keyof D] })[routerSymbol])
+            if (
+              (value as { [consts.ROUTER_SYMBOL]: true; value: D[keyof D] })[consts.ROUTER_SYMBOL]
+            )
               this.#rawData[key] = value.value
             else
               throw new Error(
@@ -676,7 +675,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const instanceId: string = curr.#instanceId
 
         if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
-        curr = `<${varTag} ${ficsIdName}="${instanceId}"></${varTag}>`
+        curr = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="${instanceId}"></${consts.VAR_TAG_NAME}>`
       }
 
       return `${prev}${curr}`
@@ -721,8 +720,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         if (isElement(childNode)) {
-          if (childNode.localName === varTag) {
-            const instanceId: string | null = childNode.getAttribute(ficsIdName)
+          if (childNode.localName === consts.VAR_TAG_NAME) {
+            const instanceId: string | null = childNode.getAttribute(consts.FICS_ID_ATTR)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -803,7 +802,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 if (that.#isBooleanAttr(name, value)) (oldChildNode as any)[name] = true
                 else oldChildNode.setAttribute(name, value)
 
-                if (name !== ficsIdName)
+                if (name !== consts.FICS_ID_ATTR)
                   that.#setProperty(
                     oldChildNode,
                     name,
@@ -822,7 +821,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (isTextarea(oldChildNode) && isTextarea(newChildNode))
             oldChildNode.value = newChildNode.value
 
-          if (!!(oldChildNode as any)[convertStr(ficsIdName, 'camel')]) return
+          if (!!(oldChildNode as any)[convertStr(consts.FICS_ID_ATTR, 'camel')]) return
 
           updateChildNodes(
             oldChildNode,
@@ -925,7 +924,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!(oldChildNode as any)[convertStr(ficsIdName, 'camel')]
+                  !!(oldChildNode as any)[convertStr(consts.FICS_ID_ATTR, 'camel')]
                 )
                   continue
 
@@ -1024,13 +1023,13 @@ export default class FiCsElement<D extends object, P extends object> {
       for (let [selector, style] of Object.entries(curr)) {
         if (Array.isArray(style) && style[1] !== mode) continue
 
-        if (mode === 'ssr' && selector.startsWith(host))
-          selector = selector.replace(host, `div#${this.#name}`)
+        if (mode === 'ssr' && selector.startsWith(consts.HOST_SELECTOR))
+          selector = selector.replace(consts.HOST_SELECTOR, `div#${this.#name}`)
 
         const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
           index: number = content.indexOf('{')
 
-        if (selector.startsWith(host) && index > -1) {
+        if (selector.startsWith(consts.HOST_SELECTOR) && index > -1) {
           const hostCss: string = content.slice(0, index),
             lastIndex: number = hostCss.lastIndexOf(';'),
             hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length),
@@ -1058,7 +1057,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
     stylesheet.replaceSync(
-      this.#cssToString({ css: [`${host}{display:block}`, ...css], mode: 'csr' })
+      this.#cssToString({ css: [`${consts.HOST_SELECTOR}{display:block}`, ...css], mode: 'csr' })
     )
   }
 
@@ -1069,11 +1068,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    if (selector === host) return [component]
+    if (selector === consts.HOST_SELECTOR) return [component]
 
     return Array.from(
       this.#getShadowRoot(component).querySelectorAll(
-        selector.startsWith(host) ? selector : `${host} ${selector}`
+        selector.startsWith(consts.HOST_SELECTOR) ? selector : `${consts.HOST_SELECTOR} ${selector}`
       )
     )
   }
@@ -1447,7 +1446,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addEventListener(element, Object.entries(action))
 
           that.#removeChildNodes(this)
-          that.#setProperty(this, ficsIdName, that.#instanceId)
+          that.#setProperty(this, consts.FICS_ID_ATTR, that.#instanceId)
 
           that.#cache.component = this
 
@@ -1590,8 +1589,8 @@ export default class FiCsElement<D extends object, P extends object> {
         ].join(' ')
 
       const applyDescendant = (html: string): string => {
-        const varBegin: string = `<${varTag} ${ficsIdName}="`,
-          varEnd: string = `"></${varTag}>`,
+        const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="`,
+          varEnd: string = `"></${consts.VAR_TAG_NAME}>`,
           varBeginIndex: number = html.indexOf(varBegin),
           varEndIndex: number = html.indexOf(varEnd)
 
