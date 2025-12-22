@@ -1575,37 +1575,38 @@ export default class FiCsElement<D extends object, P extends object> {
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
       that.#initProps()
 
-      if (that.#options.ssr) {
-        const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
-          classNameAndAttrs: string = `${className} ${that.#computedAttrs.reduce(
-            (prev, [key, value]) => `${prev} ${key}="${value}"`,
-            ''
-          )}`.trim(),
-          slotAttrs: string = [
-            `id="${that.#name}"`,
-            `slot="${that.#instanceId}"`,
-            `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
-          ].join(' ')
+      if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
 
-        const applyDescendant = (html: string): string => {
-          const varBegin: string = `<${varTag} ${ficsIdName}="`,
-            varEnd: string = `"></${varTag}>`,
-            varBeginIndex: number = html.indexOf(varBegin),
-            varEndIndex: number = html.indexOf(varEnd)
+      const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
+        classNameAndAttrs: string = `${className} ${that.#computedAttrs.reduce(
+          (prev, [key, value]) => `${prev} ${key}="${value}"`,
+          ''
+        )}`.trim(),
+        slotAttrs: string = [
+          `id="${that.#name}"`,
+          `slot="${that.#instanceId}"`,
+          `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
+        ].join(' ')
 
-          if (varBeginIndex < 0 || varEndIndex < 0) return html
+      const applyDescendant = (html: string): string => {
+        const varBegin: string = `<${varTag} ${ficsIdName}="`,
+          varEnd: string = `"></${varTag}>`,
+          varBeginIndex: number = html.indexOf(varBegin),
+          varEndIndex: number = html.indexOf(varEnd)
 
-          const prev: string = html.slice(0, varBeginIndex),
-            next: string = applyDescendant(html.slice(varEndIndex + varEnd.length)),
-            instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
+        if (varBeginIndex < 0 || varEndIndex < 0) return html
 
-          if (!(instanceId in that.#childrenStore))
-            throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
+        const prev: string = html.slice(0, varBeginIndex),
+          next: string = applyDescendant(html.slice(varEndIndex + varEnd.length)),
+          instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
 
-          return `${prev}${render(that.#childrenStore[instanceId])}${next}`
-        }
+        if (!(instanceId in that.#childrenStore))
+          throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-        const applyShowAttr = (html: string): string => {
+        return `${prev}${render(that.#childrenStore[instanceId])}${next}`
+      }
+
+      const applyShowAttr = (html: string): string => {
           const showAttrIndex: number = html.indexOf(that.#showAttr)
           if (showAttrIndex < 0) return html
 
@@ -1644,23 +1645,19 @@ export default class FiCsElement<D extends object, P extends object> {
           if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
 
           return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
-        }
+        },
+        html: string = applyShowAttr(
+          applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
+        ),
+        css = (_css: Css<D, P>[]): string =>
+          _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
-        const html: string = applyShowAttr(
-            applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
-          ),
-          css = (_css: Css<D, P>[]): string =>
-            _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
-
-        return `
-          <${[that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''].join(' ').trim()}>
-            <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
-            <div ${slotAttrs}>${html}${css([...globalCss(), ...that.#css])}</div>
-          </${that.#name}>
-        `
-      }
-
-      return `<${that.#name}></${that.#name}>`
+      return `
+        <${[that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''].join(' ').trim()}>
+          <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
+          <div ${slotAttrs}>${html}${css([...globalCss(), ...that.#css])}</div>
+        </${that.#name}>
+      `
     }
 
     if (data)
