@@ -211,10 +211,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (subscribers) for (const updater of subscribers) updater()
 
           const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
-          if (updated && key in updated) {
-            this.#throwKeyError(key)
-            updated[key]!(this.#getDataProps(true))
-          }
+          if (updated && key in updated) updated[key]!(this.#getDataProps(true))
 
           if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
             this.#enqueue(this.#reRender.bind(this), 're-render')
@@ -244,9 +241,6 @@ export default class FiCsElement<D extends object, P extends object> {
         const key: keyof P = prop as keyof P
 
         if (deepEqual(this.#rawProps[key], value)) return true
-
-        if (this.#isBrowser && window.customElements.get(this.#name) && this.#cache.component)
-          this.#throwKeyError(key, true)
 
         this.#rawProps[key] = value
 
@@ -317,13 +311,6 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     return value
-  }
-
-  #throwKeyError = (key: keyof (D & P), isProps?: boolean): void => {
-    if (!(key in (isProps ? this.#props : this.#data)))
-      throw new Error(
-        `The "${key as string}" is not defined in ${isProps ? 'props' : 'data'} of ${this.#name}...`
-      )
   }
 
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
@@ -525,7 +512,8 @@ export default class FiCsElement<D extends object, P extends object> {
                 sendToWebsocket: (value: WebSocketValue) =>
                   this.#websocket?.isOpened() && this.#websocket.send(value)
               })
-            )) _descendant.#props[key] = value
+            ))
+              _descendant.#props[key] = value
         } finally {
           FiCsElement.#activeContext = null
         }
@@ -1694,7 +1682,6 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   getData<K extends keyof D>(key: K): D[typeof key] {
-    this.#throwKeyError(key)
     return this.#data[key] as D[typeof key]
   }
 }
