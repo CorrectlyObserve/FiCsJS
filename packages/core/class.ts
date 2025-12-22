@@ -581,7 +581,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     for (let [key, value] of this.#computedAttrs) {
       if (oldAttrs[key] !== value)
-        if (this.#isBooleanAttr(key, value)) (component as any)[convertStr(key, 'camel')] = true
+        if (this.#isBooleanAttr(key, value)) Reflect.set(component, convertStr(key, 'camel'), true)
         else component.setAttribute(key, value)
 
       newAttrNames.add(key)
@@ -690,10 +690,6 @@ export default class FiCsElement<D extends object, P extends object> {
       childNode.remove()
   }
 
-  #setProperty<V>(element: HTMLElement, property: string, value: V): void {
-    ;(element as any)[convertStr(property, 'camel')] = value
-  }
-
   #buildHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
     const oldChildNodes: ChildNode[] = this.#getChildNodes(shadowRoot),
       newChildNodes: ChildNode[] = this.#getChildNodes(
@@ -800,19 +796,14 @@ export default class FiCsElement<D extends object, P extends object> {
           for (let index = 0; index < newAttrs.length; index++) {
             const { name, value }: { name: string; value: string } = newAttrs[index]
 
-            if (oldAttrList[name] !== value) {
+            if (oldAttrList[name] !== value)
               if (isHTMLElement(oldChildNode)) {
-                if (that.#isBooleanAttr(name, value)) (oldChildNode as any)[name] = true
-                else oldChildNode.setAttribute(name, value)
+                const isBoolean: boolean = that.#isBooleanAttr(name, value)
+                if (!isBoolean) oldChildNode.setAttribute(name, value)
 
                 if (name !== consts.FICS_ID_ATTR)
-                  that.#setProperty(
-                    oldChildNode,
-                    name,
-                    that.#isBooleanAttr(name, value) ? true : value
-                  )
+                  Reflect.set(oldChildNode, convertStr(name, 'camel'), isBoolean ? true : value)
               } else oldChildNode.setAttributeNS(namespaceURI, name, value)
-            }
 
             delete oldAttrList[name]
           }
@@ -824,7 +815,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (isTextarea(oldChildNode) && isTextarea(newChildNode))
             oldChildNode.value = newChildNode.value
 
-          if (!!(oldChildNode as any)[convertStr(consts.FICS_ID_ATTR, 'camel')]) return
+          if (!!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))) return
 
           updateChildNodes(
             oldChildNode,
@@ -927,7 +918,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!(oldChildNode as any)[convertStr(consts.FICS_ID_ATTR, 'camel')]
+                  !!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))
                 )
                   continue
 
@@ -1449,7 +1440,7 @@ export default class FiCsElement<D extends object, P extends object> {
               that.#addEventListener(element, Object.entries(action))
 
           that.#removeChildNodes(this)
-          that.#setProperty(this, consts.FICS_ID_ATTR, that.#instanceId)
+          Reflect.set(this, convertStr(consts.FICS_ID_ATTR, 'camel'), that.#instanceId)
 
           that.#cache.component = this
 
