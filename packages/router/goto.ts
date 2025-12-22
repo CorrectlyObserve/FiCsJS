@@ -1,5 +1,5 @@
 import { browserError } from '../core/helpers'
-import CUSTOM_EVENT_NAME from './const'
+import CUSTOM_EVENT_NAME from './constants'
 
 export default (
   href: string,
