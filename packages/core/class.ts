@@ -50,11 +50,10 @@ import type {
   WebSocketValue
 } from './types'
 
-const generator: Generator<number> = uid(),
-  nameGenerators: Map<string, Generator<number>> = new Map(),
-  names: Map<string, number> = new Map()
-
 export default class FiCsElement<D extends object, P extends object> {
+  static #generator: Generator<number> = uid()
+  static #nameGenerators: Map<string, Generator<number>> = new Map()
+  static #activeContext: { instance: Descendant; updater: () => void } | null = null
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
@@ -89,7 +88,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
-  static #activeContext: { instance: Descendant; updater: () => void } | null = null
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
@@ -124,11 +122,16 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${consts.FICS_ID_ATTR}${generator.next().value}`
+    this.#instanceId = instanceId ?? `${consts.FICS_ID_ATTR}${FiCsElement.#generator.next().value}`
 
-    if (!nameGenerators.has(name)) nameGenerators.set(name, uid())
-    names.set(name, nameGenerators.get(name)!.next().value)
-    this.#name = `f-${name}${names.get(name)! > 1 ? `${isBrowser() ? '' : '-server'}-${names.get(name)}` : ''}`
+    let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
+    if (!generator) {
+      generator = uid()
+      FiCsElement.#nameGenerators.set(name, generator)
+    }
+
+    const count: number = generator.next().value
+    this.#name = `f-${name}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
 
     this.#isBrowser = isBrowser()
 
