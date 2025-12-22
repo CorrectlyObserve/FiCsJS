@@ -1,7 +1,7 @@
 import FiCsElement from '../core/class'
 import { normalizePath, routerSymbol } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
-import CUSTOM_EVENT_NAME from './const'
+import CUSTOM_EVENT_NAME from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
 import { getQueries, params } from './params'
