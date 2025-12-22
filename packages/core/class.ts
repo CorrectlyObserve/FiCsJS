@@ -525,10 +525,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 sendToWebsocket: (value: WebSocketValue) =>
                   this.#websocket?.isOpened() && this.#websocket.send(value)
               })
-            )) {
-              console.log(_descendant.#name, _descendant.#props) // DEBUG
-              _descendant.#props[key] = value
-            }
+            )) _descendant.#props[key] = value
         } finally {
           FiCsElement.#activeContext = null
         }
