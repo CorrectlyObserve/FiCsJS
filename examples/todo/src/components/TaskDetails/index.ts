@@ -90,6 +90,7 @@ export default fics<Data, Props>({
     {
       descendant: ({ children: { button } }) => button,
       values: ({ data: { buttonText }, props: { draft, editTask, updateTasks } }) => ({
+        isDisabled: draft?.title === '',
         buttonText,
         click: async () => {
           const { id, title, description, completedAt }: Task = draft
