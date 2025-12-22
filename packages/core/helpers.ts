@@ -157,9 +157,12 @@ export const routerSymbol: unique symbol = Symbol.for('__fics_router__')
 export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   if (Array.isArray(param)) return [...param]
 
-  const isPlain: boolean =
-    isObject(param) && Object.prototype.toString.call(param) === '[object Object]'
-  return isPlain ? [{ ...param }] : [param]
+  if (!isObject(param)) return [param]
+
+  const prototype: Object = Object.getPrototypeOf(param)
+  if (prototype === Object.prototype || prototype === null) return [{ ...param }]
+
+  return [param]
 }
 
 export function* uid(): Generator<number> {
