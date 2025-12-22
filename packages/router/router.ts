@@ -1,5 +1,6 @@
 import FiCsElement from '../core/class'
-import { normalizePath, routerSymbol } from '../core/helpers'
+import constants from '../core/constants'
+import { normalizePath } from '../core/helpers'
 import type { Descendant, Sanitized } from '../core/types'
 import CUSTOM_EVENT_NAME from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
@@ -8,10 +9,11 @@ import { getQueries, params } from './params'
 import type { FiCsRouter, Page, PageContent, RouterData } from './types'
 
 const setRouterData = <D extends object>(data: RouterData<D>, pathname: string): void => {
-  const queries: Record<string, string> = getQueries()
+  const queries: Record<string, string> = getQueries(),
+    symbol: symbol = constants.ROUTER_SYMBOL
 
-  data.pathname = { [routerSymbol]: true, value: pathname } as unknown as typeof data.pathname
-  data.queries = { [routerSymbol]: true, value: queries } as unknown as typeof data.queries
+  data.pathname = { [symbol]: true, value: pathname } as unknown as typeof data.pathname
+  data.queries = { [symbol]: true, value: queries } as unknown as typeof data.queries
   params.set('queries', queries)
 }
 
