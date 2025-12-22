@@ -53,11 +53,7 @@ export default ficsRouter<Data>({
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().textarea,
-      values: ({ data: { draft } }) => ({ data: draft?.description })
-    },
-    {
-      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().button,
-      values: ({ data: { draft } }) => ({ isDisabled: draft?.title === '' })
+      values: ({ data: { draft } }) => ({ value: draft?.description })
     }
   ],
   pages: [
