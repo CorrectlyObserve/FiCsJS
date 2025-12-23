@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { goto, queries } from 'ficsjs/router'
-import { absoluteCenter } from 'ficsjs/style'
+import { absoluteCenter, cssVar, flexCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import Skeleton from '@/pages/scroll/_components/Skeleton'
@@ -50,7 +50,7 @@ export default fics({
       <div class="photos">
         ${virtualScroll(
           photos,
-          ({ id, author, isLoaded }) => template`
+          ({ id, author, isLoaded }, index) => template`
             <div class="relative h-50" key="${id}-container">
               ${skeleton}
               <img
@@ -58,6 +58,7 @@ export default fics({
                 src="${API_PATH}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
                 alt="the image created by ${author}"
                 key="${id}"
+                data-index="${index}"
                 tabindex="0"
                 ${show(isLoaded)}
               />
@@ -72,7 +73,18 @@ export default fics({
     `
   },
   css: {
-    img: { ...absoluteCenter('x'), top: 0 },
+    'div.photos': ({ data: { photos } }) => ({
+      'div.relative': flexCenter('xy'),
+      img: {
+        position: 'absolute',
+        top: 0,
+        '&:focus-visible': {
+          zIndex: 1,
+          '&[data-index="0"]': { marginTop: cssVar('outline') },
+          [`&[data-index="${photos.length - 1}"]`]: { marginBottom: cssVar('outline') }
+        }
+      }
+    }),
     dialog: {
       ...absoluteCenter('xy', 'fixed'),
       ...fadeInOut('0.2s ease-out'),
