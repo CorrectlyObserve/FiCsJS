@@ -22,7 +22,7 @@ export default fics<{}, { user: User; userId: number; click: (userId: number) =>
       >
         ${html(GripVertical)}
       </div>
-      <div class="clickable space-y-2" key="${id}-user">
+      <div class="space-y-2" key="${id}-user">
         ${(['id', 'name', 'email'] as (keyof User)[]).map(
           key => template`
             <p class="text-base ${textColor}" key="${id}-${key}">
