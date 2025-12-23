@@ -46,7 +46,7 @@ export default <T>() =>
     html: ({ data: { droppedZone, isHighlighted }, props: { array, slot }, template }) => {
       const _isHighlighted = (zoneIndex: number) => isHighlighted(droppedZone, zoneIndex),
         base =
-          'dragged-over rounded-sm border border-dashed transition duration-200 ease-out' as const,
+          'dragged-over rounded-lg border border-dashed transition duration-200 ease-out' as const,
         dropZone = (zoneIndex: number, classNames: string) => template`
           <div
             class="drop-zone ${_isHighlighted(zoneIndex) ? `${base} ${classNames}` : 'h-4'}"
@@ -61,7 +61,12 @@ export default <T>() =>
             classNames = isLast ? (_isHighlighted(index) ? 'mt-4 mb-height' : 'mt-4') : 'my-4'
 
           return template`
-            <div key="${index}-slot" draggable="true" tabindex="0">${slot(item, index)}</div>
+            <div
+              class="clickable rounded-lg py-1 pr-3"
+              key="${index}-slot"
+              draggable="true"
+              tabindex="0"
+            >${slot(item, index)}</div>
             ${dropZone(index, classNames)}
           `
         })}
@@ -69,6 +74,7 @@ export default <T>() =>
     },
     css: {
       div: ({ data: { height } }) => ({
+        '&[tabindex="0"]:hover': { background: white(0.1) },
         '&.dragged-over': {
           height: `${height}px`,
           background: white(0.05),
