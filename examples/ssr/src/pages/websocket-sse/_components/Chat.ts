@@ -79,8 +79,8 @@ export default fics<
         ...flexCenter('xy'),
         bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
         textarea: {
-          '&:hover': { opacity: 0.5 },
-          '&:focus': { background: white(0.05), opacity: 1 }
+          '&:hover': { background: white(0.1) },
+          '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
         }
       }
     }
