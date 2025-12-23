@@ -199,16 +199,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           if (deepEqual(this.#rawData[key], value)) return true
 
-          if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-            if (
-              (value as { [consts.ROUTER_SYMBOL]: true; value: D[keyof D] })[consts.ROUTER_SYMBOL]
-            )
-              this.#rawData[key] = value.value
-            else
-              throw new Error(
-                `The "${key as string}" cannot be modified in the router component...`
-              )
-          else this.#rawData[key] = value
+          this.#rawData[key] = value
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
           if (subscribers) for (const updater of subscribers) updater()
@@ -1676,6 +1667,9 @@ export default class FiCsElement<D extends object, P extends object> {
       throw new Error(
         `The setData method cannot be called before calling the describe method in ${this.#name}...`
       )
+
+    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
+      throw new Error(`The "${key as string}" cannot be modified in the router component...`)
 
     this.#data[key as keyof D] = value as D[keyof D]
   }
