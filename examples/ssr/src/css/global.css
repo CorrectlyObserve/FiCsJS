@@ -11,7 +11,7 @@ body {
 }
 
 h1 {
-  background: linear-gradient(30deg, oklch(0.512 0.1788 24.39) 20%, oklch(0.7596 0.094 354.9));
+  background: linear-gradient(30deg, oklch(0.512 0.1788 24.39) 30%, oklch(0.7596 0.094 354.9));
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
