@@ -12,7 +12,7 @@ export default fics<{}, { user: User; userId: number; click: (userId: number) =>
   }) => ({ key: id.toString() }),
   html: ({ props: { user, userId }, template, html }) => {
     const { id } = user,
-      textColor = id === userId ? 'text-red' : 'text-white'
+      textColor = id === userId ? 'text-pink' : 'text-white'
 
     return template`
       <div
