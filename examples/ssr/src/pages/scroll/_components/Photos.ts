@@ -67,7 +67,7 @@ export default fics({
         )}
       </div>
       ${isLoading ? skeletons : ''}
-      <dialog class="w-3xs rounded-xl" open ${show(photoId !== '')}>
+      <dialog class="w-3xs rounded-lg" open ${show(photoId !== '')}>
         ${icon}<p class="text-base text-white text-center mx-4 mb-4">Created by ${author}</p>
       </dialog>
     `
