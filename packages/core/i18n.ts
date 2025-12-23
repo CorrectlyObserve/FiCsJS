@@ -6,7 +6,7 @@ let _directory: string = ''
 const translationsCache: Map<string, Translations> = new Map(),
   promiseCache: Map<string, Promise<Translations>> = new Map()
 
-export const ficsI18n = (directory: string): void => {
+export const configI18n = (directory: string): void => {
   const normalized: string = normalizePath(directory)
 
   if (_directory && _directory !== normalized) {
