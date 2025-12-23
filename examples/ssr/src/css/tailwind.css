@@ -15,7 +15,7 @@
     @apply cursor-pointer focus:outline-none active:scale-95;
 
     &:focus-visible {
-      outline: 2px solid var(--color-pink);
+      outline: var(--outline) solid var(--color-pink);
     }
   }
 
