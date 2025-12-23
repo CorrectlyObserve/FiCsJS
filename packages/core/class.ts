@@ -1,5 +1,4 @@
 import consts from './constants'
-import { globalCss } from './globalCss'
 import {
   browserError,
   convertStr,
@@ -26,6 +25,7 @@ import type {
   DataProps,
   Descendant,
   FiCs,
+  GlobalCss,
   Html,
   HtmlContent,
   Hooks,
@@ -54,6 +54,7 @@ export default class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
+  static globalCss: GlobalCss[] = new Array()
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
@@ -1029,7 +1030,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #buildCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
-    const css: Css<D, P>[] = [...globalCss(), ...this.#css]
+    const css: Css<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
 
     if (css.length === 0) return
 
@@ -1640,7 +1641,7 @@ export default class FiCsElement<D extends object, P extends object> {
       return `
         <${[that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''].join(' ').trim()}>
           <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
-          <div ${slotAttrs}>${html}${css([...globalCss(), ...that.#css])}</div>
+          <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
         </${that.#name}>
       `
     }
