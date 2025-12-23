@@ -5,14 +5,18 @@
 
 @theme {
   --text-sm--line-height: 1.2;
-  --color-red: oklch(0.512 0.1788 24.39);
+  --color-pink: oklch(0.5985 0.1468 18.46);
 }
 
 .clickable {
   @apply transition duration-200 ease-out;
 
   &:not([disabled]) {
-    @apply cursor-pointer hover:opacity-50 focus:scale-95 focus:opacity-20 focus:outline-none;
+    @apply cursor-pointer focus:outline-none active:scale-95;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-pink);
+    }
   }
 
   &[disabled] {
