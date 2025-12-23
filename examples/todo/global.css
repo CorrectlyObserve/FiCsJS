@@ -7,7 +7,7 @@
   --2xl: 4rem;
   --black: oklch(0.2768 0 0);
   --red: oklch(0.512 0.1788 24.39);
-  --gradation: linear-gradient(30deg, var(--red) 20%, oklch(0.7596 0.094 354.9));
+  --gradation: linear-gradient(30deg, var(--red) 30%, oklch(0.7596 0.094 354.9));
   --error: oklch(0.5423 0.1705 1.21);
   --transition: 0.2s ease-out;
 }
