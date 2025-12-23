@@ -24,7 +24,7 @@ export const i18n = async <T>({
   key: SingleOrArray<string>
 }): Promise<T> => {
   if (_directory === '')
-    throw new Error('The configI18n function cannot be called before this function...')
+    throw new Error('The configI18n function cannot be called before calling the i18n function...')
 
   if (lang === '') throw new Error('The "lang" must be a non-empty string...')
 
