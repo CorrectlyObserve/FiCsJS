@@ -185,16 +185,6 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
-export interface PropsBinding {
-  instanceId: string
-  numberId: number
-  propsKeys: Record<string, true>
-  propsKey: string
-  setProps: () => void
-}
-
-export type PropsChain<P> = Map<string, Partial<P>>
-
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
