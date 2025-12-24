@@ -36,8 +36,6 @@ import type {
   OptionParams,
   PollingOptions,
   Props,
-  PropsBinding,
-  PropsChain,
   Sanitized,
   Scroll,
   SingleOrArray,
