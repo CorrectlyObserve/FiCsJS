@@ -32,7 +32,7 @@ export interface CrudOptions extends RequestInit {
   delay?: number
 }
 
-export type CrudStreamOptions = CrudOptions & {
+export interface CrudStreamOptions extends CrudOptions {
   /**
     @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
   */
@@ -149,7 +149,9 @@ export interface Options<D extends object, P> {
   }
 }
 
-export type OptionParams<D extends object, P> = Omit<Options<D, P>, 'ssr'> & { ssr?: boolean }
+export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr'> {
+  ssr?: boolean
+}
 
 interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
