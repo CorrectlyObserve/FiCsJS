@@ -28,6 +28,7 @@ import type {
   GlobalCss,
   Html,
   HtmlContent,
+  HookParams,
   Hooks,
   I18n,
   Method,
@@ -206,7 +207,12 @@ export default class FiCsElement<D extends object, P extends object> {
           if (subscribers) for (const updater of subscribers) updater()
 
           const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
-          if (updated && key in updated) updated[key]!(this.#getDataProps(true))
+          if (updated && key in updated)
+            updated[key]!({
+              ...this.#getDataProps(true),
+              debounce: this.#debounce.bind(this),
+              throttle: this.#throttle.bind(this)
+            })
 
           if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
             this.#enqueue(this.#reRender.bind(this), 're-render')
@@ -1352,6 +1358,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
     if (this.#hooks?.[key] === undefined) return
+
+    const params: HookParams<D, P> = {
+      ...this.#getDataProps(true),
+      debounce: this.#debounce.bind(this),
+      throttle: this.#throttle.bind(this)
+    }
+
     if (key === 'mounted') {
       const that: FiCsElement<D, P> = this,
         poll = (
@@ -1376,8 +1389,8 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#poll = execute
         }
 
-      this.#hooks[key]({ ...this.#getDataProps(true), poll })
-    } else this.#hooks[key](this.#getDataProps(true))
+      this.#hooks[key]({ ...params, poll })
+    } else this.#hooks[key](params)
   }
 
   #define(): void {
