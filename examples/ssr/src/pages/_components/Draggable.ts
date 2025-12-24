@@ -83,6 +83,15 @@ export default <T>() =>
         '&.mb-height': { marginBottom: `${height}px` }
       })
     },
+    hooks: {
+      mounted: ({ throttle }) =>
+        window.addEventListener(
+          'pointermove',
+          throttle(() => {
+            document.body.style.pointerEvents = ''
+          }, 1000)
+        )
+    },
     actions: {
       'div.drop-zone': {
         dragover: ({ event }) => {
@@ -133,6 +142,8 @@ export default <T>() =>
 
           const { activeElement } = document
           if (activeElement instanceof HTMLElement) activeElement.blur()
+
+          document.body.style.pointerEvents = 'none'
         }
       },
       [`div${draggable}`]: {
