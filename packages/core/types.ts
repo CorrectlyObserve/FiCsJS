@@ -95,12 +95,23 @@ export type HtmlContent<D extends object, P extends object> =
   | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
   | string
 
+export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
+  debounce: <T extends (...args: any[]) => void>(
+    func: T,
+    time: number
+  ) => (...args: Parameters<T>) => void
+  throttle: <T extends (...args: any[]) => void>(
+    func: T,
+    time: number
+  ) => (...args: Parameters<T>) => void
+}
+
 export interface Hooks<D extends object, P> {
-  created?: (params: DataProps<D, P, true>) => void
-  mounted?: (params: DataProps<D, P, true> & Poll) => void
-  updated?: { [K in keyof D]?: (params: DataProps<D, P, true>) => void }
-  destroyed?: (params: DataProps<D, P, true>) => void
-  adopted?: (params: DataProps<D, P, true>) => void
+  created?: (params: HookParams<D, P>) => void
+  mounted?: (params: HookParams<D, P> & Poll) => void
+  updated?: { [K in keyof D]?: (params: HookParams<D, P>) => void }
+  destroyed?: (params: HookParams<D, P>) => void
+  adopted?: (params: HookParams<D, P>) => void
 }
 
 export interface I18n {
