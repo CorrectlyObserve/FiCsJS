@@ -115,7 +115,8 @@ export default class FiCsElement<D extends object, P extends object> {
     scroll
   }: FiCs<D, P>) {
     name = name.trim()
-    if (name === '') throw new Error('The FiCsElement name cannot be empty....')
+    if (name === '') throw new Error('The FiCsElement name must be a non-empty string...')
+
     name = convertStr(name, 'kebab')
     this.#nameKey = convertStr(name, 'camel')
 
