@@ -8,10 +8,9 @@ export default () =>
       <button
         class="clickable w-24 text-white border border-white p-3 rounded-lg"
         ${!isBrowser || isDisabled ? 'disabled' : ''}
-        aria-label="${buttonText}"
-      >
-        ${buttonText}
-      </button>
+        aria-disabled="${isDisabled ? 'true' : 'false'}"
+        type="button"
+      >${buttonText}</button>
     `,
     css: { 'button:hover:not([disabled])': { background: white(0.1) } },
     actions: {
