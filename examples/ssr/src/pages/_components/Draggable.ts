@@ -66,6 +66,7 @@ export default <T>() =>
               key="${index}-slot"
               draggable="true"
               tabindex="0"
+              role="button"
             >${slot(item, index)}</div>
             ${dropZone(index, classNames)}
           `
