@@ -16,6 +16,7 @@
 
     &:focus-visible {
       outline: var(--outline) solid var(--color-pink);
+      outline-offset: 0;
     }
   }
 
