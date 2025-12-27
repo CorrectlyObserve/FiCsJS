@@ -40,7 +40,12 @@ export default fics<
 
     return template`
       <h2 class="text-lg text-white text-center mb-6">Chat</h2>
-      <div class="w-full block mx-auto overflow-y-auto">
+      <div
+        class="w-full block mx-auto overflow-y-auto"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+      >
         ${messages.map(
           ({ userName, comment }, index) => template`
             <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
@@ -53,8 +58,11 @@ export default fics<
         )}
       </div>
       <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
+        <label class="sr-only" for="message">Message</label>
+        <p id="message-help" class="sr-only">Enter a new message. Press the Shift + Enter keys to send.</p>
         <textarea
           id="message"
+          aria-describedby="message-help"
           class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
           placeholder="Please enter your message"
           rows="3"
