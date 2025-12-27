@@ -15,8 +15,9 @@ export default fics({
     descendant: ({ children: { icon } }) => icon,
     values: ({ data }) => ({
       svg: RefreshCcw,
-      areaLabel: 'Open the data stream dialog',
+      areaLabel: `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`,
       isLarge: true,
+      isPressed: data.isAccumulated,
       click: () => (data.isAccumulated = !data.isAccumulated)
     })
   },
@@ -25,14 +26,23 @@ export default fics({
     data: { isAccumulated, accumulatedChunk, chunks },
     template
   }) => template`
-    <h2 class="text-lg text-white text-center mb-6">Stream</h2>
+    <h2 class="text-lg text-white text-center mb-4">Stream</h2>
+    <p class="text-white text-center mb-6" role="status" aria-atomic="true">
+      The current mode is ${isAccumulated ? 'accumulated' : 'chunked'}.
+    </p>
     ${
       isAccumulated
         ? template`
           <p class="max-w-full text-white mx-auto whitespace-pre-wrap break-words">${accumulatedChunk}</p>
         `
         : template`
-          <div class="w-fit mx-auto">
+          <div
+            class="w-fit mx-auto"
+            role="log"
+            aria-live="polite"
+            aria-atomic="false"
+            aria-relevant="additions"
+          >
             ${chunks.map((chunk, index) => template`<p class="text-white mb-4" key="${index}">${chunk}</p>`)}
           </div>
         `
@@ -41,7 +51,7 @@ export default fics({
   `,
   css: {
     ':host': {
-      '> p': { width: cssVar('chat-width'), lineHeight: 2 },
+      '> p:not(:first-of-type)': { width: cssVar('chat-width'), lineHeight: 2 },
       'div p:last-child': { 'margin-bottom': '0' },
       span: { background: dark() }
     }
@@ -57,6 +67,7 @@ export default fics({
           const currentSession = ++streamSession
 
           void crud(API_PATHS.stream, {
+            signal: streamAbortController.signal,
             onChunk: (chunked: string) => {
               if (streamSession !== currentSession) return
 
