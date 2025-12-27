@@ -2,13 +2,17 @@ import { fics } from 'ficsjs'
 import { white } from '@/utils'
 
 export default () =>
-  fics<{}, { svg: string; areaLabel: string; isLarge?: string; click: () => void }>({
+  fics<
+    {},
+    { svg: string; areaLabel: string; isLarge?: string; isPressed?: boolean; click: () => void }
+  >({
     name: 'icon',
     className: 'icon',
-    html: ({ props: { svg, areaLabel, isLarge }, template, html }) => template`
+    html: ({ props: { svg, areaLabel, isLarge, isPressed }, template, html }) => template`
       <button
         class="clickable flex text-white ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
         aria-label="${areaLabel}"
+        ${isPressed === undefined ? '' : `aria-pressed="${isPressed ? 'true' : 'false'}"`}
         type="button"
       >${html(svg)}</button>
     `,
