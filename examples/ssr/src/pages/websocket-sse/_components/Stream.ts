@@ -26,8 +26,8 @@ export default fics({
     data: { isAccumulated, accumulatedChunk, chunks },
     template
   }) => template`
-    <h2 class="text-lg text-white text-center mb-4">Stream</h2>
-    <p class="text-white text-center mb-6" role="status" aria-atomic="true">
+    <h2 class="text-lg text-white text-center mb-6">Stream</h2>
+    <p class="sr-only" role="status" aria-atomic="true">
       The current mode is ${isAccumulated ? 'accumulated' : 'chunked'}.
     </p>
     ${
