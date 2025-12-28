@@ -24,7 +24,7 @@ const enqueue = (task: () => Promise<Task[]>): Promise<Task[]> => {
     mutateTasks((tasks, timestamp) => {
       const task: Task | undefined = getTask(tasks, id)
 
-      if (!task) throw new Error(`The task with ID:${id} is not found...`)
+      if (!task) throw new Error(`The task with ID ${id} was not found...`)
       mutate(task, timestamp)
     })
 
@@ -82,7 +82,7 @@ export const deleteTask = async (id: number): Promise<Task[]> =>
   enqueue(() =>
     mutateTasks(tasks => {
       const taskIndex = tasks.findIndex(task => task.id === id)
-      if (taskIndex === -1) throw new Error(`The task with ID:${id} is not found...`)
+      if (taskIndex === -1) throw new Error(`The task with ID ${id} was not found...`)
       tasks.splice(taskIndex, 1)
     })
   )
