@@ -17,7 +17,7 @@ export default fics<{}, { user: User; userId: number; click: (userId: number) =>
     return template`
       <div
         class="${textColor} p-3 cursor-grab"
-        aria-label="Move the content with user ID:${id}"
+        aria-label="Move the content with user ID ${id}"
         key="${id}-grid"
       >
         ${html(GripVertical)}
