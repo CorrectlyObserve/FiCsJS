@@ -97,6 +97,11 @@ export default fics({
             }
           })
         } else {
+          if (streamAbortController) {
+            streamAbortController.abort()
+            streamAbortController = null
+          }
+
           data.accumulatedChunk = ''
           streamSession++
         }
