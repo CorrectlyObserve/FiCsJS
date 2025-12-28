@@ -3,23 +3,14 @@ import { flexCenter } from 'ficsjs/style'
 import type { User } from '@/types'
 import { GripVertical } from 'lucide-static'
 
-export default fics<{}, { user: User; userId: number; click: (userId: number) => void }>({
+export default fics<{}, { user: User; userId: number }>({
   name: 'user-content',
-  attributes: ({
-    props: {
-      user: { id }
-    }
-  }) => ({ key: id.toString() }),
   html: ({ props: { user, userId }, template, html }) => {
     const { id } = user,
-      textColor = id === userId ? 'text-pink' : 'text-white'
+      textColor = id === userId ? 'text-pink font-semibold' : 'text-white'
 
     return template`
-      <div
-        class="${textColor} p-3 cursor-grab"
-        aria-label="Move the content with user ID ${id}"
-        key="${id}-grid"
-      >
+      <div class="${textColor} p-3 cursor-grab" aria-hidden="true" key="${id}-grid">
         ${html(GripVertical)}
       </div>
       <div class="space-y-2" key="${id}-user">
@@ -33,13 +24,5 @@ export default fics<{}, { user: User; userId: number; click: (userId: number) =>
       </div>
     `
   },
-  css: { ':host': flexCenter('y') },
-  actions: {
-    ':host': {
-      click: [
-        ({ props: { click }, attributes: { key } }) => click(parseInt(key)),
-        { throttle: 500, blur: true }
-      ]
-    }
-  }
+  css: { ':host': flexCenter('y') }
 })
