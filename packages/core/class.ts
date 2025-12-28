@@ -1169,7 +1169,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (_trigger === undefined || _trigger) {
         const root: HTMLElement | null = shadowRoot.getElementById(id)
-        if (!root) throw new Error(`The "${id}" is not found in the shadowRoot of ${this.#name}...`)
+        if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
 
         this.#addEventListener(root, [
           [
