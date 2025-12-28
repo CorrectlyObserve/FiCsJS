@@ -219,7 +219,7 @@ export default <T>() =>
         ],
         keydown: async ({
           data: { getDraggableElement },
-          props: { array, updateArray },
+          props: { array, getNewItem, updateArray },
           event,
           attributes: { key }
         }) => {
@@ -240,11 +240,16 @@ export default <T>() =>
           )
             return
 
-          const newArray: T[] = [...array],
-            newIndex = fromIndex + (isArrowUp ? -1 : 1)
+          const newIndex = fromIndex + (isArrowUp ? -1 : 1)
+          if (newIndex < 0 || newIndex > array.length - 1) return
 
-          newArray.splice(fromIndex, 1)
-          newArray.splice(newIndex, 0, item)
+          const newArray: T[] = [...array]
+
+          if (keyEvent.altKey) newArray.splice(newIndex, 0, await getNewItem(item))
+          else {
+            newArray.splice(fromIndex, 1)
+            newArray.splice(newIndex, 0, item)
+          }
 
           updateArray(newArray)
 
