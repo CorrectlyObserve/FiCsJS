@@ -42,7 +42,7 @@ export default fics({
           return { ...newUser, id: maxId + 1 }
         },
         updateArray: (newArray: User[]) => {
-          if (newArray.length > data.users.length) {
+          if (newArray.length >= data.users.length) {
             const userIds = new Set(data.users.map(({ id }) => id)),
               addedUser = newArray.find(({ id }) => !userIds.has(id))
 
@@ -52,15 +52,13 @@ export default fics({
           }
 
           data.users = newArray
-        }
+        },
+        selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
       })
     },
     {
       descendant: ({ children: { userContent } }) => userContent,
-      values: ({ data }) => ({
-        userId: data.userId,
-        click: (userId: number) => (data.userId = data.userId === userId ? NaN : userId)
-      })
+      values: ({ data: { userId } }) => ({ userId })
     }
   ],
   html: ({ children: { button, draggable }, data, crud, template }) => {
