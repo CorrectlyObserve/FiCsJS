@@ -67,7 +67,7 @@ export default class State<S> {
       if (key === '') throw new Error('The "key" to unsubscribe must be a non-empty string...')
 
       if (!this.#subscribers.has(key))
-        throw new Error(`The subscriber key "${key}" is not found...`)
+        throw new Error(`The subscriber key "${key}" was not found...`)
 
       this.#subscribers.delete(key)
     } else if (this.#subscribers.size > 0) this.#subscribers.clear()
