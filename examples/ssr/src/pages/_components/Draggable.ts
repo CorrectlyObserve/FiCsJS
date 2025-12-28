@@ -15,6 +15,7 @@ interface Props<T> {
   slot: (item: T, index: number) => ReturnType<typeof fics>
   getNewItem: (item: T) => T | Promise<T>
   updateArray: (newArray: T[]) => void
+  selectItem: (item: T) => void
 }
 
 const draggable = '[draggable="true"]' as const
@@ -201,7 +202,14 @@ export default <T>() =>
           if (data.droppedZone) data.droppedZone = null
         },
         click: [
-          ({ data: { getDraggableElement }, event }) => {
+          ({
+            data: { getDraggableElement },
+            props: { array, selectItem },
+            event,
+            attributes: { key }
+          }) => {
+            selectItem(array[parseInt(key)])
+
             const element = getDraggableElement(event.target)
             if (!element) return
 
