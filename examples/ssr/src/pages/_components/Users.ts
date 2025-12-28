@@ -12,6 +12,7 @@ export default fics({
   name: 'users',
   children: [Button(), Draggable<User>(), UserContent],
   data: () => ({
+    status: '',
     methods: ['PUT', 'PATCH', 'DELETE'] as Method[],
     users,
     userId: NaN,
@@ -40,7 +41,18 @@ export default fics({
 
           return { ...newUser, id: maxId + 1 }
         },
-        updateArray: (newArray: User[]) => (data.users = newArray)
+        updateArray: (newArray: User[]) => {
+          if (newArray.length > data.users.length) {
+            const userIds = new Set(data.users.map(({ id }) => id)),
+              addedUser = newArray.find(({ id }) => !userIds.has(id))
+
+            data.status = addedUser
+              ? `The new user with ID ${addedUser.id} was added.`
+              : 'The user was moved.'
+          }
+
+          data.users = newArray
+        }
       })
     },
     {
@@ -52,8 +64,10 @@ export default fics({
     }
   ],
   html: ({ children: { button, draggable }, data, crud, template }) => {
-    const { methods, users, userId } = data
+    const { status, methods, users, userId } = data
+
     return template`
+      <p class="sr-only" role="status" aria-atomic="true">${status}</p>
       <div class="buttons mb-6 gap-4">
         ${methods.map((method, index) =>
           button.setIndividualProps(index, {
@@ -64,6 +78,7 @@ export default fics({
               if (method === 'DELETE') {
                 await crud<User>(`${API_PATH}/${userId}`, options)
                 data.users = users.filter(({ id }) => id !== userId)
+                data.status = `The user with ID ${userId} was deleted.`
               } else {
                 const name = prompt('Please enter a new user name.')
                 if (name) {
@@ -71,7 +86,9 @@ export default fics({
                     ...options,
                     body: JSON.stringify({ id: userId, name })
                   })
+
                   data.users = users.map(user => (user.id === userId ? { ...user, name } : user))
+                  data.status = `The user with ID ${userId} was updated.`
                 }
               }
 
