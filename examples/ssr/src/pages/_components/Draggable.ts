@@ -166,7 +166,7 @@ export default <T>() =>
 
           data.draggingIndex = index
 
-          const { offsetHeight } = data.getDraggableElement(event.target) || {}
+          const { offsetHeight } = data.getDraggableElement(event.currentTarget) || {}
           data.height = offsetHeight || 0
         },
         dragover: [
@@ -177,7 +177,7 @@ export default <T>() =>
 
             drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
 
-            const draggableElement = data.getDraggableElement(event.target)
+            const draggableElement = data.getDraggableElement(event.currentTarget)
             if (!draggableElement) return
 
             const index = parseInt(key),
@@ -216,7 +216,7 @@ export default <T>() =>
           }) => {
             selectItem(array[parseInt(key)])
 
-            const element = getDraggableElement(event.target)
+            const element = getDraggableElement(event.currentTarget)
             if (!element) return
 
             element.focus()
@@ -239,7 +239,7 @@ export default <T>() =>
             keyEvent.preventDefault()
             selectItem(item)
 
-            const element = getDraggableElement(event.target)
+            const element = getDraggableElement(event.currentTarget)
             if (!element) return
 
             element.focus()
@@ -272,7 +272,7 @@ export default <T>() =>
 
           updateArray(newArray)
 
-          const draggableElement = getDraggableElement(event.target)
+          const draggableElement = getDraggableElement(event.currentTarget)
           if (!draggableElement) return
 
           const root = draggableElement.getRootNode()
