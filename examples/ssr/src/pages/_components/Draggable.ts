@@ -13,6 +13,7 @@ interface Data {
 interface Props<T> {
   array: T[]
   slot: (item: T, index: number) => ReturnType<typeof fics>
+  isSelected: (item: T) => boolean
   getNewItem: (item: T) => T | Promise<T>
   updateArray: (newArray: T[]) => void
   selectItem: (item: T) => void
@@ -44,7 +45,11 @@ export default <T>() =>
         return draggableElement as HTMLElement
       }
     }),
-    html: ({ data: { droppedZone, isHighlighted }, props: { array, slot }, template }) => {
+    html: ({
+      data: { droppedZone, isHighlighted },
+      props: { array, slot, isSelected },
+      template
+    }) => {
       const _isHighlighted = (zoneIndex: number) => isHighlighted(droppedZone, zoneIndex),
         base =
           'dragged-over rounded-lg border border-dashed transition duration-200 ease-out' as const,
@@ -68,6 +73,7 @@ export default <T>() =>
               draggable="true"
               tabindex="0"
               role="button"
+              aria-pressed="${isSelected(item) ? 'true' : 'false'}"
             >${slot(item, index)}</div>
             ${dropZone(index, classNames)}
           `
@@ -219,19 +225,32 @@ export default <T>() =>
         ],
         keydown: async ({
           data: { getDraggableElement },
-          props: { array, getNewItem, updateArray },
+          props: { array, getNewItem, updateArray, selectItem },
           event,
           attributes: { key }
         }) => {
           const keyEvent = event as KeyboardEvent,
-            isArrowUp = keyEvent.key === 'ArrowUp',
+            fromIndex = parseInt(key),
+            item: T = array[fromIndex]
+
+          if (!item) return
+
+          if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+            keyEvent.preventDefault()
+            selectItem(item)
+
+            const element = getDraggableElement(event.target)
+            if (!element) return
+
+            element.focus()
+            return
+          }
+
+          const isArrowUp = keyEvent.key === 'ArrowUp',
             isArrowDown = keyEvent.key === 'ArrowDown'
 
           if (!isArrowUp && !isArrowDown) return
           keyEvent.preventDefault()
-
-          const fromIndex = parseInt(key),
-            item: T = array[fromIndex]
 
           if (
             (isArrowUp && fromIndex === 0) ||
