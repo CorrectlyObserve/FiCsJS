@@ -9,7 +9,7 @@ import type { Photo } from '@/types'
 import { dark } from '@/utils'
 import { CircleX } from 'lucide-static'
 
-const PHOTO_SIZE = 200
+const PHOTO_SIZE = 200 as const
 
 export default fics({
   name: 'photos',
@@ -60,6 +60,10 @@ export default fics({
                 key="${id}"
                 data-index="${index}"
                 tabindex="0"
+                role="button"
+                aria-haspopup="dialog"
+                aria-controls="photo-dialog"
+                aria-expanded="${photoId === id ? 'true' : 'false'}"
                 ${show(isLoaded)}
               />
             </div>
@@ -67,8 +71,16 @@ export default fics({
         )}
       </div>
       ${isLoading ? skeletons : ''}
-      <dialog class="w-3xs rounded-lg" open ${show(photoId !== '')}>
-        ${icon}<p class="text-base text-white text-center mx-4 mb-4">Created by ${author}</p>
+      <dialog
+        id="photo-dialog"
+        class="w-3xs rounded-lg"
+        open
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+        ${show(photoId !== '')}
+      >
+        ${icon}
+        <p id="dialog-title" class="text-base text-white text-center mx-4 mb-4">Created by ${author}</p>
       </dialog>
     `
   },
