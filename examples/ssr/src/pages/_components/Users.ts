@@ -31,6 +31,7 @@ export default fics({
       values: ({ data, children: { userContent }, crud }) => ({
         array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
+        isSelected: (user: User) => data.userId === user.id,
         getNewItem: async (user: User) => {
           const newUser = await crud<User>(API_PATH, {
               method: 'POST',
@@ -47,8 +48,8 @@ export default fics({
               addedUser = newArray.find(({ id }) => !userIds.has(id))
 
             data.status = addedUser
-              ? `The new user with ID ${addedUser.id} was added.`
-              : 'The user was moved.'
+              ? `A new user with ID ${addedUser.id} was added.`
+              : 'A user was moved.'
           }
 
           data.users = newArray
