@@ -1141,8 +1141,13 @@ export default class FiCsElement<D extends object, P extends object> {
               : undefined
         })
 
-        const { activeElement }: { activeElement: Element | null } = document
-        if (blur && activeElement instanceof HTMLElement) activeElement.blur()
+        if (!blur) return
+
+        const { currentTarget }: { currentTarget: EventTarget | null } = event
+        if (!(currentTarget instanceof HTMLElement) || document.activeElement !== currentTarget)
+          return
+
+        if ((event as MouseEvent).detail > 0) currentTarget.blur()
       }
 
       element.addEventListener(
@@ -1169,15 +1174,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (_trigger === undefined || _trigger) {
         const root: HTMLElement | null = shadowRoot.getElementById(id)
-        if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
+        if (!root)
+          throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
 
         this.#addEventListener(root, [
           [
             'scroll',
             [
               ({ event }) => {
-                const target = event.target as HTMLElement,
-                  { scrollTop, scrollHeight, clientHeight } = target
+                const { scrollTop, scrollHeight, clientHeight } = event.currentTarget as HTMLElement
 
                 console.log(scrollTop, scrollHeight, clientHeight)
               },
