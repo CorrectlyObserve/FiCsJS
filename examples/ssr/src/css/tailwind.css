@@ -14,6 +14,7 @@
   &:not([disabled]) {
     @apply cursor-pointer focus:outline-none active:scale-95;
 
+    &:focus,
     &:focus-visible {
       outline: var(--outline) solid var(--color-pink);
       outline-offset: 0;
