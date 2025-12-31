@@ -209,6 +209,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (updated && key in updated)
             updated[key]!({
               ...this.#getDataProps(true),
+              ref: (selector: string) => this.#queryDeeply(selector),
               debounce: this.#debounce.bind(this),
               throttle: this.#throttle.bind(this)
             })
@@ -730,7 +731,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             if (!child.#cache.component) {
               child.#initProps()
-              child.#callback('created')
+              child.#callback('created', shadowRoot)
               child.#enqueue(() => child.#define(), 'define')
             }
 
@@ -1070,6 +1071,39 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
+  #queryDeeply<T extends Element = Element>(selector: string, shadowRoot?: ShadowRoot): T | null {
+    const searchedShadowRoots: Set<ShadowRoot> = new Set<ShadowRoot>(),
+      searchRecursively = (shadowRoot?: ShadowRoot): T | null => {
+        if (!shadowRoot || searchedShadowRoots.has(shadowRoot)) return null
+        searchedShadowRoots.add(shadowRoot)
+
+        const searched = shadowRoot.querySelector(selector) as T | null
+        if (searched) return searched
+
+        const treeWalker: TreeWalker = document.createTreeWalker(
+          shadowRoot,
+          NodeFilter.SHOW_ELEMENT
+        )
+        let element: HTMLElement | null = treeWalker.nextNode() as HTMLElement | null
+
+        while (element) {
+          if (element.nodeName.toLowerCase().startsWith('f-')) {
+            const nested: T | null = searchRecursively(this.#getShadowRoot(element))
+            if (nested) return nested
+          }
+
+          element = treeWalker.nextNode() as HTMLElement | null
+        }
+
+        return null
+      }
+
+    if (shadowRoot) return searchRecursively(shadowRoot)
+    return searchRecursively(
+      this.#cache.component ? this.#getShadowRoot(this.#cache.component) : undefined
+    )
+  }
+
   #debounce<T extends (...args: any[]) => void>(
     func: T,
     time: number
@@ -1102,10 +1136,15 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addEventListener(
-    element: Element,
+  #addEventListener({
+    element,
+    shadowRoot,
+    entries
+  }: {
+    element: Element
+    shadowRoot: ShadowRoot
     entries: [string, Method<D, P> | [Method<D, P>, ActionOptions]][]
-  ) {
+  }) {
     const addEventListener = (
       handler: string,
       method: Method<D, P>,
@@ -1130,6 +1169,7 @@ export default class FiCsElement<D extends object, P extends object> {
         method({
           ...this.#getDataProps(true),
           event,
+          ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
           attributes: attrs,
           value:
             element instanceof HTMLInputElement ||
@@ -1177,19 +1217,24 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!root)
           throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
 
-        this.#addEventListener(root, [
-          [
-            'scroll',
+        this.#addEventListener({
+          element: root,
+          shadowRoot,
+          entries: [
             [
-              ({ event }) => {
-                const { scrollTop, scrollHeight, clientHeight } = event.currentTarget as HTMLElement
+              'scroll',
+              [
+                ({ event }) => {
+                  const { scrollTop, scrollHeight, clientHeight } =
+                    event.currentTarget as HTMLElement
 
-                console.log(scrollTop, scrollHeight, clientHeight)
-              },
-              { throttle: throttle ?? 0 }
+                  console.log(scrollTop, scrollHeight, clientHeight)
+                },
+                { throttle: throttle ?? 0 }
+              ]
             ]
           ]
-        ])
+        })
 
         let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
 
@@ -1362,11 +1407,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return { eventSource, removeEventListeners }
   }
 
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>): void {
+  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
     const params: HookParams<D, P> = {
       ...this.#getDataProps(true),
+      ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
       debounce: this.#debounce.bind(this),
       throttle: this.#throttle.bind(this)
     }
@@ -1448,7 +1494,11 @@ export default class FiCsElement<D extends object, P extends object> {
 
           for (const [selector, action] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
-              that.#addEventListener(element, Object.entries(action))
+              that.#addEventListener({
+                element,
+                shadowRoot: this.#shadowRoot,
+                entries: Object.entries(action)
+              })
 
           that.#removeChildNodes(this)
           Reflect.set(this, convertStr(consts.FICS_ID_ATTR, 'camel'), that.#instanceId)
@@ -1484,7 +1534,7 @@ export default class FiCsElement<D extends object, P extends object> {
               setTimeout(() => observer.observe(this))
             } else this.#init()
 
-            that.#callback('mounted')
+            that.#callback('mounted', this.#shadowRoot)
             this.#isRendered = true
           }
         }
@@ -1499,11 +1549,11 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#eventSource?.close()
           this.#removeEventListeners?.()
 
-          that.#callback('destroyed')
+          that.#callback('destroyed', this.#shadowRoot)
         }
 
         adoptedCallback(): void {
-          that.#callback('adopted')
+          that.#callback('adopted', this.#shadowRoot)
         }
       }
     )
@@ -1559,7 +1609,7 @@ export default class FiCsElement<D extends object, P extends object> {
         for (const [selector, action] of Object.entries(this.#actions))
           for (const element of this.#getElements(component, selector))
             if (this.#newElements.has(element))
-              this.#addEventListener(element, Object.entries(action))
+              this.#addEventListener({ element, shadowRoot, entries: Object.entries(action) })
 
         this.#newElements.clear()
       }
