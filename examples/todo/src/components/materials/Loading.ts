@@ -4,7 +4,7 @@ import { cssVar, forScreenReaders } from 'ficsjs/style'
 import { white } from '@/utils/others'
 import { Loader } from 'lucide-static'
 
-export default fics<{ texts: { en: string; ja: string } }, { lang: 'en' | 'ja' }>({
+export default () => fics<{ texts: { en: string; ja: string } }, { lang: 'en' | 'ja' }>({
   name: 'loading',
   data: () => ({ texts: { en: 'Loading...', ja: '読み込み中' } }),
   html: ({ data: { texts }, props: { lang }, template, html }) => template`
