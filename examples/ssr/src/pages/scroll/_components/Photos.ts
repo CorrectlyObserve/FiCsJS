@@ -14,7 +14,13 @@ const PHOTO_SIZE = 200 as const
 export default fics({
   name: 'photos',
   children: [Icon(), Skeleton],
-  data: () => ({ page: 0, photos: [] as Photo[], photoId: '', author: '' }),
+  data: () => ({
+    page: 0,
+    photos: [] as Photo[],
+    photoId: '',
+    photoElement: null as HTMLImageElement | null,
+    author: ''
+  }),
   deferredData: async ({ data, crud }) => {
     data.page++
 
@@ -28,7 +34,11 @@ export default fics({
     values: ({ data }) => ({
       svg: CircleX,
       areaLabel: 'Close the dialog',
-      click: () => (data.photoId = '')
+      click: () => {
+        data.photoId = ''
+        data.photoElement?.focus()
+        data.photoElement = null
+      }
     })
   },
   className: 'min-h-200',
@@ -56,7 +66,7 @@ export default fics({
               <img
                 class="clickable mx-auto"
                 src="${API_PATH}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
-                alt="the image created by ${author}"
+                alt="Image created by ${author}"
                 key="${id}"
                 data-index="${index}"
                 tabindex="0"
@@ -80,7 +90,8 @@ export default fics({
         ${show(photoId !== '')}
       >
         ${icon}
-        <p id="dialog-title" class="text-base text-white text-center mx-4 mb-4">Created by ${author}</p>
+        <h3 id="dialog-title" class="sr-only">Photo details</h3>
+        <p class="text-base text-white text-center mt-2 mx-4 mb-4">Created by ${author}</p>
       </dialog>
     `
   },
@@ -108,7 +119,19 @@ export default fics({
     created: ({ data }) => {
       const initialPage = parseInt(queries().page)
       if (!isNaN(initialPage)) data.page = initialPage
-    }
+    },
+    mounted: ({ data, throttle }) =>
+      window.addEventListener(
+        'keydown',
+        throttle(event => {
+          if (event.key !== 'Escape' || data.photoId === '') return
+
+          event.preventDefault()
+          data.photoId = ''
+          data.photoElement?.focus()
+          data.photoElement = null
+        }, 1000)
+      )
   },
   actions: {
     img: {
@@ -142,13 +165,31 @@ export default fics({
         { once: true }
       ],
       click: [
-        ({ data, attributes: { key } }) => {
-          const { photoId, photos } = data
+        ({ data, event: { currentTarget }, ref, attributes: { key } }) => {
+          const isOpening = data.photoId !== key
 
-          data.photoId = photoId === key ? '' : key
-          if (photoId !== key) data.author = photos.filter(({ id }) => id === key)[0]?.author ?? ''
+          data.photoId = isOpening ? key : ''
+          data.author = isOpening ? (data.photos.find(({ id }) => id === key)?.author ?? '') : ''
+
+          if (currentTarget && currentTarget instanceof HTMLImageElement) {
+            data.photoElement = currentTarget
+            if (!isOpening) return
+
+            const closeButton = ref('button')
+            if (closeButton instanceof HTMLButtonElement) setTimeout(() => closeButton.focus())
+          }
         },
-        { throttle: 500, blur: true }
+        { throttle: 500 }
+      ],
+      keydown: [
+        ({ event }) => {
+          const keyEvent = event as KeyboardEvent
+
+          if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return
+          keyEvent.preventDefault()
+          ;(keyEvent.currentTarget as HTMLElement | null)?.click()
+        },
+        { throttle: 500 }
       ]
     }
   },
