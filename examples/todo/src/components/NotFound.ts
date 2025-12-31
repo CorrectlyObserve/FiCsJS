@@ -2,7 +2,7 @@ import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { cssVar } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
-import LoadingIcon from '@/components/LoadingIcon'
+import Loading from '@/components/materials/Loading'
 import { Lang } from '@/types'
 import { breakpoints } from '@/utils/others'
 
@@ -17,7 +17,7 @@ const MAX = 10 as const
 
 export default fics<Data, { lang: Lang }>({
   name: 'not-found',
-  children: [Button(), LoadingIcon],
+  children: [Button(), Loading()],
   data: () => ({ seconds: MAX, descriptions: [] }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
   props: [
