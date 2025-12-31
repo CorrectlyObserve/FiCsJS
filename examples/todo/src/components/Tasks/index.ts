@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import LoadingIcon from '@/components/LoadingIcon'
+import Loading from '@/components/materials/Loading'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Link from '@/components/Tasks/Link'
@@ -33,7 +33,7 @@ const { sm } = breakpoints
 
 export default fics<Data, Props>({
   name: 'tasks',
-  children: [LoadingIcon, Icon(), Input()],
+  children: [Loading(), Icon(), Input()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
