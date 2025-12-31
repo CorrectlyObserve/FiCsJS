@@ -66,7 +66,7 @@ export default fics({
     const { status, methods, users, userId } = data
 
     return template`
-      <p class="sr-only" role="status" aria-atomic="true">${status}</p>
+      <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">${status}</p>
       <div class="buttons mb-6 gap-4">
         ${methods.map((method, index) =>
           button.setIndividualProps(index, {
