@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { dynamicPaths, goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import LoadingIcon from '@/components/LoadingIcon'
+import Loading from '@/components/materials/Loading'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
 import Textarea from '@/components/TaskDetails/Textarea'
@@ -39,7 +39,7 @@ const { sm } = breakpoints
 
 export default fics<Data, Props>({
   name: 'task-details',
-  children: [LoadingIcon, Icon(), Input(), Textarea, Button()],
+  children: [Loading(), Icon(), Input(), Textarea, Button()],
   data: () => ({
     title: '',
     isError: (task: Task) => task?.title === '',
