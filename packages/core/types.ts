@@ -96,6 +96,7 @@ export type HtmlContent<D extends object, P extends object> =
   | string
 
 export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
+  ref: (selector: string) => Element | null
   debounce: <T extends (...args: any[]) => void>(
     func: T,
     time: number
@@ -121,6 +122,7 @@ export interface I18n {
 export type Method<D extends object, P> = (
   params: DataProps<D, P, true> & {
     event: Event
+    ref: (selector: string) => Element | null
     attributes: Record<string, string>
     value?: string
   }
