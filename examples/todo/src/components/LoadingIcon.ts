@@ -1,17 +1,22 @@
 import { fics } from 'ficsjs'
-import Icon from '@/components/materials/Icon'
+import { spin } from 'ficsjs/animation'
+import { cssVar, forScreenReaders } from 'ficsjs/style'
+import { white } from '@/utils/others'
 import { Loader } from 'lucide-static'
 
-export default fics<{}, { lang: 'en' | 'ja' }>({
-  name: 'loading-icon',
-  children: [Icon()],
-  props: {
-    descendant: ({ children: { icon } }) => icon,
-    values: ({ props: { lang } }) => ({
-      svg: Loader,
-      areaLabel: { en: 'Loading...', ja: '読み込み中' }[lang],
-      isLoadingIcon: true
-    })
-  },
-  html: ({ children: { icon }, template }) => template`${icon}`
+export default fics<{ texts: { en: string; ja: string } }, { lang: 'en' | 'ja' }>({
+  name: 'loading',
+  data: () => ({ texts: { en: 'Loading...', ja: '読み込み中' } }),
+  html: ({ data: { texts }, props: { lang }, template, html }) => template`
+    <p role="status" aria-live="polite" aria-atomic="true">${texts[lang]}</p>
+    <div aria-hidden="true">${html(Loader)}</div>
+  `,
+  css: {
+    p: forScreenReaders,
+    div: {
+      padding: cssVar('xs'),
+      marginInline: 'auto',
+      svg: { ...spin(1.5), display: 'flex', width: cssVar('2xl'), height: 'auto', stroke: white() }
+    }
+  }
 })
