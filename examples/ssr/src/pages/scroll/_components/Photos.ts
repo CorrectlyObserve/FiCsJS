@@ -101,7 +101,7 @@ export default fics({
       img: {
         position: 'absolute',
         top: 0,
-        '&:focus-visible': {
+        '&:focus, &:focus-visible': {
           zIndex: 1,
           '&[data-index="0"]': { marginTop: cssVar('outline') },
           [`&[data-index="${photos.length - 1}"]`]: { marginBottom: cssVar('outline') }
