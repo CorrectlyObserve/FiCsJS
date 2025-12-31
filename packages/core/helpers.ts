@@ -19,7 +19,7 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
 export const deepEqual = (
   current: any,
   newValue: any,
-  weekMaps: { current: WeakMap<any, any>; new: WeakMap<any, any> } = {
+  weakMaps: { current: WeakMap<any, any>; new: WeakMap<any, any> } = {
     current: new WeakMap(),
     new: new WeakMap()
   }
@@ -36,11 +36,11 @@ export const deepEqual = (
 
   if (current.constructor !== newValue.constructor) return false
 
-  if (weekMaps.current.has(current) || weekMaps.new.has(newValue))
-    return weekMaps.current.get(current) === newValue && weekMaps.new.get(newValue) === current
+  if (weakMaps.current.has(current) || weakMaps.new.has(newValue))
+    return weakMaps.current.get(current) === newValue && weakMaps.new.get(newValue) === current
 
-  weekMaps.current.set(current, newValue)
-  weekMaps.new.set(newValue, current)
+  weakMaps.current.set(current, newValue)
+  weakMaps.new.set(newValue, current)
 
   if (typeof Node !== 'undefined' && current instanceof Node) return current.isEqualNode(newValue)
 
@@ -54,7 +54,7 @@ export const deepEqual = (
 
     for (const [key, val] of current) {
       if (!newValue.has(key)) return false
-      if (deepEqual(val, newValue.get(key), weekMaps)) continue
+      if (deepEqual(val, newValue.get(key), weakMaps)) continue
       return false
     }
 
@@ -71,7 +71,7 @@ export const deepEqual = (
 
       isSame = false
       for (const _new of newValue)
-        if (deepEqual(_current, _new, weekMaps)) {
+        if (deepEqual(_current, _new, weakMaps)) {
           isSame = true
           break
         }
@@ -115,7 +115,7 @@ export const deepEqual = (
 
   for (const key of keys) {
     if (!Object.prototype.hasOwnProperty.call(newValue, key)) return false
-    if (!deepEqual(current[key], newValue[key], weekMaps)) return false
+    if (!deepEqual(current[key], newValue[key], weakMaps)) return false
   }
 
   return true
