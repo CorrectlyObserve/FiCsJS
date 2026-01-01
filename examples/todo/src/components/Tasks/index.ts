@@ -39,39 +39,33 @@ export default fics<Data, Props>({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
     texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
   }),
-  props: [
-    {
-      descendant: ({ children: { loadingIcon } }) => loadingIcon,
-      values: ({ props: { lang } }) => ({ lang })
-    },
-    {
-      descendant: ({ children: { input } }) => input,
-      values: ({ data, props: { setTasks } }) => {
-        const { value, placeholder } = data
+  props: {
+    descendant: ({ children: { input } }) => input,
+    values: ({ data, props: { setTasks } }) => {
+      const { value, placeholder } = data
 
-        return {
-          value,
-          placeholder,
-          input: (value: string) => (data.value = value),
-          enterKey: async () => {
-            if (value !== '') {
-              setTasks(await addTask(value))
-              data.value = ''
-            }
+      return {
+        value,
+        placeholder,
+        input: (value: string) => (data.value = value),
+        enterKey: async () => {
+          if (value !== '') {
+            setTasks(await addTask(value))
+            data.value = ''
           }
         }
       }
     }
-  ],
+  },
   className: 'tasks',
   html: ({
-    children: { loadingIcon, icon, input },
+    children: { loading, icon, input },
     data,
     props: { tasks, taskId, setTasks },
     template,
     isDeferred
   }) => {
-    if (!isDeferred) return template`${loadingIcon}`
+    if (!isDeferred) return template`${loading}`
 
     const {
       heading,
