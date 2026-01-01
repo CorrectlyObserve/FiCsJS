@@ -4,6 +4,8 @@
     "placeholder": "Add new task",
     "show": "Show completed tasks",
     "hide": "Hide completed tasks",
+    "completed": "(Completed)",
+    "uncompleted": "(Uncompleted)",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
     "unapplicable": "There are no tasks..."
   },
