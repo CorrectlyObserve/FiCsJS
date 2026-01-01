@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { cssVar } from 'ficsjs/style'
+import { cssVar, forScreenReaders } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/materials/Loading'
 import { Lang } from '@/types'
@@ -13,7 +13,7 @@ interface Data {
   buttonText: string
 }
 
-const MAX = 10 as const
+const MAX = 20 as const
 
 export default fics<Data, { lang: Lang }>({
   name: 'not-found',
@@ -38,12 +38,20 @@ export default fics<Data, { lang: Lang }>({
     isDeferred
   }) =>
     isDeferred
-      ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
+      ? template`
+          <h2>404 ${heading}</h2>
+          <p role="status" aria-live="polite" aria-atomic="true">${start}${MAX}${end}</p>
+          <p aria-hidden="true">${start}${seconds}${end}</p>
+          ${button}
+        `
       : template`${loading}`,
   css: {
     p: {
-      marginBottom: cssVar('xl'),
-      [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+      '&[role="status"]': forScreenReaders,
+      '&[aria-hidden="true"]': {
+        marginBottom: cssVar('xl'),
+        [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+      }
     }
   },
   hooks: {
