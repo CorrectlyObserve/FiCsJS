@@ -20,21 +20,15 @@ export default fics<Data, { lang: Lang }>({
   children: [Button(), Loading()],
   data: () => ({ seconds: MAX, descriptions: [] }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
-  props: [
-    {
-      descendant: ({ children: { button } }) => button,
-      values: ({ data: { buttonText } }) => ({
-        buttonText,
-        click: () => goto('/', { isWithoutHistory: true })
-      })
-    },
-    {
-      descendant: ({ children: { loadingIcon } }) => loadingIcon,
-      values: ({ props: { lang } }) => ({ lang })
-    }
-  ],
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: ({ data: { buttonText } }) => ({
+      buttonText,
+      click: () => goto('/', { isWithoutHistory: true })
+    })
+  },
   html: ({
-    children: { button, loadingIcon },
+    children: { button, loading },
     data: {
       seconds,
       heading,
@@ -45,7 +39,7 @@ export default fics<Data, { lang: Lang }>({
   }) =>
     isDeferred
       ? template`<h2>404 ${heading}</h2><p>${start}${seconds}${end}</p>${button}`
-      : template`${loadingIcon}`,
+      : template`${loading}`,
   css: {
     p: {
       marginBottom: cssVar('xl'),
