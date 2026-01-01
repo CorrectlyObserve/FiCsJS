@@ -56,10 +56,6 @@ export default fics<Data, Props>({
   }),
   props: [
     {
-      descendant: ({ children: { loadingIcon } }) => loadingIcon,
-      values: ({ props: { lang } }) => ({ lang })
-    },
-    {
       descendant: ({ children: { icon } }) => icon,
       values: ({ props: { draft, editTask } }) => ({
         click: () => {
@@ -108,7 +104,7 @@ export default fics<Data, Props>({
   ],
   className: 'task-details',
   html: ({
-    children: { loadingIcon, icon, input, textarea, button },
+    children: { loading, icon, input, textarea, button },
     data: {
       heading,
       status,
@@ -119,7 +115,7 @@ export default fics<Data, Props>({
     template,
     isDeferred
   }) => {
-    if (!isDeferred) return template`${loadingIcon}`
+    if (!isDeferred) return template`${loading}`
 
     const label = draft?.completedAt ? revert : complete
 
