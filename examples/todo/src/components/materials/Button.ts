@@ -1,25 +1,36 @@
 import { fics } from 'ficsjs'
 import { cssVar } from 'ficsjs/style'
-import { white } from '@/utils/others'
 
 export default () =>
   fics<{}, { isDisabled?: boolean; buttonText: string; click: () => void }>({
     name: 'button',
     html: ({ props: { isDisabled, buttonText }, template }) => template`
-      <button aria-disabled="${isDisabled}" aria-label="${buttonText}">${buttonText}</button>
+      <button
+        ${isDisabled ? 'disabled' : ''}
+        aria-disabled="${isDisabled ? 'true' : 'false'}"
+        type="button"
+      >${buttonText}</button>
     `,
     css: {
       ':host': {
         textAlign: 'center',
         button: {
+          position: 'relative',
           background: cssVar('gradation'),
           padding: cssVar('md'),
           borderRadius: cssVar('xs'),
-          '&[aria-disabled="true"]': {
-            background: 'none',
-            color: white(0.2),
-            cursor: 'not-allowed'
-          }
+          overflow: 'hidden',
+          zIndex: 0,
+          '&::before': {
+            position: 'absolute',
+            content: "''",
+            inset: 0,
+            background: cssVar('black'),
+            opacity: 0,
+            transition: cssVar('transition'),
+            zIndex: -1
+          },
+          '&:not([disabled]):hover::before': { opacity: 0.5 }
         }
       }
     },
