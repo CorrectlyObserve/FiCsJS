@@ -24,7 +24,8 @@ export default ficsRouter<Data>({
       descendant: ({ children: { tasks, taskDetails, notFound } }) => [
         tasks,
         taskDetails,
-        notFound
+        notFound,
+        ...[tasks, taskDetails, notFound].map(({ getChildren }) => getChildren().loading)
       ],
       values: ({ data: { lang } }) => ({ lang })
     },
