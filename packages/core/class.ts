@@ -285,6 +285,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #clone(instanceId?: string): FiCsElement<D, P> {
     return new FiCsElement({
       name: this.#nameKey,
+      isExceptional: !!instanceId,
       instanceId: instanceId ?? this.#instanceId,
       children: Object.values(this.#children),
       data: () => this.#data as Partial<D>,
