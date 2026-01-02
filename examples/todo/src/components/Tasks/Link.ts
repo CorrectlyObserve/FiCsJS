@@ -20,7 +20,8 @@ export default ficsLink<{ id: number; title: string; completedAt?: number; statu
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           '&.done': { textDecoration: 'line-through' }
-        }
+        },
+        '&:focus, &:focus-visible': { span: { color: 'inherit' } }
       }
     }
   }
