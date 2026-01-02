@@ -18,6 +18,8 @@ interface Data {
   show: string
   hide: string
   texts: string[]
+  completed: string
+  uncompleted: string
   confirmation: string
   unapplicable: string
 }
@@ -33,7 +35,7 @@ const { sm } = breakpoints
 
 export default fics<Data, Props>({
   name: 'tasks',
-  children: [Loading(), Icon(), Input()],
+  children: [Loading(), Icon(), Input(), Link],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
@@ -59,7 +61,7 @@ export default fics<Data, Props>({
   },
   className: 'tasks',
   html: ({
-    children: { loading, icon, input },
+    children: { loading, icon, input, link },
     data,
     props: { tasks, taskId, setTasks },
     template,
@@ -75,6 +77,8 @@ export default fics<Data, Props>({
       show,
       hide,
       texts: [complete, revert, _delete],
+      completed,
+      uncompleted,
       confirmation,
       unapplicable
     } = data
@@ -118,7 +122,12 @@ export default fics<Data, Props>({
                       click: async () =>
                         setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
-                    ${Link({ id, title, completedAt })}
+                    ${link.setIndividualProps(id, {
+                      id,
+                      title,
+                      completedAt,
+                      status: completedAt ? completed : uncompleted
+                    })}
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
