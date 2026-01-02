@@ -21,9 +21,10 @@ export default <P extends object>({
     className,
     attributes,
     html: ({ props, template, ...args }) => {
-      const _href: string = typeof href === 'function' ? href({ props }) : href,
-        _content: Descendant | Sanitized<{}, P> = content({ props, template, ...args })
+      const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
+      if (_href === '') throw new Error('The "href" must be a non-empty string...')
 
+      const _content: Descendant | Sanitized<{}, P> = content({ props, template, ...args })
       return template`
         <a href="${_href}">${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}</a>
       `
