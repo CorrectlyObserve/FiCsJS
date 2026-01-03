@@ -5,41 +5,44 @@ const hover = { cursor: 'pointer', opacity: 0.5 } as const
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
-  '*[tabindex], button, label, a': {
-    transition: cssVar('transition'),
-    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } },
-    '&:is(a):focus > span': { color: 'inherit' }
+  '*[tabindex], label, a': {
+    '&:hover': hover,
+    '&:focus': { color: cssVar('red'), outline: 'none' }
   },
-  'h2, p, button, label, span': { color: white(), textAlign: 'center' },
-  h2: {
-    fontSize: cssVar('lg'),
-    marginBottom: cssVar('xl'),
-    lineHeight: 1.5,
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
-  },
-  'p, button, label, span': { fontSize: cssVar('md'), lineHeight: 1.2 },
-  button: {
+  'h2, p, button, label, input, textarea, span': { color: white() },
+  'h2, p, button': { textAlign: 'center' },
+  'p, button, label, input, textarea': { fontSize: cssVar('md') },
+  'p, button, label': { lineHeight: 1.2 },
+  'button, input, textarea': {
     border: 'none',
     outline: 'none',
-    '&:not([aria-disabled="true"])': { '&:hover': hover, '&:focus': { scale: 0.8 } }
+    borderRadius: cssVar('xs'),
+    '&:not([disabled]):hover': { cursor: 'pointer' }
+  },
+  h2: {
+    fontSize: cssVar('lg'),
+    lineHeight: 1.5,
+    marginBottom: cssVar('xl'),
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+  },
+  button: {
+    transition: cssVar('transition'),
+    '&[disabled]': { background: 'none', color: white(0.2), cursor: 'not-allowed' },
+    '&:not([disabled])': {
+      '&:focus, &:focus-visible': { outline: `2px solid ${white()}` }
+    }
   },
   label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
-    fontSize: cssVar('md'),
-    color: white(),
     paddingInline: cssVar('md'),
-    borderRadius: cssVar('xs'),
-    border: 'none',
-    outline: 'none',
     lineHeight: 1.5,
-    '&:hover': { cursor: 'pointer' },
     '&:focus': {
       background: white(0.8),
       color: cssVar('black'),
       cursor: 'auto'
     }
   },
-  span: { width: 'fit-content', '&[role="button"]': { padding: cssVar('md') } }
+  span: { '&[role="button"]': { padding: cssVar('md') } }
 }
