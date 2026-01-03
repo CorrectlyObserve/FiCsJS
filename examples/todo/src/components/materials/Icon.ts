@@ -25,7 +25,6 @@ export default () =>
         background: 'none',
         color: color ?? white(),
         padding: cssVar('xs'),
-        borderRadius: cssVar('xs'),
         '&:hover': { background: white(0.1) },
         '&:focus, &:focus-visible': { outlineColor: color ?? white() },
         svg: { display: 'flex', width: cssVar('xl'), height: 'auto', stroke: 'currentColor' }
