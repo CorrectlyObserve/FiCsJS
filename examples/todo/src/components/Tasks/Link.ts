@@ -13,8 +13,10 @@ export default ficsLink<{ id: number; title: string; completedAt?: number; statu
       a: {
         display: 'flex',
         paddingBlock: cssVar('md'),
+        paddingLeft: calc(`${cssVar('xs')} / 2`),
         lineHeight: 1,
         span: {
+          width: '100%',
           lineHeight: 'inherit',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
