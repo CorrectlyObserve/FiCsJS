@@ -18,7 +18,6 @@ export default () =>
           position: 'relative',
           background: cssVar('gradation'),
           padding: cssVar('md'),
-          borderRadius: cssVar('xs'),
           overflow: 'hidden',
           zIndex: 0,
           '&::before': {
