@@ -6,11 +6,7 @@ import { $lang } from '@/stores'
 import type { Lang } from '@/types'
 import { breakpoints } from '@/utils/others'
 
-const link = ficsLink({
-  href: '/',
-  content: ({ template }) => template`FiCs ToDo`,
-  css: { ':host > a:hover': { opacity: 1 } }
-})
+const link = ficsLink({ href: '/', content: ({ template }) => template`FiCs ToDo` })
 
 export default fics({
   name: 'header',
@@ -49,7 +45,8 @@ export default fics({
           background: cssVar('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
-          lineHeight: 1.5
+          lineHeight: 1.5,
+          'f-link': { textAlign: 'center', marginInline: cssVar('xs') }
         },
         'div.container': {
           ...absoluteCenter('y'),
