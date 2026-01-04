@@ -37,7 +37,9 @@ const template = ({
         <link rel="stylesheet" type="text/css" href="/dist/global.css" />
       </head>
       <body class="bg-dark px-4">
-        <header class="py-2"><h1 class="text-xl text-center font-semibold">${title}</h1></header>
+        <header class="flex justify-center flex-row py-2">
+          <h1 class="text-xl text-center font-semibold">${title}</h1>
+        </header>
         <main class="pb-8">${content}</main>
         <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
         <script type="module" src="/dist/${path.replace(/^\/+/, '')}.js"></script>
