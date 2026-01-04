@@ -5,7 +5,7 @@ const hover = { cursor: 'pointer', opacity: 0.5 } as const
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
-  '*[tabindex], label, a': {
+  '*[tabindex], label': {
     '&:hover': hover,
     '&:focus': { color: cssVar('red'), outline: 'none' }
   },
@@ -14,6 +14,7 @@ export default {
   'p, button, label, input, textarea': { fontSize: cssVar('md') },
   'p, button, label': { lineHeight: 1.2 },
   'button, input, textarea': {
+    transition: cssVar('transition'),
     border: 'none',
     outline: 'none',
     borderRadius: cssVar('xs'),
@@ -26,11 +27,8 @@ export default {
     [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
   },
   button: {
-    transition: cssVar('transition'),
     '&[disabled]': { background: 'none', color: white(0.2), cursor: 'not-allowed' },
-    '&:not([disabled])': {
-      '&:focus, &:focus-visible': { outline: `2px solid ${white()}` }
-    }
+    '&:not([disabled])': { '&:focus, &:focus-visible': { outline: `2px solid ${white()}` } }
   },
   label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
   'input, textarea': {
@@ -38,10 +36,16 @@ export default {
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
     paddingInline: cssVar('md'),
     lineHeight: 1.5,
-    '&:focus': {
-      background: white(0.8),
-      color: cssVar('black'),
-      cursor: 'auto'
+    '&:focus': { background: white(0.8), color: cssVar('black'), cursor: 'auto' }
+  },
+  a: {
+    transition: cssVar('transition'),
+    borderRadius: cssVar('xs'),
+    '&:hover': { background: white(0.1), cursor: 'pointer' },
+    '&:focus, &:focus-visible': {
+      color: 'inherit',
+      outline: `2px solid ${white()}`,
+      outlineOffset: 0
     }
   },
   span: { '&[role="button"]': { padding: cssVar('md') } }
