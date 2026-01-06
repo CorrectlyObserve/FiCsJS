@@ -11,7 +11,10 @@ configI18n('/i18n')
 const lang = window.location.pathname.slice(1).split('/')[0] === 'ja' ? 'ja' : 'en'
 
 if (lang === 'ja') {
-  const { title, description } = await i18n<Record<string, string>>({ lang, key: 'head' })
+  const { title, description } = await i18n<Record<'title' | 'description', string>>({
+    lang,
+    key: 'head'
+  })
 
   document.documentElement.lang = lang
   document.title = title
