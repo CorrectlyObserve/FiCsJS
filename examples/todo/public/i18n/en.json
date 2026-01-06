@@ -1,4 +1,5 @@
 {
+  "header": { "label": "Language", "optionLabel": "Language options" },
   "tasks": {
     "heading": "Task list",
     "placeholder": "Add new task",
