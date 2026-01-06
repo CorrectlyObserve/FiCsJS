@@ -16,6 +16,15 @@ h1 {
   -webkit-text-fill-color: transparent;
 }
 
+@media (forced-colors: active) {
+  h1 {
+    background: none;
+    background-clip: border-box;
+    -webkit-text-fill-color: CanvasText;
+    color: CanvasText;
+  }
+}
+
 .clickable[disabled] {
   @apply opacity-20;
 }
