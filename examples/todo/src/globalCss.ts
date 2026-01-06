@@ -1,7 +1,8 @@
 import { calc, cssVar } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils/others'
 
-const hover = { cursor: 'pointer', opacity: 0.5 } as const
+const hover = { cursor: 'pointer', opacity: 0.5 } as const,
+  outline = `${cssVar('outline')} solid ${white()}`
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
@@ -28,7 +29,7 @@ export default {
   },
   button: {
     '&[disabled]': { background: 'none', color: white(0.2), cursor: 'not-allowed' },
-    '&:not([disabled])': { '&:focus, &:focus-visible': { outline: `2px solid ${white()}` } }
+    '&:not([disabled])': { '&:focus, &:focus-visible': { outline } }
   },
   label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
   'input, textarea': {
@@ -42,11 +43,7 @@ export default {
     transition: cssVar('transition'),
     borderRadius: cssVar('xs'),
     '&:hover': { background: white(0.1), cursor: 'pointer' },
-    '&:focus, &:focus-visible': {
-      color: 'inherit',
-      outline: `2px solid ${white()}`,
-      outlineOffset: 0
-    }
+    '&:focus, &:focus-visible': { color: 'inherit', outline, outlineOffset: 0 }
   },
   span: { '&[role="button"]': { padding: cssVar('md') } }
 }
