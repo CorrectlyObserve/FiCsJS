@@ -6,26 +6,61 @@ import { $lang } from '@/stores'
 import type { Lang } from '@/types'
 import { breakpoints, white } from '@/utils/others'
 
-const link = ficsLink({
-  href: '/',
-  content: ({ template }) => template`FiCs ToDo`,
-  css: { a: { paddingInline: cssVar('xs') } }
-})
+interface Data {
+  langs: Lang[]
+  lang: Lang
+  isShown: boolean
+  header: { label: string; optionLabel: string }
+}
 
-export default fics({
+export default fics<Data, {}>({
   name: 'header',
-  data: () => ({ langs: ['en', 'ja'] as Lang[], lang: 'en' as Lang, isShown: false }),
-  html: ({ data: { langs, lang, isShown }, template, show }) => template`
+  children: [
+    ficsLink({
+      href: '/',
+      content: ({ template }) => template`FiCs ToDo`,
+      css: { a: { paddingInline: cssVar('xs') } }
+    })
+  ],
+  data: () => ({
+    langs: ['en', 'ja'],
+    lang: 'en',
+    isShown: false,
+    header: { label: '', optionLabel: '' }
+  }),
+  i18nData: async ({ data: { lang }, i18n }) => ({
+    header: await i18n<Data['header']>({ lang, key: 'header' })
+  }),
+  html: ({
+    children: { link },
+    data: {
+      langs,
+      lang,
+      isShown,
+      header: { label, optionLabel }
+    },
+    template,
+    show
+  }) => template`
     <header>
       <h1>${link}</h1>
       <div class="container">
-        <button class="lang">${lang.toUpperCase()}</button>
-        <div class="langs" ${show(isShown)}>
+        <button
+          class="lang"
+          aria-label="${label}"
+          aria-controls="lang-menu"
+          aria-expanded="${isShown ? 'true' : 'false'}"
+          type="button"
+        >${lang.toUpperCase()}</button>
+        <div class="langs" id="lang-menu" role="group" aria-label="${optionLabel}" ${show(isShown)}>
           ${langs.map(
             _lang => template`
-              <button class="${lang === _lang ? 'selected' : ''}" key="${_lang}">
-                ${_lang.toUpperCase()}
-              </button>
+              <button
+                class="${lang === _lang ? 'selected' : ''}"
+                key="${_lang}"
+                aria-pressed="${lang === _lang ? 'true' : 'false'}"
+                type="button"
+              >${_lang.toUpperCase()}</button>
             `
           )}
         </div>
@@ -50,7 +85,13 @@ export default fics({
           background: cssVar('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
-          lineHeight: 1.5
+          lineHeight: 1.5,
+          '@media (forced-colors: active)': {
+            background: 'none',
+            backgroundClip: 'border-box',
+            webkitTextFillColor: 'CanvasText',
+            color: 'CanvasText'
+          }
         },
         'div.container': {
           ...absoluteCenter('y'),
@@ -63,7 +104,12 @@ export default fics({
             background: cssVar('black'),
             paddingBlock: cssVar('md'),
             '&:hover': { background: white(0.1) },
-            '&.selected': { color: cssVar('red') }
+            '&.selected': {
+              color: cssVar('red'),
+              fontWeight: 'bold',
+              textDecoration: 'underline',
+              textUnderlineOffset: cssVar('outline')
+            }
           },
           '.langs': {
             ...fadeInOut(cssVar('transition')),
@@ -80,7 +126,7 @@ export default fics({
   hooks: { created: ({ data }) => (data.lang = document.documentElement.lang as Lang) },
   actions: {
     'button.lang': {
-      click: [({ data }) => (data.isShown = !data.isShown), { throttle: 500, blur: true }]
+      click: [({ data }) => (data.isShown = !data.isShown), { throttle: 500 }]
     },
     'button[key]': {
       click: [
@@ -91,7 +137,7 @@ export default fics({
           data.lang = _key
           data.isShown = false
         },
-        { throttle: 500, blur: true }
+        { throttle: 500 }
       ]
     }
   }
