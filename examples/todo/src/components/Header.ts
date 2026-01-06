@@ -4,9 +4,13 @@ import { ficsLink } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import { $lang } from '@/stores'
 import type { Lang } from '@/types'
-import { breakpoints } from '@/utils/others'
+import { breakpoints, white } from '@/utils/others'
 
-const link = ficsLink({ href: '/', content: ({ template }) => template`FiCs ToDo` })
+const link = ficsLink({
+  href: '/',
+  content: ({ template }) => template`FiCs ToDo`,
+  css: { a: { paddingInline: cssVar('xs') } }
+})
 
 export default fics({
   name: 'header',
@@ -33,38 +37,41 @@ export default fics({
       position: 'sticky',
       top: 0,
       width: '100vw',
+      height: cssVar('header-height'),
       background: cssVar('black'),
       zIndex: 10,
       header: {
         ...flexCenter('xy'),
         position: 'relative',
-        paddingBlock: cssVar('md'),
-        [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: cssVar('xs') },
         h1: {
+          ...flexCenter('y'),
+          height: cssVar('header-height'),
           fontSize: cssVar('xl'),
           background: cssVar('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
-          lineHeight: 1.5,
-          'f-link': { textAlign: 'center', marginInline: cssVar('xs') }
+          lineHeight: 1.5
         },
         'div.container': {
           ...absoluteCenter('y'),
-          right: cssVar('xl'),
-          [`@media (max-width: ${breakpoints.sm})`]: { right: cssVar('xs') },
+          right: calc(`${cssVar('xl')} + ${cssVar('outline')}`),
+          [`@media (max-width: ${breakpoints.sm})`]: {
+            right: calc(`${cssVar('md')} * 0.75 + ${cssVar('outline')}`)
+          },
           button: {
             width: calc(`${cssVar('md')} * 3`),
             background: cssVar('black'),
             paddingBlock: cssVar('md'),
-            [`@media (max-width: ${breakpoints.sm})`]: { paddingBlock: cssVar('md') },
-            '&.lang:focus': { opacity: 0.5 },
+            '&:hover': { background: white(0.1) },
             '&.selected': { color: cssVar('red') }
           },
           '.langs': {
             ...fadeInOut(cssVar('transition')),
-            display: 'flex',
             position: 'absolute',
-            right: 0
+            right: 0,
+            display: 'flex',
+            gap: calc(`${cssVar('outline')} * 2`),
+            marginTop: calc(`${cssVar('outline')} * 2`)
           }
         }
       }
