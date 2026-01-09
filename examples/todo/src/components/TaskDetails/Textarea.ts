@@ -27,7 +27,6 @@ export default fics<{}, Props>({
       p: forScreenReaders,
       textarea: {
         height: calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6)),
-        paddingBlock: calc(`${cssVar('xs')} * 1.5`),
         resize: 'none'
       }
     }
