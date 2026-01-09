@@ -1,14 +1,17 @@
 import { calc, cssVar } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils/others'
 
-const hover = { cursor: 'pointer', opacity: 0.5 } as const,
-  outline = `${cssVar('outline')} solid ${white()}`
+const outline = `${cssVar('outline')} solid ${white()}` as const
 
 export default {
-  '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
-  '*[tabindex], label': {
-    '&:hover': hover,
-    '&:focus': { color: cssVar('red'), outline: 'none' }
+  '*': {
+    padding: 0,
+    margin: 0,
+    boxSizing: 'border-box',
+    '*[tabindex]': {
+      '&:hover': { cursor: 'pointer', opacity: 0.5 },
+      '&:focus': { color: cssVar('red'), outline: 'none' }
+    }
   },
   'h2, p, button, label, input, textarea, span': { color: white() },
   'h2, p, button': { textAlign: 'center' },
@@ -28,16 +31,19 @@ export default {
     [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
   },
   button: {
-    '&[disabled]': { background: 'none', color: white(0.2), cursor: 'not-allowed' },
+    '&[disabled]': { background: 'none !important', color: white(0.2), cursor: 'not-allowed' },
     '&:not([disabled])': { '&:focus, &:focus-visible': { outline } }
   },
-  label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
+  label: { display: 'inline-block', textAlign: 'left', '&:hover': { cursor: 'pointer' } },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
-    paddingInline: cssVar('md'),
+    background: 'none',
+    padding: `${calc(`${cssVar('xs')} * 1.5`)} ${cssVar('md')}`,
     lineHeight: 1.5,
-    '&:focus': { background: white(0.8), color: cssVar('black'), cursor: 'auto' }
+    border: `1px solid ${white()}`,
+    '&:hover': { background: white(0.1) },
+    '&:focus': { outline, outlineColor: cssVar('pink') }
   },
   a: {
     transition: cssVar('transition'),
