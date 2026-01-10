@@ -8,11 +8,16 @@ export default () =>
   >({
     name: 'icon',
     className: 'icon',
-    html: ({ props: { svg, areaLabel, isLarge, isPressed }, template, html }) => template`
+    html: ({
+      props: { svg, areaLabel, isLarge, isPressed },
+      template,
+      attributes: { boolean },
+      html
+    }) => template`
       <button
         class="clickable flex text-white ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
         aria-label="${areaLabel}"
-        ${isPressed === undefined ? '' : `aria-pressed="${isPressed ? 'true' : 'false'}"`}
+        ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
         type="button"
       >${html(svg)}</button>
     `,
