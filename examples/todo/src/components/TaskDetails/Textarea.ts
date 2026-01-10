@@ -3,7 +3,7 @@ import { calc, cssVar, flexCenter, forScreenReaders } from 'ficsjs/style'
 
 interface Props {
   id: string
-  label?: string
+  label: string
   description: string
   placeholder: string
   value: string
@@ -15,7 +15,7 @@ export default fics<{}, Props>({
   name: 'textarea',
   html: ({ props: { id, label, description, placeholder, value }, template }) => template`
     <div>
-      ${label ? template`<label for="${id}">${label}</label>` : ''}
+      <label for="${id}">${label}</label>
       <p id="${id}-info">${description}</p>
       <textarea id="${id}" placeholder="${placeholder}" aria-describedby="${id}-info">${value}</textarea>
     </div>
