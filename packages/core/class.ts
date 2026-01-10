@@ -6,6 +6,7 @@ import {
   isBlankObject,
   isBrowser,
   isObject,
+  joinArray,
   numberError,
   toArray,
   uid
@@ -1638,11 +1639,11 @@ export default class FiCsElement<D extends object, P extends object> {
           (prev, [key, value]) => `${prev} ${key}="${value}"`,
           ''
         )}`.trim(),
-        slotAttrs: string = [
+        slotAttrs: string = joinArray([
           `id="${that.#name}"`,
           `slot="${that.#instanceId}"`,
           `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
-        ].join(' ')
+        ])
 
       const applyDescendant = (html: string): string => {
         const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="`,
@@ -1709,7 +1710,7 @@ export default class FiCsElement<D extends object, P extends object> {
           _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
 
       return `
-        <${[that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''].join(' ').trim()}>
+        <${joinArray([that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''])}>
           <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
           <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
         </${that.#name}>
