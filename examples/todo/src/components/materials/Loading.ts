@@ -9,10 +9,14 @@ export default () =>
   fics<{ texts: Record<Lang, string> }, { lang: Lang }>({
     name: 'loading',
     data: () => ({ texts: { en: 'Loading...', ja: '読み込み中' } }),
-    html: ({ data: { texts }, props: { lang }, template, html }) => template`
-    <p role="status" aria-live="polite" aria-atomic="true">${texts[lang]}</p>
-    <div aria-hidden="true">${html(Loader)}</div>
-  `,
+    html: ({
+      data: { texts },
+      props: { lang },
+      template,
+      html,
+      attributes: { statusLiveRegion }
+    }) =>
+      template`<p ${statusLiveRegion}>${texts[lang]}</p><div aria-hidden="true">${html(Loader)}</div>`,
     css: {
       p: forScreenReaders,
       div: {
