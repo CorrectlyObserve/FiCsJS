@@ -13,10 +13,15 @@ interface Props {
 export default () =>
   fics<{}, Props>({
     name: 'icon',
-    html: ({ props: { areaLabel, svg, isPressed }, template, html }) => template`
+    html: ({
+      props: { areaLabel, svg, isPressed },
+      template,
+      html,
+      attributes: { boolean }
+    }) => template`
       <button
         aria-label="${areaLabel}"
-        ${isPressed === undefined ? '' : `aria-pressed="${isPressed ? 'true' : 'false'}"`}
+        ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
         type="button"
       >${html(svg)}</button>
     `,
