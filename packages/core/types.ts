@@ -81,7 +81,7 @@ export interface GlobalCssContent {
 
 export type Html<D extends object, P extends object> = (
   params: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
-    Syntaxes<D, P> & {
+    HtmlSyntaxes<D, P> & {
       isBrowser: boolean
       isDeferred: boolean
       virtualScroll: <T>(
@@ -94,6 +94,18 @@ export type Html<D extends object, P extends object> = (
 export type HtmlContent<D extends object, P extends object> =
   | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
   | string
+
+export interface HtmlSyntaxes<D extends object, P extends object> {
+  children: Children
+  props: P
+  template: (
+    templates: TemplateStringsArray,
+    ...variables: (HtmlContent<D, P> | unknown)[]
+  ) => Sanitized<D, P>
+  html: (str: string) => Record<symbol, string>
+  show: (condition: boolean) => string
+  apiStatuses: Record<string, boolean>
+}
 
 export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
   ref: (selector: string) => Element | null
@@ -224,18 +236,6 @@ export type Style<D extends object, P> =
 
 export interface StyleContent {
   [key: string]: string | number | undefined | StyleContent
-}
-
-export interface Syntaxes<D extends object, P extends object> {
-  children: Children
-  props: P
-  template: (
-    templates: TemplateStringsArray,
-    ...variables: (HtmlContent<D, P> | unknown)[]
-  ) => Sanitized<D, P>
-  html: (str: string) => Record<symbol, string>
-  show: (condition: boolean) => string
-  apiStatuses: Record<string, boolean>
 }
 
 export interface Task {
