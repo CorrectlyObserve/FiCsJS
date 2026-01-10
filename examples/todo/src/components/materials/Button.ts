@@ -4,10 +4,10 @@ import { cssVar } from 'ficsjs/style'
 export default () =>
   fics<{}, { isDisabled?: boolean; buttonText: string; click: () => void }>({
     name: 'button',
-    html: ({ props: { isDisabled, buttonText }, template }) => template`
+    html: ({ props: { isDisabled, buttonText }, template, attributes: { boolean } }) => template`
       <button
         ${isDisabled ? 'disabled' : ''}
-        aria-disabled="${isDisabled ? 'true' : 'false'}"
+        aria-disabled="${boolean(isDisabled)}"
         type="button"
       >${buttonText}</button>
     `,
