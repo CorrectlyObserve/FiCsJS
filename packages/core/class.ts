@@ -29,6 +29,7 @@ import type {
   GlobalCss,
   Html,
   HtmlContent,
+  HtmlSyntaxes,
   HookParams,
   Hooks,
   I18n,
@@ -43,7 +44,6 @@ import type {
   SSEMethod,
   Style,
   StyleContent,
-  Syntaxes,
   Task,
   WebSocketParams,
   WebSocketProp,
@@ -635,7 +635,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#addSetIndividualProps()
 
-    const template: Syntaxes<D, P>['template'] = (
+    const template: HtmlSyntaxes<D, P>['template'] = (
       strings: TemplateStringsArray,
       ...variables: (HtmlContent<D, P> | unknown)[]
     ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
