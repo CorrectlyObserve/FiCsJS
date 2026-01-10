@@ -62,11 +62,17 @@ export default fics({
       values: ({ data: { userId } }) => ({ userId })
     }
   ],
-  html: ({ children: { button, draggable }, data, crud, template }) => {
+  html: ({
+    children: { button, draggable },
+    data,
+    crud,
+    template,
+    attributes: { statusLiveRegion }
+  }) => {
     const { status, methods, users, userId } = data
 
     return template`
-      <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">${status}</p>
+      <p class="sr-only" ${statusLiveRegion}>${status}</p>
       <div class="buttons mb-6 gap-4">
         ${methods.map((method, index) =>
           button.setIndividualProps(index, {
