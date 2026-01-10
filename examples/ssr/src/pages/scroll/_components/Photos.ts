@@ -48,6 +48,7 @@ export default fics({
     template,
     show,
     apiStatuses: { isLoading },
+    attributes: { boolean },
     isBrowser,
     isDeferred,
     virtualScroll
@@ -73,7 +74,7 @@ export default fics({
                 role="button"
                 aria-haspopup="dialog"
                 aria-controls="photo-dialog"
-                aria-expanded="${photoId === id ? 'true' : 'false'}"
+                aria-expanded="${boolean(photoId === id)}"
                 ${show(isLoaded)}
               />
             </div>
