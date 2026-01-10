@@ -40,7 +40,8 @@ export default fics<Data, {}>({
       header: { label, optionLabel }
     },
     template,
-    show
+    show,
+    attributes: { boolean }
   }) => template`
     <header>
       <h1>${link}</h1>
@@ -49,7 +50,7 @@ export default fics<Data, {}>({
           class="lang"
           aria-label="${label}"
           aria-controls="lang-menu"
-          aria-expanded="${isShown ? 'true' : 'false'}"
+          aria-expanded="${boolean(isShown)}"
           type="button"
         >${lang.toUpperCase()}</button>
         <div class="langs" id="lang-menu" role="group" aria-label="${optionLabel}" ${show(isShown)}>
@@ -58,7 +59,7 @@ export default fics<Data, {}>({
               <button
                 class="${lang === _lang ? 'selected' : ''}"
                 key="${_lang}"
-                aria-pressed="${lang === _lang ? 'true' : 'false'}"
+                aria-pressed="${boolean(lang === _lang)}"
                 type="button"
               >${_lang.toUpperCase()}</button>
             `
