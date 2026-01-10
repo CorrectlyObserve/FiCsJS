@@ -130,6 +130,8 @@ export const isBrowser = (): boolean =>
 export const isObject = (param: unknown): param is Record<string, unknown> =>
   typeof param === 'object' && param !== null && !Array.isArray(param)
 
+export const joinArray = <T>(arr: T[]): string => arr.join(' ').trim()
+
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
