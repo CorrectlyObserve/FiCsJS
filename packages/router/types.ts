@@ -5,16 +5,16 @@ import type {
   CssContent,
   DataProps,
   Descendant,
+  HtmlSyntaxes,
   Hooks,
   OptionParams,
   Props,
   Sanitized,
-  SingleOrArray,
-  Syntaxes
+  SingleOrArray
 } from '../core/types'
 
 export type Content<D extends object, P extends object> = (
-  syntaxes: Omit<DataProps<D, P>, 'props'> & Syntaxes<D, P>
+  syntaxes: Omit<DataProps<D, P>, 'props'> & HtmlSyntaxes<D, P>
 ) => Descendant | Sanitized<D, P>
 
 export interface FiCsLink<P extends object> {
