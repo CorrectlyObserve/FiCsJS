@@ -48,7 +48,8 @@ export default <T>() =>
     html: ({
       data: { droppedZone, isHighlighted },
       props: { array, slot, isSelected },
-      template
+      template,
+      attributes: { boolean }
     }) => {
       const _isHighlighted = (zoneIndex: number) => isHighlighted(droppedZone, zoneIndex),
         base =
@@ -73,7 +74,7 @@ export default <T>() =>
               draggable="true"
               tabindex="0"
               role="button"
-              aria-pressed="${isSelected(item) ? 'true' : 'false'}"
+              aria-pressed="${boolean(isSelected(item))}"
             >${slot(item, index)}</div>
             ${dropZone(index, classNames)}
           `
