@@ -107,7 +107,7 @@ export interface HtmlSyntaxes<D extends object, P extends object> {
   show: (condition: boolean) => string
   apiStatuses: Record<string, boolean>
   attributes: {
-    boolean: (condition: boolean) => 'true' | 'false'
+    boolean: (condition: boolean | undefined) => 'true' | 'false'
     statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
   }
 }
