@@ -24,10 +24,11 @@ export default fics({
   html: ({
     children: { icon },
     data: { isAccumulated, accumulatedChunk, chunks },
-    template
+    template,
+    attributes: { statusLiveRegion }
   }) => template`
     <h2 class="text-lg text-white text-center mb-6">Stream</h2>
-    <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+    <p class="sr-only" ${statusLiveRegion}>
       The current mode is ${isAccumulated ? 'accumulated' : 'chunked'}.
     </p>
     ${
