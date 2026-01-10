@@ -35,12 +35,13 @@ export default fics<Data, { lang: Lang }>({
       descriptions: [start, end]
     },
     template,
+    attributes: { statusLiveRegion },
     isDeferred
   }) =>
     isDeferred
       ? template`
           <h2>404 ${heading}</h2>
-          <p role="status" aria-live="polite" aria-atomic="true">${start}${MAX}${end}</p>
+          <p ${statusLiveRegion}>${start}${MAX}${end}</p>
           <p aria-hidden="true">${start}${seconds}${end}</p>
           ${button}
         `
