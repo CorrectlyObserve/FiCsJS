@@ -651,6 +651,10 @@ export default class FiCsElement<D extends object, P extends object> {
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       apiStatuses: Object.fromEntries(this.#apiStatuses),
+      attributes: {
+        boolean: (condition: boolean): 'true' | 'false' => (condition ? 'true' : 'false'),
+        statusLiveRegion: consts.a11y.STATUS_LIVE_REGION
+      },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
       virtualScroll: <T>(
