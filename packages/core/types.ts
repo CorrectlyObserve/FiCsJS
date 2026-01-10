@@ -1,4 +1,5 @@
 import FiCsElement from './class'
+import consts from './constants'
 
 export type Actions<D extends object, P> = Record<
   string,
@@ -105,6 +106,10 @@ export interface HtmlSyntaxes<D extends object, P extends object> {
   html: (str: string) => Record<symbol, string>
   show: (condition: boolean) => string
   apiStatuses: Record<string, boolean>
+  attributes: {
+    boolean: (condition: boolean) => 'true' | 'false'
+    statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
+  }
 }
 
 export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
