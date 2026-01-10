@@ -23,7 +23,8 @@ export default () =>
     html: ({
       props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
       template,
-      show
+      show,
+      attributes: { boolean }
     }) => {
       const hasError = !!(isError && error)
       return template`
@@ -37,7 +38,7 @@ export default () =>
             placeholder="${placeholder}"
             ${isAriaLabel ? `aria-label="${label}"` : ''}
             aria-describedby="${[`${id}-info`, hasError ? `${id}-error` : ''].filter(Boolean).join(' ')}"
-            aria-invalid="${hasError ? 'true' : 'false'}"
+            aria-invalid="${boolean(hasError)}"
             ${hasError ? `aria-errormessage="${id}-error"` : ''}
             type="text"
           />
