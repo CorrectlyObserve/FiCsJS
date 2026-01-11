@@ -27,7 +27,10 @@ export default {
     border: 'none',
     outline: 'none',
     borderRadius: cssVar('xs'),
-    '&:not([disabled]):hover': { cursor: 'pointer' }
+    '&:not([disabled])': {
+      '&:hover': { background: white(0.1), cursor: 'pointer' },
+      '&:focus, &:focus-visible': { outline }
+    }
   },
   h2: {
     fontSize: cssVar('lg'),
@@ -35,20 +38,13 @@ export default {
     marginBottom: cssVar('xl'),
     [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
   },
-  button: {
-    paddingBlock: cssVar('md'),
-    '&[disabled]': { background: 'none !important', color: white(0.2), cursor: 'not-allowed' },
-    '&:not([disabled])': { '&:focus, &:focus-visible': { outline }, '&:active': { scale: 0.95 } }
-  },
   'label:hover': { cursor: 'pointer' },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
     padding: `${calc(`${cssVar('xs')} * 1.5`)} ${cssVar('md')}`,
     lineHeight: 1.5,
-    border: `1px solid ${white()}`,
-    '&:hover': { background: white(0.1) },
-    '&:focus': { outline, outlineColor: cssVar('pink') }
+    border: `1px solid ${white()}`
   },
   'span[role="button"]': { padding: cssVar('md') }
 }
