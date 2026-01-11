@@ -17,12 +17,13 @@ export default {
     },
     '&:is(a)': { '&:focus, &:focus-visible': { color: 'inherit', outlineOffset: 0 } }
   },
-  'h2, p, button, label, input, textarea, span': { color: white() },
+  'h2, p, button, label, legend, input, textarea, span': { color: white() },
   'h2, p, button': { textAlign: 'center' },
-  'p, button, label, input, textarea': { fontSize: cssVar('md') },
-  'p, button, label': { lineHeight: 1.2 },
+  'p, button, label, legend, input, textarea': { fontSize: cssVar('md') },
+  'p, button, legend, label': { lineHeight: 1.2 },
   'button, input, textarea': {
     transition: cssVar('transition'),
+    background: 'none',
     border: 'none',
     outline: 'none',
     borderRadius: cssVar('xs'),
@@ -35,14 +36,14 @@ export default {
     [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
   },
   button: {
+    paddingBlock: cssVar('md'),
     '&[disabled]': { background: 'none !important', color: white(0.2), cursor: 'not-allowed' },
-    '&:not([disabled])': { '&:focus, &:focus-visible': { outline }, '&:active': { scale: 0.9 } }
+    '&:not([disabled])': { '&:focus, &:focus-visible': { outline }, '&:active': { scale: 0.95 } }
   },
   'label:hover': { cursor: 'pointer' },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
-    background: 'none',
     padding: `${calc(`${cssVar('xs')} * 1.5`)} ${cssVar('md')}`,
     lineHeight: 1.5,
     border: `1px solid ${white()}`,
