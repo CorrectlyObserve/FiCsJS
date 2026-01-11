@@ -8,10 +8,14 @@ export default {
     padding: 0,
     margin: 0,
     boxSizing: 'border-box',
-    '*[tabindex]': {
-      '&:hover': { cursor: 'pointer', opacity: 0.5 },
-      '&:focus': { color: cssVar('red'), outline: 'none' }
-    }
+    '&[tabindex], &:is(a)': {
+      transition: cssVar('transition'),
+      borderRadius: cssVar('xs'),
+      '&:hover': { background: white(0.1), cursor: 'pointer' },
+      '&:focus, &:focus-visible': { outline },
+      '&:active': { scale: 0.98 }
+    },
+    '&:is(a)': { '&:focus, &:focus-visible': { color: 'inherit', outlineOffset: 0 } }
   },
   'h2, p, button, label, input, textarea, span': { color: white() },
   'h2, p, button': { textAlign: 'center' },
@@ -32,9 +36,9 @@ export default {
   },
   button: {
     '&[disabled]': { background: 'none !important', color: white(0.2), cursor: 'not-allowed' },
-    '&:not([disabled])': { '&:focus, &:focus-visible': { outline } }
+    '&:not([disabled])': { '&:focus, &:focus-visible': { outline }, '&:active': { scale: 0.9 } }
   },
-  label: { display: 'inline-block', textAlign: 'left', '&:hover': { cursor: 'pointer' } },
+  'label:hover': { cursor: 'pointer' },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
@@ -45,11 +49,5 @@ export default {
     '&:hover': { background: white(0.1) },
     '&:focus': { outline, outlineColor: cssVar('pink') }
   },
-  a: {
-    transition: cssVar('transition'),
-    borderRadius: cssVar('xs'),
-    '&:hover': { background: white(0.1), cursor: 'pointer' },
-    '&:focus, &:focus-visible': { color: 'inherit', outline, outlineOffset: 0 }
-  },
-  span: { '&[role="button"]': { padding: cssVar('md') } }
+  'span[role="button"]': { padding: cssVar('md') }
 }
