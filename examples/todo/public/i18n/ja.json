@@ -6,6 +6,7 @@
   "header": { "label": "言語", "optionLabel": "言語選択" },
   "tasks": {
     "heading": "タスク一覧",
+    "description": "エンターキーで新規タスクを追加することができます。",
     "placeholder": "タスクを追加する",
     "show": "完了済みのタスクを表示する",
     "hide": "完了済みのタスクを非表示にする",
