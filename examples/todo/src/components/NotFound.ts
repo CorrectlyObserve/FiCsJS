@@ -23,6 +23,7 @@ export default fics<Data, { lang: Lang }>({
   props: {
     descendant: ({ children: { button } }) => button,
     values: ({ data: { buttonText } }) => ({
+      type: 'gradation',
       buttonText,
       click: () => goto('/', { isWithoutHistory: true })
     })
