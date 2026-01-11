@@ -16,11 +16,11 @@ type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
   heading: string
-  title: string
+  labels: string[]
   isError: (task: Task) => boolean
   error: string
+  descriptions: string[]
   placeholders: string[]
-  description: string
   buttonText: string
   status: string
   texts: string[]
@@ -41,12 +41,10 @@ export default fics<Data, Props>({
   name: 'task-details',
   children: [Loading(), Icon(), Input(), Textarea, Button()],
   data: () => ({
-    title: '',
+    labels: [],
+    descriptions: [],
     isError: (task: Task) => task?.title === '',
-    error: '',
     placeholders: [],
-    description: '',
-    buttonText: '',
     texts: [],
     datetimes: {} as Record<Datetime, string>
   }),
@@ -66,19 +64,21 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ data: { title, error, placeholders }, props: { editTask } }) => ({
+      values: ({ data: { labels, error, descriptions, placeholders }, props: { editTask } }) => ({
         id: 'title',
-        label: title,
-        error: error,
+        label: labels[0],
+        error,
+        description: descriptions[0],
         placeholder: placeholders[0],
         input: (title: string) => editTask({ title })
       })
     },
     {
       descendant: ({ children: { textarea } }) => textarea,
-      values: ({ data: { description, placeholders }, props: { editTask } }) => ({
+      values: ({ data: { labels, descriptions, placeholders }, props: { editTask } }) => ({
         id: 'description',
-        label: description,
+        label: labels[1],
+        description: descriptions[1],
         placeholder: placeholders[1],
         input: (description: string) => editTask({ description })
       })
@@ -158,7 +158,7 @@ export default fics<Data, Props>({
         marginBottom: cssVar('md'),
         border: 0,
         label: { paddingBottom: cssVar('xs') },
-        div: { display: 'flex', span: { ...flexCenter('y'), paddingLeft: 0, lineHeight: 1 } }
+        div: { ...flexCenter('y'), span: { paddingInline: cssVar('outline') } }
       },
       p: {
         marginBottom: cssVar('xs'),
