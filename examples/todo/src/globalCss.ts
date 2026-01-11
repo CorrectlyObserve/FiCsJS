@@ -4,19 +4,7 @@ import { breakpoints, white } from '@/utils/others'
 const outline = `${cssVar('outline')} solid ${white()}` as const
 
 export default {
-  '*': {
-    padding: 0,
-    margin: 0,
-    boxSizing: 'border-box',
-    '&[tabindex], &:is(a)': {
-      transition: cssVar('transition'),
-      borderRadius: cssVar('xs'),
-      '&:hover': { background: white(0.1), cursor: 'pointer' },
-      '&:focus, &:focus-visible': { outline },
-      '&:active': { scale: 0.98 }
-    },
-    '&:is(a)': { '&:focus, &:focus-visible': { color: 'inherit', outlineOffset: 0 } }
-  },
+  '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
   'h2, p, button, label, legend, input, textarea, span': { color: white() },
   'h2, p, button': { textAlign: 'center' },
   'p, button, label, legend, input, textarea': { fontSize: cssVar('md') },
@@ -45,6 +33,13 @@ export default {
     padding: `${calc(`${cssVar('xs')} * 1.5`)} ${cssVar('md')}`,
     lineHeight: 1.5,
     border: `1px solid ${white()}`
+  },
+  a: {
+    transition: cssVar('transition'),
+    borderRadius: cssVar('xs'),
+    '&:hover': { background: white(0.1), cursor: 'pointer' },
+    '&:focus, &:focus-visible': { color: 'inherit', outline, outlineOffset: 0 },
+    '&:active': { scale: 0.98 }
   },
   'span[role="button"]': { padding: cssVar('md') }
 }
