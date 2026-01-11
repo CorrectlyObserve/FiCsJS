@@ -2,7 +2,8 @@
   "header": { "label": "Language", "optionLabel": "Language options" },
   "tasks": {
     "heading": "Task list",
-    "placeholder": "Add new task",
+    "description": "You can add a new task by pressing the Enter key.",
+    "placeholder": "Add a new task",
     "show": "Show completed tasks",
     "hide": "Hide completed tasks",
     "completed": "(Completed)",
