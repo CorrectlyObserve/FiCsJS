@@ -17,7 +17,7 @@ export default () =>
         button: {
           position: 'relative',
           background: cssVar('gradation'),
-          padding: cssVar('md'),
+          paddingInline: cssVar('md'),
           overflow: 'hidden',
           zIndex: 0,
           '&::before': {
