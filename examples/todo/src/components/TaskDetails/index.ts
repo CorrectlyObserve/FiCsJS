@@ -16,15 +16,15 @@ type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
   heading: string
+  status: string
+  texts: string[]
   labels: string[]
   isError: (task: Task) => boolean
   error: string
   descriptions: string[]
   placeholders: string[]
-  buttonText: string
-  status: string
-  texts: string[]
   datetimes: Record<Datetime, string>
+  buttonText: string
   confirmation: string
 }
 
@@ -58,7 +58,7 @@ export default fics<Data, Props>({
       values: ({ props: { draft, editTask } }) => ({
         click: () => {
           if ('completedAt' in draft)
-            editTask({ completedAt: draft.completedAt ? undefined : getTimestamp() })
+            editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
         }
       })
     },
@@ -82,24 +82,6 @@ export default fics<Data, Props>({
         placeholder: placeholders[1],
         input: (description: string) => editTask({ description })
       })
-    },
-    {
-      descendant: ({ children: { button } }) => button,
-      values: ({ data: { buttonText }, props: { draft, editTask, updateTasks } }) => ({
-        isDisabled: draft?.title === '',
-        buttonText,
-        click: async () => {
-          const { id, title, description, completedAt }: Task = draft
-          await updateTask({ id, title, description, completedAt })
-
-          const task: Task | undefined = getTask(await getAllTasks(), id)
-          if (!task) return
-
-          editTask(task)
-          updateTasks(await getAllTasks())
-          goto('/')
-        }
-      })
     }
   ],
   className: 'task-details',
@@ -109,11 +91,12 @@ export default fics<Data, Props>({
       heading,
       status,
       texts: [complete, revert, _delete, back, close],
-      datetimes
+      datetimes,
+      buttonText,
+      confirmation
     },
-    props: { draft },
+    props: { draft, editTask, updateTasks },
     template,
-    attributes: { boolean },
     isDeferred
   }) => {
     if (!isDeferred) return template`${loading}`
@@ -131,7 +114,13 @@ export default fics<Data, Props>({
               areaLabel: label,
               isPressed: !!draft?.completedAt
             })}
-            <button type="button" aria-pressed="${boolean(!!draft?.completedAt)}">${label}</button>
+            ${button.setIndividualProps('status', {
+              type: 'label',
+              buttonText: label,
+              isPressed: !!draft?.completedAt,
+              click: () =>
+                editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
+            })}
           </div>
         </fieldset>
         <fieldset>${input}</fieldset>
@@ -139,10 +128,38 @@ export default fics<Data, Props>({
         ${Object.entries(datetimes).map(
           ([key, value]) => template`<p>${value}${convertTimestamp(draft?.[key as Datetime])}</p>`
         )}
-        ${button}
         <div>
+          ${button.setIndividualProps('save', {
+            isDisabled: draft?.title === '',
+            type: 'gradation',
+            buttonText,
+            click: async () => {
+              const { id, title, description, completedAt }: Task = draft
+              await updateTask({ id, title, description, completedAt })
+
+              const task: Task | undefined = getTask(await getAllTasks(), id)
+              if (!task) return
+
+              editTask(task)
+              updateTasks(await getAllTasks())
+              goto('/')
+            }
+          })}
           ${[_delete, !Number.isFinite(parseInt(dynamicPaths().taskId)) ? close : back].map(
-            text => template`<button type="button">${text}</button>`
+            (buttonText, index) =>
+              template`${button.setIndividualProps(index, {
+                type: index === 0 ? 'delete' : 'normal',
+                buttonText,
+                click: async () => {
+                  if (index === 0) {
+                    if (window.confirm(confirmation)) {
+                      await deleteTask(draft?.id)
+                      updateTasks(await getAllTasks())
+                      goto('/')
+                    }
+                  } else goto('/')
+                }
+              })}`
           )}
         </div>
       </div>
@@ -168,52 +185,7 @@ export default fics<Data, Props>({
         textAlign: 'left',
         '&:last-of-type': { marginBottom: cssVar('xl') }
       },
-      '> div': {
-        display: 'flex',
-        flexDirection: 'column',
-        button: {
-          paddingInline: cssVar('md'),
-          marginInline: 'auto',
-          '&:first-of-type': {
-            color: cssVar('red'),
-            marginBlock: calc(`${cssVar('outline')} * 2`)
-          }
-        }
-      }
-    }
-  },
-  actions: {
-    'fieldset button': {
-      click: [
-        ({
-          props: {
-            draft: { completedAt },
-            editTask
-          }
-        }) => editTask({ completedAt: completedAt ? undefined : getTimestamp() }),
-        { throttle: 500, blur: true }
-      ]
-    },
-    'div.container > div button:first-of-type': {
-      click: [
-        async ({
-          data: { confirmation },
-          props: {
-            draft: { id },
-            updateTasks
-          }
-        }) => {
-          if (window.confirm(confirmation)) {
-            await deleteTask(id)
-            updateTasks(await getAllTasks())
-            goto('/')
-          }
-        },
-        { throttle: 500, blur: true }
-      ]
-    },
-    'div.container > div button:last-of-type': {
-      click: [() => goto('/'), { throttle: 500, blur: true }]
+      '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 2`) }
     }
   },
   options: { lazyLoad: true }
