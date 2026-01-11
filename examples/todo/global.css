@@ -9,7 +9,6 @@
   --black: oklch(0.2768 0 0);
   --red: oklch(0.512 0.1788 24.39);
   --gradation: linear-gradient(30deg, var(--red) 30%, oklch(0.7596 0.094 354.9));
-  --pink: oklch(0.5923 0.1495 18.78);
   --transition: 0.2s ease-out;
   --header-height: calc(var(--md) * 1.2 + var(--md) * 2 + var(--outline) * 2 + var(--md) * 1.5);
 }
