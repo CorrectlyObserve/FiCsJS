@@ -4,6 +4,7 @@ import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import Loading from '@/components/materials/Loading'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
+import Button from '@/components/materials/Button'
 import Link from '@/components/Tasks/Link'
 import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
 import type { Lang, Task } from '@/types'
@@ -36,37 +37,48 @@ const { sm } = breakpoints
 
 export default fics<Data, Props>({
   name: 'tasks',
-  children: [Loading(), Icon(), Input(), Link],
+  children: [Loading(), Icon(), Input(), Button(), Link],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
     texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
   }),
-  props: {
-    descendant: ({ children: { input } }) => input,
-    values: ({ data, props: { setTasks } }) => {
-      const { value, description, placeholder } = data
+  props: [
+    {
+      descendant: ({ children: { input } }) => input,
+      values: ({ data, props: { setTasks } }) => {
+        const { value, description, placeholder } = data
 
-      return {
-        id: 'new-task',
-        label: placeholder,
-        isAriaLabel: true,
-        value,
-        description,
-        placeholder,
-        input: (value: string) => (data.value = value),
-        enterKey: async () => {
-          if (value !== '') {
-            setTasks(await addTask(value))
-            data.value = ''
+        return {
+          id: 'new-task',
+          label: placeholder,
+          isAriaLabel: true,
+          value,
+          description,
+          placeholder,
+          input: (value: string) => (data.value = value),
+          enterKey: async () => {
+            if (value !== '') {
+              setTasks(await addTask(value))
+              data.value = ''
+            }
           }
         }
       }
+    },
+    {
+      descendant: ({ children: { button } }) => button,
+      values: ({ data }) => ({
+        type: 'label',
+        isPressed: data.isShown,
+        buttonText: data.isShown ? data.hide : data.show,
+        click: () => (data.isShown = !data.isShown)
+      })
     }
-  },
+  ],
   className: 'tasks',
   html: ({
-    children: { loading, icon, input, link },
+    children: { loading, icon, input, button, link },
     data,
     props: { tasks, taskId, setTasks },
     template,
@@ -110,9 +122,10 @@ export default fics<Data, Props>({
           ${icon.setIndividualProps('check', {
             svg: isShown ? SquareCheck : Square,
             areaLabel: isShown ? hide : show,
+            isPressed: isShown,
             click: () => (data.isShown = !data.isShown)
           })}
-          <span role="button" tabindex="0">${isShown ? hide : show}</span>
+          ${button}
         </div>
       </div>
       ${
@@ -160,7 +173,7 @@ export default fics<Data, Props>({
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
           '&:last-child': { marginBottom: 0 },
-          '.input': { marginRight: calc(`${cssVar('outline')} * 2`) },
+          '.input': { marginRight: cssVar('outline') },
           span: { paddingInline: cssVar('outline') }
         },
         [`@media (max-width: ${sm})`]: {
@@ -181,11 +194,6 @@ export default fics<Data, Props>({
           width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`)
         }
       }
-    }
-  },
-  actions: {
-    'div.menu span': {
-      click: [({ data }) => (data.isShown = !data.isShown), { blur: true }]
     }
   },
   options: { lazyLoad: true }
