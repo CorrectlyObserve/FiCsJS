@@ -12,6 +12,7 @@ import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucid
 
 interface Data {
   heading: string
+  description: string
   value: string
   placeholder: string
   isShown: boolean
@@ -44,10 +45,14 @@ export default fics<Data, Props>({
   props: {
     descendant: ({ children: { input } }) => input,
     values: ({ data, props: { setTasks } }) => {
-      const { value, placeholder } = data
+      const { value, description, placeholder } = data
 
       return {
+        id: 'new-task',
+        label: placeholder,
+        isAriaLabel: true,
         value,
+        description,
         placeholder,
         input: (value: string) => (data.value = value),
         enterKey: async () => {
@@ -155,7 +160,8 @@ export default fics<Data, Props>({
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
           '&:last-child': { marginBottom: 0 },
-          span: { paddingLeft: 0, lineHeight: 1 }
+          '.input': { marginRight: calc(`${cssVar('outline')} * 2`) },
+          span: { paddingInline: cssVar('outline') }
         },
         [`@media (max-width: ${sm})`]: {
           marginBottom: cssVar('md'),
