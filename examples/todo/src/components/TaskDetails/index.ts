@@ -9,7 +9,7 @@ import Button from '@/components/materials/Button'
 import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
 import type { Lang, Task } from '@/types'
 import convertTimestamp from '@/utils/convertTimestamp'
-import { breakpoints, getTimestamp } from '@/utils/others'
+import { breakpoints, getTimestamp, white } from '@/utils/others'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
@@ -113,6 +113,7 @@ export default fics<Data, Props>({
     },
     props: { draft },
     template,
+    attributes: { boolean },
     isDeferred
   }) => {
     if (!isDeferred) return template`${loading}`
@@ -123,13 +124,14 @@ export default fics<Data, Props>({
       <h2>${heading}</h2>
       <div class="container">
         <fieldset>
-          <label>${status}</label>
+          <legend>${status}</legend>
           <div>
             ${icon.setIndividualProps('icon', {
               svg: draft?.completedAt ? CircleCheckBig : Circle,
-              areaLabel: label
+              areaLabel: label,
+              isPressed: !!draft?.completedAt
             })}
-            <span role="button" tabindex="0">${label}</span>
+            <button type="button" aria-pressed="${boolean(!!draft?.completedAt)}">${label}</button>
           </div>
         </fieldset>
         <fieldset>${input}</fieldset>
@@ -140,7 +142,7 @@ export default fics<Data, Props>({
         ${button}
         <div>
           ${[_delete, !Number.isFinite(parseInt(dynamicPaths().taskId)) ? close : back].map(
-            text => template`<span role="button" tabindex="0">${text}</span>`
+            text => template`<button type="button">${text}</button>`
           )}
         </div>
       </div>
@@ -157,12 +159,9 @@ export default fics<Data, Props>({
         flexDirection: 'column',
         marginBottom: cssVar('md'),
         border: 0,
-        label: {
-          transition: cssVar('transition'),
-          paddingBottom: cssVar('xs'),
-          '&:hover': { textDecoration: 'underline' }
-        },
-        div: { ...flexCenter('y'), span: { paddingInline: cssVar('outline') } }
+        legend: { paddingBottom: cssVar('xs') },
+        button: { paddingInline: cssVar('md'), '&:hover': { background: white(0.1) } },
+        div: { ...flexCenter('y'), button: { paddingInline: cssVar('outline') } }
       },
       p: {
         marginBottom: cssVar('xs'),
@@ -172,18 +171,19 @@ export default fics<Data, Props>({
       '> div': {
         display: 'flex',
         flexDirection: 'column',
-        marginTop: cssVar('md'),
-        span: {
+        button: {
+          paddingInline: cssVar('md'),
           marginInline: 'auto',
-          textDecoration: 'underline',
-          '&:first-of-type': { color: cssVar('red'), marginBottom: cssVar('outline') },
-          [`@media (max-width: ${sm})`]: { paddingBlock: cssVar('md') }
+          '&:first-of-type': {
+            color: cssVar('red'),
+            marginBlock: calc(`${cssVar('outline')} * 2`)
+          }
         }
       }
     }
   },
   actions: {
-    'fieldset label, fieldset span': {
+    'fieldset button': {
       click: [
         ({
           props: {
@@ -194,7 +194,7 @@ export default fics<Data, Props>({
         { throttle: 500, blur: true }
       ]
     },
-    'div.container > div span:first-of-type': {
+    'div.container > div button:first-of-type': {
       click: [
         async ({
           data: { confirmation },
@@ -212,7 +212,7 @@ export default fics<Data, Props>({
         { throttle: 500, blur: true }
       ]
     },
-    'div.container > div span:last-of-type': {
+    'div.container > div button:last-of-type': {
       click: [() => goto('/'), { throttle: 500, blur: true }]
     }
   },
