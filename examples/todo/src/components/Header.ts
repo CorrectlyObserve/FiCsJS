@@ -103,7 +103,6 @@ export default fics<Data, {}>({
           button: {
             width: calc(`${cssVar('md')} * 3`),
             background: cssVar('black'),
-            paddingBlock: cssVar('md'),
             '&:hover': { background: white(0.1) },
             '&.selected': {
               color: cssVar('red'),
