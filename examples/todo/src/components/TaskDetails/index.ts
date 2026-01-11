@@ -157,7 +157,11 @@ export default fics<Data, Props>({
         flexDirection: 'column',
         marginBottom: cssVar('md'),
         border: 0,
-        label: { paddingBottom: cssVar('xs') },
+        label: {
+          transition: cssVar('transition'),
+          paddingBottom: cssVar('xs'),
+          '&:hover': { textDecoration: 'underline' }
+        },
         div: { ...flexCenter('y'), span: { paddingInline: cssVar('outline') } }
       },
       p: {
@@ -172,7 +176,7 @@ export default fics<Data, Props>({
         span: {
           marginInline: 'auto',
           textDecoration: 'underline',
-          '&:first-of-type': { color: cssVar('red'), '&:focus': { opacity: 0.2 } },
+          '&:first-of-type': { color: cssVar('red'), marginBottom: cssVar('outline') },
           [`@media (max-width: ${sm})`]: { paddingBlock: cssVar('md') }
         }
       }
