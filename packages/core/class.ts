@@ -1191,9 +1191,14 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!blur) return
 
         const { currentTarget }: { currentTarget: EventTarget | null } = event
-        if (!(currentTarget instanceof HTMLElement) || document.activeElement !== currentTarget)
-          return
 
+        // Only blur if currentTarget is an HTMLElement
+        if (!(currentTarget instanceof HTMLElement)) return
+
+        // Only blur if currentTarget is the currently focused element
+        if (document.activeElement !== currentTarget) return
+
+        // Only blur for mouse events (detail > 0), not keyboard events (detail === 0)
         if ((event as MouseEvent).detail > 0) currentTarget.blur()
       }
 
