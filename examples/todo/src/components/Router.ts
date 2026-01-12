@@ -7,16 +7,9 @@ import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
-interface Data {
-  lang: Lang
-  tasks: TaskType[]
-  taskId: number
-  draft: TaskType | undefined
-}
-
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<Data>({
+export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft?: TaskType }>({
   children: [Tasks, TaskDetail, NotFound],
   data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
   props: [
