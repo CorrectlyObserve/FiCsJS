@@ -201,7 +201,6 @@ export default fics({
     throttle: 200,
     method: async ({ data, crud }) =>
       await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
-        data.page = data.page
         data.photos = [...data.photos, ...photos]
         goto(`/scroll?page=${data.page}`)
       })
