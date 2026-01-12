@@ -1,4 +1,5 @@
 :root {
+  --outline: 0.125rem;
   --xs: 0.5rem;
   --sm: 0.875rem;
   --md: 1rem;
@@ -7,9 +8,9 @@
   --2xl: 4rem;
   --black: oklch(0.2768 0 0);
   --red: oklch(0.512 0.1788 24.39);
-  --gradation: linear-gradient(30deg, var(--red) 20%, oklch(0.7596 0.094 354.9));
-  --error: oklch(0.5423 0.1705 1.21);
+  --gradation: linear-gradient(30deg, var(--red) 30%, oklch(0.7596 0.094 354.9));
   --transition: 0.2s ease-out;
+  --header-height: calc(var(--md) * 1.2 + var(--md) * 2 + var(--outline) * 2 + var(--md) * 1.5);
 }
 
 body {
@@ -18,8 +19,6 @@ body {
 
   main {
     --padding: var(--xl);
-    --header-padding: var(--md);
-    --header-height: var(--xl) * 1.5 + var(--header-padding) * 2;
     --footer-height: var(--sm) * 1.2 + var(--md);
 
     min-height: calc(100vh - (var(--header-height) + var(--footer-height) + var(--padding) * 2));
@@ -29,7 +28,6 @@ body {
   @media (max-width: 30rem) {
     main {
       --padding: var(--md);
-      --header-padding: var(--xs);
     }
   }
 }

@@ -1,30 +1,28 @@
 import type {
   Actions,
   Attrs,
-  Children,
   ClassName,
   CssContent,
-  DataPropsMethods,
+  DataProps,
   Descendant,
+  HtmlSyntaxes,
   Hooks,
   OptionParams,
   Props,
   Sanitized,
-  SingleOrArray,
-  Syntaxes
+  SingleOrArray
 } from '../core/types'
 
 export type Content<D extends object, P extends object> = (
-  syntaxes: Omit<DataPropsMethods<D, P>, 'props' | 'getData'> &
-    Syntaxes<D, P> & { children: Children }
+  syntaxes: Omit<DataProps<D, P>, 'props'> & HtmlSyntaxes<D, P>
 ) => Descendant | Sanitized<D, P>
 
 export interface FiCsLink<P extends object> {
   children?: Descendant[]
-  href: string
   props?: SingleOrArray<Props<{}, P>>
   className?: ClassName<{}, P>
   attributes?: Attrs<{}, P>
+  href: (({ props }: { props: P }) => string) | string
   content: Content<{}, P>
   css?: SingleOrArray<CssContent<{}, P> | string>
   actions?: Actions<{}, P>

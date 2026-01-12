@@ -1,26 +1,30 @@
 import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar } from 'ficsjs/style'
-import type { Task } from '@/types'
-import { measureOffsetWidth } from '@/utils/others'
+import { measureOffsetWidth, white } from '@/utils/others'
 
-export default ({ id, title, completedAt }: Partial<Task>) =>
-  ficsLink({
-    href: `/${measureOffsetWidth() ? '?taskId=' : ''}${id}`,
-    content: ({ template }) => template`<span class="${completedAt ? 'done' : ''}">${title}</span>`,
-    css: {
-      ':host': {
-        width: calc(`100% - ${cssVar('xl')} * 1.5`),
-        a: {
-          display: 'flex',
-          paddingBlock: cssVar('md'),
-          lineHeight: 1,
-          span: {
-            lineHeight: 'inherit',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-          }
-        }
+export default ficsLink<{ id: number; title: string; completedAt?: number; status: string }>({
+  attributes: ({ props: { title, status } }) => ({ 'aria-label': `${title} ${status}` }),
+  href: ({ props: { id } }) => `/${measureOffsetWidth() ? '?taskId=' : ''}${id}`,
+  content: ({ props: { title, completedAt }, template }) =>
+    template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`,
+  css: {
+    ':host': {
+      width: calc(`100% - ${cssVar('xl')} * 1.5`),
+      a: {
+        display: 'flex',
+        color: white(),
+        padding: `${cssVar('md')} ${calc(`${cssVar('xs')} / 2`)}`,
+        lineHeight: 1,
+        span: {
+          width: '100%',
+          lineHeight: 'inherit',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          '&.done': { textDecoration: 'line-through' }
+        },
+        '&:focus, &:focus-visible': { span: { color: 'inherit' } }
       }
     }
-  })
+  }
+})

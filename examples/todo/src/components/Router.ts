@@ -7,16 +7,9 @@ import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
-interface Data {
-  lang: Lang
-  tasks: TaskType[]
-  taskId: number
-  draft: TaskType | undefined
-}
-
 const xs = calc(`${cssVar('xs')} * -1`)
 
-export default ficsRouter<Data>({
+export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft?: TaskType }>({
   children: [Tasks, TaskDetail, NotFound],
   data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
   props: [
@@ -24,51 +17,29 @@ export default ficsRouter<Data>({
       descendant: ({ children: { tasks, taskDetails, notFound } }) => [
         tasks,
         taskDetails,
-        notFound
+        notFound,
+        ...[tasks, taskDetails, notFound].map(({ getChildren }) => getChildren().loading)
       ],
-      values: () => ({ lang: ({ getData }) => getData('lang') })
+      values: ({ data: { lang } }) => ({ lang })
     },
     {
       descendant: ({ children: { tasks } }) => tasks,
-      values: ({ setData }) => ({
-        tasks: ({ getData }) => getData('tasks'),
-        taskId: ({ getData }) => getData('taskId'),
-        setTasks: (tasks: TaskType[]) => setData('tasks', tasks)
+      values: ({ data }) => ({
+        tasks: data.tasks,
+        taskId: data.taskId,
+        setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
     },
     {
       descendant: ({ children: { taskDetails } }) => taskDetails,
-      values: ({ setData }) => ({
-        draft: ({ getData }) => getData('draft'),
-        editTask:
-          ({ getData }) =>
-          (newValue: Partial<TaskType>) => {
-            const draft: TaskType | undefined = getData('draft')
-            if (!draft) return
-
-            setData('draft', { ...draft, ...newValue })
-          },
-        getTask:
-          ({ getData }) =>
-          () =>
-            getData('draft'),
-        updateTasks: (tasks: TaskType[]) => setData('tasks', tasks)
+      values: ({ data }) => ({
+        draft: data.draft,
+        editTask: (value: Partial<TaskType>) => {
+          if (!data.draft) return
+          data.draft = { ...data.draft, ...value }
+        },
+        updateTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
-    },
-    {
-      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().input,
-      values: () => ({
-        isError: ({ getData }) => getData('draft')?.title === '',
-        value: ({ getData }) => getData('draft')?.title
-      })
-    },
-    {
-      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().textarea,
-      values: () => ({ value: ({ getData }) => getData('draft')?.description })
-    },
-    {
-      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().button,
-      values: () => ({ isDisabled: ({ getData }) => getData('draft')?.title === '' })
     }
   ],
   pages: [
@@ -98,7 +69,7 @@ export default ficsRouter<Data>({
       width: '100%',
       minHeight: cssVar('min-height'),
       [`@container (width >= ${breakpoints.lg})`]: {
-        '.tasks + .task-detail': {
+        '.tasks + .task-details': {
           paddingLeft: cssVar('xl'),
           boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
         }
@@ -106,45 +77,42 @@ export default ficsRouter<Data>({
     }
   },
   hooks: {
-    mounted: async ({ setData }) => setData('tasks', await getAllTasks()),
+    mounted: async ({ data }) => (data.tasks = await getAllTasks()),
     updated: {
-      pathname: async ({ data: { pathname }, setData }) => {
-        pathname = pathname.replace(/^\//, '')
-        if (pathname === '') return
+      pathname: async ({ data }) => {
+        const _pathname = data.pathname.replace(/^\//, '')
+        if (_pathname === '') return
 
-        const id = parseInt(pathname)
-        if (!Number.isFinite(id)) return setData('pathname', '/404')
+        const id = parseInt(_pathname)
+        if (!Number.isFinite(id)) return (data.pathname = '/404')
 
         const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
 
-        setData('draft', task)
+        data.draft = task
       },
-      queries: async ({
-        data: {
-          queries: { taskId }
-        },
-        setData
-      }) => {
+      queries: async ({ data }) => {
+        const { taskId } = data.queries
         if (!taskId) return
 
         const id = parseInt(taskId)
         if (!Number.isFinite(id)) return goto('/404', { isWithoutHistory: true })
 
-        setData('taskId', id)
+        data.queries = { ...data.queries, taskId: id.toString() }
 
         const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
 
-        setData('draft', task)
+        data.draft = task
       },
-      tasks: ({ data: { tasks, draft }, setData }) => {
+      tasks: ({ data }) => {
+        const { tasks, draft } = data
         if (!draft) return
 
-        const { id, updatedAt } = draft,
-          updatedDraft = tasks.find(task => task.id === id)
+        const { id: taskId, updatedAt } = draft,
+          updatedDraft = tasks.find(({ id }) => id === taskId)
 
-        if (updatedDraft && updatedDraft.updatedAt !== updatedAt) setData('draft', updatedDraft)
+        if (updatedDraft && updatedDraft.updatedAt !== updatedAt) data.draft = updatedDraft
       }
     }
   }

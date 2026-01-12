@@ -1,9 +1,10 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import LoadingIcon from '@/components/LoadingIcon'
+import Loading from '@/components/materials/Loading'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
+import Button from '@/components/materials/Button'
 import Link from '@/components/Tasks/Link'
 import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
 import type { Lang, Task } from '@/types'
@@ -12,12 +13,15 @@ import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucid
 
 interface Data {
   heading: string
+  description: string
   value: string
   placeholder: string
   isShown: boolean
   show: string
   hide: string
   texts: string[]
+  completed: string
+  uncompleted: string
   confirmation: string
   unapplicable: string
 }
@@ -33,7 +37,7 @@ const { sm } = breakpoints
 
 export default fics<Data, Props>({
   name: 'tasks',
-  children: [LoadingIcon, Icon(), Input()],
+  children: [Loading(), Icon(), Input(), Button(), Link],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
@@ -41,42 +45,62 @@ export default fics<Data, Props>({
   }),
   props: [
     {
-      descendant: ({ children: { loadingIcon } }) => loadingIcon,
-      values: ({ props: { lang } }) => ({ lang })
-    },
-    {
       descendant: ({ children: { input } }) => input,
-      values: ({ props: { setTasks }, setData }) => ({
-        value: ({ getData }) => getData('value'),
-        placeholder: ({ getData }) => getData('placeholder'),
-        input: (value: string) => setData('value', value),
-        enterKey:
-          ({ getData }) =>
-          async () => {
-            const value = getData('value')
+      values: ({ data, props: { setTasks } }) => {
+        const { value, description, placeholder } = data
 
+        return {
+          id: 'new-task',
+          label: placeholder,
+          isAriaLabel: true,
+          value,
+          description,
+          placeholder,
+          input: (value: string) => (data.value = value),
+          enterKey: async () => {
             if (value !== '') {
               setTasks(await addTask(value))
-              setData('value', '')
+              data.value = ''
             }
           }
+        }
+      }
+    },
+    {
+      descendant: ({ children: { button } }) => button,
+      values: ({ data }) => ({
+        type: 'label',
+        isPressed: data.isShown,
+        buttonText: data.isShown ? data.hide : data.show,
+        click: () => (data.isShown = !data.isShown)
       })
     }
   ],
   className: 'tasks',
   html: ({
-    children: { loadingIcon, icon, input },
-    data: { heading, value, placeholder, isShown, show, hide, texts, confirmation, unapplicable },
+    children: { loading, icon, input, button, link },
+    data,
     props: { tasks, taskId, setTasks },
     template,
-    setData,
     isDeferred
   }) => {
-    if (!isDeferred) return template`${loadingIcon}`
+    if (!isDeferred) return template`${loading}`
 
-    if (!isShown) tasks = tasks.filter(task => !task.completedAt)
+    const {
+      heading,
+      value,
+      placeholder,
+      isShown,
+      show,
+      hide,
+      texts: [complete, revert, _delete],
+      completed,
+      uncompleted,
+      confirmation,
+      unapplicable
+    } = data
 
-    const [complete, revert, _delete] = texts
+    if (!isShown) tasks = tasks.filter(({ completedAt }) => !completedAt)
 
     return template`
       <h2>${heading}</h2>
@@ -89,7 +113,7 @@ export default fics<Data, Props>({
             click: async () => {
               if (value !== '') {
                 setTasks(await addTask(value))
-                setData('value', '')
+                data.value = ''
               }
             }
           })}
@@ -98,9 +122,10 @@ export default fics<Data, Props>({
           ${icon.setIndividualProps('check', {
             svg: isShown ? SquareCheck : Square,
             areaLabel: isShown ? hide : show,
-            click: () => setData('isShown', !isShown)
+            isPressed: isShown,
+            click: () => (data.isShown = !data.isShown)
           })}
-          <span role="button" tabindex="0">${isShown ? hide : show}</span>
+          ${button}
         </div>
       </div>
       ${
@@ -115,7 +140,12 @@ export default fics<Data, Props>({
                       click: async () =>
                         setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
-                    ${Link({ id, title, completedAt })}
+                    ${link.setIndividualProps(id, {
+                      id,
+                      title,
+                      completedAt,
+                      status: completedAt ? completed : uncompleted
+                    })}
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
@@ -143,7 +173,8 @@ export default fics<Data, Props>({
           ...flexCenter('xy'),
           marginBottom: cssVar('md'),
           '&:last-child': { marginBottom: 0 },
-          span: { paddingLeft: 0, lineHeight: 1 }
+          '.input': { marginRight: cssVar('outline') },
+          span: { paddingInline: cssVar('outline') }
         },
         [`@media (max-width: ${sm})`]: {
           marginBottom: cssVar('md'),
@@ -163,11 +194,6 @@ export default fics<Data, Props>({
           width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`)
         }
       }
-    }
-  },
-  actions: {
-    'div.menu span': {
-      click: [({ data: { isShown }, setData }) => setData('isShown', !isShown), { blur: true }]
     }
   },
   options: { lazyLoad: true }

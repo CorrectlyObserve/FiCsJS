@@ -13,8 +13,10 @@ interface Data {
 interface Props<T> {
   array: T[]
   slot: (item: T, index: number) => ReturnType<typeof fics>
+  isSelected: (item: T) => boolean
   getNewItem: (item: T) => T | Promise<T>
   updateArray: (newArray: T[]) => void
+  selectItem: (item: T) => void
 }
 
 const draggable = '[draggable="true"]' as const
@@ -43,12 +45,18 @@ export default <T>() =>
         return draggableElement as HTMLElement
       }
     }),
-    html: ({ data: { droppedZone, isHighlighted }, props: { array, slot }, template }) => {
-      const base =
-          'dragged-over rounded-sm border border-dashed transition duration-200 ease-out' as const,
+    html: ({
+      data: { droppedZone, isHighlighted },
+      props: { array, slot, isSelected },
+      template,
+      attributes: { boolean }
+    }) => {
+      const _isHighlighted = (zoneIndex: number) => isHighlighted(droppedZone, zoneIndex),
+        base =
+          'dragged-over rounded-lg border border-dashed transition duration-200 ease-out' as const,
         dropZone = (zoneIndex: number, classNames: string) => template`
           <div
-            class="drop-zone ${isHighlighted(droppedZone, zoneIndex) ? `${base} ${classNames}` : 'h-4'}"
+            class="drop-zone ${_isHighlighted(zoneIndex) ? `${base} ${classNames}` : 'h-4'}"
             key="${zoneIndex}"
           ></div>
         `
@@ -57,14 +65,17 @@ export default <T>() =>
         ${dropZone(-1, 'my-4')}
         ${array.map((item, index) => {
           const isLast = index === array.length - 1,
-            classNames = isLast
-              ? isHighlighted(droppedZone, index)
-                ? 'mt-4 mb-height'
-                : 'mt-4'
-              : 'my-4'
+            classNames = isLast ? (_isHighlighted(index) ? 'mt-4 mb-height' : 'mt-4') : 'my-4'
 
           return template`
-            <div key="${index}-slot" draggable="true" tabindex="0">${slot(item, index)}</div>
+            <div
+              class="clickable rounded-lg py-1 pr-3"
+              key="${index}-slot"
+              draggable="true"
+              tabindex="0"
+              role="button"
+              aria-pressed="${boolean(isSelected(item))}"
+            >${slot(item, index)}</div>
             ${dropZone(index, classNames)}
           `
         })}
@@ -72,6 +83,7 @@ export default <T>() =>
     },
     css: {
       div: ({ data: { height } }) => ({
+        '&[tabindex="0"]:hover': { background: white(0.1) },
         '&.dragged-over': {
           height: `${height}px`,
           background: white(0.05),
@@ -79,6 +91,15 @@ export default <T>() =>
         },
         '&.mb-height': { marginBottom: `${height}px` }
       })
+    },
+    hooks: {
+      mounted: ({ throttle }) =>
+        window.addEventListener(
+          'pointermove',
+          throttle(() => {
+            document.body.style.pointerEvents = ''
+          }, 1000)
+        )
     },
     actions: {
       'div.drop-zone': {
@@ -89,14 +110,12 @@ export default <T>() =>
           if (!drag.dataTransfer) return
           drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
         },
-        dragleave: ({ data: { isHighlighted }, setData, getData, attributes: { key } }) => {
-          if (isHighlighted(getData('droppedZone'), key)) setData('droppedZone', null)
+        dragleave: ({ data, attributes: { key } }) => {
+          if (data.isHighlighted(data.droppedZone, key)) data.droppedZone = null
         },
         drop: async ({
-          data: { isHighlighted },
+          data,
           props: { array, getNewItem, updateArray },
-          setData,
-          getData,
           event,
           attributes: { key }
         }) => {
@@ -104,9 +123,9 @@ export default <T>() =>
           drag.preventDefault()
           if (!drag.dataTransfer) return
 
-          if (!isHighlighted(getData('droppedZone'), key)) return
+          if (!data.isHighlighted(data.droppedZone, key)) return
 
-          setData('droppedZone', null)
+          data.droppedZone = null
 
           const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
             item: T = array[fromIndex]
@@ -132,10 +151,12 @@ export default <T>() =>
 
           const { activeElement } = document
           if (activeElement instanceof HTMLElement) activeElement.blur()
+
+          document.body.style.pointerEvents = 'none'
         }
       },
       [`div${draggable}`]: {
-        dragstart: ({ data: { getDraggableElement }, setData, event, attributes: { key } }) => {
+        dragstart: ({ data, event, attributes: { key } }) => {
           const drag = event as DragEvent
           if (!drag.dataTransfer) return
 
@@ -144,27 +165,26 @@ export default <T>() =>
           drag.dataTransfer.setData('text/plain', index.toString())
           drag.dataTransfer.effectAllowed = 'copyMove'
 
-          setData('draggingIndex', index)
+          data.draggingIndex = index
 
-          const { offsetHeight } = getDraggableElement(event.target) || {}
-          setData('height', offsetHeight || 0)
+          const { offsetHeight } = data.getDraggableElement(event.currentTarget) || {}
+          data.height = offsetHeight || 0
         },
         dragover: [
-          ({ data: { getDraggableElement }, setData, getData, event, attributes: { key } }) => {
+          ({ data, event, attributes: { key } }) => {
             const drag = event as DragEvent
             drag.preventDefault()
             if (!drag.dataTransfer) return
 
             drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
 
-            const draggableElement = getDraggableElement(event.target)
+            const draggableElement = data.getDraggableElement(event.currentTarget)
             if (!draggableElement) return
 
             const index = parseInt(key),
               { top, height } = draggableElement.getBoundingClientRect(),
               isAfter = drag.clientY > top + height / 2,
-              draggingIndex = getData('draggingIndex'),
-              droppedZone = getData('droppedZone')
+              { draggingIndex, droppedZone } = data
 
             if (
               !drag.altKey &&
@@ -172,7 +192,7 @@ export default <T>() =>
                 (index === draggingIndex + 1 && !isAfter) ||
                 index === draggingIndex)
             ) {
-              if (droppedZone) setData('droppedZone', null)
+              if (droppedZone) data.droppedZone = null
               return
             }
 
@@ -180,17 +200,24 @@ export default <T>() =>
               targetZone = sibling && sibling.classList.contains('drop-zone') ? sibling : null
 
             if (targetZone && droppedZone !== targetZone)
-              setData('droppedZone', targetZone as HTMLElement)
+              data.droppedZone = targetZone as HTMLElement
           },
           { throttle: 200 }
         ],
-        dragend: ({ setData, getData }) => {
-          setData('draggingIndex', NaN)
-          if (getData('droppedZone')) setData('droppedZone', null)
+        dragend: ({ data }) => {
+          data.draggingIndex = NaN
+          if (data.droppedZone) data.droppedZone = null
         },
         click: [
-          ({ data: { getDraggableElement }, event }) => {
-            const element = getDraggableElement(event.target)
+          ({
+            data: { getDraggableElement },
+            props: { array, selectItem },
+            event,
+            attributes: { key }
+          }) => {
+            selectItem(array[parseInt(key)])
+
+            const element = getDraggableElement(event.currentTarget)
             if (!element) return
 
             element.focus()
@@ -199,19 +226,32 @@ export default <T>() =>
         ],
         keydown: async ({
           data: { getDraggableElement },
-          props: { array, updateArray },
+          props: { array, getNewItem, updateArray, selectItem },
           event,
           attributes: { key }
         }) => {
           const keyEvent = event as KeyboardEvent,
-            isArrowUp = keyEvent.key === 'ArrowUp',
+            fromIndex = parseInt(key),
+            item: T = array[fromIndex]
+
+          if (!item) return
+
+          if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+            keyEvent.preventDefault()
+            selectItem(item)
+
+            const element = getDraggableElement(event.currentTarget)
+            if (!element) return
+
+            element.focus()
+            return
+          }
+
+          const isArrowUp = keyEvent.key === 'ArrowUp',
             isArrowDown = keyEvent.key === 'ArrowDown'
 
           if (!isArrowUp && !isArrowDown) return
           keyEvent.preventDefault()
-
-          const fromIndex = parseInt(key),
-            item: T = array[fromIndex]
 
           if (
             (isArrowUp && fromIndex === 0) ||
@@ -220,15 +260,20 @@ export default <T>() =>
           )
             return
 
-          const newArray: T[] = [...array],
-            newIndex = fromIndex + (isArrowUp ? -1 : 1)
+          const newIndex = fromIndex + (isArrowUp ? -1 : 1)
+          if (newIndex < 0 || newIndex > array.length - 1) return
 
-          newArray.splice(fromIndex, 1)
-          newArray.splice(newIndex, 0, item)
+          const newArray: T[] = [...array]
+
+          if (keyEvent.altKey) newArray.splice(newIndex, 0, await getNewItem(item))
+          else {
+            newArray.splice(fromIndex, 1)
+            newArray.splice(newIndex, 0, item)
+          }
 
           updateArray(newArray)
 
-          const draggableElement = getDraggableElement(event.target)
+          const draggableElement = getDraggableElement(event.currentTarget)
           if (!draggableElement) return
 
           const root = draggableElement.getRootNode()

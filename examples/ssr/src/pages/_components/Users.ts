@@ -12,6 +12,7 @@ export default fics({
   name: 'users',
   children: [Button(), Draggable<User>(), UserContent],
   data: () => ({
+    status: '',
     methods: ['PUT', 'PATCH', 'DELETE'] as Method[],
     users,
     userId: NaN,
@@ -23,92 +24,99 @@ export default fics({
   props: [
     {
       descendant: ({ children: { button } }) => button,
-      values: () => ({ isDisabled: ({ getData }) => isNaN(getData('userId')) })
+      values: ({ data: { userId } }) => ({ isDisabled: isNaN(userId) })
     },
     {
       descendant: ({ children: { draggable } }) => draggable,
-      values: ({ children: { userContent }, crud, setData }) => ({
-        array: ({ getData }) => getData('users'),
+      values: ({ data, children: { userContent }, crud }) => ({
+        array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
-        getNewItem:
-          ({ getData }) =>
-          async (user: User) => {
-            const newUser = await crud<User>(API_PATH, {
-                method: 'POST',
-                body: JSON.stringify(user),
-                headers
-              }),
-              maxId = getData('users').reduce((max, { id }) => (id > max ? id : max), 0)
+        isSelected: (user: User) => data.userId === user.id,
+        getNewItem: async (user: User) => {
+          const newUser = await crud<User>(API_PATH, {
+              method: 'POST',
+              body: JSON.stringify(user),
+              headers
+            }),
+            maxId = data.users.reduce((max, { id }) => (id > max ? id : max), 0)
 
-            return { ...newUser, id: maxId + 1 }
-          },
-        updateArray: (newArray: User[]) => setData('users', newArray)
+          return { ...newUser, id: maxId + 1 }
+        },
+        updateArray: (newArray: User[]) => {
+          if (newArray.length >= data.users.length) {
+            const userIds = new Set(data.users.map(({ id }) => id)),
+              addedUser = newArray.find(({ id }) => !userIds.has(id))
+
+            data.status = addedUser
+              ? `A new user with ID ${addedUser.id} was added.`
+              : 'A user was moved.'
+          }
+
+          data.users = newArray
+        },
+        selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
       })
     },
     {
       descendant: ({ children: { userContent } }) => userContent,
-      values: ({ setData }) => ({
-        userId: ({ getData }) => getData('userId'),
-        click:
-          ({ getData }) =>
-          (userId: number) =>
-            setData('userId', getData('userId') === userId ? NaN : userId)
-      })
+      values: ({ data: { userId } }) => ({ userId })
     }
   ],
   html: ({
     children: { button, draggable },
-    data: { methods, users, userId },
-    setData,
+    data,
     crud,
-    template
-  }) => template`
-    <div class="buttons mb-6 gap-4">
-      ${methods.map((method, index) =>
-        button.setIndividualProps(index, {
-          buttonText: method,
-          click: async () => {
-            const options = { method, ...headers }
+    template,
+    attributes: { statusLiveRegion }
+  }) => {
+    const { status, methods, users, userId } = data
 
-            if (method === 'DELETE') {
-              await crud<User>(`${API_PATH}/${userId}`, options)
-              setData(
-                'users',
-                users.filter(({ id }) => id !== userId)
-              )
-            } else {
-              const name = prompt('Please enter a new user name.')
-              if (name) {
-                await crud<User>(`${API_PATH}/${userId}`, {
-                  ...options,
-                  body: JSON.stringify({ id: userId, name })
-                })
-                setData(
-                  'users',
-                  users.map(user => (user.id === userId ? { ...user, name } : user))
-                )
+    return template`
+      <p class="sr-only" ${statusLiveRegion}>${status}</p>
+      <div class="buttons mb-6 gap-4">
+        ${methods.map((method, index) =>
+          button.setIndividualProps(index, {
+            buttonText: method,
+            click: async () => {
+              const options = { method, ...headers }
+
+              if (method === 'DELETE') {
+                await crud<User>(`${API_PATH}/${userId}`, options)
+                data.users = users.filter(({ id }) => id !== userId)
+                data.status = `The user with ID ${userId} was deleted.`
+              } else {
+                const name = prompt('Please enter a new user name.')
+                if (name) {
+                  await crud<User>(`${API_PATH}/${userId}`, {
+                    ...options,
+                    body: JSON.stringify({ id: userId, name })
+                  })
+
+                  data.users = users.map(user => (user.id === userId ? { ...user, name } : user))
+                  data.status = `The user with ID ${userId} was updated.`
+                }
               }
-            }
 
-            setData('userId', NaN)
-          }
-        })
-      )}
-    </div>
-    <div class="w-fit mx-auto">${draggable}</div>
-  `,
+              data.userId = NaN
+            }
+          })
+        )}
+      </div>
+      <div class="w-fit mx-auto">${draggable}</div>
+    `
+  },
   css: { div: { '&.buttons': flexCenter('x'), '&.w-fit': flexCenter('y') } },
   hooks: {
-    mounted: async ({ setData, getData, crud }) => {
-      const users = getData('users')
-      setData('users', [
+    mounted: async ({ data, crud }) => {
+      const { users } = data
+      data.users = [
         ...users,
         await crud<User>(API_PATH, {
           method: 'POST',
           body: JSON.stringify(users[Math.floor(Math.random() * users.length)]),
           headers
         })
-      ])
+      ]
     }
   }
 })
