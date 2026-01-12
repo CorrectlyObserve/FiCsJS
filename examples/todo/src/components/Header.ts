@@ -2,72 +2,56 @@ import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
+import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
 import type { Lang } from '@/types'
-import { breakpoints, white } from '@/utils/others'
+import { breakpoints } from '@/utils/others'
 
-interface Data {
-  langs: Lang[]
-  lang: Lang
-  isShown: boolean
-  header: { label: string; optionLabel: string }
-}
-
-export default fics<Data, {}>({
+export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string }, {}>({
   name: 'header',
   children: [
     ficsLink({
       href: '/',
       content: ({ template }) => template`FiCs ToDo`,
       css: { a: { paddingInline: cssVar('xs') } }
-    })
+    }),
+    Button()
   ],
-  data: () => ({
-    langs: ['en', 'ja'],
-    lang: 'en',
-    isShown: false,
-    header: { label: '', optionLabel: '' }
-  }),
-  i18nData: async ({ data: { lang }, i18n }) => ({
-    header: await i18n<Data['header']>({ lang, key: 'header' })
-  }),
-  html: ({
-    children: { link },
-    data: {
-      langs,
-      lang,
-      isShown,
-      header: { label, optionLabel }
-    },
-    template,
-    show,
-    attributes: { boolean }
-  }) => template`
-    <header>
-      <h1>${link}</h1>
-      <div class="container">
-        <button
-          class="lang"
-          aria-label="${label}"
-          aria-controls="lang-menu"
-          aria-expanded="${boolean(isShown)}"
-          type="button"
-        >${lang.toUpperCase()}</button>
-        <div class="langs" id="lang-menu" role="group" aria-label="${optionLabel}" ${show(isShown)}>
-          ${langs.map(
-            _lang => template`
-              <button
-                class="${lang === _lang ? 'selected' : ''}"
-                key="${_lang}"
-                aria-pressed="${boolean(lang === _lang)}"
-                type="button"
-              >${_lang.toUpperCase()}</button>
-            `
-          )}
+  data: () => ({ langs: ['en', 'ja'], lang: 'en', isShown: false }),
+  i18nData: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
+  html: ({ children: { link, button }, data, template, show }) => {
+    const { langs, lang, isShown, label } = data
+
+    return template`
+      <header>
+        <h1>${link}</h1>
+        <div class="container">
+          ${button.setIndividualProps('toggle', {
+            isPressed: isShown,
+            controls: 'lang-menu',
+            buttonText: lang.toUpperCase(),
+            click: () => (data.isShown = !data.isShown)
+          })}
+          <div class="langs" id="lang-menu" role="group" aria-label="${label}" ${show(isShown)}>
+            ${langs.map(
+              _lang => template`
+                ${button.setIndividualProps(_lang, {
+                  type: lang === _lang ? 'selected' : 'normal',
+                  isPressed: lang === _lang,
+                  buttonText: _lang.toUpperCase(),
+                  click: () => {
+                    $lang.set(_lang)
+                    data.lang = _lang
+                    data.isShown = false
+                  }
+                })}
+              `
+            )}
+          </div>
         </div>
-      </div>
-    </header>
-  `,
+      </header>
+    `
+  },
   css: {
     ':host': {
       position: 'sticky',
@@ -100,17 +84,6 @@ export default fics<Data, {}>({
           [`@media (max-width: ${breakpoints.sm})`]: {
             right: calc(`${cssVar('md')} * 0.75 + ${cssVar('outline')}`)
           },
-          button: {
-            width: calc(`${cssVar('md')} * 3`),
-            background: cssVar('black'),
-            '&:hover': { background: white(0.1) },
-            '&.selected': {
-              color: cssVar('red'),
-              fontWeight: 'bold',
-              textDecoration: 'underline',
-              textUnderlineOffset: cssVar('outline')
-            }
-          },
           '.langs': {
             ...fadeInOut(cssVar('transition')),
             position: 'absolute',
@@ -123,22 +96,5 @@ export default fics<Data, {}>({
       }
     }
   },
-  hooks: { created: ({ data }) => (data.lang = document.documentElement.lang as Lang) },
-  actions: {
-    'button.lang': {
-      click: [({ data }) => (data.isShown = !data.isShown), { throttle: 500 }]
-    },
-    'button[key]': {
-      click: [
-        ({ data, attributes: { key } }) => {
-          const _key = key as Lang
-
-          $lang.set(_key)
-          data.lang = _key
-          data.isShown = false
-        },
-        { throttle: 500 }
-      ]
-    }
-  }
+  hooks: { created: ({ data }) => (data.lang = document.documentElement.lang as Lang) }
 })
