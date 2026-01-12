@@ -1,11 +1,12 @@
 import { fics } from 'ficsjs'
-import { cssVar } from 'ficsjs/style'
+import { calc, cssVar } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
   isDisabled?: boolean
   isPressed?: boolean
-  type: 'normal' | 'gradation' | 'label' | 'delete'
+  type: 'normal' | 'gradation' | 'selected' | 'label' | 'delete'
+  controls?: string
   buttonText: string
   click: () => void
 }
@@ -14,7 +15,7 @@ export default () =>
   fics<{}, Props>({
     name: 'button',
     html: ({
-      props: { isDisabled, isPressed, type, buttonText },
+      props: { isDisabled, isPressed, type, controls, buttonText },
       template,
       attributes: { boolean }
     }) => template`
@@ -22,14 +23,16 @@ export default () =>
         ${isDisabled ? 'disabled' : ''}
         aria-disabled="${boolean(isDisabled)}"
         ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
+        ${controls ? `aria-expanded="${boolean(isPressed)}" aria-controls="${controls}"` : ''}
         type="button"
-        data-type="${type}"
+        data-type="${controls ? 'toggle' : type}"
       >${buttonText}</button>
     `,
     css: {
       ':host': {
         textAlign: 'center',
         button: {
+          minWidth: calc(`${cssVar('md')} * 3.5`),
           padding: cssVar('md'),
           '&[disabled]': {
             background: 'none !important',
@@ -53,6 +56,12 @@ export default () =>
               zIndex: -1
             },
             '&:not([disabled]):hover::before': { opacity: 0.5 }
+          },
+          '&[data-type="selected"]': {
+            color: cssVar('red'),
+            fontWeight: 'bold',
+            textDecoration: 'underline',
+            textUnderlineOffset: cssVar('outline')
           },
           '&[data-type="label"]': { paddingInline: cssVar('outline') },
           '&[data-type="delete"]': { color: cssVar('red') }
