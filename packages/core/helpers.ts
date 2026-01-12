@@ -36,7 +36,8 @@ export const deepEqual = (
 
   if (current.constructor !== newValue.constructor) return false
 
-  if (weakMaps.current.has(current) && weakMaps.new.has(newValue)) return true
+  if (weakMaps.current.has(current) && weakMaps.new.has(newValue))
+    return weakMaps.current.get(current) === newValue && weakMaps.new.get(newValue) === current
 
   weakMaps.current.set(current, newValue)
   weakMaps.new.set(newValue, current)
