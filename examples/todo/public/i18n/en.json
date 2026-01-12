@@ -1,5 +1,5 @@
 {
-  "header": { "label": "Language", "optionLabel": "Language options" },
+  "lang": "Language options",
   "tasks": {
     "heading": "Task list",
     "description": "You can add a new task by pressing the Enter key.",
