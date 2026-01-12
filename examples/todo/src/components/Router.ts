@@ -47,14 +47,6 @@ export default ficsRouter<Data>({
         },
         updateTasks: (tasks: TaskType[]) => (data.tasks = tasks)
       })
-    },
-    {
-      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().input,
-      values: ({ data: { draft } }) => ({ isError: draft?.title === '', value: draft?.title })
-    },
-    {
-      descendant: ({ children: { taskDetails } }) => taskDetails.getChildren().textarea,
-      values: ({ data: { draft } }) => ({ value: draft?.description })
     }
   ],
   pages: [
