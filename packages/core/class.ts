@@ -1198,7 +1198,8 @@ export default class FiCsElement<D extends object, P extends object> {
         // Only blur if currentTarget is the currently focused element
         if (document.activeElement !== currentTarget) return
 
-        // Only blur for mouse events (detail > 0), not keyboard events (detail === 0)
+        // Only blur for mouse-triggered clicks (detail > 0), not keyboard-triggered clicks (detail === 0)
+        // The detail property on click events indicates the number of consecutive clicks
         if ((event as MouseEvent).detail > 0) currentTarget.blur()
       }
 
