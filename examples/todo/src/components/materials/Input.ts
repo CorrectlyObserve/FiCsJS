@@ -1,12 +1,13 @@
 import { fics } from 'ficsjs'
-import { calc, cssVar, flexCenter } from 'ficsjs/style'
-import { white } from '@/utils/others'
+import { cssVar, flexCenter, forScreenReaders } from 'ficsjs/style'
 
 interface Props {
-  id?: string
-  label?: string
+  id: string
+  label: string
+  isAriaLabel?: boolean
   isError?: boolean
-  error: string
+  error?: string
+  description: string
   value: string
   placeholder: string
   input: (value: string) => void
@@ -20,44 +21,55 @@ export default () =>
     data: () => ({ isComposing: false }),
     className: 'input',
     html: ({
-      props: { id, label, isError, error, value, placeholder },
+      props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
       template,
-      show
-    }) => template`
-      <div>
-        ${label ? template`<label for="${id ?? ''}">${label}</label>` : ''}
-        <p ${show(!!isError)}>${error}</p>
-        <input
-          name="${label ?? 'input'}"
-          id="${id ? `id="${id}"` : ''}"
-          value="${value}"
-          placeholder="${placeholder}"
-          type="text"
-        />
-      </div>
-    `,
+      show,
+      attributes: { boolean }
+    }) => {
+      const hasError = !!(isError && error)
+      return template`
+        <div>
+          ${!isAriaLabel ? template`<label for="${id}">${label}</label>` : ''}
+          <p id="${id}-error" ${show(hasError)} role="alert" aria-live="polite">${error ?? ''}</p>
+          <p id="${id}-info">${description}</p>
+          <input
+            id="${id}"
+            value="${value}"
+            placeholder="${placeholder}"
+            ${isAriaLabel ? `aria-label="${label}"` : ''}
+            aria-describedby="${[`${id}-info`, hasError ? `${id}-error` : ''].filter(Boolean).join(' ')}"
+            aria-invalid="${boolean(hasError)}"
+            ${hasError ? `aria-errormessage="${id}-error"` : ''}
+            type="text"
+          />
+        </div>
+      `
+    },
     css: {
-      div: ({ props: { isError } }) => ({
+      div: ({ props: { isError, error } }) => ({
         ...flexCenter('x', 'column'),
         label: { paddingBottom: cssVar('xs') },
         p: {
-          fontSize: cssVar('sm'),
-          color: cssVar('error'),
-          marginBottom: cssVar('xs'),
-          textAlign: 'left'
+          '&:first-of-type': {
+            fontSize: cssVar('sm'),
+            color: cssVar('red'),
+            marginBottom: cssVar('xs'),
+            textAlign: 'left'
+          },
+          '&:last-of-type': forScreenReaders
         },
-        input: {
-          background: isError ? cssVar('error') : white(0.1),
-          paddingBlock: calc(`${cssVar('xs')} * 1.5`),
-          '&::placeholder': isError ? { color: white(), opacity: 0.5 } : {}
-        }
+        input: isError && error ? { borderColor: cssVar('red') } : {}
       })
     },
     actions: {
       input: {
         input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
-        compositionstart: ({ setData }) => setData('isComposing', true),
-        compositionend: ({ setData }) => setData('isComposing', false),
+        compositionstart: ({ data }) => {
+          data.isComposing = true
+        },
+        compositionend: ({ data }) => {
+          data.isComposing = false
+        },
         keydown: [
           ({ data: { isComposing }, props: { value, enterKey }, event }) => {
             if (

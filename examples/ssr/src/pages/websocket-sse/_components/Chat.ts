@@ -23,18 +23,16 @@ export default fics<
   data: () => ({ comment: '' }),
   props: {
     descendant: ({ children: { button } }) => button,
-    values: ({ props: { sendMessage }, setData }) => ({
-      isDisabled: ({ getData }) => getData('comment').trim() === '',
+    values: ({ data, props: { sendMessage } }) => ({
+      isDisabled: data.comment.trim() === '',
       buttonText: 'Send',
-      click:
-        ({ getData }) =>
-        () => {
-          const userName = $userName.get()
-          if (userName === '') return
+      click: () => {
+        const userName = $userName.get()
+        if (userName === '') return
 
-          sendMessage({ userName, comment: getData('comment') })
-          setData('comment', '')
-        }
+        sendMessage({ userName, comment: data.comment })
+        data.comment = ''
+      }
     })
   },
   html: ({ children: { button }, data: { comment }, props: { messages }, template }) => {
@@ -42,7 +40,12 @@ export default fics<
 
     return template`
       <h2 class="text-lg text-white text-center mb-6">Chat</h2>
-      <div class="w-full block mx-auto overflow-y-auto">
+      <div
+        class="w-full block mx-auto overflow-y-auto"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+      >
         ${messages.map(
           ({ userName, comment }, index) => template`
             <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
@@ -55,7 +58,15 @@ export default fics<
         )}
       </div>
       <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
-        <textarea id="message" class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none" placeholder="Please enter your message" rows="3">${comment}</textarea>
+        <label class="sr-only" for="message">Message</label>
+        <p id="message-help" class="sr-only">Enter a new message. Press the Shift + Enter keys to send.</p>
+        <textarea
+          id="message"
+          aria-describedby="message-help"
+          class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
+          placeholder="Please enter your message"
+          rows="3"
+        >${comment}</textarea>
         ${button}
       </div>
     `
@@ -76,8 +87,8 @@ export default fics<
         ...flexCenter('xy'),
         bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
         textarea: {
-          '&:hover': { opacity: 0.5 },
-          '&:focus': { background: white(0.05), opacity: 1 }
+          '&:hover': { background: white(0.1) },
+          '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
         }
       }
     }
@@ -92,13 +103,13 @@ export default fics<
   },
   actions: {
     textarea: {
-      input: ({ setData, event: { currentTarget } }) =>
-        setData('comment', (currentTarget as HTMLTextAreaElement).value),
-      keydown: ({ getData, props: { sendMessage }, setData, event }) => {
+      input: ({ data, event: { currentTarget } }) =>
+        (data.comment = (currentTarget as HTMLTextAreaElement).value),
+      keydown: ({ data, props: { sendMessage }, event }) => {
         if (window.matchMedia('(pointer: coarse)').matches) return
 
-        const userName = $userName.get(),
-          comment = getData('comment'),
+        const userName = $userName.get()
+        const { comment } = data,
           keyboardEvent = event as KeyboardEvent,
           isEnterKey = keyboardEvent.key === 'Enter'
 
@@ -107,7 +118,7 @@ export default fics<
 
         keyboardEvent.preventDefault()
         sendMessage({ userName, comment })
-        setData('comment', '')
+        data.comment = ''
       }
     }
   }

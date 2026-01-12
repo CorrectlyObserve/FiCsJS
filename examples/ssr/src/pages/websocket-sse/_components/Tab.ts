@@ -15,16 +15,17 @@ export default fics({
     ],
     current: ''
   }),
-  html: ({ children: { button }, data: { tabs, current }, template, setData }) => template`
+  html: ({ children: { button }, data, template }) => template`
     <div class="container mb-6 mx-auto gap-4">
-      ${tabs.map(
+      ${data.tabs.map(
         ({ href, text }, index) => template`
           ${button.setIndividualProps(index, {
-            isDisabled: current === '' || current === href,
+            isDisabled: data.current === '' || data.current === href,
+            isCurrent: data.current === href,
             buttonText: text,
             click: () => {
               goto(href)
-              setData('current', href)
+              data.current = href
             }
           })}
         `
@@ -32,5 +33,5 @@ export default fics({
     </div>
   `,
   css: { ':host div.container': flexCenter('x') },
-  hooks: { mounted: ({ setData }) => setData('current', window.location.pathname) }
+  hooks: { mounted: ({ data }) => (data.current = window.location.pathname) }
 })

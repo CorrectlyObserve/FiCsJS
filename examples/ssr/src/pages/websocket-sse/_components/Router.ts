@@ -12,8 +12,8 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   data: () => ({ messages: [], logs: [] }),
   props: {
     descendant: ({ children: { chat } }) => chat,
-    values: ({ sendToWebsocket }) => ({
-      messages: ({ getData }) => getData('messages'),
+    values: ({ data: { messages }, sendToWebsocket }) => ({
+      messages,
       sendMessage: (message: Message) => sendToWebsocket(JSON.stringify(message))
     })
   },
@@ -42,18 +42,16 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
 
         send(JSON.stringify({ userName }))
       },
-      onmessage: ({ data: { messages }, setData, event: { data } }) => {
-        const { userName, comment }: Message = JSON.parse(data)
-        if (userName && comment) setData('messages', [...messages, { userName, comment }])
+      onmessage: ({ data, event: { data: messageData } }) => {
+        const { userName, comment }: Message = JSON.parse(messageData)
+        if (userName && comment) data.messages = [...data.messages, { userName, comment }]
       }
     },
     sse: {
       path: API_PATHS.log,
-      onopen: ({ setData }) =>
-        setData('logs', [`${getTimestamp()}: ${$userName.get()} joined the chat.`]),
-      actions: {
-        log: ({ data: { logs }, setData, event: { data } }) => setData('logs', [...logs, data])
-      }
+      onopen: ({ data }) =>
+        (data.logs = [`${getTimestamp()}: ${$userName.get()} joined the chat.`]),
+      actions: { log: ({ data, event: { data: logs } }) => (data.logs = [...data.logs, logs]) }
     }
   }
 })

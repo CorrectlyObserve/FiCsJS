@@ -1,45 +1,45 @@
 import { calc, cssVar } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils/others'
 
-const hover = { cursor: 'pointer', opacity: 0.5 } as const
+const outline = `${cssVar('outline')} solid ${white()}` as const
 
 export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
-  '*[tabindex], button, label, a': {
+  'h2, p, button, label, legend, input, textarea, span': { color: white() },
+  'h2, p, button': { textAlign: 'center' },
+  'p, button, label, legend, input, textarea': { fontSize: cssVar('md') },
+  'p, button, legend, label': { lineHeight: 1.2 },
+  'button, input, textarea': {
     transition: cssVar('transition'),
-    '&:not(button)': { '&:hover': hover, '&:focus': { color: cssVar('red'), outline: 'none' } },
-    '&:is(a):focus > span': { color: 'inherit' }
-  },
-  'h2, p, button, label, span': { color: white(), textAlign: 'center' },
-  h2: {
-    fontSize: cssVar('lg'),
-    marginBottom: cssVar('xl'),
-    lineHeight: 1.5,
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
-  },
-  'p, button, label, span': { fontSize: cssVar('md'), lineHeight: 1.2 },
-  button: {
+    background: 'none',
     border: 'none',
     outline: 'none',
-    '&:not([aria-disabled="true"])': { '&:hover': hover, '&:focus': { scale: 0.8 } }
+    borderRadius: cssVar('xs'),
+    '&:not([disabled])': {
+      '&:hover': { background: white(0.1), cursor: 'pointer' },
+      '&:focus, &:focus-visible': { outline }
+    }
   },
-  label: { display: 'inline-block', textAlign: 'left', '&:hover': hover },
+  h2: {
+    fontSize: cssVar('lg'),
+    lineHeight: 1.5,
+    marginBottom: cssVar('xl'),
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+  },
+  'label:hover': { cursor: 'pointer' },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
-    fontSize: cssVar('md'),
-    color: white(),
-    paddingInline: cssVar('md'),
-    borderRadius: cssVar('xs'),
-    border: 'none',
-    outline: 'none',
+    padding: `${calc(`${cssVar('xs')} * 1.5`)} ${cssVar('md')}`,
     lineHeight: 1.5,
-    '&:hover': { cursor: 'pointer' },
-    '&:focus': {
-      background: white(0.8),
-      color: cssVar('black'),
-      cursor: 'auto'
-    }
+    border: `1px solid ${white()}`
   },
-  span: { width: 'fit-content', '&[role="button"]': { padding: cssVar('md') } }
+  a: {
+    transition: cssVar('transition'),
+    borderRadius: cssVar('xs'),
+    '&:hover': { background: white(0.1), cursor: 'pointer' },
+    '&:focus, &:focus-visible': { color: 'inherit', outline, outlineOffset: 0 },
+    '&:active': { scale: 0.98 }
+  },
+  'span[role="button"]': { padding: cssVar('md') }
 }

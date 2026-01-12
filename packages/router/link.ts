@@ -20,10 +20,13 @@ export default <P extends object>({
     props,
     className,
     attributes,
-    html: ({ template, ...args }) => {
-      const _content: Descendant | Sanitized<{}, P> = content({ template, ...args })
+    html: ({ props, template, ...args }) => {
+      const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
+      if (_href === '') throw new Error('The "href" must be a non-empty string...')
+
+      const _content: Descendant | Sanitized<{}, P> = content({ props, template, ...args })
       return template`
-        <a href="${href}">${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}</a>
+        <a href="${_href}">${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}</a>
       `
     },
     css: [
