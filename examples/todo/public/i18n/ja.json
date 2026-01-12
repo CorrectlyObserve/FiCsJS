@@ -3,7 +3,7 @@
     "title": "FiCsJSで開発されたToDoアプリケーション",
     "description": "これはFiCsJSで開発されたToDoアプリです。他のJavaScriptフレームワークを使うことなく、FiCsJSで処理を全て完結しています。"
   },
-  "header": { "label": "言語", "optionLabel": "言語選択" },
+  "lang": "言語選択",
   "tasks": {
     "heading": "タスク一覧",
     "description": "エンターキーで新規タスクを追加することができます。",
