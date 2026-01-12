@@ -6,7 +6,7 @@ let _directory: string = ''
 const translationsCache: Map<string, Translations> = new Map(),
   promiseCache: Map<string, Promise<Translations>> = new Map()
 
-export const ficsI18n = (directory: string): void => {
+export const configI18n = (directory: string): void => {
   const normalized: string = normalizePath(directory)
 
   if (_directory && _directory !== normalized) {
@@ -24,7 +24,7 @@ export const i18n = async <T>({
   key: SingleOrArray<string>
 }): Promise<T> => {
   if (_directory === '')
-    throw new Error('The ficsI18n function cannot be called before this function...')
+    throw new Error('The configI18n function cannot be called before calling the i18n function...')
 
   if (lang === '') throw new Error('The "lang" must be a non-empty string...')
 

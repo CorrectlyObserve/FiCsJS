@@ -3,11 +3,15 @@
     "title": "FiCsJSで開発されたToDoアプリケーション",
     "description": "これはFiCsJSで開発されたToDoアプリです。他のJavaScriptフレームワークを使うことなく、FiCsJSで処理を全て完結しています。"
   },
+  "lang": "言語選択",
   "tasks": {
     "heading": "タスク一覧",
+    "description": "エンターキーで新規タスクを追加することができます。",
     "placeholder": "タスクを追加する",
     "show": "完了済みのタスクを表示する",
     "hide": "完了済みのタスクを非表示にする",
+    "completed": "（完了済み）",
+    "uncompleted": "（未完了）",
     "confirmation": "本当にタスクを削除しますか？\n一度削除すると、元に戻すことはできません。",
     "unapplicable": "タスクがありません。"
   },
@@ -15,9 +19,9 @@
     "heading": "タスク詳細",
     "status": "ステータス",
     "texts": ["完了にする", "未完了にする", "削除する", "タスク一覧に戻る", "閉じる"],
-    "title": "タイトル",
+    "labels": ["タイトル", "説明"],
     "error": "1文字以上入力してください",
-    "description": "説明",
+    "descriptions": ["タイトルを1文字以上入力してください", "説明文を入力してください（任意）"],
     "placeholders": ["タイトルを入力してください", "説明文を入力してください"],
     "datetimes": { "createdAt": "作成日時: ", "updatedAt": "更新日時: " },
     "buttonText": "保存する"

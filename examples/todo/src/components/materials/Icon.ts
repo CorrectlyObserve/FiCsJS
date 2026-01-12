@@ -1,34 +1,38 @@
 import { fics } from 'ficsjs'
-import { spin } from 'ficsjs/animation'
 import { cssVar } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
   svg: string
   areaLabel: string
+  isPressed?: boolean
   color?: string
-  isLoadingIcon?: boolean
   click?: () => void
 }
-
-const svgStyle = (width: string) =>
-  ({ display: 'flex', width: cssVar(width), height: 'auto', stroke: 'currentColor' }) as const
 
 export default () =>
   fics<{}, Props>({
     name: 'icon',
-    html: ({ props: { areaLabel, svg }, template, html }) => template`
-      <button aria-label="${areaLabel}">${html(svg)}</button>
+    html: ({
+      props: { areaLabel, svg, isPressed },
+      template,
+      html,
+      attributes: { boolean }
+    }) => template`
+      <button
+        aria-label="${areaLabel}"
+        ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
+        type="button"
+      >${html(svg)}</button>
     `,
     css: {
-      button: ({ props: { color, isLoadingIcon } }) => ({
+      'button[type="button"]': ({ props: { color } }) => ({
         background: 'none',
         color: color ?? white(),
         padding: cssVar('xs'),
-        svg: svgStyle('xl'),
-        ...(isLoadingIcon
-          ? { display: 'block', marginInline: 'auto', svg: { ...svgStyle('2xl'), ...spin(1.5) } }
-          : {})
+        '&:hover': { background: white(0.1) },
+        '&:focus, &:focus-visible': { outlineColor: color ?? white() },
+        svg: { display: 'flex', width: cssVar('xl'), height: 'auto', stroke: 'currentColor' }
       })
     },
     actions: {

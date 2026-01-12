@@ -1,5 +1,5 @@
 import FiCsElement from './class'
-import type { Excluded, FiCs } from './types'
+import type { FiCs } from './types'
 
 export default <D extends object, P extends object>({
   name,
@@ -16,7 +16,7 @@ export default <D extends object, P extends object>({
   actions,
   options,
   scroll
-}: Omit<FiCs<D, P>, Excluded>): FiCsElement<D, P> =>
+}: Omit<FiCs<D, P>, 'isExceptional' | 'instanceId' | 'clonedCss'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
     children,

@@ -1,6 +1,7 @@
 import FiCsElement from './class'
+import consts from './constants'
 
-export type Actions<D, P> = Record<
+export type Actions<D extends object, P> = Record<
   string,
   Record<string, Method<D, P> | [Method<D, P>, ActionOptions]>
 >
@@ -12,13 +13,13 @@ export interface ActionOptions {
   once?: boolean
 }
 
-export type Attrs<D, P> =
+export type Attrs<D extends object, P> =
   | Record<string, string>
   | ((dataProps: DataProps<D, P>) => Record<string, string>)
 
 export type Children = Record<string, Descendant>
 
-export type ClassName<D, P> = string | ((dataProps: DataProps<D, P>) => string)
+export type ClassName<D extends object, P> = string | ((dataProps: DataProps<D, P>) => string)
 
 export type Crud = {
   <T>(api: string, options?: CrudOptions): Promise<T>
@@ -32,31 +33,25 @@ export interface CrudOptions extends RequestInit {
   delay?: number
 }
 
-export type CrudStreamOptions = CrudOptions & {
+export interface CrudStreamOptions extends CrudOptions {
   /**
     @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
   */
   onChunk: (chunk: string, index: number) => void
 }
 
-export type Css<D, P> = CssContent<D, P> | GlobalCss
+export type Css<D extends object, P> = CssContent<D, P> | GlobalCss
 
-export interface CssContent<D, P> {
+export interface CssContent<D extends object, P> {
   [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
 }
 
-export type DataProps<D, P, B extends boolean = false> = { data: D; props: P } & (B extends true
-  ? { crud: Crud }
-  : {})
-
-export type DataPropsMethods<D, P, B extends boolean = false> = DataProps<D, P, B> & {
-  setData: <K extends keyof D>(key: K, value: D[K]) => void
-  getData: <K extends keyof D>(key: K) => D[K]
-}
+export type DataProps<D extends object, P, B extends boolean = false> = {
+  data: D
+  props: P
+} & (B extends true ? { crud: Crud } : {})
 
 export type Descendant = FiCsElement<any, any>
-
-export type Excluded = 'isExceptional' | 'instanceId' | 'componentId' | 'clonedCss'
 
 export interface FiCs<D extends object, P extends object> {
   name: string
@@ -86,8 +81,8 @@ export interface GlobalCssContent {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: Omit<DataPropsMethods<D, P, true>, 'props' | 'getData'> &
-    Syntaxes<D, P> & {
+  params: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
+    HtmlSyntaxes<D, P> & {
       isBrowser: boolean
       isDeferred: boolean
       virtualScroll: <T>(
@@ -101,27 +96,56 @@ export type HtmlContent<D extends object, P extends object> =
   | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
   | string
 
-export interface Hooks<D, P> {
-  created?: (params: DataPropsMethods<D, P, true>) => void
-  mounted?: (params: DataPropsMethods<D, P, true> & Poll) => void
-  updated?: { [K in keyof D]?: (params: DataPropsMethods<D, P, true>) => void }
-  destroyed?: (params: DataPropsMethods<D, P, true>) => void
-  adopted?: (params: DataPropsMethods<D, P, true>) => void
+export interface HtmlSyntaxes<D extends object, P extends object> {
+  children: Children
+  props: P
+  template: (
+    templates: TemplateStringsArray,
+    ...variables: (HtmlContent<D, P> | unknown)[]
+  ) => Sanitized<D, P>
+  html: (str: string) => Record<symbol, string>
+  show: (condition: boolean) => string
+  apiStatuses: Record<string, boolean>
+  attributes: {
+    boolean: (condition: boolean | undefined) => 'true' | 'false'
+    statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
+  }
+}
+
+export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
+  ref: (selector: string) => Element | null
+  debounce: <T extends (...args: any[]) => void>(
+    func: T,
+    time: number
+  ) => (...args: Parameters<T>) => void
+  throttle: <T extends (...args: any[]) => void>(
+    func: T,
+    time: number
+  ) => (...args: Parameters<T>) => void
+}
+
+export interface Hooks<D extends object, P> {
+  created?: (params: HookParams<D, P>) => void
+  mounted?: (params: HookParams<D, P> & Poll) => void
+  updated?: { [K in keyof D]?: (params: HookParams<D, P>) => void }
+  destroyed?: (params: HookParams<D, P>) => void
+  adopted?: (params: HookParams<D, P>) => void
 }
 
 export interface I18n {
   i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
-export type Method<D, P> = (
-  params: DataPropsMethods<D, P, true> & {
+export type Method<D extends object, P> = (
+  params: DataProps<D, P, true> & {
     event: Event
+    ref: (selector: string) => Element | null
     attributes: Record<string, string>
     value?: string
   }
 ) => void
 
-export interface Options<D, P> {
+export interface Options<D extends object, P> {
   ssr: boolean
   lazyLoad?: boolean
   rootMargin?: string
@@ -137,14 +161,16 @@ export interface Options<D, P> {
   sse?: {
     path: string
     withCredentials?: boolean
-    onopen?: (params: DataPropsMethods<D, P, true> & { event: Event; close: () => void }) => void
+    onopen?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
     onmessage?: SSEMethod<D, P>
-    onerror?: (params: DataPropsMethods<D, P, true> & { event: Event; close: () => void }) => void
+    onerror?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
   }
 }
 
-export type OptionParams<D, P> = Omit<Options<D, P>, 'ssr'> & { ssr?: boolean }
+export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr'> {
+  ssr?: boolean
+}
 
 interface Poll {
   poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
@@ -156,10 +182,10 @@ export interface PollingOptions {
   exit?: () => boolean
 }
 
-export interface Props<D, P> {
+export interface Props<D extends object, P> {
   descendant: (params: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: Omit<DataPropsMethods<D, P, true>, 'getData'> & { children: Children } & {
+    params: DataProps<D, P, true> & { children: Children } & {
       sendToWebsocket: (value: WebSocketValue) => void
     }
   ) =>
@@ -169,27 +195,18 @@ export interface Props<D, P> {
           getData,
           sendToWebsocket
         }: {
-          getData: DataPropsMethods<D, P>['getData']
+          getData: <K extends keyof D>(
+            key: K
+          ) => D[K] extends (...args: infer A) => infer R ? (...args: A) => R : D[K]
           sendToWebsocket?: (value: WebSocketValue) => void
         }) => unknown
       >
     | Record<string, unknown>
 }
 
-export interface PropsBinding {
-  instanceId: string
-  numberId: number
-  propsKeys: Record<string, true>
-  propsKey: string
-  propsValue: () => unknown
-  setProps: (value: unknown) => void
-}
-
-export type PropsChain<P> = Map<string, Partial<P>>
-
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
-export interface Scroll<D, P> extends ScrollParams<D, P> {
+export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
   id: string
   start: number
   end: number
@@ -202,38 +219,28 @@ export interface Scroll<D, P> extends ScrollParams<D, P> {
   mutationObserver?: MutationObserver
 }
 
-interface ScrollParams<D, P> {
+interface ScrollParams<D extends object, P> {
   unit: number
   elementMinHeight: number
   trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
   buffer?: number
   throttle?: number
-  method: (params: DataPropsMethods<D, P, true>) => void
+  method: (params: DataProps<D, P, true>) => void
 }
 
 export type SingleOrArray<T> = T | T[]
 
-export type SSEMethod<D, P> = (
-  params: DataPropsMethods<D, P, true> & { event: MessageEvent; close: () => void }
+export type SSEMethod<D extends object, P> = (
+  params: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
 ) => void
 
-export type Style<D, P> = StyleContent | ((dataProps: DataProps<D, P>) => StyleContent)
+export type Style<D extends object, P> =
+  | StyleContent
+  | ((dataProps: DataProps<D, P>) => StyleContent)
 
 export interface StyleContent {
   [key: string]: string | number | undefined | StyleContent
-}
-
-export interface Syntaxes<D extends object, P extends object> {
-  children: Children
-  props: P
-  template: (
-    templates: TemplateStringsArray,
-    ...variables: (HtmlContent<D, P> | unknown)[]
-  ) => Sanitized<D, P>
-  html: (str: string) => Record<symbol, string>
-  show: (condition: boolean) => string
-  apiStatuses: Record<string, boolean>
 }
 
 export interface Task {
@@ -244,7 +251,7 @@ export interface Task {
 
 export type Translations = Record<string, unknown>
 
-export interface WebSocketParams<D, P> extends DataPropsMethods<D, P, true> {
+export interface WebSocketParams<D extends object, P> extends DataProps<D, P, true> {
   websocket: {
     send: (value: WebSocketValue) => void
     readyState: () => number
