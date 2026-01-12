@@ -64,22 +64,25 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ data: { labels, error, descriptions, placeholders }, props: { editTask } }) => ({
+      values: ({ data: { labels, isError, error, descriptions, placeholders }, props: { draft, editTask } }) => ({
         id: 'title',
         label: labels[0],
+        isError: isError(draft),
         error,
         description: descriptions[0],
         placeholder: placeholders[0],
+        value: draft?.title,
         input: (title: string) => editTask({ title })
       })
     },
     {
       descendant: ({ children: { textarea } }) => textarea,
-      values: ({ data: { labels, descriptions, placeholders }, props: { editTask } }) => ({
+      values: ({ data: { labels, descriptions, placeholders }, props: { draft, editTask } }) => ({
         id: 'description',
         label: labels[1],
         description: descriptions[1],
         placeholder: placeholders[1],
+        value: draft?.description,
         input: (description: string) => editTask({ description })
       })
     }
