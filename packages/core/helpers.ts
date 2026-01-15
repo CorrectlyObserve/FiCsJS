@@ -165,6 +165,9 @@ export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   return [param]
 }
 
+export const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] =>
+  Object.entries(obj) as [keyof T, T[keyof T]][]
+
 export function* uid(): Generator<number> {
   let n: number = 1
 
