@@ -71,7 +71,6 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams<D, P>
-  scroll?: ScrollParams<D, P>
 }
 
 export type GlobalCss = GlobalCssContent | string
@@ -166,10 +165,12 @@ export interface Options<D extends object, P> {
     onerror?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
   }
+  scroll?: Scroll<D, P>
 }
 
-export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr'> {
+export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr' | 'scroll'> {
   ssr?: boolean
+  scroll?: ScrollParams<D, P>
 }
 
 interface Poll {
