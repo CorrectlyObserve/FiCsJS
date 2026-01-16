@@ -220,12 +220,15 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
   mutationObserver?: MutationObserver
 }
 
+export interface ScrollAxis {
+  vertical: boolean
+  horizontal: boolean
+}
+
 interface ScrollParams<D extends object, P> {
   unit: number
-  elementMinHeight: number
-  axis:
-    | { horizontal: boolean; vertical: boolean }
-    | (({ data }: { data: D }) => { horizontal: boolean; vertical: boolean })
+  elementMinSize: { height?: number; width?: number }
+  axis: ScrollAxis | (({ data }: { data: D }) => ScrollAxis)
   trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
   buffer?: number
