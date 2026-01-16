@@ -9,6 +9,7 @@ import {
   joinArray,
   numberError,
   toArray,
+  typedEntries,
   uid
 } from './helpers'
 import { i18n } from './i18n'
@@ -40,6 +41,7 @@ import type {
   Props,
   Sanitized,
   Scroll,
+  ScrollAxis,
   SingleOrArray,
   SSEMethod,
   Style,
@@ -84,7 +86,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
-  readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
@@ -112,8 +113,7 @@ export default class FiCsElement<D extends object, P extends object> {
     clonedCss,
     hooks,
     actions,
-    options,
-    scroll
+    options
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name must be a non-empty string...')
@@ -138,7 +138,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#isBrowser = isBrowser()
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse }: OptionParams<D, P> = options
+      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: OptionParams<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -152,9 +152,32 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#options.rootMargin = rootMargin
       }
 
-      if (websocket && !isBlankObject(websocket) && this.#isBrowser)
-        this.#options.websocket = { ...websocket }
-      if (sse && !isBlankObject(sse) && this.#isBrowser) this.#options.sse = { ...sse }
+      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
+        if (!value || isBlankObject(value) || !this.#isBrowser) continue
+
+        switch (key) {
+          case 'websocket':
+            this.#options[key] = { ...value } as Options<D, P>[typeof key]
+            break
+
+          case 'sse':
+            this.#options[key] = { ...value } as Options<D, P>[typeof key]
+            break
+
+          case 'scroll':
+            this.#options[key] = {
+              ...value,
+              id: `${this.#instanceId}-scroll`,
+              start: 0,
+              end: (value as Options<D, P>[typeof key])?.unit,
+              isEnabled: false,
+              totalHeight: NaN,
+              elementHeights: new Map(),
+              prevTotalHeight: NaN
+            } as Options<D, P>[typeof key]
+            break
+        }
+      }
     }
 
     if (children)
@@ -173,9 +196,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (let [key, value] of Object.entries({ ...data(), ...attrData })) {
-        const _key = key.trim() as keyof D
-        this.#rawData[_key] = value as D[typeof _key]
+      for (let [key, value] of typedEntries({ ...data(), ...attrData } as D)) {
+        this.#rawData[key] = value
 
         if ((deferredData || i18nData) && this.#isBrowser) {
           this.#isDeferred = false
@@ -270,17 +292,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (hooks && !isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
-    if (scroll && !isBlankObject(scroll) && this.#isBrowser)
-      this.#scroll = {
-        ...scroll,
-        id: `${this.#instanceId}-scroll`,
-        start: 0,
-        end: scroll.unit,
-        isEnabled: false,
-        totalHeight: NaN,
-        elementHeights: new Map(),
-        prevTotalHeight: NaN
-      }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -299,8 +310,7 @@ export default class FiCsElement<D extends object, P extends object> {
       clonedCss: this.#css,
       actions: this.#actions,
       hooks: this.#hooks,
-      options: this.#options,
-      scroll: this.#scroll
+      options: this.#options
     })
   }
 
@@ -658,23 +668,42 @@ export default class FiCsElement<D extends object, P extends object> {
       },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
-      virtualScroll: <T>(
+      scroll: <T>(
         array: T[],
         callback: (item: T, index: number) => Sanitized<D, P>
       ): Sanitized<D, P> => {
-        if (!this.#scroll) return template`${array.map((item, index) => callback(item, index))}`
+        if (!this.#options.scroll)
+          return template`${array.map((item, index) => callback(item, index))}`
 
-        const { unit, elementMinHeight, start, end, buffer, id }: Scroll<D, P> = this.#scroll
+        const {
+          unit,
+          elementMinSize: { height, width },
+          axis,
+          start,
+          end,
+          buffer,
+          id
+        }: Scroll<D, P> = this.#options.scroll
 
-        numberError({ unit, elementMinHeight })
+        numberError({ unit, height, width })
         if (buffer) numberError({ buffer }, false)
 
-        const height: number = elementMinHeight * (end - start + (buffer ?? 0)),
+        const { vertical, horizontal }: ScrollAxis =
+            typeof axis === 'function' ? axis({ data: this.#data }) : axis,
+          calcSize = (size: number): number => size * (end - start + (buffer ?? 0)),
           endIndex: number = Array.isArray(array) ? array.length : end
 
+        let style: string = ''
+        if (vertical)
+          style += `${height === undefined ? '' : `height:${calcSize(height)}px;`}overflow-y:auto;`
+        if (horizontal)
+          style += `${width === undefined ? '' : `width:${calcSize(width)}px;`}overflow-x:auto;margin-inline:auto;`
+
         return template`
-          <div id="${id}" style="height:${height}px; overflow-y:auto;">
+          <div id="${id}" style="${style}">
+            <div style="${horizontal ? 'display:flex;overscroll-behavior-x: none;' : ''}">
             ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
+            </div>
           </div>
         `
       }
@@ -1215,8 +1244,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
-    if (this.#scroll.isEnabled === false) {
-      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#scroll,
+    if (this.#options.scroll?.isEnabled === false) {
+      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#options.scroll,
         _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
       if (_trigger === undefined || _trigger) {
@@ -1265,7 +1294,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           intersectionObserver.observe(lastChild)
           mutationObserver.observe(root, { childList: true })
-          this.#scroll.isEnabled = true
+          this.#options.scroll.isEnabled = true
         }
       }
     }
@@ -1476,10 +1505,10 @@ export default class FiCsElement<D extends object, P extends object> {
           if (that.#deferredData || that.#i18nData)
             that.#enqueue(async () => {
               if (that.#deferredData)
-                for (const [key, value] of Object.entries(
-                  await that.#deferredData(that.#getDataProps(true))
+                for (const [key, value] of typedEntries(
+                  (await that.#deferredData(that.#getDataProps(true))) as D
                 ))
-                  that.#data[key as keyof D] = value as D[keyof D]
+                  that.#data[key] = value
 
               if (that.#i18nData)
                 for (const [key, value] of Object.entries(
@@ -1722,9 +1751,7 @@ export default class FiCsElement<D extends object, P extends object> {
       `
     }
 
-    if (data)
-      for (const [key, value] of Object.entries(data))
-        this.#data[key as keyof D] = value as D[keyof D]
+    if (data) for (const [key, value] of typedEntries(data as D)) this.#data[key] = value
 
     return render(this, data)
   }
