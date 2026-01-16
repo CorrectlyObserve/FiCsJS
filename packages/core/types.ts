@@ -84,7 +84,7 @@ export type Html<D extends object, P extends object> = (
     HtmlSyntaxes<D, P> & {
       isBrowser: boolean
       isDeferred: boolean
-      virtualScroll: <T>(
+      scroll: <T>(
         array: T[],
         callback: (item: T, index: number) => Sanitized<D, P>
       ) => Sanitized<D, P>
@@ -223,6 +223,9 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
 interface ScrollParams<D extends object, P> {
   unit: number
   elementMinHeight: number
+  axis:
+    | { horizontal: boolean; vertical: boolean }
+    | (({ data }: { data: D }) => { horizontal: boolean; vertical: boolean })
   trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
   buffer?: number
