@@ -4,6 +4,7 @@ import { goto, queries } from 'ficsjs/router'
 import { absoluteCenter, cssVar, flexCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import AxisButton from '@/pages/scroll/_components/AxisButton'
 import Skeleton from '@/pages/scroll/_components/Skeleton'
 import type { Photo } from '@/types'
 import { dark } from '@/utils'
@@ -13,8 +14,9 @@ const PHOTO_SIZE = 200 as const
 
 export default fics({
   name: 'photos',
-  children: [Icon(), Skeleton],
+  children: [Icon(), AxisButton, Skeleton],
   data: () => ({
+    isHorizontal: false,
     page: 0,
     photos: [] as Photo[],
     photoId: '',
@@ -29,21 +31,30 @@ export default fics({
       photos
     }))
   },
-  props: {
-    descendant: ({ children: { icon } }) => icon,
-    values: ({ data }) => ({
-      svg: CircleX,
-      areaLabel: 'Close the dialog',
-      click: () => {
-        data.photoId = ''
-        data.photoElement?.focus()
-        data.photoElement = null
-      }
-    })
-  },
+  props: [
+    {
+      descendant: ({ children: { icon } }) => icon,
+      values: ({ data }) => ({
+        svg: CircleX,
+        areaLabel: 'Close the dialog',
+        click: () => {
+          data.photoId = ''
+          data.photoElement?.focus()
+          data.photoElement = null
+        }
+      })
+    },
+    {
+      descendant: ({ children: { axisButton } }) => axisButton,
+      values: ({ data }) => ({
+        isHorizontal: data.isHorizontal,
+        click: () => (data.isHorizontal = !data.isHorizontal)
+      })
+    }
+  ],
   className: 'min-h-200',
   html: ({
-    children: { icon, skeleton },
+    children: { icon, axisButton, skeleton },
     data: { photos, photoId, author },
     template,
     show,
@@ -51,15 +62,16 @@ export default fics({
     attributes: { boolean },
     isBrowser,
     isDeferred,
-    virtualScroll
+    scroll
   }) => {
     const skeletons = template`${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}`
 
     if (!isBrowser || !isDeferred) return skeletons
 
     return template`
+      ${axisButton}
       <div class="photos">
-        ${virtualScroll(
+        ${scroll(
           photos,
           ({ id, author, isLoaded }, index) => template`
             <div class="relative h-50" key="${id}-container">
@@ -137,26 +149,17 @@ export default fics({
   actions: {
     img: {
       load: [
-        ({ data, attributes: { key } }) => {
-          const { photos } = data,
-            photo = photos.find(({ id }) => id === key)
-
-          if (photo && !photo.isLoaded) {
-            photo.isLoaded = true
-            data.photos = [...photos]
-          }
-        },
+        ({ data, attributes: { key } }) =>
+          (data.photos = data.photos.map(photo =>
+            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
+          )),
         { once: true }
       ],
       error: [
         ({ data, event: { currentTarget }, attributes: { key } }) => {
-          const { photos } = data,
-            photo = photos.find(({ id }) => id === key)
-
-          if (photo && !photo.isLoaded) {
-            photo.isLoaded = true
-            data.photos = [...photos]
-          }
+          data.photos = data.photos.map(photo =>
+            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
+          )
 
           if (currentTarget) {
             const img = currentTarget as HTMLImageElement
@@ -194,15 +197,18 @@ export default fics({
       ]
     }
   },
-  scroll: {
-    unit: UNIT_LENGTH,
-    elementMinHeight: PHOTO_SIZE,
-    trigger: ({ data: { photos } }) => photos.length > 0,
-    throttle: 200,
-    method: async ({ data, crud }) =>
-      await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
-        data.photos = [...data.photos, ...photos]
-        goto(`/scroll?page=${data.page}`)
-      })
+  options: {
+    scroll: {
+      unit: UNIT_LENGTH,
+      elementMinSize: { height: PHOTO_SIZE, width: PHOTO_SIZE },
+      axis: ({ data: { isHorizontal } }) => ({ vertical: !isHorizontal, horizontal: isHorizontal }),
+      trigger: ({ data: { photos } }) => photos.length > 0,
+      throttle: 200,
+      method: async ({ data, crud }) =>
+        await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
+          data.photos = [...data.photos, ...photos]
+          goto(`/scroll?page=${data.page}`)
+        })
+    }
   }
 })
