@@ -41,7 +41,6 @@ import type {
   Props,
   Sanitized,
   Scroll,
-  ScrollAxis,
   SingleOrArray,
   SSEMethod,
   Style,
