@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
 import { goto, queries } from 'ficsjs/router'
-import { absoluteCenter, cssVar, flexCenter } from 'ficsjs/style'
+import { absoluteCenter, cssVar, flexCenter, hideScrollbar } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import AxisButton from '@/pages/scroll/_components/AxisButton'
@@ -55,7 +55,7 @@ export default fics({
   className: ({ data: { isHorizontal } }) => (isHorizontal ? '' : 'min-h-200'),
   html: ({
     children: { icon, axisButton, skeleton },
-    data: { photos, photoId, author },
+    data: { isHorizontal, photos, photoId, author },
     template,
     show,
     apiStatuses: { isLoading },
@@ -65,14 +65,14 @@ export default fics({
     scroll
   }) => {
     const skeletons = template`
-      <div class="skeletons">${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}</div>
+      <div class="flex-x">${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}</div>
     `
 
     if (!isBrowser || !isDeferred) return skeletons
 
     return template`
       ${axisButton}
-      <div class="photos">
+      <div class="flex-x">
         ${scroll(
           photos,
           ({ id, author, isLoaded }, index) => template`
@@ -94,8 +94,8 @@ export default fics({
             </div>
           `
         )}
+        ${isLoading ? skeletons : ''}
       </div>
-      ${isLoading ? skeletons : ''}
       <dialog
         id="photo-dialog"
         class="w-3xs rounded-lg border border-white"
@@ -112,8 +112,9 @@ export default fics({
   },
   css: {
     div: ({ data: { photos, isHorizontal } }) => ({
-      '&.skeletons': isHorizontal ? flexCenter('x') : {},
-      '&.photos': {
+      '&.flex-x': {
+        ...hideScrollbar,
+        ...(isHorizontal ? flexCenter('x') : {}),
         'div.relative': {
           ...flexCenter('xy'),
           ...(isHorizontal ? { marginBlock: cssVar('outline') } : {})
@@ -187,7 +188,7 @@ export default fics({
             data.photoElement = currentTarget
             if (!isOpening) return
 
-            const closeButton = ref('button')
+            const closeButton = ref('#photo-dialog button')
             if (closeButton instanceof HTMLButtonElement) setTimeout(() => closeButton.focus())
           }
         },
@@ -211,7 +212,7 @@ export default fics({
       elementMinSize: PHOTO_SIZE,
       axis: ({ data: { isHorizontal } }) => (isHorizontal ? 'horizontal' : 'vertical'),
       trigger: ({ data: { photos } }) => photos.length > 0,
-      throttle: 200,
+      rootMargin: `${PHOTO_SIZE}px`,
       method: async ({ data, crud }) =>
         await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
           data.photos = [...data.photos, ...photos]
