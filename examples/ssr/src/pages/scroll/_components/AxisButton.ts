@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import Icon from '@/components/Icon'
 import { dark } from '@/utils'
-import { MoveHorizontal, MoveVertical, X } from 'lucide-static'
+import { MoveHorizontal, MoveVertical } from 'lucide-static'
 
 export default fics<{}, { isHorizontal: boolean; click: () => void }>({
   name: 'axis-button',
