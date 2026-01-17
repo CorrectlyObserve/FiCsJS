@@ -212,22 +212,19 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
   start: number
   end: number
   isEnabled: boolean
-  totalHeight: number
-  elementHeights: Map<string, number>
-  prevTotalHeight: number
+  totalSize: number
+  elementSizes: Map<string, number>
+  prevTotalSize: number
   resizeObserver?: ResizeObserver
   intersectionObserver?: IntersectionObserver
   mutationObserver?: MutationObserver
 }
 
-export interface ScrollAxis {
-  vertical: boolean
-  horizontal: boolean
-}
+export type ScrollAxis = 'vertical' | 'horizontal'
 
 interface ScrollParams<D extends object, P> {
   unit: number
-  elementMinSize: { height?: number; width?: number }
+  elementMinSize: number
   axis: ScrollAxis | (({ data }: { data: D }) => ScrollAxis)
   trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
