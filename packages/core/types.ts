@@ -220,12 +220,10 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
   mutationObserver?: MutationObserver
 }
 
-export type ScrollAxis = 'vertical' | 'horizontal'
-
 interface ScrollParams<D extends object, P> {
   unit: number
   elementMinSize: number
-  axis: ScrollAxis | (({ data }: { data: D }) => ScrollAxis)
+  axis: 'vertical' | 'horizontal' | (({ data }: { data: D }) => 'vertical' | 'horizontal')
   trigger?: ({ data }: { data: D }) => boolean
   rootMargin?: string
   buffer?: number
