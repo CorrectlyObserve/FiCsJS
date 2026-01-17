@@ -171,9 +171,9 @@ export default class FiCsElement<D extends object, P extends object> {
               start: 0,
               end: (value as Options<D, P>[typeof key])?.unit,
               isEnabled: false,
-              totalHeight: NaN,
-              elementHeights: new Map(),
-              prevTotalHeight: NaN
+              totalSize: NaN,
+              elementSizes: new Map(),
+              prevTotalSize: NaN
             } as Options<D, P>[typeof key]
             break
         }
@@ -675,35 +675,26 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!this.#options.scroll)
           return template`${array.map((item, index) => callback(item, index))}`
 
-        const {
-          unit,
-          elementMinSize: { height, width },
-          axis,
-          start,
-          end,
-          buffer,
-          id
-        }: Scroll<D, P> = this.#options.scroll
+        const { unit, elementMinSize, axis, start, end, buffer, id }: Scroll<D, P> =
+          this.#options.scroll
 
-        numberError({ unit, height, width })
+        numberError({ unit, elementMinSize })
         if (buffer) numberError({ buffer }, false)
 
-        const { vertical, horizontal }: ScrollAxis =
-            typeof axis === 'function' ? axis({ data: this.#data }) : axis,
-          calcSize = (size: number): number => size * (end - start + (buffer ?? 0)),
+        const isVertical: boolean =
+            (typeof axis === 'function' ? axis({ data: this.#data }) : axis) === 'vertical',
+          style: string[] = [
+            `${isVertical ? 'height' : 'width'}:${
+              elementMinSize * (end - start + (buffer ?? 0))
+            }px;`,
+            `overflow-${isVertical ? 'y' : 'x'}:auto;`,
+            isVertical ? '' : 'display:flex;margin-inline:auto;'
+          ],
           endIndex: number = Array.isArray(array) ? array.length : end
 
-        let style: string = ''
-        if (vertical)
-          style += `${height === undefined ? '' : `height:${calcSize(height)}px;`}overflow-y:auto;`
-        if (horizontal)
-          style += `${width === undefined ? '' : `width:${calcSize(width)}px;`}overflow-x:auto;margin-inline:auto;`
-
         return template`
-          <div id="${id}" style="${style}">
-            <div style="${horizontal ? 'display:flex;overscroll-behavior-x: none;' : ''}">
+          <div id="${id}" style="${joinArray(style)}">
             ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
-            </div>
           </div>
         `
       }
