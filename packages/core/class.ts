@@ -1234,60 +1234,57 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
-    if (this.#options.scroll?.isEnabled === false) {
-      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#options.scroll,
-        _trigger: boolean | undefined = trigger?.({ data: this.#data })
+    if (!this.#options.scroll || this.#options.scroll.isEnabled) return
 
-      if (_trigger === undefined || _trigger) {
-        const root: HTMLElement | null = shadowRoot.getElementById(id)
-        if (!root)
-          throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
+    const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#options.scroll,
+      _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
-        this.#addEventListener({
-          element: root,
-          shadowRoot,
-          entries: [
-            [
-              'scroll',
-              [
-                ({ event }) => {
-                  const { scrollTop, scrollHeight, clientHeight } =
-                    event.currentTarget as HTMLElement
+    if (_trigger === false) return
 
-                  console.log(scrollTop, scrollHeight, clientHeight)
-                },
-                { throttle: throttle ?? 0 }
-              ]
-            ]
-          ]
-        })
+    const root: HTMLElement | null = shadowRoot.getElementById(id)
+    if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
 
-        let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
+    this.#addEventListener({
+      element: root,
+      shadowRoot,
+      entries: [
+        [
+          'scroll',
+          [
+            ({ event }) => {
+              const { scrollTop, scrollHeight, clientHeight } = event.currentTarget as HTMLElement
 
-        if (lastChild) {
-          const intersectionObserver: IntersectionObserver = new IntersectionObserver(
-            async ([{ isIntersecting }]) => {
-              if (isIntersecting) method(this.#getDataProps(true))
+              console.log(scrollTop, scrollHeight, clientHeight)
             },
-            { rootMargin }
-          )
+            { throttle: throttle ?? 0 }
+          ]
+        ]
+      ]
+    })
 
-          const mutationObserver = new MutationObserver(() => {
-            const { lastElementChild }: { lastElementChild: Element | null } = root
+    let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
+    if (!lastChild) return
 
-            if (lastElementChild && lastElementChild !== lastChild) {
-              if (lastChild) intersectionObserver.unobserve(lastChild)
-              intersectionObserver.observe(lastElementChild)
-              lastChild = lastElementChild
-            }
-          })
+    const intersectionObserver: IntersectionObserver = new IntersectionObserver(
+      ([{ isIntersecting }]) => {
+        if (isIntersecting) method(this.#getDataProps(true))
+      },
+      { rootMargin }
+    )
 
-          intersectionObserver.observe(lastChild)
-          mutationObserver.observe(root, { childList: true })
-          this.#options.scroll.isEnabled = true
-        }
+    const mutationObserver = new MutationObserver(() => {
+      const { lastElementChild }: { lastElementChild: Element | null } = root
+
+      if (lastElementChild && lastElementChild !== lastChild) {
+        if (lastChild) intersectionObserver.unobserve(lastChild)
+        intersectionObserver.observe(lastElementChild)
+        lastChild = lastElementChild
       }
-    }
+    })
+
+    intersectionObserver.observe(lastChild)
+    mutationObserver.observe(root, { childList: true })
+    this.#options.scroll.isEnabled = true
   }
 
   #openWebSocket(): WebSocket | undefined {
