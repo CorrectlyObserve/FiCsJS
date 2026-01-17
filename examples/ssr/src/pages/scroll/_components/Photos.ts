@@ -52,7 +52,7 @@ export default fics({
       })
     }
   ],
-  className: 'min-h-200',
+  className: ({ data: { isHorizontal } }) => (isHorizontal ? '' : 'min-h-200'),
   html: ({
     children: { icon, axisButton, skeleton },
     data: { photos, photoId, author },
@@ -64,7 +64,9 @@ export default fics({
     isDeferred,
     scroll
   }) => {
-    const skeletons = template`${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}`
+    const skeletons = template`
+      <div class="skeletons">${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}</div>
+    `
 
     if (!isBrowser || !isDeferred) return skeletons
 
@@ -96,7 +98,7 @@ export default fics({
       ${isLoading ? skeletons : ''}
       <dialog
         id="photo-dialog"
-        class="w-3xs rounded-lg"
+        class="w-3xs rounded-lg border border-white"
         open
         aria-modal="true"
         aria-labelledby="dialog-title"
@@ -109,15 +111,21 @@ export default fics({
     `
   },
   css: {
-    'div.photos': ({ data: { photos } }) => ({
-      'div.relative': flexCenter('xy'),
-      img: {
-        position: 'absolute',
-        top: 0,
-        '&:focus, &:focus-visible': {
-          zIndex: 1,
-          '&[data-index="0"]': { marginTop: cssVar('outline') },
-          [`&[data-index="${photos.length - 1}"]`]: { marginBottom: cssVar('outline') }
+    div: ({ data: { photos, isHorizontal } }) => ({
+      '&.skeletons': isHorizontal ? flexCenter('x') : {},
+      '&.photos': {
+        'div.relative': {
+          ...flexCenter('xy'),
+          ...(isHorizontal ? { marginBlock: cssVar('outline') } : {})
+        },
+        img: {
+          position: 'absolute',
+          top: 0,
+          '&:focus, &:focus-visible': {
+            zIndex: 1,
+            '&[data-index="0"]': { marginTop: cssVar('outline') },
+            [`&[data-index="${photos.length - 1}"]`]: { marginBottom: cssVar('outline') }
+          }
         }
       }
     }),
@@ -200,8 +208,8 @@ export default fics({
   options: {
     scroll: {
       unit: UNIT_LENGTH,
-      elementMinSize: { height: PHOTO_SIZE, width: PHOTO_SIZE },
-      axis: ({ data: { isHorizontal } }) => ({ vertical: !isHorizontal, horizontal: isHorizontal }),
+      elementMinSize: PHOTO_SIZE,
+      axis: ({ data: { isHorizontal } }) => (isHorizontal ? 'horizontal' : 'vertical'),
       trigger: ({ data: { photos } }) => photos.length > 0,
       throttle: 200,
       method: async ({ data, crud }) =>
