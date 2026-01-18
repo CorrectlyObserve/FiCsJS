@@ -821,17 +821,16 @@ export default class FiCsElement<D extends object, P extends object> {
           for (let i = 0; i < newAttrs.length; i++) {
             const { name, value, namespaceURI }: PickedAttr = newAttrs[i]
 
-            if (oldAttrList[name]?.value !== value) {
+            if (oldAttrList[name]?.value !== value)
               if (isHTMLElement(oldChildNode)) {
-                const isBoolean: boolean = that.#isBooleanAttr(name, value)
-                if (!isBoolean) oldChildNode.setAttribute(name, value)
+                const prop: string = convertStr(name, 'camel'),
+                  isBoolean: boolean = that.#isBooleanAttr(name, value)
 
-                const prop: string = convertStr(name, 'camel')
                 if (name !== consts.FICS_ID_ATTR && prop in oldChildNode)
                   Reflect.set(oldChildNode, prop, isBoolean ? true : value)
+                else if (!isBoolean) oldChildNode.setAttribute(name, value)
               } else if (namespaceURI) oldChildNode.setAttributeNS(namespaceURI, name, value)
               else oldChildNode.setAttribute(name, value)
-            }
 
             delete oldAttrList[name]
           }
