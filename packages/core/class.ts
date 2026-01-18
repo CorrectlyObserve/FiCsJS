@@ -37,6 +37,7 @@ import type {
   Method,
   Options,
   OptionParams,
+  PickedAttr,
   PollingOptions,
   Props,
   Sanitized,
@@ -810,36 +811,44 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const { attributes: oldAttrs }: { attributes: NamedNodeMap } = oldChildNode,
             { attributes: newAttrs }: { attributes: NamedNodeMap } = newChildNode,
-            oldAttrList: Record<string, string> = {}
+            oldAttrList: Record<string, Omit<PickedAttr, 'name'>> = {}
 
-          for (let index = 0; index < oldAttrs.length; index++) {
-            const { name, value }: { name: string; value: string } = oldAttrs[index]
-            oldAttrList[name] = value
+          for (let i = 0; i < oldAttrs.length; i++) {
+            const { name, value, namespaceURI, localName }: PickedAttr = oldAttrs[i]
+            oldAttrList[name] = { value, namespaceURI, localName }
           }
 
-          const { namespaceURI }: { namespaceURI: string | null } = oldChildNode
+          for (let i = 0; i < newAttrs.length; i++) {
+            const { name, value, namespaceURI }: PickedAttr = newAttrs[i]
 
-          for (let index = 0; index < newAttrs.length; index++) {
-            const { name, value }: { name: string; value: string } = newAttrs[index]
-
-            if (oldAttrList[name] !== value)
+            if (oldAttrList[name]?.value !== value) {
               if (isHTMLElement(oldChildNode)) {
                 const isBoolean: boolean = that.#isBooleanAttr(name, value)
                 if (!isBoolean) oldChildNode.setAttribute(name, value)
 
-                if (name !== consts.FICS_ID_ATTR)
-                  Reflect.set(oldChildNode, convertStr(name, 'camel'), isBoolean ? true : value)
-              } else oldChildNode.setAttributeNS(namespaceURI, name, value)
+                const prop: string = convertStr(name, 'camel')
+                if (name !== consts.FICS_ID_ATTR && prop in oldChildNode)
+                  Reflect.set(oldChildNode, prop, isBoolean ? true : value)
+              } else if (namespaceURI) oldChildNode.setAttributeNS(namespaceURI, name, value)
+              else oldChildNode.setAttribute(name, value)
+            }
 
             delete oldAttrList[name]
           }
 
           for (const name in oldAttrList)
             if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
-            else oldChildNode.removeAttributeNS(namespaceURI, name)
+            else {
+              const { namespaceURI, localName }: Omit<PickedAttr, 'name'> = oldAttrList[name]
 
-          if (isTextarea(oldChildNode) && isTextarea(newChildNode))
+              if (namespaceURI) oldChildNode.removeAttributeNS(namespaceURI, localName)
+              else oldChildNode.removeAttribute(name)
+            }
+
+          if (isTextarea(oldChildNode) && isTextarea(newChildNode)) {
             oldChildNode.value = newChildNode.value
+            return
+          }
 
           if (!!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))) return
 
