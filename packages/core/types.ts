@@ -125,7 +125,11 @@ export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
 
 export interface Hooks<D extends object, P> {
   created?: (params: HookParams<D, P>) => void
-  mounted?: (params: HookParams<D, P> & Poll) => void
+  mounted?: (
+    params: HookParams<D, P> & {
+      poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
+    }
+  ) => void
   updated?: { [K in keyof D]?: (params: HookParams<D, P>) => void }
   destroyed?: (params: HookParams<D, P>) => void
   adopted?: (params: HookParams<D, P>) => void
@@ -173,9 +177,7 @@ export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, '
   scroll?: ScrollParams<D, P>
 }
 
-interface Poll {
-  poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
-}
+export type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
 
 export interface PollingOptions {
   interval: number
