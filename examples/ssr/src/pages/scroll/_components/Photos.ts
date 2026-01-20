@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
-import { goto, queries } from 'ficsjs/router'
+import { queries } from 'ficsjs/router'
 import { absoluteCenter, cssVar, flexCenter, hideScrollbar } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
@@ -55,7 +55,7 @@ export default fics({
   className: ({ data: { isHorizontal } }) => (isHorizontal ? '' : 'min-h-200'),
   html: ({
     children: { icon, axisButton, skeleton },
-    data: { isHorizontal, photos, photoId, author },
+    data: { photos, photoId, author },
     template,
     show,
     apiStatuses: { isLoading },
@@ -212,12 +212,12 @@ export default fics({
       elementMinSize: PHOTO_SIZE,
       axis: ({ data: { isHorizontal } }) => (isHorizontal ? 'horizontal' : 'vertical'),
       trigger: ({ data: { photos } }) => photos.length > 0,
+      parameter: 'page',
       rootMargin: `${PHOTO_SIZE}px`,
       method: async ({ data, crud }) =>
-        await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
-          data.photos = [...data.photos, ...photos]
-          goto(`/scroll?page=${data.page}`)
-        })
+        await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
+          photos => (data.photos = [...data.photos, ...photos])
+        )
     }
   }
 })
