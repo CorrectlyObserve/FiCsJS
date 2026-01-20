@@ -1277,35 +1277,29 @@ export default class FiCsElement<D extends object, P extends object> {
     let isReady: boolean = false,
       intersectionCount: number = 1
 
-    const observe = (): IntersectionObserver =>
-      new IntersectionObserver(
-        ([{ isIntersecting }]) => {
-          if (!isIntersecting) return
+    const intersectionObserver: IntersectionObserver = new IntersectionObserver(
+      ([{ isIntersecting }]) => {
+        if (!isIntersecting) return
 
-          if (!isReady) {
-            isReady = true
-            intersectionObserver.disconnect()
-            intersectionObserver = observe()
-            intersectionObserver.observe(lastChild!)
-            return
-          }
-
-          method(this.#getDataProps(true))
-
-          if (parameter) {
-            const url = new URL(window.location.href)
-
-            url.searchParams.set(parameter, (++intersectionCount).toString())
-            window.history.replaceState(null, '', url.toString())
-          }
-        },
-        {
-          rootMargin:
-            !isReady && rootMargin !== undefined && rootMargin !== '0px' ? rootMargin : undefined
+        if (!isReady) {
+          isReady = true
+          return
         }
-      )
 
-    let intersectionObserver: IntersectionObserver = observe()
+        method(this.#getDataProps(true))
+
+        if (parameter) {
+          const url = new URL(window.location.href)
+
+          url.searchParams.set(parameter, (++intersectionCount).toString())
+          window.history.replaceState(null, '', url.toString())
+        }
+      },
+      {
+        rootMargin: rootMargin !== undefined && rootMargin !== '0px' ? rootMargin : undefined
+      }
+    )
+
     const mutationObserver: MutationObserver = new MutationObserver(() => {
       const { lastElementChild }: { lastElementChild: Element | null } = root
 
