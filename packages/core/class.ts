@@ -1275,7 +1275,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!lastChild) return
 
     let isFirstCalled: boolean = false,
-      intersectionCount: number = 0
+      intersectionCount: number = 1
 
     const intersectionObserver: IntersectionObserver = new IntersectionObserver(
       ([{ isIntersecting }]) => {
