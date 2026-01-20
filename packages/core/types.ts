@@ -227,6 +227,7 @@ interface ScrollParams<D extends object, P> {
   elementMinSize: number
   axis: 'vertical' | 'horizontal' | (({ data }: { data: D }) => 'vertical' | 'horizontal')
   trigger?: ({ data }: { data: D }) => boolean
+  parameter?: string
   rootMargin?: string
   buffer?: number
   throttle?: number
