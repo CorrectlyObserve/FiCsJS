@@ -56,11 +56,11 @@ export default fics({
     isHorizontal ? 'block w-full overflow-x-hidden' : 'min-h-200',
   html: ({
     children: { icon, axisButton, skeleton },
-    data: { photos, photoId, author },
+    data: { isHorizontal, photos, photoId, author },
     template,
     show,
     apiStatuses: { isLoading },
-    attributes: { boolean },
+    attributes: { statusLiveRegion, boolean },
     isBrowser,
     isDeferred,
     scroll
@@ -71,6 +71,9 @@ export default fics({
 
     return template`
       ${axisButton}
+      <p class="sr-only" ${statusLiveRegion}>
+        The current scroll axis is ${isHorizontal ? 'horizontal' : 'vertical'}.
+      </p>
       <div class="flex-x">
         ${scroll(
           photos,
