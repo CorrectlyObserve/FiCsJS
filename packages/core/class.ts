@@ -1274,31 +1274,39 @@ export default class FiCsElement<D extends object, P extends object> {
     let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
     if (!lastChild) return
 
-    let isFirstCalled: boolean = false,
+    let isReady: boolean = false,
       intersectionCount: number = 1
 
-    const intersectionObserver: IntersectionObserver = new IntersectionObserver(
-      ([{ isIntersecting }]) => {
-        if (!isIntersecting) return
+    const observe = (): IntersectionObserver =>
+      new IntersectionObserver(
+        ([{ isIntersecting }]) => {
+          if (!isIntersecting) return
 
-        method(this.#getDataProps(true))
+          if (!isReady) {
+            isReady = true
+            intersectionObserver.disconnect()
+            intersectionObserver = observe()
+            intersectionObserver.observe(lastChild!)
+            return
+          }
 
-        if (!isFirstCalled) {
-          isFirstCalled = true
-          return
+          method(this.#getDataProps(true))
+
+          if (parameter) {
+            const url = new URL(window.location.href)
+
+            url.searchParams.set(parameter, (++intersectionCount).toString())
+            window.history.replaceState(null, '', url.toString())
+          }
+        },
+        {
+          rootMargin:
+            !isReady && rootMargin !== undefined && rootMargin !== '0px' ? rootMargin : undefined
         }
+      )
 
-        if (parameter) {
-          const url = new URL(window.location.href)
-
-          url.searchParams.set(parameter, (++intersectionCount).toString())
-          window.history.replaceState(null, '', url.toString())
-        }
-      },
-      { rootMargin }
-    )
-
-    const mutationObserver = new MutationObserver(() => {
+    let intersectionObserver: IntersectionObserver = observe()
+    const mutationObserver: MutationObserver = new MutationObserver(() => {
       const { lastElementChild }: { lastElementChild: Element | null } = root
 
       if (lastElementChild && lastElementChild !== lastChild) {
