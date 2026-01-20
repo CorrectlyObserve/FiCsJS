@@ -1275,7 +1275,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!lastChild) return
 
     let isReady: boolean = false,
-      intersectionCount: number = 1
+      pageParam: number = 1
 
     const observe = (): IntersectionObserver =>
       new IntersectionObserver(
@@ -1295,7 +1295,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (parameter) {
             const url = new URL(window.location.href)
 
-            url.searchParams.set(parameter, (++intersectionCount).toString())
+            url.searchParams.set(parameter, (++pageParam).toString())
             window.history.replaceState(null, '', url.toString())
           }
         },
