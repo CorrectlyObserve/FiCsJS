@@ -1244,7 +1244,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
     if (!this.#options.scroll || this.#options.scroll.isEnabled) return
 
-    const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#options.scroll,
+    const { id, trigger, parameter, rootMargin, throttle, method }: Scroll<D, P> =
+        this.#options.scroll,
       _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
     if (_trigger === false) return
@@ -1273,9 +1274,26 @@ export default class FiCsElement<D extends object, P extends object> {
     let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
     if (!lastChild) return
 
+    let isFirstCalled: boolean = false,
+      intersectionCount: number = 0
+
     const intersectionObserver: IntersectionObserver = new IntersectionObserver(
       ([{ isIntersecting }]) => {
-        if (isIntersecting) method(this.#getDataProps(true))
+        if (!isIntersecting) return
+
+        method(this.#getDataProps(true))
+
+        if (!isFirstCalled) {
+          isFirstCalled = true
+          return
+        }
+
+        if (parameter) {
+          const url = new URL(window.location.href)
+
+          url.searchParams.set(parameter, (++intersectionCount).toString())
+          window.history.replaceState(null, '', url.toString())
+        }
       },
       { rootMargin }
     )
