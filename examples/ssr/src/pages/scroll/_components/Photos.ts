@@ -65,11 +65,9 @@ export default fics({
     isDeferred,
     scroll
   }) => {
-    const skeletons = template`
-      <div class="flex-x">${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}</div>
-    `
+    const skeletons = [...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)
 
-    if (!isBrowser || !isDeferred) return skeletons
+    if (!isBrowser || !isDeferred) return template`<div class="flex-x">${skeletons}</div>`
 
     return template`
       ${axisButton}
