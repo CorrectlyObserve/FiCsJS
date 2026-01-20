@@ -52,7 +52,8 @@ export default fics({
       })
     }
   ],
-  className: ({ data: { isHorizontal } }) => (isHorizontal ? '' : 'min-h-200'),
+  className: ({ data: { isHorizontal } }) =>
+    isHorizontal ? 'block w-full overflow-x-hidden' : 'min-h-200',
   html: ({
     children: { icon, axisButton, skeleton },
     data: { photos, photoId, author },
