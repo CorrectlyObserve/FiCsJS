@@ -100,7 +100,7 @@ export default fics({
       </div>
       <dialog
         id="photo-dialog"
-        class="w-3xs rounded-lg border border-white"
+        class="w-3xs rounded-lg border border-white z-1"
         open
         aria-modal="true"
         aria-labelledby="dialog-title"
@@ -113,21 +113,31 @@ export default fics({
     `
   },
   css: {
-    div: ({ data: { photos, isHorizontal } }) => ({
+    div: ({ data: { isHorizontal, photos } }) => ({
       '&.flex-x': {
         ...hideScrollbar,
         ...(isHorizontal ? flexCenter('x') : {}),
         'div.relative': {
           ...flexCenter('xy'),
-          ...(isHorizontal ? { marginBlock: cssVar('outline') } : {})
+          ...(isHorizontal
+            ? {
+                marginBlock: cssVar('outline'),
+                '&:first-child': { marginInlineStart: cssVar('outline') },
+                '&:last-child': { marginInlineEnd: cssVar('outline') }
+              }
+            : {})
         },
         img: {
           position: 'absolute',
           top: 0,
           '&:focus, &:focus-visible': {
             zIndex: 1,
-            '&[data-index="0"]': { marginTop: cssVar('outline') },
-            [`&[data-index="${photos.length - 1}"]`]: { marginBottom: cssVar('outline') }
+            '&[data-index="0"]': {
+              [`margin${isHorizontal ? 'Inline' : 'Block'}Start`]: cssVar('outline')
+            },
+            [`&[data-index="${photos.length - 1}"]`]: {
+              [`margin${isHorizontal ? 'Inline' : 'Block'}End`]: cssVar('outline')
+            }
           }
         }
       }
