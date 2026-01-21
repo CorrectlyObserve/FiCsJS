@@ -1,9 +1,10 @@
 import { fics } from 'ficsjs'
 import { fadeInOut } from 'ficsjs/animation'
-import { goto, queries } from 'ficsjs/router'
-import { absoluteCenter, cssVar, flexCenter } from 'ficsjs/style'
+import { queries } from 'ficsjs/router'
+import { absoluteCenter, cssVar, flexCenter, hideScrollbar } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import AxisButton from '@/pages/scroll/_components/AxisButton'
 import Skeleton from '@/pages/scroll/_components/Skeleton'
 import type { Photo } from '@/types'
 import { dark } from '@/utils'
@@ -13,8 +14,9 @@ const PHOTO_SIZE = 200 as const
 
 export default fics({
   name: 'photos',
-  children: [Icon(), Skeleton],
+  children: [Icon(), AxisButton, Skeleton],
   data: () => ({
+    isHorizontal: false,
     page: 0,
     photos: [] as Photo[],
     photoId: '',
@@ -29,37 +31,51 @@ export default fics({
       photos
     }))
   },
-  props: {
-    descendant: ({ children: { icon } }) => icon,
-    values: ({ data }) => ({
-      svg: CircleX,
-      areaLabel: 'Close the dialog',
-      click: () => {
-        data.photoId = ''
-        data.photoElement?.focus()
-        data.photoElement = null
-      }
-    })
-  },
-  className: 'min-h-200',
+  props: [
+    {
+      descendant: ({ children: { icon } }) => icon,
+      values: ({ data }) => ({
+        svg: CircleX,
+        areaLabel: 'Close the dialog',
+        click: () => {
+          data.photoId = ''
+          data.photoElement?.focus()
+          data.photoElement = null
+        }
+      })
+    },
+    {
+      descendant: ({ children: { axisButton } }) => axisButton,
+      values: ({ data }) => ({
+        isHorizontal: data.isHorizontal,
+        click: () => (data.isHorizontal = !data.isHorizontal)
+      })
+    }
+  ],
+  className: ({ data: { isHorizontal } }) =>
+    isHorizontal ? 'block w-full overflow-x-hidden' : 'min-h-200',
   html: ({
-    children: { icon, skeleton },
-    data: { photos, photoId, author },
+    children: { icon, axisButton, skeleton },
+    data: { isHorizontal, photos, photoId, author },
     template,
     show,
     apiStatuses: { isLoading },
-    attributes: { boolean },
+    attributes: { statusLiveRegion, boolean },
     isBrowser,
     isDeferred,
-    virtualScroll
+    scroll
   }) => {
-    const skeletons = template`${[...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)}`
+    const skeletons = [...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)
 
-    if (!isBrowser || !isDeferred) return skeletons
+    if (!isBrowser || !isDeferred) return template`<div class="flex-x">${skeletons}</div>`
 
     return template`
-      <div class="photos">
-        ${virtualScroll(
+      ${axisButton}
+      <p class="sr-only" ${statusLiveRegion}>
+        The current scroll axis is ${isHorizontal ? 'horizontal' : 'vertical'}.
+      </p>
+      <div class="flex-x">
+        ${scroll(
           photos,
           ({ id, author, isLoaded }, index) => template`
             <div class="relative h-50" key="${id}-container">
@@ -80,11 +96,11 @@ export default fics({
             </div>
           `
         )}
+        ${isLoading ? skeletons : ''}
       </div>
-      ${isLoading ? skeletons : ''}
       <dialog
         id="photo-dialog"
-        class="w-3xs rounded-lg"
+        class="w-3xs rounded-lg border border-white z-1"
         open
         aria-modal="true"
         aria-labelledby="dialog-title"
@@ -97,15 +113,32 @@ export default fics({
     `
   },
   css: {
-    'div.photos': ({ data: { photos } }) => ({
-      'div.relative': flexCenter('xy'),
-      img: {
-        position: 'absolute',
-        top: 0,
-        '&:focus, &:focus-visible': {
-          zIndex: 1,
-          '&[data-index="0"]': { marginTop: cssVar('outline') },
-          [`&[data-index="${photos.length - 1}"]`]: { marginBottom: cssVar('outline') }
+    div: ({ data: { isHorizontal, photos } }) => ({
+      '&.flex-x': {
+        ...hideScrollbar,
+        ...(isHorizontal ? flexCenter('x') : {}),
+        'div.relative': {
+          ...flexCenter('xy'),
+          ...(isHorizontal
+            ? {
+                marginBlock: cssVar('outline'),
+                '&:first-child': { marginInlineStart: cssVar('outline') },
+                '&:last-child': { marginInlineEnd: cssVar('outline') }
+              }
+            : {})
+        },
+        img: {
+          position: 'absolute',
+          top: 0,
+          '&:focus, &:focus-visible': {
+            zIndex: 1,
+            '&[data-index="0"]': {
+              [`margin${isHorizontal ? 'Inline' : 'Block'}Start`]: cssVar('outline')
+            },
+            [`&[data-index="${photos.length - 1}"]`]: {
+              [`margin${isHorizontal ? 'Inline' : 'Block'}End`]: cssVar('outline')
+            }
+          }
         }
       }
     }),
@@ -119,9 +152,10 @@ export default fics({
   hooks: {
     created: ({ data }) => {
       const initialPage = parseInt(queries().page)
-      if (!isNaN(initialPage)) data.page = initialPage
+      if (!isNaN(initialPage) && initialPage > 0) data.page = initialPage - 1
     },
-    mounted: ({ data, throttle }) =>
+    mounted: ({ data, throttle }) => {
+      window.history.scrollRestoration = 'manual'
       window.addEventListener(
         'keydown',
         throttle(event => {
@@ -133,30 +167,22 @@ export default fics({
           data.photoElement = null
         }, 1000)
       )
+    }
   },
   actions: {
     img: {
       load: [
-        ({ data, attributes: { key } }) => {
-          const { photos } = data,
-            photo = photos.find(({ id }) => id === key)
-
-          if (photo && !photo.isLoaded) {
-            photo.isLoaded = true
-            data.photos = [...photos]
-          }
-        },
+        ({ data, attributes: { key } }) =>
+          (data.photos = data.photos.map(photo =>
+            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
+          )),
         { once: true }
       ],
       error: [
         ({ data, event: { currentTarget }, attributes: { key } }) => {
-          const { photos } = data,
-            photo = photos.find(({ id }) => id === key)
-
-          if (photo && !photo.isLoaded) {
-            photo.isLoaded = true
-            data.photos = [...photos]
-          }
+          data.photos = data.photos.map(photo =>
+            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
+          )
 
           if (currentTarget) {
             const img = currentTarget as HTMLImageElement
@@ -176,7 +202,7 @@ export default fics({
             data.photoElement = currentTarget
             if (!isOpening) return
 
-            const closeButton = ref('button')
+            const closeButton = ref('#photo-dialog button')
             if (closeButton instanceof HTMLButtonElement) setTimeout(() => closeButton.focus())
           }
         },
@@ -194,15 +220,18 @@ export default fics({
       ]
     }
   },
-  scroll: {
-    unit: UNIT_LENGTH,
-    elementMinHeight: PHOTO_SIZE,
-    trigger: ({ data: { photos } }) => photos.length > 0,
-    throttle: 200,
-    method: async ({ data, crud }) =>
-      await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(photos => {
-        data.photos = [...data.photos, ...photos]
-        goto(`/scroll?page=${data.page}`)
-      })
+  options: {
+    scroll: {
+      unit: UNIT_LENGTH,
+      elementMinSize: PHOTO_SIZE,
+      axis: ({ data: { isHorizontal } }) => (isHorizontal ? 'horizontal' : 'vertical'),
+      trigger: ({ data: { photos } }) => photos.length > 0,
+      parameter: 'page',
+      rootMargin: `${PHOTO_SIZE}px`,
+      method: async ({ data, crud }) =>
+        await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
+          photos => (data.photos = [...data.photos, ...photos])
+        )
+    }
   }
 })

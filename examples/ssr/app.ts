@@ -16,17 +16,17 @@ const app = new Hono()
 app.get('/dist/*', serveStatic({ root: './' }))
 
 const template = ({
-  title,
-  description,
-  content,
-  path
-}: {
-  title: string
-  description: string
-  content: string
-  path: string
-}): string =>
-  `
+    title,
+    description,
+    content,
+    path
+  }: {
+    title: string
+    description: string
+    content: string
+    path: string
+  }): string =>
+    `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -45,10 +45,10 @@ const template = ({
         <script type="module" src="/dist/${path.replace(/^\/+/, '')}.js"></script>
       </body>
     </html>
-  `
+  `,
+  link = Link(),
+  chatButton = ChatButton()
 
-const link = Link()
-const chatButton = ChatButton()
 app.get('/', c =>
   c.html(
     template({

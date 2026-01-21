@@ -14,8 +14,7 @@ export default <D extends object, P extends object>({
   css,
   hooks,
   actions,
-  options,
-  scroll
+  options
 }: Omit<FiCs<D, P>, 'isExceptional' | 'instanceId' | 'clonedCss'>): FiCsElement<D, P> =>
   new FiCsElement<D, P>({
     name,
@@ -30,6 +29,5 @@ export default <D extends object, P extends object>({
     css,
     hooks,
     actions,
-    options,
-    scroll
+    options
   })

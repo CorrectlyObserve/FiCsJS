@@ -13,7 +13,8 @@ export default ficsLink<{ id: number; title: string; completedAt?: number; statu
       a: {
         display: 'flex',
         color: white(),
-        padding: `${cssVar('md')} ${calc(`${cssVar('xs')} / 2`)}`,
+        paddingBlock: cssVar('md'),
+        paddingInline: calc(`${cssVar('xl')} / 2`),
         lineHeight: 1,
         span: {
           width: '100%',
