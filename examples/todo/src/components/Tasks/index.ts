@@ -168,17 +168,17 @@ export default fics<Data, Props>({
   css: {
     div: {
       '&.menu': {
-        marginBottom: cssVar('xl'),
+        marginBlockEnd: cssVar('xl'),
         div: {
           ...flexCenter('xy'),
-          marginBottom: cssVar('md'),
-          '&:last-child': { marginBottom: 0 },
-          '.input': { marginRight: cssVar('outline') },
+          marginBlockEnd: cssVar('md'),
+          '&:last-child': { marginBlockEnd: 0 },
+          '.input': { marginInlineEnd: cssVar('outline') },
           span: { paddingInline: cssVar('outline') }
         },
         [`@media (max-width: ${sm})`]: {
-          marginBottom: cssVar('md'),
-          div: { marginBottom: cssVar('xs') }
+          marginBlockEnd: cssVar('md'),
+          div: { marginBlockEnd: cssVar('xs') }
         }
       },
       '&.task': {
@@ -186,8 +186,8 @@ export default fics<Data, Props>({
         width: sm,
         maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
         marginInline: 'auto',
-        marginBottom: cssVar('xs'),
-        '&:last-child': { marginBottom: 0 },
+        marginBlockEnd: cssVar('xs'),
+        '&:last-child': { marginBlockEnd: 0 },
         [`@media (max-width: ${sm})`]: { width: '100%' },
         div: {
           ...flexCenter('y'),
