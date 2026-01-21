@@ -23,7 +23,7 @@ export default fics<{}, Props>({
   css: {
     div: {
       ...flexCenter('x', 'column'),
-      label: { paddingBottom: cssVar('xs') },
+      label: { paddingBlockEnd: cssVar('xs') },
       p: forScreenReaders,
       textarea: {
         height: calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6)),
