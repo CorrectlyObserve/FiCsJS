@@ -71,7 +71,6 @@ export interface FiCs<D extends object, P extends object> {
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
   options?: OptionParams<D, P>
-  scroll?: ScrollParams<D, P>
 }
 
 export type GlobalCss = GlobalCssContent | string
@@ -85,7 +84,7 @@ export type Html<D extends object, P extends object> = (
     HtmlSyntaxes<D, P> & {
       isBrowser: boolean
       isDeferred: boolean
-      virtualScroll: <T>(
+      scroll: <T>(
         array: T[],
         callback: (item: T, index: number) => Sanitized<D, P>
       ) => Sanitized<D, P>
@@ -126,7 +125,11 @@ export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
 
 export interface Hooks<D extends object, P> {
   created?: (params: HookParams<D, P>) => void
-  mounted?: (params: HookParams<D, P> & Poll) => void
+  mounted?: (
+    params: HookParams<D, P> & {
+      poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
+    }
+  ) => void
   updated?: { [K in keyof D]?: (params: HookParams<D, P>) => void }
   destroyed?: (params: HookParams<D, P>) => void
   adopted?: (params: HookParams<D, P>) => void
@@ -166,15 +169,15 @@ export interface Options<D extends object, P> {
     onerror?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
   }
+  scroll?: Scroll<D, P>
 }
 
-export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr'> {
+export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr' | 'scroll'> {
   ssr?: boolean
+  scroll?: ScrollParams<D, P>
 }
 
-interface Poll {
-  poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
-}
+export type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
 
 export interface PollingOptions {
   interval: number
@@ -211,9 +214,9 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
   start: number
   end: number
   isEnabled: boolean
-  totalHeight: number
-  elementHeights: Map<string, number>
-  prevTotalHeight: number
+  totalSize: number
+  elementSizes: Map<string, number>
+  prevTotalSize: number
   resizeObserver?: ResizeObserver
   intersectionObserver?: IntersectionObserver
   mutationObserver?: MutationObserver
@@ -221,8 +224,10 @@ export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
 
 interface ScrollParams<D extends object, P> {
   unit: number
-  elementMinHeight: number
+  elementMinSize: number
+  axis: 'vertical' | 'horizontal' | (({ data }: { data: D }) => 'vertical' | 'horizontal')
   trigger?: ({ data }: { data: D }) => boolean
+  parameter?: string
   rootMargin?: string
   buffer?: number
   throttle?: number
