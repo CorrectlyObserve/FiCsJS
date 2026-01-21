@@ -94,6 +94,11 @@ export default class FiCsElement<D extends object, P extends object> {
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
+  #scrollObservers?: {
+    root: HTMLElement
+    intersection: IntersectionObserver
+    mutation: MutationObserver
+  }
   #poll?: ReturnType<typeof setTimeout>
   #hasDescribed: boolean = false
 
@@ -1242,7 +1247,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
-    if (!this.#options.scroll || this.#options.scroll.isEnabled) return
+    if (!this.#options.scroll) return
 
     const { id, trigger, parameter, rootMargin, throttle, method }: Scroll<D, P> =
         this.#options.scroll,
@@ -1252,6 +1257,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const root: HTMLElement | null = shadowRoot.getElementById(id)
     if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
+
+    if (this.#options.scroll.isEnabled && this.#scrollObservers?.root === root) return
+
+    if (this.#scrollObservers) {
+      this.#scrollObservers.intersection.disconnect()
+      this.#scrollObservers.mutation.disconnect()
+      this.#scrollObservers = undefined
+      this.#options.scroll.isEnabled = false
+    }
 
     this.#addEventListener({
       element: root,
@@ -1274,38 +1288,37 @@ export default class FiCsElement<D extends object, P extends object> {
     let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
     if (!lastChild) return
 
-    let isReady: boolean = false,
-      pageParam: number = 1
+    let pageParam: number = 1
 
-    const observe = (): IntersectionObserver =>
-      new IntersectionObserver(
-        ([{ isIntersecting }]) => {
-          if (!isIntersecting) return
+    if (parameter) {
+      const url: URL = new URL(window.location.href),
+        value: string | null = url.searchParams.get(parameter)
 
-          if (!isReady) {
-            isReady = true
-            intersectionObserver.disconnect()
-            intersectionObserver = observe()
-            intersectionObserver.observe(lastChild!)
-            return
-          }
+      if (value) {
+        const numValue: number = Number(value)
 
-          method(this.#getDataProps(true))
+        numberError({ [parameter]: numValue }, true)
+        pageParam = numValue
+      }
+    }
 
-          if (parameter) {
-            const url = new URL(window.location.href)
+    const intersectionObserver: IntersectionObserver = new IntersectionObserver(
+      ([{ isIntersecting }]) => {
+        if (!isIntersecting) return
 
-            url.searchParams.set(parameter, (++pageParam).toString())
-            window.history.replaceState(null, '', url.toString())
-          }
-        },
-        {
-          rootMargin:
-            !isReady && rootMargin !== undefined && rootMargin !== '0px' ? rootMargin : undefined
+        method(this.#getDataProps(true))
+
+        if (parameter) {
+          const url: URL = new URL(window.location.href)
+
+          if (pageParam === 1) pageParam++
+
+          url.searchParams.set(parameter, (pageParam++).toString())
+          window.history.replaceState(null, '', url.toString())
         }
-      )
-
-    let intersectionObserver: IntersectionObserver = observe()
+      },
+      { rootMargin }
+    )
     const mutationObserver: MutationObserver = new MutationObserver(() => {
       const { lastElementChild }: { lastElementChild: Element | null } = root
 
@@ -1318,6 +1331,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     intersectionObserver.observe(lastChild)
     mutationObserver.observe(root, { childList: true })
+    this.#scrollObservers = { root, intersection: intersectionObserver, mutation: mutationObserver }
     this.#options.scroll.isEnabled = true
   }
 
