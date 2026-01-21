@@ -90,7 +90,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
             right: 0,
             display: 'flex',
             gap: calc(`${cssVar('outline')} * 2`),
-            marginTop: calc(`${cssVar('outline')} * 2`)
+            marginBlockStart: calc(`${cssVar('outline')} * 2`)
           }
         }
       }
