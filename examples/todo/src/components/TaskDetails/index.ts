@@ -64,7 +64,10 @@ export default fics<Data, Props>({
     },
     {
       descendant: ({ children: { input } }) => input,
-      values: ({ data: { labels, isError, error, descriptions, placeholders }, props: { draft, editTask } }) => ({
+      values: ({
+        data: { labels, isError, error, descriptions, placeholders },
+        props: { draft, editTask }
+      }) => ({
         id: 'title',
         label: labels[0],
         isError: isError(draft),
@@ -177,16 +180,16 @@ export default fics<Data, Props>({
       fieldset: {
         display: 'flex',
         flexDirection: 'column',
-        marginBottom: cssVar('md'),
+        marginBlockEnd: cssVar('md'),
         border: 0,
-        legend: { paddingBottom: cssVar('xs') },
+        legend: { paddingBlockEnd: cssVar('xs') },
         button: { paddingInline: cssVar('md'), '&:hover': { background: white(0.1) } },
         div: { ...flexCenter('y'), button: { paddingInline: cssVar('outline') } }
       },
       p: {
-        marginBottom: cssVar('xs'),
+        marginBlockEnd: cssVar('xs'),
         textAlign: 'left',
-        '&:last-of-type': { marginBottom: cssVar('xl') }
+        '&:last-of-type': { marginBlockEnd: cssVar('xl') }
       },
       '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 2`) }
     }
