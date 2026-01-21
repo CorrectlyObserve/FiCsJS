@@ -51,8 +51,8 @@ export default fics<Data, { lang: Lang }>({
     p: {
       '&[role="status"]': forScreenReaders,
       '&[aria-hidden="true"]': {
-        marginBottom: cssVar('xl'),
-        [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+        marginBlockEnd: cssVar('xl'),
+        [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
       }
     }
   },
