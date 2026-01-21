@@ -84,12 +84,15 @@ export default <T>() =>
     css: {
       div: ({ data: { height } }) => ({
         '&[tabindex="0"]:hover': { background: white(0.1) },
+        '&[draggable="true"].is-dragging:focus, &[draggable="true"].is-dragging:focus-visible': {
+          outline: 'none'
+        },
         '&.dragged-over': {
           height: `${height}px`,
           background: white(0.05),
           borderColor: oklch('#4169e1')
         },
-        '&.mb-height': { marginBottom: `${height}px` }
+        '&.mb-height': { marginBlockEnd: `${height}px` }
       })
     },
     hooks: {
@@ -167,8 +170,11 @@ export default <T>() =>
 
           data.draggingIndex = index
 
-          const { offsetHeight } = data.getDraggableElement(event.currentTarget) || {}
-          data.height = offsetHeight || 0
+          const draggableElement = data.getDraggableElement(event.currentTarget)
+          if (draggableElement) {
+            draggableElement.classList.add('is-dragging')
+            data.height = draggableElement.offsetHeight
+          }
         },
         dragover: [
           ({ data, event, attributes: { key } }) => {
@@ -204,9 +210,12 @@ export default <T>() =>
           },
           { throttle: 200 }
         ],
-        dragend: ({ data }) => {
+        dragend: ({ data, event }) => {
           data.draggingIndex = NaN
           if (data.droppedZone) data.droppedZone = null
+
+          const draggableElement = data.getDraggableElement(event.currentTarget)
+          if (draggableElement) draggableElement.classList.remove('is-dragging')
         },
         click: [
           ({

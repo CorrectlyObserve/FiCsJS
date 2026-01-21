@@ -9,6 +9,7 @@ import {
   joinArray,
   numberError,
   toArray,
+  typedEntries,
   uid
 } from './helpers'
 import { i18n } from './i18n'
@@ -36,6 +37,7 @@ import type {
   Method,
   Options,
   OptionParams,
+  PickedAttr,
   PollingOptions,
   Props,
   Sanitized,
@@ -84,7 +86,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hooks<D, P> = {}
   readonly #actions: Actions<D, P> = {}
   readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
-  readonly #scroll: Scroll<D, P> = {} as Scroll<D, P>
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
@@ -93,6 +94,11 @@ export default class FiCsElement<D extends object, P extends object> {
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
   #websocket?: WebSocketProp
+  #scrollObservers?: {
+    root: HTMLElement
+    intersection: IntersectionObserver
+    mutation: MutationObserver
+  }
   #poll?: ReturnType<typeof setTimeout>
   #hasDescribed: boolean = false
 
@@ -112,8 +118,7 @@ export default class FiCsElement<D extends object, P extends object> {
     clonedCss,
     hooks,
     actions,
-    options,
-    scroll
+    options
   }: FiCs<D, P>) {
     name = name.trim()
     if (name === '') throw new Error('The FiCsElement name must be a non-empty string...')
@@ -138,7 +143,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#isBrowser = isBrowser()
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse }: OptionParams<D, P> = options
+      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: OptionParams<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -152,9 +157,32 @@ export default class FiCsElement<D extends object, P extends object> {
         this.#options.rootMargin = rootMargin
       }
 
-      if (websocket && !isBlankObject(websocket) && this.#isBrowser)
-        this.#options.websocket = { ...websocket }
-      if (sse && !isBlankObject(sse) && this.#isBrowser) this.#options.sse = { ...sse }
+      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
+        if (!value || isBlankObject(value) || !this.#isBrowser) continue
+
+        switch (key) {
+          case 'websocket':
+            this.#options[key] = { ...value } as Options<D, P>[typeof key]
+            break
+
+          case 'sse':
+            this.#options[key] = { ...value } as Options<D, P>[typeof key]
+            break
+
+          case 'scroll':
+            this.#options[key] = {
+              ...value,
+              id: `${this.#instanceId}-scroll`,
+              start: 0,
+              end: (value as Options<D, P>[typeof key])?.unit,
+              isEnabled: false,
+              totalSize: NaN,
+              elementSizes: new Map(),
+              prevTotalSize: NaN
+            } as Options<D, P>[typeof key]
+            break
+        }
+      }
     }
 
     if (children)
@@ -173,9 +201,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (let [key, value] of Object.entries({ ...data(), ...attrData })) {
-        const _key = key.trim() as keyof D
-        this.#rawData[_key] = value as D[typeof _key]
+      for (let [key, value] of typedEntries({ ...data(), ...attrData } as D)) {
+        this.#rawData[key] = value
 
         if ((deferredData || i18nData) && this.#isBrowser) {
           this.#isDeferred = false
@@ -270,17 +297,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (hooks && !isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
-    if (scroll && !isBlankObject(scroll) && this.#isBrowser)
-      this.#scroll = {
-        ...scroll,
-        id: `${this.#instanceId}-scroll`,
-        start: 0,
-        end: scroll.unit,
-        isEnabled: false,
-        totalHeight: NaN,
-        elementHeights: new Map(),
-        prevTotalHeight: NaN
-      }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -299,8 +315,7 @@ export default class FiCsElement<D extends object, P extends object> {
       clonedCss: this.#css,
       actions: this.#actions,
       hooks: this.#hooks,
-      options: this.#options,
-      scroll: this.#scroll
+      options: this.#options
     })
   }
 
@@ -658,22 +673,32 @@ export default class FiCsElement<D extends object, P extends object> {
       },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
-      virtualScroll: <T>(
+      scroll: <T>(
         array: T[],
         callback: (item: T, index: number) => Sanitized<D, P>
       ): Sanitized<D, P> => {
-        if (!this.#scroll) return template`${array.map((item, index) => callback(item, index))}`
+        if (!this.#options.scroll)
+          return template`${array.map((item, index) => callback(item, index))}`
 
-        const { unit, elementMinHeight, start, end, buffer, id }: Scroll<D, P> = this.#scroll
+        const { unit, elementMinSize, axis, start, end, buffer, id }: Scroll<D, P> =
+          this.#options.scroll
 
-        numberError({ unit, elementMinHeight })
+        numberError({ unit, elementMinSize })
         if (buffer) numberError({ buffer }, false)
 
-        const height: number = elementMinHeight * (end - start + (buffer ?? 0)),
+        const isVertical: boolean =
+            (typeof axis === 'function' ? axis({ data: this.#data }) : axis) === 'vertical',
+          style: string[] = [
+            `${isVertical ? 'height' : 'width'}:${
+              elementMinSize * (end - start + (buffer ?? 0))
+            }px;`,
+            `overflow-${isVertical ? 'y' : 'x'}:auto;`,
+            isVertical ? '' : 'display:flex;margin-inline:auto;'
+          ],
           endIndex: number = Array.isArray(array) ? array.length : end
 
         return template`
-          <div id="${id}" style="height:${height}px; overflow-y:auto;">
+          <div id="${id}" style="${joinArray(style)}">
             ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
           </div>
         `
@@ -791,36 +816,43 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const { attributes: oldAttrs }: { attributes: NamedNodeMap } = oldChildNode,
             { attributes: newAttrs }: { attributes: NamedNodeMap } = newChildNode,
-            oldAttrList: Record<string, string> = {}
+            oldAttrList: Record<string, Omit<PickedAttr, 'name'>> = {}
 
-          for (let index = 0; index < oldAttrs.length; index++) {
-            const { name, value }: { name: string; value: string } = oldAttrs[index]
-            oldAttrList[name] = value
+          for (let i = 0; i < oldAttrs.length; i++) {
+            const { name, value, namespaceURI, localName }: PickedAttr = oldAttrs[i]
+            oldAttrList[name] = { value, namespaceURI, localName }
           }
 
-          const { namespaceURI }: { namespaceURI: string | null } = oldChildNode
+          for (let i = 0; i < newAttrs.length; i++) {
+            const { name, value, namespaceURI }: PickedAttr = newAttrs[i]
 
-          for (let index = 0; index < newAttrs.length; index++) {
-            const { name, value }: { name: string; value: string } = newAttrs[index]
-
-            if (oldAttrList[name] !== value)
+            if (oldAttrList[name]?.value !== value)
               if (isHTMLElement(oldChildNode)) {
-                const isBoolean: boolean = that.#isBooleanAttr(name, value)
-                if (!isBoolean) oldChildNode.setAttribute(name, value)
+                const prop: string = convertStr(name, 'camel'),
+                  isBoolean: boolean = that.#isBooleanAttr(name, value)
 
-                if (name !== consts.FICS_ID_ATTR)
-                  Reflect.set(oldChildNode, convertStr(name, 'camel'), isBoolean ? true : value)
-              } else oldChildNode.setAttributeNS(namespaceURI, name, value)
+                if (name !== consts.FICS_ID_ATTR && prop in oldChildNode)
+                  Reflect.set(oldChildNode, prop, isBoolean ? true : value)
+                else if (!isBoolean) oldChildNode.setAttribute(name, value)
+              } else if (namespaceURI) oldChildNode.setAttributeNS(namespaceURI, name, value)
+              else oldChildNode.setAttribute(name, value)
 
             delete oldAttrList[name]
           }
 
           for (const name in oldAttrList)
             if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
-            else oldChildNode.removeAttributeNS(namespaceURI, name)
+            else {
+              const { namespaceURI, localName }: Omit<PickedAttr, 'name'> = oldAttrList[name]
 
-          if (isTextarea(oldChildNode) && isTextarea(newChildNode))
+              if (namespaceURI) oldChildNode.removeAttributeNS(namespaceURI, localName)
+              else oldChildNode.removeAttribute(name)
+            }
+
+          if (isTextarea(oldChildNode) && isTextarea(newChildNode)) {
             oldChildNode.value = newChildNode.value
+            return
+          }
 
           if (!!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))) return
 
@@ -1215,60 +1247,92 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
-    if (this.#scroll.isEnabled === false) {
-      const { id, rootMargin, trigger, throttle, method }: Scroll<D, P> = this.#scroll,
-        _trigger: boolean | undefined = trigger?.({ data: this.#data })
+    if (!this.#options.scroll) return
 
-      if (_trigger === undefined || _trigger) {
-        const root: HTMLElement | null = shadowRoot.getElementById(id)
-        if (!root)
-          throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
+    const { id, trigger, parameter, rootMargin, throttle, method }: Scroll<D, P> =
+        this.#options.scroll,
+      _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
-        this.#addEventListener({
-          element: root,
-          shadowRoot,
-          entries: [
-            [
-              'scroll',
-              [
-                ({ event }) => {
-                  const { scrollTop, scrollHeight, clientHeight } =
-                    event.currentTarget as HTMLElement
+    if (_trigger === false) return
 
-                  console.log(scrollTop, scrollHeight, clientHeight)
-                },
-                { throttle: throttle ?? 0 }
-              ]
-            ]
-          ]
-        })
+    const root: HTMLElement | null = shadowRoot.getElementById(id)
+    if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
 
-        let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
+    if (this.#options.scroll.isEnabled && this.#scrollObservers?.root === root) return
 
-        if (lastChild) {
-          const intersectionObserver: IntersectionObserver = new IntersectionObserver(
-            async ([{ isIntersecting }]) => {
-              if (isIntersecting) method(this.#getDataProps(true))
+    if (this.#scrollObservers) {
+      this.#scrollObservers.intersection.disconnect()
+      this.#scrollObservers.mutation.disconnect()
+      this.#scrollObservers = undefined
+      this.#options.scroll.isEnabled = false
+    }
+
+    this.#addEventListener({
+      element: root,
+      shadowRoot,
+      entries: [
+        [
+          'scroll',
+          [
+            ({ event }) => {
+              const { scrollTop, scrollHeight, clientHeight } = event.currentTarget as HTMLElement
+
+              console.log(scrollTop, scrollHeight, clientHeight)
             },
-            { rootMargin }
-          )
+            { throttle: throttle ?? 0 }
+          ]
+        ]
+      ]
+    })
 
-          const mutationObserver = new MutationObserver(() => {
-            const { lastElementChild }: { lastElementChild: Element | null } = root
+    let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
+    if (!lastChild) return
 
-            if (lastElementChild && lastElementChild !== lastChild) {
-              if (lastChild) intersectionObserver.unobserve(lastChild)
-              intersectionObserver.observe(lastElementChild)
-              lastChild = lastElementChild
-            }
-          })
+    let pageParam: number = 1
 
-          intersectionObserver.observe(lastChild)
-          mutationObserver.observe(root, { childList: true })
-          this.#scroll.isEnabled = true
-        }
+    if (parameter) {
+      const url: URL = new URL(window.location.href),
+        value: string | null = url.searchParams.get(parameter)
+
+      if (value) {
+        const numValue: number = Number(value)
+
+        numberError({ [parameter]: numValue }, true)
+        pageParam = numValue
       }
     }
+
+    const intersectionObserver: IntersectionObserver = new IntersectionObserver(
+      ([{ isIntersecting }]) => {
+        if (!isIntersecting) return
+
+        method(this.#getDataProps(true))
+
+        if (parameter) {
+          const url: URL = new URL(window.location.href)
+
+          if (pageParam === 1) pageParam++
+
+          url.searchParams.set(parameter, (pageParam++).toString())
+          window.history.replaceState(null, '', url.toString())
+        }
+      },
+      { rootMargin }
+    )
+    const mutationObserver: MutationObserver = new MutationObserver(() => {
+      const { lastElementChild }: { lastElementChild: Element | null } = root
+
+      if (lastElementChild && lastElementChild !== lastChild) {
+        if (lastChild) intersectionObserver.unobserve(lastChild)
+        intersectionObserver.observe(lastElementChild)
+        lastChild = lastElementChild
+      }
+    })
+
+    intersectionObserver.observe(lastChild)
+    mutationObserver.observe(root, { childList: true })
+    this.#scrollObservers = { root, intersection: intersectionObserver, mutation: mutationObserver }
+    this.#options.scroll.isEnabled = true
   }
 
   #openWebSocket(): WebSocket | undefined {
@@ -1476,10 +1540,10 @@ export default class FiCsElement<D extends object, P extends object> {
           if (that.#deferredData || that.#i18nData)
             that.#enqueue(async () => {
               if (that.#deferredData)
-                for (const [key, value] of Object.entries(
-                  await that.#deferredData(that.#getDataProps(true))
+                for (const [key, value] of typedEntries(
+                  (await that.#deferredData(that.#getDataProps(true))) as D
                 ))
-                  that.#data[key as keyof D] = value as D[keyof D]
+                  that.#data[key] = value
 
               if (that.#i18nData)
                 for (const [key, value] of Object.entries(
@@ -1722,9 +1786,7 @@ export default class FiCsElement<D extends object, P extends object> {
       `
     }
 
-    if (data)
-      for (const [key, value] of Object.entries(data))
-        this.#data[key as keyof D] = value as D[keyof D]
+    if (data) for (const [key, value] of typedEntries(data as D)) this.#data[key] = value
 
     return render(this, data)
   }

@@ -79,7 +79,7 @@ export default fics<
         ),
         maxWidth: cssVar('chat-width'),
         'div[key]': {
-          '&:last-child': { marginBottom: '0' },
+          '&:last-child': { marginBlockEnd: '0' },
           div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
         }
       },

@@ -10,8 +10,14 @@ export function calc(arg: string | Operator, ...remaining: (string | number)[]):
 
 export const cssVar = (variable: string): Readonly<string> => {
   variable = variable.trim()
-  return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})`
+  return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})` as const
 }
+
+export const hideScrollbar = {
+  '::-webkit-scrollbar': { display: 'none' },
+  'scrollbar-width': 'none',
+  '-ms-overflow-style': 'none'
+} as const
 
 export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
