@@ -23,14 +23,15 @@ export default {
   h2: {
     fontSize: cssVar('lg'),
     lineHeight: 1.5,
-    marginBottom: cssVar('xl'),
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBottom: cssVar('lg') }
+    marginBlockEnd: cssVar('xl'),
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
   },
   'label:hover': { cursor: 'pointer' },
   'input, textarea': {
     minWidth: calc(`${cssVar('md')} * 20`),
     maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
-    padding: `${calc(`${cssVar('xs')} * 1.5`)} ${cssVar('md')}`,
+    paddingBlock: calc(`${cssVar('xs')} * 1.5`),
+    paddingInline: cssVar('md'),
     lineHeight: 1.5,
     border: `1px solid ${white()}`
   },
