@@ -152,9 +152,10 @@ export default fics({
   hooks: {
     created: ({ data }) => {
       const initialPage = parseInt(queries().page)
-      if (!isNaN(initialPage)) data.page = initialPage
+      if (!isNaN(initialPage) && initialPage > 0) data.page = initialPage - 1
     },
-    mounted: ({ data, throttle }) =>
+    mounted: ({ data, throttle }) => {
+      window.history.scrollRestoration = 'manual'
       window.addEventListener(
         'keydown',
         throttle(event => {
@@ -166,6 +167,7 @@ export default fics({
           data.photoElement = null
         }, 1000)
       )
+    }
   },
   actions: {
     img: {
