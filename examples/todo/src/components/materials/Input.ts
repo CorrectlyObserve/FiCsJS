@@ -48,12 +48,12 @@ export default () =>
     css: {
       div: ({ props: { isError, error } }) => ({
         ...flexCenter('x', 'column'),
-        label: { paddingBottom: cssVar('xs') },
+        label: { paddingBlockEnd: cssVar('xs') },
         p: {
           '&:first-of-type': {
             fontSize: cssVar('sm'),
             color: cssVar('red'),
-            marginBottom: cssVar('xs'),
+            marginBlockEnd: cssVar('xs'),
             textAlign: 'left'
           },
           '&:last-of-type': forScreenReaders
