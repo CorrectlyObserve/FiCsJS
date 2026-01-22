@@ -568,6 +568,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     for (const className of oldClassNames)
       if (!newClassNames.has(className)) component.classList.remove(className)
+
+    if (component.classList.length === 0) component.removeAttribute('class')
   }
 
   get #computedAttrs(): [string, string][] {
