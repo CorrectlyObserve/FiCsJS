@@ -696,12 +696,11 @@ export default class FiCsElement<D extends object, P extends object> {
             }px;`,
             `overflow-${isVertical ? 'y' : 'x'}:auto;`,
             isVertical ? '' : 'display:flex;margin-inline:auto;'
-          ],
-          endIndex: number = Array.isArray(array) ? array.length : end
+          ]
 
         return template`
           <div id="${id}" style="${joinArray(style)}">
-            ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
+            ${array.slice(start, Math.min(end, array.length)).map((item, index) => callback(item, index))}
           </div>
         `
       }
@@ -1299,7 +1298,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (value) {
         const numValue: number = Number(value)
 
-        numberError({ [parameter]: numValue }, true)
+        numberError({ [parameter]: numValue })
         pageParam = numValue
       }
     }
