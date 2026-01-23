@@ -98,6 +98,7 @@ export default class FiCsElement<D extends object, P extends object> {
     root: HTMLElement
     intersection: IntersectionObserver
     mutation: MutationObserver
+    resize: ResizeObserver
   }
   #poll?: ReturnType<typeof setTimeout>
   #hasDescribed: boolean = false
@@ -680,26 +681,50 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!this.#options.scroll)
           return template`${array.map((item, index) => callback(item, index))}`
 
-        const { unit, elementMinSize, axis, start, end, buffer, id }: Scroll<D, P> =
+        const { unit, elementMinSize, axis, start, end, buffer, id, elementSizes }: Scroll<D, P> =
           this.#options.scroll
 
         numberError({ unit, elementMinSize })
         if (buffer) numberError({ buffer }, false)
 
         const isVertical: boolean =
-            (typeof axis === 'function' ? axis({ data: this.#data }) : axis) === 'vertical',
+          (typeof axis === 'function' ? axis({ data: this.#data }) : axis) === 'vertical'
+
+        if (!isVertical)
+          return template`${array.map((item, index) => callback(item, index))}`
+
+        const count = array.length,
+          bufferSize = buffer ?? 0,
+          renderStart = Math.max(0, start - bufferSize),
+          renderEnd = Math.min(count, end + bufferSize),
+          totalSize = this.#calculateTotalSize(count, elementMinSize, elementSizes),
+          paddingTop = this.#calculateOffset(renderStart, elementMinSize, elementSizes),
+          paddingBottom = Math.max(
+            0,
+            totalSize - paddingTop - this.#calculateOffset(renderEnd, elementMinSize, elementSizes)
+          ),
           style: string[] = [
-            `${isVertical ? 'height' : 'width'}:${
-              elementMinSize * (end - start + (buffer ?? 0))
-            }px;`,
-            `overflow-${isVertical ? 'y' : 'x'}:auto;`,
-            isVertical ? '' : 'display:flex;margin-inline:auto;'
-          ],
-          endIndex: number = Array.isArray(array) ? array.length : end
+            `height:${elementMinSize * unit}px;`,
+            'overflow-y:auto;'
+          ]
+
+        this.#options.scroll.totalSize = totalSize
 
         return template`
-          <div id="${id}" style="${joinArray(style)}">
-            ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
+          <div
+            id="${id}"
+            data-scroll-count="${count}"
+            data-scroll-padding-top="${paddingTop}"
+            data-scroll-padding-bottom="${paddingBottom}"
+            style="${joinArray(style)}"
+          >
+            ${array.slice(renderStart, renderEnd).map(
+              (item, index) => template`
+                <div data-fics-scroll-item data-scroll-index="${renderStart + index}">
+                  ${callback(item, renderStart + index)}
+                </div>
+              `
+            )}
           </div>
         `
       }
@@ -720,6 +745,51 @@ export default class FiCsElement<D extends object, P extends object> {
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
     for (const childNode of target instanceof HTMLElement ? this.#getChildNodes(target) : target)
       childNode.remove()
+  }
+
+  #calculateTotalSize(
+    count: number,
+    elementMinSize: number,
+    elementSizes: Map<string, number>
+  ): number {
+    let totalSize = 0
+
+    for (let index = 0; index < count; index++) {
+      totalSize += elementSizes.get(index.toString()) ?? elementMinSize
+    }
+
+    return totalSize
+  }
+
+  #calculateOffset(
+    index: number,
+    elementMinSize: number,
+    elementSizes: Map<string, number>
+  ): number {
+    let offset = 0
+
+    for (let current = 0; current < index; current++) {
+      offset += elementSizes.get(current.toString()) ?? elementMinSize
+    }
+
+    return offset
+  }
+
+  #findIndexByOffset(
+    offset: number,
+    count: number,
+    elementMinSize: number,
+    elementSizes: Map<string, number>
+  ): number {
+    let currentOffset = 0
+
+    for (let index = 0; index < count; index++) {
+      const size = elementSizes.get(index.toString()) ?? elementMinSize
+      if (currentOffset + size > offset) return index
+      currentOffset += size
+    }
+
+    return Math.max(0, count - 1)
   }
 
   #buildHtml(shadowRoot: ShadowRoot, isInitialized?: boolean): void {
@@ -1249,8 +1319,18 @@ export default class FiCsElement<D extends object, P extends object> {
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
     if (!this.#options.scroll) return
 
-    const { id, trigger, parameter, rootMargin, throttle, method }: Scroll<D, P> =
-        this.#options.scroll,
+    const scroll: Scroll<D, P> = this.#options.scroll,
+      {
+        id,
+        trigger,
+        parameter,
+        rootMargin,
+        throttle,
+        method,
+        elementMinSize,
+        buffer,
+        elementSizes
+      }: Scroll<D, P> = scroll,
       _trigger: boolean | undefined = trigger?.({ data: this.#data })
 
     if (_trigger === false) return
@@ -1258,35 +1338,21 @@ export default class FiCsElement<D extends object, P extends object> {
     const root: HTMLElement | null = shadowRoot.getElementById(id)
     if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
 
-    if (this.#options.scroll.isEnabled && this.#scrollObservers?.root === root) return
+    const existingObserver = this.#scrollObservers?.root === root ? this.#scrollObservers : null
 
-    if (this.#scrollObservers) {
+    if (existingObserver) {
+      existingObserver.intersection.disconnect()
+      existingObserver.mutation.disconnect()
+      existingObserver.resize.disconnect()
+      this.#scrollObservers = undefined
+      scroll.isEnabled = false
+    } else if (this.#scrollObservers) {
       this.#scrollObservers.intersection.disconnect()
       this.#scrollObservers.mutation.disconnect()
+      this.#scrollObservers.resize.disconnect()
       this.#scrollObservers = undefined
-      this.#options.scroll.isEnabled = false
+      scroll.isEnabled = false
     }
-
-    this.#addEventListener({
-      element: root,
-      shadowRoot,
-      entries: [
-        [
-          'scroll',
-          [
-            ({ event }) => {
-              const { scrollTop, scrollHeight, clientHeight } = event.currentTarget as HTMLElement
-
-              console.log(scrollTop, scrollHeight, clientHeight)
-            },
-            { throttle: throttle ?? 0 }
-          ]
-        ]
-      ]
-    })
-
-    let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
-    if (!lastChild) return
 
     let pageParam: number = 1
 
@@ -1302,6 +1368,70 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     }
 
+    const getScrollCount = (): number => Number(root.dataset.scrollCount ?? 0),
+      bufferSize = buffer ?? 0
+
+    const updateLayout = (): void => {
+      const count = getScrollCount()
+      if (count <= 0) return
+
+      const totalSize = this.#calculateTotalSize(count, elementMinSize, elementSizes),
+        renderStart = Math.max(0, scroll.start - bufferSize),
+        renderEnd = Math.min(count, scroll.end + bufferSize),
+        paddingTop = this.#calculateOffset(renderStart, elementMinSize, elementSizes),
+        paddingBottom = Math.max(
+          0,
+          totalSize - paddingTop - this.#calculateOffset(renderEnd, elementMinSize, elementSizes)
+        )
+
+      scroll.totalSize = totalSize
+      root.style.paddingTop = `${paddingTop}px`
+      root.style.paddingBottom = `${paddingBottom}px`
+    }
+
+    const updateRange = (element: HTMLElement): void => {
+      const count = getScrollCount()
+      if (count <= 0) return
+
+      const { scrollTop, clientHeight } = element,
+        visibleStart = this.#findIndexByOffset(scrollTop, count, elementMinSize, elementSizes),
+        visibleEnd = this.#findIndexByOffset(
+          scrollTop + clientHeight,
+          count,
+          elementMinSize,
+          elementSizes
+        ),
+        nextStart = Math.max(0, visibleStart),
+        nextEnd = Math.min(count, visibleEnd + 1)
+
+      if (nextStart !== scroll.start || nextEnd !== scroll.end) {
+        scroll.start = nextStart
+        scroll.end = nextEnd
+        this.#enqueue(() => this.#reRender(true), 're-render')
+      }
+    }
+
+    this.#addEventListener({
+      element: root,
+      shadowRoot,
+      entries: [
+        [
+          'scroll',
+          [
+            ({ event }) => {
+              const target = event.currentTarget as HTMLElement
+
+              updateRange(target)
+              updateLayout()
+            },
+            { throttle: throttle ?? 0 }
+          ]
+        ]
+      ]
+    })
+
+    let lastObserved: Element | null = null
+
     const intersectionObserver: IntersectionObserver = new IntersectionObserver(
       ([{ isIntersecting }]) => {
         if (!isIntersecting) return
@@ -1310,29 +1440,64 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (parameter) {
           const url: URL = new URL(window.location.href)
-
-          if (pageParam === 1) pageParam++
-
           url.searchParams.set(parameter, (pageParam++).toString())
           window.history.replaceState(null, '', url.toString())
         }
       },
-      { rootMargin }
+      { root: root, rootMargin }
     )
-    const mutationObserver: MutationObserver = new MutationObserver(() => {
-      const { lastElementChild }: { lastElementChild: Element | null } = root
+    const resizeObserver: ResizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const target = entry.target as HTMLElement,
+          index = target.dataset.scrollIndex
 
-      if (lastElementChild && lastElementChild !== lastChild) {
-        if (lastChild) intersectionObserver.unobserve(lastChild)
-        intersectionObserver.observe(lastElementChild)
-        lastChild = lastElementChild
+        if (!index) continue
+
+        const size = entry.contentRect.height
+        if (size <= 0 || elementSizes.get(index) === size) continue
+
+        elementSizes.set(index, size)
       }
+
+      updateLayout()
+    })
+    const mutationObserver: MutationObserver = new MutationObserver(() => {
+      const items = root.querySelectorAll('[data-fics-scroll-item]')
+      const lastItem = items[items.length - 1]
+
+      if (lastObserved) intersectionObserver.unobserve(lastObserved)
+      if (lastItem) {
+        intersectionObserver.observe(lastItem)
+        lastObserved = lastItem
+      }
+
+      for (const item of items) resizeObserver.observe(item)
+
+      updateLayout()
     })
 
-    intersectionObserver.observe(lastChild)
-    mutationObserver.observe(root, { childList: true })
-    this.#scrollObservers = { root, intersection: intersectionObserver, mutation: mutationObserver }
-    this.#options.scroll.isEnabled = true
+    mutationObserver.observe(root, { childList: true, subtree: true })
+
+    const items = root.querySelectorAll('[data-fics-scroll-item]')
+    const lastItem = items[items.length - 1]
+
+    if (lastItem) {
+      intersectionObserver.observe(lastItem)
+      lastObserved = lastItem
+    }
+
+    for (const item of items) resizeObserver.observe(item)
+
+    updateLayout()
+    updateRange(root)
+
+    this.#scrollObservers = {
+      root,
+      intersection: intersectionObserver,
+      mutation: mutationObserver,
+      resize: resizeObserver
+    }
+    scroll.isEnabled = true
   }
 
   #openWebSocket(): WebSocket | undefined {
