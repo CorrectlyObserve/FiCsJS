@@ -227,7 +227,7 @@ export default fics({
       axis: ({ data: { isHorizontal } }) => (isHorizontal ? 'horizontal' : 'vertical'),
       trigger: ({ data: { photos } }) => photos.length > 0,
       parameter: 'page',
-      rootMargin: `${PHOTO_SIZE}px`,
+      rootMargin: PHOTO_SIZE,
       throttle: 200,
       method: async ({ data, crud }) =>
         await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
