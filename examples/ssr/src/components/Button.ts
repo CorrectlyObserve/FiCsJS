@@ -25,6 +25,13 @@ export default () =>
       }
     },
     actions: {
-      button: { click: [({ props: { click } }) => click(), { throttle: 500, blur: true }] }
+      button: {
+        click: [
+          ({ props: { isDisabled, click } }) => {
+            if (!isDisabled) click()
+          },
+          { throttle: 500, blur: true }
+        ]
+      }
     }
   })
