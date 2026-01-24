@@ -228,7 +228,7 @@ interface ScrollParams<D extends object, P> {
   axis: 'vertical' | 'horizontal' | (({ data }: { data: D }) => 'vertical' | 'horizontal')
   trigger?: ({ data }: { data: D }) => boolean
   parameter?: string
-  rootMargin?: string
+  rootMargin?: string | number
   buffer?: number
   throttle?: number
   method: (params: DataProps<D, P, true>) => void
