@@ -228,6 +228,7 @@ export default fics({
       trigger: ({ data: { photos } }) => photos.length > 0,
       parameter: 'page',
       rootMargin: PHOTO_SIZE,
+      buffer: 2,
       throttle: 200,
       method: async ({ data, crud }) =>
         await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
