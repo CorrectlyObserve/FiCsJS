@@ -870,6 +870,7 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
+            if (isElement(childNode) && !childNode.isConnected) that.#newElements.add(childNode)
         let oldStartIndex: number = 0,
           oldEndIndex: number = oldChildNodes.length - 1,
           oldStartNode: ChildNode = oldChildNodes[oldStartIndex],
