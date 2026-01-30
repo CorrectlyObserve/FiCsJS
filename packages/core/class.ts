@@ -870,7 +870,18 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
+        if (
+          parentNode instanceof Element &&
+          parentNode.getAttribute(that.#getScrollAttr('wrap', false)) === 'true'
+        ) {
+          for (const childNode of oldChildNodes) childNode.remove()
+          for (const childNode of newChildNodes) {
             if (isElement(childNode) && !childNode.isConnected) that.#newElements.add(childNode)
+            parentNode.appendChild(childNode)
+          }
+          return
+        }
+
         let oldStartIndex: number = 0,
           oldEndIndex: number = oldChildNodes.length - 1,
           oldStartNode: ChildNode = oldChildNodes[oldStartIndex],
