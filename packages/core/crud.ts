@@ -9,7 +9,7 @@ interface Ctx {
   options?: CrudOptions | CrudStreamOptions
 }
 
-export const runCrud = async <T>({
+export default async <T>({
   api,
   apiStatuses,
   enqueue,
