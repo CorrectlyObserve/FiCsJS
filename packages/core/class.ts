@@ -146,7 +146,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#isBrowser = isBrowser()
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: OptionParams<D, P> = options
+      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: OptionsCtx<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
