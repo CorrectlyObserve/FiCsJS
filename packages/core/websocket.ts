@@ -1,11 +1,11 @@
 import { isBlankObject } from './helpers'
-import type { GetDP, Options, WebSocketCtx, WebSocketProp } from './types'
+import type { GetDataProps, Options, WebSocketCtx, WebSocketProp } from './types'
 
 type WSOptions<D extends object, P extends object> = Options<D, P>['websocket']
 
 interface Ctx<D extends object, P extends object> {
   wsOptions: WSOptions<D, P>
-  getDataProps: GetDP<D, P>
+  getDataProps: GetDataProps<D, P>
   setWebSocketProp: (value?: WebSocketProp) => void
 }
 
