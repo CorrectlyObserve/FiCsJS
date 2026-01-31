@@ -1590,7 +1590,13 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#cache.component = this
 
           that.#infiniteVirtualScroll(this.#shadowRoot)
-          this.#websocket = that.#openWebSocket()
+
+          this.#websocket = openWebSocket({
+            wsOptions: that.#options.websocket,
+            getDataProps: that.#getDataProps.bind(that),
+            setWebSocketProp: (webSocketProp: WebSocketProp | undefined) =>
+              (that.#webSocketProp = webSocketProp)
+          })
 
           const {
             eventSource,
