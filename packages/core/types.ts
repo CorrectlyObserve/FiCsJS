@@ -168,9 +168,9 @@ export interface Options<D extends object, P> {
   sse?: {
     path: string
     withCredentials?: boolean
-    onopen?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
+    onopen?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
     onmessage?: SSEMethod<D, P>
-    onerror?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
+    onerror?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
   }
   scroll?: Scroll<D, P>
