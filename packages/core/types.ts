@@ -250,7 +250,7 @@ export interface Task {
 
 export type Translations = Record<string, unknown>
 
-export interface WebSocketParams<D extends object, P> extends DataProps<D, P, true> {
+export interface WebSocketCtx<D extends object, P> extends DataProps<D, P, true> {
   websocket: {
     send: (value: WebSocketValue) => void
     readyState: () => number
