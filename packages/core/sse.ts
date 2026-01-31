@@ -1,9 +1,16 @@
 import { isBlankObject } from './helpers'
-import type { ActionOptions, DataProps, DebounceThrottle, GetDP, Options, SSEMethod } from './types'
+import type {
+  ActionOptions,
+  DataProps,
+  DebounceThrottle,
+  GetDataProps,
+  Options,
+  SSEMethod
+} from './types'
 
 interface Ctx<D extends object, P extends object> extends DebounceThrottle {
   sseOptions: Options<D, P>['sse']
-  getDataProps: GetDP<D, P>
+  getDataProps: GetDataProps<D, P>
 }
 
 export const openEventSource = <D extends object, P extends object>({
