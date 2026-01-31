@@ -126,16 +126,8 @@ export interface HtmlSyntaxes<D extends object, P extends object> {
   }
 }
 
-export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
+export interface HooksCtx<D extends object, P> extends DataProps<D, P, true>, DebounceThrottle {
   ref: (selector: string) => Element | null
-  debounce: <T extends (...args: any[]) => void>(
-    func: T,
-    time: number
-  ) => (...args: Parameters<T>) => void
-  throttle: <T extends (...args: any[]) => void>(
-    func: T,
-    time: number
-  ) => (...args: Parameters<T>) => void
 }
 
 export interface Hooks<D extends object, P> {
