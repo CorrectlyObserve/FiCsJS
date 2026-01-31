@@ -349,15 +349,13 @@ export default class FiCsElement<D extends object, P extends object> {
   #crud<T>(api: string, options?: CrudOptions): Promise<T>
   #crud(api: string, options: CrudStreamOptions): Promise<void>
   async #crud<T>(api: string, options?: CrudOptions | CrudStreamOptions): Promise<T | void> {
-    return await runCrud(
-      {
-        api,
-        apiStatuses: this.#apiStatuses,
-        enqueue: this.#enqueue.bind(this),
-        reRender: this.#reRender.bind(this),
-        options
-      }
-    )
+    return await runCrud({
+      api,
+      apiStatuses: this.#apiStatuses,
+      enqueue: this.#enqueue.bind(this),
+      reRender: this.#reRender.bind(this),
+      options
+    })
   }
 
   get #bindCrud(): Crud {
