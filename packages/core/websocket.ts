@@ -9,7 +9,7 @@ interface Ctx<D extends object, P extends object> {
   setWebSocketProp: (value?: WebSocketProp) => void
 }
 
-export const openWebSocket = <D extends object, P extends object>({
+export default <D extends object, P extends object>({
   wsOptions,
   getDataProps,
   setWebSocketProp
