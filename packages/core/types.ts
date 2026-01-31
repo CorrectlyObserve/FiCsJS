@@ -84,7 +84,7 @@ export interface GlobalCssContent {
 }
 
 export type Html<D extends object, P extends object> = (
-  params: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
+  ctx: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
     HtmlSyntaxes<D, P> & {
       isBrowser: boolean
       isDeferred: boolean
