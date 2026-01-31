@@ -1156,7 +1156,7 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #debounce<T extends (...args: any[]) => void>(
+  #debounce<T extends (...args: Parameters<T>) => void>(
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
