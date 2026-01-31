@@ -144,7 +144,7 @@ export interface I18n {
 }
 
 export type Method<D extends object, P> = (
-  params: DataProps<D, P, true> & {
+  ctx: DataProps<D, P, true> & {
     event: Event
     ref: (selector: string) => Element | null
     attributes: Record<string, string>
