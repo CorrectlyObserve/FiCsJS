@@ -1446,7 +1446,7 @@ export default class FiCsElement<D extends object, P extends object> {
     browserError()
 
     const that: FiCsElement<D, P> = this,
-      { lazyLoad, rootMargin }: OptionParams<D, P> = that.#options
+      { lazyLoad, rootMargin }: OptionsCtx<D, P> = that.#options
 
     window.customElements.define(
       that.#name,
