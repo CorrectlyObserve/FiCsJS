@@ -160,10 +160,10 @@ export interface Options<D extends object, P> {
     path: string
     protocols?: SingleOrArray<string>
     reconnect?: { interval: number; max?: number; isExponential?: boolean }
-    onopen?: (params: WebSocketParams<D, P> & { event: Event }) => void
-    onmessage?: (params: WebSocketParams<D, P> & { event: MessageEvent }) => void
-    onerror?: (params: WebSocketParams<D, P> & { event: Event }) => void
-    onclose?: (params: WebSocketParams<D, P> & { event: CloseEvent }) => void
+    onopen?: (ctx: WebSocketCtx<D, P> & { event: Event }) => void
+    onmessage?: (ctx: WebSocketCtx<D, P> & { event: MessageEvent }) => void
+    onerror?: (ctx: WebSocketCtx<D, P> & { event: Event }) => void
+    onclose?: (ctx: WebSocketCtx<D, P> & { event: CloseEvent }) => void
   }
   sse?: {
     path: string
