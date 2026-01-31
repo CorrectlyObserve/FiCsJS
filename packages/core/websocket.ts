@@ -1,30 +1,26 @@
 import { isBlankObject } from './helpers'
-import type { DataProps, Options, WebSocketCtx, WebSocketProp } from './types'
+import type { GetDP, Options, WebSocketCtx, WebSocketProp } from './types'
+
+type WSOptions<D extends object, P extends object> = Options<D, P>['websocket']
+
+interface Ctx<D extends object, P extends object> {
+  wsOptions: WSOptions<D, P>
+  getDataProps: GetDP<D, P>
+  setWebSocketProp: (value?: WebSocketProp) => void
+}
 
 export const openWebSocket = <D extends object, P extends object>({
-  websocketConfig,
+  wsOptions,
   getDataProps,
   setWebSocketProp
-}: {
-  websocketConfig: Options<D, P>['websocket']
-  getDataProps: <B extends boolean = false>(isCrud?: B) => DataProps<D, P, B>
-  setWebSocketProp: (value?: WebSocketProp) => void
-}): WebSocket | undefined => {
-  const config: Options<D, P>['websocket'] | undefined = websocketConfig
-  if (!config || isBlankObject(config)) return undefined
+}: Ctx<D, P>): WebSocket | undefined => {
+  const ws: WSOptions<D, P> | undefined = wsOptions
+  if (!ws || isBlankObject(ws)) return undefined
 
   let reconnectedCount: number = 0,
     reconnectedTimer: ReturnType<typeof setTimeout> | null = null
 
-  const {
-      path,
-      protocols,
-      reconnect,
-      onopen,
-      onmessage,
-      onerror,
-      onclose
-    }: Options<D, P>['websocket'] = config,
+  const { path, protocols, reconnect, onopen, onmessage, onerror, onclose }: WSOptions<D, P> = ws,
     { protocol, host }: { protocol: string; host: string } = window.location
 
   const connect = (): WebSocket => {
@@ -65,11 +61,8 @@ export const openWebSocket = <D extends object, P extends object>({
 
     const autoReconnect = (): void => {
       if (reconnect && !reconnectedTimer) {
-        const {
-          interval,
-          max,
-          isExponential
-        }: NonNullable<Options<D, P>['websocket']>['reconnect'] = reconnect
+        const { interval, max, isExponential }: NonNullable<WSOptions<D, P>>['reconnect'] =
+          reconnect
 
         if ((max && reconnectedCount < max) || !max) {
           websocket.close()
