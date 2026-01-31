@@ -60,8 +60,8 @@ export interface FiCs<D extends object, P extends object> {
   componentId?: string
   children?: Descendant[]
   data?: () => Partial<D>
-  deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
-  i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
+  deferredData?: (ctx: DataProps<D, P, true>) => Promise<Partial<D>>
+  i18nData?: (ctx: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
