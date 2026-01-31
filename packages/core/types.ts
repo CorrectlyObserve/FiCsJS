@@ -131,15 +131,15 @@ export interface HooksCtx<D extends object, P> extends DataProps<D, P, true>, De
 }
 
 export interface Hooks<D extends object, P> {
-  created?: (ctx: HookParams<D, P>) => void
+  created?: (ctx: HooksCtx<D, P>) => void
   mounted?: (
-    ctx: HookParams<D, P> & {
+    ctx: HooksCtx<D, P> & {
       poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
     }
   ) => void
-  updated?: { [K in keyof D]?: (ctx: HookParams<D, P>) => void }
-  destroyed?: (ctx: HookParams<D, P>) => void
-  adopted?: (ctx: HookParams<D, P>) => void
+  updated?: { [K in keyof D]?: (ctx: HooksCtx<D, P>) => void }
+  destroyed?: (ctx: HooksCtx<D, P>) => void
+  adopted?: (ctx: HooksCtx<D, P>) => void
 }
 
 export interface I18n {
