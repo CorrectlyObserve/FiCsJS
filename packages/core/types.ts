@@ -81,7 +81,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Actions<D, P>
-  options?: OptionParams<D, P>
+  options?: OptionsCtx<D, P>
 }
 
 export type GetDP<D extends object, P extends object> = <B extends boolean = false>(
