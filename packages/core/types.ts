@@ -179,9 +179,9 @@ export interface Options<D extends object, P> {
   scroll?: Scroll<D, P>
 }
 
-export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr' | 'scroll'> {
+export interface OptionsCtx<D extends object, P> extends Omit<Options<D, P>, 'ssr' | 'scroll'> {
   ssr?: boolean
-  scroll?: ScrollParams<D, P>
+  scroll?: ScrollCtx<D, P>
 }
 
 export type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
