@@ -13,7 +13,7 @@ interface Ctx<D extends object, P extends object> extends DebounceThrottle {
   getDataProps: GetDataProps<D, P>
 }
 
-export const openEventSource = <D extends object, P extends object>({
+export default <D extends object, P extends object>({
   sseOptions,
   getDataProps,
   debounce,
