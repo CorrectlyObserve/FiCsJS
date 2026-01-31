@@ -231,7 +231,7 @@ interface ScrollParams<D extends object, P> {
 export type SingleOrArray<T> = T | T[]
 
 export type SSEMethod<D extends object, P> = (
-  params: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
+  ctx: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
 ) => void
 
 export type Style<D extends object, P> =
