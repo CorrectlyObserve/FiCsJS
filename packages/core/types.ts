@@ -214,17 +214,7 @@ export interface Props<D extends object, P> {
 export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
 
 export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
-  id: string
-  start: number
-  end: number
-  isEnabled: boolean
-  totalSize: number
-  elementSizes: Map<string, number>
-  prevTotalSize: number
-  resizeObserver?: ResizeObserver
-  intersectionObserver?: IntersectionObserver
-  mutationObserver?: MutationObserver
-}
+export type ScrollAxis = 'vertical' | 'horizontal'
 
 interface ScrollParams<D extends object, P> {
   unit: number
