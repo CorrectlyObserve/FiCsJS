@@ -73,6 +73,10 @@ export interface FiCs<D extends object, P extends object> {
   options?: OptionParams<D, P>
 }
 
+export type GetDP<D extends object, P extends object> = <B extends boolean = false>(
+  isCrud?: B
+) => DataProps<D, P, B>
+
 export type GlobalCss = GlobalCssContent | string
 
 export interface GlobalCssContent {
