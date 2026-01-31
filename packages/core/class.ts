@@ -15,6 +15,8 @@ import {
 } from './helpers'
 import { i18n } from './i18n'
 import enqueue from './queue'
+import openEventSource from './sse'
+import openWebSocket from './websocket'
 import type {
   Actions,
   ActionOptions,
