@@ -7,7 +7,7 @@ import type {
   Descendant,
   HtmlSyntaxes,
   Hooks,
-  OptionParams,
+  OptionsCtx,
   Props,
   Sanitized,
   SingleOrArray
@@ -39,7 +39,7 @@ export interface FiCsRouter<D extends object> {
   notFound?: PageContent<D>
   css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
   hooks?: Hooks<RouterData<D>, {}>
-  options?: OptionParams<RouterData<D>, {}>
+  options?: OptionsCtx<RouterData<D>, {}>
 }
 
 export interface Page<D extends object> extends PageContent<D> {
