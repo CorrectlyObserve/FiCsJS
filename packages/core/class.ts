@@ -530,7 +530,7 @@ export default class FiCsElement<D extends object, P extends object> {
                 ...this.#getDataProps(true),
                 children: this.#children,
                 sendToWebsocket: (value: WebSocketValue) =>
-                  this.#websocket?.isOpened() && this.#websocket.send(value)
+                  this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
               })
             ))
               _descendant.#props[key] = value
