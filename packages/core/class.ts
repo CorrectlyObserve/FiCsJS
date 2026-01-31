@@ -93,7 +93,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
-  #websocket?: WebSocketProp
+  #webSocketProp?: WebSocketProp
   #scrollObservers?: {
     root: HTMLElement
     intersection: IntersectionObserver
