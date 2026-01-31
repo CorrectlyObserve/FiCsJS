@@ -1602,7 +1602,12 @@ export default class FiCsElement<D extends object, P extends object> {
             eventSource,
             removeEventListeners
           }: { eventSource?: EventSource; removeEventListeners?: () => void } =
-            that.#openEventSource() || {}
+            openEventSource({
+              sseOptions: that.#options.sse,
+              getDataProps: that.#getDataProps.bind(that),
+              debounce: that.#debounce.bind(that),
+              throttle: that.#throttle.bind(that)
+            }) || {}
 
           if (eventSource) this.#eventSource = eventSource
           if (removeEventListeners) this.#removeEventListeners = removeEventListeners
