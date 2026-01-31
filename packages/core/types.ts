@@ -190,9 +190,9 @@ export interface PollingOptions {
 }
 
 export interface Props<D extends object, P> {
-  descendant: (params: { children: Children }) => SingleOrArray<Descendant>
+  descendant: (ctx: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: DataProps<D, P, true> & { children: Children } & {
+    ctx: DataProps<D, P, true> & { children: Children } & {
       sendToWebsocket: (value: WebSocketValue) => void
     }
   ) =>
