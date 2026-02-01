@@ -1426,7 +1426,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ): void => {
           numberError({ interval, max })
 
-          let times = 0
+          let times: number = 0
 
           const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
             if ((max && times >= max) || (exit && exit())) {
