@@ -362,13 +362,16 @@ export default class FiCsElement<D extends object, P extends object> {
     return this.#crud.bind(this) as Crud
   }
 
-  #removePublicMethod = (params: {
+  #removePublicMethod = ({
+    children,
+    method
+  }: {
     children?: Children
     method: 'getChildren' | 'setIndividualProps'
   }): void => {
     const { method }: { method: 'getChildren' | 'setIndividualProps' } = params
 
-    for (const child of Object.values(params.children ?? this.#children)) {
+    for (const child of Object.values(children ?? this.#children)) {
       if (Object.prototype.hasOwnProperty.call(child, method))
         if (method === 'getChildren') delete (child as { getChildren?: () => Children }).getChildren
         else if (method === 'setIndividualProps')
