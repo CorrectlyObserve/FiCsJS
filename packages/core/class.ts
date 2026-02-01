@@ -1411,7 +1411,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
-    const params: HookParams<D, P> = {
+    const ctx: HooksCtx<D, P> = {
       ...this.#getDataProps(true),
       ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
       debounce: this.#debounce.bind(this),
@@ -1442,8 +1442,8 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#poll = execute
         }
 
-      this.#hooks[key]({ ...params, poll })
-    } else this.#hooks[key](params)
+      this.#hooks[key]({ ...ctx, poll })
+    } else this.#hooks[key](ctx)
   }
 
   #define(): void {
