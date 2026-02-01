@@ -42,9 +42,7 @@ export interface CrudStreamOptions extends CrudOptions {
 
 export type Css<D extends object, P> = CssContent<D, P> | GlobalCss
 
-export interface CssContent<D extends object, P> {
-  [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
-}
+export type CssContent<D extends object, P> = Record<string, Style<D, P>>
 
 export type DataProps<D extends object, P, B extends boolean = false> = {
   data: D
