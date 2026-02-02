@@ -955,7 +955,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #cssToString({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
+  #cssToString(css: Css<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
     let topLevelCss: string = ''
@@ -984,12 +984,10 @@ export default class FiCsElement<D extends object, P extends object> {
       let _curr: string = ''
 
       for (let [selector, style] of Object.entries(curr)) {
-        if (Array.isArray(style) && style[1] !== mode) continue
-
-        if (mode === 'ssr' && selector.startsWith(consts.HOST_SELECTOR))
+        if (isSsr && selector.startsWith(consts.HOST_SELECTOR))
           selector = selector.replace(consts.HOST_SELECTOR, `div#${this.#name}`)
 
-        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
+        const content: string = convertCssContent(style),
           index: number = content.indexOf('{')
 
         if (selector.startsWith(consts.HOST_SELECTOR) && index > -1) {
