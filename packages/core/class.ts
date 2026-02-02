@@ -1713,7 +1713,7 @@ export default class FiCsElement<D extends object, P extends object> {
           applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
         ),
         css = (_css: Css<D, P>[]): string =>
-          _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
+          _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
       return `
         <${joinArray([that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''])}>
