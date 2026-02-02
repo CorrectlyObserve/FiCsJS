@@ -89,7 +89,7 @@ export type GetDataProps<D extends object, P extends object> = <B extends boolea
 export type GlobalCss = GlobalCssContent | string
 
 export interface GlobalCssContent {
-  [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
+  [key: string]: string | number | GlobalCssContent
 }
 
 export type Html<D extends object, P extends object> = (
