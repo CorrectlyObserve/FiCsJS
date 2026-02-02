@@ -1017,9 +1017,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(
-      this.#cssToString({ css: [`${consts.HOST_SELECTOR}{display:block}`, ...css], mode: 'csr' })
-    )
+    stylesheet.replaceSync(this.#cssToString([`${consts.HOST_SELECTOR}{display:block}`, ...css]))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
