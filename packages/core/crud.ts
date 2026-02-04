@@ -1,13 +1,5 @@
 import { numberError } from './helpers'
-import type { CrudOptions, CrudStreamOptions, Task } from './types'
-
-interface Ctx {
-  api: string
-  apiStatuses: Map<string, boolean>
-  enqueue: (func: () => void, key: Task['key']) => void
-  reRender: (isOnlyHtml?: boolean) => Promise<void>
-  options?: CrudOptions | CrudStreamOptions
-}
+import type { Crud } from './types'
 
 export default async <T>({
   api,
@@ -15,9 +7,9 @@ export default async <T>({
   enqueue,
   reRender,
   options
-}: Ctx): Promise<T | void> => {
-  const { key, timeout, maxRetry, delay, ..._options }: CrudOptions = options ?? {},
-    { onChunk } = options && 'onChunk' in options ? (options as CrudStreamOptions) : {}
+}: Crud.Ctx): Promise<T | void> => {
+  const { key, timeout, maxRetry, delay, ..._options }: Crud.Options = options ?? {},
+    { onChunk } = options && 'onChunk' in options ? (options as Crud.StreamOptions) : {}
 
   numberError({ timeout, maxRetry, delay })
 
