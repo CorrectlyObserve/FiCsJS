@@ -32,23 +32,33 @@ export type Children = Record<string, Descendant>
 
 export type ClassName<D extends object, P> = string | ((dataProps: DataProps<D, P>) => string)
 
-export type Crud = {
-  <T>(api: string, options?: CrudOptions): Promise<T>
-  (api: string, options: CrudStreamOptions): Promise<void>
-}
+export declare namespace Crud {
+  interface Ctx {
+    api: string
+    apiStatuses: Map<string, boolean>
+    enqueue: (func: () => void, key: Task['key']) => void
+    reRender: (isOnlyHtml?: boolean) => Promise<void>
+    options?: Options | StreamOptions
+  }
 
-export interface CrudOptions extends RequestInit {
-  key?: string
-  timeout?: number
-  maxRetry?: number
-  delay?: number
-}
+  type Fn = {
+    <T>(api: string, options?: Options): Promise<T>
+    (api: string, options: StreamOptions): Promise<void>
+  }
 
-export interface CrudStreamOptions extends CrudOptions {
-  /**
-    @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
-  */
-  onChunk: (chunk: string, index: number) => void
+  interface Options extends RequestInit {
+    key?: string
+    timeout?: number
+    maxRetry?: number
+    delay?: number
+  }
+
+  interface StreamOptions extends Options {
+    /**
+      @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
+    */
+    onChunk: (chunk: string, index: number) => void
+  }
 }
 
 export type Css<D extends object, P> = CssContent<D, P> | GlobalCss
