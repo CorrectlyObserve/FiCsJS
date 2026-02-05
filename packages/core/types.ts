@@ -107,41 +107,39 @@ export type GetDataProps<D extends object, P extends object> = <B extends boolea
   isCrud?: B
 ) => DataProps<D, P, B>
 
-export type GlobalCss = GlobalCssContent | string
+export declare namespace Html {
+  type Content<D extends object, P extends object> =
+    | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
+    | string
 
-export interface GlobalCssContent {
-  [key: string]: string | number | GlobalCssContent
-}
-
-export type Html<D extends object, P extends object> = (
-  ctx: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
-    HtmlSyntaxes<D, P> & {
-      isBrowser: boolean
-      isDeferred: boolean
-      scroll: <T>(
-        array: T[],
-        callback: (item: T, index: number) => Sanitized<D, P>
-      ) => Sanitized<D, P>
-    }
-) => Sanitized<D, P>
-
-export type HtmlContent<D extends object, P extends object> =
-  | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
-  | string
-
-export interface HtmlSyntaxes<D extends object, P extends object> {
-  children: Children
-  props: P
-  template: (
-    templates: TemplateStringsArray,
-    ...variables: (HtmlContent<D, P> | unknown)[]
+  type Core<D extends object, P extends object> = (
+    ctx: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
+      Syntaxes<D, P> & {
+        isBrowser: boolean
+        isDeferred: boolean
+        scroll: <T>(
+          array: T[],
+          callback: (item: T, index: number) => Sanitized<D, P>
+        ) => Sanitized<D, P>
+      }
   ) => Sanitized<D, P>
-  html: (str: string) => Record<symbol, string>
-  show: (condition: boolean) => string
-  apiStatuses: Record<string, boolean>
-  attributes: {
-    boolean: (condition: boolean | undefined) => 'true' | 'false'
-    statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
+
+  type Sanitized<D extends object, P extends object> = Record<symbol, Content<D, P>[]>
+
+  interface Syntaxes<D extends object, P extends object> {
+    children: Children
+    props: P
+    template: (
+      templates: TemplateStringsArray,
+      ...variables: (Content<D, P> | unknown)[]
+    ) => Sanitized<D, P>
+    html: (str: string) => Record<symbol, string>
+    show: (condition: boolean) => string
+    apiStatuses: Record<string, boolean>
+    attributes: {
+      boolean: (condition: boolean | undefined) => 'true' | 'false'
+      statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
+    }
   }
 }
 
