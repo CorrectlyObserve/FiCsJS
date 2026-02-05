@@ -1,10 +1,11 @@
 import FiCsElement from './class'
 import consts from './constants'
 
-export type Actions<D extends object, P> = Record<
-  string,
-  Record<string, Method<D, P> | [Method<D, P>, ActionOptions]>
->
+export declare namespace Action {
+  type Handlers<D extends object, P> = Record<
+    string,
+    Record<string, Method<D, P> | [Method<D, P>, Options]>
+  >
 
 export interface ActionOptions {
   debounce?: number
