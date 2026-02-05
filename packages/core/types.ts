@@ -7,11 +7,21 @@ export declare namespace Action {
     Record<string, Method<D, P> | [Method<D, P>, Options]>
   >
 
-export interface ActionOptions {
-  debounce?: number
-  throttle?: number
-  blur?: boolean
-  once?: boolean
+  type Method<D extends object, P> = (
+    ctx: DataProps<D, P, true> & {
+      event: Event
+      ref: (selector: string) => Element | null
+      attributes: Record<string, string>
+      value?: string
+    }
+  ) => void
+
+  interface Options {
+    debounce?: number
+    throttle?: number
+    blur?: boolean
+    once?: boolean
+  }
 }
 
 export type Attrs<D extends object, P> =
