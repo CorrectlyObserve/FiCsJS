@@ -32,9 +32,6 @@ import type {
   Hook,
   I18n,
   Options,
-  OptionsCtx,
-  PickedAttr,
-  PollingOptions,
   Props,
   Scroll,
   ScrollAxis,
@@ -80,7 +77,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #boundCss: number[] = new Array()
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
-  readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
@@ -138,7 +135,7 @@ export default class FiCsElement<D extends object, P extends object> {
     this.#isBrowser = isBrowser()
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: OptionsCtx<D, P> = options
+      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
       if (lazyLoad) this.#options.lazyLoad = true
@@ -1432,7 +1429,7 @@ export default class FiCsElement<D extends object, P extends object> {
     browserError()
 
     const that: FiCsElement<D, P> = this,
-      { lazyLoad, rootMargin }: OptionsCtx<D, P> = that.#options
+      { lazyLoad, rootMargin }: Options.Ctx<D, P> = that.#options
 
     window.customElements.define(
       that.#name,
