@@ -145,20 +145,28 @@ export declare namespace Html {
   }
 }
 
-export interface HooksCtx<D extends object, P> extends DataProps<D, P, true>, DebounceThrottle {
-  ref: (selector: string) => Element | null
-}
+export declare namespace Hook {
+  interface Ctx<D extends object, P> extends DataProps<D, P, true>, DebounceThrottle {
+    ref: (selector: string) => Element | null
+  }
 
-export interface Hooks<D extends object, P> {
-  created?: (ctx: HooksCtx<D, P>) => void
-  mounted?: (
-    ctx: HooksCtx<D, P> & {
-      poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
-    }
-  ) => void
-  updated?: { [K in keyof D]?: (ctx: HooksCtx<D, P>) => void }
-  destroyed?: (ctx: HooksCtx<D, P>) => void
-  adopted?: (ctx: HooksCtx<D, P>) => void
+  interface Lifecycle<D extends object, P> {
+    created?: (ctx: Ctx<D, P>) => void
+    mounted?: (
+      ctx: Ctx<D, P> & {
+        poll: (func: ({ times }: { times: number }) => void, options: Polling) => void
+      }
+    ) => void
+    updated?: { [K in keyof D]?: (ctx: Ctx<D, P>) => void }
+    destroyed?: (ctx: Ctx<D, P>) => void
+    adopted?: (ctx: Ctx<D, P>) => void
+  }
+
+  interface Polling {
+    interval: number
+    max?: number
+    exit?: () => boolean
+  }
 }
 
 export interface I18n {
