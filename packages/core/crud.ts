@@ -1,5 +1,5 @@
 import { numberError } from './helpers'
-import type { Crud } from './types'
+import type { Crud, SetTimeout } from './types'
 
 export default async <T>({
   api,
@@ -27,7 +27,7 @@ export default async <T>({
       while (true) {
         const controller: AbortController = new AbortController(),
           { signal }: { signal: AbortSignal } = controller
-        let timeoutId: ReturnType<typeof setTimeout> | undefined
+        let timeoutId: SetTimeout | undefined
 
         if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
 
