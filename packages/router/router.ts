@@ -5,7 +5,7 @@ import CUSTOM_EVENT_NAME from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
 import { getQueries, params } from './params'
-import type { FiCsRouter, Page, PageContent, RouterData } from './types'
+import type { FiCsRouter, Page, PageContent, Returned, RouterData } from './types'
 
 const setRouterData = <D extends object>(data: RouterData<D>, pathname: string): void => {
   const queries: Record<string, string> = getQueries()
@@ -85,7 +85,7 @@ export default <D extends object>({
             }
 
             if (content) {
-              const _content: Descendant | Sanitized<RouterData<D>, {}> = content({
+              const _content: Returned<RouterData<D>, {}> = content({
                 data,
                 template,
                 ...args
