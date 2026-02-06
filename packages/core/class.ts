@@ -87,7 +87,7 @@ export default class FiCsElement<D extends object, P extends object> {
     intersection: IntersectionObserver
     mutation: MutationObserver
   }
-  #poll?: ReturnType<typeof setTimeout>
+  #poll?: SetTimeout
   #hasDescribed: boolean = false
 
   constructor({
