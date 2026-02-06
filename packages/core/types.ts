@@ -68,7 +68,7 @@ export type CssContent<D extends object, P> = Record<string, Style<D, P>>
 export type DataProps<D extends object, P, B extends boolean = false> = {
   data: D
   props: P
-} & (B extends true ? { crud: Crud } : {})
+} & (B extends true ? { crud: Crud.Fn } : {})
 
 export interface DebounceThrottle {
   debounce: <T extends (...args: Parameters<T>) => void>(
