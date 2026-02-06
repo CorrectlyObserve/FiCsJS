@@ -29,12 +29,8 @@ import type {
   FiCs,
   GlobalCss,
   Html,
-  HtmlContent,
-  HtmlSyntaxes,
-  HooksCtx,
   Hook,
   I18n,
-  Method,
   Options,
   OptionsCtx,
   PickedAttr,
@@ -536,7 +532,7 @@ export default class FiCsElement<D extends object, P extends object> {
             !!(variable && isObject(variable) && symbol in variable),
           sanitize = (index: number, template: string, variable: unknown): void => {
             if (isSymbol(variable, sanitized))
-              converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
+              converted.push(template, ...(variable as Html.Sanitized<D, P>)[sanitized])
             else if (Array.isArray(variable)) {
               converted.push(template)
               for (const child of variable) sanitize(index, '', child)
@@ -727,7 +723,7 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const { attributes: oldAttrs }: { attributes: NamedNodeMap } = oldChildNode,
             { attributes: newAttrs }: { attributes: NamedNodeMap } = newChildNode,
-            oldAttrList: Record<string, Omit<PickedAttr, 'name'>> = {}
+            oldAttrList: Record<string, Omit<Html.PickedAttr, 'name'>> = {}
 
           for (let i = 0; i < oldAttrs.length; i++) {
             const { name, value, namespaceURI, localName }: Html.PickedAttr = oldAttrs[i]
