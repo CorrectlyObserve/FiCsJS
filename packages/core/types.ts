@@ -272,21 +272,41 @@ export interface Task {
 
 export type Translations = Record<string, unknown>
 
-export interface WebSocketCtx<D extends object, P> extends DataProps<D, P, true> {
-  websocket: {
-    send: (value: WebSocketValue) => void
-    readyState: () => number
-    bufferedAmount: () => number
-    binaryType: () => BinaryType
-    url: () => string
-    protocol: () => string
-    extensions: () => string
+export declare namespace WebSocket {
+  namespace Ctx {
+    interface Fn<D extends object, P extends object> {
+      options: WebSocket.Options<D, P> | undefined
+      getDataProps: GetDataProps<D, P>
+      setWebSocketProp: (value?: WebSocket.Prop) => void
+    }
+
+    interface Params<D extends object, P> extends DataProps<D, P, true> {
+      websocket: {
+        send: (value: Value) => void
+        readyState: () => number
+        bufferedAmount: () => number
+        binaryType: () => BinaryType
+        url: () => string
+        protocol: () => string
+        extensions: () => string
+      }
+    }
   }
-}
 
-export interface WebSocketProp {
-  send: (value: WebSocketValue) => void
-  isOpened: () => boolean
-}
+  interface Options<D extends object, P> {
+    path: string
+    protocols?: SingleOrArray<string>
+    reconnect?: { interval: number; max?: number; isExponential?: boolean }
+    onopen?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
+    onmessage?: (ctx: Ctx.Params<D, P> & { event: MessageEvent }) => void
+    onerror?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
+    onclose?: (ctx: Ctx.Params<D, P> & { event: CloseEvent }) => void
+  }
 
-export type WebSocketValue = string | Blob | ArrayBuffer | ArrayBufferView
+  interface Prop {
+    send: (value: Value) => void
+    isOpened: () => boolean
+  }
+
+  type Value = string | Blob | ArrayBuffer | ArrayBufferView
+}
