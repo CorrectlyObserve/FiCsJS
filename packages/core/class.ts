@@ -18,8 +18,7 @@ import enqueue from './queue'
 import openEventSource from './sse'
 import openWebSocket from './websocket'
 import type {
-  Actions,
-  ActionOptions,
+  Action,
   Attrs,
   Children,
   ClassName,
@@ -87,7 +86,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #css: Css<D, P>[] = new Array()
   readonly #boundCss: number[] = new Array()
   readonly #hooks: Hooks<D, P> = {}
-  readonly #actions: Actions<D, P> = {}
+  readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
@@ -1108,12 +1107,12 @@ export default class FiCsElement<D extends object, P extends object> {
   }: {
     element: Element
     shadowRoot: ShadowRoot
-    entries: [string, Method<D, P> | [Method<D, P>, ActionOptions]][]
+    entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
   }) {
     const addEventListener = (
       handler: string,
-      method: Method<D, P>,
-      options?: ActionOptions
+      method: Action.Method<D, P>,
+      options?: Action.Options
     ): void => {
       if (handler !== 'click' && options?.blur)
         throw new Error('The "blur" is enabled only if the handler is click...')
@@ -1125,7 +1124,7 @@ export default class FiCsElement<D extends object, P extends object> {
         attrs[name] = value
       }
 
-      const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
+      const { debounce, throttle, blur, once }: Action.Options = options ?? {}
 
       if (debounce && throttle)
         throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
