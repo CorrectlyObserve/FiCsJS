@@ -23,8 +23,6 @@ import type {
   Children,
   ClassName,
   Crud,
-  CrudOptions,
-  CrudStreamOptions,
   Css,
   DataProps,
   Descendant,
@@ -337,7 +335,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return {
       data: this.#data,
       props: this.#props,
-      crud: isCrud ? this.#bindCrud : undefined
+      crud: isCrud ? this.#crud.bind(this) : undefined
     } as DataProps<D, P, B>
   }
 
@@ -345,9 +343,9 @@ export default class FiCsElement<D extends object, P extends object> {
     enqueue({ instanceId: this.#instanceId, func, key })
   }
 
-  #crud<T>(api: string, options?: CrudOptions): Promise<T>
-  #crud(api: string, options: CrudStreamOptions): Promise<void>
-  async #crud<T>(api: string, options?: CrudOptions | CrudStreamOptions): Promise<T | void> {
+  #crud<T>(api: string, options?: Crud.Options): Promise<T>
+  #crud(api: string, options: Crud.StreamOptions): Promise<void>
+  async #crud<T>(api: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
     return await runCrud({
       api,
       apiStatuses: this.#apiStatuses,
@@ -355,10 +353,6 @@ export default class FiCsElement<D extends object, P extends object> {
       reRender: this.#reRender.bind(this),
       options
     })
-  }
-
-  get #bindCrud(): Crud {
-    return this.#crud.bind(this) as Crud
   }
 
   #removePublicMethod = ({
@@ -576,7 +570,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const contents: HtmlContent<D, P>[] = this.#html({
       ...this.#getDataProps(),
       children: this.#children,
-      crud: this.#bindCrud,
+      crud: this.#crud.bind(this),
       template: (
         strings: TemplateStringsArray,
         ...variables: (HtmlContent<D, P> | unknown)[]
