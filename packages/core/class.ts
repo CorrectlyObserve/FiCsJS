@@ -229,7 +229,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
           if (subscribers) for (const updater of subscribers) updater()
 
-          const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+          const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
           if (updated && key in updated)
             updated[key]!({
               ...this.#getDataProps(true),
