@@ -37,9 +37,7 @@ import type {
   SingleOrArray,
   SSE,
   Task,
-  WebSocketParams,
-  WebSocketProp,
-  WebSocketValue
+  WebSocket
 } from './types'
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -152,7 +150,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         switch (key) {
           case 'websocket':
-            this.#options[key] = { ...value } as Options<D, P>[typeof key]
+            this.#options[key] = { ...value } as WebSocket.Options<D, P>
             break
 
           case 'sse':
@@ -1486,10 +1484,9 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#infiniteVirtualScroll(this.#shadowRoot)
 
           this.#websocket = openWebSocket({
-            wsOptions: that.#options.websocket,
+            options: that.#options.websocket,
             getDataProps: that.#getDataProps.bind(that),
-            setWebSocketProp: (webSocketProp: WebSocketProp | undefined) =>
-              (that.#webSocketProp = webSocketProp)
+            setWebSocketProp: (prop: WebSocket.Prop | undefined) => (that.#webSocketProp = prop)
           })
 
           const {
