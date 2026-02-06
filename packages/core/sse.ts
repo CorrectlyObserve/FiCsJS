@@ -14,15 +14,14 @@ interface Ctx<D extends object, P extends object> extends DebounceThrottle {
 }
 
 export default <D extends object, P extends object>({
-  sseOptions,
+  options,
   getDataProps,
   debounce,
   throttle
-}: Ctx<D, P>): { eventSource: EventSource; removeEventListeners: () => void } | undefined => {
-  if (!sseOptions || isBlankObject(sseOptions)) return undefined
+}: SSE.Ctx<D, P>): { eventSource: EventSource; removeEventListeners: () => void } | undefined => {
+  if (!options || isBlankObject(options)) return undefined
 
-  const { path, withCredentials, onopen, onmessage, onerror, actions }: Options<D, P>['sse'] =
-      sseOptions,
+  const { path, withCredentials, onopen, onmessage, onerror, actions }: SSE.Options<D, P> = options,
     eventSource: EventSource = new EventSource(path, { withCredentials }),
     listeners: { handler: string; callback: (event: MessageEvent) => void }[] = [],
     removeEventListeners = () => {
@@ -43,7 +42,7 @@ export default <D extends object, P extends object>({
 
   const addEventListener = (
     handler: string,
-    method: SSEMethod<D, P>,
+    method: SSE.Method<D, P>,
     options?: ActionOptions
   ): void => {
     const { debounce: debounceTime, throttle: throttleTime, once }: ActionOptions = options ?? {}
