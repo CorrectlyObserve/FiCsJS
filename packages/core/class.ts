@@ -81,7 +81,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
-  #webSocketProp?: WebSocketProp
+  #webSocketProp?: WebSocket.Prop
   #scrollObservers?: {
     root: HTMLElement
     intersection: IntersectionObserver
@@ -425,7 +425,7 @@ export default class FiCsElement<D extends object, P extends object> {
               values({
                 ...this.#getDataProps(true),
                 children: this.#children,
-                sendToWebsocket: (value: WebSocketValue) =>
+                sendToWebsocket: (value: WebSocket.Value) =>
                   this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
               })
             ))
