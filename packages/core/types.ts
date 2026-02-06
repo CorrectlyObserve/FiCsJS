@@ -95,7 +95,7 @@ export interface FiCs<D extends object, P extends object> {
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
-  html: Html<D, P>
+  html: Html.Core<D, P>
   css?: SingleOrArray<CssContent<D, P> | string>
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
