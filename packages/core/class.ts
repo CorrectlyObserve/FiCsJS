@@ -33,7 +33,7 @@ import type {
   Options,
   Props,
   Scroll,
-  ScrollAxis,
+  SetTimeout,
   SingleOrArray,
   SSE,
   Task,
@@ -1054,7 +1054,7 @@ export default class FiCsElement<D extends object, P extends object> {
   ): (...args: Parameters<T>) => void {
     numberError({ time }, false)
 
-    let timeout: ReturnType<typeof setTimeout> | undefined
+    let timeout: SetTimeout | undefined
 
     return (...args: Parameters<T>): void => {
       if (timeout) clearTimeout(timeout)
@@ -1402,8 +1402,7 @@ export default class FiCsElement<D extends object, P extends object> {
           numberError({ interval, max })
 
           let times: number = 0
-
-          const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
+          const execute: SetTimeout = setTimeout(function run() {
             if ((max && times >= max) || (exit && exit())) {
               clearTimeout(execute)
               return
