@@ -124,6 +124,8 @@ export declare namespace Html {
       }
   ) => Sanitized<D, P>
 
+  type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
+
   type Sanitized<D extends object, P extends object> = Record<symbol, Content<D, P>[]>
 
   interface Syntaxes<D extends object, P extends object> {
