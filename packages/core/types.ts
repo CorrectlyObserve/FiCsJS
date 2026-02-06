@@ -110,8 +110,8 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html.Core<D, P>
-  css?: SingleOrArray<CssContent<D, P> | string>
-  clonedCss?: Css<D, P>[]
+  css?: SingleOrArray<Css.Rules<D, P> | string>
+  clonedCss?: Css.Sheet<D, P>[]
   hooks?: Hook.Lifecycle<D, P>
   actions?: Action.Handlers<D, P>
   options?: Options.Ctx<D, P>
