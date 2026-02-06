@@ -61,9 +61,23 @@ export declare namespace Crud {
   }
 }
 
-export type Css<D extends object, P> = CssContent<D, P> | GlobalCss
+export declare namespace Css {
+  interface Declarations {
+    [key: string]: string | number | undefined | Declarations
+  }
 
-export type CssContent<D extends object, P> = Record<string, Style<D, P>>
+  type Global = GlobalDeclarations | string
+
+  interface GlobalDeclarations {
+    [key: string]: string | number | GlobalDeclarations
+  }
+
+  type Rules<D extends object, P> = Record<string, Value<D, P>>
+
+  type Sheet<D extends object, P> = Rules<D, P> | Global
+
+  type Value<D extends object, P> = Declarations | ((dataProps: DataProps<D, P>) => Declarations)
+}
 
 export type DataProps<D extends object, P, B extends boolean = false> = {
   data: D
