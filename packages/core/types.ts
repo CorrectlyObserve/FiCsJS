@@ -98,7 +98,7 @@ export interface FiCs<D extends object, P extends object> {
   html: Html.Core<D, P>
   css?: SingleOrArray<CssContent<D, P> | string>
   clonedCss?: Css<D, P>[]
-  hooks?: Hooks<D, P>
+  hooks?: Hook.Lifecycle<D, P>
   actions?: Action.Handlers<D, P>
   options?: Options.Ctx<D, P>
 }
