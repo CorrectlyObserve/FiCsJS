@@ -230,16 +230,24 @@ interface ScrollParams<D extends object, P> {
 
 export type SingleOrArray<T> = T | T[]
 
-export type SSEMethod<D extends object, P> = (
-  ctx: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
-) => void
+export declare namespace SSE {
+  interface Ctx<D extends object, P extends object> extends DebounceThrottle {
+    options: Options<D, P> | undefined
+    getDataProps: GetDataProps<D, P>
+  }
 
-export type Style<D extends object, P> =
-  | StyleContent
-  | ((dataProps: DataProps<D, P>) => StyleContent)
+  type Method<D extends object, P> = (
+    ctx: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
+  ) => void
 
-export interface StyleContent {
-  [key: string]: string | number | undefined | StyleContent
+  interface Options<D extends object, P> {
+    path: string
+    withCredentials?: boolean
+    onopen?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
+    onmessage?: Method<D, P>
+    onerror?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
+    actions: Record<string, Method<D, P> | [Method<D, P>, Omit<Action.Options, 'blur'>]>
+  }
 }
 
 export interface Task {
