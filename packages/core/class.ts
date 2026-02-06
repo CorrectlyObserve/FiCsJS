@@ -27,7 +27,6 @@ import type {
   DataProps,
   Descendant,
   FiCs,
-  GlobalCss,
   Html,
   Hook,
   I18n,
@@ -47,7 +46,7 @@ export default class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
-  static globalCss: GlobalCss[] = new Array()
+  static globalCss: Css.Global[] = new Array()
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
@@ -72,7 +71,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html.Core<D, P>
   readonly #showAttr: string
-  readonly #css: Css<D, P>[] = new Array()
+  readonly #css: Css.Sheet<D, P>[] = new Array()
   readonly #boundCss: number[] = new Array()
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
@@ -937,11 +936,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #cssToString(css: Css<D, P>[], isSsr?: boolean): string {
+  #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
     let topLevelCss: string = ''
-    const convertCssContent = (style: Style<D, P>): string =>
+    const convertCssContent = (style: Css.Value<D, P>): string =>
       Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (value === undefined || value === '' || isBlankObject(value)) return prev
@@ -950,12 +949,12 @@ export default class FiCsElement<D extends object, P extends object> {
           if (key.startsWith('webkit')) key = `-${key}`
 
           if (key.startsWith('@keyframes')) {
-            topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
+            topLevelCss += `${key}{${convertCssContent(value as Css.Value<D, P>)}}`
             return prev
           }
 
           const isApplicableType: boolean = typeof value === 'string' || typeof value === 'number'
-          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCssContent(value as StyleContent)}}`}`
+          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCssContent(value as Css.Declarations)}}`}`
         },
         ''
       )
@@ -986,8 +985,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #buildCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
-    const css: Css<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
+  #buildCss(shadowRoot: ShadowRoot, additional: Css.Sheet<D, P>[]): void {
+    const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
 
     if (css.length === 0) return
 
