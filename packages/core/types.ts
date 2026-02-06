@@ -207,7 +207,7 @@ export interface Props<D extends object, P> {
   descendant: (ctx: { children: Children }) => SingleOrArray<Descendant>
   values: (
     ctx: DataProps<D, P, true> & { children: Children } & {
-      sendToWebsocket: (value: WebSocketValue) => void
+      sendToWebsocket: (value: WebSocket.Value) => void
     }
   ) =>
     | Record<
@@ -219,7 +219,7 @@ export interface Props<D extends object, P> {
           getData: <K extends keyof D>(
             key: K
           ) => D[K] extends (...args: infer A) => infer R ? (...args: A) => R : D[K]
-          sendToWebsocket?: (value: WebSocketValue) => void
+          sendToWebsocket?: (value: WebSocket.Value) => void
         }) => unknown
       >
     | Record<string, unknown>
