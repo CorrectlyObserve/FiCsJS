@@ -36,8 +36,7 @@ import type {
   Scroll,
   ScrollAxis,
   SingleOrArray,
-  Style,
-  StyleContent,
+  SSE,
   Task,
   WebSocketParams,
   WebSocketProp,
@@ -1499,7 +1498,7 @@ export default class FiCsElement<D extends object, P extends object> {
             removeEventListeners
           }: { eventSource?: EventSource; removeEventListeners?: () => void } =
             openEventSource({
-              sseOptions: that.#options.sse,
+              options: that.#options.sse,
               getDataProps: that.#getDataProps.bind(that),
               debounce: that.#debounce.bind(that),
               throttle: that.#throttle.bind(that)
