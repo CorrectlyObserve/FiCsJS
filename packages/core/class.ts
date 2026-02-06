@@ -32,7 +32,7 @@ import type {
   HtmlContent,
   HtmlSyntaxes,
   HooksCtx,
-  Hooks,
+  Hook,
   I18n,
   Method,
   Options,
@@ -83,7 +83,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
   readonly #boundCss: number[] = new Array()
-  readonly #hooks: Hooks<D, P> = {}
+  readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #apiStatuses: Map<string, boolean> = new Map()
@@ -1397,10 +1397,10 @@ export default class FiCsElement<D extends object, P extends object> {
     return { eventSource, removeEventListeners }
   }
 
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
+  #callback(key: Exclude<keyof Hook.Lifecycle<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
-    const ctx: HooksCtx<D, P> = {
+    const ctx: Hook.Ctx<D, P> = {
       ...this.#getDataProps(true),
       ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
       debounce: this.#debounce.bind(this),
@@ -1411,7 +1411,7 @@ export default class FiCsElement<D extends object, P extends object> {
       const that: FiCsElement<D, P> = this,
         poll = (
           func: ({ times }: { times: number }) => void,
-          { interval, max, exit }: PollingOptions
+          { interval, max, exit }: Hook.Polling
         ): void => {
           numberError({ interval, max })
 
