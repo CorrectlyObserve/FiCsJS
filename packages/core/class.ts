@@ -156,7 +156,7 @@ export default class FiCsElement<D extends object, P extends object> {
             break
 
           case 'sse':
-            this.#options[key] = { ...value } as Options<D, P>[typeof key]
+            this.#options[key] = { ...value } as SSE.Options<D, P>
             break
 
           case 'scroll':
