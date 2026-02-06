@@ -173,50 +173,20 @@ export interface I18n {
   i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
-export type Method<D extends object, P> = (
-  ctx: DataProps<D, P, true> & {
-    event: Event
-    ref: (selector: string) => Element | null
-    attributes: Record<string, string>
-    value?: string
+export declare namespace Options {
+  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'scroll'> {
+    ssr?: boolean
+    scroll?: Scroll.Options<D, P>
   }
-) => void
 
-export interface Options<D extends object, P> {
-  ssr: boolean
-  lazyLoad?: boolean
-  rootMargin?: string
-  websocket?: {
-    path: string
-    protocols?: SingleOrArray<string>
-    reconnect?: { interval: number; max?: number; isExponential?: boolean }
-    onopen?: (ctx: WebSocketCtx<D, P> & { event: Event }) => void
-    onmessage?: (ctx: WebSocketCtx<D, P> & { event: MessageEvent }) => void
-    onerror?: (ctx: WebSocketCtx<D, P> & { event: Event }) => void
-    onclose?: (ctx: WebSocketCtx<D, P> & { event: CloseEvent }) => void
+  interface Resolved<D extends object, P> {
+    ssr: boolean
+    lazyLoad?: boolean
+    rootMargin?: string
+    websocket?: WebSocket.Options<D, P>
+    sse?: SSE.Options<D, P>
+    scroll?: Scroll.Resolved<D, P>
   }
-  sse?: {
-    path: string
-    withCredentials?: boolean
-    onopen?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
-    onmessage?: SSEMethod<D, P>
-    onerror?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
-    actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
-  }
-  scroll?: Scroll<D, P>
-}
-
-export interface OptionsCtx<D extends object, P> extends Omit<Options<D, P>, 'ssr' | 'scroll'> {
-  ssr?: boolean
-  scroll?: ScrollCtx<D, P>
-}
-
-export type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
-
-export interface PollingOptions {
-  interval: number
-  max?: number
-  exit?: () => boolean
 }
 
 export interface Props<D extends object, P> {
