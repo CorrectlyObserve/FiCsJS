@@ -1,6 +1,6 @@
 import FiCsElement from '../core/class'
 import { normalizePath } from '../core/helpers'
-import type { Descendant, Sanitized } from '../core/types'
+import type { Html } from '../core/types'
 import CUSTOM_EVENT_NAME from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import goto from './goto'
@@ -40,7 +40,7 @@ export default <D extends object>({
     attributes,
     html: ({ data, template, ...args }) => {
       const pathname = normalizePath(data.pathname),
-        setContent = (): Sanitized<RouterData<D>, {}> => {
+        setContent = (): Html.Sanitized<RouterData<D>, {}> => {
           const staticPages: Page<D>[] = [],
             dynamicPages: Page<D>[] = []
 
@@ -51,7 +51,10 @@ export default <D extends object>({
             _pages.push({ path, ..._args })
           }
 
-          const render = ({ content, redirect }: PageContent<D>): Sanitized<RouterData<D>, {}> => {
+          const render = ({
+            content,
+            redirect
+          }: PageContent<D>): Html.Sanitized<RouterData<D>, {}> => {
             if (redirect) {
               const redirectedPath: string = normalizePath(
                   new URL(redirect, window.location.origin).pathname
