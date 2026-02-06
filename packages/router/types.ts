@@ -1,5 +1,5 @@
 import type {
-  Actions,
+  Action,
   Attrs,
   ClassName,
   CssContent,
@@ -24,7 +24,7 @@ export interface FiCsLink<P extends object> {
   href: (({ props }: { props: P }) => string) | string
   content: Content<{}, P>
   css?: SingleOrArray<CssContent<{}, P> | string>
-  actions?: Actions<{}, P>
+  actions?: Action.Handlers<{}, P>
 }
 
 export interface FiCsRouter<D extends object> {
