@@ -36,7 +36,6 @@ import type {
   PickedAttr,
   PollingOptions,
   Props,
-  Sanitized,
   Scroll,
   ScrollAxis,
   SingleOrArray,
@@ -358,8 +357,6 @@ export default class FiCsElement<D extends object, P extends object> {
     children?: Children
     method: 'getChildren' | 'setIndividualProps'
   }): void => {
-    const { method }: { method: 'getChildren' | 'setIndividualProps' } = params
-
     for (const child of Object.values(children ?? this.#children)) {
       if (Object.prototype.hasOwnProperty.call(child, method))
         if (method === 'getChildren') delete (child as { getChildren?: () => Children }).getChildren
