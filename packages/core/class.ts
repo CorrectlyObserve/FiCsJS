@@ -79,7 +79,7 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #props: P = {} as P
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
-  readonly #html: Html<D, P>
+  readonly #html: Html.Core<D, P>
   readonly #showAttr: string
   readonly #css: Css<D, P>[] = new Array()
   readonly #boundCss: number[] = new Array()
@@ -529,9 +529,9 @@ export default class FiCsElement<D extends object, P extends object> {
       unsanitized: unique symbol = Symbol.for(`__${this.#instanceId}-unsanitized__`),
       convertTemplate = (
         strings: TemplateStringsArray,
-        variables: (HtmlContent<D, P> | unknown)[]
-      ): HtmlContent<D, P>[] => {
-        const converted: HtmlContent<D, P>[] = new Array(),
+        variables: (Html.Content<D, P> | unknown)[]
+      ): Html.Content<D, P>[] => {
+        const converted: Html.Content<D, P>[] = new Array(),
           isSymbol = (variable: unknown, symbol: symbol): boolean =>
             !!(variable && isObject(variable) && symbol in variable),
           sanitize = (index: number, template: string, variable: unknown): void => {
@@ -550,31 +550,31 @@ export default class FiCsElement<D extends object, P extends object> {
                   ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
                   : (variable ?? '')
 
-              if (variable !== '') converted.push(variable as HtmlContent<D, P>)
+              if (variable !== '') converted.push(variable as Html.Content<D, P>)
             }
           }
 
         for (const [index, template] of strings.entries())
           sanitize(index, template, variables[index])
 
-        return converted as HtmlContent<D, P>[]
+        return converted as Html.Content<D, P>[]
       }
 
     this.#addSetIndividualProps()
 
-    const template: HtmlSyntaxes<D, P>['template'] = (
+    const template: Html.Syntaxes<D, P>['template'] = (
       strings: TemplateStringsArray,
-      ...variables: (HtmlContent<D, P> | unknown)[]
-    ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+      ...variables: (Html.Content<D, P> | unknown)[]
+    ): Html.Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
 
-    const contents: HtmlContent<D, P>[] = this.#html({
+    const contents: Html.Content<D, P>[] = this.#html({
       ...this.#getDataProps(),
       children: this.#children,
       crud: this.#crud.bind(this),
       template: (
         strings: TemplateStringsArray,
-        ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => template(strings, ...variables),
+        ...variables: (Html.Content<D, P> | unknown)[]
+      ): Html.Sanitized<D, P> => template(strings, ...variables),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       apiStatuses: Object.fromEntries(this.#apiStatuses),
@@ -730,12 +730,12 @@ export default class FiCsElement<D extends object, P extends object> {
             oldAttrList: Record<string, Omit<PickedAttr, 'name'>> = {}
 
           for (let i = 0; i < oldAttrs.length; i++) {
-            const { name, value, namespaceURI, localName }: PickedAttr = oldAttrs[i]
+            const { name, value, namespaceURI, localName }: Html.PickedAttr = oldAttrs[i]
             oldAttrList[name] = { value, namespaceURI, localName }
           }
 
           for (let i = 0; i < newAttrs.length; i++) {
-            const { name, value, namespaceURI }: PickedAttr = newAttrs[i]
+            const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i]
 
             if (oldAttrList[name]?.value !== value)
               if (isHTMLElement(oldChildNode)) {
@@ -754,7 +754,7 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const name in oldAttrList)
             if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
             else {
-              const { namespaceURI, localName }: Omit<PickedAttr, 'name'> = oldAttrList[name]
+              const { namespaceURI, localName }: Omit<Html.PickedAttr, 'name'> = oldAttrList[name]
 
               if (namespaceURI) oldChildNode.removeAttributeNS(namespaceURI, localName)
               else oldChildNode.removeAttribute(name)
