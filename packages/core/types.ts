@@ -99,7 +99,7 @@ export interface FiCs<D extends object, P extends object> {
   css?: SingleOrArray<CssContent<D, P> | string>
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
-  actions?: Actions<D, P>
+  actions?: Action.Handlers<D, P>
   options?: OptionsCtx<D, P>
 }
 
