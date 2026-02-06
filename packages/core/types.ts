@@ -100,7 +100,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css<D, P>[]
   hooks?: Hooks<D, P>
   actions?: Action.Handlers<D, P>
-  options?: OptionsCtx<D, P>
+  options?: Options.Ctx<D, P>
 }
 
 export type GetDataProps<D extends object, P extends object> = <B extends boolean = false>(
