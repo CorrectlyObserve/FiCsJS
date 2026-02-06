@@ -1,17 +1,5 @@
 import { isBlankObject } from './helpers'
-import type {
-  ActionOptions,
-  DataProps,
-  DebounceThrottle,
-  GetDataProps,
-  Options,
-  SSEMethod
-} from './types'
-
-interface Ctx<D extends object, P extends object> extends DebounceThrottle {
-  sseOptions: Options<D, P>['sse']
-  getDataProps: GetDataProps<D, P>
-}
+import type { Action, DataProps, SSE } from './types'
 
 export default <D extends object, P extends object>({
   options,
@@ -43,9 +31,9 @@ export default <D extends object, P extends object>({
   const addEventListener = (
     handler: string,
     method: SSE.Method<D, P>,
-    options?: ActionOptions
+    options?: Action.Options
   ): void => {
-    const { debounce: debounceTime, throttle: throttleTime, once }: ActionOptions = options ?? {}
+    const { debounce: debounceTime, throttle: throttleTime, once }: Action.Options = options ?? {}
 
     if (debounceTime && throttleTime)
       throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
