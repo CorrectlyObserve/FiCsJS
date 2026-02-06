@@ -6,7 +6,7 @@ import type {
   DataProps,
   Descendant,
   Html,
-  Hooks,
+  Hook,
   OptionsCtx,
   Props,
   SingleOrArray
@@ -37,7 +37,7 @@ export interface FiCsRouter<D extends object> {
   pages: Page<D>[]
   notFound?: PageContent<D>
   css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
-  hooks?: Hooks<RouterData<D>, {}>
+  hooks?: Hook.Lifecycle<RouterData<D>, {}>
   options?: OptionsCtx<RouterData<D>, {}>
 }
 
