@@ -9,7 +9,6 @@ import type {
   Hooks,
   OptionsCtx,
   Props,
-  Sanitized,
   SingleOrArray
 } from '../core/types'
 
@@ -52,6 +51,8 @@ export interface PageContent<D extends object> {
 }
 
 export type ParamType = 'dynamicPaths' | 'queries'
+
+export type Returned<D extends object, P extends object> = Descendant | Html.Sanitized<D, P>
 
 export type RouterData<D extends object> = D & {
   pathname: string
