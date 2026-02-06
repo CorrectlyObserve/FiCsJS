@@ -1690,7 +1690,7 @@ export default class FiCsElement<D extends object, P extends object> {
         html: string = applyShowAttr(
           applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
         ),
-        css = (_css: Css<D, P>[]): string =>
+        css = (_css: Css.Sheet<D, P>[]): string =>
           _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
       return `
