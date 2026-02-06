@@ -2,7 +2,7 @@ import type {
   Action,
   Attrs,
   ClassName,
-  CssContent,
+  Css,
   DataProps,
   Descendant,
   Html,
@@ -23,7 +23,7 @@ export interface FiCsLink<P extends object> {
   attributes?: Attrs<{}, P>
   href: (({ props }: { props: P }) => string) | string
   content: Content<{}, P>
-  css?: SingleOrArray<CssContent<{}, P> | string>
+  css?: SingleOrArray<Css.Rules<{}, P> | string>
   actions?: Action.Handlers<{}, P>
 }
 
@@ -36,7 +36,7 @@ export interface FiCsRouter<D extends object> {
   attributes?: Attrs<RouterData<D>, {}>
   pages: Page<D>[]
   notFound?: PageContent<D>
-  css?: SingleOrArray<CssContent<RouterData<D>, {}> | string>
+  css?: SingleOrArray<Css.Rules<RouterData<D>, {}> | string>
   hooks?: Hook.Lifecycle<RouterData<D>, {}>
   options?: Options.Ctx<RouterData<D>, {}>
 }
