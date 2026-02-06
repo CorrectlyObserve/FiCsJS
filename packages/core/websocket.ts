@@ -1,13 +1,5 @@
 import { isBlankObject } from './helpers'
-import type { GetDataProps, Options, WebSocketCtx, WebSocketProp } from './types'
-
-type WSOptions<D extends object, P extends object> = Options<D, P>['websocket']
-
-interface Ctx<D extends object, P extends object> {
-  wsOptions: WSOptions<D, P>
-  getDataProps: GetDataProps<D, P>
-  setWebSocketProp: (value?: WebSocketProp) => void
-}
+import type { SetTimeout, WebSocket } from './types'
 
 export default <D extends object, P extends object>({
   options,
@@ -17,7 +9,7 @@ export default <D extends object, P extends object>({
   if (!options || isBlankObject(options)) return undefined
 
   let reconnectedCount: number = 0,
-    reconnectedTimer: ReturnType<typeof setTimeout> | null = null
+    reconnectedTimer: SetTimeout | null = null
 
   const {
       path,
