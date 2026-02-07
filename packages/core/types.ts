@@ -64,11 +64,7 @@ export declare namespace Css {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = GlobalDeclarations | string
-
-  interface GlobalDeclarations {
-    [key: string]: string | number | GlobalDeclarations
-  }
+  type Global = string | { [key: string]: string | number | Exclude<Global, string> }
 
   type Rules<D extends object, P> = Record<string, Value<D, P>>
 
