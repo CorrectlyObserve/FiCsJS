@@ -20,19 +20,19 @@ export declare namespace FiCs {
 
   type Children = Descendant[] | undefined
 
-  type ClassName<D extends object, P extends object> = _ClassName<D, P> | undefined
+  type ClassName<D extends object, P> = _ClassName<D, P> | undefined
 
-  type Css<D extends object, P extends object> = SingleOrArray<Css.Rules<D, P> | string> | undefined
+  type Css<D extends object, P> = SingleOrArray<Css.Rules<D, P> | string> | undefined
 
-  type DeferredContext<D extends object, P extends object> = DataProps<D, P, true>
+  type DeferredContext<D extends object, P> = DataProps<D, P, true>
 
   type Html<D extends object, P extends object> = Html.Core<D, P>
 
-  type Hooks<D extends object, P extends object> = Hook.Lifecycle<D, P> | undefined
+  type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
 
-  type I18nContext<D extends object, P extends object> = DataProps<D, P, false> & I18n
+  type I18nContext<D extends object, P> = DataProps<D, P, false> & I18n
 
-  type Options<D extends object, P extends object> = Options.Ctx<D, P> | undefined
+  type Options<D extends object, P> = Options.Ctx<D, P> | undefined
 
   type Props<D extends object, P> = SingleOrArray<_Props<D, P>> | undefined
 }
