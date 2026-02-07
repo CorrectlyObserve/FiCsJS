@@ -139,6 +139,11 @@ export declare namespace Html {
       statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
     }
   }
+
+  type Template<D extends object, P extends object> = (
+    templates: TemplateStringsArray,
+    ...variables: (Content<D, P> | unknown)[]
+  ) => Sanitized<D, P>
 }
 
 export declare namespace Hook {
