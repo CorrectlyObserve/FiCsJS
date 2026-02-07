@@ -127,10 +127,7 @@ export declare namespace Html {
   interface Syntaxes<D extends object, P extends object> {
     children: Children
     props: P
-    template: (
-      templates: TemplateStringsArray,
-      ...variables: (Content<D, P> | unknown)[]
-    ) => Sanitized<D, P>
+    template: Template<D, P>
     html: (str: string) => Record<symbol, string>
     show: (condition: boolean) => string
     apiStatuses: Record<string, boolean>
