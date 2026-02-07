@@ -549,7 +549,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#addSetIndividualProps()
 
-    const template: Html.Syntaxes<D, P>['template'] = (
+    const template: Html.Template<D, P> = (
       strings: TemplateStringsArray,
       ...variables: (Html.Content<D, P> | unknown)[]
     ): Html.Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
