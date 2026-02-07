@@ -84,17 +84,6 @@ export type DataProps<D extends object, P, B extends boolean = false> = {
   props: P
 } & (B extends true ? { crud: Crud.Fn } : {})
 
-export interface DebounceThrottle {
-  debounce: <T extends (...args: Parameters<T>) => void>(
-    func: T,
-    time: number
-  ) => (...args: Parameters<T>) => void
-  throttle: <T extends (...args: Parameters<T>) => void>(
-    func: T,
-    time: number
-  ) => (...args: Parameters<T>) => void
-}
-
 export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
