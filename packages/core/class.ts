@@ -82,12 +82,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
   #webSocketProp?: WebSocket.Prop
-  #scrollObservers?: {
-    root: HTMLElement
-    intersection: IntersectionObserver
-    mutation: MutationObserver
-    resize: ResizeObserver
-  }
+  #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
   #hasDescribed: boolean = false
 
