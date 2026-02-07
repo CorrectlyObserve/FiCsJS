@@ -109,7 +109,7 @@ export declare namespace Html {
     | string
 
   type Core<D extends object, P extends object> = (
-    ctx: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
+    ctx: Omit<DataProps<D, P, true>, 'props'> &
       Syntaxes<D, P> & {
         isBrowser: boolean
         isDeferred: boolean
