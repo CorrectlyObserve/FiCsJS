@@ -24,13 +24,11 @@ export declare namespace Action {
   }
 }
 
-export type Attrs<D extends object, P> =
-  | Record<string, string>
-  | ((dataProps: DataProps<D, P>) => Record<string, string>)
+export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
 
 export type Children = Record<string, Descendant>
 
-export type ClassName<D extends object, P> = string | ((dataProps: DataProps<D, P>) => string)
+export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
 
 export declare namespace Crud {
   interface Ctx {
@@ -76,7 +74,7 @@ export declare namespace Css {
 
   type Sheet<D extends object, P> = Rules<D, P> | Global
 
-  type Value<D extends object, P> = Declarations | ((dataProps: DataProps<D, P>) => Declarations)
+  type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
 
 export type DataProps<D extends object, P, B extends boolean = false> = {
