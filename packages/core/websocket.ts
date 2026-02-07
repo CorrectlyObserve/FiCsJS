@@ -1,7 +1,7 @@
 import { isBlankObject } from './helpers'
 import type { SetTimeout, WebSocket } from './types'
 
-export default <D extends object, P extends object>({
+export default <D extends object, P>({
   options,
   getDataProps,
   setWebSocketProp

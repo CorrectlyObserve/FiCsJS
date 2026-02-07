@@ -1,7 +1,7 @@
 import { isBlankObject } from './helpers'
 import type { Action, DataProps, SSE } from './types'
 
-export default <D extends object, P extends object>({
+export default <D extends object, P>({
   options,
   getDataProps,
   debounce,

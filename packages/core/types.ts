@@ -103,7 +103,7 @@ export interface FiCs<D extends object, P extends object> {
   options?: Options.Ctx<D, P>
 }
 
-export type GetDataProps<D extends object, P extends object> = <B extends boolean = false>(
+export type GetDataProps<D extends object, P> = <B extends boolean = false>(
   isCrud?: B
 ) => DataProps<D, P, B>
 
@@ -233,7 +233,7 @@ interface ScrollParams<D extends object, P> {
 export type SingleOrArray<T> = T | T[]
 
 export declare namespace SSE {
-  interface Ctx<D extends object, P extends object> {
+  interface Ctx<D extends object, P> {
     options: Options<D, P> | undefined
     getDataProps: GetDataProps<D, P>
     debounce: RateLimitFn
@@ -266,7 +266,7 @@ type ValueOrFn<D extends object, P, T> = T | ((dataProps: DataProps<D, P>) => T)
 
 export declare namespace WebSocket {
   namespace Ctx {
-    interface Fn<D extends object, P extends object> {
+    interface Fn<D extends object, P> {
       options: WebSocket.Options<D, P> | undefined
       getDataProps: GetDataProps<D, P>
       setWebSocketProp: (value?: WebSocket.Prop) => void
