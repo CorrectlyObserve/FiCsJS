@@ -148,8 +148,10 @@ export declare namespace Html {
 }
 
 export declare namespace Hook {
-  interface Ctx<D extends object, P> extends DataProps<D, P, true>, DebounceThrottle {
+  interface Ctx<D extends object, P> extends DataProps<D, P, true> {
     ref: (selector: string) => Element | null
+    debounce: RateLimitFn
+    throttle: RateLimitFn
   }
 
   interface Lifecycle<D extends object, P> {
@@ -233,9 +235,11 @@ interface ScrollParams<D extends object, P> {
 export type SingleOrArray<T> = T | T[]
 
 export declare namespace SSE {
-  interface Ctx<D extends object, P extends object> extends DebounceThrottle {
+  interface Ctx<D extends object, P extends object> {
     options: Options<D, P> | undefined
     getDataProps: GetDataProps<D, P>
+    debounce: RateLimitFn
+    throttle: RateLimitFn
   }
 
   type Method<D extends object, P> = (
