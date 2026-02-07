@@ -86,6 +86,7 @@ export default class FiCsElement<D extends object, P extends object> {
     root: HTMLElement
     intersection: IntersectionObserver
     mutation: MutationObserver
+    resize: ResizeObserver
   }
   #poll?: SetTimeout
   #hasDescribed: boolean = false
