@@ -284,6 +284,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
+    const { scroll, ...args } = this.#options
+
     return new FiCsElement({
       name: this.#nameKey,
       isExceptional: true,
@@ -299,7 +301,7 @@ export default class FiCsElement<D extends object, P extends object> {
       clonedCss: this.#css,
       actions: this.#actions,
       hooks: this.#hooks,
-      options: this.#options
+      options: { ...args, scroll: scroll?.options }
     })
   }
 
