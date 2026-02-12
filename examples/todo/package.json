@@ -12,6 +12,6 @@
     "lucide-static": "^0.523.0"
   },
   "devDependencies": {
-    "vite": "^6.2.1"
+    "vite": "^6.4.1"
   }
 }
