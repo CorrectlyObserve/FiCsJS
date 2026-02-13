@@ -260,7 +260,7 @@ export interface Task {
 
 export type Translations = Record<string, unknown>
 
-type ValueOrFn<D extends object, P, T> = T | ((dataProps: DataProps<D, P>) => T)
+type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps<D, P>) => T)
 
 export declare namespace WebSocket {
   namespace Ctx {
