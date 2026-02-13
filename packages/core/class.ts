@@ -1022,7 +1022,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!shadowRoot || searchedShadowRoots.has(shadowRoot)) return null
         searchedShadowRoots.add(shadowRoot)
 
-        const searched = shadowRoot.querySelector(selector) as T | null
+        const searched: T | null = shadowRoot.querySelector(selector) as T | null
         if (searched) return searched
 
         const treeWalker: TreeWalker = document.createTreeWalker(
