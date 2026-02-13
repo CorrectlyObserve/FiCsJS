@@ -176,7 +176,7 @@ export interface I18n {
 export declare namespace Options {
   interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'scroll'> {
     ssr?: boolean
-    scroll?: Scroll.Options<D, P>
+    scroll?: (ctx: DataProps<D, P, true>) => Scroll.Options
   }
 
   interface Resolved<D extends object, P> {
