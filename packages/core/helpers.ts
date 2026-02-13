@@ -139,7 +139,7 @@ export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
 /**
-  @remarks The function ignores undefined values.
+  @remarks Ignores undefined values.
 */
 export const numberError = (
   numbers: Record<string, number | undefined>,
