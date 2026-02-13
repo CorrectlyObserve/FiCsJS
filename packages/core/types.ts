@@ -2,6 +2,12 @@ import FiCsElement from './class'
 import consts from './constants'
 
 export declare namespace Action {
+  interface Ctx<D extends object, P> {
+    element: Element
+    shadowRoot: ShadowRoot
+    entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
+  }
+
   type Handlers<D extends object, P> = Record<
     string,
     Record<string, Method<D, P> | [Method<D, P>, Options]>
