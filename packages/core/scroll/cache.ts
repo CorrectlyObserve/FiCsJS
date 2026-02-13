@@ -30,11 +30,12 @@ export const evictCache = <D extends object, P>(
   let evictedCount: number = newStartIndex - startIndex
   if (evictedCount > maxLength) evictedCount = maxLength
 
-  cache.evictedSize += fenwickTree.rangeSum(sizeFenwickTree, evictedCount)
-  cache.evictedCount += fenwickTree.rangeSum(countFenwickTree, evictedCount)
+  cache.evictedSize += fenwickTree.sum(sizeFenwickTree, evictedCount)
+  cache.evictedCount += fenwickTree.sum(countFenwickTree, evictedCount)
 
   for (const [index, key] of indexKeys) {
     if (index >= newStartIndex) continue
+
     cache.indexSizes.delete(index)
     cache.indexKeys.delete(index)
     if (key) cache.elementSizes.delete(key)
