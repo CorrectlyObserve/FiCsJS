@@ -1081,15 +1081,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addEventListener({
-    element,
-    shadowRoot,
-    entries
-  }: {
-    element: Element
-    shadowRoot: ShadowRoot
-    entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
-  }) {
+  #addEventListener({ element, shadowRoot, entries }: Action.Ctx<D, P>) {
     const addEventListener = (
       handler: string,
       method: Action.Method<D, P>,
