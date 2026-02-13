@@ -764,10 +764,13 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
-        if (
-          parentNode instanceof Element &&
-          parentNode.getAttribute(that.#getScrollAttr('wrap', false)) === 'true'
-        ) {
+        const scrollAttr: string = getScrollAttr({
+          instanceId: that.#instanceId,
+          type: 'wrap',
+          hasValue: false
+        })
+
+        if (parentNode instanceof Element && parentNode.getAttribute(scrollAttr) === 'true') {
           for (const childNode of oldChildNodes) childNode.remove()
           for (const childNode of newChildNodes) {
             if (isElement(childNode) && !childNode.isConnected) that.#newElements.add(childNode)
