@@ -114,7 +114,7 @@ export declare namespace Html {
         isBrowser: boolean
         isDeferred: boolean
         scroll: <T>(
-          array: T[],
+          array: ReadonlyArray<T> | null | undefined,
           callback: (item: T, index: number) => Sanitized<D, P>
         ) => Sanitized<D, P>
       }
