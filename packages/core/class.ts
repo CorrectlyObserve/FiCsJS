@@ -939,7 +939,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (css.length === 0) return ''
 
     let topLevelCss: string = ''
-    const convertCssContent = (style: Css.Value<D, P>): string =>
+    const convertCss = (style: Css.Value<D, P>): string =>
       Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (value === undefined || value === '' || isBlankObject(value)) return prev
@@ -948,12 +948,12 @@ export default class FiCsElement<D extends object, P extends object> {
           if (key.startsWith('webkit')) key = `-${key}`
 
           if (key.startsWith('@keyframes')) {
-            topLevelCss += `${key}{${convertCssContent(value as Css.Value<D, P>)}}`
+            topLevelCss += `${key}{${convertCss(value as Css.Value<D, P>)}}`
             return prev
           }
 
           const isApplicableType: boolean = typeof value === 'string' || typeof value === 'number'
-          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCssContent(value as Css.Declarations)}}`}`
+          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCss(value as Css.Declarations)}}`}`
         },
         ''
       )
