@@ -60,8 +60,8 @@ export default class FiCsElement<D extends object, P extends object> {
     boundFunctions: Map<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
   } = { boundFunctions: new Map() }
-  readonly #deferredData?: (dataProps: DataProps<D, P, true>) => Promise<Partial<D>>
-  readonly #i18nData?: (dataProps: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
+  readonly #deferredData?: (ctx: DataProps<D, P, true>) => Promise<Partial<D>>
+  readonly #i18nData?: (ctx: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
