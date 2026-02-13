@@ -1,5 +1,5 @@
+import { numberError } from '../helpers'
 import type { Scroll } from '../types'
-import fenwickTree from './fenwickTree'
 
 export const getScrollAttr = ({
   instanceId,
@@ -11,37 +11,36 @@ export const getScrollAttr = ({
   hasValue: boolean
 }): string => `${instanceId}-${type}${hasValue ? '="true"' : ''}`
 
-export const rebuildFenwickTrees = (cache: Scroll.Cache): void => {
-  const max: number = Math.max(cache.max, 1)
-  cache.sizeFenwickTree = fenwickTree.reset(max)
-  cache.countedFenwickTree = fenwickTree.reset(max)
+/**
+ * @remarks
+ * - `-i` is mathematically equivalent to `(~i + 1)` in two's complement.
+ * - The `~` operator (Bitwise NOT) flips all bits (0 to 1, 1 to 0).
+ * - The `&` operator (Bitwise AND) keeps only the bits that are 1 in both operands.
+ * - Time Complexity: O(log N).
+ *
+ * @example
+ * Isolating the LSB (Least Significant Bit) of 12 (binary: 1100):
+ * ```
+ * 1. i      : 0000 1100
+ * 2. ~i     : 1111 0011 (Inverted)
+ * 3. -i     : 1111 0100 (Flips bits until the first original '1')
+ * 4. i & -i : 0000 0100 (Result: 4 (binary: 100). Index 12 manages a range of 4: 9~12)
+ * ```
+ */
+export const fenwickTree = {
+  add: (tree: number[], index: number, diff: number): void => {
+    numberError({ index }, false)
+    for (let i = index; i < tree.length; i += i & -i) tree[i] += diff
+  },
+  sum: (tree: number[], index: number): number => {
+    numberError({ index }, false)
 
-  const { indexSizes, start, sizeFenwickTree, countedFenwickTree }: Scroll.Cache = cache
-
-  for (const [index, size] of indexSizes) {
-    /**
-      @remarks
-      Fenwick trees are 1-indexed, so we add 1 to shift to the tree index and reserve index 0.
-    */
-    const relativeIndex: number = index - start,
-      treeIndex: number = relativeIndex + 1
-
-    if (treeIndex < 1 || treeIndex > max) continue
-
-    fenwickTree.add(sizeFenwickTree, treeIndex, size)
-    fenwickTree.add(countedFenwickTree, treeIndex, 1)
-  }
-}
-
-export const ensureFenwickTrees = (cache: Scroll.Cache): void => {
+    let sum: number = 0
+    for (let i = index; i > 0; i -= i & -i) sum += tree[i]
+    return sum
+  },
   /**
-    @remarks
-    Fenwick trees are 1-indexed, so the backing arrays are sized as max + 1 to reserve index 0.
-  */
-  const { max, sizeFenwickTree, countedFenwickTree }: Scroll.Cache = cache,
-    cacheLength: number = Math.max(max, 1) + 1
-
-  if (sizeFenwickTree.length === cacheLength && countedFenwickTree.length === cacheLength) return
-
-  rebuildFenwickTrees(cache)
-}
+   * @remarks The fenwick tree are 1-indexed.
+   */
+  reset: (length: number): number[] => new Array(length + 1).fill(0)
+} as const
