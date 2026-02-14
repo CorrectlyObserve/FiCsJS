@@ -124,80 +124,12 @@ export default class FiCsElement<D extends object, P extends object> {
     const count: number = generator.next().value
     this.#name = `f-${name}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
 
-    this.#isBrowser = isBrowser()
-
-    if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> = options
-
-      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
-      if (lazyLoad) this.#options.lazyLoad = true
-
-      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
-        if (!lazyLoad)
-          throw new Error(
-            `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
-          )
-
-        this.#options.rootMargin = rootMargin
-      }
-
-      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
-        if (!value || isBlankObject(value) || !this.#isBrowser) continue
-
-        switch (key) {
-          case 'websocket':
-            this.#options[key] = { ...value } as WebSocket.Options<D, P>
-            break
-
-          case 'sse':
-            this.#options[key] = { ...value } as SSE.Options<D, P>
-            break
-
-          case 'scroll':
-            const { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
-            this.#options[key] = {
-              options: value as (ctx: DataProps<D, P, true>) => Scroll.Options,
-              cache: {
-                elementSizes: new Map(),
-                indexSizes: new Map(),
-                indexKeys: new Map(),
-                elementIndexes: new WeakMap(),
-                maxLength: CACHE_LENGTH,
-                startIndex: 0,
-                evictedSize: 0,
-                evictedCount: 0,
-                sizeFenwickTree: fenwickTree.reset(CACHE_LENGTH),
-                countFenwickTree: fenwickTree.reset(CACHE_LENGTH)
-              },
-              id: `${this.#instanceId}-scroll`,
-              isEnabled: false,
-              startIndex: 0,
-              endIndex: 0,
-              aveSize: NaN,
-              totalSize: NaN,
-              totalCount: 0,
-              prevTotalSize: NaN,
-              prevTotalCount: 0,
-              flags: {
-                hasScrolled: false,
-                isRangeLockedUntilScroll: false,
-                isFetchLockedUntilScroll: false,
-                isAxisResetPending: false
-              },
-              fetch: { isFetching: false, lastTriggeredCount: 0 },
-              anchor: {},
-              timers: {},
-              urlSync: {}
-            } as Scroll.Resolved<D, P>
-            break
-        }
-      }
-    }
-
     if (children)
       for (const child of children)
         this.#children[child.#nameKey] =
           convertStr(child.#nameKey, 'kebab') === child.#name.slice(2) ? child.#clone() : child
+
+    this.#isBrowser = isBrowser()
 
     if (data) {
       let attrData: Partial<D> = {}
@@ -294,6 +226,87 @@ export default class FiCsElement<D extends object, P extends object> {
         return true
       }
     })
+
+    if (options) {
+      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> = options
+
+      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
+      if (lazyLoad) this.#options.lazyLoad = true
+
+      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
+        if (!lazyLoad)
+          throw new Error(
+            `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
+          )
+
+        this.#options.rootMargin = rootMargin
+      }
+
+      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
+        if (!value || isBlankObject(value) || !this.#isBrowser) continue
+
+        switch (key) {
+          case 'websocket':
+            this.#options[key] = { ...value } as WebSocket.Options<D, P>
+            break
+
+          case 'sse':
+            this.#options[key] = { ...value } as SSE.Options<D, P>
+            break
+
+          case 'scroll':
+            const options = value as (ctx: DataProps<D, P, true>) => Scroll.Options,
+              { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
+                this.#getDataProps(true)
+              ),
+              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
+
+            numberError({ unit, itemMinSize, bufferLength, cacheLength, CACHE_LENGTH })
+
+            const maxLength: number = Math.max(
+              cacheLength ?? CACHE_LENGTH,
+              unit + (bufferLength ?? 0)
+            )
+            const normalizedLength: number = Math.max(Math.floor(maxLength), 1)
+
+            this.#options[key] = {
+              cache: {
+                elementSizes: new Map(),
+                indexSizes: new Map(),
+                indexKeys: new Map(),
+                elementIndexes: new WeakMap(),
+                maxLength: normalizedLength,
+                startIndex: 0,
+                evictedSize: 0,
+                evictedCount: 0,
+                sizeFenwickTree: fenwickTree.reset(normalizedLength),
+                countFenwickTree: fenwickTree.reset(normalizedLength)
+              },
+              options,
+              id: `${this.#instanceId}-scroll`,
+              isEnabled: false,
+              startIndex: 0,
+              endIndex: unit,
+              aveSize: itemMinSize,
+              totalSize: NaN,
+              totalCount: 0,
+              prevTotalSize: NaN,
+              prevTotalCount: 0,
+              flags: {
+                hasScrolled: false,
+                isRangeLockedUntilScroll: false,
+                isFetchLockedUntilScroll: false,
+                isAxisResetPending: false
+              },
+              fetch: { isFetching: false, lastTriggeredCount: 0 },
+              anchor: {},
+              timers: {},
+              urlSync: {}
+            }
+            break
+        }
+      }
+    }
 
     if (className) this.#classNames = typeof className === 'function' ? className : className.trim()
     if (attributes) this.#attrs = attributes
