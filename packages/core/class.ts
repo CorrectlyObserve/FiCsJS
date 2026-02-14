@@ -15,6 +15,10 @@ import {
 } from './helpers'
 import { i18n } from './i18n'
 import enqueue from './queue'
+import scrollConsts from './scroll/constants'
+import { getScrollAttr, fenwickTree } from './scroll/helpers'
+import runInfiniteVirtualScroll from './scroll/runtime'
+import scrollTemplate from './scroll/template'
 import openEventSource from './sse'
 import openWebSocket from './websocket'
 import type {
