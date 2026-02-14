@@ -10,7 +10,7 @@ export const evictCache = <D extends object, P>(
     cache
 
   numberError({ maxLength })
-  numberError({ newStartIndex })
+  numberError({ newStartIndex }, false)
 
   /**
    * @remarks
