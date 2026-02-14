@@ -154,16 +154,41 @@ export default class FiCsElement<D extends object, P extends object> {
             break
 
           case 'scroll':
+            const { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
             this.#options[key] = {
-              ...value,
+              options: value as (ctx: DataProps<D, P, true>) => Scroll.Options,
+              cache: {
+                elementSizes: new Map(),
+                indexSizes: new Map(),
+                indexKeys: new Map(),
+                elementIndexes: new WeakMap(),
+                maxLength: CACHE_LENGTH,
+                startIndex: 0,
+                evictedSize: 0,
+                evictedCount: 0,
+                sizeFenwickTree: fenwickTree.reset(CACHE_LENGTH),
+                countFenwickTree: fenwickTree.reset(CACHE_LENGTH)
+              },
               id: `${this.#instanceId}-scroll`,
-              start: 0,
-              end: (value as Options<D, P>[typeof key])?.unit,
               isEnabled: false,
+              startIndex: 0,
+              endIndex: 0,
+              aveSize: NaN,
               totalSize: NaN,
-              elementSizes: new Map(),
-              prevTotalSize: NaN
-            } as Options<D, P>[typeof key]
+              totalCount: 0,
+              prevTotalSize: NaN,
+              prevTotalCount: 0,
+              flags: {
+                hasScrolled: false,
+                isRangeLockedUntilScroll: false,
+                isFetchLockedUntilScroll: false,
+                isAxisResetPending: false
+              },
+              fetch: { isFetching: false, lastTriggeredCount: 0 },
+              anchor: {},
+              timers: {},
+              urlSync: {}
+            } as Scroll.Resolved<D, P>
             break
         }
       }
