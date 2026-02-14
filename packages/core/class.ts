@@ -950,7 +950,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (isSsr && selector.startsWith(consts.HOST_SELECTOR))
           selector = selector.replace(consts.HOST_SELECTOR, `div#${this.#name}`)
 
-        const content: string = convertCssContent(style),
+        const content: string = convertCss(style),
           index: number = content.indexOf('{')
 
         if (selector.startsWith(consts.HOST_SELECTOR) && index > -1) {
