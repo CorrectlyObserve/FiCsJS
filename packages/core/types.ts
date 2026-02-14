@@ -105,7 +105,7 @@ export interface FiCs<D extends object, P extends object> {
   options?: Options.Ctx<D, P>
 }
 
-export type GetDataProps<D extends object, P> = <B extends boolean = false>(
+type GetDataProps<D extends object, P> = <B extends boolean = false>(
   isCrud?: B
 ) => DataProps<D, P, B>
 
