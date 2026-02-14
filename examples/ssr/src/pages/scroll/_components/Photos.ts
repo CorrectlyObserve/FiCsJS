@@ -223,7 +223,7 @@ export default fics({
   options: {
     scroll: ({ data, crud }) => ({
       unit: UNIT_LENGTH,
-      elementMinSize: PHOTO_SIZE,
+      itemMinSize: PHOTO_SIZE,
       axis: data.isHorizontal ? 'horizontal' : 'vertical',
       trigger: data.photos.length > 0,
       parameter: 'page',
