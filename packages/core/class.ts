@@ -570,34 +570,17 @@ export default class FiCsElement<D extends object, P extends object> {
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
       scroll: <T>(
-        array: T[],
-        callback: (item: T, index: number) => Sanitized<D, P>
-      ): Sanitized<D, P> => {
-        if (!this.#options.scroll)
-          return template`${array.map((item, index) => callback(item, index))}`
-
-        const { unit, elementMinSize, axis, start, end, buffer, id }: Scroll<D, P> =
-          this.#options.scroll
-
-        numberError({ unit, elementMinSize })
-        if (buffer) numberError({ buffer }, false)
-
-        const isVertical: boolean =
-            (typeof axis === 'function' ? axis({ data: this.#data }) : axis) === 'vertical',
-          style: string[] = [
-            `${isVertical ? 'height' : 'width'}:${
-              elementMinSize * (end - start + (buffer ?? 0))
-            }px;`,
-            `overflow-${isVertical ? 'y' : 'x'}:auto;`,
-            isVertical ? '' : 'display:flex;margin-inline:auto;'
-          ]
-
-        return template`
-          <div id="${id}" style="${joinArray(style)}">
-            ${array.slice(start, Math.min(end, array.length)).map((item, index) => callback(item, index))}
-          </div>
-        `
-      }
+        array: ReadonlyArray<T> | null | undefined,
+        callback: (item: T, index: number) => Html.Sanitized<D, P>
+      ): Html.Sanitized<D, P> =>
+        scrollTemplate({
+          instanceId: this.#instanceId,
+          getDataProps: this.#getDataProps.bind(this),
+          template,
+          scrollOptions: this.#options.scroll,
+          array,
+          callback
+        })
     })[sanitized]
 
     return contents.reduce((prev, curr) => {
