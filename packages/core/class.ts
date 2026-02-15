@@ -267,12 +267,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
             numberError({ unit, itemMinSize, bufferLength, cacheLength, CACHE_LENGTH })
 
-            const maxLength: number = Math.max(
-              cacheLength ?? CACHE_LENGTH,
-              unit + (bufferLength ?? 0)
+            const normalizedLength: number = Math.max(
+              Math.floor(Math.max(cacheLength ?? CACHE_LENGTH, unit + (bufferLength ?? 0))),
+              1
             )
-            const normalizedLength: number = Math.max(Math.floor(maxLength), 1)
-
             this.#options[key] = {
               cache: {
                 elementSizes: new Map(),
