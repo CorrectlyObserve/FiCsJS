@@ -217,21 +217,107 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
-export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
+export declare namespace Scroll {
+  type Axis = 'vertical' | 'horizontal'
 
-export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
-export type ScrollAxis = 'vertical' | 'horizontal'
+  interface Cache {
+    elementSizes: Map<string, number>
+    indexSizes: Map<number, number>
+    indexKeys: Map<number, string>
+    elementIndexes: WeakMap<Element, number>
+    maxLength: number
+    startIndex: number
+    evictedSize: number
+    evictedCount: number
+    sizeFenwickTree: number[]
+    countFenwickTree: number[]
+  }
 
-interface ScrollParams<D extends object, P> {
-  unit: number
-  elementMinSize: number
-  axis: 'vertical' | 'horizontal' | (({ data }: { data: D }) => 'vertical' | 'horizontal')
-  trigger?: ({ data }: { data: D }) => boolean
-  parameter?: string
-  rootMargin?: string | number
-  buffer?: number
-  throttle?: number
-  method: (params: DataProps<D, P, true>) => void
+  namespace Ctx {
+    interface OffsetBeforeIndex {
+      cache: Scroll.Cache | undefined
+      totalCount: number
+      index: number
+      aveSize: number
+    }
+
+    interface Runtime<D extends object, P> {
+      name: string
+      instanceId: string
+      shadowRoot: ShadowRoot
+      getDataProps: GetDataProps<D, P>
+      scrollOptions: Resolved<D, P> | undefined
+      enqueue: (func: () => void, key: Task['key']) => void
+      addEventListener: (ctx: Action.Ctx<D, P>) => void
+      reRender: (isOnlyHtml?: boolean) => Promise<void>
+      scrollObservers: Scroll.Observers | undefined
+      setScrollObservers: (observers?: Scroll.Observers) => void
+    }
+
+    interface Template<D extends object, P extends object, T> {
+      instanceId: string
+      getDataProps: GetDataProps<D, P>
+      template: Html.Template<D, P>
+      scrollOptions: Resolved<D, P> | undefined
+      array: ReadonlyArray<T> | null | undefined
+      callback: (item: T, index: number) => Html.Sanitized<D, P>
+    }
+  }
+
+  type Div = 'wrap' | 'sentinel'
+
+  interface Observers {
+    root: HTMLElement
+    intersection: IntersectionObserver
+    mutation: MutationObserver
+    resize: ResizeObserver
+  }
+
+  interface Options {
+    unit: number
+    itemMinSize: number
+    axis: Axis
+    trigger?: boolean
+    parameter?: string
+    rootMargin?: string | number
+    bufferLength?: number
+    cacheLength?: number
+    throttle?: number
+    thresholdRate?: number
+    method: () => void
+  }
+
+  interface Resolved<D extends object, P> extends Runtime {
+    cache: Cache
+    options: (ctx: DataProps<D, P, true>) => Options
+  }
+
+  interface Runtime {
+    id: string
+    isEnabled: boolean
+    startIndex: number
+    endIndex: number
+    aveSize: number
+    totalSize: number
+    totalCount: number
+    prevTotalSize: number
+    prevTotalCount: number
+    flags: {
+      hasScrolled: boolean
+      isRangeLockedUntilScroll: boolean
+      isFetchLockedUntilScroll: boolean
+      isAxisResetPending: boolean
+    }
+    fetch: { isFetching: boolean; lastTriggeredCount: number }
+    anchor: {
+      index?: number
+      key?: string
+      viewportOffset?: number
+    }
+    timers: { resize?: SetTimeout; idle?: SetTimeout }
+    urlSync: { index?: number; pageParam?: number }
+    lastAxis?: Axis
+  }
 }
 
 export type SingleOrArray<T> = T | T[]
