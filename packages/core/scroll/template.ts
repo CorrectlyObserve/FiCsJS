@@ -82,7 +82,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
     isVertical: boolean = axis === 'vertical',
     styles = {
       container: joinArray([
-        'position:relative;',
+        'position:relative;overscroll-behavior:contain;',
         `${isVertical ? 'height' : 'width'}:${itemMinSize * unit}px;`,
         `overflow-${isVertical ? 'y' : 'x'}:auto;overflow-${isVertical ? 'x' : 'y'}:hidden;`,
         isVertical ? '' : 'margin-inline:auto;'
