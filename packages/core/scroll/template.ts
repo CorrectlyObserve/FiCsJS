@@ -46,7 +46,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
       isAxisResetPending: true
     }
     scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
-    anchor.offset = 0
+    anchor.viewportOffset = 0
 
     for (const key of ['resize', 'idle'] as const) {
       const timer: SetTimeout | undefined = scrollOptions.timers[key]
