@@ -325,6 +325,8 @@ export declare namespace Scroll {
   }
 }
 
+export type SetTimeout = ReturnType<typeof setTimeout>
+
 export type SingleOrArray<T> = T | T[]
 
 export declare namespace SSE {
