@@ -217,6 +217,11 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
+type RateLimitFn = <T extends unknown[]>(
+  func: (...args: T) => void,
+  time: number
+) => (...args: T) => void
+
 export declare namespace Scroll {
   type Axis = 'vertical' | 'horizontal'
 
