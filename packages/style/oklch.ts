@@ -167,15 +167,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return oklch
   }
 
-export default (
-  color: string,
-  options?: {
-    darker?: number
-    lighter?: number
-    chroma?: number
-    opacity?: number
-  }
-): string => {
+export default (color: string, options?: Color.Ctx): string => {
   const resolved: string = convertCssVar(color).trim()
   let oklch: Color.Oklch, alpha: number
 
@@ -189,7 +181,7 @@ export default (
     oklch = hexToOklch(resolved)
   }
 
-  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 } = options ?? {}
+  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
   numberError({ darker, lighter, chroma, opacity }, false)
 
   if (darker > 0 && lighter > 0)
