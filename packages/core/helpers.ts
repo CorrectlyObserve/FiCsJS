@@ -4,6 +4,14 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
+export const clampRatio = (ratio: number): number => {
+  numberError({ ratio }, false)
+
+  if (ratio <= 0) return 0
+  if (ratio >= 1) return 1
+  return ratio
+}
+
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
