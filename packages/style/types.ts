@@ -6,6 +6,13 @@ export interface Center {
 }
 
 export declare namespace Color {
+  interface Ctx {
+    darker?: number
+    lighter?: number
+    chroma?: number
+    opacity?: number
+  }
+
   interface Lms {
     l: number
     m: number
