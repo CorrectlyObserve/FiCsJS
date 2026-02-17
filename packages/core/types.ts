@@ -271,6 +271,12 @@ export declare namespace Scroll {
 
   type Div = 'wrap' | 'sentinel'
 
+  interface Metrics {
+    current: number
+    scrollAmount: number
+    clientSize: number
+  }
+
   interface Observers {
     root: HTMLElement
     intersection: IntersectionObserver
