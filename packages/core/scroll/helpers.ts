@@ -1,6 +1,17 @@
 import { numberError } from '../helpers'
 import type { Scroll } from '../types'
 
+export const getAveSize = <D extends object, P>({
+  aveSize,
+  itemMinSize
+}: {
+  aveSize: number | undefined
+  itemMinSize: number
+}): number => {
+  if (aveSize === undefined) return itemMinSize
+  return Number.isFinite(aveSize) ? aveSize : itemMinSize
+}
+
 export const getScrollAttr = ({
   instanceId,
   type,
