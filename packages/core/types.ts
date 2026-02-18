@@ -320,11 +320,7 @@ export declare namespace Scroll {
       isAxisResetPending: boolean
     }
     fetch: { isFetching: boolean; lastTriggeredCount: number }
-    anchor: {
-      index?: number
-      key?: string
-      viewportOffset?: number
-    }
+    firstVisible: { index?: number; key?: string; offset?: number }
     timers: { resize?: SetTimeout; idle?: SetTimeout }
     urlSync: { index?: number; pageParam?: number }
     lastAxis?: Axis
