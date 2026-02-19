@@ -1,6 +1,6 @@
 import { joinArray, numberError } from '../helpers'
 import { getOffsetBeforeIndex, resetCache } from './cache'
-import { getScrollAttr } from './helpers'
+import { getAveSize, getScrollAttr } from './helpers'
 import type { Html, Scroll, SetTimeout } from '../types'
 
 const scrollTemplate = <D extends object, P extends object, T>({
@@ -65,8 +65,8 @@ const scrollTemplate = <D extends object, P extends object, T>({
   if (endIndex <= startIndex)
     scrollOptions.endIndex = Math.min(totalCount, startIndex + unit + (bufferLength ?? 0))
 
-  const newAveSize: number = Number.isFinite(aveSize) ? aveSize : itemMinSize,
-    estimatedTotalSize: number = newAveSize * totalCount
+  const resolvedAveSize: number = getAveSize({ aveSize, itemMinSize }),
+    estimatedTotalSize: number = resolvedAveSize * totalCount
 
   let newTotalSize: number = estimatedTotalSize
   if (Number.isFinite(totalSize)) newTotalSize = Math.max(totalSize, estimatedTotalSize)
@@ -76,7 +76,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
    * Simulates the height of unrendered items to keep the current scroll position.
    */
   const offsetPadding: number = Math.min(
-      getOffsetBeforeIndex({ cache, totalCount, index: startIndex, aveSize: newAveSize }),
+      getOffsetBeforeIndex({ cache, totalCount, index: startIndex, aveSize: resolvedAveSize }),
       newTotalSize
     ),
     isVertical: boolean = axis === 'vertical',
