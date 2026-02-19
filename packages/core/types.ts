@@ -59,8 +59,8 @@ export declare namespace Crud {
 
   interface StreamOptions extends Options {
     /**
-      @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
-    */
+     * @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
+     */
     onChunk: (chunk: string, index: number) => void
   }
 }
