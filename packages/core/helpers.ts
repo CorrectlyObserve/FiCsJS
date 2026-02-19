@@ -18,15 +18,15 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
 }
 
 /**
-  @remarks
-  - **Map**: Keys are compared by reference. Values are deeply compared.
-  - **Set**: Values are compared deeply and order-independently (Complexity: O(N^2)).
-  - **Error**: Compared by `name` and `message`. The `stack` trace is ignored as it is environment-specific.
-  - **Opaque Objects**: `WeakMap`, `WeakSet`, and `Promise` always return `false` unless they share the same reference.
-
-  @remarks
-  For change detection, updates should be **immutable**; mutating nested objects can be seen as "no change".
-*/
+ * @remarks
+ * - **Map**: Keys are compared by reference. Values are deeply compared.
+ * - **Set**: Values are compared deeply and order-independently (Complexity: O(N^2)).
+ * - **Error**: Compared by `name` and `message`. The `stack` trace is ignored as it is environment-specific.
+ * - **Opaque Objects**: `WeakMap`, `WeakSet`, and `Promise` always return `false` unless they share the same reference.
+ *
+ * @remarks
+ * For change detection, updates should be **immutable**; mutating nested objects can be seen as "no change".
+ */
 export const deepEqual = (
   current: any,
   newValue: any,
@@ -147,8 +147,8 @@ export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
 /**
-  @remarks Ignores undefined values.
-*/
+ * @remarks Ignores undefined values.
+ */
 export const numberError = (
   numbers: Record<string, number | undefined>,
   isPositiveRequired: boolean = true
