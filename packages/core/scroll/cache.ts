@@ -14,7 +14,7 @@ export const evictCache = <D extends object, P>(
 
   /**
    * @remarks
-   * Reset the cache when scrolling moves toward earlier indexes.
+   * Resets the cache when scrolling moves toward earlier indexes.
    */
   if (newStartIndex < startIndex) {
     cache.startIndex = newStartIndex
