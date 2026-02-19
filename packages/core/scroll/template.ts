@@ -23,7 +23,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
 
   /**
    * @remarks
-   * Reset the item min size.
+   * Resets the item min size.
    */
   if (!Number.isFinite(storedAveSize) || storedAveSize < itemMinSize)
     scrollOptions.aveSize = itemMinSize
