@@ -296,12 +296,12 @@ export default class FiCsElement<D extends object, P extends object> {
               prevTotalCount: 0,
               flags: {
                 hasScrolled: false,
-                isRangeLockedUntilScroll: false,
-                isFetchLockedUntilScroll: false,
-                isAxisResetPending: false
+                isRangeLocked: false,
+                isFetchLocked: false,
+                shouldRestoreAxisOffset: false
               },
               fetch: { isFetching: false, lastTriggeredCount: 0 },
-              anchor: {},
+              firstVisible: {},
               timers: {},
               urlSync: {}
             }
