@@ -1,1 +1,6 @@
-export default { CACHE_LENGTH: 200, FRAME_INTERVAL_MS: 16, THRESHOLD_RATE: 0 } as const
+export default {
+  CACHE_LENGTH: 200,
+  FRAME_INTERVAL_MS: 16,
+  SMOOTHING_FACTOR: 0.2,
+  THRESHOLD_RATE: 0
+} as const
