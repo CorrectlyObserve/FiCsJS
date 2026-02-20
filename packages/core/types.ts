@@ -314,9 +314,9 @@ export declare namespace Scroll {
     prevTotalCount: number
     flags: {
       hasScrolled: boolean
-      isRangeLockedUntilScroll: boolean
-      isFetchLockedUntilScroll: boolean
-      isAxisResetPending: boolean
+      isRangeLocked: boolean
+      isFetchLocked: boolean
+      shouldRestoreAxisOffset: boolean
     }
     fetch: { isFetching: boolean; lastTriggeredCount: number }
     firstVisible: { index?: number; key?: string; offset?: number }
