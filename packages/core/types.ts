@@ -252,9 +252,8 @@ export declare namespace Scroll {
       shadowRoot: ShadowRoot
       getDataProps: GetDataProps<D, P>
       scrollOptions: Resolved<D, P> | undefined
-      enqueue: (func: () => void, key: Task['key']) => void
       addEventListener: (ctx: Action.Ctx<D, P>) => void
-      reRender: (isOnlyHtml?: boolean) => Promise<void>
+      reRender: () => void
       scrollObservers: Scroll.Observers | undefined
       setScrollObservers: (observers?: Scroll.Observers) => void
     }
