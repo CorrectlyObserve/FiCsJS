@@ -1,27 +1,6 @@
 import { numberError } from '../helpers'
 import type { Scroll } from '../types'
 
-export const getAveSize = <D extends object, P>({
-  aveSize,
-  itemMinSize
-}: {
-  aveSize: number | undefined
-  itemMinSize: number
-}): number => {
-  if (aveSize === undefined) return itemMinSize
-  return Number.isFinite(aveSize) ? aveSize : itemMinSize
-}
-
-export const getScrollAttr = ({
-  instanceId,
-  type,
-  hasValue
-}: {
-  instanceId: string
-  type: Scroll.Div
-  hasValue: boolean
-}): string => `${instanceId}-${type}${hasValue ? '="true"' : ''}`
-
 /**
  * @remarks
  * - `-i` is mathematically equivalent to `(~i + 1)` in two's complement.
@@ -55,3 +34,30 @@ export const fenwickTree = {
    */
   reset: (length: number): number[] => new Array(length + 1).fill(0)
 } as const
+
+export const getAveSize = <D extends object, P>({
+  aveSize,
+  itemMinSize
+}: {
+  aveSize: number | undefined
+  itemMinSize: number
+}): number => {
+  if (aveSize === undefined) return itemMinSize
+  return Number.isFinite(aveSize) ? aveSize : itemMinSize
+}
+
+export const getScrollAttr = ({
+  instanceId,
+  type,
+  hasValue
+}: {
+  instanceId: string
+  type: Scroll.Div
+  hasValue: boolean
+}): string => `${instanceId}-${type}${hasValue ? '="true"' : ''}`
+
+export const getScrollMetrics = (root: HTMLElement, isVertical: boolean): Scroll.Metrics => ({
+  scrollOffset: root[`scroll${isVertical ? 'Top' : 'Left'}`],
+  scrollAmount: root[`scroll${isVertical ? 'Height' : 'Width'}`],
+  clientSize: root[`client${isVertical ? 'Height' : 'Width'}`]
+})
