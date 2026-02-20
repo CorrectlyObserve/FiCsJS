@@ -29,7 +29,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
     scrollOptions.aveSize = itemMinSize
 
   if (lastAxis !== undefined && lastAxis !== axis) {
-    const { cache, startIndex, anchor }: Scroll.Resolved<D, P> = scrollOptions
+    const { cache, startIndex, firstVisible }: Scroll.Resolved<D, P> = scrollOptions
     numberError({ startIndex }, false)
 
     resetCache(cache)
@@ -41,12 +41,12 @@ const scrollTemplate = <D extends object, P extends object, T>({
     scrollOptions.prevTotalSize = NaN
     scrollOptions.flags = {
       hasScrolled: false,
-      isRangeLockedUntilScroll: true,
-      isFetchLockedUntilScroll: true,
-      isAxisResetPending: true
+      isRangeLocked: true,
+      isFetchLocked: true,
+      shouldRestoreAxisOffset: true
     }
     scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
-    anchor.viewportOffset = 0
+    firstVisible.offset = 0
 
     for (const key of ['resize', 'idle'] as const) {
       const timer: SetTimeout | undefined = scrollOptions.timers[key]
