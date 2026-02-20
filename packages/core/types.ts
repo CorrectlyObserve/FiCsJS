@@ -271,7 +271,7 @@ export declare namespace Scroll {
   type Div = 'wrap' | 'sentinel'
 
   interface Metrics {
-    current: number
+    scrollOffset: number
     scrollAmount: number
     clientSize: number
   }
