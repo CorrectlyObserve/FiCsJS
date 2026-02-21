@@ -30,7 +30,7 @@ export const fenwickTree = {
     return sum
   },
   /**
-   * @remarks The fenwick tree are 1-indexed.
+   * @remarks The fenwick tree is 1-indexed.
    */
   reset: (length: number): number[] => new Array(length + 1).fill(0)
 } as const
