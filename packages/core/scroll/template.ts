@@ -1,6 +1,6 @@
 import { joinArray, numberError } from '../helpers'
 import { getOffsetBeforeIndex, resetCache } from './cache'
-import { getAveSize, getScrollAttr, isValidNumber } from './helpers'
+import { getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
 import type { Html, Scroll, SetTimeout } from '../types'
 
 const scrollTemplate = <D extends object, P extends object, T>({
@@ -82,20 +82,20 @@ const scrollTemplate = <D extends object, P extends object, T>({
     styles = {
       container: joinArray([
         'position:relative;overscroll-behavior:contain;',
-        `${isVertical ? 'height' : 'width'}:${itemMinSize * unit}px;`,
+        `${getProperty({ isVertical, type: 'size' })}:${itemMinSize * unit}px;`,
         `overflow-${isVertical ? 'y' : 'x'}:auto;overflow-${isVertical ? 'x' : 'y'}:hidden;`,
         isVertical ? '' : 'margin-inline:auto;'
       ]),
       wrap: joinArray([
         'box-sizing:border-box;position:relative;',
-        `min-${isVertical ? 'height' : 'width'}:${newTotalSize}px;`,
+        `min-${getProperty({ isVertical, type: 'size' })}:${newTotalSize}px;`,
         isVertical ? 'display:block;' : 'display:flex;flex-wrap:nowrap;align-items:flex-start;',
-        `padding-${isVertical ? 'top' : 'left'}:${offsetPadding}px;`
+        `padding-${getProperty({ isVertical, type: 'start' })}:${offsetPadding}px;`
       ]),
       sentinel: joinArray([
         'position:absolute;height:1px;width:1px;',
         `${isVertical ? 'left' : 'top'}:0;`,
-        `${isVertical ? 'top' : 'left'}:${Math.max(newTotalSize - 1, 0)}px;`
+        `${getProperty({ isVertical, type: 'start' })}:${Math.max(newTotalSize - 1, 0)}px;`
       ])
     } as const,
     div = (type: Scroll.Div, contents?: Html.Sanitized<D, P>[]): Html.Sanitized<D, P> => template`
