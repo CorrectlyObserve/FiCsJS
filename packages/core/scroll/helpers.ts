@@ -57,9 +57,36 @@ export const getScrollAttr = ({
 }): string => `${instanceId}-${type}${hasValue ? '="true"' : ''}`
 
 export const getScrollMetrics = (root: HTMLElement, isVertical: boolean): Scroll.Metrics => ({
-  scrollOffset: root[`scroll${isVertical ? 'Top' : 'Left'}`],
-  scrollAmount: root[`scroll${isVertical ? 'Height' : 'Width'}`],
-  clientSize: root[`client${isVertical ? 'Height' : 'Width'}`]
+  scrollOffset: (root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })],
+  scrollAmount: (root as any)[getProperty({ isVertical, type: 'size', prefix: 'scroll' })],
+  clientSize: (root as any)[getProperty({ isVertical, type: 'size', prefix: 'client' })]
 })
+
+export const getProperty = ({
+  isVertical,
+  type,
+  prefix
+}: {
+  isVertical: boolean
+  type: 'size' | 'start' | 'end'
+  prefix?: string
+}): string => {
+  let property: string = ''
+  switch (type) {
+    case 'size':
+      property = isVertical ? 'height' : 'width'
+      break
+
+    case 'start':
+      property = isVertical ? 'top' : 'left'
+      break
+
+    case 'end':
+      property = isVertical ? 'bottom' : 'right'
+      break
+  }
+
+  return prefix ? `${prefix}${property[0].toUpperCase()}${property.slice(1)}` : property
+}
 
 export const isValidNumber = (value: number): boolean => Number.isFinite(value) && value > 0
