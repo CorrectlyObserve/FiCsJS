@@ -79,10 +79,14 @@ export declare namespace Css {
   type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
 
-export type DataProps<D extends object, P, B extends boolean = false> = {
-  data: D
-  props: P
-} & (B extends true ? { crud: Crud.Fn } : {})
+export declare namespace DataProps {
+  type Getter<D extends object, P> = <B extends boolean = false>(isCrud?: B) => Payload<D, P, B>
+
+  type Payload<D extends object, P, B extends boolean = false> = {
+    data: D
+    props: P
+  } & (B extends true ? { crud: Crud.Fn } : {})
+}
 
 export type Descendant = FiCsElement<any, any>
 
@@ -104,10 +108,6 @@ export interface FiCs<D extends object, P extends object> {
   actions?: Action.Handlers<D, P>
   options?: Options.Ctx<D, P>
 }
-
-type GetDataProps<D extends object, P> = <B extends boolean = false>(
-  isCrud?: B
-) => DataProps<D, P, B>
 
 export declare namespace Html {
   type Content<D extends object, P extends object> =
