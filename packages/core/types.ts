@@ -310,7 +310,6 @@ export declare namespace Scroll {
     aveSize: number
     totalSize: number
     totalCount: number
-    prevTotalSize: number
     prevTotalCount: number
     flags: {
       hasScrolled: boolean
