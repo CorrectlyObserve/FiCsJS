@@ -1,6 +1,6 @@
 import type { Scroll } from '../../types'
 import { getOffsetBeforeIndex } from '../cache'
-import { getAveSize, getScrollAttr } from '../helpers'
+import { getAveSize, getScrollAttr, getProperty } from '../helpers'
 
 export const getItemsInScrollArea = ({
   root,
@@ -59,7 +59,7 @@ export const restoreAxisOffset = <D extends object, P>({
 
   root.scrollTop = 0
   root.scrollLeft = 0
-  root[`scroll${isVertical ? 'Top' : 'Left'}`] =
+  ;(root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })] =
     getOffsetBeforeIndex({
       cache,
       totalCount,
@@ -87,13 +87,13 @@ export const updateFirstVisible = <D extends object, P>({
   if (items.length === 0) return
 
   const rootRect: DOMRect = root.getBoundingClientRect(),
-    viewStart = rootRect[isVertical ? 'top' : 'left'],
-    viewEnd = rootRect[isVertical ? 'bottom' : 'right']
+    viewStart: number = (rootRect as any)[getProperty({ isVertical, type: 'start' })],
+    viewEnd: number = (rootRect as any)[getProperty({ isVertical, type: 'end' })]
 
   for (const [index, item] of items.entries()) {
     const rect: DOMRect = item.getBoundingClientRect(),
-      itemStart = rect[isVertical ? 'top' : 'left'],
-      itemEnd = rect[isVertical ? 'bottom' : 'right']
+      itemStart: number = (rect as any)[getProperty({ isVertical, type: 'start' })],
+      itemEnd: number = (rect as any)[getProperty({ isVertical, type: 'end' })]
 
     if (itemEnd <= viewStart || itemStart >= viewEnd) continue
 
