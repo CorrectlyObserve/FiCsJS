@@ -67,8 +67,8 @@ const scrollTemplate = <D extends object, P extends object, T>({
   const resolvedAveSize: number = getAveSize({ aveSize, itemMinSize }),
     estimatedTotalSize: number = resolvedAveSize * totalCount
 
-  let newTotalSize: number = estimatedTotalSize
-  if (Number.isFinite(totalSize)) newTotalSize = Math.max(totalSize, estimatedTotalSize)
+  let nextTotalSize: number = estimatedTotalSize
+  if (Number.isFinite(totalSize)) nextTotalSize = Math.max(totalSize, estimatedTotalSize)
 
   /**
    * @remarks
@@ -76,7 +76,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
    */
   const offsetPadding: number = Math.min(
       getOffsetBeforeIndex({ cache, totalCount, index: startIndex, aveSize: resolvedAveSize }),
-      newTotalSize
+      nextTotalSize
     ),
     isVertical: boolean = axis === 'vertical',
     sizeProp: string = getProperty({ isVertical, type: 'size' }),
@@ -90,14 +90,14 @@ const scrollTemplate = <D extends object, P extends object, T>({
       ]),
       wrap: joinArray([
         'box-sizing:border-box;position:relative;',
-        `min-${sizeProp}:${newTotalSize}px;`,
+        `min-${sizeProp}:${nextTotalSize}px;`,
         isVertical ? 'display:block;' : 'display:flex;flex-wrap:nowrap;align-items:flex-start;',
         `padding-${startProp}:${offsetPadding}px;`
       ]),
       sentinel: joinArray([
         'position:absolute;height:1px;width:1px;',
         `${isVertical ? 'left' : 'top'}:0;`,
-        `${startProp}:${Math.max(newTotalSize - 1, 0)}px;`
+        `${startProp}:${Math.max(nextTotalSize - 1, 0)}px;`
       ])
     } as const,
     div = (type: Scroll.Div, contents?: Html.Sanitized<D, P>[]): Html.Sanitized<D, P> => template`
@@ -106,7 +106,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
       </div>
     `
 
-  scrollOptions.totalSize = newTotalSize
+  scrollOptions.totalSize = nextTotalSize
   scrollOptions.totalCount = totalCount
   scrollOptions.lastAxis = axis
 
