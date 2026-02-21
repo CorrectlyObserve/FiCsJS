@@ -60,12 +60,12 @@ export default <D extends object, P>({
     if (restoreAxisOffset({ root, scrollOptions, isVertical, itemMinSize })) {
       syncResize({
         getScrollOptions: () => scrollOptions,
+        getIsVertical,
         observers,
         root,
         instanceId,
         unit,
         itemMinSize,
-        isVertical,
         bufferLength,
         thresholdRate,
         reRender
@@ -171,12 +171,12 @@ export default <D extends object, P>({
   restoreAxisOffset({ root, scrollOptions, isVertical, itemMinSize })
   syncResize({
     getScrollOptions: () => scrollOptions,
+    getIsVertical,
     observers,
     root,
     instanceId,
     unit,
     itemMinSize,
-    isVertical,
     bufferLength,
     thresholdRate,
     reRender
@@ -209,12 +209,12 @@ export default <D extends object, P>({
   observers.mutation = new MutationObserver(() => {
     syncResize({
       getScrollOptions: () => scrollOptions,
+      getIsVertical,
       observers,
       root,
       instanceId,
       unit,
       itemMinSize,
-      isVertical: getIsVertical(),
       bufferLength,
       thresholdRate,
       reRender
