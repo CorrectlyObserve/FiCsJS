@@ -64,8 +64,8 @@ export default class FiCsElement<D extends object, P extends object> {
     boundFunctions: Map<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
   } = { boundFunctions: new Map() }
-  readonly #deferredData?: (ctx: DataProps<D, P, true>) => Promise<Partial<D>>
-  readonly #i18nData?: (ctx: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
+  readonly #deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
+  readonly #i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
@@ -259,7 +259,7 @@ export default class FiCsElement<D extends object, P extends object> {
             break
 
           case 'scroll':
-            const options = value as (ctx: DataProps<D, P, true>) => Scroll.Options,
+            const options = value as (ctx: DataProps.Payload<D, P, true>) => Scroll.Options,
               { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
                 this.#getDataProps(true)
               ),
@@ -357,12 +357,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
+  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
     return {
       data: this.#data,
       props: this.#props,
       crud: isCrud ? this.#crud.bind(this) : undefined
-    } as DataProps<D, P, B>
+    } as DataProps.Payload<D, P, B>
   }
 
   #enqueue(func: () => void, key: Task['key']): void {
