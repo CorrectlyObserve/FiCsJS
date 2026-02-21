@@ -16,7 +16,7 @@ export default <D extends object, P>({
       for (const { handler, callback } of listeners)
         eventSource.removeEventListener(handler, callback)
     },
-    getCtx = (): DataProps<D, P, true> & { close: () => void } => ({
+    getCtx = (): DataProps.Payload<D, P, true> & { close: () => void } => ({
       ...getDataProps(true),
       close: () => {
         removeEventListeners()

@@ -24,13 +24,13 @@ export declare namespace FiCs {
 
   type Css<D extends object, P> = SingleOrArray<Css.Rules<D, P> | string> | undefined
 
-  type DeferredContext<D extends object, P> = DataProps<D, P, true>
+  type DeferredContext<D extends object, P> = DataProps.Payload<D, P, true>
 
   type Html<D extends object, P extends object> = Html.Core<D, P>
 
   type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
 
-  type I18nContext<D extends object, P> = DataProps<D, P, false> & I18n
+  type I18nContext<D extends object, P> = DataProps.Payload<D, P> & I18n
 
   type Options<D extends object, P> = Options.Ctx<D, P> | undefined
 
