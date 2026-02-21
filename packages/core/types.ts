@@ -14,7 +14,7 @@ export declare namespace Action {
   >
 
   type Method<D extends object, P> = (
-    ctx: DataProps<D, P, true> & {
+    ctx: DataProps.Payload<D, P, true> & {
       event: Event
       ref: (selector: string) => Element | null
       attributes: Record<string, string>
@@ -96,8 +96,8 @@ export interface FiCs<D extends object, P extends object> {
   instanceId?: string
   children?: Descendant[]
   data?: () => Partial<D>
-  deferredData?: (ctx: DataProps<D, P, true>) => Promise<Partial<D>>
-  i18nData?: (ctx: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
+  deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
+  i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
@@ -115,7 +115,7 @@ export declare namespace Html {
     | string
 
   type Core<D extends object, P extends object> = (
-    ctx: Omit<DataProps<D, P, true>, 'props'> &
+    ctx: Omit<DataProps.Payload<D, P, true>, 'props'> &
       Syntaxes<D, P> & {
         isBrowser: boolean
         isDeferred: boolean
@@ -198,7 +198,7 @@ export declare namespace Options {
 export interface Props<D extends object, P> {
   descendant: (ctx: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    ctx: DataProps<D, P, true> & { children: Children } & {
+    ctx: DataProps.Payload<D, P, true> & { children: Children } & {
       sendToWebsocket: (value: WebSocket.Value) => void
     }
   ) =>
@@ -250,7 +250,7 @@ export declare namespace Scroll {
       name: string
       instanceId: string
       shadowRoot: ShadowRoot
-      getDataProps: GetDataProps<D, P>
+      getDataProps: DataProps.Getter<D, P>
       scrollOptions: Resolved<D, P> | undefined
       addEventListener: (ctx: Action.Ctx<D, P>) => void
       reRender: () => void
@@ -260,7 +260,7 @@ export declare namespace Scroll {
 
     interface Template<D extends object, P extends object, T> {
       instanceId: string
-      getDataProps: GetDataProps<D, P>
+      getDataProps: DataProps.Getter<D, P>
       template: Html.Template<D, P>
       scrollOptions: Resolved<D, P> | undefined
       array: ReadonlyArray<T> | null | undefined
@@ -333,21 +333,21 @@ export type SingleOrArray<T> = T | T[]
 export declare namespace SSE {
   interface Ctx<D extends object, P> {
     options: Options<D, P> | undefined
-    getDataProps: GetDataProps<D, P>
+    getDataProps: DataProps.Getter<D, P>
     debounce: RateLimitFn
     throttle: RateLimitFn
   }
 
   type Method<D extends object, P> = (
-    ctx: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
+    ctx: DataProps.Payload<D, P, true> & { event: MessageEvent; close: () => void }
   ) => void
 
   interface Options<D extends object, P> {
     path: string
     withCredentials?: boolean
-    onopen?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
+    onopen?: (ctx: DataProps.Payload<D, P, true> & { event: Event; close: () => void }) => void
     onmessage?: Method<D, P>
-    onerror?: (ctx: DataProps<D, P, true> & { event: Event; close: () => void }) => void
+    onerror?: (ctx: DataProps.Payload<D, P, true> & { event: Event; close: () => void }) => void
     actions: Record<string, Method<D, P> | [Method<D, P>, Omit<Action.Options, 'blur'>]>
   }
 }
@@ -360,17 +360,17 @@ export interface Task {
 
 export type Translations = Record<string, unknown>
 
-type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps<D, P>) => T)
+type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
 
 export declare namespace WebSocket {
   namespace Ctx {
     interface Fn<D extends object, P> {
       options: WebSocket.Options<D, P> | undefined
-      getDataProps: GetDataProps<D, P>
+      getDataProps: DataProps.Getter<D, P>
       setWebSocketProp: (value?: WebSocket.Prop) => void
     }
 
-    interface Params<D extends object, P> extends DataProps<D, P, true> {
+    interface Params<D extends object, P> extends DataProps.Payload<D, P, true> {
       websocket: {
         send: (value: Value) => void
         readyState: () => number
