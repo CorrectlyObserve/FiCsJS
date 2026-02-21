@@ -13,7 +13,7 @@ import type {
 } from '../core/types'
 
 export type Content<D extends object, P extends object> = (
-  syntaxes: Omit<DataProps<D, P>, 'props'> & Html.Syntaxes<D, P>
+  syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P>
 ) => Returned<D, P>
 
 export interface FiCsLink<P extends object> {
