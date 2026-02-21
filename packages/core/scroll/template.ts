@@ -1,6 +1,6 @@
 import { joinArray, numberError } from '../helpers'
 import { getOffsetBeforeIndex, resetCache } from './cache'
-import { getAveSize, getScrollAttr } from './helpers'
+import { getAveSize, getScrollAttr, isValidNumber } from './helpers'
 import type { Html, Scroll, SetTimeout } from '../types'
 
 const scrollTemplate = <D extends object, P extends object, T>({
@@ -25,7 +25,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
    * @remarks
    * Resets the item min size.
    */
-  if (!Number.isFinite(storedAveSize) || storedAveSize < itemMinSize)
+  if (!isValidNumber(storedAveSize) || storedAveSize < itemMinSize)
     scrollOptions.aveSize = itemMinSize
 
   if (lastAxis !== undefined && lastAxis !== axis) {
