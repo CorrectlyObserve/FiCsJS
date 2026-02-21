@@ -292,7 +292,6 @@ export default class FiCsElement<D extends object, P extends object> {
               aveSize: itemMinSize,
               totalSize: NaN,
               totalCount: 0,
-              prevTotalSize: NaN,
               prevTotalCount: 0,
               flags: {
                 hasScrolled: false,
