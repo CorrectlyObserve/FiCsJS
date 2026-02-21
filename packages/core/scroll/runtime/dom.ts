@@ -84,7 +84,10 @@ export const updateFirstVisible = <D extends object, P>({
   scrollOptions: Scroll.Resolved<D, P>
 }): void => {
   const items: HTMLElement[] = getItemsInScrollArea({ root, instanceId })
-  if (items.length === 0) return
+  if (items.length === 0) {
+    scrollOptions.firstVisible = {}
+    return
+  }
 
   const rootRect: DOMRect = root.getBoundingClientRect(),
     viewStart: number = (rootRect as any)[getProperty({ isVertical, type: 'start' })],
