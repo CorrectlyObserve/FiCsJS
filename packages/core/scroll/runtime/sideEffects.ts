@@ -50,7 +50,7 @@ export const fetchWithinThreshold = <D extends object, P>({
        * Resets `lastTriggeredCount` on failure to allow retries.
        */
       scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
-      console.error(`Infinite virtual scroll fetch failed due to: ${error}`)
+      console.error(`Infinite virtual scroll fetch failed due to: ${error}...`)
     })
     .finally(() => (scrollOptions.fetch.isFetching = false))
 }
