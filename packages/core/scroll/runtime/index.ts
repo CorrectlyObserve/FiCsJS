@@ -99,8 +99,8 @@ export default <D extends object, P>({
     scrollOptions.isEnabled = false
   }
 
-  let lastChild: Element | null = getSentinel({ root, instanceId })
-  if (!lastChild) return
+  let lastSentinel: Element | null = getSentinel({ root, instanceId })
+  if (!lastSentinel) return
 
   let pageParam: number = 1
   if (parameter) {
@@ -226,16 +226,16 @@ export default <D extends object, P>({
       reRender
     })
 
-    const nextLastChild: Element | null = getSentinel({ root, instanceId })
-    if (nextLastChild && nextLastChild !== lastChild) {
-      if (lastChild) observers.intersection.unobserve(lastChild)
+    const nextLastSentinel: Element | null = getSentinel({ root, instanceId })
+    if (nextLastSentinel && nextLastSentinel !== lastSentinel) {
+      if (lastSentinel) observers.intersection.unobserve(lastSentinel)
 
-      observers.intersection.observe(nextLastChild)
-      lastChild = nextLastChild
+      observers.intersection.observe(nextLastSentinel)
+      lastSentinel = nextLastSentinel
     }
   })
 
-  observers.intersection.observe(lastChild)
+  observers.intersection.observe(lastSentinel)
   observers.mutation.observe(root, { childList: true, subtree: true })
   setScrollObservers({ root, ...observers })
   scrollOptions.isEnabled = true
