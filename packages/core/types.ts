@@ -150,7 +150,7 @@ export declare namespace Html {
 }
 
 export declare namespace Hook {
-  interface Ctx<D extends object, P> extends DataProps<D, P, true> {
+  interface Ctx<D extends object, P> extends DataProps.Payload<D, P, true> {
     ref: (selector: string) => Element | null
     debounce: RateLimitFn
     throttle: RateLimitFn
@@ -182,7 +182,7 @@ export interface I18n {
 export declare namespace Options {
   interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'scroll'> {
     ssr?: boolean
-    scroll?: (ctx: DataProps<D, P, true>) => Scroll.Options
+    scroll?: (ctx: DataProps.Payload<D, P, true>) => Scroll.Options
   }
 
   interface Resolved<D extends object, P> {
@@ -299,7 +299,7 @@ export declare namespace Scroll {
 
   interface Resolved<D extends object, P> extends Runtime {
     cache: Cache
-    options: (ctx: DataProps<D, P, true>) => Options
+    options: (ctx: DataProps.Payload<D, P, true>) => Options
   }
 
   interface Runtime {
