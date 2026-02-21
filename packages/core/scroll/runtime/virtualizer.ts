@@ -73,13 +73,13 @@ export const updateRange = <D extends object, P>({
   if (!isValidNumber(totalSize)) totalSize = 0
 
   const { scrollOffset, clientSize }: Scroll.Metrics = getScrollMetrics(root, isVertical),
-    newAveSize: number = getAveSize({ aveSize: scrollOptions.aveSize, itemMinSize }),
+    estimatedAveSize: number = getAveSize({ aveSize: scrollOptions.aveSize, itemMinSize }),
     _getOffsetBeforeIndex = (index: number): number =>
-      getOffsetBeforeIndex({ cache, totalCount, index, aveSize: newAveSize })
+      getOffsetBeforeIndex({ cache, totalCount, index, aveSize: estimatedAveSize })
 
-  const visibleCount: number = Math.ceil(clientSize / newAveSize),
+  const visibleCount: number = Math.ceil(clientSize / estimatedAveSize),
     renderedCount: number = Math.max(visibleCount, unit) + bufferLength,
-    newStartIndex: number = (() => {
+    nextStartIndex: number = (() => {
       let correct: number = 0
       if (scrollOffset <= 0) return correct
 
@@ -110,7 +110,7 @@ export const updateRange = <D extends object, P>({
       if (startIndex < 0) return 0
       return startIndex
     })(),
-    newEndIndex: number = Math.min(newStartIndex + renderedCount, totalCount),
+    nextEndIndex: number = Math.min(nextStartIndex + renderedCount, totalCount),
     estimatedTotalSize = (() => {
       const maxTotalSize: number = _getOffsetBeforeIndex(totalCount)
 
@@ -120,17 +120,17 @@ export const updateRange = <D extends object, P>({
         if (Number.isFinite(_scrollWidth) && _scrollWidth > 0) scrollWidth = _scrollWidth
       }
 
-      return Math.max(newAveSize * totalCount, maxTotalSize, scrollWidth)
+      return Math.max(estimatedAveSize * totalCount, maxTotalSize, scrollWidth)
     })(),
-    newTotalSize = Math.max(estimatedTotalSize, totalSize)
+    nextTotalSize = Math.max(estimatedTotalSize, totalSize)
 
-  const hasRangeChanged: boolean = newStartIndex !== startIndex || newEndIndex !== endIndex,
-    hasSizeChanged: boolean = Math.abs(totalSize - newTotalSize) >= consts.SIZE_DELTA_TOLERANCE
+  const hasRangeChanged: boolean = nextStartIndex !== startIndex || nextEndIndex !== endIndex,
+    hasSizeChanged: boolean = Math.abs(totalSize - nextTotalSize) >= consts.SIZE_DELTA_TOLERANCE
 
   if (hasRangeChanged || hasSizeChanged) {
-    scrollOptions.startIndex = newStartIndex
-    scrollOptions.endIndex = newEndIndex
-    scrollOptions.totalSize = newTotalSize
+    scrollOptions.startIndex = nextStartIndex
+    scrollOptions.endIndex = nextEndIndex
+    scrollOptions.totalSize = nextTotalSize
     reRender()
   }
 }
