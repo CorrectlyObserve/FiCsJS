@@ -2,7 +2,7 @@ import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
 import { getOffsetBeforeIndex, rebuildFenwickTrees } from '../cache'
 import consts from '../constants'
-import { getAveSize, getScrollMetrics, fenwickTree } from '../helpers'
+import { fenwickTree, getAveSize, getScrollMetrics, isValidNumber } from '../helpers'
 
 export const updateAveSize = <D extends object, P>({
   scrollOptions,
@@ -70,7 +70,7 @@ export const updateRange = <D extends object, P>({
   }
 
   let { totalSize }: Scroll.Resolved<D, P> = scrollOptions
-  if (!Number.isFinite(totalSize) || totalSize <= 0) totalSize = 0
+  if (!isValidNumber(totalSize)) totalSize = 0
 
   const { scrollOffset, clientSize }: Scroll.Metrics = getScrollMetrics(root, isVertical),
     newAveSize: number = getAveSize({ aveSize: scrollOptions.aveSize, itemMinSize }),
