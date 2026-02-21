@@ -3,13 +3,7 @@ import type { Scroll } from '../../types'
 import { resetCache } from '../cache'
 import consts from '../constants'
 import { getProperty } from '../helpers'
-import {
-  getItemsInScrollArea,
-  getRootElement,
-  getSentinel,
-  restoreAxisOffset,
-  updateFirstVisible
-} from './dom'
+import { getRootElement, getSentinel, restoreAxisOffset, updateFirstVisible } from './dom'
 import { fetchWithinThreshold, updatePageParam } from './sideEffects'
 import syncResize from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
