@@ -61,3 +61,5 @@ export const getScrollMetrics = (root: HTMLElement, isVertical: boolean): Scroll
   scrollAmount: root[`scroll${isVertical ? 'Height' : 'Width'}`],
   clientSize: root[`client${isVertical ? 'Height' : 'Width'}`]
 })
+
+export const isValidNumber = (value: number): boolean => Number.isFinite(value) && value > 0
