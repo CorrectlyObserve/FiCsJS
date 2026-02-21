@@ -42,7 +42,8 @@ export const fetchWithinThreshold = <D extends object, P>({
   }
 
   scrollOptions.fetch = { isFetching: true, lastTriggeredCount: totalCount }
-  Promise.resolve(method())
+  Promise.resolve()
+    .then(method)
     .catch(error => {
       /**
        * @remarks
