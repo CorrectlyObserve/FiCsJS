@@ -79,23 +79,25 @@ const scrollTemplate = <D extends object, P extends object, T>({
       newTotalSize
     ),
     isVertical: boolean = axis === 'vertical',
+    sizeProp: string = getProperty({ isVertical, type: 'size' }),
+    startProp: string = getProperty({ isVertical, type: 'start' }),
     styles = {
       container: joinArray([
         'position:relative;overscroll-behavior:contain;',
-        `${getProperty({ isVertical, type: 'size' })}:${itemMinSize * unit}px;`,
+        `${sizeProp}:${itemMinSize * unit}px;`,
         `overflow-${isVertical ? 'y' : 'x'}:auto;overflow-${isVertical ? 'x' : 'y'}:hidden;`,
         isVertical ? '' : 'margin-inline:auto;'
       ]),
       wrap: joinArray([
         'box-sizing:border-box;position:relative;',
-        `min-${getProperty({ isVertical, type: 'size' })}:${newTotalSize}px;`,
+        `min-${sizeProp}:${newTotalSize}px;`,
         isVertical ? 'display:block;' : 'display:flex;flex-wrap:nowrap;align-items:flex-start;',
-        `padding-${getProperty({ isVertical, type: 'start' })}:${offsetPadding}px;`
+        `padding-${startProp}:${offsetPadding}px;`
       ]),
       sentinel: joinArray([
         'position:absolute;height:1px;width:1px;',
         `${isVertical ? 'left' : 'top'}:0;`,
-        `${getProperty({ isVertical, type: 'start' })}:${Math.max(newTotalSize - 1, 0)}px;`
+        `${startProp}:${Math.max(newTotalSize - 1, 0)}px;`
       ])
     } as const,
     div = (type: Scroll.Div, contents?: Html.Sanitized<D, P>[]): Html.Sanitized<D, P> => template`
