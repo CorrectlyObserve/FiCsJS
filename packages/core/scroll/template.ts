@@ -38,7 +38,6 @@ const scrollTemplate = <D extends object, P extends object, T>({
     scrollOptions.endIndex = Math.min(totalCount, clampedIndex + unit + (bufferLength ?? 0))
     scrollOptions.aveSize = itemMinSize
     scrollOptions.totalSize = NaN
-    scrollOptions.prevTotalSize = NaN
     scrollOptions.flags = {
       hasScrolled: false,
       isRangeLocked: true,
