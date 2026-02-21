@@ -2,46 +2,49 @@ import { numberError } from '../helpers'
 import type { Scroll } from '../types'
 import { fenwickTree } from './helpers'
 
-export const evictCache = <D extends object, P>(
-  cache: Scroll.Cache,
-  newStartIndex: number
-): void => {
+export const evictCache = <D extends object, P>({
+  cache,
+  index
+}: {
+  cache: Scroll.Cache
+  index: number
+}): void => {
   const { indexKeys, startIndex, maxLength, sizeFenwickTree, countFenwickTree }: Scroll.Cache =
     cache
 
   numberError({ maxLength })
-  numberError({ newStartIndex }, false)
+  numberError({ index }, false)
 
   /**
    * @remarks
    * Resets the cache when scrolling moves toward earlier indexes.
    */
-  if (newStartIndex < startIndex) {
-    cache.startIndex = newStartIndex
+  if (index < startIndex) {
+    cache.startIndex = index
     cache.evictedSize = 0
     cache.evictedCount = 0
     rebuildFenwickTrees(cache, 'force')
     return
   }
-  if (newStartIndex === startIndex) return
+  if (index === startIndex) return
 
   rebuildFenwickTrees(cache, 'if-needed')
 
-  let evictedCount: number = newStartIndex - startIndex
+  let evictedCount: number = index - startIndex
   if (evictedCount > maxLength) evictedCount = maxLength
 
   cache.evictedSize += fenwickTree.sum(sizeFenwickTree, evictedCount)
   cache.evictedCount += fenwickTree.sum(countFenwickTree, evictedCount)
 
-  for (const [index, key] of indexKeys) {
-    if (index >= newStartIndex) continue
+  for (const [_index, key] of indexKeys) {
+    if (_index >= index) continue
 
-    cache.indexSizes.delete(index)
-    cache.indexKeys.delete(index)
+    cache.indexSizes.delete(_index)
+    cache.indexKeys.delete(_index)
     if (key) cache.elementSizes.delete(key)
   }
 
-  cache.startIndex = newStartIndex
+  cache.startIndex = index
   rebuildFenwickTrees(cache, 'force')
 }
 
@@ -76,9 +79,9 @@ export const getOffsetBeforeIndex = <D extends object, P>({
    * for evicted items without measured sizes.
    */
   let estimatedSize: number = evictedSize + (startIndex - evictedCount) * aveSize,
-    newAveSize: number = startIndex > 0 ? estimatedSize / startIndex : aveSize
+    estimatedAveSize: number = startIndex > 0 ? estimatedSize / startIndex : aveSize
 
-  if (index <= startIndex) return newAveSize * index
+  if (index <= startIndex) return estimatedAveSize * index
 
   numberError({ maxLength, totalCount })
 
