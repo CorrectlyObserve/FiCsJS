@@ -1,7 +1,7 @@
 import { joinArray, numberError } from '../helpers'
+import type { Html, Scroll, SetTimeout } from '../types'
 import { getOffsetBeforeIndex, resetCache } from './cache'
 import { getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
-import type { Html, Scroll, SetTimeout } from '../types'
 
 const scrollTemplate = <D extends object, P extends object, T>({
   instanceId,
@@ -11,7 +11,35 @@ const scrollTemplate = <D extends object, P extends object, T>({
   array,
   callback
 }: Scroll.Ctx.Template<D, P, T>): Html.Sanitized<D, P> => {
-  if (!array || array.length === 0) return template`${[]}`
+  if (!array || array.length === 0) {
+    if (scrollOptions) {
+      scrollOptions.startIndex = 0
+      scrollOptions.endIndex = 0
+      scrollOptions.totalSize = NaN
+      scrollOptions.totalCount = 0
+      scrollOptions.flags = {
+        hasScrolled: false,
+        isRangeLocked: false,
+        isFetchLocked: true,
+        shouldRestoreAxisOffset: false
+      }
+      scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
+      scrollOptions.firstVisible = {}
+      /**
+       * @remarks
+       * Prevents negative index deltas after list reset.
+       */
+      scrollOptions.urlSync.index = undefined
+
+      for (const key of ['resize', 'idle'] as const) {
+        const timer: SetTimeout | undefined = scrollOptions.timers[key]
+        if (timer) clearTimeout(timer)
+        scrollOptions.timers[key] = undefined
+      }
+    }
+
+    return template`${[]}`
+  }
 
   if (!scrollOptions) return template`${array.map((item, index) => callback(item, index))}`
 
