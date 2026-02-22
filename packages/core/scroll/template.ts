@@ -1,7 +1,7 @@
 import { joinArray, numberError } from '../helpers'
-import type { Html, Scroll, SetTimeout } from '../types'
+import type { Html, Scroll } from '../types'
 import { getOffsetBeforeIndex, resetCache } from './cache'
-import { getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
+import { clearTimers, getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
 
 const scrollTemplate = <D extends object, P extends object, T>({
   instanceId,
@@ -31,11 +31,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
        */
       scrollOptions.urlSync.index = undefined
 
-      for (const key of ['resize', 'idle'] as const) {
-        const timer: SetTimeout | undefined = scrollOptions.timers[key]
-        if (timer) clearTimeout(timer)
-        scrollOptions.timers[key] = undefined
-      }
+      clearTimers(scrollOptions)
     }
 
     return template`${[]}`
@@ -74,12 +70,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
     }
     scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
     firstVisible.offset = 0
-
-    for (const key of ['resize', 'idle'] as const) {
-      const timer: SetTimeout | undefined = scrollOptions.timers[key]
-      if (timer) clearTimeout(timer)
-      scrollOptions.timers[key] = undefined
-    }
+    clearTimers(scrollOptions)
   }
 
   const { cache, startIndex, endIndex, totalSize, aveSize }: Scroll.Resolved<D, P> = scrollOptions
