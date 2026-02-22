@@ -1,5 +1,13 @@
 import { numberError } from '../helpers'
-import type { Scroll } from '../types'
+import type { Scroll, SetTimeout } from '../types'
+
+export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<D, P>): void => {
+  for (const key of ['resize', 'idle'] as const) {
+    const timer: SetTimeout | undefined = scrollOptions.timers[key]
+    if (timer) clearTimeout(timer)
+    scrollOptions.timers[key] = undefined
+  }
+}
 
 /**
  * @remarks
