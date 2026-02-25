@@ -85,13 +85,11 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
     return
   }
 
-  if (scrollObservers) {
-    for (const observer of ['intersection', 'mutation', 'resize'] as const)
-      scrollObservers[observer].disconnect()
-
-    setScrollObservers(undefined)
-    scrollOptions.isEnabled = false
-  }
+  /**
+   * @remarks
+   * Initial setup (or full re-setup when observers cannot be reused) starts here.
+   */
+  deactivateRuntime()
 
   let lastSentinel: Element | null = getSentinel({ root, instanceId })
   if (!lastSentinel) return
