@@ -98,4 +98,17 @@ export const getProperty = ({
 }
 
 export const isValidNumber = (value: number, isPositiveRequired: boolean = true): boolean =>
-  Number.isFinite(value) && value > 0
+  Number.isFinite(value) && (!isPositiveRequired || value > 0)
+
+export const normalizeRootMargin = (rootMargin: string | number | undefined): string => {
+  if (typeof rootMargin === 'number')
+    return joinArray(new Array(4).fill(`${isValidNumber(rootMargin, false) ? rootMargin : 0}px`))
+
+  const split: string[] = (rootMargin ?? '').trim().split(/\s+/)
+  if (split.length > 4 || !split[0]) return joinArray(new Array(4).fill('0px'))
+
+  const [top, right, bottom, left]: (string | undefined)[] = split
+
+  if (left) return joinArray(split)
+  return joinArray(right || bottom ? [top, right!, bottom ?? top, right!] : new Array(4).fill(top))
+}
