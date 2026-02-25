@@ -89,23 +89,30 @@ export const updateFirstVisible = <D extends object, P>({
     return
   }
 
-  const rootRect: DOMRect = root.getBoundingClientRect(),
-    viewStart: number = (rootRect as any)[getProperty({ isVertical, type: 'start' })],
-    viewEnd: number = (rootRect as any)[getProperty({ isVertical, type: 'end' })]
+  const _getProperty = (element: HTMLElement): Record<'start' | 'end', number> => {
+      const rect: DOMRectReadOnly = element.getBoundingClientRect()
+
+      return (['start', 'end'] as const).reduce(
+        (prev, curr) => {
+          prev[curr] = (rect as any)[getProperty({ isVertical, type: curr })]
+          return prev
+        },
+        {} as Record<'start' | 'end', number>
+      )
+    },
+    { start: viewStart, end: viewEnd }: Record<'start' | 'end', number> = _getProperty(root)
 
   for (const [index, item] of items.entries()) {
-    const rect: DOMRect = item.getBoundingClientRect(),
-      itemStart: number = (rect as any)[getProperty({ isVertical, type: 'start' })],
-      itemEnd: number = (rect as any)[getProperty({ isVertical, type: 'end' })]
+    const { start, end }: Record<'start' | 'end', number> = _getProperty(item)
 
-    if (itemEnd <= viewStart || itemStart >= viewEnd) continue
+    if (start <= viewStart || end >= viewEnd) continue
 
     const keyAttr: string | null = item.getAttribute('key')
     if (!keyAttr) throw new Error('Virtual scroll items must have a unique "key" attribute...')
 
     scrollOptions.firstVisible.index = scrollOptions.startIndex + index
     scrollOptions.firstVisible.key = keyAttr
-    scrollOptions.firstVisible.offset = itemStart - viewStart
+    scrollOptions.firstVisible.offset = start - viewStart
     return
   }
 }
