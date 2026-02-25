@@ -108,13 +108,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   scrollOptions.prevTotalCount = totalCount
 
   const observers: Omit<Scroll.Observers, 'root'> =
-    scrollObservers?.root === root
-      ? {
-          intersection: scrollObservers.intersection,
-          mutation: scrollObservers.mutation,
-          resize: scrollObservers.resize
-        }
-      : ({} as Omit<Scroll.Observers, 'root'>)
+    scrollObservers?.root === root ? scrollObservers : ({} as Omit<Scroll.Observers, 'root'>)
 
   if (scrollOptions.isEnabled && scrollObservers?.root === root) {
     const isVertical: boolean = getIsVertical()
