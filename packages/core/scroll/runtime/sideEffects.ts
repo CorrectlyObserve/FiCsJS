@@ -1,3 +1,4 @@
+import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
 import { getAveSize, getScrollMetrics } from '../helpers'
 
@@ -53,6 +54,40 @@ export const fetchWithinThreshold = <D extends object, P>({
       console.error(`Infinite virtual scroll fetch failed due to: ${error}...`)
     })
     .finally(() => (scrollOptions.fetch.isFetching = false))
+}
+
+export const readPageParam = (parameter?: string): number => {
+  const rawParam: string | null = parameter
+    ? new URL(window.location.href).searchParams.get(parameter)
+    : null
+
+  if (rawParam === null) return 1
+
+  const param: number = Number(rawParam)
+  numberError({ param })
+  return param
+}
+
+export const rebaseUrlSync = <D extends object, P>({
+  scrollOptions,
+  parameter,
+  unit
+}: {
+  scrollOptions: Scroll.Resolved<D, P>
+  parameter: string | undefined
+  unit: number
+}): boolean => {
+  const {
+    urlSync: { parameter: urlParameter, unit: urlUnit }
+  }: Scroll.Resolved<D, P> = scrollOptions
+
+  if (urlParameter === parameter && urlUnit === unit) return false
+
+  scrollOptions.urlSync.index = undefined
+  scrollOptions.urlSync.pageParam = undefined
+  scrollOptions.urlSync.parameter = parameter
+  scrollOptions.urlSync.unit = unit
+  return true
 }
 
 export const updatePageParam = <D extends object, P>({
