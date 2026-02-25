@@ -195,6 +195,9 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
     { root, rootMargin: typeof rootMargin === 'number' ? `${rootMargin}px` : rootMargin }
   )
   observers.mutation = new MutationObserver(() => {
+    const { trigger, ...args }: Scroll.Clamped = getResolvedOptions(scrollOptions)
+    if (trigger === false) return
+
     syncResize({
       getScrollOptions: () => scrollOptions,
       getIsVertical,
