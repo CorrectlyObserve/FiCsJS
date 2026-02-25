@@ -73,15 +73,15 @@ export const restoreAxisOffset = <D extends object, P>({
 }
 
 export const updateFirstVisible = <D extends object, P>({
+  scrollOptions,
   root,
   instanceId,
-  isVertical,
-  scrollOptions
+  isVertical
 }: {
+  scrollOptions: Scroll.Resolved<D, P>
   root: HTMLElement
   instanceId: string
   isVertical: boolean
-  scrollOptions: Scroll.Resolved<D, P>
 }): void => {
   const items: HTMLElement[] = getItemsInScrollArea({ root, instanceId })
   if (items.length === 0) {
