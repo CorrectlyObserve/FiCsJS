@@ -122,33 +122,36 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   const observers: Omit<Scroll.Observers, 'root'> =
     scrollObservers?.root === root ? scrollObservers : ({} as Omit<Scroll.Observers, 'root'>)
 
-  if (scrollOptions.isEnabled && scrollObservers?.root === root) {
-    const isVertical: boolean = getIsVertical()
+  if (isRuntimeReusable) {
+    const { rootMargin, ...args }: Scroll.Clamped = getResolvedOptions(scrollOptions),
+      isVertical: boolean = getIsVertical()
 
-    if (restoreAxisOffset({ root, scrollOptions, isVertical, itemMinSize })) {
-      syncResize({
-        getScrollOptions: () => scrollOptions,
-        getIsVertical,
-        observers,
-        root,
-        instanceId,
-        unit,
-        itemMinSize,
-        bufferLength,
-        thresholdRate,
-        reRender
-      })
-      updateAveSize({ scrollOptions, itemMinSize, thresholdRate })
-      updateRange({
-        scrollOptions,
-        root,
-        isVertical,
-        itemMinSize,
-        unit,
-        bufferLength,
-        reRender
-      })
+    if (observers.intersection.rootMargin !== normalizeRootMargin(rootMargin)) {
+      observers.intersection.disconnect()
+      observers.intersection = createIntersectionObserver(rootMargin)
+
+      const sentinel: Element | null = getSentinel({ root, instanceId })
+      if (sentinel) observers.intersection.observe(sentinel)
+
+      setScrollObservers({ root, ...observers })
     }
+
+    restoreAxisOffset({ scrollOptions, root, isVertical, ...args })
+    syncResize({
+      getScrollOptions: () => scrollOptions,
+      getIsVertical,
+      observers,
+      root,
+      instanceId,
+      reRender,
+      ...args
+    })
+    updateAveSize({ scrollOptions, ...args })
+    updateRange({ scrollOptions, root, isVertical, reRender, ...args })
+
+    const sentinel: Element | null = getSentinel({ root, instanceId })
+    if (sentinel) observers.intersection.observe(sentinel)
+    observers.mutation.observe(root, { childList: true, subtree: true })
 
     return
   }
