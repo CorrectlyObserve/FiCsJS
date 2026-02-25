@@ -1,4 +1,4 @@
-import { numberError } from '../helpers'
+import { numberError, joinArray } from '../helpers'
 import type { Scroll, SetTimeout } from '../types'
 
 export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<D, P>): void => {
