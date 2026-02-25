@@ -57,14 +57,16 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       scrollOptions.isEnabled = false
     },
     { unit, itemMinSize, axis, trigger, bufferLength }: Scroll.Clamped =
-      getResolvedOptions(scrollOptions)
+      getResolvedOptions(scrollOptions),
+    isRuntimeReusable: boolean =
+      root !== null && scrollOptions.isEnabled && scrollObservers?.root === root
 
   numberError({ totalCount, prevTotalCount }, false)
 
   if (trigger === false) {
-    if (root && scrollObservers?.root === root && scrollOptions.isEnabled) {
+    if (isRuntimeReusable) {
       for (const observer of ['intersection', 'mutation', 'resize'] as const)
-        scrollObservers[observer].disconnect()
+        scrollObservers?.[observer].disconnect()
 
       clearTimers(scrollOptions)
       scrollOptions.fetch.isFetching = false
