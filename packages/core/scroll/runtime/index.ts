@@ -94,16 +94,10 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   let lastSentinel: Element | null = getSentinel({ root, instanceId })
   if (!lastSentinel) return
 
-  let pageParam: number = 1
-  if (parameter) {
-    const rawPageParam: string | null = new URL(window.location.href).searchParams.get(parameter)
+  const { parameter, rootMargin, ...args }: Scroll.Clamped = getResolvedOptions(scrollOptions)
+  let pageParam: number = readPageParam(parameter)
 
-    if (rawPageParam !== null) {
-      const nextPageParam: number = Number(rawPageParam)
-      numberError({ nextPageParam })
-      pageParam = nextPageParam
-    }
-  }
+  rebaseUrlSync({ scrollOptions, parameter, ...args })
 
   if (parameter && scrollOptions.urlSync.pageParam === undefined)
     scrollOptions.urlSync.pageParam = pageParam
