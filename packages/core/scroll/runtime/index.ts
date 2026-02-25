@@ -228,20 +228,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   updateAveSize({ scrollOptions, ...args })
   updateRange({ scrollOptions, root, isVertical: getIsVertical(), reRender, ...args })
 
-  observers.intersection = new IntersectionObserver(
-    ([{ isIntersecting }]) => {
-      if (!isIntersecting) return
-      fetchWithinThreshold({
-        scrollOptions,
-        root,
-        isVertical: getIsVertical(),
-        itemMinSize,
-        bufferLength,
-        method
-      })
-    },
-    { root, rootMargin: typeof rootMargin === 'number' ? `${rootMargin}px` : rootMargin }
-  )
+  observers.intersection = createIntersectionObserver(rootMargin)
   observers.mutation = new MutationObserver(() => {
     const { trigger, ...args }: Scroll.Clamped = getResolvedOptions(scrollOptions)
     if (trigger === false) return
