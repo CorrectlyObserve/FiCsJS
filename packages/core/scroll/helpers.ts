@@ -97,4 +97,5 @@ export const getProperty = ({
   return prefix ? `${prefix}${property[0].toUpperCase()}${property.slice(1)}` : property
 }
 
-export const isValidNumber = (value: number): boolean => Number.isFinite(value) && value > 0
+export const isValidNumber = (value: number, isPositiveRequired: boolean = true): boolean =>
+  Number.isFinite(value) && value > 0
