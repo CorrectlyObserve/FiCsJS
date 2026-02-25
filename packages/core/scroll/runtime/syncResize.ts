@@ -244,5 +244,5 @@ export default <D extends object, P>({
 
   observers.resize.disconnect()
   for (const item of items) observers.resize.observe(item)
-  updateFirstVisible({ root, instanceId, isVertical, scrollOptions })
+  updateFirstVisible({ scrollOptions, root, instanceId, isVertical })
 }
