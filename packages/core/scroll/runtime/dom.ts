@@ -115,4 +115,6 @@ export const updateFirstVisible = <D extends object, P>({
     scrollOptions.firstVisible.offset = start - viewStart
     return
   }
+
+  scrollOptions.firstVisible = {}
 }
