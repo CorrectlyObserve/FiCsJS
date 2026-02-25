@@ -21,18 +21,45 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
 }: Scroll.Ctx.Runtime<D, P>): void => {
   if (!scrollOptions) return
 
-  const resolvedOptions: Scroll.Options = scrollOptions.options(getDataProps(true))
-  if (resolvedOptions.trigger === false) return
+  const { id, startIndex, totalCount, prevTotalCount }: Scroll.Resolved<D, P> = scrollOptions,
+    root: HTMLElement | null = shadowRoot.getElementById(id),
+    getResolvedOptions = (scrollOptions: Scroll.Resolved<D, P>): Scroll.Clamped => {
+      const {
+        unit,
+        itemMinSize,
+        bufferLength = 0,
+        throttle = 0,
+        thresholdRate = consts.THRESHOLD_RATE,
+        ...args
+      } = scrollOptions.options(getDataProps(true))
 
-  const { id }: Scroll.Resolved<D, P> = scrollOptions,
-    root: HTMLElement | null = shadowRoot.getElementById(id)
-  if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${name}...`)
+      numberError({ unit, itemMinSize })
+      numberError({ bufferLength, throttle }, false)
 
-  const { unit, itemMinSize, bufferLength = 0, throttle } = resolvedOptions
-  numberError({ unit, itemMinSize })
+      return {
+        unit,
+        itemMinSize,
+        bufferLength,
+        throttle,
+        thresholdRate: clampRatio(thresholdRate),
+        ...args
+      }
+    },
+    deactivateRuntime = (): void => {
+      if (scrollObservers) {
+        for (const observer of ['intersection', 'mutation', 'resize'] as const)
+          scrollObservers[observer].disconnect()
 
-  const { totalCount, prevTotalCount } = scrollOptions
-  numberError({ throttle, totalCount, prevTotalCount }, false)
+        setScrollObservers(undefined)
+      }
+
+      clearTimers(scrollOptions)
+      scrollOptions.isEnabled = false
+    },
+    { unit, itemMinSize, axis, trigger, bufferLength }: Scroll.Clamped =
+      getResolvedOptions(scrollOptions)
+
+  numberError({ totalCount, prevTotalCount }, false)
 
   const { axis, parameter, rootMargin, method }: Scroll.Options = resolvedOptions,
     thresholdRate: number = clampRatio(resolvedOptions.thresholdRate ?? consts.THRESHOLD_RATE),
