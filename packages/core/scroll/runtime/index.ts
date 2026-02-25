@@ -61,9 +61,44 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
 
   numberError({ totalCount, prevTotalCount }, false)
 
-  const { axis, parameter, rootMargin, method }: Scroll.Options = resolvedOptions,
-    thresholdRate: number = clampRatio(resolvedOptions.thresholdRate ?? consts.THRESHOLD_RATE),
-    getIsVertical = (): boolean => (scrollOptions.lastAxis ?? axis) === 'vertical'
+  if (trigger === false) {
+    if (root && scrollObservers?.root === root && scrollOptions.isEnabled) {
+      for (const observer of ['intersection', 'mutation', 'resize'] as const)
+        scrollObservers[observer].disconnect()
+
+      clearTimers(scrollOptions)
+      scrollOptions.fetch.isFetching = false
+      scrollOptions.flags.isFetchLocked = true
+    } else deactivateRuntime()
+
+    return
+  }
+
+  if (!root) {
+    if (totalCount === 0) {
+      scrollOptions.prevTotalCount = 0
+      deactivateRuntime()
+      return
+    }
+
+    throw new Error(`The "${id}" was not found in the shadowRoot of ${name}...`)
+  }
+
+  const getIsVertical = (): boolean => (scrollOptions.lastAxis ?? axis) === 'vertical',
+    createIntersectionObserver = (rootMargin: string | number | undefined): IntersectionObserver =>
+      new IntersectionObserver(
+        ([{ isIntersecting }]) => {
+          if (!isIntersecting) return
+
+          const { trigger, ...args }: Scroll.Clamped = getResolvedOptions(scrollOptions)
+          if (trigger === false) return
+
+          fetchWithinThreshold({ scrollOptions, root, isVertical: getIsVertical(), ...args })
+        },
+        { root, rootMargin: normalizeRootMargin(rootMargin) }
+      )
+
+  let lastScrollHandledAt: number = 0
 
   if (totalCount < prevTotalCount) {
     resetCache(scrollOptions.cache)
