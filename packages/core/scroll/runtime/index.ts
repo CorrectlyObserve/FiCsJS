@@ -8,7 +8,7 @@ import { fetchWithinThreshold, updatePageParam } from './sideEffects'
 import syncResize from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
 
-export default <D extends object, P>({
+const runInfiniteVirtualScroll = <D extends object, P extends object>({
   name,
   instanceId,
   shadowRoot,
@@ -219,3 +219,5 @@ export default <D extends object, P>({
   setScrollObservers({ root, ...observers })
   scrollOptions.isEnabled = true
 }
+
+export default runInfiniteVirtualScroll
