@@ -167,30 +167,18 @@ export default <D extends object, P>({
     ]
   })
 
-  const isVertical: boolean = getIsVertical()
-  restoreAxisOffset({ root, scrollOptions, isVertical, itemMinSize })
+  restoreAxisOffset({ scrollOptions, root, isVertical: getIsVertical(), ...args })
   syncResize({
     getScrollOptions: () => scrollOptions,
     getIsVertical,
     observers,
     root,
     instanceId,
-    unit,
-    itemMinSize,
-    bufferLength,
-    thresholdRate,
-    reRender
+    reRender,
+    ...args
   })
-  updateAveSize({ scrollOptions, itemMinSize, thresholdRate })
-  updateRange({
-    scrollOptions,
-    root,
-    isVertical,
-    itemMinSize,
-    unit,
-    bufferLength,
-    reRender
-  })
+  updateAveSize({ scrollOptions, ...args })
+  updateRange({ scrollOptions, root, isVertical: getIsVertical(), reRender, ...args })
 
   observers.intersection = new IntersectionObserver(
     ([{ isIntersecting }]) => {
@@ -213,11 +201,8 @@ export default <D extends object, P>({
       observers,
       root,
       instanceId,
-      unit,
-      itemMinSize,
-      bufferLength,
-      thresholdRate,
-      reRender
+      reRender,
+      ...args
     })
 
     const nextLastSentinel: Element | null = getSentinel({ root, instanceId })
