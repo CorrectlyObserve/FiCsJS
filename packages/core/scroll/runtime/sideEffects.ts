@@ -56,13 +56,13 @@ export const fetchWithinThreshold = <D extends object, P>({
 }
 
 export const updatePageParam = <D extends object, P>({
-  parameter,
   scrollOptions,
+  parameter,
   pageParam,
   unit
 }: {
-  parameter: string | undefined
   scrollOptions: Scroll.Resolved<D, P>
+  parameter: string | undefined
   pageParam: number
   unit: number
 }): number => {
