@@ -69,9 +69,19 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
         scrollObservers?.[observer].disconnect()
 
       clearTimers(scrollOptions)
+
+      /**
+       * @remarks
+       * Resets processing state and locks fetch until runtime is explicitly resumed.
+       */
       scrollOptions.fetch.isFetching = false
       scrollOptions.flags.isFetchLocked = true
-    } else deactivateRuntime()
+    } else
+      /**
+       * @remarks
+       * Fully deactivates runtime to avoid leaving a partially active state.
+       */
+      deactivateRuntime()
 
     return
   }
