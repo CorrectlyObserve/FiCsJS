@@ -37,13 +37,13 @@ export const getSentinel = ({
   root.querySelector(`[${getScrollAttr({ instanceId, type: 'sentinel', hasValue: true })}]`)
 
 export const restoreAxisOffset = <D extends object, P>({
-  root,
   scrollOptions,
+  root,
   isVertical,
   itemMinSize
 }: {
-  root: HTMLElement
   scrollOptions: Scroll.Resolved<D, P>
+  root: HTMLElement
   isVertical: boolean
   itemMinSize: number
 }): boolean => {
