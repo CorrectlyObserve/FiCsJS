@@ -110,8 +110,10 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
         { root, rootMargin: normalizeRootMargin(rootMargin) }
       )
 
-  let lastScrollHandledAt: number = 0
-
+  /**
+   * @remarks
+   * Rebases index-derived state because shrinking `totalCount` can invalidate previous indexes.
+   */
   if (totalCount < prevTotalCount) {
     resetCache(scrollOptions.cache)
     scrollOptions.aveSize = itemMinSize
