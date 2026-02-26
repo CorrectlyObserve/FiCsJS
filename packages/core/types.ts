@@ -326,7 +326,7 @@ export declare namespace Scroll {
     fetch: { isFetching: boolean; lastTriggeredCount: number }
     firstVisible: { index?: number; key?: string; offset?: number }
     timers: { resize?: SetTimeout; idle?: SetTimeout }
-    urlSync: { index?: number; pageParam?: number }
+    urlSync: { index?: number; pageParam?: number; parameter?: string; unit?: number }
     lastAxis?: Axis
   }
 }
