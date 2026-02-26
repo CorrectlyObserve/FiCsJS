@@ -265,7 +265,8 @@ export default class FiCsElement<D extends object, P extends object> {
               ),
               { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
 
-            numberError({ unit, itemMinSize, bufferLength, cacheLength, CACHE_LENGTH })
+            numberError({ unit, itemMinSize })
+            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, false)
 
             const normalizedLength: number = Math.max(
               Math.floor(Math.max(cacheLength ?? CACHE_LENGTH, unit + (bufferLength ?? 0))),
