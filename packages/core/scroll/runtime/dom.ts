@@ -105,7 +105,7 @@ export const updateFirstVisible = <D extends object, P>({
   for (const [index, item] of items.entries()) {
     const { start, end }: Record<'start' | 'end', number> = _getProperty(item)
 
-    if (start <= viewStart || end >= viewEnd) continue
+    if (end <= viewStart || start >= viewEnd) continue
 
     const keyAttr: string | null = item.getAttribute('key')
     if (!keyAttr) throw new Error('Virtual scroll items must have a unique "key" attribute...')
