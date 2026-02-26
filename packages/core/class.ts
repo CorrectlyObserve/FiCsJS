@@ -41,7 +41,7 @@ import type {
   SingleOrArray,
   SSE,
   Task,
-  WebSocket
+  WebSocket as WebSocketNS
 } from './types'
 
 export default class FiCsElement<D extends object, P extends object> {
@@ -85,7 +85,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
-  #webSocketProp?: WebSocket.Prop
+  #webSocketProp?: WebSocketNS.Prop
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
   #hasDescribed: boolean = false
@@ -251,7 +251,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         switch (key) {
           case 'websocket':
-            this.#options[key] = { ...value } as WebSocket.Options<D, P>
+            this.#options[key] = { ...value } as WebSocketNS.Options<D, P>
             break
 
           case 'sse':
@@ -462,7 +462,7 @@ export default class FiCsElement<D extends object, P extends object> {
               values({
                 ...this.#getDataProps(true),
                 children: this.#children,
-                sendToWebsocket: (value: WebSocket.Value) =>
+                sendToWebsocket: (value: WebSocketNS.Value) =>
                   this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
               })
             ))
@@ -1284,7 +1284,7 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#websocket = openWebSocket({
             options: that.#options.websocket,
             getDataProps: that.#getDataProps.bind(that),
-            setWebSocketProp: (prop: WebSocket.Prop | undefined) => (that.#webSocketProp = prop)
+            setWebSocketProp: (prop: WebSocketNS.Prop | undefined) => (that.#webSocketProp = prop)
           })
 
           const {
