@@ -102,7 +102,7 @@ export const isValidNumber = (value: number, isPositiveRequired: boolean = true)
 
 export const normalizeRootMargin = (rootMargin: string | number | undefined): string => {
   if (typeof rootMargin === 'number')
-    return joinArray(new Array(4).fill(`${isValidNumber(rootMargin, false) ? rootMargin : 0}px`))
+    return joinArray(new Array(4).fill(`${Number.isFinite(rootMargin) ? rootMargin : 0}px`))
 
   const split: string[] = (rootMargin ?? '').trim().split(/\s+/)
   if (split.length > 4 || !split[0]) return joinArray(new Array(4).fill('0px'))
