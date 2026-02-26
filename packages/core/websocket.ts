@@ -1,11 +1,11 @@
 import { isBlankObject } from './helpers'
-import type { SetTimeout, WebSocket } from './types'
+import type { SetTimeout, WebSocket as WebSocketNS } from './types'
 
 export default <D extends object, P>({
   options,
   getDataProps,
   setWebSocketProp
-}: WebSocket.Ctx.Fn<D, P>): WebSocket | undefined => {
+}: WebSocketNS.Ctx.Fn<D, P>): WebSocket | undefined => {
   if (!options || isBlankObject(options)) return undefined
 
   let reconnectedCount: number = 0,
@@ -19,7 +19,7 @@ export default <D extends object, P>({
       onmessage,
       onerror,
       onclose
-    }: WebSocket.Options<D, P> = options,
+    }: WebSocketNS.Options<D, P> = options,
     { protocol, host }: { protocol: string; host: string } = window.location
 
   const connect = (): WebSocket => {
@@ -27,7 +27,7 @@ export default <D extends object, P>({
     wsUrl.protocol = protocol.startsWith('https') ? 'wss:' : 'ws:'
 
     const websocket: WebSocket = new WebSocket(wsUrl.toString(), protocols),
-      getParams: () => Omit<WebSocket.Ctx.Params<D, P>, 'event'> = () => ({
+      getParams: () => Omit<WebSocketNS.Ctx.Params<D, P>, 'event'> = () => ({
         ...getDataProps(true),
         websocket: {
           send: websocket.send.bind(websocket),
@@ -60,8 +60,11 @@ export default <D extends object, P>({
 
     const autoReconnect = (): void => {
       if (reconnect && !reconnectedTimer) {
-        const { interval, max, isExponential }: NonNullable<WebSocket.Options<D, P>>['reconnect'] =
-          reconnect
+        const {
+          interval,
+          max,
+          isExponential
+        }: NonNullable<WebSocketNS.Options<D, P>>['reconnect'] = reconnect
 
         if ((max && reconnectedCount < max) || !max) {
           websocket.close()
