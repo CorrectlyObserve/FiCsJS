@@ -173,59 +173,65 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   if (parameter && scrollOptions.urlSync.pageParam === undefined)
     scrollOptions.urlSync.pageParam = pageParam
 
+  let lastScrolledAt: number = 0
   addEventListener({
     element: root,
     shadowRoot,
     entries: [
       [
         'scroll',
-        [
-          () => {
-            const isVertical: boolean = getIsVertical()
+        () => {
+          const { trigger, parameter, throttle, ...args }: Scroll.Clamped =
+            getResolvedOptions(scrollOptions)
+          if (trigger === false) return
 
-            scrollOptions.flags.hasScrolled = true
-            scrollOptions.flags.isFetchLocked = false
+          /**
+           * @remarks
+           * Throttles manually and dynamically to ensure consistent behavior across browsers
+           * and avoid potential issues with event listeners.
+           */
+          const now: number = Date.now()
+          if (now - lastScrolledAt < throttle) return
+          lastScrolledAt = now
 
-            updateFirstVisible({ root, instanceId, isVertical, scrollOptions })
-            updateRange({
-              scrollOptions,
-              root,
-              isVertical,
-              itemMinSize,
-              unit,
-              bufferLength,
-              reRender
-            })
-            fetchWithinThreshold({
-              scrollOptions,
-              root,
-              isVertical,
-              itemMinSize,
-              bufferLength,
-              method
-            })
-            pageParam = updatePageParam({ parameter, scrollOptions, pageParam, unit })
+          scrollOptions.flags.hasScrolled = true
+          scrollOptions.flags.isFetchLocked = false
 
-            const {
-              timers: { idle }
-            }: Scroll.Resolved<D, P> = scrollOptions
+          const isVertical: boolean = getIsVertical()
+          updateFirstVisible({ scrollOptions, root, instanceId, isVertical })
+          updateRange({ scrollOptions, root, isVertical, reRender, ...args })
+          fetchWithinThreshold({ scrollOptions, root, isVertical, ...args })
 
-            if (idle) clearTimeout(idle)
-            scrollOptions.timers.idle = setTimeout(() => {
-              const scrollAreaSize: number = (getRootElement({ root, instanceId }) as any)[
-                getProperty({ isVertical: getIsVertical(), type: 'size', prefix: 'scroll' })
-              ]
-              numberError({ scrollAreaSize })
+          if (rebaseUrlSync({ scrollOptions, parameter, ...args }))
+            pageParam = readPageParam(parameter)
 
-              const { totalSize }: Scroll.Resolved<D, P> = scrollOptions
-              if (scrollAreaSize > (Number.isFinite(totalSize) ? totalSize : 0)) {
-                scrollOptions.totalSize = scrollAreaSize
-                reRender()
-              }
-            }, throttle ?? 0)
-          },
-          { throttle }
-        ]
+          /**
+           * @remarks
+           * Initializes pageParam for URL sync if it doesn't already exist.
+           */
+          if (parameter && scrollOptions.urlSync.pageParam === undefined)
+            scrollOptions.urlSync.pageParam = pageParam
+
+          pageParam = updatePageParam({ scrollOptions, parameter, pageParam, ...args })
+
+          const {
+            timers: { idle }
+          }: Scroll.Resolved<D, P> = scrollOptions
+
+          if (idle) clearTimeout(idle)
+          scrollOptions.timers.idle = setTimeout(() => {
+            const scrollAreaSize: number = (getRootElement({ root, instanceId }) as any)[
+              getProperty({ isVertical: getIsVertical(), type: 'size', prefix: 'scroll' })
+            ]
+            numberError({ scrollAreaSize })
+
+            const { totalSize }: Scroll.Resolved<D, P> = scrollOptions
+            if (!isValidNumber(totalSize, false) || scrollAreaSize > totalSize) {
+              scrollOptions.totalSize = scrollAreaSize
+              reRender()
+            }
+          }, throttle)
+        }
       ]
     ]
   })
