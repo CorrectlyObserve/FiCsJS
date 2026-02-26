@@ -5,42 +5,39 @@ import { fenwickTree, getProperty, isValidNumber } from '../helpers'
 import { getItemsInScrollArea, updateFirstVisible } from './dom'
 import { updateAveSize, updateRange } from './virtualizer'
 
-const getAxisSize = (element: HTMLElement | DOMRectReadOnly, isVertical: boolean): number =>
-    (element as any)[getProperty({ isVertical, type: 'size' })],
-  isKeyChanged = (key: string, prevKey: string | undefined): prevKey is string =>
-    prevKey !== undefined && prevKey !== key
+const isKeyChanged = (key: string, prevKey: string | undefined): prevKey is string =>
+    prevKey !== undefined && prevKey !== key,
+  upsertMeasuredSize = ({
+    cache,
+    key,
+    index,
+    size,
+    fenwickTreeIndex,
+    sizeFenwickTree,
+    countFenwickTree
+  }: {
+    cache: Scroll.Cache
+    key: string
+    index: number
+    size: number
+    fenwickTreeIndex: number
+    sizeFenwickTree: number[]
+    countFenwickTree: number[]
+  }): { prevSize: number | undefined; prevIndexSize: number | undefined } => {
+    const prevSize: number | undefined = cache.elementSizes.get(key),
+      prevIndexSize: number | undefined = cache.indexSizes.get(index)
 
-const upsertMeasuredSize = ({
-  cache,
-  key,
-  index,
-  size,
-  fenwickTreeIndex,
-  sizeFenwickTree,
-  countFenwickTree
-}: {
-  cache: Scroll.Cache
-  key: string
-  index: number
-  size: number
-  fenwickTreeIndex: number
-  sizeFenwickTree: number[]
-  countFenwickTree: number[]
-}): { prevSize: number | undefined; prevIndexSize: number | undefined } => {
-  const prevSize: number | undefined = cache.elementSizes.get(key),
-    prevIndexSize: number | undefined = cache.indexSizes.get(index)
+    if (prevIndexSize !== size)
+      fenwickTree.add(sizeFenwickTree, fenwickTreeIndex, size - (prevIndexSize ?? 0))
 
-  if (prevIndexSize !== size)
-    fenwickTree.add(sizeFenwickTree, fenwickTreeIndex, size - (prevIndexSize ?? 0))
+    if (prevIndexSize === undefined) fenwickTree.add(countFenwickTree, fenwickTreeIndex, 1)
 
-  if (prevIndexSize === undefined) fenwickTree.add(countFenwickTree, fenwickTreeIndex, 1)
+    cache.elementSizes.set(key, size)
+    cache.indexSizes.set(index, size)
+    cache.indexKeys.set(index, key)
 
-  cache.elementSizes.set(key, size)
-  cache.indexSizes.set(index, size)
-  cache.indexKeys.set(index, key)
-
-  return { prevSize, prevIndexSize }
-}
+    return { prevSize, prevIndexSize }
+  }
 
 export default <D extends object, P>({
   getScrollOptions,
@@ -126,7 +123,9 @@ export default <D extends object, P>({
       cache.indexSizes.delete(absoluteIndex)
     }
 
-    const size: number = getAxisSize(item, isVertical)
+    const size: number = (item.getBoundingClientRect() as any)[
+      getProperty({ isVertical, type: 'size' })
+    ]
     if (!isValidNumber(size)) continue
 
     const {
@@ -216,7 +215,9 @@ export default <D extends object, P>({
           cache.indexSizes.delete(index)
         }
 
-        const size: number = getAxisSize(contentRect, getIsVertical())
+        const size: number = (contentRect as any)[
+          getProperty({ isVertical: getIsVertical(), type: 'size' })
+        ]
         if (!isValidNumber(size)) continue
 
         const {
