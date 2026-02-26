@@ -43,7 +43,8 @@ const scrollTemplate = <D extends object, P extends object, T>({
     { options, id, aveSize: storedAveSize, lastAxis }: Scroll.Resolved<D, P> = scrollOptions,
     { unit, itemMinSize, axis, bufferLength }: Scroll.Options = options(getDataProps(true))
 
-  numberError({ unit, itemMinSize, bufferLength })
+  numberError({ unit, itemMinSize })
+  numberError({ bufferLength }, false)
 
   /**
    * @remarks
