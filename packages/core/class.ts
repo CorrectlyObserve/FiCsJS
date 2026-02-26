@@ -793,6 +793,10 @@ export default class FiCsElement<D extends object, P extends object> {
           hasValue: false
         })
 
+        /**
+         * @remarks
+         * DOM identity is intentionally reset here to prioritize virtual-scroll rendering performance.
+         */
         if (parentNode instanceof Element && parentNode.getAttribute(scrollAttr) === 'true') {
           for (const childNode of oldChildNodes) childNode.remove()
           for (const childNode of newChildNodes) {
