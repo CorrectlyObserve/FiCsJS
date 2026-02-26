@@ -116,8 +116,16 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
    */
   if (totalCount < prevTotalCount) {
     resetCache(scrollOptions.cache)
+
+    const clampedIndex: number = Math.max(Math.min(startIndex, totalCount - 1), 0)
+    scrollOptions.startIndex = clampedIndex
+    scrollOptions.endIndex = Math.min(totalCount, clampedIndex + unit + bufferLength)
+
     scrollOptions.aveSize = itemMinSize
     scrollOptions.totalSize = NaN
+    scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
+    scrollOptions.firstVisible = {}
+    scrollOptions.urlSync.index = undefined
   }
   scrollOptions.prevTotalCount = totalCount
 
