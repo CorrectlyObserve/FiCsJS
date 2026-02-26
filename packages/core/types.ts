@@ -238,6 +238,12 @@ export declare namespace Scroll {
     countFenwickTree: number[]
   }
 
+  interface Clamped extends Omit<Options, 'bufferLength' | 'throttle' | 'thresholdRate'> {
+    bufferLength: number
+    throttle: number
+    thresholdRate: number
+  }
+
   namespace Ctx {
     interface OffsetBeforeIndex {
       cache: Scroll.Cache | undefined
