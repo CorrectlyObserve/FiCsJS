@@ -8,7 +8,8 @@ export const fetchWithinThreshold = <D extends object, P>({
   isVertical,
   itemMinSize,
   bufferLength,
-  method
+  method,
+  onError
 }: {
   scrollOptions: Scroll.Resolved<D, P>
   root: HTMLElement
@@ -16,6 +17,7 @@ export const fetchWithinThreshold = <D extends object, P>({
   itemMinSize: number
   bufferLength: number
   method: () => void
+  onError?: (error: unknown) => void
 }): void => {
   const {
     aveSize,
@@ -51,7 +53,12 @@ export const fetchWithinThreshold = <D extends object, P>({
        * Resets `lastTriggeredCount` on failure to allow retries.
        */
       scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
-      console.error(`Infinite virtual scroll fetch failed due to: ${error}...`)
+
+      try {
+        onError?.(error)
+      } finally {
+        console.error(`Infinite virtual scroll fetch failed due to: ${error}...`)
+      }
     })
     .finally(() => (scrollOptions.fetch.isFetching = false))
 }
