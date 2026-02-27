@@ -16,7 +16,7 @@ import {
 import { i18n } from './i18n'
 import enqueue from './queue'
 import scrollConsts from './scroll/constants'
-import { getScrollAttr, fenwickTree } from './scroll/helpers'
+import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import runInfiniteVirtualScroll from './scroll/runtime'
 import scrollTemplate from './scroll/template'
 import openEventSource from './sse'
@@ -1325,7 +1325,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#callback('mounted', this.#shadowRoot)
             this.#isRendered = true
-          }
+          } else that.#infiniteVirtualScroll(this.#shadowRoot)
         }
 
         disconnectedCallback(): void {
@@ -1337,6 +1337,17 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#websocket?.close()
           this.#eventSource?.close()
           this.#removeEventListeners?.()
+          if (that.#scrollObservers) {
+            for (const observer of ['intersection', 'mutation', 'resize'] as const)
+              that.#scrollObservers[observer].disconnect()
+
+            that.#scrollObservers = undefined
+          }
+
+          if (that.#options.scroll) {
+            clearTimers(that.#options.scroll)
+            that.#options.scroll.isEnabled = false
+          }
 
           that.#callback('destroyed', this.#shadowRoot)
         }
