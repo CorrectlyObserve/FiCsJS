@@ -221,17 +221,19 @@ export default fics({
     }
   },
   options: {
-    scroll: {
+    scroll: ({ data, crud }) => ({
       unit: UNIT_LENGTH,
-      elementMinSize: PHOTO_SIZE,
-      axis: ({ data: { isHorizontal } }) => (isHorizontal ? 'horizontal' : 'vertical'),
-      trigger: ({ data: { photos } }) => photos.length > 0,
+      itemMinSize: PHOTO_SIZE,
+      axis: data.isHorizontal ? 'horizontal' : 'vertical',
+      trigger: data.photos.length > 0,
       parameter: 'page',
-      rootMargin: `${PHOTO_SIZE}px`,
-      method: async ({ data, crud }) =>
+      rootMargin: PHOTO_SIZE,
+      bufferLength: 2,
+      throttle: 200,
+      method: async () =>
         await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
           photos => (data.photos = [...data.photos, ...photos])
         )
-    }
+    })
   }
 })

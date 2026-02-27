@@ -1,55 +1,92 @@
 import FiCsElement from './class'
 import consts from './constants'
 
-export type Actions<D extends object, P> = Record<
-  string,
-  Record<string, Method<D, P> | [Method<D, P>, ActionOptions]>
->
+export declare namespace Action {
+  interface Ctx<D extends object, P> {
+    element: Element
+    shadowRoot: ShadowRoot
+    entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
+  }
 
-export interface ActionOptions {
-  debounce?: number
-  throttle?: number
-  blur?: boolean
-  once?: boolean
+  type Handlers<D extends object, P> = Record<
+    string,
+    Record<string, Method<D, P> | [Method<D, P>, Options]>
+  >
+
+  type Method<D extends object, P> = (
+    ctx: DataProps.Payload<D, P, true> & {
+      event: Event
+      ref: (selector: string) => Element | null
+      attributes: Record<string, string>
+      value?: string
+    }
+  ) => void
+
+  interface Options {
+    debounce?: number
+    throttle?: number
+    blur?: boolean
+    once?: boolean
+  }
 }
 
-export type Attrs<D extends object, P> =
-  | Record<string, string>
-  | ((dataProps: DataProps<D, P>) => Record<string, string>)
+export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
 
 export type Children = Record<string, Descendant>
 
-export type ClassName<D extends object, P> = string | ((dataProps: DataProps<D, P>) => string)
+export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
 
-export type Crud = {
-  <T>(api: string, options?: CrudOptions): Promise<T>
-  (api: string, options: CrudStreamOptions): Promise<void>
+export declare namespace Crud {
+  interface Ctx {
+    api: string
+    apiStatuses: Map<string, boolean>
+    enqueue: (func: () => void, key: Task['key']) => void
+    reRender: (isOnlyHtml?: boolean) => Promise<void>
+    options?: Options | StreamOptions
+  }
+
+  type Fn = {
+    <T>(api: string, options?: Options): Promise<T>
+    (api: string, options: StreamOptions): Promise<void>
+  }
+
+  interface Options extends RequestInit {
+    key?: string
+    timeout?: number
+    maxRetry?: number
+    delay?: number
+  }
+
+  interface StreamOptions extends Options {
+    /**
+     * @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
+     */
+    onChunk: (chunk: string, index: number) => void
+  }
 }
 
-export interface CrudOptions extends RequestInit {
-  key?: string
-  timeout?: number
-  maxRetry?: number
-  delay?: number
+export declare namespace Css {
+  interface Declarations {
+    [key: string]: string | number | undefined | Declarations
+  }
+
+  type Global = string | { [key: string]: string | number | Exclude<Global, string> }
+
+  type Rules<D extends object, P> = Record<string, Value<D, P>>
+
+  type Sheet<D extends object, P> = Rules<D, P> | Global
+
+  type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
 
-export interface CrudStreamOptions extends CrudOptions {
-  /**
-    @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
-  */
-  onChunk: (chunk: string, index: number) => void
+export declare namespace DataProps {
+  type Getter<D extends object, P> = <B extends boolean = false>(isCrud?: B) => Payload<D, P, B>
+
+  type Payload<D extends object, P, B extends boolean = false> = {
+    data: D
+    props: P
+  } & (B extends true ? { crud: Crud.Fn } : {})
 }
-
-export type Css<D extends object, P> = CssContent<D, P> | GlobalCss
-
-export interface CssContent<D extends object, P> {
-  [key: string]: Style<D, P> | [Style<D, P>, 'csr' | 'ssr' | undefined]
-}
-
-export type DataProps<D extends object, P, B extends boolean = false> = {
-  data: D
-  props: P
-} & (B extends true ? { crud: Crud } : {})
 
 export type Descendant = FiCsElement<any, any>
 
@@ -57,139 +94,112 @@ export interface FiCs<D extends object, P extends object> {
   name: string
   isExceptional?: boolean
   instanceId?: string
-  componentId?: string
   children?: Descendant[]
   data?: () => Partial<D>
-  deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
-  i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
+  deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
+  i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
-  html: Html<D, P>
-  css?: SingleOrArray<CssContent<D, P> | string>
-  clonedCss?: Css<D, P>[]
-  hooks?: Hooks<D, P>
-  actions?: Actions<D, P>
-  options?: OptionParams<D, P>
+  html: Html.Core<D, P>
+  css?: SingleOrArray<Css.Rules<D, P> | string>
+  clonedCss?: Css.Sheet<D, P>[]
+  hooks?: Hook.Lifecycle<D, P>
+  actions?: Action.Handlers<D, P>
+  options?: Options.Ctx<D, P>
 }
 
-export type GlobalCss = GlobalCssContent | string
+export declare namespace Html {
+  type Content<D extends object, P extends object> =
+    | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
+    | string
 
-export interface GlobalCssContent {
-  [key: string]: string | number | GlobalCssContent | [GlobalCssContent, 'csr' | 'ssr' | undefined]
-}
-
-export type Html<D extends object, P extends object> = (
-  params: Omit<DataProps<D, P, true>, 'props' | 'getData'> &
-    HtmlSyntaxes<D, P> & {
-      isBrowser: boolean
-      isDeferred: boolean
-      scroll: <T>(
-        array: T[],
-        callback: (item: T, index: number) => Sanitized<D, P>
-      ) => Sanitized<D, P>
-    }
-) => Sanitized<D, P>
-
-export type HtmlContent<D extends object, P extends object> =
-  | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
-  | string
-
-export interface HtmlSyntaxes<D extends object, P extends object> {
-  children: Children
-  props: P
-  template: (
-    templates: TemplateStringsArray,
-    ...variables: (HtmlContent<D, P> | unknown)[]
+  type Core<D extends object, P extends object> = (
+    ctx: Omit<DataProps.Payload<D, P, true>, 'props'> &
+      Syntaxes<D, P> & {
+        isBrowser: boolean
+        isDeferred: boolean
+        scroll: <T>(
+          array: ReadonlyArray<T> | null | undefined,
+          callback: (item: T, index: number) => Sanitized<D, P>
+        ) => Sanitized<D, P>
+      }
   ) => Sanitized<D, P>
-  html: (str: string) => Record<symbol, string>
-  show: (condition: boolean) => string
-  apiStatuses: Record<string, boolean>
-  attributes: {
-    boolean: (condition: boolean | undefined) => 'true' | 'false'
-    statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
-  }
-}
 
-export interface HookParams<D extends object, P> extends DataProps<D, P, true> {
-  ref: (selector: string) => Element | null
-  debounce: <T extends (...args: any[]) => void>(
-    func: T,
-    time: number
-  ) => (...args: Parameters<T>) => void
-  throttle: <T extends (...args: any[]) => void>(
-    func: T,
-    time: number
-  ) => (...args: Parameters<T>) => void
-}
+  type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
 
-export interface Hooks<D extends object, P> {
-  created?: (params: HookParams<D, P>) => void
-  mounted?: (
-    params: HookParams<D, P> & {
-      poll: (func: ({ times }: { times: number }) => void, options: PollingOptions) => void
+  type Sanitized<D extends object, P extends object> = Record<symbol, Content<D, P>[]>
+
+  interface Syntaxes<D extends object, P extends object> {
+    children: Children
+    props: P
+    template: Template<D, P>
+    html: (str: string) => Record<symbol, string>
+    show: (condition: boolean) => string
+    apiStatuses: Record<string, boolean>
+    attributes: {
+      boolean: (condition: boolean | undefined) => 'true' | 'false'
+      statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
     }
-  ) => void
-  updated?: { [K in keyof D]?: (params: HookParams<D, P>) => void }
-  destroyed?: (params: HookParams<D, P>) => void
-  adopted?: (params: HookParams<D, P>) => void
+  }
+
+  type Template<D extends object, P extends object> = (
+    templates: TemplateStringsArray,
+    ...variables: (Content<D, P> | unknown)[]
+  ) => Sanitized<D, P>
+}
+
+export declare namespace Hook {
+  interface Ctx<D extends object, P> extends DataProps.Payload<D, P, true> {
+    ref: (selector: string) => Element | null
+    debounce: RateLimitFn
+    throttle: RateLimitFn
+  }
+
+  interface Lifecycle<D extends object, P> {
+    created?: (ctx: Ctx<D, P>) => void
+    mounted?: (
+      ctx: Ctx<D, P> & {
+        poll: (func: ({ times }: { times: number }) => void, options: Polling) => void
+      }
+    ) => void
+    updated?: { [K in keyof D]?: (ctx: Ctx<D, P>) => void }
+    destroyed?: (ctx: Ctx<D, P>) => void
+    adopted?: (ctx: Ctx<D, P>) => void
+  }
+
+  interface Polling {
+    interval: number
+    max?: number
+    exit?: () => boolean
+  }
 }
 
 export interface I18n {
   i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
-export type Method<D extends object, P> = (
-  params: DataProps<D, P, true> & {
-    event: Event
-    ref: (selector: string) => Element | null
-    attributes: Record<string, string>
-    value?: string
+export declare namespace Options {
+  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'scroll'> {
+    ssr?: boolean
+    scroll?: (ctx: DataProps.Payload<D, P, true>) => Scroll.Options
   }
-) => void
 
-export interface Options<D extends object, P> {
-  ssr: boolean
-  lazyLoad?: boolean
-  rootMargin?: string
-  websocket?: {
-    path: string
-    protocols?: SingleOrArray<string>
-    reconnect?: { interval: number; max?: number; isExponential?: boolean }
-    onopen?: (params: WebSocketParams<D, P> & { event: Event }) => void
-    onmessage?: (params: WebSocketParams<D, P> & { event: MessageEvent }) => void
-    onerror?: (params: WebSocketParams<D, P> & { event: Event }) => void
-    onclose?: (params: WebSocketParams<D, P> & { event: CloseEvent }) => void
+  interface Resolved<D extends object, P> {
+    ssr: boolean
+    lazyLoad?: boolean
+    rootMargin?: string
+    websocket?: WebSocket.Options<D, P>
+    sse?: SSE.Options<D, P>
+    scroll?: Scroll.Resolved<D, P>
   }
-  sse?: {
-    path: string
-    withCredentials?: boolean
-    onopen?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
-    onmessage?: SSEMethod<D, P>
-    onerror?: (params: DataProps<D, P, true> & { event: Event; close: () => void }) => void
-    actions: Record<string, SSEMethod<D, P> | [SSEMethod<D, P>, Omit<ActionOptions, 'blur'>]>
-  }
-  scroll?: Scroll<D, P>
-}
-
-export interface OptionParams<D extends object, P> extends Omit<Options<D, P>, 'ssr' | 'scroll'> {
-  ssr?: boolean
-  scroll?: ScrollParams<D, P>
-}
-
-export type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
-
-export interface PollingOptions {
-  interval: number
-  max?: number
-  exit?: () => boolean
 }
 
 export interface Props<D extends object, P> {
-  descendant: (params: { children: Children }) => SingleOrArray<Descendant>
+  descendant: (ctx: { children: Children }) => SingleOrArray<Descendant>
   values: (
-    params: DataProps<D, P, true> & { children: Children } & {
-      sendToWebsocket: (value: WebSocketValue) => void
+    ctx: DataProps.Payload<D, P, true> & { children: Children } & {
+      sendToWebsocket: (value: WebSocket.Value) => void
     }
   ) =>
     | Record<
@@ -201,51 +211,151 @@ export interface Props<D extends object, P> {
           getData: <K extends keyof D>(
             key: K
           ) => D[K] extends (...args: infer A) => infer R ? (...args: A) => R : D[K]
-          sendToWebsocket?: (value: WebSocketValue) => void
+          sendToWebsocket?: (value: WebSocket.Value) => void
         }) => unknown
       >
     | Record<string, unknown>
 }
 
-export type Sanitized<D extends object, P extends object> = Record<symbol, HtmlContent<D, P>[]>
+type RateLimitFn = <T extends unknown[]>(
+  func: (...args: T) => void,
+  time: number
+) => (...args: T) => void
 
-export interface Scroll<D extends object, P> extends ScrollParams<D, P> {
-  id: string
-  start: number
-  end: number
-  isEnabled: boolean
-  totalSize: number
-  elementSizes: Map<string, number>
-  prevTotalSize: number
-  resizeObserver?: ResizeObserver
-  intersectionObserver?: IntersectionObserver
-  mutationObserver?: MutationObserver
+export declare namespace Scroll {
+  type Axis = 'vertical' | 'horizontal'
+
+  interface Cache {
+    elementSizes: Map<string, number>
+    indexSizes: Map<number, number>
+    indexKeys: Map<number, string>
+    elementIndexes: WeakMap<Element, number>
+    maxLength: number
+    startIndex: number
+    evictedSize: number
+    evictedCount: number
+    sizeFenwickTree: number[]
+    countFenwickTree: number[]
+  }
+
+  interface Clamped extends Omit<Options, 'bufferLength' | 'throttle' | 'thresholdRate'> {
+    bufferLength: number
+    throttle: number
+    thresholdRate: number
+  }
+
+  namespace Ctx {
+    interface OffsetBeforeIndex {
+      cache: Scroll.Cache | undefined
+      totalCount: number
+      index: number
+      aveSize: number
+    }
+
+    interface Runtime<D extends object, P> {
+      name: string
+      instanceId: string
+      shadowRoot: ShadowRoot
+      getDataProps: DataProps.Getter<D, P>
+      scrollOptions: Resolved<D, P> | undefined
+      addEventListener: (ctx: Action.Ctx<D, P>) => void
+      reRender: () => void
+      scrollObservers: Scroll.Observers | undefined
+      setScrollObservers: (observers?: Scroll.Observers) => void
+    }
+
+    interface Template<D extends object, P extends object, T> {
+      instanceId: string
+      getDataProps: DataProps.Getter<D, P>
+      template: Html.Template<D, P>
+      scrollOptions: Resolved<D, P> | undefined
+      array: ReadonlyArray<T> | null | undefined
+      callback: (item: T, index: number) => Html.Sanitized<D, P>
+    }
+  }
+
+  type Div = 'wrap' | 'sentinel'
+
+  interface Metrics {
+    scrollOffset: number
+    scrollAmount: number
+    clientSize: number
+  }
+
+  interface Observers {
+    root: HTMLElement
+    intersection: IntersectionObserver
+    mutation: MutationObserver
+    resize: ResizeObserver
+  }
+
+  interface Options {
+    unit: number
+    itemMinSize: number
+    axis: Axis
+    trigger?: boolean
+    parameter?: string
+    rootMargin?: string | number
+    bufferLength?: number
+    cacheLength?: number
+    throttle?: number
+    thresholdRate?: number
+    method: () => void
+    onError?: (error: unknown) => void
+  }
+
+  interface Resolved<D extends object, P> extends Runtime {
+    cache: Cache
+    options: (ctx: DataProps.Payload<D, P, true>) => Options
+  }
+
+  interface Runtime {
+    id: string
+    isEnabled: boolean
+    startIndex: number
+    endIndex: number
+    aveSize: number
+    totalSize: number
+    totalCount: number
+    prevTotalCount: number
+    flags: {
+      hasScrolled: boolean
+      isRangeLocked: boolean
+      isFetchLocked: boolean
+      shouldRestoreAxisOffset: boolean
+    }
+    fetch: { isFetching: boolean; lastTriggeredCount: number }
+    firstVisible: { index?: number; key?: string; offset?: number }
+    timers: { resize?: SetTimeout; idle?: SetTimeout }
+    urlSync: { index?: number; pageParam?: number; parameter?: string; unit?: number }
+    lastAxis?: Axis
+  }
 }
 
-interface ScrollParams<D extends object, P> {
-  unit: number
-  elementMinSize: number
-  axis: 'vertical' | 'horizontal' | (({ data }: { data: D }) => 'vertical' | 'horizontal')
-  trigger?: ({ data }: { data: D }) => boolean
-  parameter?: string
-  rootMargin?: string
-  buffer?: number
-  throttle?: number
-  method: (params: DataProps<D, P, true>) => void
-}
+export type SetTimeout = ReturnType<typeof setTimeout>
 
 export type SingleOrArray<T> = T | T[]
 
-export type SSEMethod<D extends object, P> = (
-  params: DataProps<D, P, true> & { event: MessageEvent; close: () => void }
-) => void
+export declare namespace SSE {
+  interface Ctx<D extends object, P> {
+    options: Options<D, P> | undefined
+    getDataProps: DataProps.Getter<D, P>
+    debounce: RateLimitFn
+    throttle: RateLimitFn
+  }
 
-export type Style<D extends object, P> =
-  | StyleContent
-  | ((dataProps: DataProps<D, P>) => StyleContent)
+  type Method<D extends object, P> = (
+    ctx: DataProps.Payload<D, P, true> & { event: MessageEvent; close: () => void }
+  ) => void
 
-export interface StyleContent {
-  [key: string]: string | number | undefined | StyleContent
+  interface Options<D extends object, P> {
+    path: string
+    withCredentials?: boolean
+    onopen?: (ctx: DataProps.Payload<D, P, true> & { event: Event; close: () => void }) => void
+    onmessage?: Method<D, P>
+    onerror?: (ctx: DataProps.Payload<D, P, true> & { event: Event; close: () => void }) => void
+    actions: Record<string, Method<D, P> | [Method<D, P>, Omit<Action.Options, 'blur'>]>
+  }
 }
 
 export interface Task {
@@ -256,21 +366,43 @@ export interface Task {
 
 export type Translations = Record<string, unknown>
 
-export interface WebSocketParams<D extends object, P> extends DataProps<D, P, true> {
-  websocket: {
-    send: (value: WebSocketValue) => void
-    readyState: () => number
-    bufferedAmount: () => number
-    binaryType: () => BinaryType
-    url: () => string
-    protocol: () => string
-    extensions: () => string
+type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
+
+export declare namespace WebSocket {
+  namespace Ctx {
+    interface Fn<D extends object, P> {
+      options: WebSocket.Options<D, P> | undefined
+      getDataProps: DataProps.Getter<D, P>
+      setWebSocketProp: (value?: WebSocket.Prop) => void
+    }
+
+    interface Params<D extends object, P> extends DataProps.Payload<D, P, true> {
+      websocket: {
+        send: (value: Value) => void
+        readyState: () => number
+        bufferedAmount: () => number
+        binaryType: () => BinaryType
+        url: () => string
+        protocol: () => string
+        extensions: () => string
+      }
+    }
   }
-}
 
-export interface WebSocketProp {
-  send: (value: WebSocketValue) => void
-  isOpened: () => boolean
-}
+  interface Options<D extends object, P> {
+    path: string
+    protocols?: SingleOrArray<string>
+    reconnect?: { interval: number; max?: number; isExponential?: boolean }
+    onopen?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
+    onmessage?: (ctx: Ctx.Params<D, P> & { event: MessageEvent }) => void
+    onerror?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
+    onclose?: (ctx: Ctx.Params<D, P> & { event: CloseEvent }) => void
+  }
 
-export type WebSocketValue = string | Blob | ArrayBuffer | ArrayBufferView
+  interface Prop {
+    send: (value: Value) => void
+    isOpened: () => boolean
+  }
+
+  type Value = string | Blob | ArrayBuffer | ArrayBufferView
+}

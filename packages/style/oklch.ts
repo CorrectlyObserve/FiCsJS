@@ -1,5 +1,5 @@
-import { browserError, numberError } from '../core/helpers'
-import { Lms, Oklab, Oklch, Rgb, Vector, Wave } from './types'
+import { browserError, clampRatio, numberError } from '../core/helpers'
+import type { Color } from './types'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   MAX = 255 as const,
@@ -8,18 +8,18 @@ const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   OFFSET = 0.055 as const,
   SCALE = 1.055 as const,
   EXPONENT = 2.4 as const,
-  MATRIX_OF_RGB_TO_LMS: { L: Vector; M: Vector; S: Vector } = {
+  MATRIX_OF_RGB_TO_LMS: { L: Color.Vector; M: Color.Vector; S: Color.Vector } = {
     L: { R: 0.4122214708, G: 0.5363325363, B: 0.0514459929 },
     M: { R: 0.2119034982, G: 0.6806995451, B: 0.1073969566 },
     S: { R: 0.0883024619, G: 0.2817188376, B: 0.6299554352 }
   } as const,
-  MATRIX_OF_LMS_TO_OKLAB: { L: Wave; A: Wave; B: Wave } = {
+  MATRIX_OF_LMS_TO_OKLAB: { L: Color.Wave; A: Color.Wave; B: Color.Wave } = {
     L: { L: 0.2104542553, M: 0.793617785, S: -0.0040720468 },
     A: { L: 1.9779984951, M: -2.428592205, S: 0.4505937099 },
     B: { L: 0.0259040371, M: 0.7827717662, S: -0.808675766 }
   } as const
 
-const cache: Map<string, Oklch> = new Map(),
+const cache: Map<string, Color.Oklch> = new Map(),
   convertCssVar = (str: string, seen: Set<string> = new Set()): string => {
     str = str.trim()
 
@@ -71,7 +71,7 @@ const cache: Map<string, Oklch> = new Map(),
 
     return hex
   },
-  parseOklch = (literal: string): Oklch & { a: number } => {
+  parseOklch = (literal: string): Color.Oklch & { a: number } => {
     const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i),
       OKLCH_LITERAL = '"oklch(<lightness> <chroma> <hue>[/ <alpha>])"' as const
 
@@ -110,29 +110,31 @@ const cache: Map<string, Oklch> = new Map(),
     const v: number = c / MAX
     return v <= THRESHOLD ? v / DIVISOR : ((v + OFFSET) / SCALE) ** EXPONENT
   },
-  hexToRgb = (hex: string): Rgb => {
+  hexToRgb = (hex: string): Color.Rgb => {
     hex = normalizeHex(convertCssVar(hex))
-    const rgb: Rgb = { r: 0, g: 0, b: 0 }
+    const rgb: Color.Rgb = { r: 0, g: 0, b: 0 }
 
     for (const [index, color] of ['r', 'g', 'b'].entries())
-      rgb[color as keyof Rgb] = toLinearSRgb(parseInt(hex.slice(index * 2, index * 2 + 2), 16))
+      rgb[color as keyof Color.Rgb] = toLinearSRgb(
+        parseInt(hex.slice(index * 2, index * 2 + 2), 16)
+      )
 
     return rgb
   },
-  rgbToOklch = ({ r, g, b }: Rgb): Oklch => {
+  rgbToOklch = ({ r, g, b }: Color.Rgb): Color.Oklch => {
     numberError({ r, g, b }, false)
 
-    const lms: Lms = { l: 0, m: 0, s: 0 }
+    const lms: Color.Lms = { l: 0, m: 0, s: 0 }
 
     for (const [key, { R, G, B }] of Object.entries(MATRIX_OF_RGB_TO_LMS))
-      lms[key.toLowerCase() as keyof Lms] = Math.cbrt(R * r + G * g + B * b)
+      lms[key.toLowerCase() as keyof Color.Lms] = Math.cbrt(R * r + G * g + B * b)
 
-    const oklab: Oklab = { l: 0, a: 0, b: 0 }
+    const oklab: Color.Oklab = { l: 0, a: 0, b: 0 }
 
     for (const [key, { L, M, S }] of Object.entries(MATRIX_OF_LMS_TO_OKLAB))
-      oklab[key.toLowerCase() as keyof Oklab] = L * lms.l + M * lms.m + S * lms.s
+      oklab[key.toLowerCase() as keyof Color.Oklab] = L * lms.l + M * lms.m + S * lms.s
 
-    const { a: _a, b: _b }: Oklab = oklab
+    const { a: _a, b: _b }: Color.Oklab = oklab
 
     let h: number = Math.atan2(_b, _a) * (180 / Math.PI)
     if (h < 0) h += 360
@@ -140,7 +142,7 @@ const cache: Map<string, Oklch> = new Map(),
     return { l: oklab.l, c: Math.hypot(_a, _b), h }
   },
   cacheKey = (type: 'hex' | 'oklch', key: string): string => `${type}:${key}`,
-  hexToOklch = (hex: string): Oklch => {
+  hexToOklch = (hex: string): Color.Oklch => {
     const rawKey: string = cacheKey('hex', hex)
     if (cache.has(rawKey)) return cache.get(rawKey)!
 
@@ -149,33 +151,25 @@ const cache: Map<string, Oklch> = new Map(),
 
     if (cache.has(key)) return cache.get(key)!
 
-    const rgb: Rgb = hexToRgb(normalizedHex),
-      oklch: Oklch = rgbToOklch(rgb)
+    const rgb: Color.Rgb = hexToRgb(normalizedHex),
+      oklch: Color.Oklch = rgbToOklch(rgb)
 
     for (const [key, decimalPlace] of Object.entries({ l: 4, c: 4, h: 2 })) {
-      const value: number = oklch[key as keyof Oklch]
+      const value: number = oklch[key as keyof Color.Oklch]
 
       numberError({ [key]: value }, false)
 
       const multiplier: number = 10 ** decimalPlace
-      oklch[key as keyof Oklch] = Math.round(value * multiplier) / multiplier
+      oklch[key as keyof Color.Oklch] = Math.round(value * multiplier) / multiplier
     }
 
     cache.set(key, oklch)
     return oklch
   }
 
-export default (
-  color: string,
-  options?: {
-    darker?: number
-    lighter?: number
-    chroma?: number
-    opacity?: number
-  }
-): string => {
+export default (color: string, options?: Color.Ctx): string => {
   const resolved: string = convertCssVar(color).trim()
-  let oklch: Oklch, alpha: number
+  let oklch: Color.Oklch, alpha: number
 
   if (/^oklch\(/i.test(resolved)) {
     const { a, ...args } = parseOklch(resolved)
@@ -187,16 +181,14 @@ export default (
     oklch = hexToOklch(resolved)
   }
 
-  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 } = options ?? {}
+  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
   numberError({ darker, lighter, chroma, opacity }, false)
 
   if (darker > 0 && lighter > 0)
     throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
 
-  let { l, c, h }: Oklch = oklch
+  const { l, c, h }: Color.Oklch = oklch,
+    delta: number = darker > 0 ? -darker : lighter > 0 ? lighter : 0
 
-  if (darker > 0) l = Math.max(0, l - darker)
-  else if (lighter > 0) l = Math.min(1, l + lighter)
-
-  return `oklch(${l * 100}% ${c * chroma} ${h} / ${Math.max(0, Math.min(1, opacity * alpha))})`
+  return `oklch(${clampRatio(l + delta) * 100}% ${c * chroma} ${h} / ${clampRatio(opacity * alpha)})`
 }

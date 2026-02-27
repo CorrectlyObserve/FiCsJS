@@ -4,21 +4,29 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
+export const clampRatio = (ratio: number): number => {
+  numberError({ ratio }, false)
+
+  if (ratio <= 0) return 0
+  if (ratio >= 1) return 1
+  return ratio
+}
+
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
 }
 
 /**
-  @remarks
-  - **Map**: Keys are compared by reference. Values are deeply compared.
-  - **Set**: Values are compared deeply and order-independently (Complexity: O(N^2)).
-  - **Error**: Compared by `name` and `message`. The `stack` trace is ignored as it is environment-specific.
-  - **Opaque Objects**: `WeakMap`, `WeakSet`, and `Promise` always return `false` unless they share the same reference.
-
-  @remarks
-  For change detection, updates should be **immutable**; mutating nested objects can be seen as "no change".
-*/
+ * @remarks
+ * - **Map**: Keys are compared by reference. Values are deeply compared.
+ * - **Set**: Values are compared deeply and order-independently (Complexity: O(N^2)).
+ * - **Error**: Compared by `name` and `message`. The `stack` trace is ignored as it is environment-specific.
+ * - **Opaque Objects**: `WeakMap`, `WeakSet`, and `Promise` always return `false` unless they share the same reference.
+ *
+ * @remarks
+ * For change detection, updates should be **immutable**; mutating nested objects can be seen as "no change".
+ */
 export const deepEqual = (
   current: any,
   newValue: any,
@@ -139,8 +147,8 @@ export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
 /**
-  @remarks The function ignores undefined values.
-*/
+ * @remarks Ignores undefined values.
+ */
 export const numberError = (
   numbers: Record<string, number | undefined>,
   isPositiveRequired: boolean = true
