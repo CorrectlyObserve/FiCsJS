@@ -301,6 +301,7 @@ export declare namespace Scroll {
     throttle?: number
     thresholdRate?: number
     method: () => void
+    onError?: (error: unknown) => void
   }
 
   interface Resolved<D extends object, P> extends Runtime {
