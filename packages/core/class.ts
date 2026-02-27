@@ -1,4 +1,5 @@
 import consts from './constants'
+import runCrud from './crud'
 import {
   browserError,
   convertStr,
@@ -13,50 +14,41 @@ import {
   uid
 } from './helpers'
 import { i18n } from './i18n'
-import { enqueue } from './queue'
+import enqueue from './queue'
+import scrollConsts from './scroll/constants'
+import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
+import runInfiniteVirtualScroll from './scroll/runtime'
+import scrollTemplate from './scroll/template'
+import openEventSource from './sse'
+import openWebSocket from './websocket'
 import type {
-  Actions,
-  ActionOptions,
+  Action,
   Attrs,
   Children,
   ClassName,
   Crud,
-  CrudOptions,
-  CrudStreamOptions,
   Css,
   DataProps,
   Descendant,
   FiCs,
-  GlobalCss,
   Html,
-  HtmlContent,
-  HtmlSyntaxes,
-  HookParams,
-  Hooks,
+  Hook,
   I18n,
-  Method,
   Options,
-  OptionParams,
-  PickedAttr,
-  PollingOptions,
   Props,
-  Sanitized,
   Scroll,
+  SetTimeout,
   SingleOrArray,
-  SSEMethod,
-  Style,
-  StyleContent,
+  SSE,
   Task,
-  WebSocketParams,
-  WebSocketProp,
-  WebSocketValue
+  WebSocket as WebSocketNS
 } from './types'
 
 export default class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
-  static globalCss: GlobalCss[] = new Array()
+  static globalCss: Css.Global[] = new Array()
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
@@ -72,20 +64,20 @@ export default class FiCsElement<D extends object, P extends object> {
     boundFunctions: Map<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
   } = { boundFunctions: new Map() }
-  readonly #deferredData?: (params: DataProps<D, P, true>) => Promise<Partial<D>>
-  readonly #i18nData?: (params: DataProps<D, P, false> & I18n) => Promise<Partial<D>>
+  readonly #deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
+  readonly #i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
-  readonly #html: Html<D, P>
+  readonly #html: Html.Core<D, P>
   readonly #showAttr: string
-  readonly #css: Css<D, P>[] = new Array()
+  readonly #css: Css.Sheet<D, P>[] = new Array()
   readonly #boundCss: number[] = new Array()
-  readonly #hooks: Hooks<D, P> = {}
-  readonly #actions: Actions<D, P> = {}
-  readonly #options: Options<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #hooks: Hook.Lifecycle<D, P> = {}
+  readonly #actions: Action.Handlers<D, P> = {}
+  readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
@@ -93,13 +85,9 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
-  #websocket?: WebSocketProp
-  #scrollObservers?: {
-    root: HTMLElement
-    intersection: IntersectionObserver
-    mutation: MutationObserver
-  }
-  #poll?: ReturnType<typeof setTimeout>
+  #webSocketProp?: WebSocketNS.Prop
+  #scrollObservers?: Scroll.Observers
+  #poll?: SetTimeout
   #hasDescribed: boolean = false
 
   constructor({
@@ -140,55 +128,12 @@ export default class FiCsElement<D extends object, P extends object> {
     const count: number = generator.next().value
     this.#name = `f-${name}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
 
-    this.#isBrowser = isBrowser()
-
-    if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: OptionParams<D, P> = options
-
-      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
-      if (lazyLoad) this.#options.lazyLoad = true
-
-      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
-        if (!lazyLoad)
-          throw new Error(
-            `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
-          )
-
-        this.#options.rootMargin = rootMargin
-      }
-
-      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
-        if (!value || isBlankObject(value) || !this.#isBrowser) continue
-
-        switch (key) {
-          case 'websocket':
-            this.#options[key] = { ...value } as Options<D, P>[typeof key]
-            break
-
-          case 'sse':
-            this.#options[key] = { ...value } as Options<D, P>[typeof key]
-            break
-
-          case 'scroll':
-            this.#options[key] = {
-              ...value,
-              id: `${this.#instanceId}-scroll`,
-              start: 0,
-              end: (value as Options<D, P>[typeof key])?.unit,
-              isEnabled: false,
-              totalSize: NaN,
-              elementSizes: new Map(),
-              prevTotalSize: NaN
-            } as Options<D, P>[typeof key]
-            break
-        }
-      }
-    }
-
     if (children)
       for (const child of children)
         this.#children[child.#nameKey] =
           convertStr(child.#nameKey, 'kebab') === child.#name.slice(2) ? child.#clone() : child
+
+    this.#isBrowser = isBrowser()
 
     if (data) {
       let attrData: Partial<D> = {}
@@ -233,7 +178,7 @@ export default class FiCsElement<D extends object, P extends object> {
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
           if (subscribers) for (const updater of subscribers) updater()
 
-          const updated: Hooks<D, P>['updated'] | undefined = this.#hooks.updated
+          const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
           if (updated && key in updated)
             updated[key]!({
               ...this.#getDataProps(true),
@@ -286,6 +231,85 @@ export default class FiCsElement<D extends object, P extends object> {
       }
     })
 
+    if (options) {
+      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> = options
+
+      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
+      if (lazyLoad) this.#options.lazyLoad = true
+
+      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
+        if (!lazyLoad)
+          throw new Error(
+            `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
+          )
+
+        this.#options.rootMargin = rootMargin
+      }
+
+      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
+        if (!value || isBlankObject(value) || !this.#isBrowser) continue
+
+        switch (key) {
+          case 'websocket':
+            this.#options[key] = { ...value } as WebSocketNS.Options<D, P>
+            break
+
+          case 'sse':
+            this.#options[key] = { ...value } as SSE.Options<D, P>
+            break
+
+          case 'scroll':
+            const options = value as (ctx: DataProps.Payload<D, P, true>) => Scroll.Options,
+              { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
+                this.#getDataProps(true)
+              ),
+              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
+
+            numberError({ unit, itemMinSize })
+            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, false)
+
+            const normalizedLength: number = Math.max(
+              Math.floor(Math.max(cacheLength ?? CACHE_LENGTH, unit + (bufferLength ?? 0))),
+              1
+            )
+            this.#options[key] = {
+              cache: {
+                elementSizes: new Map(),
+                indexSizes: new Map(),
+                indexKeys: new Map(),
+                elementIndexes: new WeakMap(),
+                maxLength: normalizedLength,
+                startIndex: 0,
+                evictedSize: 0,
+                evictedCount: 0,
+                sizeFenwickTree: fenwickTree.reset(normalizedLength),
+                countFenwickTree: fenwickTree.reset(normalizedLength)
+              },
+              options,
+              id: `${this.#instanceId}-scroll`,
+              isEnabled: false,
+              startIndex: 0,
+              endIndex: unit,
+              aveSize: itemMinSize,
+              totalSize: NaN,
+              totalCount: 0,
+              prevTotalCount: 0,
+              flags: {
+                hasScrolled: false,
+                isRangeLocked: false,
+                isFetchLocked: false,
+                shouldRestoreAxisOffset: false
+              },
+              fetch: { isFetching: false, lastTriggeredCount: 0 },
+              firstVisible: {},
+              timers: {},
+              urlSync: {}
+            }
+            break
+        }
+      }
+    }
+
     if (className) this.#classNames = typeof className === 'function' ? className : className.trim()
     if (attributes) this.#attrs = attributes
 
@@ -300,6 +324,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
+    const { scroll, ...args } = this.#options
+
     return new FiCsElement({
       name: this.#nameKey,
       isExceptional: true,
@@ -315,7 +341,7 @@ export default class FiCsElement<D extends object, P extends object> {
       clonedCss: this.#css,
       actions: this.#actions,
       hooks: this.#hooks,
-      options: this.#options
+      options: { ...args, scroll: scroll?.options }
     })
   }
 
@@ -331,130 +357,38 @@ export default class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps<D, P, B> {
+  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
     return {
       data: this.#data,
       props: this.#props,
-      crud: isCrud ? this.#bindCrud : undefined
-    } as DataProps<D, P, B>
+      crud: isCrud ? this.#crud.bind(this) : undefined
+    } as DataProps.Payload<D, P, B>
   }
 
   #enqueue(func: () => void, key: Task['key']): void {
     enqueue({ instanceId: this.#instanceId, func, key })
   }
 
-  #crud<T>(api: string, options?: CrudOptions): Promise<T>
-  #crud(api: string, options: CrudStreamOptions): Promise<void>
-  async #crud<T>(api: string, options?: CrudOptions | CrudStreamOptions): Promise<T | void> {
-    const { key, timeout, maxRetry, delay, ..._options }: CrudOptions = options ?? {},
-      { onChunk } = options && 'onChunk' in options ? (options as CrudStreamOptions) : {}
-
-    numberError({ timeout, maxRetry, delay })
-
-    const method: string = _options.method?.toUpperCase() ?? 'GET'
-
-    if (onChunk && method !== 'GET')
-      throw new Error('The stream option is only available for GET requests...')
-
-    if (method === 'HEAD')
-      throw new Error('The HEAD method is not supported in the crud function...')
-
-    const handleRes = async (): Promise<T | void> => {
-      const res: Response = await (async () => {
-        let attempt: number = 0
-
-        while (true) {
-          const controller: AbortController = new AbortController(),
-            { signal }: { signal: AbortSignal } = controller
-          let timeoutId: ReturnType<typeof setTimeout> | undefined
-
-          if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
-
-          try {
-            const res: Response = await fetch(api, { ..._options, signal })
-
-            if (timeoutId) clearTimeout(timeoutId)
-            return res
-          } catch (error) {
-            if (timeoutId) clearTimeout(timeoutId)
-
-            if (signal.aborted)
-              throw new Error(
-                `The request to "${api}" ${timeout && timeout > 0 ? `timed out after ${timeout}ms` : 'was aborted'}...`
-              )
-
-            if (maxRetry && attempt < maxRetry) {
-              attempt++
-              await new Promise(resolve => setTimeout(resolve, delay ?? 0))
-              continue
-            }
-            throw error
-          }
-        }
-      })()
-
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}: The request failed...`)
-      if (res.status === 204) return
-
-      const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
-        isJson: boolean = contentType.startsWith('application/json'),
-        isEventStream: boolean = contentType.startsWith('text/event-stream'),
-        readStream = async (): Promise<void> => {
-          const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
-          if (!reader) throw new Error('The Streams option is not available in this environment...')
-
-          const decoder: TextDecoder = new TextDecoder()
-          let index: number = 0
-
-          while (true) {
-            const { done, value }: { done: boolean; value?: Uint8Array } = await reader.read()
-            if (done) break
-
-            const chunk: string = decoder.decode(value, { stream: true })
-            onChunk?.(chunk, index++)
-          }
-        }
-
-      if (onChunk) {
-        if (!isEventStream)
-          throw new Error('The Stream API can only be used for text/event-stream responses...')
-
-        return await readStream()
-      }
-
-      if (!isJson)
-        throw new Error('The response is required to have a content-type of application/json...')
-      return (await res.json()) as T
-    }
-
-    if (!key) return await handleRes()
-
-    if (this.#apiStatuses.get(key))
-      console.warn(`The internal API status key "${key}" is already in progress...`)
-
-    this.#apiStatuses.set(key, true)
-    this.#enqueue(() => this.#reRender(true), 're-render')
-    await new Promise(resolve => setTimeout(resolve, delay ?? 0))
-
-    try {
-      return await handleRes()
-    } finally {
-      this.#apiStatuses.set(key, false)
-      this.#enqueue(() => this.#reRender(true), 're-render')
-    }
+  #crud<T>(api: string, options?: Crud.Options): Promise<T>
+  #crud(api: string, options: Crud.StreamOptions): Promise<void>
+  async #crud<T>(api: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
+    return await runCrud({
+      api,
+      apiStatuses: this.#apiStatuses,
+      enqueue: this.#enqueue.bind(this),
+      reRender: this.#reRender.bind(this),
+      options
+    })
   }
 
-  get #bindCrud(): Crud {
-    return this.#crud.bind(this) as Crud
-  }
-
-  #removePublicMethod = (params: {
+  #removePublicMethod = ({
+    children,
+    method
+  }: {
     children?: Children
     method: 'getChildren' | 'setIndividualProps'
   }): void => {
-    const { method }: { method: 'getChildren' | 'setIndividualProps' } = params
-
-    for (const child of Object.values(params.children ?? this.#children)) {
+    for (const child of Object.values(children ?? this.#children)) {
       if (Object.prototype.hasOwnProperty.call(child, method))
         if (method === 'getChildren') delete (child as { getChildren?: () => Children }).getChildren
         else if (method === 'setIndividualProps')
@@ -529,8 +463,8 @@ export default class FiCsElement<D extends object, P extends object> {
               values({
                 ...this.#getDataProps(true),
                 children: this.#children,
-                sendToWebsocket: (value: WebSocketValue) =>
-                  this.#websocket?.isOpened() && this.#websocket.send(value)
+                sendToWebsocket: (value: WebSocketNS.Value) =>
+                  this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
               })
             ))
               _descendant.#props[key] = value
@@ -568,6 +502,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
     for (const className of oldClassNames)
       if (!newClassNames.has(className)) component.classList.remove(className)
+
+    if (component.classList.length === 0) component.removeAttribute('class')
   }
 
   get #computedAttrs(): [string, string][] {
@@ -617,14 +553,14 @@ export default class FiCsElement<D extends object, P extends object> {
       unsanitized: unique symbol = Symbol.for(`__${this.#instanceId}-unsanitized__`),
       convertTemplate = (
         strings: TemplateStringsArray,
-        variables: (HtmlContent<D, P> | unknown)[]
-      ): HtmlContent<D, P>[] => {
-        const converted: HtmlContent<D, P>[] = new Array(),
+        variables: (Html.Content<D, P> | unknown)[]
+      ): Html.Content<D, P>[] => {
+        const converted: Html.Content<D, P>[] = new Array(),
           isSymbol = (variable: unknown, symbol: symbol): boolean =>
             !!(variable && isObject(variable) && symbol in variable),
           sanitize = (index: number, template: string, variable: unknown): void => {
             if (isSymbol(variable, sanitized))
-              converted.push(template, ...(variable as Sanitized<D, P>)[sanitized])
+              converted.push(template, ...(variable as Html.Sanitized<D, P>)[sanitized])
             else if (Array.isArray(variable)) {
               converted.push(template)
               for (const child of variable) sanitize(index, '', child)
@@ -638,31 +574,31 @@ export default class FiCsElement<D extends object, P extends object> {
                   ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
                   : (variable ?? '')
 
-              if (variable !== '') converted.push(variable as HtmlContent<D, P>)
+              if (variable !== '') converted.push(variable as Html.Content<D, P>)
             }
           }
 
         for (const [index, template] of strings.entries())
           sanitize(index, template, variables[index])
 
-        return converted as HtmlContent<D, P>[]
+        return converted as Html.Content<D, P>[]
       }
 
     this.#addSetIndividualProps()
 
-    const template: HtmlSyntaxes<D, P>['template'] = (
+    const template: Html.Template<D, P> = (
       strings: TemplateStringsArray,
-      ...variables: (HtmlContent<D, P> | unknown)[]
-    ): Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+      ...variables: (Html.Content<D, P> | unknown)[]
+    ): Html.Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
 
-    const contents: HtmlContent<D, P>[] = this.#html({
+    const contents: Html.Content<D, P>[] = this.#html({
       ...this.#getDataProps(),
       children: this.#children,
-      crud: this.#bindCrud,
+      crud: this.#crud.bind(this),
       template: (
         strings: TemplateStringsArray,
-        ...variables: (HtmlContent<D, P> | unknown)[]
-      ): Sanitized<D, P> => template(strings, ...variables),
+        ...variables: (Html.Content<D, P> | unknown)[]
+      ): Html.Sanitized<D, P> => template(strings, ...variables),
       html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
       show: (condition: boolean): string => (condition ? '' : this.#showAttr),
       apiStatuses: Object.fromEntries(this.#apiStatuses),
@@ -674,35 +610,17 @@ export default class FiCsElement<D extends object, P extends object> {
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
       scroll: <T>(
-        array: T[],
-        callback: (item: T, index: number) => Sanitized<D, P>
-      ): Sanitized<D, P> => {
-        if (!this.#options.scroll)
-          return template`${array.map((item, index) => callback(item, index))}`
-
-        const { unit, elementMinSize, axis, start, end, buffer, id }: Scroll<D, P> =
-          this.#options.scroll
-
-        numberError({ unit, elementMinSize })
-        if (buffer) numberError({ buffer }, false)
-
-        const isVertical: boolean =
-            (typeof axis === 'function' ? axis({ data: this.#data }) : axis) === 'vertical',
-          style: string[] = [
-            `${isVertical ? 'height' : 'width'}:${
-              elementMinSize * (end - start + (buffer ?? 0))
-            }px;`,
-            `overflow-${isVertical ? 'y' : 'x'}:auto;`,
-            isVertical ? '' : 'display:flex;margin-inline:auto;'
-          ],
-          endIndex: number = Array.isArray(array) ? array.length : end
-
-        return template`
-          <div id="${id}" style="${joinArray(style)}">
-            ${array.slice(start, endIndex).map((item, index) => callback(item, index))}
-          </div>
-        `
-      }
+        array: ReadonlyArray<T> | null | undefined,
+        callback: (item: T, index: number) => Html.Sanitized<D, P>
+      ): Html.Sanitized<D, P> =>
+        scrollTemplate({
+          instanceId: this.#instanceId,
+          getDataProps: this.#getDataProps.bind(this),
+          template,
+          scrollOptions: this.#options.scroll,
+          array,
+          callback
+        })
     })[sanitized]
 
     return contents.reduce((prev, curr) => {
@@ -816,15 +734,15 @@ export default class FiCsElement<D extends object, P extends object> {
         else if (isElement(oldChildNode) && isElement(newChildNode)) {
           const { attributes: oldAttrs }: { attributes: NamedNodeMap } = oldChildNode,
             { attributes: newAttrs }: { attributes: NamedNodeMap } = newChildNode,
-            oldAttrList: Record<string, Omit<PickedAttr, 'name'>> = {}
+            oldAttrList: Record<string, Omit<Html.PickedAttr, 'name'>> = {}
 
           for (let i = 0; i < oldAttrs.length; i++) {
-            const { name, value, namespaceURI, localName }: PickedAttr = oldAttrs[i]
+            const { name, value, namespaceURI, localName }: Html.PickedAttr = oldAttrs[i]
             oldAttrList[name] = { value, namespaceURI, localName }
           }
 
           for (let i = 0; i < newAttrs.length; i++) {
-            const { name, value, namespaceURI }: PickedAttr = newAttrs[i]
+            const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i]
 
             if (oldAttrList[name]?.value !== value)
               if (isHTMLElement(oldChildNode)) {
@@ -843,7 +761,7 @@ export default class FiCsElement<D extends object, P extends object> {
           for (const name in oldAttrList)
             if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
             else {
-              const { namespaceURI, localName }: Omit<PickedAttr, 'name'> = oldAttrList[name]
+              const { namespaceURI, localName }: Omit<Html.PickedAttr, 'name'> = oldAttrList[name]
 
               if (namespaceURI) oldChildNode.removeAttributeNS(namespaceURI, localName)
               else oldChildNode.removeAttribute(name)
@@ -869,6 +787,25 @@ export default class FiCsElement<D extends object, P extends object> {
         oldChildNodes: ChildNode[],
         newChildNodes: ChildNode[]
       ): void {
+        const scrollAttr: string = getScrollAttr({
+          instanceId: that.#instanceId,
+          type: 'wrap',
+          hasValue: false
+        })
+
+        /**
+         * @remarks
+         * DOM identity is intentionally reset here to prioritize virtual-scroll rendering performance.
+         */
+        if (parentNode instanceof Element && parentNode.getAttribute(scrollAttr) === 'true') {
+          for (const childNode of oldChildNodes) childNode.remove()
+          for (const childNode of newChildNodes) {
+            if (isElement(childNode) && !childNode.isConnected) that.#newElements.add(childNode)
+            parentNode.appendChild(childNode)
+          }
+          return
+        }
+
         let oldStartIndex: number = 0,
           oldEndIndex: number = oldChildNodes.length - 1,
           oldStartNode: ChildNode = oldChildNodes[oldStartIndex],
@@ -1025,11 +962,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #cssToString({ css, mode }: { css: Css<D, P>[]; mode: 'csr' | 'ssr' }): string {
+  #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
     let topLevelCss: string = ''
-    const convertCssContent = (style: Style<D, P>): string =>
+    const convertCss = (style: Css.Value<D, P>): string =>
       Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
         (prev, [key, value]) => {
           if (value === undefined || value === '' || isBlankObject(value)) return prev
@@ -1038,12 +975,12 @@ export default class FiCsElement<D extends object, P extends object> {
           if (key.startsWith('webkit')) key = `-${key}`
 
           if (key.startsWith('@keyframes')) {
-            topLevelCss += `${key}{${convertCssContent(value as Style<D, P>)}}`
+            topLevelCss += `${key}{${convertCss(value as Css.Value<D, P>)}}`
             return prev
           }
 
           const isApplicableType: boolean = typeof value === 'string' || typeof value === 'number'
-          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCssContent(value as StyleContent)}}`}`
+          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCss(value as Css.Declarations)}}`}`
         },
         ''
       )
@@ -1054,12 +991,10 @@ export default class FiCsElement<D extends object, P extends object> {
       let _curr: string = ''
 
       for (let [selector, style] of Object.entries(curr)) {
-        if (Array.isArray(style) && style[1] !== mode) continue
-
-        if (mode === 'ssr' && selector.startsWith(consts.HOST_SELECTOR))
+        if (isSsr && selector.startsWith(consts.HOST_SELECTOR))
           selector = selector.replace(consts.HOST_SELECTOR, `div#${this.#name}`)
 
-        const content: string = convertCssContent(Array.isArray(style) ? style[0] : style),
+        const content: string = convertCss(style),
           index: number = content.indexOf('{')
 
         if (selector.startsWith(consts.HOST_SELECTOR) && index > -1) {
@@ -1076,8 +1011,8 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #buildCss(shadowRoot: ShadowRoot, additional: Css<D, P>[]): void {
-    const css: Css<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
+  #buildCss(shadowRoot: ShadowRoot, additional: Css.Sheet<D, P>[]): void {
+    const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
 
     if (css.length === 0) return
 
@@ -1089,9 +1024,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     const stylesheet: CSSStyleSheet = new CSSStyleSheet()
     shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(
-      this.#cssToString({ css: [`${consts.HOST_SELECTOR}{display:block}`, ...css], mode: 'csr' })
-    )
+    stylesheet.replaceSync(this.#cssToString([`${consts.HOST_SELECTOR}{display:block}`, ...css]))
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -1116,7 +1049,7 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!shadowRoot || searchedShadowRoots.has(shadowRoot)) return null
         searchedShadowRoots.add(shadowRoot)
 
-        const searched = shadowRoot.querySelector(selector) as T | null
+        const searched: T | null = shadowRoot.querySelector(selector) as T | null
         if (searched) return searched
 
         const treeWalker: TreeWalker = document.createTreeWalker(
@@ -1143,13 +1076,13 @@ export default class FiCsElement<D extends object, P extends object> {
     )
   }
 
-  #debounce<T extends (...args: any[]) => void>(
+  #debounce<T extends (...args: Parameters<T>) => void>(
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
     numberError({ time }, false)
 
-    let timeout: ReturnType<typeof setTimeout> | undefined
+    let timeout: SetTimeout | undefined
 
     return (...args: Parameters<T>): void => {
       if (timeout) clearTimeout(timeout)
@@ -1157,7 +1090,7 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #throttle<T extends (...args: any[]) => void>(
+  #throttle<T extends (...args: Parameters<T>) => void>(
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
@@ -1175,19 +1108,11 @@ export default class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #addEventListener({
-    element,
-    shadowRoot,
-    entries
-  }: {
-    element: Element
-    shadowRoot: ShadowRoot
-    entries: [string, Method<D, P> | [Method<D, P>, ActionOptions]][]
-  }) {
+  #addEventListener({ element, shadowRoot, entries }: Action.Ctx<D, P>) {
     const addEventListener = (
       handler: string,
-      method: Method<D, P>,
-      options?: ActionOptions
+      method: Action.Method<D, P>,
+      options?: Action.Options
     ): void => {
       if (handler !== 'click' && options?.blur)
         throw new Error('The "blur" is enabled only if the handler is click...')
@@ -1199,7 +1124,7 @@ export default class FiCsElement<D extends object, P extends object> {
         attrs[name] = value
       }
 
-      const { debounce, throttle, blur, once }: ActionOptions = options ?? {}
+      const { debounce, throttle, blur, once }: Action.Options = options ?? {}
 
       if (debounce && throttle)
         throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
@@ -1247,241 +1172,25 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #infiniteVirtualScroll(shadowRoot: ShadowRoot): void {
-    if (!this.#options.scroll) return
-
-    const { id, trigger, parameter, rootMargin, throttle, method }: Scroll<D, P> =
-        this.#options.scroll,
-      _trigger: boolean | undefined = trigger?.({ data: this.#data })
-
-    if (_trigger === false) return
-
-    const root: HTMLElement | null = shadowRoot.getElementById(id)
-    if (!root) throw new Error(`The "${id}" was not found in the shadowRoot of ${this.#name}...`)
-
-    if (this.#options.scroll.isEnabled && this.#scrollObservers?.root === root) return
-
-    if (this.#scrollObservers) {
-      this.#scrollObservers.intersection.disconnect()
-      this.#scrollObservers.mutation.disconnect()
-      this.#scrollObservers = undefined
-      this.#options.scroll.isEnabled = false
-    }
-
-    this.#addEventListener({
-      element: root,
+    runInfiniteVirtualScroll({
+      name: this.#name,
+      instanceId: this.#instanceId,
       shadowRoot,
-      entries: [
-        [
-          'scroll',
-          [
-            ({ event }) => {
-              const { scrollTop, scrollHeight, clientHeight } = event.currentTarget as HTMLElement
-
-              console.log(scrollTop, scrollHeight, clientHeight)
-            },
-            { throttle: throttle ?? 0 }
-          ]
-        ]
-      ]
-    })
-
-    let { lastElementChild: lastChild }: { lastElementChild: Element | null } = root
-    if (!lastChild) return
-
-    let pageParam: number = 1
-
-    if (parameter) {
-      const url: URL = new URL(window.location.href),
-        value: string | null = url.searchParams.get(parameter)
-
-      if (value) {
-        const numValue: number = Number(value)
-
-        numberError({ [parameter]: numValue }, true)
-        pageParam = numValue
-      }
-    }
-
-    const intersectionObserver: IntersectionObserver = new IntersectionObserver(
-      ([{ isIntersecting }]) => {
-        if (!isIntersecting) return
-
-        method(this.#getDataProps(true))
-
-        if (parameter) {
-          const url: URL = new URL(window.location.href)
-
-          if (pageParam === 1) pageParam++
-
-          url.searchParams.set(parameter, (pageParam++).toString())
-          window.history.replaceState(null, '', url.toString())
-        }
-      },
-      { rootMargin }
-    )
-    const mutationObserver: MutationObserver = new MutationObserver(() => {
-      const { lastElementChild }: { lastElementChild: Element | null } = root
-
-      if (lastElementChild && lastElementChild !== lastChild) {
-        if (lastChild) intersectionObserver.unobserve(lastChild)
-        intersectionObserver.observe(lastElementChild)
-        lastChild = lastElementChild
+      getDataProps: this.#getDataProps.bind(this),
+      scrollOptions: this.#options.scroll,
+      addEventListener: this.#addEventListener.bind(this),
+      reRender: () => this.#enqueue(() => this.#reRender(), 're-render'),
+      scrollObservers: this.#scrollObservers,
+      setScrollObservers: (observers?: Scroll.Observers): void => {
+        this.#scrollObservers = observers
       }
     })
-
-    intersectionObserver.observe(lastChild)
-    mutationObserver.observe(root, { childList: true })
-    this.#scrollObservers = { root, intersection: intersectionObserver, mutation: mutationObserver }
-    this.#options.scroll.isEnabled = true
   }
 
-  #openWebSocket(): WebSocket | undefined {
-    const websocket: Options<D, P>['websocket'] | undefined = this.#options.websocket
-
-    if (!websocket || isBlankObject(websocket)) return undefined
-
-    let reconnectedCount: number = 0,
-      reconnectedTimer: Timer | null = null
-
-    const {
-        path,
-        protocols,
-        reconnect,
-        onopen,
-        onmessage,
-        onerror,
-        onclose
-      }: Options<D, P>['websocket'] = websocket,
-      { protocol: _protocol, host }: { protocol: string; host: string } = window.location,
-      connect = (): WebSocket => {
-        const _websocket: WebSocket = new WebSocket(
-            `${_protocol.replace('http', 'ws')}//${host}${path}`,
-            protocols
-          ),
-          params: () => Omit<WebSocketParams<D, P>, 'event'> = () => ({
-            ...this.#getDataProps(true),
-            websocket: {
-              send: _websocket.send.bind(_websocket),
-              readyState: () => _websocket.readyState,
-              bufferedAmount: () => _websocket.bufferedAmount,
-              binaryType: () => _websocket.binaryType,
-              url: () => _websocket.url,
-              protocol: () => _websocket.protocol,
-              extensions: () => _websocket.extensions
-            }
-          })
-
-        this.#websocket = {
-          send: _websocket.send.bind(_websocket),
-          isOpened: () => _websocket.readyState === WebSocket.OPEN
-        }
-
-        _websocket.onopen = (event: Event): void => {
-          reconnectedCount = 0
-
-          if (reconnectedTimer) {
-            clearTimeout(reconnectedTimer)
-            reconnectedTimer = null
-          }
-
-          onopen?.({ ...params(), event })
-        }
-        _websocket.onmessage = (event: MessageEvent): void => onmessage?.({ ...params(), event })
-
-        const autoReconnect = (): void => {
-          if (reconnect && !reconnectedTimer) {
-            const {
-              interval,
-              max,
-              isExponential
-            }: NonNullable<Options<D, P>['websocket']>['reconnect'] = reconnect
-
-            if ((max && reconnectedCount < max) || !max) {
-              _websocket.close()
-
-              reconnectedTimer = setTimeout(
-                () => {
-                  reconnectedCount++
-                  connect()
-                },
-                isExponential ? interval ** reconnectedCount : interval
-              )
-            }
-          }
-        }
-
-        _websocket.onerror = (event: Event): void => {
-          onerror?.({ ...params(), event })
-          autoReconnect()
-        }
-        _websocket.onclose = (event: CloseEvent): void => {
-          onclose?.({ ...params(), event })
-          autoReconnect()
-        }
-
-        return _websocket
-      }
-
-    return connect()
-  }
-
-  #openEventSource(): { eventSource: EventSource; removeEventListeners: () => void } | undefined {
-    const sse: Options<D, P>['sse'] | undefined = this.#options.sse
-
-    if (!sse || isBlankObject(sse)) return undefined
-
-    const { path, withCredentials, onopen, onmessage, onerror, actions }: Options<D, P>['sse'] =
-        sse,
-      eventSource: EventSource = new EventSource(path, { withCredentials }),
-      listeners: { handler: string; callback: (event: MessageEvent) => void }[] = [],
-      removeEventListeners = () => {
-        for (const { handler, callback } of listeners)
-          eventSource.removeEventListener(handler, callback)
-      },
-      getParams = (): DataProps<D, P, true> & { close: () => void } => ({
-        ...this.#getDataProps(true),
-        close: () => {
-          removeEventListeners()
-          eventSource.close()
-        }
-      })
-
-    eventSource.onopen = (event: Event): void => onopen?.({ ...getParams(), event })
-    eventSource.onmessage = (event: MessageEvent): void => onmessage?.({ ...getParams(), event })
-    eventSource.onerror = (event: Event): void => onerror?.({ ...getParams(), event })
-
-    const addEventListener = (
-      handler: string,
-      method: SSEMethod<D, P>,
-      options?: ActionOptions
-    ): void => {
-      const { debounce, throttle, once }: ActionOptions = options ?? {}
-
-      if (debounce && throttle)
-        throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
-
-      let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
-        method({ ...getParams(), event })
-
-      if (debounce) callback = this.#debounce(callback, debounce)
-      else if (throttle) callback = this.#throttle(callback, throttle)
-
-      eventSource.addEventListener(handler, callback, { once })
-      listeners.push({ handler, callback })
-    }
-
-    for (const [handler, method] of Object.entries(actions))
-      Array.isArray(method)
-        ? addEventListener(handler, method[0], method[1])
-        : addEventListener(handler, method)
-
-    return { eventSource, removeEventListeners }
-  }
-
-  #callback(key: Exclude<keyof Hooks<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
+  #callback(key: Exclude<keyof Hook.Lifecycle<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
-    const params: HookParams<D, P> = {
+    const ctx: Hook.Ctx<D, P> = {
       ...this.#getDataProps(true),
       ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
       debounce: this.#debounce.bind(this),
@@ -1492,13 +1201,12 @@ export default class FiCsElement<D extends object, P extends object> {
       const that: FiCsElement<D, P> = this,
         poll = (
           func: ({ times }: { times: number }) => void,
-          { interval, max, exit }: PollingOptions
+          { interval, max, exit }: Hook.Polling
         ): void => {
           numberError({ interval, max })
 
-          let times = 0
-
-          const execute: ReturnType<typeof setTimeout> = setTimeout(function run() {
+          let times: number = 0
+          const execute: SetTimeout = setTimeout(function run() {
             if ((max && times >= max) || (exit && exit())) {
               clearTimeout(execute)
               return
@@ -1512,15 +1220,15 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#poll = execute
         }
 
-      this.#hooks[key]({ ...params, poll })
-    } else this.#hooks[key](params)
+      this.#hooks[key]({ ...ctx, poll })
+    } else this.#hooks[key](ctx)
   }
 
   #define(): void {
     browserError()
 
     const that: FiCsElement<D, P> = this,
-      { lazyLoad, rootMargin }: OptionParams<D, P> = that.#options
+      { lazyLoad, rootMargin }: Options.Resolved<D, P> = that.#options
 
     window.customElements.define(
       that.#name,
@@ -1577,13 +1285,23 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#cache.component = this
 
           that.#infiniteVirtualScroll(this.#shadowRoot)
-          this.#websocket = that.#openWebSocket()
+
+          this.#websocket = openWebSocket({
+            options: that.#options.websocket,
+            getDataProps: that.#getDataProps.bind(that),
+            setWebSocketProp: (prop: WebSocketNS.Prop | undefined) => (that.#webSocketProp = prop)
+          })
 
           const {
             eventSource,
             removeEventListeners
           }: { eventSource?: EventSource; removeEventListeners?: () => void } =
-            that.#openEventSource() || {}
+            openEventSource({
+              options: that.#options.sse,
+              getDataProps: that.#getDataProps.bind(that),
+              debounce: that.#debounce.bind(that),
+              throttle: that.#throttle.bind(that)
+            }) || {}
 
           if (eventSource) this.#eventSource = eventSource
           if (removeEventListeners) this.#removeEventListeners = removeEventListeners
@@ -1607,7 +1325,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
             that.#callback('mounted', this.#shadowRoot)
             this.#isRendered = true
-          }
+          } else that.#infiniteVirtualScroll(this.#shadowRoot)
         }
 
         disconnectedCallback(): void {
@@ -1619,6 +1337,17 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#websocket?.close()
           this.#eventSource?.close()
           this.#removeEventListeners?.()
+          if (that.#scrollObservers) {
+            for (const observer of ['intersection', 'mutation', 'resize'] as const)
+              that.#scrollObservers[observer].disconnect()
+
+            that.#scrollObservers = undefined
+          }
+
+          if (that.#options.scroll) {
+            clearTimers(that.#options.scroll)
+            that.#options.scroll.isEnabled = false
+          }
 
           that.#callback('destroyed', this.#shadowRoot)
         }
@@ -1775,8 +1504,8 @@ export default class FiCsElement<D extends object, P extends object> {
         html: string = applyShowAttr(
           applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
         ),
-        css = (_css: Css<D, P>[]): string =>
-          _css.length > 0 ? `<style>${that.#cssToString({ css: _css, mode: 'ssr' })}</style>` : ''
+        css = (_css: Css.Sheet<D, P>[]): string =>
+          _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
       return `
         <${joinArray([that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''])}>
