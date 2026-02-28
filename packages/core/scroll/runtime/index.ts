@@ -34,7 +34,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       } = scrollOptions.options(getDataProps(true))
 
       numberError({ unit, itemMinSize })
-      numberError({ bufferLength, throttle }, false)
+      numberError({ bufferLength, throttle }, 'non-negative')
 
       return {
         unit,
@@ -61,7 +61,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
     isRuntimeReusable: boolean =
       root !== null && scrollOptions.isEnabled && scrollObservers?.root === root
 
-  numberError({ totalCount, prevTotalCount }, false)
+  numberError({ totalCount, prevTotalCount }, 'non-negative')
 
   if (trigger === false) {
     if (isRuntimeReusable) {
