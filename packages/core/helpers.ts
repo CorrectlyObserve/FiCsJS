@@ -151,17 +151,25 @@ export const normalizePath = (path: string): string =>
  */
 export const numberError = (
   numbers: Record<string, number | undefined>,
-  isPositiveRequired: boolean = true
+  condition: 'positive' | 'non-negative' | 'finite' = 'positive'
 ): void => {
   for (const [key, value] of Object.entries(numbers)) {
     if (value === undefined) continue
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
 
-    if ((isPositiveRequired && value <= 0) || (!isPositiveRequired && value < 0))
-      throw new Error(
-        `The ${key} must be a ${isPositiveRequired ? 'positive' : 'non-negative'} number...`
-      )
+    switch (condition) {
+      case 'finite':
+        return
+
+      case 'positive':
+        if (value <= 0) throw new Error(`The ${key} must be a positive number...`)
+        break
+
+      case 'non-negative':
+        if (value < 0) throw new Error(`The ${key} must be a non-negative number...`)
+        break
+    }
   }
 }
 
