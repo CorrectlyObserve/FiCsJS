@@ -1,10 +1,16 @@
 import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar } from 'ficsjs/style'
-import { measureOffsetWidth, white } from '@/utils/others'
+import { white } from '@/utils/others'
 
-export default ficsLink<{ id: number; title: string; completedAt?: number; status: string }>({
+export default ficsLink<{
+  id: number
+  title: string
+  completedAt?: number
+  status: string
+  isQuery: boolean
+}>({
   attributes: ({ props: { title, status } }) => ({ 'aria-label': `${title} ${status}` }),
-  href: ({ props: { id } }) => `/${measureOffsetWidth() ? '?taskId=' : ''}${id}`,
+  href: ({ props: { id, isQuery } }) => `/${isQuery ? '?taskId=' : ''}${id}`,
   content: ({ props: { title, completedAt }, template }) =>
     template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`,
   css: {
