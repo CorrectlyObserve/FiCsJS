@@ -21,7 +21,8 @@ export default fics({
     photos: [] as Photo[],
     photoId: '',
     photoElement: null as HTMLImageElement | null,
-    author: ''
+    author: '',
+    onEscapeKeydown: null as ((event: KeyboardEvent) => void) | null
   }),
   deferredData: async ({ data, crud }) => {
     data.page++
@@ -156,17 +157,23 @@ export default fics({
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
-      window.addEventListener(
-        'keydown',
-        throttle(event => {
-          if (event.key !== 'Escape' || data.photoId === '') return
 
-          event.preventDefault()
-          data.photoId = ''
-          data.photoElement?.focus()
-          data.photoElement = null
-        }, 1000)
-      )
+      const onEscapeKeydown = throttle((event: KeyboardEvent) => {
+        if (event.key !== 'Escape' || data.photoId === '') return
+
+        event.preventDefault()
+        data.photoId = ''
+        data.photoElement?.focus()
+        data.photoElement = null
+      }, 1000) as (event: KeyboardEvent) => void
+
+      data.onEscapeKeydown = onEscapeKeydown
+      window.addEventListener('keydown', onEscapeKeydown)
+    },
+    destroyed: ({ data }) => {
+      if (!data.onEscapeKeydown) return
+      window.removeEventListener('keydown', data.onEscapeKeydown)
+      data.onEscapeKeydown = null
     }
   },
   actions: {
