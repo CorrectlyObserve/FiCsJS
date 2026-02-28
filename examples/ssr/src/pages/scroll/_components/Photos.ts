@@ -179,22 +179,39 @@ export default fics({
   actions: {
     img: {
       load: [
-        ({ data, attributes: { key } }) =>
-          (data.photos = data.photos.map(photo =>
-            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
-          )),
+        ({ data, event: { currentTarget }, attributes: { key } }) => {
+          if (!currentTarget) return
+
+          const index = parseInt((currentTarget as HTMLImageElement).dataset.index ?? '')
+          if (!Number.isFinite(index)) return
+
+          const photo = data.photos[index]
+          if (!photo || photo.id !== key || photo.isLoaded) return
+
+          const newPhotos: Photo[] = [...data.photos]
+          newPhotos[index] = { ...photo, isLoaded: true }
+          data.photos = newPhotos
+        },
         { once: true }
       ],
       error: [
         ({ data, event: { currentTarget }, attributes: { key } }) => {
-          data.photos = data.photos.map(photo =>
-            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
-          )
+          if (!currentTarget) return
 
-          if (currentTarget) {
-            const img = currentTarget as HTMLImageElement
-            img.replaceWith(img.cloneNode(true))
+          const img = currentTarget as HTMLImageElement,
+            index = parseInt(img.dataset.index ?? '')
+
+          if (Number.isFinite(index)) {
+            const photo = data.photos[index]
+
+            if (photo && photo.id === key && !photo.isLoaded) {
+              const newPhotos: Photo[] = [...data.photos]
+              newPhotos[index] = { ...photo, isLoaded: true }
+              data.photos = newPhotos
+            }
           }
+
+          img.replaceWith(img.cloneNode(true))
         },
         { once: true }
       ],
