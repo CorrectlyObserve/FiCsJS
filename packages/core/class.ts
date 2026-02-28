@@ -266,7 +266,7 @@ export default class FiCsElement<D extends object, P extends object> {
               { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
 
             numberError({ unit, itemMinSize })
-            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, false)
+            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, 'non-negative')
 
             const normalizedLength: number = Math.max(
               Math.floor(Math.max(cacheLength ?? CACHE_LENGTH, unit + (bufferLength ?? 0))),
@@ -1080,7 +1080,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, false)
+    numberError({ time }, 'non-negative')
 
     let timeout: SetTimeout | undefined
 
@@ -1094,7 +1094,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, false)
+    numberError({ time }, 'non-negative')
 
     let lastTime: number = 0
 
