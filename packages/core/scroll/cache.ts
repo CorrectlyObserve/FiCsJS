@@ -13,7 +13,7 @@ export const evictCache = <D extends object, P>({
     cache
 
   numberError({ maxLength })
-  numberError({ index }, false)
+  numberError({ index }, 'non-negative')
 
   /**
    * @remarks
@@ -54,7 +54,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
   index,
   aveSize
 }: Scroll.Ctx.OffsetBeforeIndex): number => {
-  numberError({ index }, false)
+  numberError({ index }, 'non-negative')
   numberError({ aveSize })
 
   if (!cache) return index * aveSize
@@ -70,7 +70,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
     countFenwickTree
   }: Scroll.Cache = cache
 
-  numberError({ evictedSize, evictedCount }, false)
+  numberError({ evictedSize, evictedCount }, 'non-negative')
 
   /**
    * @remarks
