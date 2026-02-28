@@ -141,13 +141,13 @@ export default fics<Data, Props>({
             buttonText,
             click: async () => {
               const { id, title, description, completedAt }: Task = draft
-              await updateTask({ id, title, description, completedAt })
+              const tasks: Task[] = await updateTask({ id, title, description, completedAt })
 
-              const task: Task | undefined = getTask(await getAllTasks(), id)
+              const task: Task | undefined = getTask(tasks, id)
               if (!task) return
 
               editTask(task)
-              updateTasks(await getAllTasks())
+              updateTasks(tasks)
               goto('/')
             }
           })}
