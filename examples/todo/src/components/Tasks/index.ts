@@ -8,7 +8,7 @@ import Button from '@/components/materials/Button'
 import Link from '@/components/Tasks/Link'
 import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
 import type { Lang, Task } from '@/types'
-import { breakpoints } from '@/utils/others'
+import { breakpoints, measureOffsetWidth } from '@/utils/others'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -102,6 +102,7 @@ export default fics<Data, Props>({
 
     if (!isShown) tasks = tasks.filter(({ completedAt }) => !completedAt)
 
+    const isQuery = measureOffsetWidth()
     return template`
       <h2>${heading}</h2>
       <div class="menu">
@@ -144,7 +145,8 @@ export default fics<Data, Props>({
                       id,
                       title,
                       completedAt,
-                      status: completedAt ? completed : uncompleted
+                      status: completedAt ? completed : uncompleted,
+                      isQuery
                     })}
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
