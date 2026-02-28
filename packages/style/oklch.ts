@@ -90,7 +90,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     h = parseFloat(h)
     a = a === undefined ? 1 : parseFloat(a)
 
-    numberError({ l, c, h, a }, false)
+    numberError({ l, c, h, a }, 'non-negative')
     return { l, c, h, a }
   },
   alphaFromHex = (hex: string): number => {
