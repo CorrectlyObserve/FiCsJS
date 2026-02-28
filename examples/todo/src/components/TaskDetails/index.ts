@@ -191,7 +191,7 @@ export default fics<Data, Props>({
         textAlign: 'left',
         '&:last-of-type': { marginBlockEnd: cssVar('xl') }
       },
-      '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 2`) }
+      '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 4`) }
     }
   },
   options: { lazyLoad: true }
