@@ -8,6 +8,7 @@ interface Data {
   draggingIndex: number
   height: number
   getDraggableElement: (target: EventTarget | null) => HTMLElement | null
+  focusItemByIndex: (target: HTMLElement | null, index: number) => void
 }
 
 interface Props<T> {
@@ -32,17 +33,27 @@ export default <T>() =>
       },
       draggingIndex: NaN,
       height: 0,
-      getDraggableElement: (target: EventTarget | null) => {
+      getDraggableElement: (target: EventTarget | null): HTMLElement | null => {
         if (!target) return null
 
         const element = target as HTMLElement
-
         if (element.getAttribute('draggable') === 'true') return element
 
         const draggableElement = element.closest(draggable)
-        if (!draggableElement) return null
+        return draggableElement ? (draggableElement as HTMLElement) : null
+      },
+      focusItemByIndex: (element: HTMLElement | null, index: number) => {
+        if (!element) return
 
-        return draggableElement as HTMLElement
+        const root = element.getRootNode()
+        if (root instanceof ShadowRoot || root instanceof Document)
+          setTimeout(() => {
+            const selector = `div${draggable}[key="${index}-slot"]`,
+              element = root.querySelector(selector) as HTMLElement | null
+
+            if (!element) return
+            element.focus()
+          })
       }
     }),
     html: ({
@@ -95,15 +106,6 @@ export default <T>() =>
         '&.mb-height': { marginBlockEnd: `${height}px` }
       })
     },
-    hooks: {
-      mounted: ({ throttle }) =>
-        window.addEventListener(
-          'pointermove',
-          throttle(() => {
-            document.body.style.pointerEvents = ''
-          }, 1000)
-        )
-    },
     actions: {
       'div.drop-zone': {
         dragover: ({ event }) => {
@@ -154,8 +156,6 @@ export default <T>() =>
 
           const { activeElement } = document
           if (activeElement instanceof HTMLElement) activeElement.blur()
-
-          document.body.style.pointerEvents = 'none'
         }
       },
       [`div${draggable}`]: {
@@ -234,7 +234,7 @@ export default <T>() =>
           { throttle: 500 }
         ],
         keydown: async ({
-          data: { getDraggableElement },
+          data: { getDraggableElement, focusItemByIndex },
           props: { array, getNewItem, updateArray, selectItem },
           event,
           attributes: { key }
@@ -281,19 +281,7 @@ export default <T>() =>
           }
 
           updateArray(newArray)
-
-          const draggableElement = getDraggableElement(event.currentTarget)
-          if (!draggableElement) return
-
-          const root = draggableElement.getRootNode()
-          if (root instanceof ShadowRoot || root instanceof Document)
-            setTimeout(() => {
-              const selector = `div${draggable}[key="${newIndex}-slot"]`,
-                element = root.querySelector(selector) as HTMLElement | null
-
-              if (!element) return
-              element.focus()
-            })
+          focusItemByIndex(element, newIndex)
         }
       }
     }
