@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { cssVar, forScreenReaders } from 'ficsjs/style'
+import { calc, cssVar, forScreenReaders } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/materials/Loading'
 import { Lang } from '@/types'
@@ -63,7 +63,8 @@ export default fics<Data, { lang: Lang }>({
         marginBlockEnd: cssVar('xl'),
         [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
       }
-    }
+    },
+    div: { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 4`) }
   },
   hooks: {
     mounted: ({ data, poll }) => {
