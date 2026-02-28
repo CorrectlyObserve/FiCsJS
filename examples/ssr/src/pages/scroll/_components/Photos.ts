@@ -102,9 +102,8 @@ export default fics({
       <dialog
         id="photo-dialog"
         class="w-3xs rounded-lg border border-white z-1"
-        open
-        aria-modal="true"
         aria-labelledby="dialog-title"
+        ${photoId !== '' ? 'open' : ''}
         ${show(photoId !== '')}
       >
         ${icon}
