@@ -5,7 +5,7 @@ export const browserError = (): void => {
 }
 
 export const clampRatio = (ratio: number): number => {
-  numberError({ ratio }, false)
+  numberError({ ratio }, 'finite')
 
   if (ratio <= 0) return 0
   if (ratio >= 1) return 1
