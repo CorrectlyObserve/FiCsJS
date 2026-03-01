@@ -108,12 +108,28 @@ export default <T>() =>
     },
     actions: {
       'div.drop-zone': {
-        dragover: ({ event }) => {
+        dragover: ({ data, event, attributes: { key } }) => {
           const drag = event as DragEvent
           drag.preventDefault()
 
           if (!drag.dataTransfer) return
-          drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
+
+          const { altKey: isCopy, currentTarget } = drag
+          drag.dataTransfer.dropEffect = isCopy ? 'copy' : 'move'
+
+          const zoneIndex = parseInt(key)
+          if (!Number.isFinite(zoneIndex)) return
+
+          if (
+            !isCopy &&
+            (zoneIndex === data.draggingIndex - 1 || zoneIndex === data.draggingIndex)
+          ) {
+            if (data.droppedZone) data.droppedZone = null
+            return
+          }
+
+          if (currentTarget instanceof HTMLElement && data.droppedZone !== currentTarget)
+            data.droppedZone = currentTarget
         },
         dragleave: ({ data, attributes: { key } }) => {
           if (data.isHighlighted(data.droppedZone, key)) data.droppedZone = null
