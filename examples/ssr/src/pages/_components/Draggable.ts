@@ -40,7 +40,7 @@ export default <T>() =>
         if (element.getAttribute('draggable') === 'true') return element
 
         const draggableElement = element.closest(DRAGGABLE_ATTR)
-        return draggableElement ? (draggableElement as HTMLElement) : null
+        return draggableElement instanceof HTMLElement ? draggableElement : null
       },
       focusItemByIndex: (element: HTMLElement | null, index: number) => {
         if (!element) return
