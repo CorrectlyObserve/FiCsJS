@@ -241,15 +241,16 @@ export default <T>() =>
         }) => {
           const keyEvent = event as KeyboardEvent,
             fromIndex = parseInt(key),
-            item: T = array[fromIndex]
+            item: T | undefined = array[fromIndex]
 
-          if (!item) return
+          if (item === undefined) return
+
+          const element = getDraggableElement(event.currentTarget)
 
           if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
             keyEvent.preventDefault()
             selectItem(item)
 
-            const element = getDraggableElement(event.currentTarget)
             if (!element) return
 
             element.focus()
@@ -262,19 +263,28 @@ export default <T>() =>
           if (!isArrowUp && !isArrowDown) return
           keyEvent.preventDefault()
 
+          const isCopy = keyEvent.altKey,
+            isAtLast = fromIndex === array.length - 1
+
+          if (isArrowDown && isCopy && isAtLast) {
+            const newArray: T[] = [...array, await getNewItem(item)]
+            updateArray(newArray)
+            focusItemByIndex(element, array.length)
+            return
+          }
+
+          if ((isArrowUp && fromIndex === 0) || (isArrowDown && !isCopy && isAtLast)) return
+
+          const newIndex = fromIndex + (isArrowUp ? -1 : 1)
           if (
-            (isArrowUp && fromIndex === 0) ||
-            (isArrowDown && fromIndex === array.length - 1) ||
-            !item
+            newIndex < 0 ||
+            (isCopy && newIndex > array.length) ||
+            (!isCopy && newIndex > array.length - 1)
           )
             return
 
-          const newIndex = fromIndex + (isArrowUp ? -1 : 1)
-          if (newIndex < 0 || newIndex > array.length - 1) return
-
           const newArray: T[] = [...array]
-
-          if (keyEvent.altKey) newArray.splice(newIndex, 0, await getNewItem(item))
+          if (isCopy) newArray.splice(newIndex, 0, await getNewItem(item))
           else {
             newArray.splice(fromIndex, 1)
             newArray.splice(newIndex, 0, item)
