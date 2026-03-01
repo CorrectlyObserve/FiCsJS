@@ -149,9 +149,9 @@ export default <T>() =>
           data.droppedZone = null
 
           const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
-            item: T = array[fromIndex]
+            item: T | undefined = array[fromIndex]
 
-          if (!item) return
+          if (item === undefined) return
 
           const newArray: T[] = [...array]
           let zoneIndex = parseInt(key)
