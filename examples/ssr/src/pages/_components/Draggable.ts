@@ -20,7 +20,7 @@ interface Props<T> {
   selectItem: (item: T) => void
 }
 
-const draggable = '[draggable="true"]' as const
+const DRAGGABLE_ATTR = '[draggable="true"]' as const
 
 export default <T>() =>
   fics<Data, Props<T>>({
@@ -39,7 +39,7 @@ export default <T>() =>
         const element = target as HTMLElement
         if (element.getAttribute('draggable') === 'true') return element
 
-        const draggableElement = element.closest(draggable)
+        const draggableElement = element.closest(DRAGGABLE_ATTR)
         return draggableElement ? (draggableElement as HTMLElement) : null
       },
       focusItemByIndex: (element: HTMLElement | null, index: number) => {
@@ -48,7 +48,7 @@ export default <T>() =>
         const root = element.getRootNode()
         if (root instanceof ShadowRoot || root instanceof Document)
           setTimeout(() => {
-            const selector = `div${draggable}[key="${index}-slot"]`,
+            const selector = `div${DRAGGABLE_ATTR}[key="${index}-slot"]`,
               element = root.querySelector(selector) as HTMLElement | null
 
             if (!element) return
@@ -158,7 +158,7 @@ export default <T>() =>
           if (activeElement instanceof HTMLElement) activeElement.blur()
         }
       },
-      [`div${draggable}`]: {
+      [`div${DRAGGABLE_ATTR}`]: {
         dragstart: ({ data, event, attributes: { key } }) => {
           const drag = event as DragEvent
           if (!drag.dataTransfer) return
