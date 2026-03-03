@@ -4,19 +4,19 @@ import { white } from '@/utils'
 export default () =>
   fics<
     {},
-    { svg: string; areaLabel: string; isLarge?: string; isPressed?: boolean; click: () => void }
+    { svg: string; ariaLabel: string; isLarge?: string; isPressed?: boolean; click: () => void }
   >({
     name: 'icon',
     className: 'icon',
     html: ({
-      props: { svg, areaLabel, isLarge, isPressed },
+      props: { svg, ariaLabel, isLarge, isPressed },
       template,
       attributes: { boolean },
       html
     }) => template`
       <button
         class="clickable flex text-white ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
-        aria-label="${areaLabel}"
+        aria-label="${ariaLabel}"
         ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
         type="button"
       >${html(svg)}</button>
