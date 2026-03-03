@@ -43,6 +43,11 @@ export default () =>
       })
     },
     actions: {
-      button: { click: [({ props: { click } }) => click(), { throttle: 500, blur: true }] }
+      button: {
+        click: [
+          ({ props: { isDisabled, click } }) => !isDisabled && click(),
+          { throttle: 500, blur: true }
+        ]
+      }
     }
   })
