@@ -4,7 +4,7 @@ import { white } from '@/utils/others'
 
 interface Props {
   svg: string
-  areaLabel: string
+  ariaLabel: string
   isPressed?: boolean
   color?: string
   click?: () => void
@@ -14,13 +14,13 @@ export default () =>
   fics<{}, Props>({
     name: 'icon',
     html: ({
-      props: { areaLabel, svg, isPressed },
+      props: { ariaLabel, svg, isPressed },
       template,
       html,
       attributes: { boolean }
     }) => template`
       <button
-        aria-label="${areaLabel}"
+        aria-label="${ariaLabel}"
         ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
         type="button"
       >${html(svg)}</button>
