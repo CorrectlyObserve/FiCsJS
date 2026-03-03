@@ -84,7 +84,7 @@ export default <T>() =>
 
           return template`
             <div
-              class="clickable rounded-lg py-1 pr-3"
+              class="clickable rounded-lg py-1"
               key="${index}-slot"
               draggable="true"
               tabindex="0"
