@@ -1,26 +1,41 @@
 import { fics } from 'ficsjs'
 import { white } from '@/utils'
 
+interface Props {
+  svg: string
+  ariaLabel: string
+  isDisabled?: boolean
+  isActive?: boolean
+  isLarge?: boolean
+  isPressed?: boolean
+  click: () => void
+}
+
 export default () =>
-  fics<
-    {},
-    { svg: string; ariaLabel: string; isLarge?: string; isPressed?: boolean; click: () => void }
-  >({
+  fics<{}, Props>({
     name: 'icon',
     className: 'icon',
     html: ({
-      props: { svg, ariaLabel, isLarge, isPressed },
+      props: { svg, ariaLabel, isDisabled, isActive, isLarge, isPressed },
       template,
       attributes: { boolean },
-      html
-    }) => template`
-      <button
-        class="clickable flex text-white ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
-        aria-label="${ariaLabel}"
-        ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
-        type="button"
-      >${html(svg)}</button>
-    `,
+      html,
+      isBrowser
+    }) => {
+      const _isDisabled = !isBrowser || isDisabled,
+        textColor = !_isDisabled && isActive ? 'text-pink' : 'text-white'
+
+      return template`
+        <button
+          class="clickable flex ${textColor} ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
+          ${_isDisabled ? 'disabled' : ''}
+          aria-disabled="${boolean(_isDisabled)}"
+          aria-label="${ariaLabel}"
+          ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
+          type="button"
+        >${html(svg)}</button>
+      `
+    },
     css: {
       button: ({ props: { isLarge } }) => ({
         '&:hover': { background: white(0.1) },
