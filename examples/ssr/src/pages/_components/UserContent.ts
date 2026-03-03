@@ -1,28 +1,29 @@
 import { fics } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import type { User } from '@/types'
-import { GripVertical } from 'lucide-static'
 
 export default fics<{}, { user: User; userId: number }>({
   name: 'user-content',
-  html: ({ props: { user, userId }, template, html }) => {
+  html: ({ props: { user, userId }, template }) => {
     const { id } = user,
-      textColor = id === userId ? 'text-pink font-semibold' : 'text-white'
+      isSelected = userId === id
 
     return template`
-      <div class="${textColor} p-3 cursor-grab" aria-hidden="true" key="${id}-grid">
-        ${html(GripVertical)}
-      </div>
-      <div class="space-y-2" key="${id}-user">
-        ${(['id', 'name', 'email'] as (keyof User)[]).map(
-          key => template`
-            <p class="text-base ${textColor}" key="${id}-${key}">
-              ${key.charAt(0).toUpperCase() + key.slice(1)}: ${user[key]}
+      <div class="space-y-2 px-3" key="${id}">
+        ${(['id', 'name', 'email'] as const).map(key => {
+          const line = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${user[key]}`
+
+          return template`
+            <p class="grid text-base ${isSelected ? 'text-pink' : 'text-white'}" key="${id}-${key}">
+              <span class="invisible select-none pointer-events-none font-semibold" aria-hidden="true">
+                ${line}
+              </span>
+              <span class="${isSelected ? 'font-semibold' : 'font-normal'}">${line}</span>
             </p>
           `
-        )}
+        })}
       </div>
     `
   },
-  css: { ':host': flexCenter('y') }
+  css: { ':host': flexCenter('y'), 'p > span': { gridArea: '1/1' } }
 })
