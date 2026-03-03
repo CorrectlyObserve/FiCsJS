@@ -11,7 +11,7 @@ export default fics<{}, { isHorizontal: boolean; click: () => void }>({
     descendant: ({ children: { icon } }) => icon,
     values: ({ props: { isHorizontal, click } }) => ({
       svg: isHorizontal ? MoveVertical : MoveHorizontal,
-      areaLabel: `Switch axis direction to ${isHorizontal ? 'vertical' : 'horizontal'}`,
+      ariaLabel: `Switch axis direction to ${isHorizontal ? 'vertical' : 'horizontal'}`,
       isLarge: true,
       isPressed: isHorizontal,
       click
