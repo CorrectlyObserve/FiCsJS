@@ -37,7 +37,7 @@ export default fics({
       descendant: ({ children: { icon } }) => icon,
       values: ({ data }) => ({
         svg: CircleX,
-        areaLabel: 'Close the dialog',
+        ariaLabel: 'Close the dialog',
         click: () => {
           data.photoId = ''
           data.photoElement?.focus()
