@@ -152,7 +152,7 @@ export default fics({
   hooks: {
     created: ({ data }) => {
       const initialPage = parseInt(queries().page)
-      if (!isNaN(initialPage) && initialPage > 0) data.page = initialPage - 1
+      if (Number.isFinite(initialPage) && initialPage > 0) data.page = initialPage - 1
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
