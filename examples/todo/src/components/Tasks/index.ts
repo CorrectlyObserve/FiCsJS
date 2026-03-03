@@ -110,7 +110,7 @@ export default fics<Data, Props>({
           ${input}
           ${icon.setIndividualProps('add', {
             svg: Plus,
-            areaLabel: placeholder,
+            ariaLabel: placeholder,
             click: async () => {
               if (value !== '') {
                 setTasks(await addTask(value))
@@ -122,7 +122,7 @@ export default fics<Data, Props>({
         <div>
           ${icon.setIndividualProps('check', {
             svg: isShown ? SquareCheck : Square,
-            areaLabel: isShown ? hide : show,
+            ariaLabel: isShown ? hide : show,
             isPressed: isShown,
             click: () => (data.isShown = !data.isShown)
           })}
@@ -137,7 +137,7 @@ export default fics<Data, Props>({
                   <div>
                     ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
                       svg: completedAt ? CircleCheckBig : Circle,
-                      areaLabel: completedAt ? revert : complete,
+                      ariaLabel: completedAt ? revert : complete,
                       click: async () =>
                         setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
                     })}
@@ -151,7 +151,7 @@ export default fics<Data, Props>({
                   </div>
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
-                    areaLabel: _delete,
+                    ariaLabel: _delete,
                     color: cssVar('red'),
                     click: async () => {
                       if (window.confirm(confirmation)) {
