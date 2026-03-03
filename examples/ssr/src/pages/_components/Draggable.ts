@@ -1,5 +1,6 @@
 import { fics } from 'ficsjs'
 import { oklch } from 'ficsjs/style'
+import Menu from '@/pages/_components/Menu'
 import { white } from '@/utils'
 
 interface Data {
@@ -25,6 +26,7 @@ const DRAGGABLE_ATTR = '[draggable="true"]' as const
 export default <T>() =>
   fics<Data, Props<T>>({
     name: 'draggable',
+    children: [Menu],
     data: () => ({
       droppedZone: null,
       isHighlighted: (droppedZone: HTMLElement | null, zoneIndex: string | number) => {
@@ -57,6 +59,7 @@ export default <T>() =>
       }
     }),
     html: ({
+      children: { menu },
       data: { droppedZone, isHighlighted },
       props: { array, slot, isSelected },
       template,
@@ -73,6 +76,7 @@ export default <T>() =>
         `
 
       return template`
+        ${menu}
         ${dropZone(-1, 'my-4')}
         ${array.map((item, index) => {
           const isAtLast = index === array.length - 1,
