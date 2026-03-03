@@ -117,7 +117,7 @@ export default fics<Data, Props>({
           <div>
             ${icon.setIndividualProps('icon', {
               svg: draft?.completedAt ? CircleCheckBig : Circle,
-              areaLabel: label,
+              ariaLabel: label,
               isPressed: !!draft?.completedAt
             })}
             ${button.setIndividualProps('status', {
