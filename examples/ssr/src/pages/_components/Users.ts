@@ -47,9 +47,8 @@ export default fics({
             const userIds = new Set(data.users.map(({ id }) => id)),
               addedUser = newArray.find(({ id }) => !userIds.has(id))
 
-            data.status = addedUser
-              ? `A new user with ID ${addedUser.id} was added.`
-              : 'A user was moved.'
+            data.status =
+              'A new user ' + (addedUser ? `with ID ${addedUser.id} was added.` : 'was moved.')
           }
 
           data.users = newArray
