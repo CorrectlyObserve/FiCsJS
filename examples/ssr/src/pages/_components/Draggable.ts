@@ -1,6 +1,7 @@
 import { fics } from 'ficsjs'
 import { oklch } from 'ficsjs/style'
 import Menu from '@/pages/_components/Menu'
+import { Direction } from '@/types'
 import { white } from '@/utils'
 
 interface Data {
@@ -21,12 +22,68 @@ interface Props<T> {
   selectItem: (item: T) => void
 }
 
-const DRAGGABLE_ATTR = '[draggable="true"]' as const
+const DRAGGABLE_ATTR = '[draggable="true"]' as const,
+  getUpdatedArray = async <T>({
+    array,
+    fromIndex,
+    toIndex,
+    isCopy,
+    getNewItem
+  }: {
+    array: T[]
+    fromIndex: number
+    toIndex: number
+    isCopy: boolean
+    getNewItem: (item: T) => T | Promise<T>
+  }): Promise<T[] | null> => {
+    if (!Number.isInteger(fromIndex) || fromIndex < 0 || !Number.isInteger(toIndex) || toIndex < 0)
+      return null
+
+    if (
+      (isCopy && toIndex > array.length) ||
+      (!isCopy && (toIndex > array.length - 1 || toIndex === fromIndex))
+    )
+      return null
+
+    const item = array[fromIndex]
+    if (item === undefined) return null
+
+    const newArray: T[] = [...array]
+
+    if (isCopy) newArray.splice(toIndex, 0, await getNewItem(item))
+    else {
+      newArray.splice(fromIndex, 1)
+      newArray.splice(toIndex, 0, item)
+    }
+
+    return newArray
+  }
 
 export default <T>() =>
   fics<Data, Props<T>>({
     name: 'draggable',
     children: [Menu],
+    props: {
+      descendant: ({ children: { menu } }) => menu,
+      values: ({ props: { array, isSelected, getNewItem, updateArray } }) => ({
+        moveItem: async (direction: Direction, isCopy: boolean) => {
+          const fromIndex = array.findIndex(item => isSelected(item))
+          if (fromIndex < 0) return
+
+          const toIndex = fromIndex + (direction === 'up' ? -1 : 1),
+            newArray: T[] | null = await getUpdatedArray({
+              array,
+              fromIndex,
+              toIndex,
+              isCopy,
+              getNewItem
+            })
+
+          if (!newArray) return
+          updateArray(newArray)
+        }
+      })
+    },
     data: () => ({
       droppedZone: null,
       isHighlighted: (droppedZone: HTMLElement | null, zoneIndex: string | number) => {
@@ -122,7 +179,7 @@ export default <T>() =>
           drag.dataTransfer.dropEffect = isCopy ? 'copy' : 'move'
 
           const zoneIndex = parseInt(key)
-          if (!Number.isFinite(zoneIndex)) return
+          if (!Number.isInteger(zoneIndex)) return
 
           if (
             !isCopy &&
@@ -152,25 +209,21 @@ export default <T>() =>
 
           data.droppedZone = null
 
-          const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
-            item: T | undefined = array[fromIndex]
-
-          if (item === undefined) return
-
-          const newArray: T[] = [...array]
           let zoneIndex = parseInt(key)
-
-          if (!Number.isFinite(zoneIndex)) throw new Error(`${key} is not a valid value...`)
+          if (!Number.isInteger(zoneIndex)) return
 
           zoneIndex++
+          const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
+            isCopy = drag.altKey,
+            newArray: T[] | null = await getUpdatedArray({
+              array,
+              fromIndex,
+              toIndex: isCopy || fromIndex >= zoneIndex ? zoneIndex : zoneIndex - 1,
+              isCopy,
+              getNewItem
+            })
 
-          if (drag.altKey) newArray.splice(zoneIndex, 0, await getNewItem(item))
-          else {
-            if (fromIndex === zoneIndex || fromIndex === zoneIndex - 1) return
-
-            newArray.splice(fromIndex, 1)
-            newArray.splice(fromIndex < zoneIndex ? zoneIndex - 1 : zoneIndex, 0, item)
-          }
+          if (!newArray) return
 
           updateArray(newArray)
 
@@ -283,35 +336,19 @@ export default <T>() =>
           if (!isArrowUp && !isArrowDown) return
           keyEvent.preventDefault()
 
-          const isCopy = keyEvent.altKey,
-            isAtLast = fromIndex === array.length - 1
+          const toIndex = fromIndex + (isArrowUp ? -1 : 1),
+            newArray: T[] | null = await getUpdatedArray({
+              array,
+              fromIndex,
+              toIndex,
+              isCopy: keyEvent.altKey,
+              getNewItem
+            })
 
-          if (isArrowDown && isCopy && isAtLast) {
-            const newArray: T[] = [...array, await getNewItem(item)]
-            updateArray(newArray)
-            focusItemByIndex(element, array.length)
-            return
-          }
-
-          if ((isArrowUp && fromIndex === 0) || (isArrowDown && !isCopy && isAtLast)) return
-
-          const newIndex = fromIndex + (isArrowUp ? -1 : 1)
-          if (
-            newIndex < 0 ||
-            (isCopy && newIndex > array.length) ||
-            (!isCopy && newIndex > array.length - 1)
-          )
-            return
-
-          const newArray: T[] = [...array]
-          if (isCopy) newArray.splice(newIndex, 0, await getNewItem(item))
-          else {
-            newArray.splice(fromIndex, 1)
-            newArray.splice(newIndex, 0, item)
-          }
+          if (!newArray) return
 
           updateArray(newArray)
-          focusItemByIndex(element, newIndex)
+          focusItemByIndex(element, toIndex)
         }
       }
     }
