@@ -65,10 +65,16 @@ export default <T>() =>
     children: [Menu],
     props: {
       descendant: ({ children: { menu } }) => menu,
-      values: ({ props: { array, isSelected, getNewItem, updateArray } }) => ({
-        moveItem: async (direction: Direction, isCopy: boolean) => {
-          const fromIndex = array.findIndex(item => isSelected(item))
-          if (fromIndex < 0) return
+      values: ({ props: { array, isSelected, getNewItem, updateArray } }) => {
+        const getSelectedIndex = (): number => array.findIndex(item => isSelected(item)),
+          selectedIndex = getSelectedIndex()
+
+        return {
+          isAtFirst: selectedIndex === 0,
+          isAtLast: selectedIndex === array.length - 1,
+          moveItem: async (direction: Direction, isCopy: boolean) => {
+            const fromIndex = getSelectedIndex()
+            if (fromIndex < 0) return
 
           const toIndex = fromIndex + (direction === 'up' ? -1 : 1),
             newArray: T[] | null = await getUpdatedArray({
