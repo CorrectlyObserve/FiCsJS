@@ -71,7 +71,7 @@ export const readPageParam = (parameter?: string): number => {
   if (rawParam === null) return 1
 
   const param: number = Number(rawParam)
-  numberError({ param })
+  numberError({ param }, 'positive-int')
   return param
 }
 

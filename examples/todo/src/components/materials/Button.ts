@@ -71,9 +71,7 @@ export default () =>
     actions: {
       button: {
         click: [
-          ({ props: { isDisabled, click } }) => {
-            if (!isDisabled) click()
-          },
+          ({ props: { isDisabled, click } }) => !isDisabled && click(),
           { throttle: 500, blur: true }
         ]
       }

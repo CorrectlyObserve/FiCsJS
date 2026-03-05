@@ -5,7 +5,7 @@ export const browserError = (): void => {
 }
 
 export const clampRatio = (ratio: number): number => {
-  numberError({ ratio }, false)
+  numberError({ ratio }, 'finite')
 
   if (ratio <= 0) return 0
   if (ratio >= 1) return 1
@@ -151,17 +151,29 @@ export const normalizePath = (path: string): string =>
  */
 export const numberError = (
   numbers: Record<string, number | undefined>,
-  isPositiveRequired: boolean = true
+  condition:
+    | 'finite'
+    | 'positive'
+    | 'positive-int'
+    | 'non-negative'
+    | 'non-negative-int' = 'positive'
 ): void => {
   for (const [key, value] of Object.entries(numbers)) {
     if (value === undefined) continue
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
+    if (condition === 'finite') continue
 
-    if ((isPositiveRequired && value <= 0) || (!isPositiveRequired && value < 0))
-      throw new Error(
-        `The ${key} must be a ${isPositiveRequired ? 'positive' : 'non-negative'} number...`
-      )
+    for (const remaining of ['positive', 'non-negative'] as const)
+      if (condition.startsWith(remaining)) {
+        if (value < 0 || (remaining === 'positive' && value === 0))
+          throw new Error(`The ${key} must be a ${remaining} number...`)
+
+        if (condition === `${remaining}-int` && !Number.isInteger(value))
+          throw new Error(`The ${key} must be a ${remaining} integer...`)
+
+        continue
+      }
   }
 }
 

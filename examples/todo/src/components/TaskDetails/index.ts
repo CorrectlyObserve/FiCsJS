@@ -117,7 +117,7 @@ export default fics<Data, Props>({
           <div>
             ${icon.setIndividualProps('icon', {
               svg: draft?.completedAt ? CircleCheckBig : Circle,
-              areaLabel: label,
+              ariaLabel: label,
               isPressed: !!draft?.completedAt
             })}
             ${button.setIndividualProps('status', {
@@ -141,17 +141,17 @@ export default fics<Data, Props>({
             buttonText,
             click: async () => {
               const { id, title, description, completedAt }: Task = draft
-              await updateTask({ id, title, description, completedAt })
+              const tasks: Task[] = await updateTask({ id, title, description, completedAt })
 
-              const task: Task | undefined = getTask(await getAllTasks(), id)
+              const task: Task | undefined = getTask(tasks, id)
               if (!task) return
 
               editTask(task)
-              updateTasks(await getAllTasks())
+              updateTasks(tasks)
               goto('/')
             }
           })}
-          ${[_delete, !Number.isFinite(parseInt(dynamicPaths().taskId)) ? close : back].map(
+          ${[_delete, !Number.isInteger(parseInt(dynamicPaths().taskId)) ? close : back].map(
             (buttonText, index) =>
               template`${button.setIndividualProps(index, {
                 type: index === 0 ? 'delete' : 'normal',
@@ -191,7 +191,7 @@ export default fics<Data, Props>({
         textAlign: 'left',
         '&:last-of-type': { marginBlockEnd: cssVar('xl') }
       },
-      '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 2`) }
+      '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 4`) }
     }
   },
   options: { lazyLoad: true }

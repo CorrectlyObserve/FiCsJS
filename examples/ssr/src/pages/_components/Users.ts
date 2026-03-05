@@ -23,8 +23,8 @@ export default fics({
   }),
   props: [
     {
-      descendant: ({ children: { button } }) => button,
-      values: ({ data: { userId } }) => ({ isDisabled: isNaN(userId) })
+      descendant: ({ children: { button, draggable } }) => [button, draggable.getChildren().menu],
+      values: ({ data: { userId } }) => ({ isDisabled: !Number.isInteger(userId) })
     },
     {
       descendant: ({ children: { draggable } }) => draggable,

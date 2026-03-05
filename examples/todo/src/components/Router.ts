@@ -84,7 +84,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft
         if (_pathname === '') return
 
         const id = parseInt(_pathname)
-        if (!Number.isFinite(id)) return (data.pathname = '/404')
+        if (!Number.isInteger(id)) return (data.pathname = '/404')
 
         const task: TaskType | undefined = getTask(await getAllTasks(), id)
         if (!task) return goto('/404', { isWithoutHistory: true })
@@ -96,7 +96,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft
         if (!taskId) return
 
         const id = parseInt(taskId)
-        if (!Number.isFinite(id)) return goto('/404', { isWithoutHistory: true })
+        if (!Number.isInteger(id)) return goto('/404', { isWithoutHistory: true })
 
         data.queries = { ...data.queries, taskId: id.toString() }
 
