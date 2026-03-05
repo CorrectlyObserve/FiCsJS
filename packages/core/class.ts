@@ -265,8 +265,9 @@ export default class FiCsElement<D extends object, P extends object> {
               ),
               { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
 
-            numberError({ unit, itemMinSize })
-            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, false)
+            numberError({ unit }, 'positive-int')
+            numberError({ itemMinSize })
+            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, 'non-negative-int')
 
             const normalizedLength: number = Math.max(
               Math.floor(Math.max(cacheLength ?? CACHE_LENGTH, unit + (bufferLength ?? 0))),
@@ -909,10 +910,10 @@ export default class FiCsElement<D extends object, P extends object> {
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
             } else if (isElement(newStartNode)) {
               const _getKey = (element: Element): string | number | null => {
-                  let key: string | number | null = getKey(element)
+                  const key: string | number | null = getKey(element),
+                    numKey: number = parseInt(key ?? '', 10)
 
-                  if (key && Number.isFinite(parseInt(key))) key = parseInt(key)
-                  return key
+                  return Number.isFinite(numKey) ? numKey : key
                 },
                 key: string | number | null = _getKey(newStartNode)
 
@@ -1080,7 +1081,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, false)
+    numberError({ time }, 'non-negative')
 
     let timeout: SetTimeout | undefined
 
@@ -1094,7 +1095,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, false)
+    numberError({ time }, 'non-negative')
 
     let lastTime: number = 0
 
@@ -1203,7 +1204,8 @@ export default class FiCsElement<D extends object, P extends object> {
           func: ({ times }: { times: number }) => void,
           { interval, max, exit }: Hook.Polling
         ): void => {
-          numberError({ interval, max })
+          numberError({ interval })
+          numberError({ max }, 'positive-int')
 
           let times: number = 0
           const execute: SetTimeout = setTimeout(function run() {

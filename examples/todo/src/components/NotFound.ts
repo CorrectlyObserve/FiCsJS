@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { cssVar, forScreenReaders } from 'ficsjs/style'
+import { calc, cssVar, forScreenReaders } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/materials/Loading'
 import { Lang } from '@/types'
@@ -11,6 +11,7 @@ interface Data {
   heading: string
   descriptions: string[]
   buttonText: string
+  isCounting: boolean
 }
 
 const MAX = 20 as const
@@ -18,35 +19,43 @@ const MAX = 20 as const
 export default fics<Data, { lang: Lang }>({
   name: 'not-found',
   children: [Button(), Loading()],
-  data: () => ({ seconds: MAX, descriptions: [] }),
+  data: () => ({ seconds: MAX, descriptions: [], isCounting: true }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
-  props: {
-    descendant: ({ children: { button } }) => button,
-    values: ({ data: { buttonText } }) => ({
-      type: 'gradation',
-      buttonText,
-      click: () => goto('/', { isWithoutHistory: true })
-    })
-  },
   html: ({
     children: { button, loading },
-    data: {
-      seconds,
-      heading,
-      descriptions: [start, end]
-    },
+    data,
     template,
     attributes: { statusLiveRegion },
     isDeferred
-  }) =>
-    isDeferred
-      ? template`
-          <h2>404 ${heading}</h2>
-          <p ${statusLiveRegion}>${start}${MAX}${end}</p>
-          <p aria-hidden="true">${start}${seconds}${end}</p>
-          ${button}
-        `
-      : template`${loading}`,
+  }) => {
+    if (!isDeferred) return template`${loading}`
+
+    const {
+      seconds,
+      heading,
+      descriptions: [start, end, pause, restart],
+      buttonText,
+      isCounting
+    } = data
+
+    return template`
+      <h2>404 ${heading}</h2>
+      <p ${statusLiveRegion}>${start}${seconds}${end}</p>
+      <p aria-hidden="true">${start}${seconds}${end}</p>
+      <div>
+        ${button.setIndividualProps('back', {
+          type: 'gradation',
+          buttonText,
+          click: () => goto('/', { isWithoutHistory: true })
+        })}
+        ${button.setIndividualProps('count', {
+          type: 'normal',
+          buttonText: isCounting ? pause : restart,
+          click: () => (data.isCounting = !data.isCounting)
+        })}
+      </div>
+    `
+  },
   css: {
     p: {
       '&[role="status"]': forScreenReaders,
@@ -54,18 +63,26 @@ export default fics<Data, { lang: Lang }>({
         marginBlockEnd: cssVar('xl'),
         [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
       }
-    }
+    },
+    div: { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 4`) }
   },
   hooks: {
     mounted: ({ data, poll }) => {
       data.seconds = MAX
 
       poll(
-        ({ times }) => {
-          if (times === MAX - 1) goto('/', { isWithoutHistory: true })
-          else data.seconds--
+        () => {
+          if (!data.isCounting) return
+
+          if (data.seconds <= 1) {
+            data.seconds = 0
+            goto('/', { isWithoutHistory: true })
+            return
+          }
+
+          data.seconds--
         },
-        { interval: 1000, max: MAX }
+        { interval: 1000, exit: () => data.seconds <= 0 }
       )
     }
   },

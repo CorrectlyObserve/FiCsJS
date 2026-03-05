@@ -15,7 +15,7 @@ export default fics({
     descendant: ({ children: { icon } }) => icon,
     values: ({ data }) => ({
       svg: RefreshCcw,
-      areaLabel: `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`,
+      ariaLabel: `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`,
       isLarge: true,
       isPressed: data.isAccumulated,
       click: () => (data.isAccumulated = !data.isAccumulated)

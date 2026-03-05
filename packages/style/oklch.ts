@@ -90,7 +90,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     h = parseFloat(h)
     a = a === undefined ? 1 : parseFloat(a)
 
-    numberError({ l, c, h, a }, false)
+    numberError({ l, c, h, a }, 'non-negative')
     return { l, c, h, a }
   },
   alphaFromHex = (hex: string): number => {
@@ -122,7 +122,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return rgb
   },
   rgbToOklch = ({ r, g, b }: Color.Rgb): Color.Oklch => {
-    numberError({ r, g, b }, false)
+    numberError({ r, g, b }, 'non-negative')
 
     const lms: Color.Lms = { l: 0, m: 0, s: 0 }
 
@@ -157,7 +157,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     for (const [key, decimalPlace] of Object.entries({ l: 4, c: 4, h: 2 })) {
       const value: number = oklch[key as keyof Color.Oklch]
 
-      numberError({ [key]: value }, false)
+      numberError({ [key]: value }, 'non-negative')
 
       const multiplier: number = 10 ** decimalPlace
       oklch[key as keyof Color.Oklch] = Math.round(value * multiplier) / multiplier
@@ -182,7 +182,7 @@ export default (color: string, options?: Color.Ctx): string => {
   }
 
   const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
-  numberError({ darker, lighter, chroma, opacity }, false)
+  numberError({ darker, lighter, chroma, opacity }, 'non-negative')
 
   if (darker > 0 && lighter > 0)
     throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
