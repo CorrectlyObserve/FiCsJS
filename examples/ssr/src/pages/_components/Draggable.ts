@@ -35,19 +35,22 @@ const DRAGGABLE_ATTR = '[draggable="true"]' as const,
     toIndex: number
     isCopy: boolean
     getNewItem: (item: T) => T | Promise<T>
-  }): Promise<T[] | null> => {
-    if (!Number.isInteger(fromIndex) || fromIndex < 0 || !Number.isInteger(toIndex)) return null
+  }): Promise<{ newArray: T[] | null; toIndex: number }> => {
+    const NO_UPDATE = { newArray: null, toIndex: -1 }
+
+    if (!Number.isInteger(fromIndex) || fromIndex < 0 || !Number.isInteger(toIndex))
+      return NO_UPDATE
 
     if (
       (isCopy && toIndex > array.length) ||
       (!isCopy && (toIndex < 0 || toIndex >= array.length || toIndex === fromIndex))
     )
-      return null
+      return NO_UPDATE
 
     if (toIndex < 0) toIndex = 0
 
     const item = array[fromIndex]
-    if (item === undefined) return null
+    if (item === undefined) return NO_UPDATE
 
     const newArray: T[] = [...array]
 
@@ -57,7 +60,7 @@ const DRAGGABLE_ATTR = '[draggable="true"]' as const,
       newArray.splice(toIndex, 0, item)
     }
 
-    return newArray
+    return { newArray, toIndex }
   }
 
 export default <T>() =>
@@ -77,7 +80,7 @@ export default <T>() =>
             const fromIndex = getSelectedIndex()
             if (fromIndex < 0) return
 
-            const newArray: T[] | null = await getUpdatedArray({
+            const { newArray } = await getUpdatedArray({
               array,
               fromIndex,
               toIndex: fromIndex + (direction === 'up' ? -1 : 1),
@@ -222,7 +225,7 @@ export default <T>() =>
           zoneIndex++
           const fromIndex = parseInt(drag.dataTransfer.getData('text/plain')),
             isCopy = drag.altKey,
-            newArray: T[] | null = await getUpdatedArray({
+            { newArray } = await getUpdatedArray({
               array,
               fromIndex,
               toIndex: isCopy || fromIndex >= zoneIndex ? zoneIndex : zoneIndex - 1,
@@ -343,14 +346,13 @@ export default <T>() =>
           if (!isArrowUp && !isArrowDown) return
           keyEvent.preventDefault()
 
-          const toIndex = fromIndex + (isArrowUp ? -1 : 1),
-            newArray: T[] | null = await getUpdatedArray({
-              array,
-              fromIndex,
-              toIndex,
-              isCopy: keyEvent.altKey,
-              getNewItem
-            })
+          const { newArray, toIndex } = await getUpdatedArray({
+            array,
+            fromIndex,
+            toIndex: fromIndex + (isArrowUp ? -1 : 1),
+            isCopy: keyEvent.altKey,
+            getNewItem
+          })
 
           if (!newArray) return
 
