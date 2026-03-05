@@ -36,14 +36,15 @@ const DRAGGABLE_ATTR = '[draggable="true"]' as const,
     isCopy: boolean
     getNewItem: (item: T) => T | Promise<T>
   }): Promise<T[] | null> => {
-    if (!Number.isInteger(fromIndex) || fromIndex < 0 || !Number.isInteger(toIndex) || toIndex < 0)
-      return null
+    if (!Number.isInteger(fromIndex) || fromIndex < 0 || !Number.isInteger(toIndex)) return null
 
     if (
       (isCopy && toIndex > array.length) ||
-      (!isCopy && (toIndex > array.length - 1 || toIndex === fromIndex))
+      (!isCopy && (toIndex < 0 || toIndex >= array.length || toIndex === fromIndex))
     )
       return null
+
+    if (toIndex < 0) toIndex = 0
 
     const item = array[fromIndex]
     if (item === undefined) return null
@@ -76,19 +77,19 @@ export default <T>() =>
             const fromIndex = getSelectedIndex()
             if (fromIndex < 0) return
 
-          const toIndex = fromIndex + (direction === 'up' ? -1 : 1),
-            newArray: T[] | null = await getUpdatedArray({
+            const newArray: T[] | null = await getUpdatedArray({
               array,
               fromIndex,
-              toIndex,
+              toIndex: fromIndex + (direction === 'up' ? -1 : 1),
               isCopy,
               getNewItem
             })
 
-          if (!newArray) return
-          updateArray(newArray)
+            if (!newArray) return
+            updateArray(newArray)
+          }
         }
-      })
+      }
     },
     data: () => ({
       droppedZone: null,
