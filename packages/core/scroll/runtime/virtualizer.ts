@@ -61,7 +61,7 @@ export const updateRange = <D extends object, P>({
     totalCount,
     flags: { isRangeLocked }
   }: Scroll.Resolved<D, P> = scrollOptions
-  numberError({ totalCount }, false)
+  numberError({ totalCount }, 'non-negative-int')
   if (totalCount === 0) return
 
   if (isRangeLocked) {

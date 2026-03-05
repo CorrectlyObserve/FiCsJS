@@ -1,4 +1,9 @@
-export interface Message { userName: string; comment: string }
+export type Direction = 'up' | 'down'
+
+export interface Message {
+  userName: string
+  comment: string
+}
 
 export type Method = 'PUT' | 'PATCH' | 'DELETE'
 

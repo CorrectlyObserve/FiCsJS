@@ -12,7 +12,7 @@ export default () =>
       descendant: ({ children: { icon } }) => icon,
       values: () => ({
         svg: MessageCircleMore,
-        areaLabel: 'Go to the chat page',
+        ariaLabel: 'Go to the chat page',
         isLarge: true,
         click: () => (window.location.href = CHAT_PAGE)
       })

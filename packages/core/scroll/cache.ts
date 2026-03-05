@@ -12,8 +12,8 @@ export const evictCache = <D extends object, P>({
   const { indexKeys, startIndex, maxLength, sizeFenwickTree, countFenwickTree }: Scroll.Cache =
     cache
 
-  numberError({ maxLength })
-  numberError({ index }, false)
+  numberError({ maxLength }, 'positive-int')
+  numberError({ index }, 'non-negative-int')
 
   /**
    * @remarks
@@ -54,7 +54,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
   index,
   aveSize
 }: Scroll.Ctx.OffsetBeforeIndex): number => {
-  numberError({ index }, false)
+  numberError({ index }, 'non-negative-int')
   numberError({ aveSize })
 
   if (!cache) return index * aveSize
@@ -70,7 +70,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
     countFenwickTree
   }: Scroll.Cache = cache
 
-  numberError({ evictedSize, evictedCount }, false)
+  numberError({ evictedSize, evictedCount }, 'non-negative')
 
   /**
    * @remarks
@@ -83,7 +83,8 @@ export const getOffsetBeforeIndex = <D extends object, P>({
 
   if (index <= startIndex) return estimatedAveSize * index
 
-  numberError({ maxLength, totalCount })
+  numberError({ maxLength }, 'positive-int')
+  numberError({ totalCount }, 'non-negative-int')
 
   const endIndex: number = Math.min(startIndex + maxLength, totalCount),
     clampedIndex: number = Math.min(index, totalCount),
@@ -96,7 +97,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
    */
   let relativeIndex = measurableEndIndex - startIndex
 
-  numberError({ relativeIndex })
+  numberError({ relativeIndex }, 'positive-int')
 
   if (relativeIndex > 0) {
     const measuredSize: number = fenwickTree.sum(sizeFenwickTree, relativeIndex),
@@ -121,7 +122,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
 
 export const rebuildFenwickTrees = (cache: Scroll.Cache, mode: 'force' | 'if-needed'): void => {
   const { maxLength }: Scroll.Cache = cache
-  numberError({ maxLength })
+  numberError({ maxLength }, 'positive-int')
 
   if (mode === 'if-needed') {
     const { sizeFenwickTree, countFenwickTree }: Scroll.Cache = cache

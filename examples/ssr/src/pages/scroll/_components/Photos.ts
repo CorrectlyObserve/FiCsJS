@@ -21,7 +21,8 @@ export default fics({
     photos: [] as Photo[],
     photoId: '',
     photoElement: null as HTMLImageElement | null,
-    author: ''
+    author: '',
+    onEscapeKeydown: null as ((event: KeyboardEvent) => void) | null
   }),
   deferredData: async ({ data, crud }) => {
     data.page++
@@ -36,7 +37,7 @@ export default fics({
       descendant: ({ children: { icon } }) => icon,
       values: ({ data }) => ({
         svg: CircleX,
-        areaLabel: 'Close the dialog',
+        ariaLabel: 'Close the dialog',
         click: () => {
           data.photoId = ''
           data.photoElement?.focus()
@@ -101,9 +102,8 @@ export default fics({
       <dialog
         id="photo-dialog"
         class="w-3xs rounded-lg border border-white z-1"
-        open
-        aria-modal="true"
         aria-labelledby="dialog-title"
+        ${photoId !== '' ? 'open' : ''}
         ${show(photoId !== '')}
       >
         ${icon}
@@ -152,42 +152,65 @@ export default fics({
   hooks: {
     created: ({ data }) => {
       const initialPage = parseInt(queries().page)
-      if (!isNaN(initialPage) && initialPage > 0) data.page = initialPage - 1
+      if (Number.isInteger(initialPage) && initialPage > 0) data.page = initialPage - 1
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
-      window.addEventListener(
-        'keydown',
-        throttle(event => {
-          if (event.key !== 'Escape' || data.photoId === '') return
 
-          event.preventDefault()
-          data.photoId = ''
-          data.photoElement?.focus()
-          data.photoElement = null
-        }, 1000)
-      )
+      const onEscapeKeydown = throttle((event: KeyboardEvent) => {
+        if (event.key !== 'Escape' || data.photoId === '') return
+
+        event.preventDefault()
+        data.photoId = ''
+        data.photoElement?.focus()
+        data.photoElement = null
+      }, 1000) as (event: KeyboardEvent) => void
+
+      data.onEscapeKeydown = onEscapeKeydown
+      window.addEventListener('keydown', onEscapeKeydown)
+    },
+    destroyed: ({ data }) => {
+      if (!data.onEscapeKeydown) return
+      window.removeEventListener('keydown', data.onEscapeKeydown)
+      data.onEscapeKeydown = null
     }
   },
   actions: {
     img: {
       load: [
-        ({ data, attributes: { key } }) =>
-          (data.photos = data.photos.map(photo =>
-            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
-          )),
+        ({ data, event: { currentTarget }, attributes: { key } }) => {
+          if (!currentTarget) return
+
+          const index = parseInt((currentTarget as HTMLImageElement).dataset.index ?? '')
+          if (!Number.isInteger(index)) return
+
+          const photo = data.photos[index]
+          if (!photo || photo.id !== key || photo.isLoaded) return
+
+          const newPhotos: Photo[] = [...data.photos]
+          newPhotos[index] = { ...photo, isLoaded: true }
+          data.photos = newPhotos
+        },
         { once: true }
       ],
       error: [
         ({ data, event: { currentTarget }, attributes: { key } }) => {
-          data.photos = data.photos.map(photo =>
-            photo.id === key && !photo.isLoaded ? { ...photo, isLoaded: true } : photo
-          )
+          if (!currentTarget) return
 
-          if (currentTarget) {
-            const img = currentTarget as HTMLImageElement
-            img.replaceWith(img.cloneNode(true))
+          const img = currentTarget as HTMLImageElement,
+            index = parseInt(img.dataset.index ?? '')
+
+          if (Number.isInteger(index)) {
+            const photo = data.photos[index]
+
+            if (photo && photo.id === key && !photo.isLoaded) {
+              const newPhotos: Photo[] = [...data.photos]
+              newPhotos[index] = { ...photo, isLoaded: true }
+              data.photos = newPhotos
+            }
           }
+
+          img.replaceWith(img.cloneNode(true))
         },
         { once: true }
       ],
