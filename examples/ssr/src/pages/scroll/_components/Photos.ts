@@ -152,7 +152,7 @@ export default fics({
   hooks: {
     created: ({ data }) => {
       const initialPage = parseInt(queries().page)
-      if (Number.isFinite(initialPage) && initialPage > 0) data.page = initialPage - 1
+      if (Number.isInteger(initialPage) && initialPage > 0) data.page = initialPage - 1
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
@@ -182,7 +182,7 @@ export default fics({
           if (!currentTarget) return
 
           const index = parseInt((currentTarget as HTMLImageElement).dataset.index ?? '')
-          if (!Number.isFinite(index)) return
+          if (!Number.isInteger(index)) return
 
           const photo = data.photos[index]
           if (!photo || photo.id !== key || photo.isLoaded) return
@@ -200,7 +200,7 @@ export default fics({
           const img = currentTarget as HTMLImageElement,
             index = parseInt(img.dataset.index ?? '')
 
-          if (Number.isFinite(index)) {
+          if (Number.isInteger(index)) {
             const photo = data.photos[index]
 
             if (photo && photo.id === key && !photo.isLoaded) {
