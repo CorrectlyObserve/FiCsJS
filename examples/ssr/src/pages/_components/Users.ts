@@ -24,7 +24,7 @@ export default fics({
   props: [
     {
       descendant: ({ children: { button, draggable } }) => [button, draggable.getChildren().menu],
-      values: ({ data: { userId } }) => ({ isDisabled: !Number.isFinite(userId) })
+      values: ({ data: { userId } }) => ({ isDisabled: !Number.isInteger(userId) })
     },
     {
       descendant: ({ children: { draggable } }) => draggable,
