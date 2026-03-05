@@ -909,10 +909,10 @@ export default class FiCsElement<D extends object, P extends object> {
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
             } else if (isElement(newStartNode)) {
               const _getKey = (element: Element): string | number | null => {
-                  let key: string | number | null = getKey(element)
+                  const key: string | number | null = getKey(element),
+                    numKey: number = parseInt(key ?? '', 10)
 
-                  if (key && Number.isFinite(parseInt(key))) key = parseInt(key)
-                  return key
+                  return Number.isFinite(numKey) ? numKey : key
                 },
                 key: string | number | null = _getKey(newStartNode)
 
