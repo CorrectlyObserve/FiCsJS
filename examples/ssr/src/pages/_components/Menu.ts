@@ -16,6 +16,8 @@ interface Data {
 
 interface Props {
   isDisabled: boolean
+  isAtFirst: boolean
+  isAtLast: boolean
   moveItem: (direction: Direction, isCopy: boolean) => void | Promise<void>
 }
 
