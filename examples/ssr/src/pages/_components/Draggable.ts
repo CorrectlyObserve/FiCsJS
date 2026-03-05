@@ -137,7 +137,7 @@ export default <T>() =>
         ${dropZone(-1, 'my-4')}
         ${array.map((item, index) => {
           const isAtLast = index === array.length - 1,
-            classNames = isAtLast ? (_isHighlighted(index) ? 'mt-4 mb-height' : 'mt-4') : 'my-4'
+            classNames = isAtLast ? `mt-4${_isHighlighted(index) ? ' mb-height' : ''}` : 'my-4'
 
           return template`
             <div
