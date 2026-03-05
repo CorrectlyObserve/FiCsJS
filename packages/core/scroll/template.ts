@@ -43,8 +43,9 @@ const scrollTemplate = <D extends object, P extends object, T>({
     { options, id, aveSize: storedAveSize, lastAxis }: Scroll.Resolved<D, P> = scrollOptions,
     { unit, itemMinSize, axis, bufferLength }: Scroll.Options = options(getDataProps(true))
 
-  numberError({ unit, itemMinSize })
-  numberError({ bufferLength }, 'non-negative')
+  numberError({ unit }, 'positive-int')
+  numberError({ itemMinSize })
+  numberError({ bufferLength }, 'non-negative-int')
 
   /**
    * @remarks
@@ -55,7 +56,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
 
   if (lastAxis !== undefined && lastAxis !== axis) {
     const { cache, startIndex, firstVisible }: Scroll.Resolved<D, P> = scrollOptions
-    numberError({ startIndex }, 'non-negative')
+    numberError({ startIndex }, 'non-negative-int')
 
     resetCache(cache)
     const clampedIndex: number = Math.min(startIndex, totalCount - 1)
@@ -75,7 +76,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
   }
 
   const { cache, startIndex, endIndex, totalSize, aveSize }: Scroll.Resolved<D, P> = scrollOptions
-  numberError({ startIndex, endIndex }, 'non-negative')
+  numberError({ startIndex, endIndex }, 'non-negative-int')
 
   /**
    * @remarks
