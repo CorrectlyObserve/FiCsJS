@@ -49,7 +49,7 @@ export default fics<Data, Props>({
   html: ({
     children: { icon },
     data,
-    props: { isDisabled, moveItem },
+    props: { isDisabled, isAtFirst, isAtLast, moveItem },
     template,
     attributes: { statusLiveRegion }
   }) => {
@@ -57,14 +57,17 @@ export default fics<Data, Props>({
 
     return template`
       <p class="sr-only" ${statusLiveRegion}>The current mode is ${isCopy ? 'copy' : 'move'}.</p>
-      ${buttons(isCopy).map(
-        ({ id, svg, ariaLabel, isPressed }) => template`
+      ${buttons(isCopy).map(({ id, svg, ariaLabel, isPressed }) => {
+        const isFirstItem = id === 'up' && isAtFirst,
+          isLastItem = id === 'down' && isAtLast
+
+        return template`
           ${icon.setIndividualProps(id, {
             svg,
             ariaLabel,
             isLarge: true,
-            isDisabled,
-            isActive: id === 'action' && isCopy,
+            isDisabled: isDisabled || (!isCopy && (isFirstItem || isLastItem)),
+            isActive: isCopy && id === 'action',
             isPressed,
             click: async () => {
               if (id === 'action') {
@@ -76,8 +79,8 @@ export default fics<Data, Props>({
             }
           })}
         `
-      )}
-  `
+      })}
+    `
   },
   css: { ':host': flexCenter('y', 'column') }
 })
