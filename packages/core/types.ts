@@ -360,7 +360,7 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => void
+  func: () => void | Promise<void>
   key: 'define' | 're-render' | 'fetch'
 }
 
