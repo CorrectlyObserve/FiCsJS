@@ -1524,11 +1524,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
   describe(parent?: HTMLElement): void {
     this.#initProps()
+    this.#hasDescribed = true
     this.#callback('created')
-    this.#enqueue(() => {
-      this.#define()
-      this.#hasDescribed = true
-    }, 'define')
+    this.#enqueue(this.#define.bind(this), 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
 
