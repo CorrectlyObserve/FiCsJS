@@ -1039,13 +1039,23 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    if (selector === consts.HOST_SELECTOR) return [component]
+    let trimmedSelector: string = selector.trim()
+    const { HOST_SELECTOR: host } = consts
 
-    return Array.from(
-      this.#getShadowRoot(component).querySelectorAll(
-        selector.startsWith(consts.HOST_SELECTOR) ? selector : `${consts.HOST_SELECTOR} ${selector}`
-      )
-    )
+    if (trimmedSelector === host) return [component]
+
+    const isDirectChild: boolean = trimmedSelector.startsWith(`${host} >`)
+    if (isDirectChild || trimmedSelector.startsWith(`${host} `)) {
+      const sliced: string = trimmedSelector.slice(host.length)
+      trimmedSelector = isDirectChild ? `:scope ${sliced}` : sliced.trimStart()
+    }
+
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+    try {
+      return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
+    } catch (error) {
+      throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
+    }
   }
 
   #queryDeeply<T extends Element = Element>(selector: string, shadowRoot?: ShadowRoot): T | null {
