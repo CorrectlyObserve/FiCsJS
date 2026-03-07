@@ -2,6 +2,8 @@ export default {
   a11y: {
     STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"'
   },
+  /** @remarks The maximum capacity of 1 byte (8 bits), which is a power of 2 */
+  CLONED_SELVES_LENGTH: 256,
   FICS_ID_ATTR: 'fics-id',
   VAR_TAG_NAME: 'f-var',
   HOST_SELECTOR: ':host'
