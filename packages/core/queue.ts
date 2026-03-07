@@ -8,9 +8,9 @@ const ids: Set<string> = new Set(),
   queue: Task[] = new Array(),
   reRenderQueue: Task[] = new Array(),
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
-  dequeue = (task: Task): void => {
+  dequeue = async (task: Task): Promise<void> => {
     try {
-      task.func()
+      await task.func()
     } finally {
       if (task.key !== 'define') ids.delete(getQueueId(task))
     }
