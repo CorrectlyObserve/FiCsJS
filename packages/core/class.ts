@@ -427,6 +427,10 @@ export default class FiCsElement<D extends object, P extends object> {
             )
 
           child.#clonedSelves.set(instanceId, cloned)
+          if (child.#clonedSelves.size > consts.CLONED_SELVES_LENGTH) {
+            const oldestKey: string | undefined = child.#clonedSelves.keys().next().value
+            if (oldestKey) child.#clonedSelves.delete(oldestKey)
+          }
           return cloned
         }
 
