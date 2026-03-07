@@ -1132,19 +1132,18 @@ export default class FiCsElement<D extends object, P extends object> {
       if (handler !== 'click' && options?.blur)
         throw new Error('The "blur" is enabled only if the handler is click...')
 
-      const attrs: Record<string, string> = {}
-
-      for (let index = 0; index < element.attributes.length; index++) {
-        const { name, value }: { name: string; value: string } = element.attributes[index]
-        attrs[name] = value
-      }
-
       const { debounce, throttle, blur, once }: Action.Options = options ?? {}
-
       if (debounce && throttle)
         throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
 
       const callback = (event: Event): void => {
+        const attrs: Record<string, string> = {}
+
+        for (let index = 0; index < element.attributes.length; index++) {
+          const { name, value }: { name: string; value: string } = element.attributes[index]
+          attrs[name] = value
+        }
+
         method({
           ...this.#getDataProps(true),
           event,
