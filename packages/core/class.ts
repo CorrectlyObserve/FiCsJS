@@ -61,9 +61,9 @@ export default class FiCsElement<D extends object, P extends object> {
     props: Map<keyof P, Set<() => void>>
   } = { data: new Map(), props: new Map() }
   readonly #cache: {
-    boundFunctions: Map<Function, D[keyof D] | P[keyof P]>
+    boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
-  } = { boundFunctions: new Map() }
+  } = { boundFunctions: new WeakMap() }
   readonly #deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = new Array()
