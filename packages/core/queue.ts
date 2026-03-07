@@ -15,7 +15,7 @@ const ids: Set<string> = new Set(),
       if (task.key !== 'define') ids.delete(getQueueId(task))
     }
   },
-  drainQueue = (): void => {
+  drainQueue = async (): Promise<void> => {
     if (isProcessing || queue.length === 0) return
 
     isProcessing = true
@@ -29,7 +29,7 @@ const ids: Set<string> = new Set(),
           if (task.key === 're-render') reRenderQueue.push(task)
           else
             try {
-              dequeue(task)
+              await dequeue(task)
             } catch {
               const { instanceId, key }: Task = task
               console.error(
@@ -38,9 +38,10 @@ const ids: Set<string> = new Set(),
             }
       }
 
-      scheduleReRenders()
+      await scheduleReRenders()
     } finally {
       isProcessing = false
+      if (queue.length > 0 || reRenderQueue.length > 0) void drainQueue()
     }
   },
   scheduleReRenders = (): void => {
