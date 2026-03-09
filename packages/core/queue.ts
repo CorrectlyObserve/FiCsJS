@@ -44,7 +44,7 @@ const ids: Set<string> = new Set(),
       if (queue.length > 0 || reRenderQueue.length > 0) void drainQueue()
     }
   },
-  scheduleReRenders = (): void => {
+  scheduleReRenders = async (): Promise<void> => {
     if (isReRendering || reRenderQueue.length === 0) return
 
     isReRendering = true
