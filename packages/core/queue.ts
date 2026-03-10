@@ -30,18 +30,21 @@ const ids: Set<string> = new Set(),
           else
             try {
               await dequeue(task)
-            } catch {
+            } catch (error) {
               const { instanceId, key }: Task = task
               console.error(
-                `The task has instanceId ${instanceId} and key "${key}" failed to process...`
+                `The task has instanceId ${instanceId} and key "${key}" failed to process...`,
+                error
               )
             }
       }
 
-      await scheduleReRenders()
+      await drainReRendersQueue()
     } finally {
       isProcessing = false
-      if (queue.length > 0 || reRenderQueue.length > 0) void drainQueue()
+
+      if (queue.length > 0) void drainQueue()
+      else if (reRenderQueue.length > 0) void drainReRendersQueue()
     }
   },
   drainReRendersQueue = async (): Promise<void> => {
