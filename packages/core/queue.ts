@@ -81,7 +81,6 @@ export default (task: Task): void => {
   if (!ids.has(queueId)) {
     ids.add(queueId)
     queue.push(task)
-
-    drainQueue()
+    void drainQueue()
   }
 }
