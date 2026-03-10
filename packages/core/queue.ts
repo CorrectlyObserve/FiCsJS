@@ -44,27 +44,29 @@ const ids: Set<string> = new Set(),
       if (queue.length > 0 || reRenderQueue.length > 0) void drainQueue()
     }
   },
-  scheduleReRenders = async (): Promise<void> => {
+  drainReRendersQueue = async (): Promise<void> => {
     if (isReRendering || reRenderQueue.length === 0) return
 
     isReRendering = true
 
-    setTimeout(() => {
-      try {
-        const batch: Task[] = reRenderQueue.splice(0)
-        for (const task of batch)
+    await new Promise<void>(resolve => {
+      setTimeout(() => {
+        const batch: Promise<void>[] = reRenderQueue.splice(0).map(async task => {
           try {
-            dequeue(task)
-          } catch {
+            await dequeue(task)
+          } catch (error) {
             console.error(
-              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`
+              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`,
+              error
             )
           }
-      } finally {
-        isReRendering = false
-        drainQueue()
-        scheduleReRenders()
-      }
+        })
+
+        void Promise.allSettled(batch).finally(() => {
+          isReRendering = false
+          resolve()
+        })
+      })
     })
   }
 
