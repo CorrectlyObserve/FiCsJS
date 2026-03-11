@@ -366,6 +366,51 @@ export interface Task {
   key: 'define' | 're-render' | 'fetch'
 }
 
+export declare namespace Telemetry {
+  interface Ctx<D extends object, P> {
+    key: Key<D, P>
+    error?: unknown
+    detail: Detail<D, P>[Key<D, P>]
+  }
+
+  interface Detail<D extends object, P> {
+    queue: { key: Task['key']; duration: number }
+    crud: {
+      key: string
+      api: string
+      method: string
+      isStream: boolean
+      duration: number
+    }
+    updated: { key: 'updated'; dataKey: keyof D; duration: number }
+    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; duration: number }
+    memory: {
+      usedHeapBytes: number
+      baselineBytes: number
+      growthBytes: number
+      thresholdBytes?: number
+      duration: number
+    }
+  }
+
+  type Key<D extends object, P> = keyof Telemetry.Detail<D, P>
+
+  interface Metric<D extends object, P> extends Ctx<D, P> {
+    status: Status
+    name: string
+    instanceId: string
+    timestamp: number
+  }
+
+  interface Options<D extends object, P> {
+    onMetric?: (metric: Metric<D, P>) => void
+    onError?: (metric: Metric<D, P>) => void
+    memory?: { interval?: number; thresholdBytes?: number; warmupSamples?: number }
+  }
+
+  type Status = 'starting' | 'sample' | 'success' | 'error'
+}
+
 export type Translations = Record<string, unknown>
 
 type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
