@@ -156,6 +156,8 @@ export declare namespace Hook {
     throttle: RateLimitFn
   }
 
+  type Key<D extends object, P> = keyof Lifecycle<D, P>
+
   interface Lifecycle<D extends object, P> {
     created?: (ctx: Ctx<D, P>) => void
     mounted?: (
