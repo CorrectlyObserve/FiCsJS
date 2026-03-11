@@ -238,7 +238,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
 
-      if (monitor && !isBlankObject(monitor)) this.#options.monitor = monitor
+      if (telemetry && !isBlankObject(telemetry)) this.#options.telemetry = telemetry
 
       if (lazyLoad) this.#options.lazyLoad = true
 
