@@ -41,6 +41,7 @@ import type {
   SingleOrArray,
   SSE,
   Task,
+  Telemetry,
   WebSocket as WebSocketNS
 } from './types'
 
