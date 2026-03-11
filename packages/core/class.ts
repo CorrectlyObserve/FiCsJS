@@ -492,13 +492,37 @@ export default class FiCsElement<D extends object, P extends object> {
   #crud<T>(api: string, options?: Crud.Options): Promise<T>
   #crud(api: string, options: Crud.StreamOptions): Promise<void>
   async #crud<T>(api: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
-    return await runCrud({
-      api,
-      apiStatuses: this.#apiStatuses,
-      enqueue: this.#enqueue.bind(this),
-      reRender: this.#reRender.bind(this),
-      options
+    const startedAt: number = Date.now(),
+      key: string = options?.key ?? 'crud',
+      method: string = options?.method?.toUpperCase() ?? 'GET',
+      isStream: boolean = !!(options && 'onChunk' in options)
+
+    this.#emitMetric({
+      key: 'crud',
+      detail: this.#createDetail({ key, api, method, isStream })
     })
+
+    try {
+      const result: T | void = await runCrud({
+        api,
+        apiStatuses: this.#apiStatuses,
+        enqueue: this.#enqueue.bind(this),
+        reRender: this.#reRender.bind(this),
+        options
+      })
+
+      this.#emitMetric({
+        key: 'crud',
+        detail: this.#createDetail({ key, api, method, isStream, startedAt })
+      })
+      return result
+    } catch (error) {
+      this.#emitMetric({
+        key: 'crud',
+        error,
+        detail: this.#createDetail({ key, api, method, isStream, startedAt })
+      })
+    }
   }
 
   #removePublicMethod = ({
