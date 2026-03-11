@@ -363,6 +363,84 @@ export default class FiCsElement<D extends object, P extends object> {
     return value
   }
 
+  #emitMetric({ key, error, detail }: Telemetry.Ctx<D, P>): void {
+    const isError: boolean = !!error,
+      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric'
+
+    try {
+      this.#options.telemetry?.[type]?.({
+        key,
+        status: detail.duration === 0 ? 'starting' : isError ? 'error' : 'success',
+        name: this.#name,
+        instanceId: this.#instanceId,
+        error,
+        detail,
+        timestamp: Date.now()
+      })
+    } catch (callbackError) {
+      console.error(`The telemetry ${type} callback failed...`, callbackError)
+    } finally {
+      if (isError && key !== 'memory') throw error
+    }
+  }
+
+  #createDetail({
+    key,
+    startedAt
+  }: Omit<Telemetry.Detail<D, P>['queue'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
+    D,
+    P
+  >['queue']
+  #createDetail({
+    key,
+    api,
+    method,
+    isStream,
+    startedAt
+  }: Omit<Telemetry.Detail<D, P>['crud'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
+    D,
+    P
+  >['crud']
+  #createDetail({
+    key,
+    startedAt
+  }: Omit<Telemetry.Detail<D, P>['hook'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
+    D,
+    P
+  >['hook']
+  #createDetail({
+    key,
+    dataKey,
+    startedAt
+  }: Omit<Telemetry.Detail<D, P>['updated'], 'duration'> & {
+    startedAt?: number
+  }): Telemetry.Detail<D, P>['updated']
+  #createDetail({
+    key,
+    api,
+    method,
+    isStream,
+    dataKey,
+    startedAt
+  }: {
+    key: Task['key'] | Hook.Key<D, P> | string
+    api?: string
+    method?: string
+    isStream?: boolean
+    dataKey?: keyof D
+    startedAt?: number
+  }): Telemetry.Detail<D, P>[Telemetry.Key<D, P>] {
+    const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
+
+    if (api && method && isStream !== undefined)
+      return { key, api, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
+
+    if (key === 'updated') return { key, dataKey, duration } as Telemetry.Detail<D, P>['updated']
+
+    return { key, duration } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
+  }
+
+
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
     return {
       data: this.#data,
