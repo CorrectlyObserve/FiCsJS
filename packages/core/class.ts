@@ -180,13 +180,33 @@ export default class FiCsElement<D extends object, P extends object> {
           if (subscribers) for (const updater of subscribers) updater()
 
           const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
-          if (updated && key in updated)
-            updated[key]!({
-              ...this.#getDataProps(true),
-              ref: (selector: string) => this.#queryDeeply(selector),
-              debounce: this.#debounce.bind(this),
-              throttle: this.#throttle.bind(this)
+          if (updated && dataKey in updated) {
+            const startedAt: number = Date.now()
+
+            this.#emitMetric({
+              key: 'hook',
+              detail: this.#createDetail({ key: 'updated', dataKey })
             })
+
+            try {
+              updated[dataKey]!({
+                ...this.#getDataProps(true),
+                ref: (selector: string) => this.#queryDeeply(selector),
+                debounce: this.#debounce.bind(this),
+                throttle: this.#throttle.bind(this)
+              })
+              this.#emitMetric({
+                key: 'hook',
+                detail: this.#createDetail({ key: 'updated', dataKey, startedAt })
+              })
+            } catch (error) {
+              this.#emitMetric({
+                key: 'hook',
+                error,
+                detail: this.#createDetail({ key: 'updated', dataKey, startedAt })
+              })
+            }
+          }
 
           if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
             this.#enqueue(this.#reRender.bind(this), 're-render')
