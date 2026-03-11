@@ -387,10 +387,10 @@ export default class FiCsElement<D extends object, P extends object> {
   #createDetail({
     key,
     startedAt
-  }: Omit<Telemetry.Detail<D, P>['queue'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
-    D,
-    P
-  >['queue']
+  }: {
+    key: Task['key']
+    startedAt?: number
+  }): Telemetry.Detail<D, P>['queue']
   #createDetail({
     key,
     api,
@@ -404,15 +404,17 @@ export default class FiCsElement<D extends object, P extends object> {
   #createDetail({
     key,
     startedAt
-  }: Omit<Telemetry.Detail<D, P>['hook'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
-    D,
-    P
-  >['hook']
+  }: {
+    key: Exclude<Hook.Key<D, P>, 'updated'>
+    startedAt?: number
+  }): Telemetry.Detail<D, P>['hook']
   #createDetail({
     key,
     dataKey,
     startedAt
-  }: Omit<Telemetry.Detail<D, P>['updated'], 'duration'> & {
+  }: {
+    key: 'updated'
+    dataKey: keyof D
     startedAt?: number
   }): Telemetry.Detail<D, P>['updated']
   #createDetail({
