@@ -1344,15 +1344,30 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #callback(key: Exclude<keyof Hook.Lifecycle<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
+  #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
     const ctx: Hook.Ctx<D, P> = {
-      ...this.#getDataProps(true),
-      ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
-      debounce: this.#debounce.bind(this),
-      throttle: this.#throttle.bind(this)
-    }
+        ...this.#getDataProps(true),
+        ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
+        debounce: this.#debounce.bind(this),
+        throttle: this.#throttle.bind(this)
+      },
+      executeHook = (callback: () => void): void => {
+        const startedAt: number = Date.now()
+        this.#emitMetric({ key: 'hook', detail: this.#createDetail({ key }) })
+
+        try {
+          callback()
+          this.#emitMetric({ key: 'hook', detail: this.#createDetail({ key, startedAt }) })
+        } catch (error) {
+          this.#emitMetric({
+            key: 'hook',
+            error,
+            detail: this.#createDetail({ key, startedAt })
+          })
+        }
+      }
 
     if (key === 'mounted') {
       const that: FiCsElement<D, P> = this,
@@ -1378,8 +1393,8 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#poll = execute
         }
 
-      this.#hooks[key]({ ...ctx, poll })
-    } else this.#hooks[key](ctx)
+      executeHook(() => this.#hooks[key]!({ ...ctx, poll }))
+    } else executeHook(() => this.#hooks[key]!(ctx))
   }
 
   #define(): void {
