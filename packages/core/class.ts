@@ -233,7 +233,7 @@ export default class FiCsElement<D extends object, P extends object> {
     })
 
     if (options) {
-      const { ssr, monitor, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
+      const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
         options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
