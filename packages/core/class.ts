@@ -170,13 +170,13 @@ export default class FiCsElement<D extends object, P extends object> {
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
         },
         set: (_, prop, value): boolean => {
-          const key: keyof D = prop as keyof D
+          const dataKey: keyof D = prop as keyof D
 
-          if (deepEqual(this.#rawData[key], value)) return true
+          if (deepEqual(this.#rawData[dataKey], value)) return true
 
-          this.#rawData[key] = value
+          this.#rawData[dataKey] = value
 
-          const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
+          const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
           if (subscribers) for (const updater of subscribers) updater()
 
           const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
