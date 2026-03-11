@@ -471,8 +471,22 @@ export default class FiCsElement<D extends object, P extends object> {
     } as DataProps.Payload<D, P, B>
   }
 
-  #enqueue(func: () => void, key: Task['key']): void {
-    enqueue({ instanceId: this.#instanceId, func, key })
+  #enqueue(func: () => void | Promise<void>, key: Task['key']): void {
+    enqueue({
+      instanceId: this.#instanceId,
+      key,
+      func: async (): Promise<void> => {
+        const startedAt: number = Date.now()
+        this.#emitMetric({ key: 'queue', detail: this.#createDetail({ key }) })
+
+        try {
+          await func()
+          this.#emitMetric({ key: 'queue', detail: this.#createDetail({ key, startedAt }) })
+        } catch (error) {
+          this.#emitMetric({ key: 'queue', error, detail: this.#createDetail({ key, startedAt }) })
+        }
+      }
+    })
   }
 
   #crud<T>(api: string, options?: Crud.Options): Promise<T>
