@@ -189,6 +189,7 @@ export declare namespace Options {
 
   interface Resolved<D extends object, P> {
     ssr: boolean
+    telemetry?: Telemetry.Options<D, P>
     lazyLoad?: boolean
     rootMargin?: string
     websocket?: WebSocket.Options<D, P>
