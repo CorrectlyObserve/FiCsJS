@@ -437,6 +437,10 @@ export declare namespace WebSocket {
     }
   }
 
+  interface Runtime {
+    close: () => void
+  }
+
   interface Options<D extends object, P> {
     path: string
     protocols?: SingleOrArray<string>
