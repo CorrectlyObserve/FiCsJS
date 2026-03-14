@@ -1205,8 +1205,12 @@ export default class FiCsElement<D extends object, P extends object> {
         if (!shadowRoot || searchedShadowRoots.has(shadowRoot)) return null
         searchedShadowRoots.add(shadowRoot)
 
-        const searched: T | null = shadowRoot.querySelector(selector) as T | null
-        if (searched) return searched
+        try {
+          const searched: T | null = shadowRoot.querySelector(selector)
+          if (searched) return searched
+        } catch {
+          throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
+        }
 
         const treeWalker: TreeWalker = shadowRoot.ownerDocument.createTreeWalker(
           shadowRoot,
