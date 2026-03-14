@@ -9,7 +9,9 @@ export default <D extends object, P>({
   if (!options || isBlankObject(options)) return undefined
 
   let reconnectedCount: number = 0,
-    reconnectedTimer: SetTimeout | null = null
+    reconnectedTimer: SetTimeout | null = null,
+    activeWebsocket: WebSocket | null = null,
+    isManuallyClosed: boolean = false
 
   const {
       path,
@@ -28,7 +30,7 @@ export default <D extends object, P>({
       }
     }
 
-  const connect = (): WebSocket => {
+  const connect = (): void => {
     const wsUrl: URL = new URL(path, `${protocol}//${host}`)
     wsUrl.protocol = protocol.startsWith('https') ? 'wss:' : 'ws:'
 
@@ -60,24 +62,22 @@ export default <D extends object, P>({
     websocket.onmessage = (event: MessageEvent): void => onmessage?.({ ...getParams(), event })
 
     const autoReconnect = (): void => {
-      if (reconnect && !reconnectedTimer) {
+      if (!isManuallyClosed && reconnect && !reconnectedTimer) {
         const {
           interval,
           max,
           isExponential
         }: NonNullable<WebSocketNS.Options<D, P>>['reconnect'] = reconnect
 
-        if ((max && reconnectedCount < max) || !max) {
-          websocket.close()
-
+        if ((max && reconnectedCount < max) || !max)
           reconnectedTimer = setTimeout(
             () => {
+              reconnectedTimer = null
               reconnectedCount++
               connect()
             },
-            isExponential ? interval ** reconnectedCount : interval
+            interval * (isExponential ? 2 ** reconnectedCount : 1)
           )
-        }
       }
     }
 
@@ -86,11 +86,15 @@ export default <D extends object, P>({
       autoReconnect()
     }
     websocket.onclose = (event: CloseEvent): void => {
+      if (activeWebsocket !== websocket) return
+
+      activeWebsocket = null
+      setWebSocketProp(undefined)
       onclose?.({ ...getParams(), event })
       autoReconnect()
     }
 
-    return websocket
+    activeWebsocket = websocket
   }
 
   connect()
