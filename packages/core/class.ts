@@ -1417,6 +1417,42 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#shadowRoot = this.attachShadow({ mode: 'open' })
         }
 
+        #activateRuntime(): void {
+          that.#infiniteVirtualScroll(this.#shadowRoot)
+          this.#deactivateRuntime()
+
+          this.#websocket = openWebSocket({
+            options: that.#options.websocket,
+            getDataProps: that.#getDataProps.bind(that),
+            setWebSocketProp: (prop: WebSocketNS.Prop | undefined) => (that.#webSocketProp = prop)
+          })
+
+          const {
+            eventSource,
+            removeEventListeners
+          }: { eventSource?: EventSource; removeEventListeners?: () => void } =
+            openEventSource({
+              options: that.#options.sse,
+              getDataProps: that.#getDataProps.bind(that),
+              debounce: that.#debounce.bind(that),
+              throttle: that.#throttle.bind(that)
+            }) || {}
+
+          this.#eventSource = eventSource
+          this.#removeEventListeners = removeEventListeners
+        }
+
+        #deactivateRuntime(): void {
+          this.#websocket?.close()
+          this.#websocket = undefined
+
+          this.#eventSource?.close()
+          this.#eventSource = undefined
+
+          this.#removeEventListeners?.()
+          this.#removeEventListeners = undefined
+        }
+
         #init() {
           if (that.#deferredData || that.#i18nData)
             that.#enqueue(async () => {
