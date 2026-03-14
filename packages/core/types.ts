@@ -401,7 +401,7 @@ export declare namespace Telemetry {
     onError?: (metric: Metric<D, P>) => void
   }
 
-  type Status = 'starting' | 'sample' | 'success' | 'error'
+  type Status = 'starting' | 'success' | 'error'
 }
 
 export type Translations = Record<string, unknown>
