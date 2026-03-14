@@ -1492,28 +1492,7 @@ export default class FiCsElement<D extends object, P extends object> {
           Reflect.set(this, convertStr(consts.FICS_ID_ATTR, 'camel'), that.#instanceId)
 
           that.#cache.component = this
-
-          that.#infiniteVirtualScroll(this.#shadowRoot)
-
-          this.#websocket = openWebSocket({
-            options: that.#options.websocket,
-            getDataProps: that.#getDataProps.bind(that),
-            setWebSocketProp: (prop: WebSocketNS.Prop | undefined) => (that.#webSocketProp = prop)
-          })
-
-          const {
-            eventSource,
-            removeEventListeners
-          }: { eventSource?: EventSource; removeEventListeners?: () => void } =
-            openEventSource({
-              options: that.#options.sse,
-              getDataProps: that.#getDataProps.bind(that),
-              debounce: that.#debounce.bind(that),
-              throttle: that.#throttle.bind(that)
-            }) || {}
-
-          if (eventSource) this.#eventSource = eventSource
-          if (removeEventListeners) this.#removeEventListeners = removeEventListeners
+          this.#activateRuntime()
         }
 
         async connectedCallback(): Promise<void> {
