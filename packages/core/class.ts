@@ -1208,7 +1208,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const searched: T | null = shadowRoot.querySelector(selector) as T | null
         if (searched) return searched
 
-        const treeWalker: TreeWalker = document.createTreeWalker(
+        const treeWalker: TreeWalker = shadowRoot.ownerDocument.createTreeWalker(
           shadowRoot,
           NodeFilter.SHOW_ELEMENT
         )
