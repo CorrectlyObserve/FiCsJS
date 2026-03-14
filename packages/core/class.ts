@@ -86,6 +86,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
+  #styleSheet?: CSSStyleSheet
+  #lastCssText?: string
   #webSocketProp?: WebSocketNS.Prop
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
@@ -1158,20 +1160,18 @@ export default class FiCsElement<D extends object, P extends object> {
     }, '') as string
   }
 
-  #buildCss(shadowRoot: ShadowRoot, additional: Css.Sheet<D, P>[]): void {
+  #buildCss(shadowRoot: ShadowRoot): void {
     const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
-
     if (css.length === 0) return
 
-    if (additional.length === 0)
-      for (const [index, content] of this.#css.entries()) {
-        if (typeof content === 'string') continue
-        if (typeof Object.values(content)[0] === 'function') this.#boundCss.push(index)
-      }
+    if (!this.#styleSheet) this.#styleSheet = new CSSStyleSheet()
 
-    const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-    shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#cssToString([`${consts.HOST_SELECTOR}{display:block}`, ...css]))
+    const cssText: string = this.#cssToString([`${consts.HOST_SELECTOR}{display:block}`, ...css])
+    if (this.#lastCssText === cssText) return
+
+    this.#styleSheet.replaceSync(cssText)
+    this.#lastCssText = cssText
+    shadowRoot.adoptedStyleSheets = [this.#styleSheet]
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
