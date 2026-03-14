@@ -1522,9 +1522,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#poll = undefined
           }
 
-          this.#websocket?.close()
-          this.#eventSource?.close()
-          this.#removeEventListeners?.()
+          this.#deactivateRuntime()
           if (that.#scrollObservers) {
             for (const observer of ['intersection', 'mutation', 'resize'] as const)
               that.#scrollObservers[observer].disconnect()
