@@ -1223,8 +1223,8 @@ export default class FiCsElement<D extends object, P extends object> {
             (element as { shadowRoot?: ShadowRoot | null }).shadowRoot ?? null
 
           if (nestedShadowRoot) {
-            const nested: T | null = searchShadowRootRecursively(nestedShadowRoot)
-            if (nested) return nested
+            const foundShadowRoot: T | null = searchShadowRootRecursively(nestedShadowRoot)
+            if (foundShadowRoot) return foundShadowRoot
           }
 
           element = treeWalker.nextNode() as Element | null
