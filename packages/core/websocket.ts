@@ -5,7 +5,7 @@ export default <D extends object, P>({
   options,
   getDataProps,
   setWebSocketProp
-}: WebSocketNS.Ctx.Fn<D, P>): WebSocket | undefined => {
+}: WebSocketNS.Ctx.Fn<D, P>): WebSocketNS.Runtime | undefined => {
   if (!options || isBlankObject(options)) return undefined
 
   let reconnectedCount: number = 0,
@@ -92,5 +92,13 @@ export default <D extends object, P>({
     return websocket
   }
 
-  return connect()
+  connect()
+
+  return {
+    close: (): void => {
+      isManuallyClosed = true
+      clearReconnectTimer()
+      activeWebsocket?.close()
+    }
+  }
 }
