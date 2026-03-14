@@ -1121,10 +1121,14 @@ export default class FiCsElement<D extends object, P extends object> {
         if (key.startsWith('webkit')) key = `-${key}`
         return key
       },
-      normalizeSelector = (selector: string): string =>
-        isSsr
-          ? selector.replace(new RegExp(`${consts.HOST_SELECTOR}(?!-)`, 'g'), `div#${this.#name}`)
-          : selector,
+      ssrHost: string = `div#${this.#name}`,
+      normalizeHost = (selector: string): string => {
+        if (!isSsr) return selector
+
+        return selector
+          .replace(new RegExp(`${consts.HOST_SELECTOR.GROUP}`, 'g'), `${ssrHost}$1`)
+          .replace(new RegExp(`${consts.HOST_SELECTOR.STRICT}`, 'g'), ssrHost)
+      },
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
         Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
           (prev, [key, value]) => {
@@ -1138,21 +1142,20 @@ export default class FiCsElement<D extends object, P extends object> {
             if (typeof value === 'string' || typeof value === 'number')
               return `${prev}${normalizeProperty(key)}:${value};`
 
-            return `${prev}${normalizeSelector(key)}{${convertCss(value as Css.Declarations, topLevelCss)}}`
+            return `${prev}${normalizeHost(key)}{${convertCss(value as Css.Declarations, topLevelCss)}}`
           },
           ''
         )
 
     return css.reduce((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${normalizeSelector(curr)}`
+      if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
       const topLevelCss: string[] = []
       return joinArray(
         [
           prev,
           ...Object.entries(curr).map(
-            ([selector, style]) =>
-              `${normalizeSelector(selector)}{${convertCss(style, topLevelCss)}}`
+            ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
           ),
           ...topLevelCss
         ],
