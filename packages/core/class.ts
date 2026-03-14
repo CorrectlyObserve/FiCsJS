@@ -1219,8 +1219,11 @@ export default class FiCsElement<D extends object, P extends object> {
         let element: Element | null = treeWalker.nextNode() as Element | null
 
         while (element) {
-          if (element.nodeName.toLowerCase().startsWith('f-')) {
-            const nested: T | null = searchRecursively(this.#getShadowRoot(element))
+          const nestedShadowRoot: ShadowRoot | null =
+            (element as { shadowRoot?: ShadowRoot | null }).shadowRoot ?? null
+
+          if (nestedShadowRoot) {
+            const nested: T | null = searchRecursively(nestedShadowRoot)
             if (nested) return nested
           }
 
