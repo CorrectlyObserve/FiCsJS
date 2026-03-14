@@ -400,7 +400,7 @@ export default class FiCsElement<D extends object, P extends object> {
     } catch (callbackError) {
       console.error(`The telemetry ${type} callback failed...`, callbackError)
     } finally {
-      if (isError && key !== 'memory') throw error
+      if (isError) throw error
     }
   }
 
@@ -461,7 +461,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
     return { key, duration } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
   }
-
 
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
     return {
