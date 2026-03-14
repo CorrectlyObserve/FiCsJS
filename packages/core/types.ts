@@ -70,7 +70,7 @@ export declare namespace Css {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = string | { [key: string]: string | number | Exclude<Global, string> }
+  type Global = string | Record<string, Declarations>
 
   type Rules<D extends object, P> = Record<string, Value<D, P>>
 
