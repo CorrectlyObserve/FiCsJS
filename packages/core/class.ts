@@ -20,7 +20,6 @@ import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import runInfiniteVirtualScroll from './scroll/runtime'
 import scrollTemplate from './scroll/template'
 import openEventSource from './sse'
-import openWebSocket from './websocket'
 import type {
   Action,
   Attrs,
@@ -44,6 +43,7 @@ import type {
   Telemetry,
   WebSocket as WebSocketNS
 } from './types'
+import openWebSocket from './websocket'
 
 export default class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
@@ -1408,7 +1408,7 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
-        #websocket?: WebSocket
+        #websocket?: WebSocketNS.Runtime
         #eventSource?: EventSource
         #removeEventListeners?: () => void
 
