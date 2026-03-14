@@ -385,13 +385,6 @@ export declare namespace Telemetry {
     }
     updated: { key: 'updated'; dataKey: keyof D; duration: number }
     hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; duration: number }
-    memory: {
-      usedHeapBytes: number
-      baselineBytes: number
-      growthBytes: number
-      thresholdBytes?: number
-      duration: number
-    }
   }
 
   type Key<D extends object, P> = keyof Telemetry.Detail<D, P>
