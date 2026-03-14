@@ -1189,13 +1189,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #getElements(component: HTMLElement, selector: string): Element[] {
     let trimmedSelector: string = selector.trim()
-    const { HOST_SELECTOR: host } = consts
+    const {
+      HOST_SELECTOR: { ITSELF }
+    } = consts
 
-    if (trimmedSelector === host) return [component]
+    if (trimmedSelector === ITSELF) return [component]
 
-    const isDirectChild: boolean = trimmedSelector.startsWith(`${host} >`)
-    if (isDirectChild || trimmedSelector.startsWith(`${host} `)) {
-      const sliced: string = trimmedSelector.slice(host.length)
+    const isDirectChild: boolean = trimmedSelector.startsWith(`${ITSELF} >`)
+    if (isDirectChild || trimmedSelector.startsWith(`${ITSELF} `)) {
+      const sliced: string = trimmedSelector.slice(ITSELF.length)
       trimmedSelector = isDirectChild ? `:scope ${sliced}` : sliced.trimStart()
     }
 
