@@ -20,7 +20,13 @@ export default <D extends object, P>({
       onerror,
       onclose
     }: WebSocketNS.Options<D, P> = options,
-    { protocol, host }: { protocol: string; host: string } = window.location
+    { protocol, host }: { protocol: string; host: string } = window.location,
+    clearReconnectTimer = (): void => {
+      if (reconnectedTimer) {
+        clearTimeout(reconnectedTimer)
+        reconnectedTimer = null
+      }
+    }
 
   const connect = (): WebSocket => {
     const wsUrl: URL = new URL(path, `${protocol}//${host}`)
@@ -47,12 +53,7 @@ export default <D extends object, P>({
 
     websocket.onopen = (event: Event): void => {
       reconnectedCount = 0
-
-      if (reconnectedTimer) {
-        clearTimeout(reconnectedTimer)
-        reconnectedTimer = null
-      }
-
+      clearReconnectTimer()
       onopen?.({ ...getParams(), event })
     }
 
