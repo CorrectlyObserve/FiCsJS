@@ -399,7 +399,6 @@ export declare namespace Telemetry {
   interface Options<D extends object, P> {
     onMetric?: (metric: Metric<D, P>) => void
     onError?: (metric: Metric<D, P>) => void
-    memory?: { interval?: number; thresholdBytes?: number; warmupSamples?: number }
   }
 
   type Status = 'starting' | 'sample' | 'success' | 'error'
