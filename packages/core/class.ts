@@ -1477,7 +1477,7 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#setClassNames(this)
           that.#setAttrs(this)
           that.#buildHtml(this.#shadowRoot, true)
-          that.#buildCss(this.#shadowRoot, [])
+          that.#buildCss(this.#shadowRoot)
 
           for (const [selector, action] of Object.entries(that.#actions))
             for (const element of that.#getElements(this, selector))
@@ -1577,11 +1577,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#buildHtml(shadowRoot)
       this.#infiniteVirtualScroll(shadowRoot)
 
-      if (!isOnlyHtml && this.#boundCss.length > 0)
-        this.#buildCss(
-          shadowRoot,
-          this.#boundCss.map(index => this.#css[index])
-        )
+      if (!isOnlyHtml) this.#buildCss(shadowRoot)
 
       if (this.#isBrowser) {
         const addAllElements = (elements: Element[] | Set<Element>): void => {
