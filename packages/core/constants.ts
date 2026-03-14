@@ -1,3 +1,5 @@
+const HOST_SELECTOR = ':host' as const
+
 export default {
   a11y: {
     STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"'
@@ -6,5 +8,9 @@ export default {
   CLONED_SELVES_LENGTH: 256,
   FICS_ID_ATTR: 'fics-id',
   VAR_TAG_NAME: 'f-var',
-  HOST_SELECTOR: ':host'
+  HOST_SELECTOR: {
+    ITSELF: HOST_SELECTOR,
+    GROUP: `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)`,
+    STRICT: `${HOST_SELECTOR}(?!-)`
+  }
 } as const
