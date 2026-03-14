@@ -75,7 +75,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #html: Html.Core<D, P>
   readonly #showAttr: string
   readonly #css: Css.Sheet<D, P>[] = new Array()
-  readonly #boundCss: number[] = new Array()
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
