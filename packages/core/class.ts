@@ -1497,11 +1497,17 @@ export default class FiCsElement<D extends object, P extends object> {
 
         async connectedCallback(): Promise<void> {
           if (!this.#isRendered) {
+            const mount = (): void => {
+              this.#init()
+              that.#callback('mounted', this.#shadowRoot)
+              this.#isRendered = true
+            }
+
             if (lazyLoad) {
               const observer: IntersectionObserver = new IntersectionObserver(
                 async ([{ isIntersecting, target }]) => {
                   if (isIntersecting) {
-                    this.#init()
+                    mount()
                     observer.unobserve(target)
                   }
                 },
@@ -1509,11 +1515,8 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
               setTimeout(() => observer.observe(this))
-            } else this.#init()
-
-            that.#callback('mounted', this.#shadowRoot)
-            this.#isRendered = true
-          } else that.#infiniteVirtualScroll(this.#shadowRoot)
+            } else mount()
+          } else this.#activateRuntime()
         }
 
         disconnectedCallback(): void {
