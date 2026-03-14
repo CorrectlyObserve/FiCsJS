@@ -1201,7 +1201,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #queryDeeply<T extends Element = Element>(selector: string, shadowRoot?: ShadowRoot): T | null {
     const searchedShadowRoots: Set<ShadowRoot> = new Set<ShadowRoot>(),
-      searchRecursively = (shadowRoot: ShadowRoot): T | null => {
+      searchShadowRootRecursively = (shadowRoot: ShadowRoot): T | null => {
         if (searchedShadowRoots.has(shadowRoot)) return null
         searchedShadowRoots.add(shadowRoot)
 
@@ -1223,7 +1223,7 @@ export default class FiCsElement<D extends object, P extends object> {
             (element as { shadowRoot?: ShadowRoot | null }).shadowRoot ?? null
 
           if (nestedShadowRoot) {
-            const nested: T | null = searchRecursively(nestedShadowRoot)
+            const nested: T | null = searchShadowRootRecursively(nestedShadowRoot)
             if (nested) return nested
           }
 
@@ -1233,7 +1233,7 @@ export default class FiCsElement<D extends object, P extends object> {
         return null
       }
 
-    return searchRecursively(root)
+    return searchShadowRootRecursively(root)
   }
 
   #debounce<T extends (...args: Parameters<T>) => void>(
