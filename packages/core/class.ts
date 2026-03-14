@@ -1212,7 +1212,7 @@ export default class FiCsElement<D extends object, P extends object> {
           shadowRoot,
           NodeFilter.SHOW_ELEMENT
         )
-        let element: HTMLElement | null = treeWalker.nextNode() as HTMLElement | null
+        let element: Element | null = treeWalker.nextNode() as Element | null
 
         while (element) {
           if (element.nodeName.toLowerCase().startsWith('f-')) {
@@ -1220,7 +1220,7 @@ export default class FiCsElement<D extends object, P extends object> {
             if (nested) return nested
           }
 
-          element = treeWalker.nextNode() as HTMLElement | null
+          element = treeWalker.nextNode() as Element | null
         }
 
         return null
