@@ -1495,7 +1495,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         async connectedCallback(): Promise<void> {
-          if (!this.#isRendered) {
+          if (this.#isRendered) this.#activateRuntime()
+          else {
             const mount = (): void => {
               this.#init()
               that.#callback('mounted', this.#shadowRoot)
@@ -1515,7 +1516,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
               setTimeout(() => observer.observe(this))
             } else mount()
-          } else this.#activateRuntime()
+          }
         }
 
         disconnectedCallback(): void {
