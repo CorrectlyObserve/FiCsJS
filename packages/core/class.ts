@@ -1113,49 +1113,51 @@ export default class FiCsElement<D extends object, P extends object> {
   #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
-    let topLevelCss: string = ''
-    const convertCss = (style: Css.Value<D, P>): string =>
-      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
-        (prev, [key, value]) => {
-          if (value === undefined || value === '' || isBlankObject(value)) return prev
+    const normalizeProperty = (key: string): string => {
+        /** @remarks CSS custom properties */
+        if (key.startsWith('--')) return key
 
-          key = convertStr(key, 'kebab')
-          if (key.startsWith('webkit')) key = `-${key}`
+        key = convertStr(key, 'kebab')
+        if (key.startsWith('webkit')) key = `-${key}`
+        return key
+      },
+      normalizeSelector = (selector: string): string =>
+        isSsr
+          ? selector.replace(new RegExp(`${consts.HOST_SELECTOR}(?!-)`, 'g'), `div#${this.#name}`)
+          : selector,
+      convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
+        Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+          (prev, [key, value]) => {
+            if (value === undefined || value === '' || isBlankObject(value)) return prev
 
-          if (key.startsWith('@keyframes')) {
-            topLevelCss += `${key}{${convertCss(value as Css.Value<D, P>)}}`
-            return prev
-          }
+            if (key.startsWith('@keyframes')) {
+              topLevelCss.push(`${key}{${convertCss(value as Css.Value<D, P>, topLevelCss)}}`)
+              return prev
+            }
 
-          const isApplicableType: boolean = typeof value === 'string' || typeof value === 'number'
-          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCss(value as Css.Declarations)}}`}`
-        },
-        ''
-      )
+            if (typeof value === 'string' || typeof value === 'number')
+              return `${prev}${normalizeProperty(key)}:${value};`
+
+            return `${prev}${normalizeSelector(key)}{${convertCss(value as Css.Declarations, topLevelCss)}}`
+          },
+          ''
+        )
 
     return css.reduce((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${curr}`
+      if (typeof curr === 'string') return `${prev}${normalizeSelector(curr)}`
 
-      let _curr: string = ''
-
-      for (let [selector, style] of Object.entries(curr)) {
-        if (isSsr && selector.startsWith(consts.HOST_SELECTOR))
-          selector = selector.replace(consts.HOST_SELECTOR, `div#${this.#name}`)
-
-        const content: string = convertCss(style),
-          index: number = content.indexOf('{')
-
-        if (selector.startsWith(consts.HOST_SELECTOR) && index > -1) {
-          const hostCss: string = content.slice(0, index),
-            lastIndex: number = hostCss.lastIndexOf(';'),
-            hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length),
-            _selector: string = hostCss.slice(lastIndex + 1)
-
-          _curr += `${selector}{${hostCssContent}${hostCssContent.length > 0 ? ';' : ''}${_selector}${content.slice(index)}}`
-        } else _curr += `${selector}{${content}}`
-      }
-
-      return `${prev}${_curr}${topLevelCss}`
+      const topLevelCss: string[] = []
+      return joinArray(
+        [
+          prev,
+          ...Object.entries(curr).map(
+            ([selector, style]) =>
+              `${normalizeSelector(selector)}{${convertCss(style, topLevelCss)}}`
+          ),
+          ...topLevelCss
+        ],
+        false
+      )
     }, '') as string
   }
 
