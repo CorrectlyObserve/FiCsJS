@@ -1167,7 +1167,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
     if (!this.#styleSheet) this.#styleSheet = new CSSStyleSheet()
 
-    const cssText: string = this.#cssToString([`${consts.HOST_SELECTOR}{display:block}`, ...css])
+    const cssText: string = this.#cssToString([
+      `${consts.HOST_SELECTOR.ITSELF}{display:block}`,
+      ...css
+    ])
     if (this.#lastCssText === cssText) return
 
     this.#styleSheet.replaceSync(cssText)
