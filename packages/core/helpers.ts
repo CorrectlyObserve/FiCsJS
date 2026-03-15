@@ -159,7 +159,7 @@ export const numberError = (
     | 'non-negative'
     | 'non-negative-int' = 'positive'
 ): void => {
-  for (const [key, value] of Object.entries(numbers)) {
+  for (const [key, value] of typedEntries(numbers)) {
     if (value === undefined) continue
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
