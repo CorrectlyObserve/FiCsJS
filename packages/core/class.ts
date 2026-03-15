@@ -274,7 +274,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
-        if (!value || isBlankObject(value) || !this.#isBrowser) continue
+        if (!value || isEmptyObject(value) || !this.#isBrowser) continue
 
         switch (key) {
           case 'websocket':
