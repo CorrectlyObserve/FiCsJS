@@ -1115,7 +1115,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
-    const normalizeProperty = (key: string): string => {
+    const normalizeProperty = (key: string | number): string => {
+        if (typeof key === 'number') return key.toString()
         /** @remarks CSS custom properties */
         if (key.startsWith('--')) return key
 
@@ -1124,8 +1125,8 @@ export default class FiCsElement<D extends object, P extends object> {
         return key
       },
       ssrHost: string = `div#${this.#name}`,
-      normalizeHost = (selector: string): string => {
-        if (!isSsr) return selector
+      normalizeHost = (selector: string | number): string => {
+        if (!isSsr || typeof selector === 'number') return selector.toString()
 
         return selector
           .replace(new RegExp(`${consts.HOST_SELECTOR.GROUP}`, 'g'), `${ssrHost}$1`)
@@ -1134,9 +1135,11 @@ export default class FiCsElement<D extends object, P extends object> {
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
         typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
           (prev, [key, value]) => {
-            if (value === undefined || value === '' || isBlankObject(value)) return prev
+            if (typeof key === 'number') numberError({ key }, 'finite')
 
-            if (key.startsWith('@keyframes')) {
+            if (value === undefined || isBlankString(value) || isEmptyObject(value)) return prev
+
+            if (typeof key === 'string' && key.startsWith('@keyframes')) {
               topLevelCss.push(`${key}{${convertCss(value as Css.Value<D, P>, topLevelCss)}}`)
               return prev
             }
