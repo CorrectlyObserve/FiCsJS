@@ -668,8 +668,15 @@ export default class FiCsElement<D extends object, P extends object> {
     return attrs
   }
 
-  #isBooleanAttr(attr: string, value: string): boolean {
-    return attr !== 'class' && attr !== 'value' && value === ''
+  #isBooleanAttr(attr: string): boolean {
+    return consts.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
+  }
+
+  #isBooleanAttrEnabled(attr: string, value: string): boolean {
+    const normalized: string = value.trim().toLowerCase()
+    return (
+      isBlankString(normalized) || normalized === 'true' || normalized === attr.trim().toLowerCase()
+    )
   }
 
   #setAttrs(component: HTMLElement): void {
