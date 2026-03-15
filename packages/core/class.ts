@@ -6,6 +6,7 @@ import {
   deepEqual,
   isBlankString,
   isBrowser,
+  isEmptyObject,
   isObject,
   joinArray,
   numberError,
@@ -259,7 +260,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
 
-      if (telemetry && !isBlankObject(telemetry)) this.#options.telemetry = telemetry
+      if (telemetry && !isEmptyObject(telemetry)) this.#options.telemetry = telemetry
 
       if (lazyLoad) this.#options.lazyLoad = true
 
@@ -346,8 +347,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
 
-    if (hooks && !isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
-    if (actions && !isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
+    if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
+    if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
