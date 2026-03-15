@@ -1,4 +1,4 @@
-import { isBlankObject } from './helpers'
+import { isEmptyObject } from './helpers'
 import type { SetTimeout, WebSocket as WebSocketNS } from './types'
 
 export default <D extends object, P>({
@@ -6,7 +6,7 @@ export default <D extends object, P>({
   getDataProps,
   setWebSocketProp
 }: WebSocketNS.Ctx.Fn<D, P>): WebSocketNS.Runtime | undefined => {
-  if (!options || isBlankObject(options)) return undefined
+  if (!options || isEmptyObject(options)) return undefined
 
   let reconnectedCount: number = 0,
     reconnectedTimer: SetTimeout | null = null,
