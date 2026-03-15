@@ -4,7 +4,7 @@ import {
   browserError,
   convertStr,
   deepEqual,
-  isBlankObject,
+  isBlankString,
   isBrowser,
   isObject,
   joinArray,
@@ -111,7 +111,7 @@ export default class FiCsElement<D extends object, P extends object> {
     options
   }: FiCs<D, P>) {
     name = name.trim()
-    if (name === '') throw new Error('The FiCsElement name must be a non-empty string...')
+    if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
 
     name = convertStr(name, 'kebab')
     this.#nameKey = convertStr(name, 'camel')
@@ -642,8 +642,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #setClassNames(component: HTMLElement): void {
     const oldClassNames: string[] = Array.from(component.classList),
-      newClassNames: Set<string> =
-        this.#computedClassName === '' ? new Set() : new Set(this.#computedClassName.split(/\s+/))
+      newClassNames: Set<string> = isBlankString(this.#computedClassName)
+        ? new Set()
+        : new Set(this.#computedClassName.split(/\s+/))
 
     for (const className of newClassNames)
       if (!component.classList.contains(className)) component.classList.add(className)
@@ -807,7 +808,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (
           isText(childNode) &&
-          childNode?.nodeValue === '' &&
+          isBlankString(childNode?.nodeValue) &&
           (!parentNode || !isTextarea(parentNode))
         ) {
           childNode.parentNode?.removeChild(childNode)
