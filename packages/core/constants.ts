@@ -7,10 +7,10 @@ export default {
   /** @remarks The maximum capacity of 1 byte (8 bits), which is a power of 2 */
   CLONED_SELVES_LENGTH: 256,
   FICS_ID_ATTR: 'fics-id',
-  VAR_TAG_NAME: 'f-var',
-  HOST_SELECTOR: {
+  hostSelector: {
     ITSELF: HOST_SELECTOR,
     GROUP: `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)`,
     STRICT: `${HOST_SELECTOR}(?!-)`
-  }
+  },
+  VAR_TAG_NAME: 'f-var'
 } as const
