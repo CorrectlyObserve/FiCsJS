@@ -48,7 +48,7 @@ export default <D extends object, P>({
     listeners.push({ handler, callback })
   }
 
-  for (const [handler, method] of Object.entries(actions))
+  for (const [handler, method] of typedEntries(actions))
     Array.isArray(method)
       ? addEventListener(handler, method[0], method[1])
       : addEventListener(handler, method)
