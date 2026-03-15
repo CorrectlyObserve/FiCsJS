@@ -551,7 +551,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const instanceId: string = `${child.#instanceId}-${key}`,
           clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
           cloneProps = (descendant: Descendant): Descendant => {
-            for (const [key, value] of Object.entries(child.#rawProps))
+            for (const [key, value] of typedEntries(child.#rawProps))
               if (!(key in props)) descendant.#props[key] = value
 
             for (const [key, value] of typedEntries({ ...props })) descendant.#props[key] = value
@@ -608,7 +608,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         try {
           for (const _descendant of descendants)
-            for (const [key, value] of Object.entries(
+            for (const [key, value] of typedEntries(
               values({
                 ...this.#getDataProps(true),
                 children: this.#children,
@@ -660,7 +660,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!this.#attrs) return []
 
     const attrs: [string, string][] = []
-    for (const [key, value] of Object.entries(
+    for (const [key, value] of typedEntries(
       typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
     ))
       attrs.push([key.trim(), value.trim()])
@@ -1479,7 +1479,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   that.#data[key] = value
 
               if (that.#i18nData)
-                for (const [key, value] of Object.entries(
+                for (const [key, value] of typedEntries(
                   await that.#i18nData({
                     ...that.#getDataProps(),
                     i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
@@ -1608,10 +1608,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
         addAllElements(this.#newElements)
 
-        for (const [selector, action] of Object.entries(this.#actions))
+        for (const [selector, action] of typedEntries(this.#actions))
           for (const element of this.#getElements(component, selector))
             if (this.#newElements.has(element))
-              this.#addEventListener({ element, shadowRoot, entries: Object.entries(action) })
+              this.#addEventListener({ element, shadowRoot, entries: typedEntries(action) })
 
         this.#newElements.clear()
       }
