@@ -264,7 +264,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
+      if (!isBlankString(rootMargin) && rootMargin !== '0px' && rootMargin !== undefined) {
         if (!lazyLoad)
           throw new Error(
             `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
