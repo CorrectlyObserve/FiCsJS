@@ -132,8 +132,8 @@ export const deepEqual = (
   return true
 }
 
-export const isBlankObject = (param: unknown): boolean =>
-  isObject(param) && Reflect.ownKeys(param).length === 0
+export const isBlankString = (param: unknown): boolean =>
+  typeof param === 'string' && param.trim() === ''
 
 export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
