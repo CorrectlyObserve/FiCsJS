@@ -1124,10 +1124,10 @@ export default class FiCsElement<D extends object, P extends object> {
         if (key.startsWith('webkit')) key = `-${key}`
         return key
       },
-      ssrHost: string = `div#${this.#name}`,
       normalizeHost = (selector: string | number): string => {
         if (!isSsr || typeof selector === 'number') return selector.toString()
 
+        const ssrHost: string = `div#${this.#name}`
         return selector
           .replace(new RegExp(`${consts.HOST_SELECTOR.GROUP}`, 'g'), `${ssrHost}$1`)
           .replace(new RegExp(`${consts.HOST_SELECTOR.STRICT}`, 'g'), ssrHost)
