@@ -1129,8 +1129,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const ssrHost: string = `div#${this.#name}`
         return selector
-          .replace(new RegExp(`${consts.HOST_SELECTOR.GROUP}`, 'g'), `${ssrHost}$1`)
-          .replace(new RegExp(`${consts.HOST_SELECTOR.STRICT}`, 'g'), ssrHost)
+          .replace(new RegExp(`${consts.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
+          .replace(new RegExp(`${consts.hostSelector.STRICT}`, 'g'), ssrHost)
       },
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
         typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
@@ -1176,7 +1176,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!this.#styleSheet) this.#styleSheet = new CSSStyleSheet()
 
     const cssText: string = this.#cssToString([
-      `${consts.HOST_SELECTOR.ITSELF}{display:block}`,
+      `${consts.hostSelector.ITSELF}{display:block}`,
       ...css
     ])
     if (this.#lastCssText === cssText) return
@@ -1195,7 +1195,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #getElements(component: HTMLElement, selector: string): Element[] {
     let trimmedSelector: string = selector.trim()
     const {
-      HOST_SELECTOR: { ITSELF }
+      hostSelector: { ITSELF }
     } = consts
 
     if (trimmedSelector === ITSELF) return [component]
