@@ -553,7 +553,7 @@ export default class FiCsElement<D extends object, P extends object> {
             for (const [key, value] of Object.entries(child.#rawProps))
               if (!(key in props)) descendant.#props[key] = value
 
-            for (const [key, value] of Object.entries({ ...props })) descendant.#props[key] = value
+            for (const [key, value] of typedEntries({ ...props })) descendant.#props[key] = value
 
             return descendant
           }
@@ -563,7 +563,7 @@ export default class FiCsElement<D extends object, P extends object> {
         const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
           const cloned: Descendant = cloneProps(child.#clone(instanceId))
 
-          for (const [key, _child] of Object.entries(cloned.#children))
+          for (const [key, _child] of typedEntries(cloned.#children))
             cloned.#children[key] = cloneRecursively(
               _child,
               `${_child.#instanceId}-in-${instanceId}`
@@ -1131,7 +1131,7 @@ export default class FiCsElement<D extends object, P extends object> {
           .replace(new RegExp(`${consts.HOST_SELECTOR.STRICT}`, 'g'), ssrHost)
       },
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
-        Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+        typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
           (prev, [key, value]) => {
             if (value === undefined || value === '' || isBlankObject(value)) return prev
 
@@ -1155,7 +1155,7 @@ export default class FiCsElement<D extends object, P extends object> {
       return joinArray(
         [
           prev,
-          ...Object.entries(curr).map(
+          ...typedEntries(curr).map(
             ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
           ),
           ...topLevelCss
@@ -1495,12 +1495,12 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#buildHtml(this.#shadowRoot, true)
           that.#buildCss(this.#shadowRoot)
 
-          for (const [selector, action] of Object.entries(that.#actions))
+          for (const [selector, action] of typedEntries(that.#actions))
             for (const element of that.#getElements(this, selector))
               that.#addEventListener({
                 element,
                 shadowRoot: this.#shadowRoot,
-                entries: Object.entries(action)
+                entries: typedEntries(action)
               })
 
           that.#removeChildNodes(this)
