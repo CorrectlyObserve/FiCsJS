@@ -42,7 +42,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     seen.add(name)
 
-    if (resolved !== '') return convertCssVar(resolved, seen)
+    if (!isBlankString(resolved)) return convertCssVar(resolved, seen)
 
     const _fallback: string | undefined = fallback?.trim()
     if (_fallback) return convertCssVar(_fallback, seen)
