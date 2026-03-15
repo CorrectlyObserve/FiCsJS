@@ -1576,7 +1576,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (!component) return
 
       if (this.#i18nData)
-        for (const [key, value] of Object.entries(
+        for (const [key, value] of typedEntries(
           await this.#i18nData({
             ...this.#getDataProps(),
             i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
