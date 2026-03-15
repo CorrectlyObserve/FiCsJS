@@ -138,6 +138,9 @@ export const isBlankString = (param: unknown): boolean =>
 export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
 
+export const isEmptyObject = (param: unknown): boolean =>
+  isObject(param) && Reflect.ownKeys(param).length === 0
+
 export const isObject = (param: unknown): param is Record<string, unknown> =>
   typeof param === 'object' && param !== null && !Array.isArray(param)
 
