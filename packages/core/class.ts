@@ -453,7 +453,7 @@ export default class FiCsElement<D extends object, P extends object> {
     isStream?: boolean
     dataKey?: keyof D
     startedAt?: number
-  }): Telemetry.Detail<D, P>[Telemetry.Key<D, P>] {
+  }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
     const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
 
     if (api && method && isStream !== undefined)
