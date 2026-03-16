@@ -387,8 +387,6 @@ export declare namespace Telemetry {
     hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; duration: number }
   }
 
-  type Key<D extends object, P> = keyof Telemetry.Detail<D, P>
-
   interface Metric<D extends object, P> extends Ctx<D, P> {
     status: Status
     name: string
