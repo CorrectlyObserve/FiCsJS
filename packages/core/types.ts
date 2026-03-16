@@ -369,9 +369,9 @@ export interface Task {
 
 export declare namespace Telemetry {
   interface Ctx<D extends object, P> {
-    key: Key<D, P>
+    key: keyof Telemetry.Detail<D, P>
     error?: unknown
-    detail: Detail<D, P>[Key<D, P>]
+    detail: Detail<D, P>[Ctx<D, P>['key']]
   }
 
   interface Detail<D extends object, P> {
