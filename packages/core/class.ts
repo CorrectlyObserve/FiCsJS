@@ -643,7 +643,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ? this.#classNames(this.#getDataProps())
         : this.#classNames
 
-    return classNames.trim()
+    return escape(classNames).trim()
   }
 
   #setClassNames(component: HTMLElement): void {
@@ -668,7 +668,7 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const [key, value] of typedEntries(
       typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
     ))
-      attrs.push([key.trim(), value.trim()])
+      attrs.push([escape(key).trim(), escape(value).trim()])
 
     return attrs
   }
