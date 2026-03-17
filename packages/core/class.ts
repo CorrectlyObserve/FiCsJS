@@ -74,7 +74,6 @@ export default class FiCsElement<D extends object, P extends object> {
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html.Core<D, P>
-  readonly #showAttr: string
   readonly #css: Css.Sheet<D, P>[] = new Array()
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
@@ -125,7 +124,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${consts.FICS_ID_ATTR}${FiCsElement.#generator.next().value}`
+    this.#instanceId = instanceId ?? `${consts.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
     if (!generator) {
@@ -347,7 +346,6 @@ export default class FiCsElement<D extends object, P extends object> {
     if (attributes) this.#attrs = attributes
 
     this.#html = html
-    this.#showAttr = `${this.#instanceId}-show-syntax`
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
@@ -772,8 +770,8 @@ export default class FiCsElement<D extends object, P extends object> {
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
       ): Html.Sanitized<D, P> => template(strings, ...variables),
-      html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
-      show: (condition: boolean): string => (condition ? '' : this.#showAttr),
+      html: (str: string): Record<symbol, string> => ({ [consts.symbols.UNSAFE_HTML]: str }),
+      show: (condition: boolean): string => (condition ? '' : consts.attrs.SHOW),
       apiStatuses: Object.fromEntries(this.#apiStatuses),
       attributes: {
         boolean: (condition: boolean | undefined): 'true' | 'false' =>
@@ -843,7 +841,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (isElement(childNode)) {
           if (childNode.localName === consts.VAR_TAG_NAME) {
-            const instanceId: string | null = childNode.getAttribute(consts.FICS_ID_ATTR)
+            const instanceId: string | null = childNode.getAttribute(consts.attrs.FICS_ID)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -867,9 +865,9 @@ export default class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(this.#showAttr)) {
+          if (childNode.hasAttribute(consts.attrs.SHOW)) {
             ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(this.#showAttr)
+            childNode.removeAttribute(consts.attrs.SHOW)
           }
         }
 
@@ -945,7 +943,7 @@ export default class FiCsElement<D extends object, P extends object> {
             return
           }
 
-          if (!!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))) return
+          if (!!Reflect.get(oldChildNode, convertStr(consts.attrs.FICS_ID, 'camel'))) return
 
           updateChildNodes(
             oldChildNode,
@@ -1067,7 +1065,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))
+                  !!Reflect.get(oldChildNode, convertStr(consts.attrs.FICS_ID, 'camel'))
                 )
                   continue
 
@@ -1531,7 +1529,7 @@ export default class FiCsElement<D extends object, P extends object> {
               })
 
           that.#removeChildNodes(this)
-          Reflect.set(this, convertStr(consts.FICS_ID_ATTR, 'camel'), that.#instanceId)
+          Reflect.set(this, convertStr(consts.attrs.FICS_ID, 'camel'), that.#instanceId)
 
           that.#cache.component = this
           this.#activateRuntime()
