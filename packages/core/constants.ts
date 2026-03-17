@@ -2,6 +2,7 @@ const HOST_SELECTOR = ':host' as const
 
 export default {
   a11y: { STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"' },
+  attrs: { FICS_ID: 'fics-id', SHOW: 'fics-show-syntax' },
   BOOLEAN_ATTRS: new Set([
     'allowfullscreen',
     'async',
@@ -34,7 +35,6 @@ export default {
   ]),
   /** @remarks The maximum capacity of 1 byte (8 bits), which is a power of 2 */
   CLONED_SELVES_LENGTH: 256,
-  FICS_ID_ATTR: 'fics-id',
   hostSelector: {
     ITSELF: HOST_SELECTOR,
     GROUP: `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)`,
