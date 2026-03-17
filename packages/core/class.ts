@@ -1658,12 +1658,14 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
 
-      const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
-        classNameAndAttrs: string = `${className} ${that.#computedAttrs.reduce(
-          (prev, [key, value]) => `${prev} ${key}="${value}"`,
-          ''
-        )}`.trim(),
-        slotAttrs: string = joinArray([
+      const attrs: string[] = []
+      if (that.#classNames && !isBlankString(that.#computedClassName))
+        attrs.push(`class="${that.#computedClassName}"`)
+
+      for (const [key, value] of that.#computedAttrs)
+        attrs.push(that.#isBooleanAttrEnabled(key, value) ? key : `${key}="${value}"`)
+
+      const slotAttrs: string = joinArray([
           `id="${that.#name}"`,
           `slot="${that.#instanceId}"`,
           `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
@@ -1734,7 +1736,7 @@ export default class FiCsElement<D extends object, P extends object> {
           _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
       return `
-        <${joinArray([that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''])}>
+        <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
           <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
           <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
         </${that.#name}>
