@@ -40,5 +40,9 @@ export default {
     GROUP: `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)`,
     STRICT: `${HOST_SELECTOR}(?!-)`
   },
+  symbols: {
+    SANITIZED: Symbol('fics-sanitized-template'),
+    UNSAFE_HTML: Symbol('fics-unsafe-html')
+  },
   VAR_TAG_NAME: 'f-var'
 } as const
