@@ -1662,8 +1662,9 @@ export default class FiCsElement<D extends object, P extends object> {
       if (that.#classNames && !isBlankString(that.#computedClassName))
         attrs.push(`class="${that.#computedClassName}"`)
 
-      for (const [key, value] of that.#computedAttrs)
-        attrs.push(that.#isBooleanAttrEnabled(key, value) ? key : `${key}="${value}"`)
+      if (that.#computedAttrs.length > 0)
+        for (const [key, value] of that.#computedAttrs)
+          attrs.push(that.#isBooleanAttrEnabled(key, value) ? key : `${key}="${value}"`)
 
       const slotAttrs: string = joinArray([
           `id="${that.#name}"`,
