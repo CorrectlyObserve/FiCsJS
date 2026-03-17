@@ -115,6 +115,11 @@ export default class FiCsElement<D extends object, P extends object> {
     if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
 
     name = convertStr(name, 'kebab')
+    if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(name))
+      throw new Error(
+        'The FiCsElement name must contain only lowercase letters, numbers, and single hyphens...'
+      )
+
     this.#nameKey = convertStr(name, 'camel')
 
     if (!isExceptional && { var: true, router: true, link: true }[name])
