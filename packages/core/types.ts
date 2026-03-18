@@ -402,6 +402,15 @@ export declare namespace Telemetry {
   type Status = 'starting' | 'success' | 'error'
 }
 
+export declare namespace Template {
+  namespace Ctx {
+    interface ForSsr {
+      html: string
+      resolveInstanceId: (instanceId: string) => string
+    }
+  }
+}
+
 export type Translations = Record<string, unknown>
 
 type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
