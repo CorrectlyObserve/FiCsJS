@@ -915,18 +915,34 @@ export default class FiCsElement<D extends object, P extends object> {
 
           const isOldChildNodeHTMLElement: boolean = isHTMLElement(oldChildNode)
           for (let i = 0; i < newAttrs.length; i++) {
-            const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i]
+            const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i],
+              oldAttr: Omit<Html.PickedAttr, 'name'> | undefined = oldAttrList[name],
+              isDiffAttr: boolean = oldAttr?.value !== value
 
-            if (oldAttrList[name]?.value !== value)
-              if (isHTMLElement(oldChildNode)) {
-                const prop: string = convertStr(name, 'camel'),
-                  isBoolean: boolean = that.#isBooleanAttr(name, value)
+            if (isOldChildNodeHTMLElement) {
+              const isBoolean: boolean = that.#isBooleanAttr(name),
+                prop: string = convertStr(name, 'camel'),
+                hasProp: boolean = prop in oldChildNode,
+                isEnabled: boolean = that.#isBooleanAttrEnabled(name, value)
 
-                if (name !== consts.FICS_ID_ATTR && prop in oldChildNode)
-                  Reflect.set(oldChildNode, prop, isBoolean ? true : value)
-                else if (!isBoolean) oldChildNode.setAttribute(name, value)
-              } else if (namespaceURI) oldChildNode.setAttributeNS(namespaceURI, name, value)
-              else oldChildNode.setAttribute(name, value)
+              let wasEnabled: boolean = false
+              if (isBoolean)
+                wasEnabled = hasProp
+                  ? !!Reflect.get(oldChildNode, prop)
+                  : that.#isBooleanAttrEnabled(name, oldAttr?.value)
+
+              if (wasEnabled !== isEnabled || isDiffAttr) {
+                if (name !== consts.attrs.FICS_ID && hasProp)
+                  Reflect.set(oldChildNode, prop, isBoolean ? isEnabled : value)
+
+                if (!isBoolean) oldChildNode.setAttribute(name, value)
+                else if (isEnabled) oldChildNode.setAttribute(name, '')
+                else oldChildNode.removeAttribute(name)
+              }
+            } else if (isDiffAttr)
+              namespaceURI
+                ? oldChildNode.setAttributeNS(namespaceURI, name, value)
+                : oldChildNode.setAttribute(name, value)
 
             delete oldAttrList[name]
           }
