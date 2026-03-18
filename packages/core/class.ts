@@ -1653,6 +1653,11 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   toString(data?: Partial<D>): string {
+    if (this.#isBrowser)
+      throw new Error(
+        `The "toString" method can only be called in the server environment in ${this.#name}...`
+      )
+
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
       that.#initProps()
 
