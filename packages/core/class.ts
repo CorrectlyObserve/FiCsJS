@@ -930,8 +930,14 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           for (const name in oldAttrList)
-            if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
-            else {
+            if (isHTMLElement(oldChildNode)) {
+              if (that.#isBooleanAttr(name)) {
+                const prop: string = convertStr(name, 'camel')
+                if (prop in oldChildNode) Reflect.set(oldChildNode, prop, false)
+              }
+
+              oldChildNode.removeAttribute(name)
+            } else {
               const { namespaceURI, localName }: Omit<Html.PickedAttr, 'name'> = oldAttrList[name]
 
               if (namespaceURI) oldChildNode.removeAttributeNS(namespaceURI, localName)
