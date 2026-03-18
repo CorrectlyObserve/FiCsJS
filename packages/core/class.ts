@@ -1669,70 +1669,17 @@ export default class FiCsElement<D extends object, P extends object> {
       const slotAttrs: string = joinArray([
           `id="${that.#name}"`,
           `slot="${that.#instanceId}"`,
-          `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
-        ])
+          `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
+        ]),
+        html: string = applyShowAttr({
+          html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
+          resolveInstanceId: (instanceId: string): string => {
+            if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
+              throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-      const applyDescendant = (html: string): string => {
-        const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="`,
-          varEnd: string = `"></${consts.VAR_TAG_NAME}>`,
-          varBeginIndex: number = html.indexOf(varBegin),
-          varEndIndex: number = html.indexOf(varEnd)
-
-        if (varBeginIndex < 0 || varEndIndex < 0) return html
-
-        const prev: string = html.slice(0, varBeginIndex),
-          next: string = applyDescendant(html.slice(varEndIndex + varEnd.length)),
-          instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
-
-        if (!(instanceId in that.#childrenStore))
-          throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
-
-        return `${prev}${render(that.#childrenStore[instanceId])}${next}`
-      }
-
-      const applyShowAttr = (html: string): string => {
-          const showAttrIndex: number = html.indexOf(that.#showAttr)
-          if (showAttrIndex < 0) return html
-
-          const openIndex: number = html.indexOf('<', showAttrIndex),
-            closeIndex: number = html.indexOf('>', showAttrIndex),
-            prev: string = html.slice(0, showAttrIndex)
-
-          let next: string = applyShowAttr(html.slice(showAttrIndex + that.#showAttr.length))
-
-          if (openIndex > 0 && openIndex < closeIndex) return `${prev}${that.#showAttr}${next}`
-
-          const styleAttr: string = 'style="',
-            styleIndex: number = prev.lastIndexOf(styleAttr),
-            displayKey: string = 'display:',
-            displayNone: string = `${displayKey}none`
-
-          if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
-
-          let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`,
-            remaining: string = prev.slice(styleIndex + styleAttr.length)
-
-          const endIndex: number = remaining.indexOf('"')
-
-          if (endIndex < 0) throw new Error('The style attribute is not closed...')
-
-          next = `${remaining.slice(endIndex).trim()}${next}`
-          remaining = remaining.slice(0, endIndex).replace(/\s/g, '')
-
-          const displayIndex: number = remaining.indexOf(displayKey)
-          if (displayIndex < 0) return `${newPrev}${remaining}; ${displayNone}${next}`
-
-          newPrev += remaining.slice(0, displayIndex)
-          remaining = remaining.slice(displayIndex)
-
-          const displayEndIndex: number = remaining.indexOf(';', displayIndex)
-          if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
-
-          return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
-        },
-        html: string = applyShowAttr(
-          applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
-        ),
+            return render(that.#childrenStore[instanceId])
+          }
+        }),
         css = (_css: Css.Sheet<D, P>[]): string =>
           _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
