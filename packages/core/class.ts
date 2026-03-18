@@ -913,6 +913,7 @@ export default class FiCsElement<D extends object, P extends object> {
             oldAttrList[name] = { value, namespaceURI, localName }
           }
 
+          const isOldChildNodeHTMLElement: boolean = isHTMLElement(oldChildNode)
           for (let i = 0; i < newAttrs.length; i++) {
             const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i]
 
@@ -931,7 +932,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           for (const name in oldAttrList)
-            if (isHTMLElement(oldChildNode)) {
+            if (isOldChildNodeHTMLElement) {
               if (that.#isBooleanAttr(name)) {
                 const prop: string = convertStr(name, 'camel')
                 if (prop in oldChildNode) Reflect.set(oldChildNode, prop, false)
