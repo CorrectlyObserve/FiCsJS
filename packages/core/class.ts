@@ -822,7 +822,11 @@ export default class FiCsElement<D extends object, P extends object> {
       isHTMLElement = (childNode: ChildNode | ParentNode): childNode is HTMLElement =>
         childNode instanceof HTMLElement,
       isTextarea = (childNode: ChildNode | ParentNode): childNode is HTMLTextAreaElement =>
-        isHTMLElement(childNode) && childNode.localName === 'textarea'
+        isHTMLElement(childNode) && childNode.localName === 'textarea',
+      {
+        attrs: { FICS_ID, SHOW },
+        VAR_TAG_NAME
+      } = consts
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -841,8 +845,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         if (isElement(childNode)) {
-          if (childNode.localName === consts.VAR_TAG_NAME) {
-            const instanceId: string | null = childNode.getAttribute(consts.attrs.FICS_ID)
+          if (childNode.localName === VAR_TAG_NAME) {
+            const instanceId: string | null = childNode.getAttribute(FICS_ID)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -866,9 +870,9 @@ export default class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(consts.attrs.SHOW)) {
+          if (childNode.hasAttribute(SHOW)) {
             ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(consts.attrs.SHOW)
+            childNode.removeAttribute(SHOW)
           }
         }
 
@@ -932,7 +936,7 @@ export default class FiCsElement<D extends object, P extends object> {
                   : that.#isBooleanAttrEnabled(name, oldAttr?.value)
 
               if (wasEnabled !== isEnabled || isDiffAttr) {
-                if (name !== consts.attrs.FICS_ID && hasProp)
+                if (name !== FICS_ID && hasProp)
                   Reflect.set(oldChildNode, prop, isBoolean ? isEnabled : value)
 
                 if (!isBoolean) oldChildNode.setAttribute(name, value)
@@ -967,7 +971,7 @@ export default class FiCsElement<D extends object, P extends object> {
             return
           }
 
-          if (!!Reflect.get(oldChildNode, convertStr(consts.attrs.FICS_ID, 'camel'))) return
+          if (!!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))) return
 
           updateChildNodes(
             oldChildNode,
@@ -1089,7 +1093,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!Reflect.get(oldChildNode, convertStr(consts.attrs.FICS_ID, 'camel'))
+                  !!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))
                 )
                   continue
 
