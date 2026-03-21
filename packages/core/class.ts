@@ -1724,8 +1724,7 @@ export default class FiCsElement<D extends object, P extends object> {
       `
     }
 
-    if (data) for (const [key, value] of typedEntries(data as D)) this.#data[key] = value
-
+    if (data) for (const [key, value] of typedEntries(data as D)) this.#rawData[key] = value
     return render(this, data)
   }
 
