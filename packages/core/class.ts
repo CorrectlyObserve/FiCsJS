@@ -355,25 +355,27 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
-    const { scroll, ...args } = this.#options
+    const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
+      cloned: FiCsElement<D, P> = new FiCsElement({
+        name: this.#nameKey,
+        isExceptional: true,
+        instanceId: instanceId ?? this.#instanceId,
+        data: () => this.#data as Partial<D>,
+        children: Object.values(this.#children),
+        deferredData: this.#deferredData,
+        i18nData: this.#i18nData,
+        props: this.#propsSources,
+        className: this.#classNames,
+        attributes: this.#attrs,
+        html: this.#html,
+        clonedCss: this.#css,
+        actions: this.#actions,
+        hooks: this.#hooks,
+        options: { ...args, scroll: scroll?.options }
+      })
 
-    return new FiCsElement({
-      name: this.#nameKey,
-      isExceptional: true,
-      instanceId: instanceId ?? this.#instanceId,
-      children: Object.values(this.#children),
-      data: () => this.#data as Partial<D>,
-      deferredData: this.#deferredData,
-      i18nData: this.#i18nData,
-      props: this.#propsSources,
-      className: this.#classNames,
-      attributes: this.#attrs,
-      html: this.#html,
-      clonedCss: this.#css,
-      actions: this.#actions,
-      hooks: this.#hooks,
-      options: { ...args, scroll: scroll?.options }
-    })
+    for (const [key, value] of typedEntries(this.#rawProps)) cloned.#rawProps[key] = value
+    return cloned
   }
 
   #bindFunction(value: D[keyof D] | P[keyof P]): D[keyof D] | P[keyof P] {
