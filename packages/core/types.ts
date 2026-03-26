@@ -409,6 +409,9 @@ export declare namespace Template {
       resolveInstanceId: (instanceId: string) => string
     }
   }
+
+  type Context = Quote | 'text' | 'tag'
+  type Quote = '"' | "'"
 }
 
 export type Translations = Record<string, unknown>
