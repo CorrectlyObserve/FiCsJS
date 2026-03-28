@@ -773,8 +773,8 @@ export default class FiCsElement<D extends object, P extends object> {
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
       ): Html.Sanitized<D, P> => template(strings, ...variables),
-      html: (str: string): Record<symbol, string> => ({ [consts.symbols.UNSAFE_HTML]: str }),
-      show: (condition: boolean): string => (condition ? '' : consts.attrs.SHOW),
+      unsafeHtml: (str: string): Record<symbol, string> => ({ [UNSAFE_HTML]: str }),
+      show: (condition: boolean): string => (condition ? '' : SHOW),
       apiStatuses: Object.fromEntries(this.#apiStatuses),
       attributes: {
         boolean: (condition: boolean | undefined): 'true' | 'false' =>
