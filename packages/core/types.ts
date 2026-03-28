@@ -134,7 +134,7 @@ export declare namespace Html {
     children: Children
     props: P
     template: Template<D, P>
-    html: (str: string) => Record<symbol, string>
+    unsafeHtml: (str: string) => Record<symbol, string>
     show: (condition: boolean) => string
     apiStatuses: Record<string, boolean>
     attributes: {
