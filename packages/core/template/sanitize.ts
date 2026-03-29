@@ -3,7 +3,9 @@ import type { Template } from '../types'
 const consts = {
   CONTROL_CHAR: /[\u0000-\u001F\u007F-\u009F]/u,
   INVALID_ATTR_FRAGMENT: /["'<>\/=`]/,
-  INVALID_UNQUOTED_ATTR_VALUE: /["'<>`]/
+  INVALID_UNQUOTED_ATTR_VALUE: /["'<>`]/,
+  COMMENT_OPEN_TAG: '<!--',
+  COMMENT_CLOSE_TAG: '-->'
 } as const
 
 const isSpace = (char: string): boolean =>
