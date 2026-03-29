@@ -56,3 +56,50 @@ const isSpace = (char: string): boolean =>
 
     throw new Error(error)
   }
+
+const isQuote = (char: string): char is Template.Quote => char === '"' || char === "'",
+  getTemplateContexts = (strings: TemplateStringsArray): Template.Context[] => {
+    const contexts: Template.Context[] = new Array(Math.max(strings.length - 1, 0))
+    let isInComment: boolean = false,
+      quote: Template.Quote | null = null,
+      isInTag: boolean = false
+
+    for (let i = 0; i < strings.length - 1; i++) {
+      const part: string = strings[i]
+
+      for (let charIndex = 0; charIndex < part.length; charIndex++) {
+        if (isInComment) {
+          if (part.startsWith(consts.COMMENT_CLOSE_TAG, charIndex)) {
+            isInComment = false
+            charIndex += consts.COMMENT_CLOSE_TAG.length - 1
+          }
+
+          continue
+        }
+
+        const char: string = part[charIndex]
+
+        if (quote) {
+          if (char === quote) quote = null
+          continue
+        }
+
+        if (isInTag) {
+          if (isQuote(char)) quote = char
+          else if (char === '>') isInTag = false
+
+          continue
+        }
+
+        if (char === '<')
+          if (part.startsWith(consts.COMMENT_OPEN_TAG, charIndex)) {
+            isInComment = true
+            charIndex += consts.COMMENT_OPEN_TAG.length - 1
+          } else isInTag = true
+      }
+
+      contexts[i] = quote ?? (isInTag ? 'tag' : 'text')
+    }
+
+    return contexts
+  }
