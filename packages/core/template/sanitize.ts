@@ -1,4 +1,5 @@
 import type { Template } from '../types'
+import escape from './escape'
 
 const consts = {
   CONTROL_CHAR: /[\u0000-\u001F\u007F-\u009F]/u,
@@ -103,3 +104,75 @@ const isQuote = (char: string): char is Template.Quote => char === '"' || char =
 
     return contexts
   }
+
+const normalizeAttrFragment = (fragment: string, name: string): string => {
+  if (isBlankString(fragment)) return ''
+
+  fragment = fragment.trim()
+
+  const { length } = fragment,
+    error: string = `The attribute fragment in ${name} is invalid...`,
+    attrs: string[] = new Array()
+  let index: number = 0
+
+  while (index < length) {
+    while (index < length) {
+      if (!isSpace(fragment[index])) break
+      index++
+    }
+
+    if (index >= length) break
+
+    const startIndex: number = index
+
+    while (index < length) {
+      const char: string = fragment[index]
+      if (isSpace(char) || char === '=') break
+      if (consts.INVALID_ATTR_FRAGMENT.test(char)) throw new Error(error)
+      index++
+    }
+
+    const attrName: string = fragment.slice(startIndex, index)
+    if (!isValidAttrName(attrName)) throw new Error(error)
+
+    while (index < length) {
+      if (!isSpace(fragment[index])) break
+      index++
+    }
+
+    if (fragment[index] !== '=') {
+      attrs.push(attrName)
+      continue
+    }
+
+    index++
+
+    while (index < length) {
+      if (!isSpace(fragment[index])) break
+      index++
+    }
+
+    if (index >= length) throw new Error(error)
+
+    let value: string
+    const quote: string = fragment[index]
+
+    if (isQuote(quote)) value = parseQuotedAttr({ name, fragment, index: index + 1, quote })[0]
+    else {
+      const startIndex: number = index
+
+      while (index < length) {
+        const char: string = fragment[index]
+        if (isSpace(char)) break
+        if (consts.INVALID_ATTR_FRAGMENT.test(char)) throw new Error(error)
+        index++
+      }
+
+      value = fragment.slice(startIndex, index)
+    }
+
+    attrs.push(`${attrName}="${escape(value)}"`)
+  }
+
+  return joinArray(attrs)
+}
