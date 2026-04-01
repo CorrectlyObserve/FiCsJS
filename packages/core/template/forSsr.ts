@@ -1,26 +1,23 @@
 import consts from '../constants'
 import { isBlankString } from '../helpers'
 import type { Template } from '../types'
+import templateConstants from './constants'
 
-const regExp = {
-    DISPLAY: /(^|;)(\s*)display\s*:[^;]*(?=;|$)/i,
-    SPECIAL_CHAR: /[.*+?^${}()|[\]\\]/g,
-    ATTR: (attr: string) => new RegExp(`(?:\\s+)${attr}(?=(\\s|>|/))`, 'g'),
-    STYLE: /\sstyle\s*=\s*(["'])([\s\S]*?)\1/i,
-    TAG_END: /(\s*\/?>)$/
-  } as const,
-  DISPLAY_NONE = 'display:none' as const
+const {
+    char: { LEFT_ANGLE_BRACKET, RIGHT_ANGLE_BRACKET },
+    DISPLAY_NONE,
+    regExp
+  } = templateConstants,
+  setDisplayNone = (style: string): string => {
+    if (regExp.DISPLAY.test(style))
+      return style.replace(
+        regExp.DISPLAY,
+        (_match: string, prefix: string, spacing: string) => `${prefix}${spacing}${DISPLAY_NONE}`
+      )
 
-const setDisplayNone = (style: string): string => {
-  if (regExp.DISPLAY.test(style))
-    return style.replace(
-      regExp.DISPLAY,
-      (_match: string, prefix: string, spacing: string) => `${prefix}${spacing}${DISPLAY_NONE}`
-    )
-
-  const trimmed: string = style.trim()
-  return `${isBlankString(trimmed) ? '' : `${trimmed}${trimmed.endsWith(';') ? '' : ';'} `}${DISPLAY_NONE}`
-}
+    const trimmed: string = style.trim()
+    return `${isBlankString(trimmed) ? '' : `${trimmed}${trimmed.endsWith(';') ? '' : ';'} `}${DISPLAY_NONE}`
+  }
 
 const resolveDescendants = ({ html, resolveInstanceId }: Template.Ctx.ForSsr): string => {
   const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.attrs.FICS_ID}="`,
@@ -50,8 +47,8 @@ export default ({ html, resolveInstanceId }: Template.Ctx.ForSsr): string => {
   let showAttrIndex: number = html.indexOf(consts.attrs.SHOW)
 
   while (showAttrIndex > -1) {
-    const openIndex: number = html.lastIndexOf('<', showAttrIndex),
-      closeIndex: number = html.indexOf('>', showAttrIndex)
+    const openIndex: number = html.lastIndexOf(LEFT_ANGLE_BRACKET, showAttrIndex),
+      closeIndex: number = html.indexOf(RIGHT_ANGLE_BRACKET, showAttrIndex)
 
     if (openIndex < 0 || closeIndex < 0 || html[openIndex + 1] === '/') break
 
