@@ -1,10 +1,24 @@
+import consts from './constants'
+
+const {
+  char: { DOUBLE_QUOTE, LEFT_ANGLE_BRACKET, RIGHT_ANGLE_BRACKET, SINGLE_QUOTE }
+} = consts
+
 export default (str: string, context: 'attr' | 'text-content' = 'attr'): string => {
   const escapedTextContent: string = str.replace(
     /[&<>]/g,
-    char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char] as string
+    char =>
+      ({
+        '&': '&amp;',
+        [LEFT_ANGLE_BRACKET]: '&lt;',
+        [RIGHT_ANGLE_BRACKET]: '&gt;'
+      })[char] as string
   )
 
-  return context === 'attr'
-    ? escapedTextContent.replace(/["']/g, char => ({ '"': '&quot;', "'": '&#39;' })[char] as string)
-    : escapedTextContent
+  if (context === 'text-content') return escapedTextContent
+
+  return escapedTextContent.replace(
+    /["']/g,
+    char => ({ [DOUBLE_QUOTE]: '&quot;', [SINGLE_QUOTE]: '&#39;' })[char] as string
+  )
 }
