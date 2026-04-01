@@ -68,13 +68,13 @@ export default class FiCsElement<D extends object, P extends object> {
   } = { boundFunctions: new WeakMap() }
   readonly #deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
-  readonly #propsSources: Props<D, P>[] = new Array()
+  readonly #propsSources: Props<D, P>[] = []
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html.Core<D, P>
-  readonly #css: Css.Sheet<D, P>[] = new Array()
+  readonly #css: Css.Sheet<D, P>[] = []
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
