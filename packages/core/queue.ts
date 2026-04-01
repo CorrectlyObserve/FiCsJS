@@ -5,8 +5,8 @@ let isProcessing: boolean = false,
   isReRendering: boolean = false
 
 const ids: Set<string> = new Set(),
-  queue: Task[] = new Array(),
-  reRenderQueue: Task[] = new Array(),
+  queue: Task[] = [],
+  reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
   dequeue = async (task: Task): Promise<void> => {
     try {
