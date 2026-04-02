@@ -788,7 +788,7 @@ export default class FiCsElement<D extends object, P extends object> {
       attributes: {
         boolean: (condition: boolean | undefined): 'true' | 'false' =>
           condition ? 'true' : 'false',
-        statusLiveRegion: consts.a11y.STATUS_LIVE_REGION
+        statusLiveRegion: STATUS_LIVE_REGION
       },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
@@ -804,14 +804,14 @@ export default class FiCsElement<D extends object, P extends object> {
           array,
           callback
         })
-    })[sanitized]
+    })[SANITIZED]
 
     return contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
         if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
-        curr = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="${instanceId}"></${consts.VAR_TAG_NAME}>`
+        curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
       return `${prev}${curr}`
