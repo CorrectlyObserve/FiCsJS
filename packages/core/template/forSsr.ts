@@ -19,7 +19,7 @@ const {
     return `${isBlankString(trimmed) ? '' : `${trimmed}${trimmed.endsWith(';') ? '' : ';'} `}${DISPLAY_NONE}`
   }
 
-const resolveDescendants = ({ html, resolveInstanceId }: Template.Ctx.ForSsr): string => {
+const resolveDescendants = ({ html, resolveInstanceId }: Template.ForSsr): string => {
   const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.attrs.FICS_ID}="`,
     varBeginIndex: number = html.indexOf(varBegin)
 
@@ -42,7 +42,7 @@ const resolveDescendants = ({ html, resolveInstanceId }: Template.Ctx.ForSsr): s
   return `${prev}${instanceId}${next}`
 }
 
-export default ({ html, resolveInstanceId }: Template.Ctx.ForSsr): string => {
+export default ({ html, resolveInstanceId }: Template.ForSsr): string => {
   const showAttr: RegExp = regExp.ATTR(consts.attrs.SHOW.replace(regExp.SPECIAL_CHAR, '\\$&'))
   let showAttrIndex: number = html.indexOf(consts.attrs.SHOW)
 
