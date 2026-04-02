@@ -1051,11 +1051,17 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         const getMapKey = (childNode: ChildNode): string => {
-          const { nodeName }: { nodeName: string } = childNode,
-            key: string | null = isElement(childNode) ? getKey(childNode) : null
+            const { nodeName }: { nodeName: string } = childNode,
+              key: string | null = isElement(childNode) ? getKey(childNode) : null
 
-          return key ? `${nodeName}-${key}` : nodeName
-        }
+            return key ? `${nodeName}-${key}` : nodeName
+          },
+          _getKey = (element: Element): string | number | null => {
+            const key: string | number | null = getKey(element),
+              numKey: number = parseInt(key ?? '', 10)
+
+            return Number.isFinite(numKey) ? numKey : key
+          }
 
         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
           if (matchChildNode(oldStartNode, newStartNode)) {
@@ -1097,13 +1103,7 @@ export default class FiCsElement<D extends object, P extends object> {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
             } else if (isElement(newStartNode)) {
-              const _getKey = (element: Element): string | number | null => {
-                  const key: string | number | null = getKey(element),
-                    numKey: number = parseInt(key ?? '', 10)
-
-                  return Number.isFinite(numKey) ? numKey : key
-                },
-                key: string | number | null = _getKey(newStartNode)
+              const key: string | number | null = _getKey(newStartNode)
 
               if (typeof key === 'number') {
                 let _oldStartIndex: number = oldStartIndex,
