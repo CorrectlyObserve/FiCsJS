@@ -1134,9 +1134,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
-
-          if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
-          focusNode(childNode)
+          keyChildNodes.get(getMapKey(childNode)) ? focusNode(childNode) : childNode.remove()
         }
       }
 
