@@ -3,6 +3,7 @@ export default {
     COMMENT_OPEN_TAG: '<!--',
     COMMENT_CLOSE_TAG: '-->',
     DOUBLE_QUOTE: '"',
+    EQUAL_SIGN: '=',
     LEFT_ANGLE_BRACKET: '<',
     RIGHT_ANGLE_BRACKET: '>',
     SINGLE_QUOTE: "'"
