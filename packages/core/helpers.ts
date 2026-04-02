@@ -139,7 +139,7 @@ export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
 
 export const isEmptyObject = (param: unknown): boolean =>
-  isObject(param) && Reflect.ownKeys(param).length === 0
+  isPlainObject(param) && Reflect.ownKeys(param).length === 0
 
 export const isPlainObject = (param: unknown): param is Record<string, unknown> =>
   typeof param === 'object' && param !== null && !Array.isArray(param)
@@ -184,7 +184,7 @@ export const numberError = (
 export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   if (Array.isArray(param)) return [...param]
 
-  if (!isObject(param)) return [param]
+  if (!isPlainObject(param)) return [param]
 
   const prototype: Object = Object.getPrototypeOf(param)
   if (prototype === Object.prototype || prototype === null) return [{ ...param }]
