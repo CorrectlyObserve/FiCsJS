@@ -18,7 +18,7 @@ export default (str: string, context: 'attr' | 'text-content' = 'attr'): string 
   if (context === 'text-content') return escapedTextContent
 
   return escapedTextContent.replace(
-    /["']/g,
+    new RegExp(`[${DOUBLE_QUOTE}${SINGLE_QUOTE}]`, 'g'),
     char => ({ [DOUBLE_QUOTE]: '&quot;', [SINGLE_QUOTE]: '&#39;' })[char] as string
   )
 }
