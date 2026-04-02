@@ -2,7 +2,7 @@ import { isBlankString, joinArray } from '../../helpers'
 import type { Template } from '../../types'
 import consts from '../constants'
 import escape from '../escape'
-import error from './errors'
+import error from './error'
 import { parseQuotedAttr } from './parser'
 import { isQuote, isValidAttrName, isSpace } from './validator'
 
