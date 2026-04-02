@@ -403,6 +403,11 @@ export declare namespace Telemetry {
 }
 
 export declare namespace Template {
+  type AttrToken =
+    | { type: 'name'; value: string }
+    | { type: 'equal-sign'; value: '=' }
+    | { type: 'value'; value: string }
+
   namespace Ctx {
     interface ForSsr {
       html: string
