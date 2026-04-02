@@ -1,10 +1,17 @@
 import type { Template } from '../../types'
 import consts from '../constants'
 import error from './error'
-import { isAttrEnd, isQuote } from './validator'
+import { isQuote, isSpace, isValidAttrName } from './validator'
 
 const {
-  char: { COMMENT_CLOSE_TAG, COMMENT_OPEN_TAG, LEFT_ANGLE_BRACKET, RIGHT_ANGLE_BRACKET }
+  char: {
+    COMMENT_CLOSE_TAG,
+    COMMENT_OPEN_TAG,
+    LEFT_ANGLE_BRACKET,
+    RIGHT_ANGLE_BRACKET,
+    EQUAL_SIGN
+  },
+  regExp: { INVALID_ATTR_FRAGMENT }
 } = consts
 
 export const getTemplateContexts = (strings: TemplateStringsArray): Template.Context[] => {
@@ -60,13 +67,28 @@ export const parseQuotedAttr = ({
   quote
 }: Template.Parsed): [string, number] => {
   let value: string = ''
+  const isAttrEnd = (index: number): boolean => {
+    const { length }: { length: number } = fragment
+
+    while (index < length && isSpace(fragment[index])) index++
+
+    if (index >= length) return true
+
+    let endIndex: number = index
+    while (endIndex < length && !isSpace(fragment[endIndex]) && fragment[endIndex] !== EQUAL_SIGN) {
+      if (INVALID_ATTR_FRAGMENT.test(fragment[endIndex])) return false
+      endIndex++
+    }
+
+    return isValidAttrName(fragment.slice(index, endIndex))
+  }
 
   while (index < fragment.length) {
     const quoteIndex: number = fragment.indexOf(quote, index)
     if (quoteIndex < 0) throw error(name, 'unquoted')
 
     value += fragment.slice(index, quoteIndex)
-    if (isAttrEnd(fragment, quoteIndex + 1)) return [value, quoteIndex + 1]
+    if (isAttrEnd(quoteIndex + 1)) return [value, quoteIndex + 1]
 
     value += quote
     index = quoteIndex + 1
