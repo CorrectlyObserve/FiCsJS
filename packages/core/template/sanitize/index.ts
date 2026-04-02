@@ -36,8 +36,8 @@ export default <T>({
       if (hasSymbol(variable, UNSAFE_HTML)) {
         if (context !== 'text') throw error(name, context)
 
-        const unsafe: string = variable[UNSAFE_HTML] as string
-        if (!isBlankString(unsafe)) converted.push(unsafe)
+        const unsafeHtml: string = variable[UNSAFE_HTML] as string
+        if (!isBlankString(unsafeHtml)) converted.push(unsafeHtml)
 
         return
       }
