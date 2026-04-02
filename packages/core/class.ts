@@ -1037,8 +1037,15 @@ export default class FiCsElement<D extends object, P extends object> {
             childNode.focus()
 
             if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
-              const { length }: { length: number } = childNode.value
-              childNode.setSelectionRange(length, length)
+              try {
+                const { length }: { length: number } = childNode.value
+                childNode.setSelectionRange(length, length)
+              } catch {
+                const { localName, type }: { localName: string; type: string } = childNode
+                console.warn(
+                  `The setSelectionRange is not supported on <${localName} type="${childNode instanceof HTMLInputElement ? type : 'textarea'}">...`
+                )
+              }
             }
           }
         }
