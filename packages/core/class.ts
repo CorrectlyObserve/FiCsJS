@@ -7,7 +7,6 @@ import {
   isBlankString,
   isBrowser,
   isEmptyObject,
-  isObject,
   joinArray,
   numberError,
   toArray,
