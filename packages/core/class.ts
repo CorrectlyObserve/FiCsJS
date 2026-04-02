@@ -762,6 +762,13 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#addSetIndividualProps()
 
+    const {
+      a11y: { STATUS_LIVE_REGION },
+      attrs: { FICS_ID, SHOW },
+      symbols: { SANITIZED, UNSAFE_HTML },
+      VAR_TAG_NAME
+    } = consts
+
     const template: Html.Template<D, P> = (
       strings: TemplateStringsArray,
       ...variables: (Html.Content<D, P> | unknown)[]
