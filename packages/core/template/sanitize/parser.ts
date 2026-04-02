@@ -58,12 +58,7 @@ export const parseQuotedAttr = ({
   fragment,
   index,
   quote
-}: {
-  name: string
-  fragment: string
-  index: number
-  quote: Template.Quote
-}): [string, number] => {
+}: Template.Parsed): [string, number] => {
   let value: string = ''
 
   while (index < fragment.length) {
