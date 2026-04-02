@@ -408,11 +408,23 @@ export declare namespace Template {
     | { type: 'equal-sign'; value: '=' }
     | { type: 'value'; value: string }
 
-  namespace Ctx {
-    interface ForSsr {
-      html: string
-      resolveInstanceId: (instanceId: string) => string
-    }
+  interface ForSsr {
+    html: string
+    resolveInstanceId: (instanceId: string) => string
+  }
+
+  interface Parsed {
+    name: string
+    fragment: string
+    index: number
+    quote: Template.Quote
+  }
+
+  interface Sanitized<T> {
+    strings: TemplateStringsArray
+    variables: unknown[]
+    name: string
+    isFiCsElement: (variable: unknown) => variable is T
   }
 
   type Context = Quote | 'text' | 'tag'
