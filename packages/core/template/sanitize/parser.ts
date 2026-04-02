@@ -1,6 +1,6 @@
 import type { Template } from '../../types'
 import consts from '../constants'
-import error from './errors'
+import error from './error'
 import { isAttrEnd, isQuote } from './validator'
 
 const {
