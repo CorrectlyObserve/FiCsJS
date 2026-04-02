@@ -417,6 +417,7 @@ export declare namespace Template {
 
   type Context = Quote | 'text' | 'tag'
   type Quote = '"' | "'"
+  type Variable<T> = (T | string)[] | string
 }
 
 export type Translations = Record<string, unknown>
