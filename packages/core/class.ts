@@ -725,54 +725,26 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   get #template(): string {
-    const sanitized: unique symbol = Symbol.for(`__${this.#instanceId}-sanitized__`),
-      unsanitized: unique symbol = Symbol.for(`__${this.#instanceId}-unsanitized__`),
-      convertTemplate = (
-        strings: TemplateStringsArray,
-        variables: (Html.Content<D, P> | unknown)[]
-      ): Html.Content<D, P>[] => {
-        const converted: Html.Content<D, P>[] = new Array(),
-          isSymbol = (variable: unknown, symbol: symbol): boolean =>
-            !!(variable && isObject(variable) && symbol in variable),
-          sanitize = (index: number, template: string, variable: unknown): void => {
-            if (isSymbol(variable, sanitized))
-              converted.push(template, ...(variable as Html.Sanitized<D, P>)[sanitized])
-            else if (Array.isArray(variable)) {
-              converted.push(template)
-              for (const child of variable) sanitize(index, '', child)
-            } else if (isSymbol(variable, unsanitized))
-              converted.push(template, (variable as Record<symbol, string>)[unsanitized])
-            else {
-              if (template !== '') converted.push(template)
-
-              variable =
-                typeof variable === 'string'
-                  ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-                  : (variable ?? '')
-
-              if (variable !== '') converted.push(variable as Html.Content<D, P>)
-            }
-          }
-
-        for (const [index, template] of strings.entries())
-          sanitize(index, template, variables[index])
-
-        return converted as Html.Content<D, P>[]
-      }
-
     this.#addSetIndividualProps()
 
     const {
-      a11y: { STATUS_LIVE_REGION },
-      attrs: { FICS_ID, SHOW },
-      symbols: { SANITIZED, UNSAFE_HTML },
-      VAR_TAG_NAME
-    } = consts
-
-    const template: Html.Template<D, P> = (
-      strings: TemplateStringsArray,
-      ...variables: (Html.Content<D, P> | unknown)[]
-    ): Html.Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+        a11y: { STATUS_LIVE_REGION },
+        attrs: { FICS_ID, SHOW },
+        symbols: { SANITIZED, UNSAFE_HTML },
+        VAR_TAG_NAME
+      } = consts,
+      template: Html.Template<D, P> = (
+        strings: TemplateStringsArray,
+        ...variables: (Html.Content<D, P> | unknown)[]
+      ): Html.Sanitized<D, P> => ({
+        [SANITIZED]: sanitize<Exclude<Html.Content<D, P>, string>>({
+          strings,
+          variables,
+          name: this.#name,
+          isFiCsElement: (variable: unknown): variable is Exclude<Html.Content<D, P>, string> =>
+            variable instanceof FiCsElement
+        }) as Html.Content<D, P>[]
+      })
 
     const contents: Html.Content<D, P>[] = this.#html({
       ...this.#getDataProps(),
