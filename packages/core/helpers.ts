@@ -141,7 +141,7 @@ export const isBrowser = (): boolean =>
 export const isEmptyObject = (param: unknown): boolean =>
   isObject(param) && Reflect.ownKeys(param).length === 0
 
-export const isObject = (param: unknown): param is Record<string, unknown> =>
+export const isPlainObject = (param: unknown): param is Record<string, unknown> =>
   typeof param === 'object' && param !== null && !Array.isArray(param)
 
 export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
