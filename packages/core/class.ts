@@ -21,6 +21,9 @@ import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import runInfiniteVirtualScroll from './scroll/runtime'
 import scrollTemplate from './scroll/template'
 import openEventSource from './sse'
+import escape from './template/escape'
+import applyShowAttr from './template/forSsr'
+import sanitize from './template/sanitize'
 import type {
   Action,
   Attrs,
