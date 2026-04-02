@@ -1023,7 +1023,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           parentNode.insertBefore(
             childNode,
-            before && !before.parentNode?.isEqualNode(parentNode) ? null : before
+            before && before.parentNode !== parentNode ? null : before
           )
         }
 
