@@ -3,25 +3,9 @@ import type { Template } from '../../types'
 import consts from '../constants'
 
 const {
-  char: { DOUBLE_QUOTE, EQUAL_SIGN, SINGLE_QUOTE },
+  char: { DOUBLE_QUOTE, SINGLE_QUOTE },
   regExp: { CONTROL_CHAR, INVALID_ATTR_FRAGMENT }
 } = consts
-
-export const isAttrEnd = (fragment: string, index: number): boolean => {
-  const { length }: { length: number } = fragment
-
-  while (index < length && isSpace(fragment[index])) index++
-
-  if (index >= length) return true
-
-  let endIndex: number = index
-  while (endIndex < length && !isSpace(fragment[endIndex]) && fragment[endIndex] !== EQUAL_SIGN) {
-    if (INVALID_ATTR_FRAGMENT.test(fragment[endIndex])) return false
-    endIndex++
-  }
-
-  return isValidAttrName(fragment.slice(index, endIndex))
-}
 
 export const isQuote = (char: string): char is Template.Quote =>
   char === DOUBLE_QUOTE || char === SINGLE_QUOTE
