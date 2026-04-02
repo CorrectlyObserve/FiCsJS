@@ -30,7 +30,7 @@ const tokenizeAttrs = (fragment: string, name: string): Template.AttrToken[] => 
     }
 
     if (isQuote(char)) {
-      const [value, nextIndex] = parseQuotedAttr({
+      const [value, nextIndex]: [string, number] = parseQuotedAttr({
         name,
         fragment,
         index: index + 1,
