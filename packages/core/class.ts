@@ -916,7 +916,7 @@ export default class FiCsElement<D extends object, P extends object> {
               if (isBoolean)
                 wasEnabled = hasProp
                   ? !!Reflect.get(oldChildNode, prop)
-                  : that.#isBooleanAttrEnabled(name, oldAttr?.value)
+                  : that.#isBooleanAttrEnabled(name, oldAttr?.value ?? '')
 
               if (wasEnabled !== isEnabled || isDiffAttr) {
                 if (name !== FICS_ID && hasProp)
