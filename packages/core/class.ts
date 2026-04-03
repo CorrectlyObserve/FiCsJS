@@ -645,7 +645,7 @@ export default class FiCsElement<D extends object, P extends object> {
         ? this.#classNames(this.#getDataProps())
         : this.#classNames
 
-    return escape(classNames).trim()
+    return classNames.trim()
   }
 
   #setClassNames(component: HTMLElement): void {
@@ -670,7 +670,7 @@ export default class FiCsElement<D extends object, P extends object> {
     for (const [key, value] of typedEntries(
       typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
     ))
-      attrs.push([escape(key).trim(), escape(value).trim()])
+      attrs.push([key.trim(), value.trim()])
 
     return attrs
   }
@@ -1681,12 +1681,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
       const attrs: string[] = []
       if (that.#classNames && !isBlankString(that.#computedClassName))
-        attrs.push(`class="${that.#computedClassName}"`)
+        attrs.push(`class="${escape(that.#computedClassName)}"`)
 
       if (that.#computedAttrs.length > 0)
         for (const [key, value] of that.#computedAttrs)
-          if (that.#isBooleanAttrEnabled(key, value)) attrs.push(key)
-          else if (!that.#isBooleanAttr(key)) attrs.push(`${key}="${value}"`)
+          if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
+          else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
 
       const slotAttrs: string = joinArray([
           `id="${that.#name}"`,
