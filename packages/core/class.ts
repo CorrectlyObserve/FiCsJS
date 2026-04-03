@@ -389,14 +389,14 @@ export default class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #emitMetric({ key, error, detail }: Telemetry.Ctx<D, P>): void {
-    const isError: boolean = !!error,
+  #emitMetric({ key, error, startedAt, detail }: Telemetry.Ctx<D, P>): void {
+    const isError: boolean = error !== undefined,
       type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric'
 
     try {
       this.#options.telemetry?.[type]?.({
         key,
-        status: detail.duration === 0 ? 'starting' : isError ? 'error' : 'success',
+        status: startedAt === undefined ? 'starting' : isError ? 'error' : 'success',
         name: this.#name,
         instanceId: this.#instanceId,
         error,
