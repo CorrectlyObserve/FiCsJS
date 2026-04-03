@@ -485,9 +485,18 @@ export default class FiCsElement<D extends object, P extends object> {
 
         try {
           await func()
-          this.#emitMetric({ key: 'queue', detail: this.#createDetail({ key, startedAt }) })
+          this.#emitMetric({
+            key: 'queue',
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
         } catch (error) {
-          this.#emitMetric({ key: 'queue', error, detail: this.#createDetail({ key, startedAt }) })
+          this.#emitMetric({
+            key: 'queue',
+            error,
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
         }
       }
     })
@@ -517,6 +526,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
       this.#emitMetric({
         key: 'crud',
+        startedAt,
         detail: this.#createDetail({ key, api, method, isStream, startedAt })
       })
       return result
@@ -524,6 +534,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#emitMetric({
         key: 'crud',
         error,
+        startedAt,
         detail: this.#createDetail({ key, api, method, isStream, startedAt })
       })
     }
@@ -1411,11 +1422,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
         try {
           callback()
-          this.#emitMetric({ key: 'hook', detail: this.#createDetail({ key, startedAt }) })
+          this.#emitMetric({
+            key: 'hook',
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
         } catch (error) {
           this.#emitMetric({
             key: 'hook',
             error,
+            startedAt,
             detail: this.#createDetail({ key, startedAt })
           })
         }
