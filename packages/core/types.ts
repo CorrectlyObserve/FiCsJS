@@ -371,6 +371,7 @@ export declare namespace Telemetry {
   interface Ctx<D extends object, P> {
     key: keyof Telemetry.Detail<D, P>
     error?: unknown
+    startedAt?: number
     detail: Detail<D, P>[Ctx<D, P>['key']]
   }
 
