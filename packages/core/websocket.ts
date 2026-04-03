@@ -59,7 +59,10 @@ export default <D extends object, P>({
       onopen?.({ ...getParams(), event })
     }
 
-    websocket.onmessage = (event: MessageEvent): void => onmessage?.({ ...getParams(), event })
+    websocket.onmessage = (event: MessageEvent): void => {
+      if (activeWebsocket !== websocket) return
+      onmessage?.({ ...getParams(), event })
+    }
 
     const autoReconnect = (): void => {
       if (!isManuallyClosed && reconnect && !reconnectedTimer) {
