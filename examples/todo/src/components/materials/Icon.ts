@@ -16,14 +16,14 @@ export default () =>
     html: ({
       props: { ariaLabel, svg, isPressed },
       template,
-      html,
+      unsafeHtml,
       attributes: { boolean }
     }) => template`
       <button
         aria-label="${ariaLabel}"
         ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
         type="button"
-      >${html(svg)}</button>
+      >${unsafeHtml(svg)}</button>
     `,
     css: {
       'button[type="button"]': ({ props: { color } }) => ({
