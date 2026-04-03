@@ -54,6 +54,8 @@ export default <D extends object, P>({
     })
 
     websocket.onopen = (event: Event): void => {
+      if (activeWebsocket !== websocket) return
+
       reconnectedCount = 0
       clearReconnectTimer()
       onopen?.({ ...getParams(), event })
