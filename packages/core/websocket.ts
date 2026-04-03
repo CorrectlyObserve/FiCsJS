@@ -82,6 +82,8 @@ export default <D extends object, P>({
     }
 
     websocket.onerror = (event: Event): void => {
+      if (activeWebsocket !== websocket) return
+
       onerror?.({ ...getParams(), event })
       autoReconnect()
     }
