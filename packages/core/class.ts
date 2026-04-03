@@ -710,7 +710,7 @@ export default class FiCsElement<D extends object, P extends object> {
           wasEnabled: boolean =
             prop in component
               ? !!Reflect.get(component, prop)
-              : this.#isBooleanAttrEnabled(key, oldAttrs[key])
+              : this.#isBooleanAttrEnabled(key, oldAttrs[key] ?? '')
 
         if (wasEnabled !== isEnabled) {
           if (prop in component) Reflect.set(component, prop, isEnabled)
