@@ -27,8 +27,7 @@ export default <T>({
         const sanitized: Template.Variable<T> = variable[SANITIZED] as Template.Variable<T>
 
         if (Array.isArray(sanitized) && sanitized.length > 0) converted.push(...sanitized)
-        else if (typeof sanitized === 'string' && !isBlankString(sanitized))
-          converted.push(sanitized)
+        else if (typeof sanitized === 'string' && sanitized !== '') converted.push(sanitized)
 
         return
       }
@@ -37,7 +36,7 @@ export default <T>({
         if (context !== 'text') throw error(name, context)
 
         const unsafeHtml: string = variable[UNSAFE_HTML] as string
-        if (!isBlankString(unsafeHtml)) converted.push(unsafeHtml)
+        if (unsafeHtml !== '') converted.push(unsafeHtml)
 
         return
       }
@@ -78,13 +77,13 @@ export default <T>({
   const contexts: Template.Context[] = getTemplateContexts(strings)
   for (let index = 0; index < variables.length; index++) {
     const template: string = strings[index]
-    if (!isBlankString(template)) converted.push(template)
+    if (template !== '') converted.push(template)
 
     processValue(variables[index], contexts[index])
   }
 
   const trailing: string = strings[strings.length - 1]
-  if (!isBlankString(trailing)) converted.push(trailing)
+  if (trailing !== '') converted.push(trailing)
 
   return converted
 }
