@@ -141,8 +141,12 @@ export const isBrowser = (): boolean =>
 export const isEmptyObject = (param: unknown): boolean =>
   isPlainObject(param) && Reflect.ownKeys(param).length === 0
 
-export const isPlainObject = (param: unknown): param is Record<string, unknown> =>
-  typeof param === 'object' && param !== null && !Array.isArray(param)
+export const isPlainObject = (param: unknown): param is Record<string, unknown> => {
+  if (typeof param !== 'object' || param === null || Array.isArray(param)) return false
+
+  const proto: object | null = Object.getPrototypeOf(param)
+  return proto === Object.prototype || proto === null
+}
 
 export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
   arr.join(isSpaceAdded ? ' ' : '').trim()
