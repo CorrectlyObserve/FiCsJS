@@ -191,10 +191,7 @@ export default class FiCsElement<D extends object, P extends object> {
           if (updated && dataKey in updated) {
             const startedAt: number = Date.now()
 
-            this.#emitMetric({
-              key: 'hook',
-              detail: this.#createDetail({ key: 'updated', dataKey })
-            })
+            this.#emitMetric({ key: 'updated', detail: this.#createDetail({ dataKey }) })
 
             try {
               updated[dataKey]!({
