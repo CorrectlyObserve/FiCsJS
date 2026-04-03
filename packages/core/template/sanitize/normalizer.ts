@@ -48,7 +48,7 @@ const tokenizeAttrs = (fragment: string, name: string): Template.AttrToken[] => 
     }
 
     const attrName: string = fragment.slice(startIndex, index)
-    if (!isValidAttrName(attrName)) throw error(attrName, 'name')
+    if (!isValidAttrName(attrName)) throw error(name, 'name')
 
     tokens.push({ type: 'name', value: attrName })
   }
