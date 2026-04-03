@@ -476,5 +476,5 @@ export declare namespace WebSocket {
     isOpened: () => boolean
   }
 
-  type Value = string | Blob | ArrayBuffer | ArrayBufferView
+  type Value = string | Blob | BufferSource
 }
