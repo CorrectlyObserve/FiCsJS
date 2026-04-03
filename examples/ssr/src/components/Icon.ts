@@ -19,7 +19,7 @@ export default () =>
       props: { svg, ariaLabel, isDisabled, isActive, isLarge, isPressed },
       template,
       attributes: { boolean },
-      html,
+      unsafeHtml,
       isBrowser
     }) => {
       const _isDisabled = !isBrowser || isDisabled,
@@ -33,7 +33,7 @@ export default () =>
           aria-label="${ariaLabel}"
           ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
           type="button"
-        >${html(svg)}</button>
+        >${unsafeHtml(svg)}</button>
       `
     },
     css: {

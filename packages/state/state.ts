@@ -1,4 +1,4 @@
-import { deepEqual, uid } from '../core/helpers'
+import { deepEqual, isBlankString, uid } from '../core/helpers'
 
 const generator: Generator<number> = uid(),
   states: Map<string, unknown> = new Map(),
@@ -51,7 +51,7 @@ export default class State<S> {
     if (!writableStates.has(this.#key)) throw new Error(`The "${this.#key}" is readonly...`)
 
     key = key.trim()
-    if (key === '') throw new Error('The "key" to subscribe must be a non-empty string...')
+    if (isBlankString(key)) throw new Error('The "key" to subscribe must be a non-empty string...')
 
     if (this.#subscribers.has(key))
       throw new Error(`The subscriber key "${key}" is already registered...`)
@@ -64,7 +64,8 @@ export default class State<S> {
 
     if (key) {
       key = key.trim()
-      if (key === '') throw new Error('The "key" to unsubscribe must be a non-empty string...')
+      if (isBlankString(key))
+        throw new Error('The "key" to unsubscribe must be a non-empty string...')
 
       if (!this.#subscribers.has(key))
         throw new Error(`The subscriber key "${key}" was not found...`)

@@ -1,4 +1,4 @@
-import { normalizePath, toArray } from '../core/helpers'
+import { isBlankString, normalizePath, toArray } from '../core/helpers'
 import type { SingleOrArray, Translations } from '../core/types'
 
 let _directory: string = ''
@@ -23,10 +23,10 @@ export const i18n = async <T>({
   lang: string
   key: SingleOrArray<string>
 }): Promise<T> => {
-  if (_directory === '')
+  if (isBlankString(_directory))
     throw new Error('The configI18n function cannot be called before calling the i18n function...')
 
-  if (lang === '') throw new Error('The "lang" must be a non-empty string...')
+  if (isBlankString(lang)) throw new Error('The "lang" must be a non-empty string...')
 
   const url: string = `${_directory}/${lang}.json`,
     keys: string[] = toArray(key),

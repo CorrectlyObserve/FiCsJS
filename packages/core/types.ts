@@ -40,7 +40,7 @@ export declare namespace Crud {
   interface Ctx {
     api: string
     apiStatuses: Map<string, boolean>
-    enqueue: (func: () => void, key: Task['key']) => void
+    enqueue: (func: () => void | Promise<void>, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     options?: Options | StreamOptions
   }
@@ -70,7 +70,7 @@ export declare namespace Css {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = string | { [key: string]: string | number | Exclude<Global, string> }
+  type Global = string | Record<string, Declarations>
 
   type Rules<D extends object, P> = Record<string, Value<D, P>>
 
@@ -134,7 +134,7 @@ export declare namespace Html {
     children: Children
     props: P
     template: Template<D, P>
-    html: (str: string) => Record<symbol, string>
+    unsafeHtml: (str: string) => Record<symbol, string>
     show: (condition: boolean) => string
     apiStatuses: Record<string, boolean>
     attributes: {
@@ -155,6 +155,8 @@ export declare namespace Hook {
     debounce: RateLimitFn
     throttle: RateLimitFn
   }
+
+  type Key<D extends object, P> = keyof Lifecycle<D, P>
 
   interface Lifecycle<D extends object, P> {
     created?: (ctx: Ctx<D, P>) => void
@@ -187,6 +189,7 @@ export declare namespace Options {
 
   interface Resolved<D extends object, P> {
     ssr: boolean
+    telemetry?: Telemetry.Options<D, P>
     lazyLoad?: boolean
     rootMargin?: string
     websocket?: WebSocket.Options<D, P>
@@ -360,8 +363,74 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => void
+  func: () => void | Promise<void>
   key: 'define' | 're-render' | 'fetch'
+}
+
+export declare namespace Telemetry {
+  interface Ctx<D extends object, P> {
+    key: keyof Telemetry.Detail<D, P>
+    error?: unknown
+    startedAt?: number
+    detail: Detail<D, P>[Ctx<D, P>['key']]
+  }
+
+  interface Detail<D extends object, P> {
+    queue: { key: Task['key']; duration: number }
+    crud: {
+      key: string
+      api: string
+      method: string
+      isStream: boolean
+      duration: number
+    }
+    updated: { key: 'updated'; dataKey: keyof D; duration: number }
+    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; duration: number }
+  }
+
+  interface Metric<D extends object, P> extends Ctx<D, P> {
+    status: Status
+    name: string
+    instanceId: string
+    timestamp: number
+  }
+
+  interface Options<D extends object, P> {
+    onMetric?: (metric: Metric<D, P>) => void
+    onError?: (metric: Metric<D, P>) => void
+  }
+
+  type Status = 'starting' | 'success' | 'error'
+}
+
+export declare namespace Template {
+  type AttrToken =
+    | { type: 'name'; value: string }
+    | { type: 'equal-sign'; value: '=' }
+    | { type: 'value'; value: string }
+
+  interface ForSsr {
+    html: string
+    resolveInstanceId: (instanceId: string) => string
+  }
+
+  interface Parsed {
+    name: string
+    fragment: string
+    index: number
+    quote: Template.Quote
+  }
+
+  interface Sanitized<T> {
+    strings: TemplateStringsArray
+    variables: unknown[]
+    name: string
+    isFiCsElement: (variable: unknown) => variable is T
+  }
+
+  type Context = Quote | 'text' | 'tag'
+  type Quote = '"' | "'"
+  type Variable<T> = (T | string)[] | string
 }
 
 export type Translations = Record<string, unknown>
@@ -389,6 +458,10 @@ export declare namespace WebSocket {
     }
   }
 
+  interface Runtime {
+    close: () => void
+  }
+
   interface Options<D extends object, P> {
     path: string
     protocols?: SingleOrArray<string>
@@ -404,5 +477,5 @@ export declare namespace WebSocket {
     isOpened: () => boolean
   }
 
-  type Value = string | Blob | ArrayBuffer | ArrayBufferView
+  type Value = string | Blob | BufferSource
 }

@@ -1,4 +1,4 @@
-import { browserError, clampRatio, numberError } from '../core/helpers'
+import { browserError, clampRatio, isBlankString, numberError, typedEntries } from '../core/helpers'
 import type { Color } from './types'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
@@ -42,7 +42,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     seen.add(name)
 
-    if (resolved !== '') return convertCssVar(resolved, seen)
+    if (!isBlankString(resolved)) return convertCssVar(resolved, seen)
 
     const _fallback: string | undefined = fallback?.trim()
     if (_fallback) return convertCssVar(_fallback, seen)
@@ -126,12 +126,12 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     const lms: Color.Lms = { l: 0, m: 0, s: 0 }
 
-    for (const [key, { R, G, B }] of Object.entries(MATRIX_OF_RGB_TO_LMS))
+    for (const [key, { R, G, B }] of typedEntries(MATRIX_OF_RGB_TO_LMS))
       lms[key.toLowerCase() as keyof Color.Lms] = Math.cbrt(R * r + G * g + B * b)
 
     const oklab: Color.Oklab = { l: 0, a: 0, b: 0 }
 
-    for (const [key, { L, M, S }] of Object.entries(MATRIX_OF_LMS_TO_OKLAB))
+    for (const [key, { L, M, S }] of typedEntries(MATRIX_OF_LMS_TO_OKLAB))
       oklab[key.toLowerCase() as keyof Color.Oklab] = L * lms.l + M * lms.m + S * lms.s
 
     const { a: _a, b: _b }: Color.Oklab = oklab
@@ -154,8 +154,8 @@ const cache: Map<string, Color.Oklch> = new Map(),
     const rgb: Color.Rgb = hexToRgb(normalizedHex),
       oklch: Color.Oklch = rgbToOklch(rgb)
 
-    for (const [key, decimalPlace] of Object.entries({ l: 4, c: 4, h: 2 })) {
-      const value: number = oklch[key as keyof Color.Oklch]
+    for (const [key, decimalPlace] of typedEntries({ l: 4, c: 4, h: 2 })) {
+      const value: number = oklch[key]
 
       numberError({ [key]: value }, 'non-negative')
 
