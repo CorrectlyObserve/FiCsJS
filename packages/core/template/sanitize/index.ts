@@ -75,11 +75,12 @@ export default <T>({
       if (!isBlankString(fragment)) converted.push(fragment)
     }
 
+  const contexts: Template.Context[] = getTemplateContexts(strings)
   for (let index = 0; index < variables.length; index++) {
     const template: string = strings[index]
     if (!isBlankString(template)) converted.push(template)
 
-    processValue(variables[index], getTemplateContexts(strings)[index])
+    processValue(variables[index], contexts[index])
   }
 
   const trailing: string = strings[strings.length - 1]
