@@ -201,14 +201,16 @@ export default class FiCsElement<D extends object, P extends object> {
                 throttle: this.#throttle.bind(this)
               })
               this.#emitMetric({
-                key: 'hook',
-                detail: this.#createDetail({ key: 'updated', dataKey, startedAt })
+                key: 'updated',
+                startedAt,
+                detail: this.#createDetail({ dataKey, startedAt })
               })
             } catch (error) {
               this.#emitMetric({
-                key: 'hook',
+                key: 'updated',
                 error,
-                detail: this.#createDetail({ key: 'updated', dataKey, startedAt })
+                startedAt,
+                detail: this.#createDetail({ dataKey, startedAt })
               })
             }
           }
