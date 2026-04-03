@@ -706,10 +706,16 @@ export default class FiCsElement<D extends object, P extends object> {
     for (let [key, value] of this.#computedAttrs) {
       if (this.#isBooleanAttr(key)) {
         const prop: string = convertStr(key, 'camel'),
-          isEnabled: boolean = this.#isBooleanAttrEnabled(key, value)
+          isEnabled: boolean = this.#isBooleanAttrEnabled(key, value),
+          wasEnabled: boolean =
+            prop in component
+              ? !!Reflect.get(component, prop)
+              : this.#isBooleanAttrEnabled(key, oldAttrs[key])
 
-        if (prop in component) Reflect.set(component, prop, isEnabled)
-        isEnabled ? component.setAttribute(key, '') : component.removeAttribute(key)
+        if (wasEnabled !== isEnabled) {
+          if (prop in component) Reflect.set(component, prop, isEnabled)
+          isEnabled ? component.setAttribute(key, '') : component.removeAttribute(key)
+        }
       } else if (oldAttrs[key] !== value) component.setAttribute(key, value)
 
       newAttrNames.add(key)
