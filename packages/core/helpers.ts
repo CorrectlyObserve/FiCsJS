@@ -132,16 +132,24 @@ export const deepEqual = (
   return true
 }
 
-export const isBlankObject = (param: unknown): boolean =>
-  isObject(param) && Reflect.ownKeys(param).length === 0
+export const isBlankString = (param: unknown): boolean =>
+  typeof param === 'string' && param.trim() === ''
 
 export const isBrowser = (): boolean =>
   typeof window !== 'undefined' && typeof document !== 'undefined'
 
-export const isObject = (param: unknown): param is Record<string, unknown> =>
-  typeof param === 'object' && param !== null && !Array.isArray(param)
+export const isEmptyObject = (param: unknown): boolean =>
+  isPlainObject(param) && Reflect.ownKeys(param).length === 0
 
-export const joinArray = <T>(arr: T[]): string => arr.join(' ').trim()
+export const isPlainObject = (param: unknown): param is Record<string, unknown> => {
+  if (typeof param !== 'object' || param === null || Array.isArray(param)) return false
+
+  const proto: object | null = Object.getPrototypeOf(param)
+  return proto === Object.prototype || proto === null
+}
+
+export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
+  arr.join(isSpaceAdded ? ' ' : '').trim()
 
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
@@ -158,7 +166,7 @@ export const numberError = (
     | 'non-negative'
     | 'non-negative-int' = 'positive'
 ): void => {
-  for (const [key, value] of Object.entries(numbers)) {
+  for (const [key, value] of typedEntries(numbers)) {
     if (value === undefined) continue
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
@@ -180,7 +188,7 @@ export const numberError = (
 export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   if (Array.isArray(param)) return [...param]
 
-  if (!isObject(param)) return [param]
+  if (!isPlainObject(param)) return [param]
 
   const prototype: Object = Object.getPrototypeOf(param)
   if (prototype === Object.prototype || prototype === null) return [{ ...param }]

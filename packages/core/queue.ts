@@ -5,17 +5,17 @@ let isProcessing: boolean = false,
   isReRendering: boolean = false
 
 const ids: Set<string> = new Set(),
-  queue: Task[] = new Array(),
-  reRenderQueue: Task[] = new Array(),
+  queue: Task[] = [],
+  reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
-  dequeue = (task: Task): void => {
+  dequeue = async (task: Task): Promise<void> => {
     try {
-      task.func()
+      await task.func()
     } finally {
       if (task.key !== 'define') ids.delete(getQueueId(task))
     }
   },
-  drainQueue = (): void => {
+  drainQueue = async (): Promise<void> => {
     if (isProcessing || queue.length === 0) return
 
     isProcessing = true
@@ -29,41 +29,47 @@ const ids: Set<string> = new Set(),
           if (task.key === 're-render') reRenderQueue.push(task)
           else
             try {
-              dequeue(task)
-            } catch {
+              await dequeue(task)
+            } catch (error) {
               const { instanceId, key }: Task = task
               console.error(
-                `The task has instanceId ${instanceId} and key "${key}" failed to process...`
+                `The task has instanceId ${instanceId} and key "${key}" failed to process...`,
+                error
               )
             }
       }
 
-      scheduleReRenders()
+      await drainReRendersQueue()
     } finally {
       isProcessing = false
+
+      if (queue.length > 0) void drainQueue()
+      else if (reRenderQueue.length > 0) void drainReRendersQueue()
     }
   },
-  scheduleReRenders = (): void => {
+  drainReRendersQueue = async (): Promise<void> => {
     if (isReRendering || reRenderQueue.length === 0) return
 
     isReRendering = true
 
-    setTimeout(() => {
-      try {
-        const batch: Task[] = reRenderQueue.splice(0)
-        for (const task of batch)
+    await new Promise<void>(resolve => {
+      setTimeout(() => {
+        const batch: Promise<void>[] = reRenderQueue.splice(0).map(async task => {
           try {
-            dequeue(task)
-          } catch {
+            await dequeue(task)
+          } catch (error) {
             console.error(
-              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`
+              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`,
+              error
             )
           }
-      } finally {
-        isReRendering = false
-        drainQueue()
-        scheduleReRenders()
-      }
+        })
+
+        void Promise.allSettled(batch).finally(() => {
+          isReRendering = false
+          resolve()
+        })
+      })
     })
   }
 
@@ -75,7 +81,6 @@ export default (task: Task): void => {
   if (!ids.has(queueId)) {
     ids.add(queueId)
     queue.push(task)
-
-    drainQueue()
+    void drainQueue()
   }
 }

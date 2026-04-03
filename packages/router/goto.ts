@@ -1,4 +1,4 @@
-import { browserError } from '../core/helpers'
+import { browserError, isBlankString } from '../core/helpers'
 import CUSTOM_EVENT_NAME from './constants'
 
 export default (
@@ -8,7 +8,7 @@ export default (
   browserError()
 
   href = href.trim()
-  if (href === '') return
+  if (isBlankString(href)) return
 
   window.history[isWithoutHistory ? 'replaceState' : 'pushState']({}, '', href)
   window.dispatchEvent(new CustomEvent(CUSTOM_EVENT_NAME, { detail: { href } }))

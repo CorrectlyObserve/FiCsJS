@@ -2,5 +2,14 @@
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
   "trailing-spaces.trimOnSave": false,
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "cSpell.words": [
+    "formnovalidate",
+    "itemscope",
+    "novalidate",
+    "playsinline",
+    "shadowrootclonable",
+    "shadowrootdelegatesfocus",
+    "shadowrootserializable"
+  ]
 }

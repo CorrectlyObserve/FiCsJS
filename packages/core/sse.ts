@@ -1,4 +1,4 @@
-import { isBlankObject } from './helpers'
+import { isEmptyObject, typedEntries } from './helpers'
 import type { Action, DataProps, SSE } from './types'
 
 export default <D extends object, P>({
@@ -7,7 +7,7 @@ export default <D extends object, P>({
   debounce,
   throttle
 }: SSE.Ctx<D, P>): { eventSource: EventSource; removeEventListeners: () => void } | undefined => {
-  if (!options || isBlankObject(options)) return undefined
+  if (!options || isEmptyObject(options)) return undefined
 
   const { path, withCredentials, onopen, onmessage, onerror, actions }: SSE.Options<D, P> = options,
     eventSource: EventSource = new EventSource(path, { withCredentials }),
@@ -48,7 +48,7 @@ export default <D extends object, P>({
     listeners.push({ handler, callback })
   }
 
-  for (const [handler, method] of Object.entries(actions))
+  for (const [handler, method] of typedEntries(actions))
     Array.isArray(method)
       ? addEventListener(handler, method[0], method[1])
       : addEventListener(handler, method)

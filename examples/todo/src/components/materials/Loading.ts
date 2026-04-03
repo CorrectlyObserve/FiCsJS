@@ -13,10 +13,10 @@ export default () =>
       data: { texts },
       props: { lang },
       template,
-      html,
+      unsafeHtml,
       attributes: { statusLiveRegion }
     }) =>
-      template`<p ${statusLiveRegion}>${texts[lang]}</p><div aria-hidden="true">${html(Loader)}</div>`,
+      template`<p ${statusLiveRegion}>${texts[lang]}</p><div aria-hidden="true">${unsafeHtml(Loader)}</div>`,
     css: {
       p: forScreenReaders,
       div: {

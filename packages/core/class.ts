@@ -4,9 +4,9 @@ import {
   browserError,
   convertStr,
   deepEqual,
-  isBlankObject,
+  isBlankString,
   isBrowser,
-  isObject,
+  isEmptyObject,
   joinArray,
   numberError,
   toArray,
@@ -20,7 +20,9 @@ import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import runInfiniteVirtualScroll from './scroll/runtime'
 import scrollTemplate from './scroll/template'
 import openEventSource from './sse'
-import openWebSocket from './websocket'
+import escape from './template/escape'
+import applyShowAttr from './template/forSsr'
+import sanitize from './template/sanitize'
 import type {
   Action,
   Attrs,
@@ -41,14 +43,16 @@ import type {
   SingleOrArray,
   SSE,
   Task,
+  Telemetry,
   WebSocket as WebSocketNS
 } from './types'
+import openWebSocket from './websocket'
 
 export default class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
-  static globalCss: Css.Global[] = new Array()
+  static globalCss: Css.Global[] = []
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
@@ -61,20 +65,18 @@ export default class FiCsElement<D extends object, P extends object> {
     props: Map<keyof P, Set<() => void>>
   } = { data: new Map(), props: new Map() }
   readonly #cache: {
-    boundFunctions: Map<Function, D[keyof D] | P[keyof P]>
+    boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
-  } = { boundFunctions: new Map() }
+  } = { boundFunctions: new WeakMap() }
   readonly #deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
   readonly #i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
-  readonly #propsSources: Props<D, P>[] = new Array()
+  readonly #propsSources: Props<D, P>[] = []
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html.Core<D, P>
-  readonly #showAttr: string
-  readonly #css: Css.Sheet<D, P>[] = new Array()
-  readonly #boundCss: number[] = new Array()
+  readonly #css: Css.Sheet<D, P>[] = []
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -85,6 +87,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #isDeferred: boolean = true
   #isInRerendering: boolean = false
   #isInitialized: boolean = false
+  #styleSheet?: CSSStyleSheet
+  #lastCssText?: string
   #webSocketProp?: WebSocketNS.Prop
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
@@ -109,15 +113,20 @@ export default class FiCsElement<D extends object, P extends object> {
     options
   }: FiCs<D, P>) {
     name = name.trim()
-    if (name === '') throw new Error('The FiCsElement name must be a non-empty string...')
+    if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
 
     name = convertStr(name, 'kebab')
+    if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(name))
+      throw new Error(
+        'The FiCsElement name must contain only lowercase letters, numbers, and single hyphens...'
+      )
+
     this.#nameKey = convertStr(name, 'camel')
 
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${consts.FICS_ID_ATTR}${FiCsElement.#generator.next().value}`
+    this.#instanceId = instanceId ?? `${consts.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
     if (!generator) {
@@ -169,23 +178,42 @@ export default class FiCsElement<D extends object, P extends object> {
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
         },
         set: (_, prop, value): boolean => {
-          const key: keyof D = prop as keyof D
+          const dataKey: keyof D = prop as keyof D
 
-          if (deepEqual(this.#rawData[key], value)) return true
+          if (deepEqual(this.#rawData[dataKey], value)) return true
 
-          this.#rawData[key] = value
+          this.#rawData[dataKey] = value
 
-          const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(key)
+          const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
           if (subscribers) for (const updater of subscribers) updater()
 
           const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
-          if (updated && key in updated)
-            updated[key]!({
-              ...this.#getDataProps(true),
-              ref: (selector: string) => this.#queryDeeply(selector),
-              debounce: this.#debounce.bind(this),
-              throttle: this.#throttle.bind(this)
-            })
+          if (updated && dataKey in updated) {
+            const startedAt: number = Date.now()
+
+            this.#emitMetric({ key: 'updated', detail: this.#createDetail({ dataKey }) })
+
+            try {
+              updated[dataKey]!({
+                ...this.#getDataProps(true),
+                ref: (selector: string) => this.#queryDeeply(selector),
+                debounce: this.#debounce.bind(this),
+                throttle: this.#throttle.bind(this)
+              })
+              this.#emitMetric({
+                key: 'updated',
+                startedAt,
+                detail: this.#createDetail({ dataKey, startedAt })
+              })
+            } catch (error) {
+              this.#emitMetric({
+                key: 'updated',
+                error,
+                startedAt,
+                detail: this.#createDetail({ dataKey, startedAt })
+              })
+            }
+          }
 
           if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
             this.#enqueue(this.#reRender.bind(this), 're-render')
@@ -232,12 +260,16 @@ export default class FiCsElement<D extends object, P extends object> {
     })
 
     if (options) {
-      const { ssr, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> = options
+      const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
+        options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
+
+      if (telemetry && !isEmptyObject(telemetry)) this.#options.telemetry = telemetry
+
       if (lazyLoad) this.#options.lazyLoad = true
 
-      if (rootMargin !== '' && rootMargin !== '0px' && rootMargin !== undefined) {
+      if (!isBlankString(rootMargin) && rootMargin !== '0px' && rootMargin !== undefined) {
         if (!lazyLoad)
           throw new Error(
             `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
@@ -247,7 +279,7 @@ export default class FiCsElement<D extends object, P extends object> {
       }
 
       for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
-        if (!value || isBlankObject(value) || !this.#isBrowser) continue
+        if (!value || isEmptyObject(value) || !this.#isBrowser) continue
 
         switch (key) {
           case 'websocket':
@@ -315,35 +347,36 @@ export default class FiCsElement<D extends object, P extends object> {
     if (attributes) this.#attrs = attributes
 
     this.#html = html
-    this.#showAttr = `${this.#instanceId}-show-syntax`
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
 
-    if (hooks && !isBlankObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
-    if (actions && !isBlankObject(actions) && this.#isBrowser) this.#actions = { ...actions }
+    if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
+    if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
-    const { scroll, ...args } = this.#options
+    const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
+      cloned: FiCsElement<D, P> = new FiCsElement({
+        name: this.#nameKey,
+        isExceptional: true,
+        instanceId: instanceId ?? this.#instanceId,
+        data: () => this.#data as Partial<D>,
+        children: Object.values(this.#children),
+        deferredData: this.#deferredData,
+        i18nData: this.#i18nData,
+        props: this.#propsSources,
+        className: this.#classNames,
+        attributes: this.#attrs,
+        html: this.#html,
+        clonedCss: this.#css,
+        actions: this.#actions,
+        hooks: this.#hooks,
+        options: { ...args, scroll: scroll?.options }
+      })
 
-    return new FiCsElement({
-      name: this.#nameKey,
-      isExceptional: true,
-      instanceId: instanceId ?? this.#instanceId,
-      children: Object.values(this.#children),
-      data: () => this.#data as Partial<D>,
-      deferredData: this.#deferredData,
-      i18nData: this.#i18nData,
-      props: this.#propsSources,
-      className: this.#classNames,
-      attributes: this.#attrs,
-      html: this.#html,
-      clonedCss: this.#css,
-      actions: this.#actions,
-      hooks: this.#hooks,
-      options: { ...args, scroll: scroll?.options }
-    })
+    for (const [key, value] of typedEntries(this.#rawProps)) cloned.#rawProps[key] = value
+    return cloned
   }
 
   #bindFunction(value: D[keyof D] | P[keyof P]): D[keyof D] | P[keyof P] {
@@ -358,6 +391,84 @@ export default class FiCsElement<D extends object, P extends object> {
     return value
   }
 
+  #emitMetric({ key, error, startedAt, detail }: Telemetry.Ctx<D, P>): void {
+    const isError: boolean = error !== undefined,
+      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric'
+
+    try {
+      this.#options.telemetry?.[type]?.({
+        key,
+        status: startedAt === undefined ? 'starting' : isError ? 'error' : 'success',
+        name: this.#name,
+        instanceId: this.#instanceId,
+        error,
+        detail,
+        timestamp: Date.now()
+      })
+    } catch (callbackError) {
+      console.error(`The telemetry ${type} callback failed...`, callbackError)
+    } finally {
+      if (isError) throw error
+    }
+  }
+
+  #createDetail({
+    key,
+    startedAt
+  }: {
+    key: Task['key']
+    startedAt?: number
+  }): Telemetry.Detail<D, P>['queue']
+  #createDetail({
+    key,
+    api,
+    method,
+    isStream,
+    startedAt
+  }: Omit<Telemetry.Detail<D, P>['crud'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
+    D,
+    P
+  >['crud']
+  #createDetail({
+    key,
+    startedAt
+  }: {
+    key: Exclude<Hook.Key<D, P>, 'updated'>
+    startedAt?: number
+  }): Telemetry.Detail<D, P>['hook']
+  #createDetail({
+    dataKey,
+    startedAt
+  }: {
+    dataKey: keyof D
+    startedAt?: number
+  }): Telemetry.Detail<D, P>['updated']
+  #createDetail({
+    key,
+    api,
+    method,
+    isStream,
+    dataKey,
+    startedAt
+  }: {
+    key?: Task['key'] | Hook.Key<D, P> | string
+    api?: string
+    method?: string
+    isStream?: boolean
+    dataKey?: keyof D
+    startedAt?: number
+  }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
+    const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
+
+    if (api && method && isStream !== undefined)
+      return { key, api, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
+
+    if (dataKey !== undefined)
+      return { key: 'updated', dataKey, duration } as Telemetry.Detail<D, P>['updated']
+
+    return { key, duration } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
+  }
+
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
     return {
       data: this.#data,
@@ -366,20 +477,66 @@ export default class FiCsElement<D extends object, P extends object> {
     } as DataProps.Payload<D, P, B>
   }
 
-  #enqueue(func: () => void, key: Task['key']): void {
-    enqueue({ instanceId: this.#instanceId, func, key })
+  #enqueue(func: () => void | Promise<void>, key: Task['key']): void {
+    enqueue({
+      instanceId: this.#instanceId,
+      key,
+      func: async (): Promise<void> => {
+        const startedAt: number = Date.now()
+        this.#emitMetric({ key: 'queue', detail: this.#createDetail({ key }) })
+
+        try {
+          await func()
+          this.#emitMetric({
+            key: 'queue',
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
+        } catch (error) {
+          this.#emitMetric({
+            key: 'queue',
+            error,
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
+        }
+      }
+    })
   }
 
   #crud<T>(api: string, options?: Crud.Options): Promise<T>
   #crud(api: string, options: Crud.StreamOptions): Promise<void>
   async #crud<T>(api: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
-    return await runCrud({
-      api,
-      apiStatuses: this.#apiStatuses,
-      enqueue: this.#enqueue.bind(this),
-      reRender: this.#reRender.bind(this),
-      options
-    })
+    const startedAt: number = Date.now(),
+      key: string = options?.key ?? 'crud',
+      method: string = options?.method?.toUpperCase() ?? 'GET',
+      isStream: boolean = !!(options && 'onChunk' in options)
+
+    this.#emitMetric({ key: 'crud', detail: this.#createDetail({ key, api, method, isStream }) })
+
+    try {
+      const result: T | void = await runCrud({
+        api,
+        apiStatuses: this.#apiStatuses,
+        enqueue: this.#enqueue.bind(this),
+        reRender: this.#reRender.bind(this),
+        options
+      })
+
+      this.#emitMetric({
+        key: 'crud',
+        startedAt,
+        detail: this.#createDetail({ key, api, method, isStream, startedAt })
+      })
+      return result
+    } catch (error) {
+      this.#emitMetric({
+        key: 'crud',
+        error,
+        startedAt,
+        detail: this.#createDetail({ key, api, method, isStream, startedAt })
+      })
+    }
   }
 
   #removePublicMethod = ({
@@ -407,10 +564,10 @@ export default class FiCsElement<D extends object, P extends object> {
         const instanceId: string = `${child.#instanceId}-${key}`,
           clonedSelf: Descendant | undefined = child.#clonedSelves.get(instanceId),
           cloneProps = (descendant: Descendant): Descendant => {
-            for (const [key, value] of Object.entries(child.#rawProps))
+            for (const [key, value] of typedEntries(child.#rawProps))
               if (!(key in props)) descendant.#props[key] = value
 
-            for (const [key, value] of Object.entries({ ...props })) descendant.#props[key] = value
+            for (const [key, value] of typedEntries({ ...props })) descendant.#props[key] = value
 
             return descendant
           }
@@ -420,13 +577,17 @@ export default class FiCsElement<D extends object, P extends object> {
         const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
           const cloned: Descendant = cloneProps(child.#clone(instanceId))
 
-          for (const [key, _child] of Object.entries(cloned.#children))
+          for (const [key, _child] of typedEntries(cloned.#children))
             cloned.#children[key] = cloneRecursively(
               _child,
               `${_child.#instanceId}-in-${instanceId}`
             )
 
           child.#clonedSelves.set(instanceId, cloned)
+          if (child.#clonedSelves.size > consts.CLONED_SELVES_LENGTH) {
+            const oldestKey: string | undefined = child.#clonedSelves.keys().next().value
+            if (oldestKey) child.#clonedSelves.delete(oldestKey)
+          }
           return cloned
         }
 
@@ -460,7 +621,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         try {
           for (const _descendant of descendants)
-            for (const [key, value] of Object.entries(
+            for (const [key, value] of typedEntries(
               values({
                 ...this.#getDataProps(true),
                 children: this.#children,
@@ -495,8 +656,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #setClassNames(component: HTMLElement): void {
     const oldClassNames: string[] = Array.from(component.classList),
-      newClassNames: Set<string> =
-        this.#computedClassName === '' ? new Set() : new Set(this.#computedClassName.split(/\s+/))
+      newClassNames: Set<string> = isBlankString(this.#computedClassName)
+        ? new Set()
+        : new Set(this.#computedClassName.split(/\s+/))
 
     for (const className of newClassNames)
       if (!component.classList.contains(className)) component.classList.add(className)
@@ -511,7 +673,7 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!this.#attrs) return []
 
     const attrs: [string, string][] = []
-    for (const [key, value] of Object.entries(
+    for (const [key, value] of typedEntries(
       typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
     ))
       attrs.push([key.trim(), value.trim()])
@@ -519,8 +681,16 @@ export default class FiCsElement<D extends object, P extends object> {
     return attrs
   }
 
-  #isBooleanAttr(attr: string, value: string): boolean {
-    return attr !== 'class' && attr !== 'value' && value === ''
+  #isBooleanAttr(attr: string): boolean {
+    return consts.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
+  }
+
+  #isBooleanAttrEnabled(attr: string, value: string): boolean {
+    attr = attr.trim().toLowerCase()
+    if (!this.#isBooleanAttr(attr)) return false
+
+    const normalized: string = value.trim().toLowerCase()
+    return isBlankString(normalized) || normalized === 'true' || normalized === attr
   }
 
   #setAttrs(component: HTMLElement): void {
@@ -534,15 +704,32 @@ export default class FiCsElement<D extends object, P extends object> {
     }
 
     for (let [key, value] of this.#computedAttrs) {
-      if (oldAttrs[key] !== value)
-        if (this.#isBooleanAttr(key, value)) Reflect.set(component, convertStr(key, 'camel'), true)
-        else component.setAttribute(key, value)
+      if (this.#isBooleanAttr(key)) {
+        const prop: string = convertStr(key, 'camel'),
+          isEnabled: boolean = this.#isBooleanAttrEnabled(key, value),
+          wasEnabled: boolean =
+            prop in component
+              ? !!Reflect.get(component, prop)
+              : this.#isBooleanAttrEnabled(key, oldAttrs[key] ?? '')
+
+        if (wasEnabled !== isEnabled) {
+          if (prop in component) Reflect.set(component, prop, isEnabled)
+          isEnabled ? component.setAttribute(key, '') : component.removeAttribute(key)
+        }
+      } else if (oldAttrs[key] !== value) component.setAttribute(key, value)
 
       newAttrNames.add(key)
     }
 
     for (const key in oldAttrs)
-      if (key !== 'class' && !newAttrNames.has(key)) component.removeAttribute(key)
+      if (key !== 'class' && !newAttrNames.has(key)) {
+        if (this.#isBooleanAttr(key)) {
+          const prop: string = convertStr(key, 'camel')
+          if (prop in component) Reflect.set(component, prop, false)
+        }
+
+        component.removeAttribute(key)
+      }
   }
 
   #getChildNodes(parent: DocumentFragment | ChildNode): ChildNode[] {
@@ -550,47 +737,26 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   get #template(): string {
-    const sanitized: unique symbol = Symbol.for(`__${this.#instanceId}-sanitized__`),
-      unsanitized: unique symbol = Symbol.for(`__${this.#instanceId}-unsanitized__`),
-      convertTemplate = (
-        strings: TemplateStringsArray,
-        variables: (Html.Content<D, P> | unknown)[]
-      ): Html.Content<D, P>[] => {
-        const converted: Html.Content<D, P>[] = new Array(),
-          isSymbol = (variable: unknown, symbol: symbol): boolean =>
-            !!(variable && isObject(variable) && symbol in variable),
-          sanitize = (index: number, template: string, variable: unknown): void => {
-            if (isSymbol(variable, sanitized))
-              converted.push(template, ...(variable as Html.Sanitized<D, P>)[sanitized])
-            else if (Array.isArray(variable)) {
-              converted.push(template)
-              for (const child of variable) sanitize(index, '', child)
-            } else if (isSymbol(variable, unsanitized))
-              converted.push(template, (variable as Record<symbol, string>)[unsanitized])
-            else {
-              if (template !== '') converted.push(template)
-
-              variable =
-                typeof variable === 'string'
-                  ? variable.replace(/[<>]/g, tag => (tag === '<' ? '&lt;' : '&gt;'))
-                  : (variable ?? '')
-
-              if (variable !== '') converted.push(variable as Html.Content<D, P>)
-            }
-          }
-
-        for (const [index, template] of strings.entries())
-          sanitize(index, template, variables[index])
-
-        return converted as Html.Content<D, P>[]
-      }
-
     this.#addSetIndividualProps()
 
-    const template: Html.Template<D, P> = (
-      strings: TemplateStringsArray,
-      ...variables: (Html.Content<D, P> | unknown)[]
-    ): Html.Sanitized<D, P> => ({ [sanitized]: convertTemplate(strings, variables) })
+    const {
+        a11y: { STATUS_LIVE_REGION },
+        attrs: { FICS_ID, SHOW },
+        symbols: { SANITIZED, UNSAFE_HTML },
+        VAR_TAG_NAME
+      } = consts,
+      template: Html.Template<D, P> = (
+        strings: TemplateStringsArray,
+        ...variables: (Html.Content<D, P> | unknown)[]
+      ): Html.Sanitized<D, P> => ({
+        [SANITIZED]: sanitize<Exclude<Html.Content<D, P>, string>>({
+          strings,
+          variables,
+          name: this.#name,
+          isFiCsElement: (variable: unknown): variable is Exclude<Html.Content<D, P>, string> =>
+            variable instanceof FiCsElement
+        }) as Html.Content<D, P>[]
+      })
 
     const contents: Html.Content<D, P>[] = this.#html({
       ...this.#getDataProps(),
@@ -600,13 +766,13 @@ export default class FiCsElement<D extends object, P extends object> {
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
       ): Html.Sanitized<D, P> => template(strings, ...variables),
-      html: (str: string): Record<symbol, string> => ({ [unsanitized]: str }),
-      show: (condition: boolean): string => (condition ? '' : this.#showAttr),
+      unsafeHtml: (str: string): Record<symbol, string> => ({ [UNSAFE_HTML]: str }),
+      show: (condition: boolean): string => (condition ? '' : SHOW),
       apiStatuses: Object.fromEntries(this.#apiStatuses),
       attributes: {
         boolean: (condition: boolean | undefined): 'true' | 'false' =>
           condition ? 'true' : 'false',
-        statusLiveRegion: consts.a11y.STATUS_LIVE_REGION
+        statusLiveRegion: STATUS_LIVE_REGION
       },
       isBrowser: this.#isBrowser,
       isDeferred: this.#isDeferred,
@@ -622,14 +788,14 @@ export default class FiCsElement<D extends object, P extends object> {
           array,
           callback
         })
-    })[sanitized]
+    })[SANITIZED]
 
     return contents.reduce((prev, curr) => {
       if (curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
         if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
-        curr = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="${instanceId}"></${consts.VAR_TAG_NAME}>`
+        curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
       return `${prev}${curr}`
@@ -651,7 +817,11 @@ export default class FiCsElement<D extends object, P extends object> {
       isHTMLElement = (childNode: ChildNode | ParentNode): childNode is HTMLElement =>
         childNode instanceof HTMLElement,
       isTextarea = (childNode: ChildNode | ParentNode): childNode is HTMLTextAreaElement =>
-        isHTMLElement(childNode) && childNode.localName === 'textarea'
+        isHTMLElement(childNode) && childNode.localName === 'textarea',
+      {
+        attrs: { FICS_ID, SHOW },
+        VAR_TAG_NAME
+      } = consts
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -660,7 +830,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         if (
           isText(childNode) &&
-          childNode?.nodeValue === '' &&
+          isBlankString(childNode?.nodeValue) &&
           (!parentNode || !isTextarea(parentNode))
         ) {
           childNode.parentNode?.removeChild(childNode)
@@ -670,8 +840,8 @@ export default class FiCsElement<D extends object, P extends object> {
         }
 
         if (isElement(childNode)) {
-          if (childNode.localName === consts.VAR_TAG_NAME) {
-            const instanceId: string | null = childNode.getAttribute(consts.FICS_ID_ATTR)
+          if (childNode.localName === VAR_TAG_NAME) {
+            const instanceId: string | null = childNode.getAttribute(FICS_ID)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -695,9 +865,9 @@ export default class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(this.#showAttr)) {
+          if (childNode.hasAttribute(SHOW)) {
             ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(this.#showAttr)
+            childNode.removeAttribute(SHOW)
           }
         }
 
@@ -742,26 +912,49 @@ export default class FiCsElement<D extends object, P extends object> {
             oldAttrList[name] = { value, namespaceURI, localName }
           }
 
+          const isOldChildNodeHTMLElement: boolean = isHTMLElement(oldChildNode)
           for (let i = 0; i < newAttrs.length; i++) {
-            const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i]
+            const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i],
+              oldAttr: Omit<Html.PickedAttr, 'name'> | undefined = oldAttrList[name],
+              isDiffAttr: boolean = oldAttr?.value !== value
 
-            if (oldAttrList[name]?.value !== value)
-              if (isHTMLElement(oldChildNode)) {
-                const prop: string = convertStr(name, 'camel'),
-                  isBoolean: boolean = that.#isBooleanAttr(name, value)
+            if (isOldChildNodeHTMLElement) {
+              const isBoolean: boolean = that.#isBooleanAttr(name),
+                prop: string = convertStr(name, 'camel'),
+                hasProp: boolean = prop in oldChildNode,
+                isEnabled: boolean = that.#isBooleanAttrEnabled(name, value)
 
-                if (name !== consts.FICS_ID_ATTR && prop in oldChildNode)
-                  Reflect.set(oldChildNode, prop, isBoolean ? true : value)
-                else if (!isBoolean) oldChildNode.setAttribute(name, value)
-              } else if (namespaceURI) oldChildNode.setAttributeNS(namespaceURI, name, value)
-              else oldChildNode.setAttribute(name, value)
+              let wasEnabled: boolean = false
+              if (isBoolean)
+                wasEnabled = hasProp
+                  ? !!Reflect.get(oldChildNode, prop)
+                  : that.#isBooleanAttrEnabled(name, oldAttr?.value ?? '')
+
+              if (wasEnabled !== isEnabled || isDiffAttr) {
+                if (name !== FICS_ID && hasProp)
+                  Reflect.set(oldChildNode, prop, isBoolean ? isEnabled : value)
+
+                if (!isBoolean) oldChildNode.setAttribute(name, value)
+                else if (isEnabled) oldChildNode.setAttribute(name, '')
+                else oldChildNode.removeAttribute(name)
+              }
+            } else if (isDiffAttr)
+              namespaceURI
+                ? oldChildNode.setAttributeNS(namespaceURI, name, value)
+                : oldChildNode.setAttribute(name, value)
 
             delete oldAttrList[name]
           }
 
           for (const name in oldAttrList)
-            if (isHTMLElement(oldChildNode)) oldChildNode.removeAttribute(name)
-            else {
+            if (isOldChildNodeHTMLElement) {
+              if (that.#isBooleanAttr(name)) {
+                const prop: string = convertStr(name, 'camel')
+                if (prop in oldChildNode) Reflect.set(oldChildNode, prop, false)
+              }
+
+              oldChildNode.removeAttribute(name)
+            } else {
               const { namespaceURI, localName }: Omit<Html.PickedAttr, 'name'> = oldAttrList[name]
 
               if (namespaceURI) oldChildNode.removeAttributeNS(namespaceURI, localName)
@@ -773,7 +966,7 @@ export default class FiCsElement<D extends object, P extends object> {
             return
           }
 
-          if (!!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))) return
+          if (!!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))) return
 
           updateChildNodes(
             oldChildNode,
@@ -842,7 +1035,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
           parentNode.insertBefore(
             childNode,
-            before && !before.parentNode?.isEqualNode(parentNode) ? null : before
+            before && before.parentNode !== parentNode ? null : before
           )
         }
 
@@ -856,18 +1049,31 @@ export default class FiCsElement<D extends object, P extends object> {
             childNode.focus()
 
             if (childNode instanceof HTMLInputElement || childNode instanceof HTMLTextAreaElement) {
-              const { length }: { length: number } = childNode.value
-              childNode.setSelectionRange(length, length)
+              try {
+                const { length }: { length: number } = childNode.value
+                childNode.setSelectionRange(length, length)
+              } catch {
+                const { localName, type }: { localName: string; type: string } = childNode
+                console.warn(
+                  `The setSelectionRange is not supported on <${localName} type="${childNode instanceof HTMLInputElement ? type : 'textarea'}">...`
+                )
+              }
             }
           }
         }
 
         const getMapKey = (childNode: ChildNode): string => {
-          const { nodeName }: { nodeName: string } = childNode,
-            key: string | null = isElement(childNode) ? getKey(childNode) : null
+            const { nodeName }: { nodeName: string } = childNode,
+              key: string | null = isElement(childNode) ? getKey(childNode) : null
 
-          return key ? `${nodeName}-${key}` : nodeName
-        }
+            return key ? `${nodeName}-${key}` : nodeName
+          },
+          _getKey = (element: Element): string | number | null => {
+            const key: string | number | null = getKey(element),
+              numKey: number = parseInt(key ?? '', 10)
+
+            return Number.isFinite(numKey) ? numKey : key
+          }
 
         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex)
           if (matchChildNode(oldStartNode, newStartNode)) {
@@ -895,7 +1101,7 @@ export default class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!Reflect.get(oldChildNode, convertStr(consts.FICS_ID_ATTR, 'camel'))
+                  !!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))
                 )
                   continue
 
@@ -909,13 +1115,7 @@ export default class FiCsElement<D extends object, P extends object> {
               patchChildNode(mapStartNode, newStartNode)
               keyChildNodes.set(getMapKey(mapStartNode), mapStartNode)
             } else if (isElement(newStartNode)) {
-              const _getKey = (element: Element): string | number | null => {
-                  const key: string | number | null = getKey(element),
-                    numKey: number = parseInt(key ?? '', 10)
-
-                  return Number.isFinite(numKey) ? numKey : key
-                },
-                key: string | number | null = _getKey(newStartNode)
+              const key: string | number | null = _getKey(newStartNode)
 
               if (typeof key === 'number') {
                 let _oldStartIndex: number = oldStartIndex,
@@ -953,9 +1153,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
         while (oldStartIndex <= oldEndIndex) {
           const childNode: ChildNode = oldChildNodes[oldStartIndex++]
-
-          if (!keyChildNodes.get(getMapKey(childNode))) childNode.remove()
-          focusNode(childNode)
+          keyChildNodes.get(getMapKey(childNode)) ? focusNode(childNode) : childNode.remove()
         }
       }
 
@@ -966,66 +1164,75 @@ export default class FiCsElement<D extends object, P extends object> {
   #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
-    let topLevelCss: string = ''
-    const convertCss = (style: Css.Value<D, P>): string =>
-      Object.entries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
-        (prev, [key, value]) => {
-          if (value === undefined || value === '' || isBlankObject(value)) return prev
+    const normalizeProperty = (key: string | number): string => {
+        if (typeof key === 'number') return key.toString()
+        /** @remarks CSS custom properties */
+        if (key.startsWith('--')) return key
 
-          key = convertStr(key, 'kebab')
-          if (key.startsWith('webkit')) key = `-${key}`
+        key = convertStr(key, 'kebab')
+        if (key.startsWith('webkit')) key = `-${key}`
+        return key
+      },
+      normalizeHost = (selector: string | number): string => {
+        if (!isSsr || typeof selector === 'number') return selector.toString()
 
-          if (key.startsWith('@keyframes')) {
-            topLevelCss += `${key}{${convertCss(value as Css.Value<D, P>)}}`
-            return prev
-          }
+        const ssrHost: string = `div#${this.#name}`
+        return selector
+          .replace(new RegExp(`${consts.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
+          .replace(new RegExp(`${consts.hostSelector.STRICT}`, 'g'), ssrHost)
+      },
+      convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
+        typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
+          (prev, [key, value]) => {
+            if (typeof key === 'number') numberError({ key }, 'finite')
 
-          const isApplicableType: boolean = typeof value === 'string' || typeof value === 'number'
-          return `${prev}${key}${isApplicableType ? `:${value};` : `{${convertCss(value as Css.Declarations)}}`}`
-        },
-        ''
-      )
+            if (value === undefined || isBlankString(value) || isEmptyObject(value)) return prev
+
+            if (typeof key === 'string' && key.startsWith('@keyframes')) {
+              topLevelCss.push(`${key}{${convertCss(value as Css.Value<D, P>, topLevelCss)}}`)
+              return prev
+            }
+
+            if (typeof value === 'string' || typeof value === 'number')
+              return `${prev}${normalizeProperty(key)}:${value};`
+
+            return `${prev}${normalizeHost(key)}{${convertCss(value as Css.Declarations, topLevelCss)}}`
+          },
+          ''
+        )
 
     return css.reduce((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${curr}`
+      if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
-      let _curr: string = ''
-
-      for (let [selector, style] of Object.entries(curr)) {
-        if (isSsr && selector.startsWith(consts.HOST_SELECTOR))
-          selector = selector.replace(consts.HOST_SELECTOR, `div#${this.#name}`)
-
-        const content: string = convertCss(style),
-          index: number = content.indexOf('{')
-
-        if (selector.startsWith(consts.HOST_SELECTOR) && index > -1) {
-          const hostCss: string = content.slice(0, index),
-            lastIndex: number = hostCss.lastIndexOf(';'),
-            hostCssContent: string = hostCss.slice(0, lastIndex - hostCss.length),
-            _selector: string = hostCss.slice(lastIndex + 1)
-
-          _curr += `${selector}{${hostCssContent}${hostCssContent.length > 0 ? ';' : ''}${_selector}${content.slice(index)}}`
-        } else _curr += `${selector}{${content}}`
-      }
-
-      return `${prev}${_curr}${topLevelCss}`
+      const topLevelCss: string[] = []
+      return joinArray(
+        [
+          prev,
+          ...typedEntries(curr).map(
+            ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
+          ),
+          ...topLevelCss
+        ],
+        false
+      )
     }, '') as string
   }
 
-  #buildCss(shadowRoot: ShadowRoot, additional: Css.Sheet<D, P>[]): void {
+  #buildCss(shadowRoot: ShadowRoot): void {
     const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
-
     if (css.length === 0) return
 
-    if (additional.length === 0)
-      for (const [index, content] of this.#css.entries()) {
-        if (typeof content === 'string') continue
-        if (typeof Object.values(content)[0] === 'function') this.#boundCss.push(index)
-      }
+    if (!this.#styleSheet) this.#styleSheet = new CSSStyleSheet()
 
-    const stylesheet: CSSStyleSheet = new CSSStyleSheet()
-    shadowRoot.adoptedStyleSheets = [stylesheet]
-    stylesheet.replaceSync(this.#cssToString([`${consts.HOST_SELECTOR}{display:block}`, ...css]))
+    const cssText: string = this.#cssToString([
+      `${consts.hostSelector.ITSELF}{display:block}`,
+      ...css
+    ])
+    if (this.#lastCssText === cssText) return
+
+    this.#styleSheet.replaceSync(cssText)
+    this.#lastCssText = cssText
+    shadowRoot.adoptedStyleSheets = [this.#styleSheet]
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -1035,46 +1242,64 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    if (selector === consts.HOST_SELECTOR) return [component]
+    let trimmedSelector: string = selector.trim()
+    const {
+      hostSelector: { ITSELF }
+    } = consts
 
-    return Array.from(
-      this.#getShadowRoot(component).querySelectorAll(
-        selector.startsWith(consts.HOST_SELECTOR) ? selector : `${consts.HOST_SELECTOR} ${selector}`
-      )
-    )
+    if (trimmedSelector === ITSELF) return [component]
+
+    const isDirectChild: boolean = trimmedSelector.startsWith(`${ITSELF} >`)
+    if (isDirectChild || trimmedSelector.startsWith(`${ITSELF} `)) {
+      const sliced: string = trimmedSelector.slice(ITSELF.length)
+      trimmedSelector = isDirectChild ? `:scope ${sliced}` : sliced.trimStart()
+    }
+
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+    try {
+      return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
+    } catch (error) {
+      throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
+    }
   }
 
   #queryDeeply<T extends Element = Element>(selector: string, shadowRoot?: ShadowRoot): T | null {
+    if (!shadowRoot && !this.#cache.component) return null
+
     const searchedShadowRoots: Set<ShadowRoot> = new Set<ShadowRoot>(),
-      searchRecursively = (shadowRoot?: ShadowRoot): T | null => {
-        if (!shadowRoot || searchedShadowRoots.has(shadowRoot)) return null
+      searchShadowRootRecursively = (shadowRoot: ShadowRoot): T | null => {
+        if (searchedShadowRoots.has(shadowRoot)) return null
         searchedShadowRoots.add(shadowRoot)
 
-        const searched: T | null = shadowRoot.querySelector(selector) as T | null
-        if (searched) return searched
+        try {
+          const searched: T | null = shadowRoot.querySelector(selector)
+          if (searched) return searched
+        } catch {
+          throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
+        }
 
-        const treeWalker: TreeWalker = document.createTreeWalker(
+        const treeWalker: TreeWalker = shadowRoot.ownerDocument.createTreeWalker(
           shadowRoot,
           NodeFilter.SHOW_ELEMENT
         )
-        let element: HTMLElement | null = treeWalker.nextNode() as HTMLElement | null
+        let element: Element | null = treeWalker.nextNode() as Element | null
 
         while (element) {
-          if (element.nodeName.toLowerCase().startsWith('f-')) {
-            const nested: T | null = searchRecursively(this.#getShadowRoot(element))
-            if (nested) return nested
+          const nestedShadowRoot: ShadowRoot | null =
+            (element as { shadowRoot?: ShadowRoot | null }).shadowRoot ?? null
+
+          if (nestedShadowRoot) {
+            const foundShadowRoot: T | null = searchShadowRootRecursively(nestedShadowRoot)
+            if (foundShadowRoot) return foundShadowRoot
           }
 
-          element = treeWalker.nextNode() as HTMLElement | null
+          element = treeWalker.nextNode() as Element | null
         }
 
         return null
       }
 
-    if (shadowRoot) return searchRecursively(shadowRoot)
-    return searchRecursively(
-      this.#cache.component ? this.#getShadowRoot(this.#cache.component) : undefined
-    )
+    return searchShadowRootRecursively(shadowRoot ?? this.#getShadowRoot(this.#cache.component!))
   }
 
   #debounce<T extends (...args: Parameters<T>) => void>(
@@ -1118,19 +1343,18 @@ export default class FiCsElement<D extends object, P extends object> {
       if (handler !== 'click' && options?.blur)
         throw new Error('The "blur" is enabled only if the handler is click...')
 
-      const attrs: Record<string, string> = {}
-
-      for (let index = 0; index < element.attributes.length; index++) {
-        const { name, value }: { name: string; value: string } = element.attributes[index]
-        attrs[name] = value
-      }
-
       const { debounce, throttle, blur, once }: Action.Options = options ?? {}
-
       if (debounce && throttle)
         throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
 
       const callback = (event: Event): void => {
+        const attrs: Record<string, string> = {}
+
+        for (let index = 0; index < element.attributes.length; index++) {
+          const { name, value }: { name: string; value: string } = element.attributes[index]
+          attrs[name] = value
+        }
+
         method({
           ...this.#getDataProps(true),
           event,
@@ -1188,15 +1412,35 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #callback(key: Exclude<keyof Hook.Lifecycle<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
+  #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
     const ctx: Hook.Ctx<D, P> = {
-      ...this.#getDataProps(true),
-      ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
-      debounce: this.#debounce.bind(this),
-      throttle: this.#throttle.bind(this)
-    }
+        ...this.#getDataProps(true),
+        ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
+        debounce: this.#debounce.bind(this),
+        throttle: this.#throttle.bind(this)
+      },
+      executeHook = (callback: () => void): void => {
+        const startedAt: number = Date.now()
+        this.#emitMetric({ key: 'hook', detail: this.#createDetail({ key }) })
+
+        try {
+          callback()
+          this.#emitMetric({
+            key: 'hook',
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
+        } catch (error) {
+          this.#emitMetric({
+            key: 'hook',
+            error,
+            startedAt,
+            detail: this.#createDetail({ key, startedAt })
+          })
+        }
+      }
 
     if (key === 'mounted') {
       const that: FiCsElement<D, P> = this,
@@ -1222,8 +1466,8 @@ export default class FiCsElement<D extends object, P extends object> {
           that.#poll = execute
         }
 
-      this.#hooks[key]({ ...ctx, poll })
-    } else this.#hooks[key](ctx)
+      executeHook(() => this.#hooks[key]!({ ...ctx, poll }))
+    } else executeHook(() => this.#hooks[key]!(ctx))
   }
 
   #define(): void {
@@ -1237,7 +1481,7 @@ export default class FiCsElement<D extends object, P extends object> {
       class extends HTMLElement {
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
-        #websocket?: WebSocket
+        #websocket?: WebSocketNS.Runtime
         #eventSource?: EventSource
         #removeEventListeners?: () => void
 
@@ -1246,47 +1490,9 @@ export default class FiCsElement<D extends object, P extends object> {
           this.#shadowRoot = this.attachShadow({ mode: 'open' })
         }
 
-        #init() {
-          if (that.#deferredData || that.#i18nData)
-            that.#enqueue(async () => {
-              if (that.#deferredData)
-                for (const [key, value] of typedEntries(
-                  (await that.#deferredData(that.#getDataProps(true))) as D
-                ))
-                  that.#data[key] = value
-
-              if (that.#i18nData)
-                for (const [key, value] of Object.entries(
-                  await that.#i18nData({
-                    ...that.#getDataProps(),
-                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-                      i18n<T>({ lang, key })
-                  })
-                ))
-                  that.#data[key as keyof D] = value as D[keyof D]
-
-              that.#isDeferred = true
-            }, 'fetch')
-
-          that.#setClassNames(this)
-          that.#setAttrs(this)
-          that.#buildHtml(this.#shadowRoot, true)
-          that.#buildCss(this.#shadowRoot, [])
-
-          for (const [selector, action] of Object.entries(that.#actions))
-            for (const element of that.#getElements(this, selector))
-              that.#addEventListener({
-                element,
-                shadowRoot: this.#shadowRoot,
-                entries: Object.entries(action)
-              })
-
-          that.#removeChildNodes(this)
-          Reflect.set(this, convertStr(consts.FICS_ID_ATTR, 'camel'), that.#instanceId)
-
-          that.#cache.component = this
-
+        #activateRuntime(): void {
           that.#infiniteVirtualScroll(this.#shadowRoot)
+          this.#deactivateRuntime()
 
           this.#websocket = openWebSocket({
             options: that.#options.websocket,
@@ -1305,17 +1511,77 @@ export default class FiCsElement<D extends object, P extends object> {
               throttle: that.#throttle.bind(that)
             }) || {}
 
-          if (eventSource) this.#eventSource = eventSource
-          if (removeEventListeners) this.#removeEventListeners = removeEventListeners
+          this.#eventSource = eventSource
+          this.#removeEventListeners = removeEventListeners
+        }
+
+        #deactivateRuntime(): void {
+          this.#websocket?.close()
+          this.#websocket = undefined
+
+          this.#eventSource?.close()
+          this.#eventSource = undefined
+
+          this.#removeEventListeners?.()
+          this.#removeEventListeners = undefined
+        }
+
+        #init() {
+          if (that.#deferredData || that.#i18nData)
+            that.#enqueue(async () => {
+              if (that.#deferredData)
+                for (const [key, value] of typedEntries(
+                  (await that.#deferredData(that.#getDataProps(true))) as D
+                ))
+                  that.#data[key] = value
+
+              if (that.#i18nData)
+                for (const [key, value] of typedEntries(
+                  await that.#i18nData({
+                    ...that.#getDataProps(),
+                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+                      i18n<T>({ lang, key })
+                  })
+                ))
+                  that.#data[key as keyof D] = value as D[keyof D]
+
+              that.#isDeferred = true
+            }, 'fetch')
+
+          that.#setClassNames(this)
+          that.#setAttrs(this)
+          that.#buildHtml(this.#shadowRoot, true)
+          that.#buildCss(this.#shadowRoot)
+
+          for (const [selector, action] of typedEntries(that.#actions))
+            for (const element of that.#getElements(this, selector))
+              that.#addEventListener({
+                element,
+                shadowRoot: this.#shadowRoot,
+                entries: typedEntries(action)
+              })
+
+          that.#removeChildNodes(this)
+          Reflect.set(this, convertStr(consts.attrs.FICS_ID, 'camel'), that.#instanceId)
+
+          that.#cache.component = this
+          this.#activateRuntime()
         }
 
         async connectedCallback(): Promise<void> {
-          if (!this.#isRendered) {
+          if (this.#isRendered) this.#activateRuntime()
+          else {
+            const mount = (): void => {
+              this.#init()
+              that.#callback('mounted', this.#shadowRoot)
+              this.#isRendered = true
+            }
+
             if (lazyLoad) {
               const observer: IntersectionObserver = new IntersectionObserver(
                 async ([{ isIntersecting, target }]) => {
                   if (isIntersecting) {
-                    this.#init()
+                    mount()
                     observer.unobserve(target)
                   }
                 },
@@ -1323,11 +1589,8 @@ export default class FiCsElement<D extends object, P extends object> {
               )
 
               setTimeout(() => observer.observe(this))
-            } else this.#init()
-
-            that.#callback('mounted', this.#shadowRoot)
-            this.#isRendered = true
-          } else that.#infiniteVirtualScroll(this.#shadowRoot)
+            } else mount()
+          }
         }
 
         disconnectedCallback(): void {
@@ -1336,9 +1599,7 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#poll = undefined
           }
 
-          this.#websocket?.close()
-          this.#eventSource?.close()
-          this.#removeEventListeners?.()
+          this.#deactivateRuntime()
           if (that.#scrollObservers) {
             for (const observer of ['intersection', 'mutation', 'resize'] as const)
               that.#scrollObservers[observer].disconnect()
@@ -1369,7 +1630,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (!component) return
 
       if (this.#i18nData)
-        for (const [key, value] of Object.entries(
+        for (const [key, value] of typedEntries(
           await this.#i18nData({
             ...this.#getDataProps(),
             i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
@@ -1390,11 +1651,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#buildHtml(shadowRoot)
       this.#infiniteVirtualScroll(shadowRoot)
 
-      if (!isOnlyHtml && this.#boundCss.length > 0)
-        this.#buildCss(
-          shadowRoot,
-          this.#boundCss.map(index => this.#css[index])
-        )
+      if (!isOnlyHtml) this.#buildCss(shadowRoot)
 
       if (this.#isBrowser) {
         const addAllElements = (elements: Element[] | Set<Element>): void => {
@@ -1408,10 +1665,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
         addAllElements(this.#newElements)
 
-        for (const [selector, action] of Object.entries(this.#actions))
+        for (const [selector, action] of typedEntries(this.#actions))
           for (const element of this.#getElements(component, selector))
             if (this.#newElements.has(element))
-              this.#addEventListener({ element, shadowRoot, entries: Object.entries(action) })
+              this.#addEventListener({ element, shadowRoot, entries: typedEntries(action) })
 
         this.#newElements.clear()
       }
@@ -1429,106 +1686,59 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   toString(data?: Partial<D>): string {
+    if (this.#isBrowser)
+      throw new Error(
+        `The "toString" method can only be called in the server environment in ${this.#name}...`
+      )
+
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
       that.#initProps()
 
       if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
 
-      const className: string = that.#classNames ? `class="${that.#computedClassName}"` : '',
-        classNameAndAttrs: string = `${className} ${that.#computedAttrs.reduce(
-          (prev, [key, value]) => `${prev} ${key}="${value}"`,
-          ''
-        )}`.trim(),
-        slotAttrs: string = joinArray([
+      const attrs: string[] = []
+      if (that.#classNames && !isBlankString(that.#computedClassName))
+        attrs.push(`class="${escape(that.#computedClassName)}"`)
+
+      if (that.#computedAttrs.length > 0)
+        for (const [key, value] of that.#computedAttrs)
+          if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
+          else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
+
+      const slotAttrs: string = joinArray([
           `id="${that.#name}"`,
           `slot="${that.#instanceId}"`,
-          `${data ? `data-${that.#name}='${JSON.stringify(data)}'` : ''}`
-        ])
+          `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
+        ]),
+        html: string = applyShowAttr({
+          html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
+          resolveInstanceId: (instanceId: string): string => {
+            if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
+              throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-      const applyDescendant = (html: string): string => {
-        const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.FICS_ID_ATTR}="`,
-          varEnd: string = `"></${consts.VAR_TAG_NAME}>`,
-          varBeginIndex: number = html.indexOf(varBegin),
-          varEndIndex: number = html.indexOf(varEnd)
-
-        if (varBeginIndex < 0 || varEndIndex < 0) return html
-
-        const prev: string = html.slice(0, varBeginIndex),
-          next: string = applyDescendant(html.slice(varEndIndex + varEnd.length)),
-          instanceId: string = html.slice(varBeginIndex + varBegin.length, varEndIndex)
-
-        if (!(instanceId in that.#childrenStore))
-          throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
-
-        return `${prev}${render(that.#childrenStore[instanceId])}${next}`
-      }
-
-      const applyShowAttr = (html: string): string => {
-          const showAttrIndex: number = html.indexOf(that.#showAttr)
-          if (showAttrIndex < 0) return html
-
-          const openIndex: number = html.indexOf('<', showAttrIndex),
-            closeIndex: number = html.indexOf('>', showAttrIndex),
-            prev: string = html.slice(0, showAttrIndex)
-
-          let next: string = applyShowAttr(html.slice(showAttrIndex + that.#showAttr.length))
-
-          if (openIndex > 0 && openIndex < closeIndex) return `${prev}${that.#showAttr}${next}`
-
-          const styleAttr: string = 'style="',
-            styleIndex: number = prev.lastIndexOf(styleAttr),
-            displayKey: string = 'display:',
-            displayNone: string = `${displayKey}none`
-
-          if (styleIndex < 0) return `${prev}${styleAttr}${displayNone}"${next}`
-
-          let newPrev: string = `${prev.slice(0, styleIndex)}${styleAttr}`,
-            remaining: string = prev.slice(styleIndex + styleAttr.length)
-
-          const endIndex: number = remaining.indexOf('"')
-
-          if (endIndex < 0) throw new Error('The style attribute is not closed...')
-
-          next = `${remaining.slice(endIndex).trim()}${next}`
-          remaining = remaining.slice(0, endIndex).replace(/\s/g, '')
-
-          const displayIndex: number = remaining.indexOf(displayKey)
-          if (displayIndex < 0) return `${newPrev}${remaining}; ${displayNone}${next}`
-
-          newPrev += remaining.slice(0, displayIndex)
-          remaining = remaining.slice(displayIndex)
-
-          const displayEndIndex: number = remaining.indexOf(';', displayIndex)
-          if (displayEndIndex < 0) return `${newPrev}${displayNone}${next}`
-
-          return `${newPrev}${displayNone}${remaining.slice(displayEndIndex)}${next}`
-        },
-        html: string = applyShowAttr(
-          applyDescendant(that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''))
-        ),
+            return render(that.#childrenStore[instanceId])
+          }
+        }),
         css = (_css: Css.Sheet<D, P>[]): string =>
           _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
       return `
-        <${joinArray([that.#name, classNameAndAttrs.length ? classNameAndAttrs : ''])}>
+        <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
           <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
           <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
         </${that.#name}>
       `
     }
 
-    if (data) for (const [key, value] of typedEntries(data as D)) this.#data[key] = value
-
+    if (data) for (const [key, value] of typedEntries(data as D)) this.#rawData[key] = value
     return render(this, data)
   }
 
   describe(parent?: HTMLElement): void {
     this.#initProps()
+    this.#hasDescribed = true
     this.#callback('created')
-    this.#enqueue(() => {
-      this.#define()
-      this.#hasDescribed = true
-    }, 'define')
+    this.#enqueue(this.#define.bind(this), 'define')
     if (parent) parent.append(document.createElement(this.#name))
   }
 
