@@ -59,15 +59,17 @@ export default fics<
       </div>
       <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
         <label class="sr-only" for="message">Message</label>
-        <p id="message-help" class="sr-only">Enter a new message. Press the Shift + Enter keys to send.</p>
-        <textarea
-          id="message"
-          aria-describedby="message-help"
-          class="w-full max-w-xl text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
-          placeholder="Please enter your message"
-          rows="3"
-        >${comment}</textarea>
-        ${button}
+        <div class="w-full max-w-xl gap-4">
+          <textarea
+            id="message"
+            aria-describedby="message-help"
+            class="w-full text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
+            placeholder="Please enter your message"
+            rows="3"
+          >${comment}</textarea>
+          ${button}
+        </div>
+        <p id="message-help" class="text-sm text-white">Press the Shift + Enter keys to send.</p>
       </div>
     `
   },
