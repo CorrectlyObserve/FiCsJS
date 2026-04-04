@@ -64,7 +64,7 @@ export default fics<Data, { lang: Lang }>({
         [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
       }
     },
-    div: { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 4`) }
+    div: { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 8`) }
   },
   hooks: {
     mounted: ({ data, poll }) => {
