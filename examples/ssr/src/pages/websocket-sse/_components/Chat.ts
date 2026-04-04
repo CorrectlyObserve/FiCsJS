@@ -49,7 +49,7 @@ export default fics<
         ${messages.map(
           ({ userName, comment }, index) => template`
             <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
-              <div>
+              <div ${userName === currentUserName ? 'aria-label="Your message"' : ''}>
                 <p class="text-white mb-2">${userName}</p>
                 <p class="text-white px-3 py-2 rounded-lg whitespace-pre-line">${comment}</p>
               </div>
