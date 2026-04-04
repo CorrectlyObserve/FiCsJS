@@ -86,11 +86,14 @@ export default fics<
         }
       },
       '&.absolute': {
-        ...flexCenter('xy'),
+        ...flexCenter('y', 'column'),
         bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
-        textarea: {
-          '&:hover': { background: white(0.1) },
-          '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
+        div: {
+          ...flexCenter('y'),
+          textarea: {
+            '&:hover': { background: white(0.1) },
+            '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
+          }
         }
       }
     }
