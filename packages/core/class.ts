@@ -1228,10 +1228,11 @@ export default class FiCsElement<D extends object, P extends object> {
       `${consts.hostSelector.ITSELF}{display:block}`,
       ...css
     ])
-    if (this.#lastCssText === cssText) return
 
-    this.#styleSheet.replaceSync(cssText)
-    this.#lastCssText = cssText
+    if (this.#lastCssText !== cssText) {
+      this.#styleSheet.replaceSync(cssText)
+      this.#lastCssText = cssText
+    }
     shadowRoot.adoptedStyleSheets = [this.#styleSheet]
   }
 
