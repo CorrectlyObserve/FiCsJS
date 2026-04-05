@@ -5,7 +5,7 @@ import escape from '../escape'
 import error from './error'
 import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
-import { hasSymbol } from './validator'
+import { hasSymbol, isQuote } from './validator'
 
 const {
   symbols: { SANITIZED, UNSAFE_HTML }
@@ -76,10 +76,19 @@ export default <T>({
 
   const contexts: Template.Context[] = getTemplateContexts(strings)
   for (let index = 0; index < variables.length; index++) {
-    const template: string = strings[index]
-    if (template !== '') converted.push(template)
+    const context: Template.Context = contexts[index],
+      template: string = strings[index]
 
-    processValue(variables[index], contexts[index])
+    if (isQuote(context)) {
+      const { length }: { length: number } = converted
+      processValue(variables[index], context)
+
+      const processedTemplate: string = converted.length === length ? template.trimEnd() : template
+      if (!isBlankString(processedTemplate)) converted.splice(length, 0, processedTemplate)
+    } else {
+      if (template !== '') converted.push(template)
+      processValue(variables[index], context)
+    }
   }
 
   const trailing: string = strings[strings.length - 1]
