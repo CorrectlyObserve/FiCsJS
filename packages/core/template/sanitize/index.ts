@@ -84,7 +84,7 @@ export default <T>({
       processValue(variables[index], context)
 
       const processedTemplate: string = converted.length === length ? template.trimEnd() : template
-      if (!isBlankString(processedTemplate)) converted.splice(length, 0, processedTemplate)
+      if (processedTemplate !== '') converted.splice(length, 0, processedTemplate)
     } else {
       if (template !== '') converted.push(template)
       processValue(variables[index], context)
