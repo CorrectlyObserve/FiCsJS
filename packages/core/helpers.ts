@@ -148,6 +148,9 @@ export const isPlainObject = (param: unknown): param is Record<string, unknown> 
   return proto === Object.prototype || proto === null
 }
 
+export const isObject = (param: unknown): param is object =>
+  typeof param === 'object' && param !== null
+
 export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
   arr.join(isSpaceAdded ? ' ' : '').trim()
 
