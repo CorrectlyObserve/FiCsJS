@@ -154,9 +154,7 @@ export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
-/**
- * @remarks Ignores undefined values.
- */
+/**　@remarks Ignores undefined values　*/
 export const numberError = (
   numbers: Record<string, number | undefined>,
   condition:
