@@ -1,4 +1,6 @@
-export default (transition: string, type: 'in' | 'out' | 'in-out' = 'in-out') =>
+import type { TransitionMode } from './types'
+
+export default (transition: string, type: TransitionMode = 'in-out') =>
   ({
     opacity: 1,
     transition: `${transition.trim()} allow-discrete`,
