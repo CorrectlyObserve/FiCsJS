@@ -22,13 +22,7 @@ export default () =>
       div: {
         padding: cssVar('xs'),
         marginInline: 'auto',
-        svg: {
-          ...spin(1.5),
-          display: 'flex',
-          width: cssVar('2xl'),
-          height: 'auto',
-          stroke: white()
-        }
+        svg: { ...spin(), display: 'flex', width: cssVar('2xl'), height: 'auto', stroke: white() }
       }
     }
   })
