@@ -142,7 +142,7 @@ export const isEmptyObject = (param: unknown): boolean =>
   isPlainObject(param) && Reflect.ownKeys(param).length === 0
 
 export const isPlainObject = (param: unknown): param is Record<string, unknown> => {
-  if (typeof param !== 'object' || param === null || Array.isArray(param)) return false
+  if (!isObject(param) || Array.isArray(param)) return false
 
   const proto: object | null = Object.getPrototypeOf(param)
   return proto === Object.prototype || proto === null
