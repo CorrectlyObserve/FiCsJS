@@ -1,4 +1,4 @@
-import spin from './spin'
+import { pulse, spin } from './loading'
 import { fade, slide, zoom } from './transition'
 
-export { fade, slide, spin, zoom }
+export { fade, pulse, slide, spin, zoom }
