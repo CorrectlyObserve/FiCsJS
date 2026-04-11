@@ -112,10 +112,10 @@ export const deepEqual = (
   if (current instanceof String || current instanceof Number || current instanceof Boolean)
     return current.valueOf() === newValue.valueOf()
 
-  if (current instanceof Error)
-    return (
-      current.name === (newValue as Error).name && current.message === (newValue as Error).message
-    )
+  if (current instanceof Error) {
+    const { name, message }: Error = newValue as Error
+    return current.name === name && current.message === message
+  }
 
   if (current instanceof WeakMap || current instanceof WeakSet || current instanceof Promise)
     return false
