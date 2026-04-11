@@ -1,5 +1,5 @@
 import { ficsLink } from 'ficsjs/router'
-import { calc, cssVar } from 'ficsjs/style'
+import { calc, cssVar, truncate } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 export default ficsLink<{
@@ -23,11 +23,9 @@ export default ficsLink<{
         paddingInline: calc(`${cssVar('xl')} / 2`),
         lineHeight: 1,
         span: {
+          ...truncate(),
           width: '100%',
           lineHeight: 'inherit',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
           '&.done': { textDecoration: 'line-through' }
         },
         '&:focus, &:focus-visible': { span: { color: 'inherit' } }
