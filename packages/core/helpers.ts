@@ -37,13 +37,7 @@ export const deepEqual = (
 ): boolean => {
   if (Object.is(current, newValue)) return true
 
-  if (
-    typeof current !== 'object' ||
-    current === null ||
-    typeof newValue !== 'object' ||
-    newValue === null
-  )
-    return false
+  if (!isObject(current) || !isObject(newValue)) return false
 
   if (current.constructor !== newValue.constructor) return false
 
