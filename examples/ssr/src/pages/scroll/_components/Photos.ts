@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { fadeInOut } from 'ficsjs/animation'
+import { fade } from 'ficsjs/animation'
 import { queries } from 'ficsjs/router'
 import { absoluteCenter, cssVar, flexCenter, hideScrollbar } from 'ficsjs/style'
 import Icon from '@/components/Icon'
@@ -144,7 +144,7 @@ export default fics({
     }),
     dialog: {
       ...absoluteCenter('xy', 'fixed'),
-      ...fadeInOut('0.2s ease-out'),
+      ...fade('0.2s ease-out'),
       background: dark(0.8),
       '.icon': { display: 'flex', justifyContent: 'end' }
     }
