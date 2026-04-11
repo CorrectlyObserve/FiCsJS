@@ -2,6 +2,10 @@ import { numberError } from '../core/helpers'
 
 const translate3d = (x: number | string) => ({ transform: `translate3d(${x}, 0, 0)` }) as const
 
+/**
+ * @param duration This value must be greater than 0. Default is `0.4`.
+ * @param unit This value must be a positive integer. Default is `2`.
+ */
 export default (duration = 0.4, unit = 2) => {
   numberError({ duration })
   numberError({ unit }, 'positive-int')
