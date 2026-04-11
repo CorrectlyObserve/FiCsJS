@@ -6,7 +6,7 @@ export default {
   margin: '-1px',
   overflow: 'hidden',
   clip: 'rect(0, 0, 0, 0)',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
+  'clip-path': 'inset(50%)',
+  'white-space': 'nowrap',
   border: 0
 } as const
