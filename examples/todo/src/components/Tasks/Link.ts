@@ -27,8 +27,7 @@ export default ficsLink<{
           width: '100%',
           lineHeight: 'inherit',
           '&.done': { textDecoration: 'line-through' }
-        },
-        '&:focus, &:focus-visible': { span: { color: 'inherit' } }
+        }
       }
     }
   }
