@@ -5,11 +5,7 @@ export default (maxLines: number = 1) => {
   numberError({ maxLines }, 'positive-int')
 
   if (maxLines === 1) {
-    return {
-      overflow: 'hidden',
-      'white-space': 'nowrap',
-      'text-overflow': 'ellipsis'
-    } as const
+    return { overflow: 'hidden', 'white-space': 'nowrap', 'text-overflow': 'ellipsis' } as const
   }
 
   return {
