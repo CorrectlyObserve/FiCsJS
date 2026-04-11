@@ -1,4 +1,4 @@
-import fadeInOut from './fadeInOut'
+import fade from './fade'
 import spin from './spin'
 
-export { fadeInOut, spin }
+export { fade, spin }
