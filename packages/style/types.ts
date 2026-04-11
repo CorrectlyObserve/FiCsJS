@@ -60,3 +60,13 @@ export interface Flex {
 export type Operator = '+' | '-' | '*' | '/'
 
 export type Position = 'absolute' | 'fixed'
+
+export type SizeCtx =
+  | number
+  | 'auto'
+  | '100%'
+  | '100vw'
+  | '100vh'
+  | 'max-content'
+  | 'min-content'
+  | 'fit-content'
