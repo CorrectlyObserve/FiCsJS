@@ -47,14 +47,16 @@ export const deepEqual = (
   weakMaps.current.set(current, newValue)
   weakMaps.new.set(newValue, current)
 
-  if (typeof Node !== 'undefined' && current instanceof Node) return current.isEqualNode(newValue)
+  if (typeof Node !== 'undefined' && current instanceof Node)
+    return current.isEqualNode(newValue as Node)
 
   if (typeof Window !== 'undefined' && current instanceof Window) return false
 
-  if (current instanceof Date) return current.getTime() === newValue.getTime()
+  if (current instanceof Date) return current.getTime() === (newValue as Date).getTime()
   if (current instanceof RegExp) return current.toString() === newValue.toString()
 
   if (current instanceof Map) {
+    newValue = newValue as Map<any, any>
     if (current.size !== newValue.size) return false
 
     for (const [key, val] of current) {
@@ -67,6 +69,7 @@ export const deepEqual = (
   }
 
   if (current instanceof Set) {
+    newValue = newValue as Set<any>
     if (current.size !== newValue.size) return false
 
     let isSame: boolean = false
@@ -88,6 +91,7 @@ export const deepEqual = (
   }
 
   if (current instanceof ArrayBuffer || ArrayBuffer.isView(current)) {
+    newValue = newValue as ArrayBuffer | ArrayBufferView
     if (current.byteLength !== newValue.byteLength) return false
 
     const toUint8Array = (arrayBuffer: ArrayBuffer | ArrayBufferView): Uint8Array => {
@@ -109,7 +113,9 @@ export const deepEqual = (
     return current.valueOf() === newValue.valueOf()
 
   if (current instanceof Error)
-    return current.name === newValue.name && current.message === newValue.message
+    return (
+      current.name === (newValue as Error).name && current.message === (newValue as Error).message
+    )
 
   if (current instanceof WeakMap || current instanceof WeakSet || current instanceof Promise)
     return false
@@ -117,6 +123,9 @@ export const deepEqual = (
   const keys: (string | symbol)[] = Reflect.ownKeys(current)
 
   if (keys.length !== Reflect.ownKeys(newValue).length) return false
+
+  current = current as Record<PropertyKey, any>
+  newValue = newValue as Record<PropertyKey, any>
 
   for (const key of keys) {
     if (!Object.prototype.hasOwnProperty.call(newValue, key)) return false
