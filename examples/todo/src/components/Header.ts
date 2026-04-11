@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { fadeInOut } from 'ficsjs/animation'
+import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
 import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
@@ -85,7 +85,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
             right: calc(`${cssVar('md')} * 0.75 + ${cssVar('outline')}`)
           },
           '.langs': {
-            ...fadeInOut(cssVar('transition')),
+            ...fade(cssVar('transition')),
             position: 'absolute',
             right: 0,
             display: 'flex',
