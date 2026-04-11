@@ -54,7 +54,7 @@ export type Direction = 'row' | 'column'
 
 export interface Flex {
   display: 'flex'
-  flexDirection: Direction
+  'flex-direction': Direction
 }
 
 export type Operator = '+' | '-' | '*' | '/'
