@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { queries } from 'ficsjs/router'
-import { absoluteCenter, cssVar, flexCenter, hideScrollbar } from 'ficsjs/style'
+import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import AxisButton from '@/pages/scroll/_components/AxisButton'
@@ -143,8 +143,8 @@ export default fics({
       }
     }),
     dialog: {
-      ...absoluteCenter('xy', 'fixed'),
       ...fade('0.2s ease-out'),
+      ...positionCenter('xy', 'fixed'),
       background: dark(0.8),
       '.icon': { display: 'flex', justifyContent: 'end' }
     }
