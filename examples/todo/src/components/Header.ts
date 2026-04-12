@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
-import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, positionCenter } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
 import type { Lang } from '@/types'
@@ -79,7 +79,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
           }
         },
         'div.container': {
-          ...absoluteCenter('y'),
+          ...positionCenter('y'),
           right: calc(`${cssVar('xl')} + ${cssVar('outline')}`),
           [`@media (max-width: ${breakpoints.sm})`]: {
             right: calc(`${cssVar('md')} * 0.75 + ${cssVar('outline')}`)
