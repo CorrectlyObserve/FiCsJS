@@ -3,13 +3,13 @@ import type { Axis, Center, Position } from './types'
 const horizontal = { left: '50%' } as const,
   vertical = { top: '50%' } as const
 
-function absoluteCenter(axis: 'x', position?: Position): Readonly<Center & typeof horizontal>
-function absoluteCenter(axis: 'y', position?: Position): Readonly<Center & typeof vertical>
-function absoluteCenter(
+function positionCenter(axis: 'x', position?: Position): Readonly<Center & typeof horizontal>
+function positionCenter(axis: 'y', position?: Position): Readonly<Center & typeof vertical>
+function positionCenter(
   axis: 'xy',
   position?: Position
 ): Readonly<Center & typeof horizontal & typeof vertical>
-function absoluteCenter(axis: Axis, position: Position = 'absolute'): Readonly<Center> {
+function positionCenter(axis: Axis, position: Position = 'absolute'): Readonly<Center> {
   switch (axis) {
     case 'x':
       return { position, ...horizontal, transform: 'translateX(-50%)' }
@@ -22,4 +22,4 @@ function absoluteCenter(axis: Axis, position: Position = 'absolute'): Readonly<C
   }
 }
 
-export default absoluteCenter
+export default positionCenter
