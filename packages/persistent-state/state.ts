@@ -34,7 +34,11 @@ export default class PersistentState<S> {
 
       if (readonly) this.#readonly = readonly
       if (backoff) {
-        numberError(backoff)
+        const { multiplier, jitter, ...args }: Partial<Backoff> = backoff
+        numberError({ ...args }, 'non-negative-int')
+        numberError({ multiplier }, 'non-negative')
+        numberError({ jitter }, 'positive-int')
+
         this.#backoff = { ...this.#backoff, ...backoff }
       }
       if (forcedUpgrade) this.#isForcedUpgrade = forcedUpgrade
