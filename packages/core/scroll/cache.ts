@@ -52,7 +52,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
   aveSize
 }: Scroll.Ctx.OffsetBeforeIndex): number => {
   numberError({ index }, 'non-negative-int')
-  numberError({ aveSize })
+  numberError({ aveSize }, 'positive')
 
   if (!cache) return index * aveSize
 
