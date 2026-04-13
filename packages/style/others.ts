@@ -19,6 +19,7 @@ export const hideScrollbar = {
   '-ms-overflow-style': 'none'
 } as const
 
+/** @param rem Must be a non-negative number if it is a number. */
 export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
 
