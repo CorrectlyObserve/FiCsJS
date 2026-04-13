@@ -1449,7 +1449,7 @@ export default class FiCsElement<D extends object, P extends object> {
           func: ({ times }: { times: number }) => void,
           { interval, max, exit }: Hook.Polling
         ): void => {
-          numberError({ interval })
+          numberError({ interval }, 'non-negative-int')
           numberError({ max }, 'positive-int')
 
           let times: number = 0
