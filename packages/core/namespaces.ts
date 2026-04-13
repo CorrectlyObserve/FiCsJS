@@ -22,7 +22,7 @@ export declare namespace FiCs {
 
   type ClassName<D extends object, P> = _ClassName<D, P> | undefined
 
-  type Css<D extends object, P> = SingleOrArray<Css.Rules<D, P> | string> | undefined
+  type Css<D extends object, P> = Css.Ctx<D, P> | undefined
 
   type DeferredContext<D extends object, P> = DataProps.Payload<D, P, true>
 
