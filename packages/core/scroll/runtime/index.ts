@@ -34,9 +34,9 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       } = scrollOptions.options(getDataProps(true))
 
       numberError({ unit }, 'positive-int')
-      numberError({ itemMinSize })
-      numberError({ bufferLength }, 'non-negative-int')
-      numberError({ throttle }, 'non-negative')
+      numberError({ itemMinSize }, 'positive')
+      numberError({ bufferLength, throttle }, 'non-negative-int')
+      numberError({ thresholdRate }, 'ratio')
 
       return {
         unit,
