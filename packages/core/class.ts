@@ -1202,6 +1202,12 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
     return css.reduce((prev, curr) => {
+      if (typeof curr === 'function')
+        curr = curr({
+          cssToString: (declarations: Css.Declarations) =>
+            joinArray(Object.entries(declarations).map(([key, value]) => `${key}:${value};`))
+        })
+
       if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
       const topLevelCss: string[] = []
