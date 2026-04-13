@@ -26,7 +26,7 @@ export const remToPx = (rem: number | string): Readonly<number> => {
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
 
-/** @param unit This value must be an integer. */
+/** @param unit Must be an integer. */
 export const space = (unit: number) => {
   numberError({ unit }, 'int')
   return `${unit * 0.25}rem` as const
