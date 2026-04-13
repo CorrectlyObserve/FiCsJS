@@ -15,10 +15,7 @@ export const evictCache = <D extends object, P>({
   numberError({ maxLength }, 'positive-int')
   numberError({ index }, 'non-negative-int')
 
-  /**
-   * @remarks
-   * Resets the cache when scrolling moves toward earlier indexes.
-   */
+  /** @remarks Resets the cache when scrolling moves toward earlier indexes. */
   if (index < startIndex) {
     cache.startIndex = index
     cache.evictedSize = 0
