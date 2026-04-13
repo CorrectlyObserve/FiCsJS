@@ -44,7 +44,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
     { unit, itemMinSize, axis, bufferLength }: Scroll.Options = options(getDataProps(true))
 
   numberError({ unit }, 'positive-int')
-  numberError({ itemMinSize })
+  numberError({ itemMinSize }, 'positive')
   numberError({ bufferLength }, 'non-negative-int')
 
   /**
