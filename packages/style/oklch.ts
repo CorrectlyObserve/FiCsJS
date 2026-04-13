@@ -1,4 +1,4 @@
-import { browserError, clampRatio, isBlankString, numberError, typedEntries } from '../core/helpers'
+import { browserError, isBlankString, numberError, typedEntries } from '../core/helpers'
 import type { Color } from './types'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
@@ -188,8 +188,11 @@ export default (color: string, options?: Color.Ctx): string => {
   if (darker > 0 && lighter > 0)
     throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
 
-  const { l, c, h }: Color.Oklch = oklch,
-    delta: number = darker > 0 ? -darker : lighter > 0 ? lighter : 0
+  const { l, c, h }: Color.Oklch = oklch
+  let lightness: number = l + (darker > 0 ? -darker : lighter > 0 ? lighter : 0)
 
-  return `oklch(${clampRatio(l + delta) * 100}% ${c * chroma} ${h} / ${clampRatio(opacity * alpha)})`
+  if (lightness < 0) lightness = 0
+  else if (lightness > 1) lightness = 1
+
+  return `oklch(${lightness * 100}% ${c * chroma} ${h} / ${opacity * alpha})`
 }
