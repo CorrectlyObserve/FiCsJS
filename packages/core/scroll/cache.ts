@@ -2,6 +2,10 @@ import { numberError } from '../helpers'
 import type { Scroll } from '../types'
 import { fenwickTree } from './helpers'
 
+/**
+ * @param cache Must be a positive integer.
+ * @param index Must be a non-negative integer.
+ */
 export const evictCache = <D extends object, P>({
   cache,
   index
@@ -45,6 +49,14 @@ export const evictCache = <D extends object, P>({
   rebuildFenwickTrees(cache, 'force')
 }
 
+/**
+ * @param cache.maxLength Must be a positive integer.
+ * @param cache.evictedSize Must be a non-negative number.
+ * @param cache.evictedCount Must be a non-negative integer.
+ * @param totalCount Must be a non-negative integer.
+ * @param index Must be a non-negative integer.
+ * @param aveSize Must be a positive number.
+ */
 export const getOffsetBeforeIndex = <D extends object, P>({
   cache,
   totalCount,
@@ -117,6 +129,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
   return estimatedSize
 }
 
+/** @param cache.maxLength Must be a positive integer. */
 export const rebuildFenwickTrees = (cache: Scroll.Cache, mode: 'force' | 'if-needed'): void => {
   const { maxLength }: Scroll.Cache = cache
   numberError({ maxLength }, 'positive-int')
