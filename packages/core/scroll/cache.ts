@@ -113,7 +113,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
    */
   if (clampedIndex > endIndex) estimatedSize += (clampedIndex - endIndex) * aveSize
 
-  numberError({ estimatedSize })
+  numberError({ estimatedSize }, 'positive')
   return estimatedSize
 }
 
