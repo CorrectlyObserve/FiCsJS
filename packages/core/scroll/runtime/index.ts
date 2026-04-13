@@ -1,4 +1,4 @@
-import { clampRatio, numberError } from '../../helpers'
+import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
 import { resetCache } from '../cache'
 import consts from '../constants'
