@@ -28,6 +28,6 @@ export const remToPx = (rem: number | string): Readonly<number> => {
 
 /** @param unit This value must be an integer. */
 export const space = (unit: number) => {
-  numberError({ unit: Math.abs(unit) }, 'non-negative-int')
+  numberError({ unit }, 'int')
   return `${unit * 0.25}rem` as const
 }
