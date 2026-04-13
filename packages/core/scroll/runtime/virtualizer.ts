@@ -37,7 +37,7 @@ export const updateAveSize = <D extends object, P>({
   return true
 }
 
-/** @param scrollOptions.totalCount This value must be a non-negative integer. */
+/** @param scrollOptions.totalCount Must be a non-negative integer. */
 export const updateRange = <D extends object, P>({
   scrollOptions,
   root,
