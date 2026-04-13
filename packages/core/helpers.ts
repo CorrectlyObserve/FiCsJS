@@ -166,6 +166,7 @@ export const numberError = (
   numbers: Record<string, number | undefined>,
   condition:
     | 'finite'
+    | 'ratio'
     | 'int'
     | 'positive'
     | 'positive-int'
@@ -177,6 +178,9 @@ export const numberError = (
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
     if (condition === 'finite') continue
+
+    if (condition === 'ratio' && (value < 0 || value > 1))
+      throw new Error(`The ${key} must be a number between 0 and 1...`)
 
     if (condition === 'int' && !Number.isInteger(value))
       throw new Error(`The ${key} must be an integer...`)
