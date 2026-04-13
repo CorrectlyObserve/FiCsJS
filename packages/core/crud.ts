@@ -2,9 +2,9 @@ import { numberError } from './helpers'
 import type { Crud, SetTimeout } from './types'
 
 /**
- * @param options.timeout This must be a non-negative integer.
- * @param options.maxRetry This must be a non-negative integer.
- * @param options.delay This must be a non-negative integer.
+ * @param options.timeout Must be a non-negative integer.
+ * @param options.maxRetry Must be a non-negative integer.
+ * @param options.delay Must be a non-negative integer.
  */
 export default async <T>({
   api,
