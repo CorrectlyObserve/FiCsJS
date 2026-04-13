@@ -166,6 +166,7 @@ export const numberError = (
   numbers: Record<string, number | undefined>,
   condition:
     | 'finite'
+    | 'int'
     | 'positive'
     | 'positive-int'
     | 'non-negative'
@@ -176,6 +177,9 @@ export const numberError = (
 
     if (!Number.isFinite(value)) throw new Error(`The ${key} must be a number...`)
     if (condition === 'finite') continue
+
+    if (condition === 'int' && !Number.isInteger(value))
+      throw new Error(`The ${key} must be an integer...`)
 
     for (const remaining of ['positive', 'non-negative'] as const)
       if (condition.startsWith(remaining)) {
