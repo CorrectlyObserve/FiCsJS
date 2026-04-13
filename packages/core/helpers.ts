@@ -171,7 +171,7 @@ export const numberError = (
     | 'positive'
     | 'positive-int'
     | 'non-negative'
-    | 'non-negative-int' = 'positive'
+    | 'non-negative-int'
 ): void => {
   for (const [key, value] of typedEntries(numbers)) {
     if (value === undefined) continue
