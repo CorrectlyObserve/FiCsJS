@@ -37,6 +37,7 @@ export const updateAveSize = <D extends object, P>({
   return true
 }
 
+/** @param scrollOptions.totalCount This value must be a non-negative integer. */
 export const updateRange = <D extends object, P>({
   scrollOptions,
   root,
@@ -61,6 +62,7 @@ export const updateRange = <D extends object, P>({
     totalCount,
     flags: { isRangeLocked }
   }: Scroll.Resolved<D, P> = scrollOptions
+
   numberError({ totalCount }, 'non-negative-int')
   if (totalCount === 0) return
 
@@ -100,9 +102,7 @@ export const updateRange = <D extends object, P>({
         } else high = mid
       }
 
-      /**
-       * @remarks 0-based index
-       */
+      /** @remarks 0-based index */
       const startIndex: number = correct - Math.floor(bufferLength / 2),
         maxStartIndex: number = totalCount - 1
 
