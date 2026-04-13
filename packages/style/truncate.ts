@@ -1,6 +1,6 @@
 import { numberError } from './../core/helpers'
 
-/** @param maxLines This value must be a positive integer. Default is `1`. */
+/** @param maxLines Must be a positive integer. Default is `1`. */
 export default (maxLines: number = 1) => {
   numberError({ maxLines }, 'positive-int')
 
