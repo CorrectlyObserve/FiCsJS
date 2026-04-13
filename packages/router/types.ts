@@ -23,7 +23,7 @@ export interface FiCsLink<P extends object> {
   attributes?: Attrs<{}, P>
   href: (({ props }: { props: P }) => string) | string
   content: Content<{}, P>
-  css?: SingleOrArray<Css.Rules<{}, P> | string>
+  css?: Css.Ctx<{}, P>
   actions?: Action.Handlers<{}, P>
 }
 
@@ -36,7 +36,7 @@ export interface FiCsRouter<D extends object> {
   attributes?: Attrs<RouterData<D>, {}>
   pages: Page<D>[]
   notFound?: PageContent<D>
-  css?: SingleOrArray<Css.Rules<RouterData<D>, {}> | string>
+  css?: Css.Ctx<RouterData<D>, {}>
   hooks?: Hook.Lifecycle<RouterData<D>, {}>
   options?: Options.Ctx<RouterData<D>, {}>
 }
