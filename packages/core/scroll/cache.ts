@@ -79,7 +79,8 @@ export const getOffsetBeforeIndex = <D extends object, P>({
     countFenwickTree
   }: Scroll.Cache = cache
 
-  numberError({ evictedSize, evictedCount }, 'non-negative')
+  numberError({ evictedSize }, 'non-negative')
+  numberError({ evictedCount }, 'non-negative-int')
 
   /**
    * @remarks
