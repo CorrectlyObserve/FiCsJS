@@ -68,11 +68,15 @@ export declare namespace Css {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = string | Record<string, Declarations>
+  type Global = StringOrFn | Record<string, Declarations>
 
   type Rules<D extends object, P> = Record<string, Value<D, P>>
 
   type Sheet<D extends object, P> = Rules<D, P> | Global
+
+  type StringOrFn =
+    | string
+    | ((ctx: { cssToString: (declarations: Declarations) => string }) => string)
 
   type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
