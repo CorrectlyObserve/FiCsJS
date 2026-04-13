@@ -8,6 +8,15 @@ import { fetchWithinThreshold, readPageParam, rebaseUrlSync, updatePageParam } f
 import syncResize from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
 
+/**
+ * @param scrollOptions.options.unit Must be a positive integer.
+ * @param scrollOptions.options.itemMinSize Must be a positive number.
+ * @param scrollOptions.options.bufferLength Must be a non-negative integer.
+ * @param scrollOptions.options.throttle Must be a non-negative integer.
+ * @param scrollOptions.options.thresholdRate Must be a number between 0 and 1.
+ * @param scrollOptions.totalCount Must be a non-negative integer.
+ * @param scrollOptions.prevTotalCount Must be a non-negative integer.
+ */
 const runInfiniteVirtualScroll = <D extends object, P extends object>({
   name,
   instanceId,
