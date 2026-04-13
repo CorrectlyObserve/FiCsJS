@@ -188,7 +188,8 @@ export default (color: string, options?: Color.Ctx): string => {
   }
 
   const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
-  numberError({ darker, lighter, chroma, opacity }, 'non-negative')
+  numberError({ darker, lighter, opacity }, 'ratio')
+  numberError({ chroma }, 'non-negative')
 
   if (darker > 0 && lighter > 0)
     throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
