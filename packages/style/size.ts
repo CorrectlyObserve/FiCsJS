@@ -6,8 +6,8 @@ export const circle = (diameter: number) =>
   ({ ...size(diameter), borderRadius: '50%', overflow: 'hidden' }) as const
 
 /**
- * @param width This value must be a positive integer.
- * @param height This value must be a positive integer. Default is same as `width`.
+ * @param width Must be a positive integer.
+ * @param height Must be a positive integer. Default is same as `width`.
  */
 export const size = (width: SizeCtx, height: SizeCtx = width) => {
   const isNumber = (size: SizeCtx): size is number => typeof size === 'number'
