@@ -4,6 +4,7 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
+/** @param ratio This value must be a finite number between 0 and 1. */
 export const clampRatio = (ratio: number): number => {
   numberError({ ratio }, 'finite')
 
