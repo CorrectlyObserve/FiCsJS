@@ -3,6 +3,13 @@ import type { Html, Scroll } from '../types'
 import { getOffsetBeforeIndex, resetCache } from './cache'
 import { clearTimers, getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
 
+/**
+ * @param scrollOptions.options.unit Must be a positive integer.
+ * @param scrollOptions.options.itemMinSize Must be a positive number.
+ * @param scrollOptions.options.bufferLength Must be a non-negative integer.
+ * @param scrollOptions.startIndex Must be a non-negative integer.
+ * @param scrollOptions.endIndex Must be a non-negative integer.
+ */
 const scrollTemplate = <D extends object, P extends object, T>({
   instanceId,
   getDataProps,
@@ -25,10 +32,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
       }
       scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
       scrollOptions.firstVisible = {}
-      /**
-       * @remarks
-       * Prevents negative index deltas after list reset.
-       */
+      /** @remarks Prevents negative index deltas after list reset. */
       scrollOptions.urlSync.index = undefined
 
       clearTimers(scrollOptions)
