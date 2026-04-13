@@ -1,8 +1,8 @@
 import { numberError } from './../core/helpers'
 
 /**
- * @param duration This value must be greater than 0. Default is `2`.
- * @param opacity This value must be greater than 0. Default is `0.4`.
+ * @param duration Must be greater than 0. Default is `2`.
+ * @param opacity Must be a number between 0 and 1. Default is `0.4`.
  */
 export const pulse = (duration = 2, opacity = 0.4) => {
   numberError({ duration, opacity })
@@ -13,7 +13,7 @@ export const pulse = (duration = 2, opacity = 0.4) => {
   } as const
 }
 
-/** @param time This value must be greater than 0. Default is `1.5`. */
+/** @param time Must be greater than 0. Default is `1.5`. */
 export const spin = (time: number = 1.5) => {
   numberError({ time })
 
