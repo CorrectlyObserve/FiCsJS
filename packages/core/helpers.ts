@@ -4,15 +4,6 @@ export const browserError = (): void => {
   if (!isBrowser()) throw new Error('Window and document are not available...')
 }
 
-/** @param ratio This value must be a finite number between 0 and 1. */
-export const clampRatio = (ratio: number): number => {
-  numberError({ ratio }, 'finite')
-
-  if (ratio <= 0) return 0
-  if (ratio >= 1) return 1
-  return ratio
-}
-
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
