@@ -1307,7 +1307,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative')
+    numberError({ time }, 'non-negative-int')
 
     let timeout: SetTimeout | undefined
 
