@@ -7,7 +7,7 @@ const translate3d = (x: number | string) => ({ transform: `translate3d(${x}, 0, 
  * @param unit Must be a positive integer. Default is `2`.
  */
 export default (duration = 0.4, unit = 2) => {
-  numberError({ duration })
+  numberError({ duration }, 'positive')
   numberError({ unit }, 'positive-int')
 
   return {
