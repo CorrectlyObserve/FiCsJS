@@ -1,7 +1,7 @@
 import { numberError } from './../core/helpers'
 import type { SizeCtx } from './types'
 
-/** @param diameter This value must be a positive integer. */
+/** @param diameter Must be a positive integer. */
 export const circle = (diameter: number) =>
   ({ ...size(diameter), borderRadius: '50%', overflow: 'hidden' }) as const
 
