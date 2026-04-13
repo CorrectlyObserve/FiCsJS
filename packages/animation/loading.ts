@@ -5,7 +5,8 @@ import { numberError } from './../core/helpers'
  * @param opacity Must be a number between 0 and 1. Default is `0.4`.
  */
 export const pulse = (duration = 2, opacity = 0.4) => {
-  numberError({ duration, opacity })
+  numberError({ duration }, 'positive')
+  numberError({ opacity }, 'ratio')
 
   return {
     animation: `pulse ${duration}s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
@@ -15,7 +16,7 @@ export const pulse = (duration = 2, opacity = 0.4) => {
 
 /** @param time Must be greater than 0. Default is `1.5`. */
 export const spin = (time: number = 1.5) => {
-  numberError({ time })
+  numberError({ time }, 'positive')
 
   return {
     animation: `spin ${time}s infinite linear`,
