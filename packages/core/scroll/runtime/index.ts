@@ -38,14 +38,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       numberError({ bufferLength, throttle }, 'non-negative-int')
       numberError({ thresholdRate }, 'ratio')
 
-      return {
-        unit,
-        itemMinSize,
-        bufferLength,
-        throttle,
-        thresholdRate: clampRatio(thresholdRate),
-        ...args
-      }
+      return { unit, itemMinSize, bufferLength, throttle, thresholdRate, ...args }
     },
     deactivateRuntime = (): void => {
       if (scrollObservers) {
