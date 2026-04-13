@@ -64,6 +64,8 @@ export declare namespace Crud {
 }
 
 export declare namespace Css {
+  type Ctx<D extends object, P> = SingleOrArray<StringOrFn | Css.Rules<D, P>>
+
   interface Declarations {
     [key: string]: string | number | undefined | Declarations
   }
