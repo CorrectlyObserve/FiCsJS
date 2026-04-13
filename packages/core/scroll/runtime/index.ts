@@ -228,7 +228,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
             const scrollAreaSize: number = (getRootElement({ root, instanceId }) as any)[
               getProperty({ isVertical: getIsVertical(), type: 'size', prefix: 'scroll' })
             ]
-            numberError({ scrollAreaSize })
+            numberError({ scrollAreaSize }, 'non-negative')
 
             const { totalSize }: Scroll.Resolved<D, P> = scrollOptions
             if (!isValidNumber(totalSize, false) || scrollAreaSize > totalSize) {
