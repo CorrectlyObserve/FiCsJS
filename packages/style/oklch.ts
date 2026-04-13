@@ -167,7 +167,12 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return oklch
   }
 
-/** @param options `darker`, `lighter`, `chroma`, and `opacity` must be non-negative numbers. */
+/**
+ * @param options.darker Must be a number between 0 and 1.
+ * @param options.lighter Must be a number between 0 and 1.
+ * @param options.opacity Must be a number between 0 and 1.
+ * @param options.chroma Must be a non-negative number.
+ */
 export default (color: string, options?: Color.Ctx): string => {
   const resolved: string = convertCssVar(color).trim()
   let oklch: Color.Oklch, alpha: number
