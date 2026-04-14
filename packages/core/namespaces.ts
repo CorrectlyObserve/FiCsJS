@@ -14,7 +14,7 @@ import type {
 } from './types'
 
 export declare namespace FiCs {
-  type Actions = Action.Handlers<any, any> | undefined
+  type Actions<D extends object, P> = Action.Handlers<D, P> | undefined
 
   type Attributes<D extends object, P> = Attrs<D, P> | undefined
 
