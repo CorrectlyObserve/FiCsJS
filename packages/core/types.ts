@@ -76,9 +76,11 @@ export declare namespace Css {
 
   type Sheet<D extends object, P> = Rules<D, P> | Global
 
-  type StringOrFn =
+  type StringOrFn<D extends object, P> =
     | string
-    | ((ctx: { cssToString: (declarations: Declarations) => string }) => string)
+    | ((
+        ctx: DataProps.Payload<D, P> & { cssToString: (declarations: Declarations) => string }
+      ) => string)
 
   type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
