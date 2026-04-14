@@ -1204,6 +1204,7 @@ export default class FiCsElement<D extends object, P extends object> {
     return css.reduce((prev, curr) => {
       if (typeof curr === 'function')
         curr = curr({
+          ...this.#getDataProps(),
           cssToString: (declarations: Css.Declarations) =>
             joinArray(Object.entries(declarations).map(([key, value]) => `${key}:${value};`))
         })
