@@ -10,7 +10,9 @@
   --red: oklch(0.512 0.1788 24.39);
   --gradation: linear-gradient(30deg, var(--red) 30%, oklch(0.7596 0.094 354.9));
   --transition: 0.2s ease-out;
-  --header-height: calc(var(--md) * 1.2 + var(--md) * 2 + var(--outline) * 2 + var(--md) * 1.5);
+  --button-height: calc(1rem * 3 + var(--outline) * 2);
+  --padding-block: 1.5rem;
+  --header-height: calc(var(--button-height) + var(--padding-block));
 }
 
 body {
