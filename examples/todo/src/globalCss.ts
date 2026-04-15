@@ -1,4 +1,4 @@
-import { cssVar, size, textSize } from 'ficsjs/style'
+import { calc, cssVar, size, textSize } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils/others'
 
 const outline = `${cssVar('outline')} solid ${white()}` as const
@@ -30,7 +30,7 @@ export default {
     maxWidth: size(120 - 16),
     paddingBlock: size(3),
     paddingInline: size(4),
-    border: `1px solid ${white()}`
+    border: `${calc(`${size(1)} / 4`)} solid ${white()}`
   },
   a: {
     transition: cssVar('transition'),
