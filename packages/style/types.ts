@@ -70,3 +70,5 @@ export type SizeCtx =
   | 'max-content'
   | 'min-content'
   | 'fit-content'
+
+export type TextSize = 'xs' | 'sm' | 'ui' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'
