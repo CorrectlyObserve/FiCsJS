@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, positionCenter } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
 import type { Lang } from '@/types'
@@ -65,12 +65,11 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
         position: 'relative',
         h1: {
           ...flexCenter('y'),
+          ...textSize('2xl'),
           height: cssVar('header-height'),
-          fontSize: cssVar('xl'),
           background: cssVar('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
-          lineHeight: 1.5,
           '@media (forced-colors: active)': {
             background: 'none',
             backgroundClip: 'border-box',
