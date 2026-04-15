@@ -29,7 +29,7 @@ export default () =>
       button[type="button"] {
         background: none;
         color: ${color ?? white()};
-        padding: ${cssVar('xs')};
+        padding: ${size(2)};
 
         &:hover { background: ${white(0.1)}; }
         &:focus, &:focus-visible { outline-color: ${color ?? white()}; }
