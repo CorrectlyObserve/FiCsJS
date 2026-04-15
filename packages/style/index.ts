@@ -4,6 +4,7 @@ import oklch from './oklch'
 import { calc, cssVar, hideScrollbar, remToPx, space } from './others'
 import positionCenter from './positionCenter'
 import { circle, size } from './size'
+import textSize from './textSize'
 import truncate from './truncate'
 
 export {
@@ -18,5 +19,6 @@ export {
   remToPx,
   size,
   space,
+  textSize,
   truncate
 }
