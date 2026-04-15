@@ -45,22 +45,26 @@ export default () =>
         </div>
       `
     },
-    css: {
-      div: ({ props: { isError, error } }) => ({
-        ...flexCenter('x', 'column'),
-        label: { paddingBlockEnd: cssVar('xs') },
-        p: {
-          '&:first-of-type': {
-            fontSize: cssVar('sm'),
-            color: cssVar('red'),
-            marginBlockEnd: cssVar('xs'),
-            textAlign: 'left'
-          },
-          '&:last-of-type': forScreenReaders
-        },
-        input: isError && error ? { borderColor: cssVar('red') } : {}
-      })
-    },
+    css: ({ props: { isError, error }, cssToString }) => `
+      div {
+        ${cssToString(flexCenter('x', 'column'))}
+
+        label { padding-block-end: ${cssVar('xs')}; }
+
+        p {
+          &:first-of-type {
+            font-size: ${cssVar('sm')};
+            color: ${cssVar('red')};
+            margin-block-end: ${cssVar('xs')};
+            text-align: left;
+          }
+
+          &:last-of-type {${cssToString(forScreenReaders)}}
+        }
+
+        ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
+      }
+    `,
     actions: {
       input: {
         input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
