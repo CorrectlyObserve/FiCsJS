@@ -163,20 +163,22 @@ export default <T>() =>
         })}
       `
     },
-    css: {
-      div: ({ data: { height } }) => ({
-        '&[tabindex="0"]:hover': { background: white(0.1) },
-        '&[draggable="true"].is-dragging:focus, &[draggable="true"].is-dragging:focus-visible': {
-          outline: 'none'
-        },
-        '&.dragged-over': {
-          height: `${height}px`,
-          background: white(0.05),
-          borderColor: oklch('#4169e1')
-        },
-        '&.mb-height': { marginBlockEnd: `${height}px` }
-      })
-    },
+    css: ({ data: { height } }) => `
+      div {
+        &[tabindex="0"]:hover { background: ${white(0.1)}; }
+
+        &[draggable="true"].is-dragging:focus,
+        &[draggable="true"].is-dragging:focus-visible { outline: none; }
+
+        &.dragged-over {
+          height: ${height}px;
+          background: ${white(0.05)};
+          border-color: ${oklch('#4169e1')};
+        }
+
+        &.mb-height { margin-block-end: ${height}px; }
+      }
+    `,
     actions: {
       'div.drop-zone': {
         dragover: ({ data, event, attributes: { key } }) => {
