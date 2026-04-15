@@ -25,5 +25,11 @@ export default fics<{}, { user: User; userId: number }>({
       </div>
     `
   },
-  css: { ':host': flexCenter('y'), 'p > span': { gridArea: '1/1' } }
+  css: ({ cssToString }) => `
+    :host {
+      ${cssToString(flexCenter('y'))}
+
+      p > span { grid-area: 1/1; }
+    }
+  `
 })
