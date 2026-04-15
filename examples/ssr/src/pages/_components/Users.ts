@@ -105,7 +105,12 @@ export default fics({
       <div class="w-fit mx-auto">${draggable}</div>
     `
   },
-  css: { div: { '&.buttons': flexCenter('x'), '&.w-fit': flexCenter('y') } },
+  css: ({ cssToString }) => `
+    div {
+      &.buttons {${cssToString(flexCenter('x'))}}
+      &.w-fit {${cssToString(flexCenter('y'))}}
+    }
+  `,
   hooks: {
     mounted: async ({ data, crud }) => {
       const { users } = data
