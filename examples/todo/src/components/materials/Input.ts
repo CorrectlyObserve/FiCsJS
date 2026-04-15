@@ -49,13 +49,13 @@ export default () =>
       div {
         ${cssToString(flexCenter('x', 'column'))}
 
-        label { padding-block-end: ${cssVar('xs')}; }
+        label { padding-block-end: ${size(2)}; }
 
         p {
           &:first-of-type {
             font-size: ${cssVar('sm')};
             color: ${cssVar('red')};
-            margin-block-end: ${cssVar('xs')};
+            margin-block-end: ${size(2)};
             text-align: left;
           }
 
