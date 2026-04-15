@@ -1,4 +1,4 @@
-import { calc, cssVar } from 'ficsjs/style'
+import { cssVar, size, textSize } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils/others'
 
 const outline = `${cssVar('outline')} solid ${white()}` as const
@@ -20,10 +20,9 @@ export default {
     }
   },
   h2: {
-    fontSize: cssVar('lg'),
-    lineHeight: 1.5,
-    marginBlockEnd: cssVar('xl'),
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
+    ...textSize('xl'),
+    marginBlockEnd: size(8),
+    [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: size(6) }
   },
   'label:hover': { cursor: 'pointer' },
   'input, textarea': {
