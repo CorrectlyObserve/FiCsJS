@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, cssVar, flexCenter, forScreenReaders } from 'ficsjs/style'
+import { calc, flexCenter, forScreenReaders, size } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -24,12 +24,12 @@ export default fics<{}, Props>({
     div {
       ${cssToString(flexCenter('x', 'column'))}
 
-      label { padding-block-end: ${cssVar('xs')}; }
+      label { padding-block-end: ${size(2)}; }
 
       p {${cssToString(forScreenReaders)}}
 
       textarea {
-        height: ${calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6))};
+        height: ${calc(`${size(3)} + ${size(6 * 6)} + ${size(3)}`)};
         resize: none;
       }
     }
