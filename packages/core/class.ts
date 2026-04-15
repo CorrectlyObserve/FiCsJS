@@ -1206,7 +1206,10 @@ export default class FiCsElement<D extends object, P extends object> {
         curr = curr({
           ...this.#getDataProps(),
           cssToString: (declarations: Css.Declarations) =>
-            joinArray(Object.entries(declarations).map(([key, value]) => `${key}:${value};`))
+            joinArray(
+              Object.entries(declarations).map(([key, value]) => `${key}:${value};`),
+              false
+            )
         })
 
       if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
