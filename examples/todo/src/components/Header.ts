@@ -13,7 +13,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
     ficsLink({
       href: '/',
       content: ({ template }) => template`FiCs ToDo`,
-      css: { a: { paddingInline: size(2) } }
+      css: `a { padding-block: ${size(1)}; padding-inline: ${size(2)}; }`
     }),
     Button()
   ],
