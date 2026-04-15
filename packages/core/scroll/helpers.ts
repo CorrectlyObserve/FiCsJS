@@ -104,9 +104,11 @@ export const getProperty = ({
 export const isValidNumber = (value: number, isPositiveRequired: boolean = true): boolean =>
   Number.isFinite(value) && (!isPositiveRequired || value > 0)
 
-export const normalizeRootMargin = (rootMargin: string | number | undefined): string => {
-  if (typeof rootMargin === 'number')
-    return joinArray(new Array(4).fill(`${Number.isFinite(rootMargin) ? rootMargin : 0}px`))
+export const normalizeRootMargin = (rootMargin?: string | number): string => {
+  if (typeof rootMargin === 'number') {
+    numberError({ rootMargin }, 'finite')
+    return joinArray(new Array(4).fill(`${rootMargin}px`))
+  }
 
   const split: string[] = (rootMargin ?? '').trim().split(/\s+/)
   if (split.length > 4 || !split[0]) return joinArray(new Array(4).fill('0px'))
