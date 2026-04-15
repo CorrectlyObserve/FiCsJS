@@ -15,14 +15,24 @@ export default () =>
       template,
       unsafeHtml,
       attributes: { statusLiveRegion }
-    }) =>
-      template`<p ${statusLiveRegion}>${texts[lang]}</p><div aria-hidden="true">${unsafeHtml(Loader)}</div>`,
-    css: {
-      p: forScreenReaders,
-      div: {
-        padding: cssVar('xs'),
-        marginInline: 'auto',
-        svg: { ...spin(), display: 'flex', width: cssVar('2xl'), height: 'auto', stroke: white() }
+    }) => template`
+      <p ${statusLiveRegion}>${texts[lang]}</p>
+      <div aria-hidden="true">${unsafeHtml(Loader)}</div>
+    `,
+    css: ({ cssToString }) => `
+      p {${cssToString(forScreenReaders)}}
+
+      div {
+        padding: ${cssVar('xs')};
+        margin-inline: auto;
+
+        svg {
+          ${cssToString(spin())}
+          display: flex;
+          width: ${cssVar('2xl')};
+          height: auto;
+          stroke: ${white()};
+        }
       }
-    }
+    `
   })
