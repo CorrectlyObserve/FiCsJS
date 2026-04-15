@@ -29,6 +29,6 @@
   "notFound": {
     "heading": "ページが存在しません",
     "descriptions": ["あと", "秒後にトップページに遷移します。", "一時停止する", "再開する"],
-    "buttonText": "トップページへ戻る"
+    "buttonText": "戻る"
   }
 }
