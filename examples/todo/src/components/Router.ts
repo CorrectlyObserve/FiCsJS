@@ -60,22 +60,23 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft
     { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
-  css: {
-    ':host': {
-      ...flexCenter('x'),
-      position: 'absolute',
-      containerType: 'inline-size',
-      gap: cssVar('xl'),
-      width: '100%',
-      minHeight: cssVar('min-height'),
-      [`@container (width >= ${breakpoints.lg})`]: {
-        '.tasks + .task-details': {
-          paddingInlineStart: cssVar('xl'),
-          boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
+  css: ({ cssToString }) => `
+    :host {
+      ${cssToString(flexCenter('x'))}
+      position: absolute;
+      container-type: inline-size;
+      gap: ${cssVar('xl')};
+      width: 100%;
+      min-height: ${cssVar('min-height')};
+
+      @container (width >= ${breakpoints.lg}) {
+        .tasks + .task-details {
+          padding-inline-start: ${cssVar('xl')};
+          box-shadow: ${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })};
         }
       }
     }
-  },
+  `,
   hooks: {
     mounted: async ({ data }) => (data.tasks = await getAllTasks()),
     updated: {
