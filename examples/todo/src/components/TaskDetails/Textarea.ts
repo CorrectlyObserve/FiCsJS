@@ -20,17 +20,20 @@ export default fics<{}, Props>({
       <textarea id="${id}" placeholder="${placeholder}" aria-describedby="${id}-info">${value}</textarea>
     </div>
   `,
-  css: {
-    div: {
-      ...flexCenter('x', 'column'),
-      label: { paddingBlockEnd: cssVar('xs') },
-      p: forScreenReaders,
-      textarea: {
-        height: calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6)),
-        resize: 'none'
+  css: ({ cssToString }) => `
+    div {
+      ${cssToString(flexCenter('x', 'column'))}
+
+      label { padding-block-end: ${cssVar('xs')}; }
+
+      p {${cssToString(forScreenReaders)}}
+
+      textarea {
+        height: ${calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6))};
+        resize: none;
       }
     }
-  },
+  `,
   actions: {
     textarea: {
       input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
