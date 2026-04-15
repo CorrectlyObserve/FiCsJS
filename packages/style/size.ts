@@ -1,5 +1,5 @@
 import { numberError } from './../core/helpers'
-import type { SizeCtx } from './types'
+import type { Rect } from './types'
 
 /** @param diameter Must be a positive integer. */
 export const circle = (diameter: number) =>
@@ -9,8 +9,8 @@ export const circle = (diameter: number) =>
  * @param width Must be a positive integer.
  * @param height Must be a positive integer. Default is same as `width`.
  */
-export const size = (width: SizeCtx, height: SizeCtx = width) => {
-  const isNumber = (size: SizeCtx): size is number => typeof size === 'number'
+export const rect = (width: Rect, height: Rect = 'auto') => {
+  const isNumber = (size: Rect): size is number => typeof size === 'number'
 
   if (isNumber(width)) numberError({ width }, 'positive-int')
   if (isNumber(height)) numberError({ height }, 'positive-int')
