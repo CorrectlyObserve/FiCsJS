@@ -3,7 +3,7 @@ import type { Rect } from './types'
 
 /** @param diameter Must be a positive integer. */
 export const circle = (diameter: number) =>
-  ({ ...size(diameter), borderRadius: '50%', overflow: 'hidden' }) as const
+  ({ ...rect(diameter, diameter), borderRadius: '50%', overflow: 'hidden' }) as const
 
 /**
  * @param width Must be a positive integer.
