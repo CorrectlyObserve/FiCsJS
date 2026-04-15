@@ -13,7 +13,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
     ficsLink({
       href: '/',
       content: ({ template }) => template`FiCs ToDo`,
-      css: { a: { paddingInline: cssVar('xs') } }
+      css: { a: { paddingInline: size(2) } }
     }),
     Button()
   ],
@@ -80,9 +80,9 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
         },
         'div.container': {
           ...positionCenter('y'),
-          right: calc(`${cssVar('xl')} + ${cssVar('outline')}`),
+          right: calc(`${size(8)} + ${cssVar('outline')}`),
           [`@media (max-width: ${breakpoints.sm})`]: {
-            right: calc(`${cssVar('md')} * 0.75 + ${cssVar('outline')}`)
+            right: calc(`${size(3)} + ${cssVar('outline')}`)
           },
           '.langs': {
             ...fade(cssVar('transition')),
