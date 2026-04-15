@@ -21,6 +21,10 @@ export default fics<Data, { lang: Lang }>({
   children: [Button(), Loading()],
   data: () => ({ seconds: MAX, descriptions: [], isCounting: true }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: () => ({ fixedUnit: 48 })
+  },
   html: ({
     children: { button, loading },
     data,
