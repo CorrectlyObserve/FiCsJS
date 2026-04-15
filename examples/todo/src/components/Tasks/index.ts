@@ -190,7 +190,7 @@ export default fics<Data, Props>({
         marginInline: 'auto',
         marginBlockEnd: size(2),
         '&:last-child': { marginBlockEnd: 0 },
-        [`@media (max-width: ${sm})`]: { width: '100%' },
+        [`@media (max-width: ${sm})`]: { width: calc(`100% - ${size(12)}`) },
         div: { ...flexCenter('y'), width: calc(`100% - ${size(12)}`) }
       }
     }
