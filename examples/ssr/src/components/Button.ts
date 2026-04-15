@@ -18,12 +18,12 @@ export default () =>
         type="button"
       >${buttonText}</button>
     `,
-    css: {
-      button: {
-        '&:not([disabled]):hover': { background: white(0.1) },
-        '&[aria-current="page"]': { color: white(0.5), borderColor: white(0.5) }
+    css: `
+      button {
+        &:not([disabled]):hover { background: ${white(0.1)}; }
+        &[aria-current="page"] { color: ${white(0.5)}; border-color: ${white(0.5)}; }
       }
-    },
+    `,
     actions: {
       button: {
         click: [
