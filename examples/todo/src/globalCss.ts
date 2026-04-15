@@ -7,8 +7,7 @@ export default {
   '*': { padding: 0, margin: 0, boxSizing: 'border-box' },
   'h2, p, button, label, legend, input, textarea, span': { color: white() },
   'h2, p, button': { textAlign: 'center' },
-  'p, button, label, legend, input, textarea': { fontSize: cssVar('md') },
-  'p, button, legend, label': { lineHeight: 1.2 },
+  'p, label, legend, input, textarea': textSize('base'),
   'button, input, textarea': {
     transition: cssVar('transition'),
     background: 'none',
