@@ -13,7 +13,7 @@ export default {
     background: 'none',
     border: 'none',
     outline: 'none',
-    borderRadius: cssVar('xs'),
+    borderRadius: size(2),
     '&:not([disabled])': {
       '&:hover': { background: white(0.1), cursor: 'pointer' },
       '&:focus, &:focus-visible': { outline }
@@ -27,19 +27,18 @@ export default {
   },
   'label:hover': { cursor: 'pointer' },
   'input, textarea': {
-    minWidth: calc(`${cssVar('md')} * 20`),
-    maxWidth: calc('-', calc(`${cssVar('md')} * 30`), calc(`${cssVar('xl')} * 2`)),
-    paddingBlock: calc(`${cssVar('xs')} * 1.5`),
-    paddingInline: cssVar('md'),
-    lineHeight: 1.5,
+    minWidth: '20rem',
+    maxWidth: size(120 - 16),
+    paddingBlock: size(3),
+    paddingInline: size(4),
     border: `1px solid ${white()}`
   },
   a: {
     transition: cssVar('transition'),
-    borderRadius: cssVar('xs'),
+    borderRadius: size(2),
     '&:hover': { background: white(0.1), cursor: 'pointer' },
     '&:focus, &:focus-visible': { color: 'inherit', outline, outlineOffset: 0 },
     '&:active': { scale: 0.98 }
   },
-  'span[role="button"]': { padding: cssVar('md') }
+  'span[role="button"]': { padding: size(4) }
 }
