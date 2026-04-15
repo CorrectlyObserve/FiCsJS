@@ -25,16 +25,23 @@ export default () =>
         type="button"
       >${unsafeHtml(svg)}</button>
     `,
-    css: {
-      'button[type="button"]': ({ props: { color } }) => ({
-        background: 'none',
-        color: color ?? white(),
-        padding: cssVar('xs'),
-        '&:hover': { background: white(0.1) },
-        '&:focus, &:focus-visible': { outlineColor: color ?? white() },
-        svg: { display: 'flex', width: cssVar('xl'), height: 'auto', stroke: 'currentColor' }
-      })
-    },
+    css: ({ props: { color } }) => `
+      button[type="button"] {
+        background: none;
+        color: ${color ?? white()};
+        padding: ${cssVar('xs')};
+
+        &:hover { background: ${white(0.1)}; }
+        &:focus, &:focus-visible { outline-color: ${color ?? white()}; }
+
+        svg {
+          display: flex;
+          width: ${cssVar('xl')};
+          height: auto;
+          stroke: currentColor;
+        }
+      }
+    `,
     actions: {
       button: { click: [({ props: { click } }) => click?.(), { throttle: 500, blur: true }] }
     }
