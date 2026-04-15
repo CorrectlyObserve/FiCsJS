@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { calc, cssVar, forScreenReaders } from 'ficsjs/style'
+import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/materials/Loading'
 import { Lang } from '@/types'
@@ -61,10 +61,10 @@ export default fics<Data, { lang: Lang }>({
       &[role="status"] {${cssToString(forScreenReaders)}}
 
       &[aria-hidden="true"] {
-        margin-block-end: ${cssVar('xl')};
+        margin-block-end: ${size(8)};
 
         @media (max-width: ${breakpoints.sm}) {
-          margin-block-end: ${cssVar('lg')};
+          margin-block-end: ${size(6)};
         }
       }
     }
@@ -72,7 +72,7 @@ export default fics<Data, { lang: Lang }>({
     div {
       display: flex;
       flex-direction: column;
-      gap: ${calc(`${cssVar('outline')} * 8`)};
+      gap: ${size(4)};
     }
   `,
   hooks: {
