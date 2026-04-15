@@ -138,6 +138,7 @@ export default fics<Data, Props>({
           ${button.setIndividualProps('save', {
             isDisabled: draft?.title === '',
             type: 'gradation',
+            fixedUnit: 32,
             buttonText,
             click: async () => {
               const { id, title, description, completedAt }: Task = draft
@@ -155,6 +156,7 @@ export default fics<Data, Props>({
             (buttonText, index) =>
               template`${button.setIndividualProps(index, {
                 type: index === 0 ? 'delete' : 'normal',
+                fixedUnit: 32,
                 buttonText,
                 click: async () => {
                   if (index === 0) {
