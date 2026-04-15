@@ -56,16 +56,25 @@ export default fics<Data, { lang: Lang }>({
       </div>
     `
   },
-  css: {
-    p: {
-      '&[role="status"]': forScreenReaders,
-      '&[aria-hidden="true"]': {
-        marginBlockEnd: cssVar('xl'),
-        [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
+  css: ({ cssToString }) => `
+    p {
+      &[role="status"] {${cssToString(forScreenReaders)}}
+
+      &[aria-hidden="true"] {
+        margin-block-end: ${cssVar('xl')};
+
+        @media (max-width: ${breakpoints.sm}) {
+          margin-block-end: ${cssVar('lg')};
+        }
       }
-    },
-    div: { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 8`) }
-  },
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: ${calc(`${cssVar('outline')} * 8`)};
+    }
+  `,
   hooks: {
     mounted: ({ data, poll }) => {
       data.seconds = MAX
