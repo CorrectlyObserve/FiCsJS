@@ -32,6 +32,7 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
   css: `
     div {
       max-width: var(--chat-width);
+
       p:last-child { margin-bottom: 0; }
     }
   `,
