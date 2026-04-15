@@ -7,7 +7,7 @@ export const circle = (diameter: number) =>
 
 /**
  * @param width Must be a positive integer.
- * @param height Must be a positive integer. Default is same as `width`.
+ * @param height Must be a positive integer. Default is same as `auto`.
  */
 export const rect = (width: Rect, height: Rect = 'auto') => {
   const isNumber = (size: Rect): size is number => typeof size === 'number'
