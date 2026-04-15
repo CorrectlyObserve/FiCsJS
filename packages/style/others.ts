@@ -26,9 +26,3 @@ export const remToPx = (rem: number | string): Readonly<number> => {
   typeof rem === 'number' ? numberError({ rem }, 'non-negative') : (rem = parseFloat(rem.trim()))
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
-
-/** @param unit Must be an integer. */
-export const space = (unit: number) => {
-  numberError({ unit }, 'int')
-  return `${unit * 0.25}rem` as const
-}

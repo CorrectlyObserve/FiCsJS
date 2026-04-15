@@ -20,3 +20,9 @@ export const rect = (width: Rect, height: Rect = 'auto') => {
     height: isNumber(height) ? `${height * 0.25}rem` : height
   } as const
 }
+
+/** @param unit Must be an integer. */
+export const size = (unit: number) => {
+  numberError({ unit }, 'int')
+  return `${unit * 0.25}rem` as const
+}
