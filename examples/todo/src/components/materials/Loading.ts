@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
-import { cssVar, forScreenReaders } from 'ficsjs/style'
+import { forScreenReaders, rect, size } from 'ficsjs/style'
 import type { Lang } from '@/types'
 import { white } from '@/utils/others'
 import { Loader } from 'lucide-static'
@@ -27,10 +27,8 @@ export default () =>
         margin-inline: auto;
 
         svg {
-          ${cssToString(spin())}
+          ${cssToString({ ...rect(16), ...spin() })}
           display: flex;
-          width: ${cssVar('2xl')};
-          height: auto;
           stroke: ${white()};
         }
       }
