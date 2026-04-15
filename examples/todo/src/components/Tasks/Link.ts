@@ -13,22 +13,25 @@ export default ficsLink<{
   href: ({ props: { id, isQuery } }) => `/${isQuery ? '?taskId=' : ''}${id}`,
   content: ({ props: { title, completedAt }, template }) =>
     template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`,
-  css: {
-    ':host': {
-      width: calc(`100% - ${cssVar('xl')} * 1.5`),
-      a: {
-        display: 'flex',
-        color: white(),
-        paddingBlock: cssVar('md'),
-        paddingInline: calc(`${cssVar('xl')} / 2`),
-        lineHeight: 1,
-        span: {
-          ...truncate(),
-          width: '100%',
-          lineHeight: 'inherit',
-          '&.done': { textDecoration: 'line-through' }
+  css: ({ cssToString }) => `
+    :host {
+      width: ${calc(`100% - ${cssVar('xl')} * 1.5`)};
+
+      a {
+        display: flex;
+        color: ${white()};
+        padding-block: ${cssVar('md')};
+        padding-inline: calc(${cssVar('xl')} / 2);
+        line-height: 1;
+
+        span {
+          ${cssToString(truncate())}
+          width: 100%;
+          line-height: inherit;
+
+          &.done { text-decoration: line-through; }
         }
       }
     }
-  }
+  `
 })
