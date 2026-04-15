@@ -61,7 +61,7 @@ export type Operator = '+' | '-' | '*' | '/'
 
 export type Position = 'absolute' | 'fixed'
 
-export type SizeCtx =
+export type Rect =
   | number
   | 'auto'
   | '100%'
