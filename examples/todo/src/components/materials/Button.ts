@@ -7,6 +7,7 @@ interface Props {
   isPressed?: boolean
   type: 'normal' | 'gradation' | 'selected' | 'label' | 'delete'
   controls?: string
+  fixedUnit?: number
   buttonText: string
   click: () => void
 }
@@ -29,10 +30,11 @@ export default () =>
       >${buttonText}</button>
     `,
     css: {
-      ':host': {
+      ':host': ({ props: { fixedUnit } }) => ({
         textAlign: 'center',
         button: {
           ...textSize('base', true),
+          ...(fixedUnit ? { width: size(fixedUnit) } : {}),
           minWidth: size(16),
           padding: size(4),
           '&[disabled]': {
@@ -67,7 +69,7 @@ export default () =>
           '&[data-type="label"]': { paddingInline: cssVar('outline') },
           '&[data-type="delete"]': { color: cssVar('red') }
         }
-      }
+      })
     },
     actions: {
       button: {
