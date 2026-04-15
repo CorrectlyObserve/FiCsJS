@@ -1,5 +1,5 @@
 import { ficsLink } from 'ficsjs/router'
-import { calc, cssVar, truncate } from 'ficsjs/style'
+import { calc, size, truncate } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 export default ficsLink<{
@@ -15,14 +15,12 @@ export default ficsLink<{
     template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`,
   css: ({ cssToString }) => `
     :host {
-      width: ${calc(`100% - ${cssVar('xl')} * 1.5`)};
+      width: ${calc(`100% - ${size(12)}`)};
 
       a {
         display: flex;
         color: ${white()};
-        padding-block: ${cssVar('md')};
-        padding-inline: calc(${cssVar('xl')} / 2);
-        line-height: 1;
+        padding: ${size(4)};
 
         span {
           ${cssToString(truncate())}
