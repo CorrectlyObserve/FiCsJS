@@ -101,7 +101,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   }
 
   const getIsVertical = (): boolean => (scrollOptions.lastAxis ?? axis) === 'vertical',
-    createIntersectionObserver = (rootMargin: string | number | undefined): IntersectionObserver =>
+    createIntersectionObserver = (rootMargin?: string | number): IntersectionObserver =>
       new IntersectionObserver(
         ([{ isIntersecting }]) => {
           if (!isIntersecting) return
