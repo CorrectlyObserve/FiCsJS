@@ -36,12 +36,12 @@ export default () =>
         >${unsafeHtml(svg)}</button>
       `
     },
-    css: {
-      button: ({ props: { isLarge } }) => ({
-        '&:hover': { background: white(0.1) },
-        svg: { width: `${isLarge ? 2.5 : 1.25}rem`, height: 'auto', stroke: 'currentColor' }
-      })
-    },
+    css: ({ props: { isLarge } }) => `
+      button {
+        &:hover { background: ${white(0.1)}; }
+        svg { width: ${isLarge ? '2.5' : '1.25'}rem; height: auto; stroke: currentColor; }
+      }
+    `,
     actions: {
       button: {
         click: [
