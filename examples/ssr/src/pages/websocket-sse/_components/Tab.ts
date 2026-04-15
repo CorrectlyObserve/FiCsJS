@@ -32,6 +32,6 @@ export default fics({
       )}
     </div>
   `,
-  css: { ':host div.container': flexCenter('x') },
+  css: ({ cssToString }) => `:host div.container {${cssToString(flexCenter('x'))}}`,
   hooks: { mounted: ({ data }) => (data.current = window.location.pathname) }
 })
