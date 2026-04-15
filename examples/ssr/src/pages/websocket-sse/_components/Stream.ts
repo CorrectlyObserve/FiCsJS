@@ -1,5 +1,4 @@
 import { fics } from 'ficsjs'
-import { cssVar } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { API_PATHS, dark } from '@/utils'
 import { RefreshCcw } from 'lucide-static'
@@ -50,13 +49,18 @@ export default fics({
     }
     <span class="fixed bottom-8 right-4">${icon}</span>
   `,
-  css: {
-    ':host': {
-      '> p:not(:first-of-type)': { width: cssVar('chat-width'), lineHeight: 2 },
-      'div p:last-child': { 'margin-bottom': '0' },
-      span: { background: dark() }
+  css: `
+    :host {
+      > p:not(:first-of-type) {
+        width: var(--chat-width);
+        line-height: 2;
+      }
+
+      div p:last-child { margin-bottom: 0; }
+
+      span { background: ${dark()}; }
     }
-  },
+  `,
   hooks: {
     updated: {
       isAccumulated: ({ data, crud }) => {
