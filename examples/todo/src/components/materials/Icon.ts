@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { cssVar } from 'ficsjs/style'
+import { rect, size } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
@@ -25,7 +25,7 @@ export default () =>
         type="button"
       >${unsafeHtml(svg)}</button>
     `,
-    css: ({ props: { color } }) => `
+    css: ({ props: { color }, cssToString }) => `
       button[type="button"] {
         background: none;
         color: ${color ?? white()};
@@ -35,9 +35,8 @@ export default () =>
         &:focus, &:focus-visible { outline-color: ${color ?? white()}; }
 
         svg {
+          ${cssToString(rect(8))}
           display: flex;
-          width: ${cssVar('xl')};
-          height: auto;
           stroke: currentColor;
         }
       }
