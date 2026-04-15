@@ -23,7 +23,7 @@ export default () =>
       p {${cssToString(forScreenReaders)}}
 
       div {
-        padding: ${cssVar('xs')};
+        padding: ${size(2)};
         margin-inline: auto;
 
         svg {
