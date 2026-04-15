@@ -18,5 +18,5 @@ export default fics<{}, { isHorizontal: boolean; click: () => void }>({
     })
   },
   html: ({ children: { icon }, template }) => template`${icon}`,
-  css: { ':host': { background: dark() } }
+  css: `:host { background: ${dark()}; }`
 })
