@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { cssVar, flexCenter, forScreenReaders } from 'ficsjs/style'
+import { cssVar, flexCenter, forScreenReaders, size, textSize } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -53,7 +53,7 @@ export default () =>
 
         p {
           &:first-of-type {
-            font-size: ${cssVar('sm')};
+            ${cssToString(textSize('sm'))}
             color: ${cssVar('red')};
             margin-block-end: ${size(2)};
             text-align: left;
