@@ -152,6 +152,21 @@ export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : path.replace(/\/+$/, '')
 
+export const normalizeRootMargin = (rootMargin?: string | number): string => {
+  if (typeof rootMargin === 'number') {
+    numberError({ rootMargin }, 'finite')
+    return joinArray(new Array(4).fill(`${rootMargin}px`))
+  }
+
+  const split: string[] = (rootMargin ?? '').trim().split(/\s+/)
+  if (split.length > 4 || !split[0]) return joinArray(new Array(4).fill('0px'))
+
+  const [top, right, bottom, left]: (string | undefined)[] = split
+
+  if (left) return joinArray(split)
+  return joinArray(right || bottom ? [top, right!, bottom ?? top, right!] : new Array(4).fill(top))
+}
+
 /**　@remarks Ignores undefined values　*/
 export const numberError = (
   numbers: Record<string, number | undefined>,
