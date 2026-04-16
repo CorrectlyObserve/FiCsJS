@@ -8,6 +8,7 @@ import {
   isBrowser,
   isEmptyObject,
   joinArray,
+  normalizeRootMargin,
   numberError,
   toArray,
   typedEntries,
@@ -275,7 +276,7 @@ export default class FiCsElement<D extends object, P extends object> {
             `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
           )
 
-        this.#options.rootMargin = rootMargin
+        this.#options.rootMargin = normalizeRootMargin(rootMargin)
       }
 
       for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
