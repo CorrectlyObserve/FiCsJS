@@ -188,8 +188,10 @@ export interface I18n {
 }
 
 export declare namespace Options {
-  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'scroll'> {
+  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
+    /** @param rootMargin Must be a non-negative number if it is a number. */
+    rootMargin?: string | number
     scroll?: (ctx: DataProps.Payload<D, P, true>) => Scroll.Options
   }
 
