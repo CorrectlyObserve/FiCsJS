@@ -423,7 +423,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }): Telemetry.Detail<D, P>['queue']
   #createDetail({
     key,
-    api,
+    endpoint,
     method,
     isStream,
     startedAt
@@ -447,14 +447,14 @@ export default class FiCsElement<D extends object, P extends object> {
   }): Telemetry.Detail<D, P>['updated']
   #createDetail({
     key,
-    api,
+    endpoint,
     method,
     isStream,
     dataKey,
     startedAt
   }: {
     key?: Task['key'] | Hook.Key<D, P> | string
-    api?: string
+    endpoint?: string
     method?: string
     isStream?: boolean
     dataKey?: keyof D
@@ -462,8 +462,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
     const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
 
-    if (api && method && isStream !== undefined)
-      return { key, api, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
+    if (endpoint && method && isStream !== undefined)
+      return { key, endpoint, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
 
     if (dataKey !== undefined)
       return { key: 'updated', dataKey, duration } as Telemetry.Detail<D, P>['updated']
