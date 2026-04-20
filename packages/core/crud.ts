@@ -7,7 +7,7 @@ import type { Crud, SetTimeout } from './types'
  * @param options.delay Must be a non-negative integer.
  */
 export default async <T>({
-  api,
+  endpoint,
   apiStatuses,
   enqueue,
   reRender,
@@ -37,7 +37,7 @@ export default async <T>({
         if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
 
         try {
-          const res: Response = await fetch(api, { ..._options, signal })
+          const res: Response = await fetch(endpoint, { ..._options, signal })
 
           if (timeoutId) clearTimeout(timeoutId)
           return res
@@ -46,7 +46,7 @@ export default async <T>({
 
           if (signal.aborted)
             throw new Error(
-              `The request to "${api}" ${timeout && timeout > 0 ? `timed out after ${timeout}ms` : 'was aborted'}...`
+              `The request to "${endpoint}" ${timeout && timeout > 0 ? `timed out after ${timeout}ms` : 'was aborted'}...`
             )
 
           if (maxRetry && attempt < maxRetry) {
