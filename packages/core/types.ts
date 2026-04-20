@@ -40,7 +40,7 @@ export declare namespace Crud {
   interface Ctx {
     api: string
     apiStatuses: Map<string, boolean>
-    enqueue: (func: () => void | Promise<void>, key: Task['key']) => void
+    enqueue: (func: () => Void, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     options?: Options | StreamOptions
   }
