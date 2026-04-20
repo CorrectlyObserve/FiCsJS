@@ -45,9 +45,9 @@ export declare namespace Crud {
     options?: Options | StreamOptions
   }
 
-  type Fn = {
-    <T>(api: string, options?: Options): Promise<T>
-    (api: string, options: StreamOptions): Promise<void>
+  type Fetcher = {
+    <T>(endpoint: string, options?: Options): Promise<T>
+    (endpoint: string, options: StreamOptions): Promise<void>
   }
 
   interface Options extends RequestInit {
