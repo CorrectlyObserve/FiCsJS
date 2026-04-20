@@ -452,6 +452,8 @@ export type Translations = Record<string, unknown>
 
 type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
 
+export type Void = void | Promise<void>
+
 export declare namespace WebSocket {
   namespace Ctx {
     interface Fn<D extends object, P> {
