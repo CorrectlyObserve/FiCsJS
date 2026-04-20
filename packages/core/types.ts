@@ -394,7 +394,7 @@ export declare namespace Telemetry {
     queue: { key: Task['key']; duration: number }
     crud: {
       key: string
-      api: string
+      endpoint: string
       method: string
       isStream: boolean
       duration: number
