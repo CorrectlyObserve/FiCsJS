@@ -38,7 +38,7 @@ export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
 
 export declare namespace Crud {
   interface Ctx {
-    api: string
+    endpoint: string
     apiStatuses: Map<string, boolean>
     enqueue: (func: () => Void, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
