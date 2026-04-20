@@ -45,6 +45,7 @@ import type {
   SSE,
   Task,
   Telemetry,
+  Void,
   WebSocket as WebSocketNS
 } from './types'
 import openWebSocket from './websocket'
@@ -478,7 +479,7 @@ export default class FiCsElement<D extends object, P extends object> {
     } as DataProps.Payload<D, P, B>
   }
 
-  #enqueue(func: () => void | Promise<void>, key: Task['key']): void {
+  #enqueue(func: () => Void, key: Task['key']): void {
     enqueue({
       instanceId: this.#instanceId,
       key,
