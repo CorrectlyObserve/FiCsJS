@@ -25,6 +25,25 @@ export const delay = (ms: number, signal: AbortSignal): Promise<void> =>
     signal.addEventListener('abort', onAbort, { once: true })
   })
 
+export const getDelayToRetry = ({
+  attempt,
+  baseMs = BASE_MS,
+  maxMs = MAX_MS,
+  jitterRatio = JITTER_RATIO
+}: {
+  attempt: number
+  baseMs?: number
+  maxMs?: number
+  jitterRatio?: number
+}): number => {
+  numberError({ attempt }, 'non-negative-int')
+  numberError({ baseMs, maxMs }, 'positive-int')
+  numberError({ jitterRatio }, 'ratio')
+
+  const base: number = Math.min(baseMs * 2 ** (attempt - 1), maxMs)
+  return base + Math.random() * base * jitterRatio
+}
+
 export const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
 
@@ -45,25 +64,6 @@ export const parseRetryAfter = (error: Response | unknown): number | null => {
 
   numberError({ date }, 'positive-int')
   return Math.max(0, date - now)
-}
-
-export const getDelayToRetry = ({
-  attempt,
-  baseMs = BASE_MS,
-  maxMs = MAX_MS,
-  jitterRatio = JITTER_RATIO
-}: {
-  attempt: number
-  baseMs?: number
-  maxMs?: number
-  jitterRatio?: number
-}): number => {
-  numberError({ attempt }, 'non-negative-int')
-  numberError({ baseMs, maxMs }, 'positive-int')
-  numberError({ jitterRatio }, 'ratio')
-
-  const base: number = Math.min(baseMs * 2 ** (attempt - 1), maxMs)
-  return base + Math.random() * base * jitterRatio
 }
 
 export const shouldRetry = (error: unknown): boolean => {
