@@ -10,12 +10,15 @@ import {
   typedEntries,
   uid
 } from './others'
+import { delay, getDelayToRetry, parseRetryAfter, shouldRetry, watch } from './retry'
 import { isBlankString, isEmptyObject, isObject, isPlainObject } from './typeCheck'
 
 export {
   browserError,
   convertStr,
   deepEqual,
+  delay,
+  getDelayToRetry,
   isBlankString,
   isBrowser,
   isEmptyObject,
@@ -25,7 +28,10 @@ export {
   normalizePath,
   normalizeRootMargin,
   numberError,
+  parseRetryAfter,
+  shouldRetry,
   toArray,
   typedEntries,
-  uid
+  uid,
+  watch
 }
