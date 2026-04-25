@@ -51,10 +51,7 @@ const scrollTemplate = <D extends object, P extends object, T>({
   numberError({ itemMinSize }, 'positive')
   numberError({ bufferLength }, 'non-negative-int')
 
-  /**
-   * @remarks
-   * Resets the item min size.
-   */
+  /** @remarks Resets the item min size. */
   if (!isValidNumber(storedAveSize) || storedAveSize < itemMinSize)
     scrollOptions.aveSize = itemMinSize
 
