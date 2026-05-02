@@ -1,39 +1,36 @@
 import type { TransitionMode } from './types'
 
-const transformStyle = (transform?: string) => (transform ? ({ transform } as const) : {}),
-  transformMap = {
-    top: 'translateY(-100%)',
-    bottom: 'translateY(100%)',
-    left: 'translateX(-100%)',
-    right: 'translateX(100%)'
-  } as const
-
 const style = (
   transition: string,
   mode: TransitionMode,
-  transform?: { base: string; inOut: string }
+  options?: { prop: string; shown: string | number; hidden: string | number }
 ) => {
-  const { base, inOut }: { base?: string; inOut?: string } = transform || {}
+  const { prop, shown, hidden } = options ?? {}
+
   return {
     opacity: 1,
     transition: `${transition.trim()} allow-discrete`,
-    ...transformStyle(base),
-    ...(mode.startsWith('in')
-      ? { '@starting-style': { opacity: 0, ...transformStyle(inOut) } as const }
+    ...(prop && { [prop]: shown }),
+    ...(mode.startsWith('in') && prop
+      ? { '@starting-style': { opacity: 0, [prop]: hidden } as const }
       : {}),
-    ...(mode.endsWith('out')
-      ? { '&[style*="display: none"]': { opacity: 0, ...transformStyle(inOut) } as const }
+    ...(mode.endsWith('out') && prop
+      ? { '&[style*="display: none"]': { opacity: 0, [prop]: hidden } as const }
       : {})
   } as const
 }
-
 export const fade = (transition: string, mode: TransitionMode = 'in-out') => style(transition, mode)
 
 export const slide = (
   direction: 'top' | 'bottom' | 'left' | 'right',
   transition: string,
   mode: TransitionMode = 'in-out'
-) => style(transition, mode, { base: 'translate(0)', inOut: transformMap[direction] })
+) =>
+  style(transition, mode, {
+    prop: 'translate',
+    shown: '0 0',
+    hidden: { top: '0 -100%', bottom: '0 100%', left: '-100% 0', right: '100% 0' }[direction]
+  })
 
 export const zoom = (transition: string, mode: TransitionMode = 'in-out') =>
-  style(transition, mode, { base: 'scale(1)', inOut: 'scale(0.95)' })
+  style(transition, mode, { prop: 'scale', shown: 1, hidden: 0.95 })
