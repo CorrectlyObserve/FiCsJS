@@ -1392,10 +1392,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       element.addEventListener(
         handler,
-        debounce
-          ? this.#debounce(callback, debounce)
-          : throttle
-            ? this.#throttle(callback, throttle)
+        debounceMs
+          ? this.#debounce(callback, debounceMs)
+          : throttleMs
+            ? this.#throttle(callback, throttleMs)
             : callback,
         { once }
       )
