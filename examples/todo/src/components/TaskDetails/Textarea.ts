@@ -36,7 +36,7 @@ export default fics<{}, Props>({
   `,
   actions: {
     textarea: {
-      input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
+      input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
       blur: ({ props: { value, blur } }) => {
         if (value !== '' && blur) blur()
       }
