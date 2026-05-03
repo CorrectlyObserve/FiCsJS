@@ -1,10 +1,20 @@
-export interface Backoff {
-  maxRetry: number
-  interval: number
-  multiplier: number
-  maxDelay: number
-  jitter: number
-}
+export type Metric =
+  | { type: 'init'; stateId: string; durationMs: number; attempt: number; error?: unknown }
+  | { type: 'get' | 'set' | 'delete'; stateId: string; durationMs: number; error?: unknown }
+  | {
+      type: 'snapshot:save' | 'snapshot:get' | 'snapshot:delete'
+      stateId: string
+      durationMs: number
+      snapshotId: string
+      error?: unknown
+    }
+  | {
+      type: 'snapshot:get-all'
+      stateId: string
+      durationMs: number
+      snapshotCount: number
+      error?: unknown
+    }
 
 export interface Options {
   readonly?: boolean
