@@ -1315,15 +1315,15 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #debounce<T extends (...args: Parameters<T>) => void>(
     func: T,
-    time: number
+    ms: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative-int')
+    numberError({ ms }, 'non-negative-int')
 
     let timeout: SetTimeout | undefined
 
     return (...args: Parameters<T>): void => {
       if (timeout) clearTimeout(timeout)
-      timeout = setTimeout(() => func(...args), time)
+      timeout = setTimeout(() => func(...args), ms)
     }
   }
 
