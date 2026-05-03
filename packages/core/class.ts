@@ -1457,22 +1457,21 @@ export default class FiCsElement<D extends object, P extends object> {
       const that: FiCsElement<D, P> = this,
         poll = (
           func: ({ times }: { times: number }) => void,
-          { interval, max, exit }: Hook.Polling
+          { intervalMs, maxRetries, exit }: Hook.Polling
         ): void => {
-          numberError({ interval }, 'non-negative-int')
-          numberError({ max }, 'positive-int')
+          numberError({ intervalMs, maxRetries }, 'non-negative-int')
 
           let times: number = 0
           const execute: SetTimeout = setTimeout(function run() {
-            if ((max && times >= max) || (exit && exit())) {
+            if ((maxRetries && times >= maxRetries) || (exit && exit())) {
               clearTimeout(execute)
               return
             }
 
             func({ times })
             times++
-            that.#poll = setTimeout(run, interval)
-          }, interval)
+            that.#poll = setTimeout(run, intervalMs)
+          }, intervalMs)
 
           that.#poll = execute
         }
