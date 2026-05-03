@@ -1,7 +1,7 @@
 import { fics } from 'ficsjs'
-import { fadeInOut } from 'ficsjs/animation'
+import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
-import { absoluteCenter, calc, cssVar, flexCenter } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
 import type { Lang } from '@/types'
@@ -13,7 +13,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
     ficsLink({
       href: '/',
       content: ({ template }) => template`FiCs ToDo`,
-      css: { a: { paddingInline: cssVar('xs') } }
+      css: `a { padding-block: ${size(1)}; padding-inline: ${size(2)}; }`
     }),
     Button()
   ],
@@ -65,12 +65,11 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
         position: 'relative',
         h1: {
           ...flexCenter('y'),
+          ...textSize('2xl'),
           height: cssVar('header-height'),
-          fontSize: cssVar('xl'),
           background: cssVar('gradation'),
           backgroundClip: 'text',
           webkitTextFillColor: 'transparent',
-          lineHeight: 1.5,
           '@media (forced-colors: active)': {
             background: 'none',
             backgroundClip: 'border-box',
@@ -79,13 +78,13 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
           }
         },
         'div.container': {
-          ...absoluteCenter('y'),
-          right: calc(`${cssVar('xl')} + ${cssVar('outline')}`),
+          ...positionCenter('y'),
+          right: calc(`${size(8)} + ${cssVar('outline')}`),
           [`@media (max-width: ${breakpoints.sm})`]: {
-            right: calc(`${cssVar('md')} * 0.75 + ${cssVar('outline')}`)
+            right: calc(`${size(3)} + ${cssVar('outline')}`)
           },
           '.langs': {
-            ...fadeInOut(cssVar('transition')),
+            ...fade(cssVar('transition')),
             position: 'absolute',
             right: 0,
             display: 'flex',

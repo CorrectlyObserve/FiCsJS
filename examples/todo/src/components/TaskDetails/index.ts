@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { dynamicPaths, goto } from 'ficsjs/router'
-import { calc, cssVar, flexCenter } from 'ficsjs/style'
+import { cssVar, flexCenter, size } from 'ficsjs/style'
 import Loading from '@/components/materials/Loading'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
@@ -138,6 +138,7 @@ export default fics<Data, Props>({
           ${button.setIndividualProps('save', {
             isDisabled: draft?.title === '',
             type: 'gradation',
+            fixedUnit: 32,
             buttonText,
             click: async () => {
               const { id, title, description, completedAt }: Task = draft
@@ -155,6 +156,7 @@ export default fics<Data, Props>({
             (buttonText, index) =>
               template`${button.setIndividualProps(index, {
                 type: index === 0 ? 'delete' : 'normal',
+                fixedUnit: 32,
                 buttonText,
                 click: async () => {
                   if (index === 0) {
@@ -174,24 +176,24 @@ export default fics<Data, Props>({
   css: {
     'div.container': {
       width: sm,
-      maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
+      maxWidth: size(120 - 16),
       marginInline: 'auto',
       [`@media (max-width: ${sm})`]: { width: '100%' },
       fieldset: {
         display: 'flex',
         flexDirection: 'column',
-        marginBlockEnd: cssVar('md'),
+        marginBlockEnd: size(4),
         border: 0,
-        legend: { paddingBlockEnd: cssVar('xs') },
-        button: { paddingInline: cssVar('md'), '&:hover': { background: white(0.1) } },
+        legend: { paddingBlockEnd: size(2) },
+        button: { paddingInline: size(4), '&:hover': { background: white(0.1) } },
         div: { ...flexCenter('y'), button: { paddingInline: cssVar('outline') } }
       },
       p: {
-        marginBlockEnd: cssVar('xs'),
+        marginBlockEnd: size(2),
         textAlign: 'left',
-        '&:last-of-type': { marginBlockEnd: cssVar('xl') }
+        '&:last-of-type': { marginBlockEnd: size(8) }
       },
-      '> div': { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 4`) }
+      '> div': { display: 'flex', flexDirection: 'column', gap: size(2) }
     }
   },
   options: { lazyLoad: true }

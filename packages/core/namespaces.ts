@@ -14,7 +14,7 @@ import type {
 } from './types'
 
 export declare namespace FiCs {
-  type Actions = Action.Handlers<any, any> | undefined
+  type Actions<D extends object, P> = Action.Handlers<D, P> | undefined
 
   type Attributes<D extends object, P> = Attrs<D, P> | undefined
 
@@ -22,7 +22,7 @@ export declare namespace FiCs {
 
   type ClassName<D extends object, P> = _ClassName<D, P> | undefined
 
-  type Css<D extends object, P> = SingleOrArray<Css.Rules<D, P> | string> | undefined
+  type Css<D extends object, P> = Css.Ctx<D, P> | undefined
 
   type DeferredContext<D extends object, P> = DataProps.Payload<D, P, true>
 

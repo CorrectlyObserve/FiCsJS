@@ -1,13 +1,22 @@
-import { clampRatio, numberError } from '../../helpers'
+import { numberError, normalizeRootMargin } from '../../helpers'
 import type { Scroll } from '../../types'
 import { resetCache } from '../cache'
 import consts from '../constants'
-import { clearTimers, getProperty, isValidNumber, normalizeRootMargin } from '../helpers'
+import { clearTimers, getProperty, isValidNumber } from '../helpers'
 import { getRootElement, getSentinel, restoreAxisOffset, updateFirstVisible } from './dom'
 import { fetchWithinThreshold, readPageParam, rebaseUrlSync, updatePageParam } from './sideEffects'
 import syncResize from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
 
+/**
+ * @param scrollOptions.options.unit Must be a positive integer.
+ * @param scrollOptions.options.itemMinSize Must be a positive number.
+ * @param scrollOptions.options.bufferLength Must be a non-negative integer.
+ * @param scrollOptions.options.throttle Must be a non-negative integer.
+ * @param scrollOptions.options.thresholdRate Must be a number between 0 and 1.
+ * @param scrollOptions.totalCount Must be a non-negative integer.
+ * @param scrollOptions.prevTotalCount Must be a non-negative integer.
+ */
 const runInfiniteVirtualScroll = <D extends object, P extends object>({
   name,
   instanceId,
@@ -34,18 +43,11 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       } = scrollOptions.options(getDataProps(true))
 
       numberError({ unit }, 'positive-int')
-      numberError({ itemMinSize })
-      numberError({ bufferLength }, 'non-negative-int')
-      numberError({ throttle }, 'non-negative')
+      numberError({ itemMinSize }, 'positive')
+      numberError({ bufferLength, throttle }, 'non-negative-int')
+      numberError({ thresholdRate }, 'ratio')
 
-      return {
-        unit,
-        itemMinSize,
-        bufferLength,
-        throttle,
-        thresholdRate: clampRatio(thresholdRate),
-        ...args
-      }
+      return { unit, itemMinSize, bufferLength, throttle, thresholdRate, ...args }
     },
     deactivateRuntime = (): void => {
       if (scrollObservers) {
@@ -72,17 +74,11 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
 
       clearTimers(scrollOptions)
 
-      /**
-       * @remarks
-       * Resets processing state and locks fetch until runtime is explicitly resumed.
-       */
+      /** @remarks Resets processing state and locks fetch until runtime is explicitly resumed. */
       scrollOptions.fetch.isFetching = false
       scrollOptions.flags.isFetchLocked = true
     } else
-      /**
-       * @remarks
-       * Fully deactivates runtime to avoid leaving a partially active state.
-       */
+      /** @remarks Fully deactivates runtime to avoid leaving a partially active state. */
       deactivateRuntime()
 
     return
@@ -99,7 +95,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   }
 
   const getIsVertical = (): boolean => (scrollOptions.lastAxis ?? axis) === 'vertical',
-    createIntersectionObserver = (rootMargin: string | number | undefined): IntersectionObserver =>
+    createIntersectionObserver = (rootMargin?: string | number): IntersectionObserver =>
       new IntersectionObserver(
         ([{ isIntersecting }]) => {
           if (!isIntersecting) return
@@ -168,10 +164,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
     return
   }
 
-  /**
-   * @remarks
-   * Initial setup (or full re-setup when observers cannot be reused) starts here.
-   */
+  /** @remarks Initial setup (or full re-setup when observers cannot be reused) starts here. */
   deactivateRuntime()
 
   let lastSentinel: Element | null = getSentinel({ root, instanceId })
@@ -235,7 +228,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
             const scrollAreaSize: number = (getRootElement({ root, instanceId }) as any)[
               getProperty({ isVertical: getIsVertical(), type: 'size', prefix: 'scroll' })
             ]
-            numberError({ scrollAreaSize })
+            numberError({ scrollAreaSize }, 'non-negative')
 
             const { totalSize }: Scroll.Resolved<D, P> = scrollOptions
             if (!isValidNumber(totalSize, false) || scrollAreaSize > totalSize) {

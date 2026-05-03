@@ -53,7 +53,7 @@ const ids: Set<string> = new Set(),
     isReRendering = true
 
     await new Promise<void>(resolve => {
-      setTimeout(() => {
+      const run = (): void => {
         const batch: Promise<void>[] = reRenderQueue.splice(0).map(async task => {
           try {
             await dequeue(task)
@@ -69,7 +69,10 @@ const ids: Set<string> = new Set(),
           isReRendering = false
           resolve()
         })
-      })
+      }
+
+      if (!isBrowser() || document.visibilityState === 'hidden') setTimeout(run)
+      else requestAnimationFrame(run)
     })
   }
 

@@ -54,9 +54,21 @@ export type Direction = 'row' | 'column'
 
 export interface Flex {
   display: 'flex'
-  flexDirection: Direction
+  'flex-direction': Direction
 }
 
 export type Operator = '+' | '-' | '*' | '/'
 
 export type Position = 'absolute' | 'fixed'
+
+export type Rect =
+  | number
+  | 'auto'
+  | '100%'
+  | '100vw'
+  | '100vh'
+  | 'max-content'
+  | 'min-content'
+  | 'fit-content'
+
+export type TextSize = 'xs' | 'sm' | 'ui' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'

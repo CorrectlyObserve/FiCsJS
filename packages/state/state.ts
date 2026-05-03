@@ -37,11 +37,14 @@ export default class State<S> {
 
     states.set(this.#key, value)
 
-    for (const subscriber of Array.from(this.#subscribers.values()))
+    for (const [key, subscriber] of Array.from(this.#subscribers))
       try {
         subscriber()
       } catch (error) {
-        throw error
+        console.error(
+          `The subscriber "${key}" of state "${this.#key}" threw during notification...`,
+          error
+        )
       }
   }
 

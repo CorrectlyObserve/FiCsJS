@@ -2,6 +2,10 @@ import { numberError } from '../helpers'
 import type { Scroll } from '../types'
 import { fenwickTree } from './helpers'
 
+/**
+ * @param cache Must be a positive integer.
+ * @param index Must be a non-negative integer.
+ */
 export const evictCache = <D extends object, P>({
   cache,
   index
@@ -15,10 +19,7 @@ export const evictCache = <D extends object, P>({
   numberError({ maxLength }, 'positive-int')
   numberError({ index }, 'non-negative-int')
 
-  /**
-   * @remarks
-   * Resets the cache when scrolling moves toward earlier indexes.
-   */
+  /** @remarks Resets the cache when scrolling moves toward earlier indexes. */
   if (index < startIndex) {
     cache.startIndex = index
     cache.evictedSize = 0
@@ -48,6 +49,14 @@ export const evictCache = <D extends object, P>({
   rebuildFenwickTrees(cache, 'force')
 }
 
+/**
+ * @param cache.maxLength Must be a positive integer.
+ * @param cache.evictedSize Must be a non-negative number.
+ * @param cache.evictedCount Must be a non-negative integer.
+ * @param totalCount Must be a non-negative integer.
+ * @param index Must be a non-negative integer.
+ * @param aveSize Must be a positive number.
+ */
 export const getOffsetBeforeIndex = <D extends object, P>({
   cache,
   totalCount,
@@ -55,7 +64,7 @@ export const getOffsetBeforeIndex = <D extends object, P>({
   aveSize
 }: Scroll.Ctx.OffsetBeforeIndex): number => {
   numberError({ index }, 'non-negative-int')
-  numberError({ aveSize })
+  numberError({ aveSize }, 'positive')
 
   if (!cache) return index * aveSize
 
@@ -70,7 +79,8 @@ export const getOffsetBeforeIndex = <D extends object, P>({
     countFenwickTree
   }: Scroll.Cache = cache
 
-  numberError({ evictedSize, evictedCount }, 'non-negative')
+  numberError({ evictedSize }, 'non-negative')
+  numberError({ evictedCount }, 'non-negative-int')
 
   /**
    * @remarks
@@ -116,10 +126,11 @@ export const getOffsetBeforeIndex = <D extends object, P>({
    */
   if (clampedIndex > endIndex) estimatedSize += (clampedIndex - endIndex) * aveSize
 
-  numberError({ estimatedSize })
+  numberError({ estimatedSize }, 'positive')
   return estimatedSize
 }
 
+/** @param cache.maxLength Must be a positive integer. */
 export const rebuildFenwickTrees = (cache: Scroll.Cache, mode: 'force' | 'if-needed'): void => {
   const { maxLength }: Scroll.Cache = cache
   numberError({ maxLength }, 'positive-int')

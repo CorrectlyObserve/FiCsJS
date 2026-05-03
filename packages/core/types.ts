@@ -38,16 +38,16 @@ export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
 
 export declare namespace Crud {
   interface Ctx {
-    api: string
+    endpoint: string
     apiStatuses: Map<string, boolean>
-    enqueue: (func: () => void | Promise<void>, key: Task['key']) => void
+    enqueue: (func: () => Void, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     options?: Options | StreamOptions
   }
 
-  type Fn = {
-    <T>(api: string, options?: Options): Promise<T>
-    (api: string, options: StreamOptions): Promise<void>
+  type Fetcher = {
+    <T>(endpoint: string, options?: Options): Promise<T>
+    (endpoint: string, options: StreamOptions): Promise<void>
   }
 
   interface Options extends RequestInit {
@@ -58,23 +58,29 @@ export declare namespace Crud {
   }
 
   interface StreamOptions extends Options {
-    /**
-     * @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities.
-     */
+    /** @remarks The chunk is NOT sanitized. Be cautious of XSS vulnerabilities. */
     onChunk: (chunk: string, index: number) => void
   }
 }
 
 export declare namespace Css {
+  type Ctx<D extends object, P> = SingleOrArray<StringOrFn<D, P> | Css.Rules<D, P>>
+
   interface Declarations {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = string | Record<string, Declarations>
+  type Global = StringOrFn<any, any> | Record<string, Declarations>
 
   type Rules<D extends object, P> = Record<string, Value<D, P>>
 
   type Sheet<D extends object, P> = Rules<D, P> | Global
+
+  type StringOrFn<D extends object, P> =
+    | string
+    | ((
+        ctx: DataProps.Payload<D, P> & { cssToString: (declarations: Declarations) => string }
+      ) => string)
 
   type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
@@ -85,7 +91,7 @@ export declare namespace DataProps {
   type Payload<D extends object, P, B extends boolean = false> = {
     data: D
     props: P
-  } & (B extends true ? { crud: Crud.Fn } : {})
+  } & (B extends true ? { crud: Crud.Fetcher } : {})
 }
 
 export type Descendant = FiCsElement<any, any>
@@ -102,7 +108,7 @@ export interface FiCs<D extends object, P extends object> {
   className?: ClassName<D, P>
   attributes?: Attrs<D, P>
   html: Html.Core<D, P>
-  css?: SingleOrArray<Css.Rules<D, P> | string>
+  css?: Css.Ctx<D, P>
   clonedCss?: Css.Sheet<D, P>[]
   hooks?: Hook.Lifecycle<D, P>
   actions?: Action.Handlers<D, P>
@@ -182,8 +188,10 @@ export interface I18n {
 }
 
 export declare namespace Options {
-  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'scroll'> {
+  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
+    /** @param rootMargin Must be an integer if it is a number. */
+    rootMargin?: string | number
     scroll?: (ctx: DataProps.Payload<D, P, true>) => Scroll.Options
   }
 
@@ -293,15 +301,22 @@ export declare namespace Scroll {
   }
 
   interface Options {
+    /** @param unit Must be a positive integer. */
     unit: number
+    /** @param itemMinSize Must be a positive number. */
     itemMinSize: number
     axis: Axis
     trigger?: boolean
     parameter?: string
+    /** @param rootMargin Must be an integer if it is a number. */
     rootMargin?: string | number
+    /** @param bufferLength Must be a non-negative integer. */
     bufferLength?: number
+    /** @param cacheLength Must be a non-negative integer. */
     cacheLength?: number
+    /** @param throttle Must be a non-negative integer. */
     throttle?: number
+    /** @param thresholdRate Must be a number between 0 and 1. */
     thresholdRate?: number
     method: () => void
     onError?: (error: unknown) => void
@@ -363,7 +378,7 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => void | Promise<void>
+  func: () => Void
   key: 'define' | 're-render' | 'fetch'
 }
 
@@ -379,7 +394,7 @@ export declare namespace Telemetry {
     queue: { key: Task['key']; duration: number }
     crud: {
       key: string
-      api: string
+      endpoint: string
       method: string
       isStream: boolean
       duration: number
@@ -436,6 +451,8 @@ export declare namespace Template {
 export type Translations = Record<string, unknown>
 
 type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
+
+export type Void = void | Promise<void>
 
 export declare namespace WebSocket {
   namespace Ctx {
