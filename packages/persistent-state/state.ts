@@ -1,7 +1,15 @@
-import { browserError, numberError, uid } from '../core/helpers'
+import {
+  browserError,
+  deepEqual,
+  getDelayMs,
+  isBlankString,
+  MAX_RETRIES,
+  numberError,
+  uid
+} from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 import consts from './constants'
-import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
+import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './type'
 
 const generator: Generator<number> = uid(),
   { COMPOSITE_ID_INDEX, SNAPSHOT_ID_INDEX, SNAPSHOT_STORE, STATE_ID_INDEX, STATE_STORE } = consts
@@ -10,17 +18,15 @@ export default class PersistentState<S> {
   readonly #stateId: string
   readonly #state: S
   readonly #readonly: boolean = false
-  readonly #backoff: Backoff = {
-    maxRetry: 10,
-    interval: 100,
-    multiplier: 1.5,
-    maxDelay: 30_000,
-    jitter: 100
-  }
+  readonly #intervalMs?: number
+  readonly #maxRetries?: number
   readonly #isForcedUpgrade: boolean = false
+  readonly #subscribers: Map<string, (state: S) => void> = new Map()
+  readonly #metricSubscribers: Set<(metric: Metric) => void> = new Set()
   #db!: IDBDatabase
   #initPromise?: Promise<void>
-  #isDeleted = false
+  #channel?: BroadcastChannel
+  #isDestroyed = false
 
   constructor(state: S, options?: Options) {
     browserError()
@@ -28,9 +34,10 @@ export default class PersistentState<S> {
     this.#stateId = `fics-persistent-state-${generator.next().value}`
     this.#state = state
     if (options) {
-      const { readonly, backoff, forcedUpgrade }: Options = options
+      const { readonly, intervalMs, maxRetries, forcedUpgrade }: Options = options
 
       if (readonly) this.#readonly = readonly
+<<<<<<< Updated upstream
       if (backoff) {
         const { multiplier, jitter, ...args }: Partial<Backoff> = backoff
         numberError({ ...args }, 'non-negative-int')
@@ -39,12 +46,19 @@ export default class PersistentState<S> {
 
         this.#backoff = { ...this.#backoff, ...backoff }
       }
+=======
+
+      numberError({ intervalMs, maxRetries }, 'non-negative-int')
+      this.#intervalMs = intervalMs
+      this.#maxRetries = maxRetries
+
+>>>>>>> Stashed changes
       if (forcedUpgrade) this.#isForcedUpgrade = forcedUpgrade
     }
   }
 
   #assertAlive(): void {
-    if (this.#isDeleted) throw new Error('This persistent state instance is deleted...')
+    if (this.#isDestroyed) throw new Error('This persistent state is destroyed...')
   }
 
   #getObjectStore(options?: { isSnapshot?: boolean; isReadonly?: boolean }): IDBObjectStore {
@@ -108,6 +122,52 @@ export default class PersistentState<S> {
     })
   }
 
+  #emitMetric(metric: Metric): void {
+    if (this.#metricSubscribers.size === 0) return
+
+    for (const subscriber of this.#metricSubscribers)
+      try {
+        subscriber(metric)
+      } catch {
+        return
+      }
+  }
+
+  async #track<T>({
+    type,
+    task,
+    payload
+  }: {
+    type: Metric['type']
+    task: () => Promise<T>
+    payload?: (result: T | undefined) => { snapshotId?: string; snapshotCount?: number }
+  }): Promise<T> {
+    const startedAt: number = performance.now()
+
+    try {
+      const result: T = await task()
+
+      this.#emitMetric({
+        type,
+        stateId: this.#stateId,
+        durationMs: performance.now() - startedAt,
+        ...payload?.(result)
+      } as Metric)
+
+      return result
+    } catch (error) {
+      this.#emitMetric({
+        type,
+        stateId: this.#stateId,
+        durationMs: performance.now() - startedAt,
+        error,
+        ...payload?.(undefined)
+      } as Metric)
+
+      throw error
+    }
+  }
+
   async #init(): Promise<void> {
     if (this.#db) return
     if (this.#initPromise) return this.#initPromise
@@ -115,7 +175,10 @@ export default class PersistentState<S> {
     let attempt = 0
 
     this.#initPromise = (async () => {
-      while (true)
+      while (true) {
+        attempt++
+        const startedAt: number = performance.now()
+
         try {
           const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
             const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
@@ -165,26 +228,36 @@ export default class PersistentState<S> {
             await this.#awaitTransaction(store)
           }
 
-          attempt = 0
+          this.#emitMetric({
+            type: 'init',
+            stateId: this.#stateId,
+            durationMs: performance.now() - startedAt,
+            attempt
+          })
+
           return
         } catch (error) {
-          attempt++
+          this.#emitMetric({
+            type: 'init',
+            stateId: this.#stateId,
+            durationMs: performance.now() - startedAt,
+            attempt,
+            error
+          })
 
-          const { maxRetry, interval, multiplier, maxDelay, jitter }: Backoff = this.#backoff
-
-          if (attempt > maxRetry) {
+          if (attempt > (this.#maxRetries ?? MAX_RETRIES)) {
             this.#initPromise = undefined
             throw new Error(`PersistentState initialization failed after ${attempt} retries.`, {
               cause: error
             })
           }
 
-          const delay: number =
-            Math.min(interval * multiplier ** (attempt - 1), maxDelay) + Math.random() * jitter
-
-          await new Promise(resolve => setTimeout(resolve, attempt === 1 ? 0 : delay))
+          await new Promise(resolve =>
+            setTimeout(resolve, getDelayMs({ error, attempt, intervalMs: this.#intervalMs }))
+          )
           this.#initPromise = undefined
         }
+      }
     })()
 
     return this.#initPromise
@@ -195,90 +268,196 @@ export default class PersistentState<S> {
     throw new Error(error)
   }
 
+  #sendSyncPayload(payload: SyncPayload<S>): void {
+    if (typeof BroadcastChannel === 'undefined') return
+
+    const channel: BroadcastChannel = this.#channel ?? new BroadcastChannel(this.#stateId)
+    channel.postMessage(payload)
+
+    if (!this.#channel) channel.close()
+  }
+
+  #callSubscribers(state: S): void {
+    const errors: Error[] = []
+
+    for (const [key, subscriber] of Array.from(this.#subscribers))
+      try {
+        subscriber(state)
+      } catch (error) {
+        const cause: Error = error instanceof Error ? error : new Error(String(error))
+
+        errors.push(
+          new Error(
+            `The subscriber "${key}" of the state "${this.#stateId}" failed during the notification...`,
+            { cause }
+          )
+        )
+      }
+
+    if (errors.length > 0) throw new AggregateError(errors)
+  }
+
+  #syncBetweenCrossTabs(): void {
+    if (this.#channel || typeof BroadcastChannel === 'undefined') return
+
+    const channel: BroadcastChannel = new BroadcastChannel(this.#stateId)
+
+    channel.onmessage = (event: MessageEvent<SyncPayload<S>>): void => {
+      if (event.data.type === 'set') this.#callSubscribers(event.data.state)
+      else if (event.data.type === 'delete') {
+        this.#isDestroyed = true
+
+        this.#subscribers.clear()
+        this.#metricSubscribers.clear()
+        this.#channel?.close()
+        this.#channel = undefined
+      }
+    }
+
+    this.#channel = channel
+  }
+
   async get(): Promise<S> {
     this.#assertAlive()
-    await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore({ isReadonly: true }),
-      state: State<S> | undefined = await this.#promisifyReq(store)
+    return this.#track({
+      type: 'get',
+      task: async () => {
+        await this.#init()
 
-    if (!state) throw new Error('The state was not found...')
-    return state.state
+        const store: IDBObjectStore = this.#getObjectStore({ isReadonly: true }),
+          state: State<S> | undefined = await this.#promisifyReq(store)
+
+        if (!state) throw new Error('The state was not found...')
+        return state.state
+      }
+    })
   }
 
   async set(newState: S): Promise<void> {
     this.#assertAlive()
-    await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore(),
-      state: State<S> | undefined = await this.#promisifyReq(store)
+    return this.#track({
+      type: 'set',
+      task: async () => {
+        await this.#init()
 
-    if (!state) return this.#abortTransaction(store, 'The state was not found...')
+        const store: IDBObjectStore = this.#getObjectStore(),
+          state: State<S> | undefined = await this.#promisifyReq(store)
 
-    if (state.readonly) return this.#abortTransaction(store, 'The state is readonly...')
+        if (!state) return this.#abortTransaction(store, 'The state was not found...')
+        if (state.readonly) return this.#abortTransaction(store, 'The state is readonly...')
 
-    store.put({ ...state, state: newState, updatedAt: Date.now() })
-    await this.#awaitTransaction(store)
+        if (deepEqual(state.state, newState)) return
+
+        store.put({ ...state, state: newState, updatedAt: Date.now() })
+        await this.#awaitTransaction(store)
+
+        this.#callSubscribers(newState)
+        this.#sendSyncPayload({ type: 'set', state: newState, timestamp: Date.now() })
+      }
+    })
   }
 
   async delete(options?: { cascade?: boolean }): Promise<void> {
     this.#assertAlive()
-    await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore(),
-      key: IDBValidKey | undefined = await this.#promisifyReq(store, { isOnlyKey: true })
+    return this.#track({
+      type: 'delete',
+      task: async () => {
+        await this.#init()
 
-    if (!key) return this.#abortTransaction(store, 'The state was not found...')
+        const store: IDBObjectStore = this.#getObjectStore(),
+          key: IDBValidKey | undefined = await this.#promisifyReq(store, { isOnlyKey: true })
 
-    store.delete(key)
-    await this.#awaitTransaction(store)
-    this.#isDeleted = true
+        if (!key) return this.#abortTransaction(store, 'The state was not found...')
 
-    if (options?.cascade) {
-      const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true })
+        store.delete(key)
+        await this.#awaitTransaction(store)
+        this.#isDestroyed = true
 
-      store.clear()
-      await this.#awaitTransaction(store)
-    }
+        if (options?.cascade) {
+          const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true })
+
+          store.clear()
+          await this.#awaitTransaction(store)
+        }
+
+        this.#sendSyncPayload({ type: 'delete', timestamp: Date.now() })
+
+        this.#subscribers.clear()
+        this.#metricSubscribers.clear()
+        this.#channel?.close()
+        this.#channel = undefined
+      }
+    })
   }
 
-  async saveSnapshot(snapshotId: string): Promise<number> {
+  async saveSnapshot(snapshotId: string): Promise<number | void> {
     this.#assertAlive()
 
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
-    await this.#init()
+    return this.#track({
+      type: 'snapshot:save',
+      task: async () => {
+        await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true }),
-      snapshot: Snapshot<S> | undefined = await this.#promisifyReq(store, { snapshotId }),
-      state: Awaited<S> = await this.get()
+        const tx: IDBTransaction = this.#db.transaction([STATE_STORE, SNAPSHOT_STORE], 'readwrite'),
+          stateStore: IDBObjectStore = tx.objectStore(STATE_STORE),
+          snapshotStore: IDBObjectStore = tx.objectStore(SNAPSHOT_STORE)
 
-    if (snapshot) throw new Error(`The snapshot with snapshot ID ${snapshotId} already exists...`)
+        const [snapshot, currentState]: [Snapshot<S> | undefined, State<S> | undefined] =
+          await Promise.all([
+            this.#promisifyReq<Snapshot<S> | undefined>(snapshotStore, { snapshotId }),
+            this.#promisifyReq<State<S> | undefined>(stateStore)
+          ])
 
-    const now: number = Date.now(),
-      req: IDBRequest<IDBValidKey> = store.add({
-        stateId: this.#stateId,
-        snapshotId,
-        state,
-        readonly: true,
-        createdAt: now,
-        updatedAt: now
-      }),
-      key: IDBValidKey = await this.#promisifyReq(req)
+        if (snapshot) {
+          this.#abortTransaction(
+            snapshotStore,
+            `The snapshot with snapshot ID ${snapshotId} already exists...`
+          )
+          return
+        }
 
-    await this.#awaitTransaction(store)
-    return key as number
+        if (!currentState)
+          return this.#abortTransaction(stateStore, 'The state was not found...') as never
+
+        const now: number = Date.now(),
+          req: IDBRequest<IDBValidKey> = snapshotStore.add({
+            stateId: this.#stateId,
+            snapshotId,
+            state: currentState.state,
+            readonly: true,
+            createdAt: now,
+            updatedAt: now
+          }),
+          key: IDBValidKey = await this.#promisifyReq(req)
+
+        await this.#awaitTransaction(snapshotStore)
+        return key as number
+      },
+      payload: () => ({ snapshotId })
+    })
   }
 
   async getAllSnapshots(): Promise<S[]> {
     this.#assertAlive()
-    await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true, isReadonly: true }),
-      snapshots: Snapshot<S>[] = await this.#promisifyReq(store, { isAllSnapshots: true })
+    return this.#track({
+      type: 'snapshot:get-all',
+      task: async () => {
+        await this.#init()
 
-    return snapshots.map(({ state }) => state)
+        const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true, isReadonly: true }),
+          snapshots: Snapshot<S>[] = await this.#promisifyReq(store, { isAllSnapshots: true })
+
+        return snapshots.map(({ state }) => state)
+      },
+      payload: (snapshots: S[] | undefined) => ({ snapshotCount: snapshots?.length ?? 0 })
+    })
   }
 
   async getSnapshot(snapshotId: string): Promise<S> {
@@ -287,14 +466,21 @@ export default class PersistentState<S> {
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
-    await this.#init()
+    return this.#track({
+      type: 'snapshot:get',
+      task: async () => {
+        await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true, isReadonly: true }),
-      snapshot: Snapshot<S> | undefined = await this.#promisifyReq(store, { snapshotId })
+        const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true, isReadonly: true }),
+          snapshot: Snapshot<S> | undefined = await this.#promisifyReq(store, { snapshotId })
 
-    if (!snapshot) throw new Error(`The snapshot with snapshot ID ${snapshotId} was not found...`)
+        if (!snapshot)
+          throw new Error(`The snapshot with snapshot ID ${snapshotId} was not found...`)
 
-    return snapshot.state
+        return snapshot.state
+      },
+      payload: () => ({ snapshotId })
+    })
   }
 
   async deleteSnapshot(snapshotId: string): Promise<void> {
@@ -303,21 +489,27 @@ export default class PersistentState<S> {
     snapshotId = snapshotId.trim()
     if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
 
-    await this.#init()
+    return this.#track({
+      type: 'snapshot:delete',
+      task: async () => {
+        await this.#init()
 
-    const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true }),
-      key: IDBValidKey | undefined = await this.#promisifyReq(store, {
-        snapshotId,
-        isOnlyKey: true
-      })
+        const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true }),
+          key: IDBValidKey | undefined = await this.#promisifyReq(store, {
+            snapshotId,
+            isOnlyKey: true
+          })
 
-    if (!key)
-      return this.#abortTransaction(
-        store,
-        `The snapshot with snapshot ID ${snapshotId} was not found...`
-      )
+        if (!key)
+          return this.#abortTransaction(
+            store,
+            `The snapshot with snapshot ID ${snapshotId} was not found...`
+          )
 
-    store.delete(key)
-    await this.#awaitTransaction(store)
+        store.delete(key)
+        await this.#awaitTransaction(store)
+      },
+      payload: () => ({ snapshotId })
+    })
   }
 }
