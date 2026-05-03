@@ -1,4 +1,4 @@
-import { numberError } from './../core/helpers'
+import { numberError } from '../core/helpers'
 
 /**
  * @param duration Must be greater than 0. Default is `2`.
