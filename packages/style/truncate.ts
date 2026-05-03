@@ -1,4 +1,4 @@
-import { numberError } from './../core/helpers'
+import { numberError } from '../core/helpers'
 
 /** @param maxLines Must be a positive integer. Default is `1`. */
 export default (maxLines: number = 1) => {
