@@ -15,7 +15,7 @@ export const normalizePath = (path: string): string =>
 
 export const normalizeRootMargin = (rootMargin?: string | number): string => {
   if (typeof rootMargin === 'number') {
-    numberError({ rootMargin }, 'finite')
+    numberError({ rootMargin }, 'int')
     return joinArray(new Array(4).fill(`${rootMargin}px`))
   }
 
