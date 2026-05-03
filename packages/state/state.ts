@@ -1,20 +1,14 @@
-import { deepEqual, isBlankString, uid } from '../core/helpers'
-
-const generator: Generator<number> = uid(),
-  states: Map<string, unknown> = new Map(),
-  writableStates: Set<string> = new Set()
+import { deepEqual, isBlankString } from '../core/helpers'
 
 export default class State<S> {
-  #key: string
-  #subscribers: Map<string, () => void> = new Map()
-  #isDestroyed = false
+  readonly #readonly: boolean
+  readonly #subscribers: Map<string, (state: S) => void> = new Map()
+  #state: S
+  #isDestroyed: boolean = false
 
-  constructor(value: S, options?: { readonly: boolean }) {
-    this.#key = `fics-state-${generator.next().value}`
-    const { readonly }: { readonly: boolean } = options ?? { readonly: false }
-
-    states.set(this.#key, value)
-    if (!options || !readonly) writableStates.add(this.#key)
+  constructor(state: S, options?: { readonly: boolean }) {
+    this.#state = state
+    this.#readonly = options?.readonly ?? false
   }
 
   #assertAlive(): void {
@@ -84,7 +78,7 @@ export default class State<S> {
     this.#isDestroyed = true
     this.#subscribers.clear()
 
-    states.delete(this.#key)
-    writableStates.delete(this.#key)
+    /** @remarks Detaches the state reference to prevent memory leaks. */
+    this.#state = undefined as unknown as S
   }
 }
