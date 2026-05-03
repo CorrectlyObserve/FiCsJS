@@ -1329,16 +1329,16 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #throttle<T extends (...args: Parameters<T>) => void>(
     func: T,
-    time: number
+    ms: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative-int')
+    numberError({ ms }, 'non-negative-int')
 
     let lastTime: number = 0
 
     return (...args: Parameters<T>): void => {
       const now: number = Date.now()
 
-      if (now - lastTime >= time) {
+      if (now - lastTime >= ms) {
         lastTime = now
         func(...args)
       }
