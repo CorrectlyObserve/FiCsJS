@@ -400,16 +400,10 @@ export declare namespace Telemetry {
   }
 
   interface Detail<D extends object, P> {
-    queue: { key: Task['key']; duration: number }
-    crud: {
-      key: string
-      endpoint: string
-      method: string
-      isStream: boolean
-      duration: number
-    }
-    updated: { key: 'updated'; dataKey: keyof D; duration: number }
-    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; duration: number }
+    queue: { key: Task['key']; durationMs: number }
+    crud: Crud
+    updated: { key: 'updated'; dataKey: keyof D; durationMs: number }
+    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; durationMs: number }
   }
 
   interface Metric<D extends object, P> extends Ctx<D, P> {
