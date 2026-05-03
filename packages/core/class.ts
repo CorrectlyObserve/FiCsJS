@@ -427,10 +427,7 @@ export default class FiCsElement<D extends object, P extends object> {
     method,
     isStream,
     startedAt
-  }: Omit<Telemetry.Detail<D, P>['crud'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
-    D,
-    P
-  >['crud']
+  }: Omit<Telemetry.Crud, 'durationMs'> & { startedAt?: number }): Telemetry.Crud
   #createDetail({
     key,
     startedAt
@@ -460,15 +457,15 @@ export default class FiCsElement<D extends object, P extends object> {
     dataKey?: keyof D
     startedAt?: number
   }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
-    const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
+    const durationMs: number = startedAt === undefined ? 0 : Date.now() - startedAt
 
     if (endpoint && method && isStream !== undefined)
-      return { key, endpoint, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
+      return { key, endpoint, method, isStream, durationMs } as Telemetry.Crud
 
     if (dataKey !== undefined)
-      return { key: 'updated', dataKey, duration } as Telemetry.Detail<D, P>['updated']
+      return { key: 'updated', dataKey, durationMs } as Telemetry.Detail<D, P>['updated']
 
-    return { key, duration } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
+    return { key, durationMs } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
   }
 
   #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
