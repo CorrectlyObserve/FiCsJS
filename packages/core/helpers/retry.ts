@@ -1,6 +1,6 @@
-import { numberError } from '../helpers'
 import type { SetTimeout } from '../types'
 import constants from './constants'
+import numberError from './numberError'
 
 const {
   BASE_MS,
