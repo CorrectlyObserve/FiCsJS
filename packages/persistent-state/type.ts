@@ -32,3 +32,7 @@ export interface State<S> {
   createdAt: number
   updatedAt: number
 }
+
+export type SyncPayload<S> =
+  | { type: 'set'; state: S; timestamp: number }
+  | { type: 'delete'; timestamp: number }
