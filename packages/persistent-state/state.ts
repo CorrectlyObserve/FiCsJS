@@ -4,10 +4,7 @@ import consts from './constants'
 import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 const generator: Generator<number> = uid(),
-  STATE_STORE = 'states' as const,
-  SNAPSHOT_STORE = 'snapshots' as const,
-  STATE_ID_INDEX = 'stateId' as const,
-  COMPOSITE_ID_INDEX = 'compositeId' as const
+  { COMPOSITE_ID_INDEX, SNAPSHOT_ID_INDEX, SNAPSHOT_STORE, STATE_ID_INDEX, STATE_STORE } = consts
 
 export default class PersistentState<S> {
   readonly #stateId: string
@@ -135,7 +132,7 @@ export default class PersistentState<S> {
               if (!result.objectStoreNames.contains(SNAPSHOT_STORE)) {
                 const store: IDBObjectStore = result.createObjectStore(SNAPSHOT_STORE, storeParams)
                 store.createIndex(STATE_ID_INDEX, STATE_ID_INDEX, { unique: false })
-                store.createIndex(COMPOSITE_ID_INDEX, [STATE_ID_INDEX, 'snapshotId'], {
+                store.createIndex(COMPOSITE_ID_INDEX, [STATE_ID_INDEX, SNAPSHOT_ID_INDEX], {
                   unique: true
                 })
               }
