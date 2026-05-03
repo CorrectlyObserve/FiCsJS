@@ -3,9 +3,9 @@ import constants from './constants'
 import numberError from './numberError'
 
 const {
-  BASE_MS,
+  INTERVAL_MS,
   JITTER_RATIO,
-  MAX_MS,
+  MAX_DELAY_MS,
   statusCode: { CLIENT_ERROR, REQUEST_TIMEOUT, SERVER_ERROR, TOO_MANY_REQUESTS }
 } = constants
 
