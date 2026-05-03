@@ -69,13 +69,10 @@ export default <D extends object, P>({
 
     const autoReconnect = (): void => {
       if (!isManuallyClosed && reconnect && !reconnectedTimer) {
-        const {
-          interval,
-          max,
-          isExponential
-        }: NonNullable<WebSocketNS.Options<D, P>>['reconnect'] = reconnect
+        const { intervalMs, maxRetries }: WebSocketNS.Options<D, P>['reconnect'] = reconnect
+        numberError({ intervalMs, maxRetries }, 'non-negative-int')
 
-        if ((max && reconnectedCount < max) || !max)
+        if ((maxRetries && reconnectedCount < maxRetries) || !maxRetries)
           reconnectedTimer = setTimeout(
             () => {
               reconnectedTimer = null
