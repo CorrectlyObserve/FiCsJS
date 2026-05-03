@@ -229,7 +229,7 @@ export default fics({
             if (closeButton instanceof HTMLButtonElement) setTimeout(() => closeButton.focus())
           }
         },
-        { throttle: 500 }
+        { throttleMs: 500 }
       ],
       keydown: [
         ({ event }) => {
@@ -239,7 +239,7 @@ export default fics({
           keyEvent.preventDefault()
           ;(keyEvent.currentTarget as HTMLElement | null)?.click()
         },
-        { throttle: 500 }
+        { throttleMs: 500 }
       ]
     }
   },
@@ -252,7 +252,7 @@ export default fics({
       parameter: 'page',
       rootMargin: PHOTO_SIZE,
       bufferLength: 2,
-      throttle: 200,
+      throttleMs: 200,
       method: async () =>
         await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
           photos => (data.photos = [...data.photos, ...photos])
