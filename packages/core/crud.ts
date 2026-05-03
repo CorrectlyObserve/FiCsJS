@@ -97,6 +97,7 @@ export default async <T>({
 
     if (!isJson)
       throw new Error('The response is required to have a content-type of application/json...')
+
     return (await res.json()) as T
   }
 
