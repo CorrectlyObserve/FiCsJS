@@ -1204,28 +1204,26 @@ export default class FiCsElement<D extends object, P extends object> {
         )
 
     return css.reduce((prev, curr) => {
-      if (typeof curr === 'function')
-        curr = curr({
-          ...this.#getDataProps(),
-          cssToString: (declarations: Css.Declarations) =>
-            joinArray(
-              Object.entries(declarations).map(([key, value]) => `${key}:${value};`),
-              false
-            )
-        })
-
       if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
-      const topLevelCss: string[] = []
-      return joinArray(
-        [
-          prev,
-          ...typedEntries(curr).map(
-            ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
-          ),
-          ...topLevelCss
-        ],
-        false
+      const topLevelCss: string[] = [],
+        joinCss = (cssTexts: string[]): string =>
+          joinArray([prev, ...cssTexts, ...topLevelCss], false)
+
+      if (typeof curr === 'function')
+        return joinCss([
+          normalizeHost(
+            curr({
+              ...this.#getDataProps(),
+              cssToString: (declarations: Css.Declarations) => convertCss(declarations, topLevelCss)
+            })
+          )
+        ])
+
+      return joinCss(
+        typedEntries(curr).map(
+          ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
+        )
       )
     }, '') as string
   }
