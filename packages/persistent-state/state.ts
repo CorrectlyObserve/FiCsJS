@@ -9,7 +9,7 @@ import {
 } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 import consts from './constants'
-import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './type'
+import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 const generator: Generator<number> = uid(),
   { COMPOSITE_ID_INDEX, SNAPSHOT_ID_INDEX, SNAPSHOT_STORE, STATE_ID_INDEX, STATE_STORE } = consts
@@ -37,22 +37,11 @@ export default class PersistentState<S> {
       const { readonly, intervalMs, maxRetries, forcedUpgrade }: Options = options
 
       if (readonly) this.#readonly = readonly
-<<<<<<< Updated upstream
-      if (backoff) {
-        const { multiplier, jitter, ...args }: Partial<Backoff> = backoff
-        numberError({ ...args }, 'non-negative-int')
-        numberError({ multiplier }, 'non-negative')
-        numberError({ jitter }, 'positive-int')
-
-        this.#backoff = { ...this.#backoff, ...backoff }
-      }
-=======
 
       numberError({ intervalMs, maxRetries }, 'non-negative-int')
       this.#intervalMs = intervalMs
       this.#maxRetries = maxRetries
 
->>>>>>> Stashed changes
       if (forcedUpgrade) this.#isForcedUpgrade = forcedUpgrade
     }
   }
@@ -297,6 +286,21 @@ export default class PersistentState<S> {
     if (errors.length > 0) throw new AggregateError(errors)
   }
 
+  #normalizeKey(key: string, type: 'subscribe' | 'unsubscribe'): string {
+    key = key.trim()
+
+    if (isBlankString(key))
+      throw new Error(`The subscriber key "${key}" to ${type} must be a non-empty string...`)
+
+    if (type === 'subscribe' && this.#subscribers.has(key))
+      throw new Error(`The subscriber key "${key}" is already registered...`)
+
+    if (type === 'unsubscribe' && !this.#subscribers.has(key))
+      throw new Error(`The subscriber key "${key}" is not found...`)
+
+    return key
+  }
+
   #syncBetweenCrossTabs(): void {
     if (this.#channel || typeof BroadcastChannel === 'undefined') return
 
@@ -332,6 +336,37 @@ export default class PersistentState<S> {
         return state.state
       }
     })
+  }
+
+  subscribe(key: string, callback: (state: S) => void): void {
+    this.#assertAlive()
+
+    if (this.#readonly) throw new Error(`The "${this.#stateId}" is readonly...`)
+
+    this.#subscribers.set(this.#normalizeKey(key, 'subscribe'), callback)
+    this.#syncBetweenCrossTabs()
+  }
+
+  unsubscribe(key?: string): void {
+    this.#assertAlive()
+
+    if (key) this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
+    else if (this.#subscribers.size > 0) this.#subscribers.clear()
+    else throw new Error(`The state "${this.#stateId}" does not have subscribers...`)
+
+    if (this.#subscribers.size === 0) {
+      this.#channel?.close()
+      this.#channel = undefined
+    }
+  }
+
+  subscribeMetric(subscriber: (metric: Metric) => void): () => void {
+    this.#assertAlive()
+    this.#metricSubscribers.add(subscriber)
+
+    return () => {
+      this.#metricSubscribers.delete(subscriber)
+    }
   }
 
   async set(newState: S): Promise<void> {
