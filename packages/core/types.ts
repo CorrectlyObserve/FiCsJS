@@ -250,10 +250,10 @@ export declare namespace Scroll {
     countFenwickTree: number[]
   }
 
-  interface Clamped extends Omit<Options, 'bufferLength' | 'throttle' | 'thresholdRate'> {
+  interface Clamped extends Omit<Options, 'bufferLength' | 'throttleMs' | 'thresholdRatio'> {
     bufferLength: number
-    throttle: number
-    thresholdRate: number
+    throttleMs: number
+    thresholdRatio: number
   }
 
   namespace Ctx {
