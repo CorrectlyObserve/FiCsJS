@@ -23,6 +23,8 @@ export const hideScrollbar = {
 export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
 
-  typeof rem === 'number' ? numberError({ rem }, 'non-negative') : (rem = parseFloat(rem.trim()))
+  if (typeof rem === 'string') rem = parseFloat(rem.trim())
+
+  numberError({ rem }, 'non-negative')
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
