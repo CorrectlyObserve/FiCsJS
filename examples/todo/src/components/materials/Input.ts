@@ -67,7 +67,7 @@ export default () =>
     `,
     actions: {
       input: {
-        input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
+        input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
         compositionstart: ({ data }) => {
           data.isComposing = true
         },
@@ -83,7 +83,7 @@ export default () =>
             )
               enterKey()
           },
-          { throttle: 500 }
+          { throttleMs: 500 }
         ],
         blur: ({ props: { value, blur } }) => {
           if (value !== '' && blur) blur()
