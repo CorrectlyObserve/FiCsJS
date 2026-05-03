@@ -483,7 +483,11 @@ export declare namespace WebSocket {
   interface Options<D extends object, P> {
     path: string
     protocols?: SingleOrArray<string>
-    reconnect?: { interval: number; max?: number; isExponential?: boolean }
+    /**
+     * @param intervalMs Must be a non-negative integer.
+     * @param maxRetries Must be a non-negative integer if it is a number.
+     */
+    reconnect?: { intervalMs: number; maxRetries?: number }
     onopen?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
     onmessage?: (ctx: Ctx.Params<D, P> & { event: MessageEvent }) => void
     onerror?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
