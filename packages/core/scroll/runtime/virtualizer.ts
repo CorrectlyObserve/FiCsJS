@@ -7,11 +7,11 @@ import { fenwickTree, getAveSize, getScrollMetrics, isValidNumber } from '../hel
 export const updateAveSize = <D extends object, P>({
   scrollOptions,
   itemMinSize,
-  thresholdRate
+  thresholdRatio
 }: {
   scrollOptions: Scroll.Resolved<D, P>
   itemMinSize: number
-  thresholdRate: number
+  thresholdRatio: number
 }): boolean => {
   const { cache, aveSize, totalCount }: Scroll.Resolved<D, P> = scrollOptions,
     { startIndex, maxLength, sizeFenwickTree, countFenwickTree } = cache,
@@ -29,7 +29,7 @@ export const updateAveSize = <D extends object, P>({
 
   const measuredAve: number = Math.max(itemMinSize, measuredSize / measuredCount),
     delta: number = measuredAve - prevAveSize,
-    threshold: number = prevAveSize * thresholdRate
+    threshold: number = prevAveSize * thresholdRatio
 
   if (Math.abs(delta) < threshold) return false
 
@@ -125,7 +125,7 @@ export const updateRange = <D extends object, P>({
     nextTotalSize = Math.max(estimatedTotalSize, totalSize)
 
   const hasRangeChanged: boolean = nextStartIndex !== startIndex || nextEndIndex !== endIndex,
-    hasSizeChanged: boolean = Math.abs(totalSize - nextTotalSize) >= consts.SIZE_DELTA_TOLERANCE
+    hasSizeChanged: boolean = Math.abs(totalSize - nextTotalSize) >= consts.SIZE_DELTA_TOLERANCE_PX
 
   if (hasRangeChanged || hasSizeChanged) {
     scrollOptions.startIndex = nextStartIndex
