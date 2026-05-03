@@ -511,7 +511,10 @@ export default class FiCsElement<D extends object, P extends object> {
       method: string = options?.method?.toUpperCase() ?? 'GET',
       isStream: boolean = !!(options && 'onChunk' in options)
 
-    this.#emitMetric({ key: 'crud', detail: this.#createDetail({ key, endpoint, method, isStream }) })
+    this.#emitMetric({
+      key: 'crud',
+      detail: this.#createDetail({ key, endpoint, method, isStream })
+    })
 
     try {
       const result: T | void = await runCrud({
