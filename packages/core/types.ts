@@ -315,10 +315,10 @@ export declare namespace Scroll {
     bufferLength?: number
     /** @param cacheLength Must be a non-negative integer. */
     cacheLength?: number
-    /** @param throttle Must be a non-negative integer. */
-    throttle?: number
-    /** @param thresholdRate Must be a number between 0 and 1. */
-    thresholdRate?: number
+    /** @param throttleMs Must be a non-negative integer. */
+    throttleMs?: number
+    /** @param thresholdRatio Must be a number between 0 and 1. */
+    thresholdRatio?: number
     method: () => void
     onError?: (error: unknown) => void
   }
