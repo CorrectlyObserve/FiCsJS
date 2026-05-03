@@ -177,8 +177,8 @@ export declare namespace Hook {
   }
 
   interface Polling {
-    interval: number
-    max?: number
+    intervalMs: number
+    maxRetries?: number
     exit?: () => boolean
   }
 }
