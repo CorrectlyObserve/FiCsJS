@@ -1,6 +1,7 @@
 import { browserError, numberError, uid } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
-import type { Backoff, Options, QueryOptions, Snapshot, State } from './type'
+import consts from './constants'
+import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 const generator: Generator<number> = uid(),
   STATE_STORE = 'states' as const,
