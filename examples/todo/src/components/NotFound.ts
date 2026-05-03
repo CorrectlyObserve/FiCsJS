@@ -95,7 +95,7 @@ export default fics<Data, { lang: Lang }>({
 
           data.seconds--
         },
-        { interval: 1000, exit: () => data.seconds <= 0 }
+        { intervalMs: 1000, exit: () => data.seconds <= 0 }
       )
     }
   },
