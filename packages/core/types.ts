@@ -23,8 +23,8 @@ export declare namespace Action {
   ) => void
 
   interface Options {
-    debounce?: number
-    throttle?: number
+    debounceMs?: number
+    throttleMs?: number
     blur?: boolean
     once?: boolean
   }
