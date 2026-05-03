@@ -40,24 +40,24 @@ export default class State<S> {
     return this.#state
   }
 
-  set(value: S): void {
-    this.#assertAlive()
+  set(newState: S): void {
+    this.#assertWritable()
 
-    if (!writableStates.has(this.#key)) throw new Error(`The "${this.#key}" is readonly...`)
+    if (deepEqual(this.#state, newState)) return
 
-    if (deepEqual(states.get(this.#key), value)) return
+    this.#state = newState
 
-    states.set(this.#key, value)
-
+    const errors: Error[] = []
     for (const [key, subscriber] of Array.from(this.#subscribers))
       try {
-        subscriber()
+        subscriber(newState)
       } catch (error) {
-        console.error(
-          `The subscriber "${key}" of state "${this.#key}" threw during notification...`,
-          error
-        )
+        const cause: Error = error instanceof Error ? error : new Error(String(error))
+
+        errors.push(new Error(`The subscriber "${key}" threw during notification...`, { cause }))
       }
+
+    if (errors.length > 0) throw new AggregateError(errors)
   }
 
   subscribe(key: string, callback: (state: S) => void): void {
