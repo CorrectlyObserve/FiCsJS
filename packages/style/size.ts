@@ -1,4 +1,4 @@
-import { numberError } from './../core/helpers'
+import { numberError } from '../core/helpers'
 import type { Rect } from './types'
 
 /** @param diameter Must be a positive integer. */
