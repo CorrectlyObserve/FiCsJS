@@ -48,7 +48,7 @@ export default <D extends object, P>({
   unit,
   itemMinSize,
   bufferLength,
-  thresholdRate,
+  thresholdRatio,
   reRender
 }: {
   getScrollOptions: () => Scroll.Resolved<D, P>
@@ -59,7 +59,7 @@ export default <D extends object, P>({
   unit: number
   itemMinSize: number
   bufferLength: number
-  thresholdRate: number
+  thresholdRatio: number
   reRender: Scroll.Ctx.Runtime<D, P>['reRender']
 }): void => {
   const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
@@ -156,7 +156,7 @@ export default <D extends object, P>({
     scrollOptions.timers.resize = setTimeout(() => {
       const _scrollOptions: Scroll.Resolved<D, P> = getScrollOptions()
 
-      updateAveSize({ scrollOptions: _scrollOptions, itemMinSize, thresholdRate })
+      updateAveSize({ scrollOptions: _scrollOptions, itemMinSize, thresholdRatio })
       updateRange({
         scrollOptions: _scrollOptions,
         root,
