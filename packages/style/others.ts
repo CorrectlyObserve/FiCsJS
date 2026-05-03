@@ -1,4 +1,4 @@
-import { browserError, numberError } from './../core/helpers'
+import { browserError, numberError } from '../core/helpers'
 import type { Operator } from './types'
 
 export function calc(expression: string): Readonly<string>
