@@ -28,7 +28,7 @@ export default () =>
       button: {
         click: [
           ({ props: { isDisabled, click } }) => !isDisabled && click(),
-          { throttle: 500, blur: true }
+          { throttleMs: 500, blur: true }
         ]
       }
     }
