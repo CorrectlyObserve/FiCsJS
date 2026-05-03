@@ -229,6 +229,137 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
+export declare namespace Query {
+  interface Callback<D extends object, P, T> {
+    onSuccess: (ctx: DataProps.Payload<D, P, true>, value: T) => void
+    onError?: (ctx: DataProps.Payload<D, P, true>, error: unknown) => void
+    onFetching?: (ctx: DataProps.Payload<D, P, true>) => void
+  }
+
+  namespace Config {
+    interface Entry {
+      staleMs?: number
+      maxRetries?: number
+      refetchIntervalMs?: number
+    }
+
+    interface Global {
+      staleMs: number
+      gcLimitMs: number
+      maxDelayMs: number
+      maxRetries: number
+      refetchIntervalMs: number
+      refetchOnFocus: boolean
+      refetchOnReconnect: boolean
+      onMetric?: (event: Metric.Event) => void
+      onError?: (key: Key, error: unknown) => void
+    }
+  }
+
+  interface EndOptimisticUpdate<T> {
+    entry: Query.Entry<T>
+    result: Result
+    attempt: number
+    startedAt: number
+  }
+
+  interface Ensure<T> {
+    key: Query.Key
+    fetcher?: Query.Fetcher<T>
+    config?: Config.Entry
+  }
+
+  interface Entry<T> {
+    readonly key: Key
+    readonly hashed: string
+    state: State<T>
+    fetcher: Fetcher<T> | null
+    staleMs: number
+    maxDelayMs: number
+    maxRetries: number
+    refetchIntervalMs: number
+    subscribers: Set<string>
+    inflight: Promise<void> | null
+    abort: AbortController | null
+    isOptimistic: boolean
+    fetchId: number
+    gcTimer?: SetTimeout
+    refetchTimer?: ReturnType<typeof setInterval>
+    lastOptimisticTask?: Promise<void>
+  }
+
+  interface Filter<T> {
+    key?: Key
+    isExactlyMatched?: boolean
+    predicate?: (entry: { key: Key; state: State<T> }) => boolean
+  }
+
+  type Fetcher<T> = (ctx: { key: Key; signal: AbortSignal }) => Promise<T>
+
+  type Key = readonly unknown[]
+
+  type Listener<T> = (hashed: string, state: State<T>) => void
+
+  namespace Metric {
+    type Event = { module: 'query-cache' } & Payload
+
+    type Payload =
+      | { type: 'fetch:start'; key: Key; attempt: number }
+      | { type: 'fetch:success'; key: Key; attempt: number; durationMs: number }
+      | {
+          type: 'fetch:error'
+          key: Key
+          attempt: number
+          durationMs: number
+          error: unknown
+          willRetry: boolean
+        }
+      | { type: 'cache:update'; key: Key; source: 'fetch' | 'manual' | 'optimistic' }
+      | { type: 'cache:evict'; key: Key; reason: 'gc' | 'destroy' }
+      | { type: 'subscribe'; key: Key; subscriberCount: number }
+      | { type: 'unsubscribe'; key: Key; subscriberCount: number }
+      | { type: 'optimistic:enqueue'; key: Key }
+      | { type: 'optimistic:start'; key: Key }
+      | { type: 'optimistic:end'; key: Key; result: Result; attempt: number; durationMs: number }
+  }
+
+  interface OptimisticUpdate<T> {
+    key: Query.Key
+    newQuery: T | ((current: T | undefined) => T)
+    updater: () => Promise<T>
+    maxRetries?: number
+    signal?: AbortSignal
+  }
+
+  interface Options<D extends object, P, T> extends Config.Entry, Callback<D, P, T> {
+    key: Key
+    fetcher: Fetcher<T>
+    enabled?: boolean
+  }
+
+  type Result = 'success' | 'reverted'
+
+  interface Runtime<D extends object, P, T> {
+    instanceId: string
+    getDataProps: DataProps.Getter<D, P>
+    options?: (ctx: DataProps.Payload<D, P, true>) => Options<D, P, T>[]
+  }
+
+  interface Subscription<T> {
+    hashed: string
+    instanceId: string
+    listener: Listener<T>
+  }
+
+  interface State<T> {
+    value?: T
+    error?: unknown
+    isFetching: boolean
+    /** @remarks `0` means the data has never been fetched. */
+    updatedAt: number
+  }
+}
+
 type RateLimitFn = <T extends unknown[]>(
   func: (...args: T) => void,
   time: number
