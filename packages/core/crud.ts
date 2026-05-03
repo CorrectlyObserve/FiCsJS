@@ -79,12 +79,16 @@ export default async <T>({
         const decoder: TextDecoder = new TextDecoder()
         let index: number = 0
 
-        while (true) {
-          const { done, value }: { done: boolean; value?: Uint8Array } = await reader.read()
-          if (done) break
+        try {
+          while (true) {
+            const { done, value }: { done: boolean; value?: Uint8Array } = await reader.read()
+            if (done) break
 
-          const chunk: string = decoder.decode(value, { stream: true })
-          onChunk?.(chunk, index++)
+            const chunk: string = decoder.decode(value, { stream: true })
+            onChunk?.(chunk, index++)
+          }
+        } finally {
+          reader.releaseLock()
         }
       }
 
