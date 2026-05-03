@@ -384,6 +384,14 @@ export interface Task {
 }
 
 export declare namespace Telemetry {
+  interface Crud {
+    key: string
+    endpoint: string
+    method: string
+    isStream: boolean
+    durationMs: number
+  }
+
   interface Ctx<D extends object, P> {
     key: keyof Telemetry.Detail<D, P>
     error?: unknown
