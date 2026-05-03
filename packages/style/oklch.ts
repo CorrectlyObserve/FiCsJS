@@ -78,19 +78,24 @@ const cache: Map<string, Color.Oklch> = new Map(),
     if (!match)
       throw new Error(`The oklch() literal "${literal}" must match the format ${OKLCH_LITERAL}...`)
 
-    const parts: string[] = match[1].split(/\s+/).filter(Boolean)
+    const [lch, alpha]: string[] = match[1].split('/').map(s => s.trim()),
+      parts: string[] = lch.split(/\s+/).filter(Boolean)
+
     if (parts.length < 3)
       throw new Error(
         `The oklch() literal "${literal}" must contain at least three values (L C H) like ${OKLCH_LITERAL}...`
       )
 
-    let [l, c, h, a]: (string | number)[] = parts
-    l = l.endsWith('%') ? parseFloat(l) / 100 : parseFloat(l)
-    c = parseFloat(c)
-    h = parseFloat(h)
-    a = a === undefined ? 1 : parseFloat(a)
+    const parsePercent = (s: string): number =>
+      s.endsWith('%') ? parseFloat(s) / 100 : parseFloat(s)
 
-    numberError({ l, c, h, a }, 'non-negative')
+    const l: number = parsePercent(parts[0]),
+      c: number = parseFloat(parts[1]),
+      h: number = parseFloat(parts[2]),
+      a: number = alpha ? parsePercent(alpha) : 1
+
+    numberError({ l, c, h }, 'non-negative')
+    numberError({ a }, 'ratio')
     return { l, c, h, a }
   },
   alphaFromHex = (hex: string): number => {
