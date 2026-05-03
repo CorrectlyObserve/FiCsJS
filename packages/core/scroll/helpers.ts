@@ -27,7 +27,7 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
  */
 export const fenwickTree = {
   /**
-   * @param index Must be a non-negative integer.
+   * @param index Must be a positive integer.
    * @param diff Must be an integer.
    */
   add: (tree: number[], index: number, diff: number): void => {
