@@ -26,10 +26,16 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
  * ```
  */
 export const fenwickTree = {
+  /**
+   * @param index Must be a positive integer.
+   * @param diff Must be an integer.
+   */
   add: (tree: number[], index: number, diff: number): void => {
     numberError({ index }, 'positive-int')
+    numberError({ diff }, 'int')
     for (let i = index; i < tree.length; i += i & -i) tree[i] += diff
   },
+  /** @param index Must be a non-negative integer. */
   sum: (tree: number[], index: number): number => {
     numberError({ index }, 'non-negative-int')
 
@@ -37,9 +43,7 @@ export const fenwickTree = {
     for (let i = index; i > 0; i -= i & -i) sum += tree[i]
     return sum
   },
-  /**
-   * @remarks The fenwick tree is 1-indexed.
-   */
+  /** @remarks The fenwick tree is 1-indexed. */
   reset: (length: number): number[] => new Array(length + 1).fill(0)
 } as const
 
@@ -99,16 +103,3 @@ export const getProperty = ({
 
 export const isValidNumber = (value: number, isPositiveRequired: boolean = true): boolean =>
   Number.isFinite(value) && (!isPositiveRequired || value > 0)
-
-export const normalizeRootMargin = (rootMargin: string | number | undefined): string => {
-  if (typeof rootMargin === 'number')
-    return joinArray(new Array(4).fill(`${Number.isFinite(rootMargin) ? rootMargin : 0}px`))
-
-  const split: string[] = (rootMargin ?? '').trim().split(/\s+/)
-  if (split.length > 4 || !split[0]) return joinArray(new Array(4).fill('0px'))
-
-  const [top, right, bottom, left]: (string | undefined)[] = split
-
-  if (left) return joinArray(split)
-  return joinArray(right || bottom ? [top, right!, bottom ?? top, right!] : new Array(4).fill(top))
-}

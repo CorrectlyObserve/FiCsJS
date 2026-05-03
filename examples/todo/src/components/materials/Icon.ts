@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { cssVar } from 'ficsjs/style'
+import { rect, size } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
@@ -25,16 +25,22 @@ export default () =>
         type="button"
       >${unsafeHtml(svg)}</button>
     `,
-    css: {
-      'button[type="button"]': ({ props: { color } }) => ({
-        background: 'none',
-        color: color ?? white(),
-        padding: cssVar('xs'),
-        '&:hover': { background: white(0.1) },
-        '&:focus, &:focus-visible': { outlineColor: color ?? white() },
-        svg: { display: 'flex', width: cssVar('xl'), height: 'auto', stroke: 'currentColor' }
-      })
-    },
+    css: ({ props: { color }, cssToString }) => `
+      button[type="button"] {
+        background: none;
+        color: ${color ?? white()};
+        padding: ${size(2)};
+
+        &:hover { background: ${white(0.1)}; }
+        &:focus, &:focus-visible { outline-color: ${color ?? white()}; }
+
+        svg {
+          ${cssToString(rect(8))}
+          display: flex;
+          stroke: currentColor;
+        }
+      }
+    `,
     actions: {
       button: { click: [({ props: { click } }) => click?.(), { throttle: 500, blur: true }] }
     }

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { createBunWebSocket, serveStatic } from 'hono/bun'
+import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import Link from './src/components/Link'
 import Users from './src/pages/_components/Users'
@@ -95,8 +95,7 @@ app.get(CHAT_PAGE, c =>
   )
 )
 
-const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>(),
-  createServerMessage = (comment: string): string =>
+const createServerMessage = (comment: string): string =>
     JSON.stringify({ userName: 'Server', comment }),
   messages: Message[] = [],
   wsClients = new Set<ServerWebSocket>(),

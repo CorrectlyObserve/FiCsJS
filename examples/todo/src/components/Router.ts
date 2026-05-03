@@ -1,13 +1,11 @@
 import { ficsRouter, goto } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, oklch } from 'ficsjs/style'
+import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import TaskDetail from '@/components/TaskDetails'
 import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
 import type { Lang, Task as TaskType } from '@/types'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
-
-const xs = calc(`${cssVar('xs')} * -1`)
 
 export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft?: TaskType }>({
   children: [Tasks, TaskDetail, NotFound],
@@ -60,21 +58,25 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft
     { path: '/redirect', redirect: '/' }
   ],
   notFound: { content: ({ children: { notFound } }) => notFound },
-  css: {
-    ':host': {
-      ...flexCenter('x'),
-      position: 'absolute',
-      containerType: 'inline-size',
-      gap: cssVar('xl'),
-      width: '100%',
-      minHeight: cssVar('min-height'),
-      [`@container (width >= ${breakpoints.lg})`]: {
-        '.tasks + .task-details': {
-          paddingInlineStart: cssVar('xl'),
-          boxShadow: `${xs} 0px ${cssVar('xs')} ${xs} ${oklch(cssVar('black'), { darker: 0.3 })}`
+  css: ({ cssToString }) => {
+    const shadowColor = oklch(cssVar('black'), { darker: 0.3 })
+    return `
+      :host {
+        ${cssToString(flexCenter('x'))}
+        position: absolute;
+        container-type: inline-size;
+        gap: ${size(8)};
+        width: 100%;
+        min-height: ${cssVar('min-height')};
+
+        @container (width >= ${breakpoints.lg}) {
+          .tasks + .task-details {
+            padding-inline-start: ${size(8)};
+            box-shadow: ${size(-2)} 0px ${size(2)} ${size(-2)} ${shadowColor};
+          }
         }
       }
-    }
+    `
   },
   hooks: {
     mounted: async ({ data }) => (data.tasks = await getAllTasks()),

@@ -28,6 +28,6 @@
   "notFound": {
     "heading": "Not Found...",
     "descriptions": ["You will be redirected to the top page in ", " seconds.", "Pause", "Restart"],
-    "buttonText": "Back to the top page"
+    "buttonText": "Back"
   }
 }

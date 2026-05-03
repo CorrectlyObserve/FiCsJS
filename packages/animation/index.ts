@@ -1,4 +1,5 @@
-import fadeInOut from './fadeInOut'
-import spin from './spin'
+import { pulse, spin } from './loading'
+import { fade, slide, zoom } from './transition'
+import vibrate from './vibrate'
 
-export { fadeInOut, spin }
+export { fade, pulse, slide, spin, vibrate, zoom }

@@ -8,6 +8,7 @@ import {
   isBrowser,
   isEmptyObject,
   joinArray,
+  normalizeRootMargin,
   numberError,
   toArray,
   typedEntries,
@@ -44,6 +45,7 @@ import type {
   SSE,
   Task,
   Telemetry,
+  Void,
   WebSocket as WebSocketNS
 } from './types'
 import openWebSocket from './websocket'
@@ -275,7 +277,7 @@ export default class FiCsElement<D extends object, P extends object> {
             `The "rootMargin" in options is enabled only if "lazyLoad" is set to true...`
           )
 
-        this.#options.rootMargin = rootMargin
+        this.#options.rootMargin = normalizeRootMargin(rootMargin)
       }
 
       for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
@@ -298,7 +300,7 @@ export default class FiCsElement<D extends object, P extends object> {
               { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
 
             numberError({ unit }, 'positive-int')
-            numberError({ itemMinSize })
+            numberError({ itemMinSize }, 'positive')
             numberError({ bufferLength, cacheLength, CACHE_LENGTH }, 'non-negative-int')
 
             const normalizedLength: number = Math.max(
@@ -421,7 +423,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }): Telemetry.Detail<D, P>['queue']
   #createDetail({
     key,
-    api,
+    endpoint,
     method,
     isStream,
     startedAt
@@ -445,14 +447,14 @@ export default class FiCsElement<D extends object, P extends object> {
   }): Telemetry.Detail<D, P>['updated']
   #createDetail({
     key,
-    api,
+    endpoint,
     method,
     isStream,
     dataKey,
     startedAt
   }: {
     key?: Task['key'] | Hook.Key<D, P> | string
-    api?: string
+    endpoint?: string
     method?: string
     isStream?: boolean
     dataKey?: keyof D
@@ -460,8 +462,8 @@ export default class FiCsElement<D extends object, P extends object> {
   }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
     const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
 
-    if (api && method && isStream !== undefined)
-      return { key, api, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
+    if (endpoint && method && isStream !== undefined)
+      return { key, endpoint, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
 
     if (dataKey !== undefined)
       return { key: 'updated', dataKey, duration } as Telemetry.Detail<D, P>['updated']
@@ -477,7 +479,7 @@ export default class FiCsElement<D extends object, P extends object> {
     } as DataProps.Payload<D, P, B>
   }
 
-  #enqueue(func: () => void | Promise<void>, key: Task['key']): void {
+  #enqueue(func: () => Void, key: Task['key']): void {
     enqueue({
       instanceId: this.#instanceId,
       key,
@@ -504,19 +506,19 @@ export default class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #crud<T>(api: string, options?: Crud.Options): Promise<T>
-  #crud(api: string, options: Crud.StreamOptions): Promise<void>
-  async #crud<T>(api: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
+  #crud<T>(endpoint: string, options?: Crud.Options): Promise<T>
+  #crud(endpoint: string, options: Crud.StreamOptions): Promise<void>
+  async #crud<T>(endpoint: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
     const startedAt: number = Date.now(),
       key: string = options?.key ?? 'crud',
       method: string = options?.method?.toUpperCase() ?? 'GET',
       isStream: boolean = !!(options && 'onChunk' in options)
 
-    this.#emitMetric({ key: 'crud', detail: this.#createDetail({ key, api, method, isStream }) })
+    this.#emitMetric({ key: 'crud', detail: this.#createDetail({ key, endpoint, method, isStream }) })
 
     try {
       const result: T | void = await runCrud({
-        api,
+        endpoint,
         apiStatuses: this.#apiStatuses,
         enqueue: this.#enqueue.bind(this),
         reRender: this.#reRender.bind(this),
@@ -526,7 +528,7 @@ export default class FiCsElement<D extends object, P extends object> {
       this.#emitMetric({
         key: 'crud',
         startedAt,
-        detail: this.#createDetail({ key, api, method, isStream, startedAt })
+        detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
       })
       return result
     } catch (error) {
@@ -534,7 +536,7 @@ export default class FiCsElement<D extends object, P extends object> {
         key: 'crud',
         error,
         startedAt,
-        detail: this.#createDetail({ key, api, method, isStream, startedAt })
+        detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
       })
     }
   }
@@ -1204,16 +1206,24 @@ export default class FiCsElement<D extends object, P extends object> {
     return css.reduce((prev, curr) => {
       if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
-      const topLevelCss: string[] = []
-      return joinArray(
-        [
-          prev,
-          ...typedEntries(curr).map(
-            ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
-          ),
-          ...topLevelCss
-        ],
-        false
+      const topLevelCss: string[] = [],
+        joinCss = (cssTexts: string[]): string =>
+          joinArray([prev, ...cssTexts, ...topLevelCss], false)
+
+      if (typeof curr === 'function')
+        return joinCss([
+          normalizeHost(
+            curr({
+              ...this.#getDataProps(),
+              cssToString: (declarations: Css.Declarations) => convertCss(declarations, topLevelCss)
+            })
+          )
+        ])
+
+      return joinCss(
+        typedEntries(curr).map(
+          ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
+        )
       )
     }, '') as string
   }
@@ -1307,7 +1317,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative')
+    numberError({ time }, 'non-negative-int')
 
     let timeout: SetTimeout | undefined
 
@@ -1321,7 +1331,7 @@ export default class FiCsElement<D extends object, P extends object> {
     func: T,
     time: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative')
+    numberError({ time }, 'non-negative-int')
 
     let lastTime: number = 0
 
@@ -1449,7 +1459,7 @@ export default class FiCsElement<D extends object, P extends object> {
           func: ({ times }: { times: number }) => void,
           { interval, max, exit }: Hook.Polling
         ): void => {
-          numberError({ interval })
+          numberError({ interval }, 'non-negative-int')
           numberError({ max }, 'positive-int')
 
           let times: number = 0

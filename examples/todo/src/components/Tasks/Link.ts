@@ -1,5 +1,5 @@
 import { ficsLink } from 'ficsjs/router'
-import { calc, cssVar } from 'ficsjs/style'
+import { calc, size, truncate } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 export default ficsLink<{
@@ -13,25 +13,23 @@ export default ficsLink<{
   href: ({ props: { id, isQuery } }) => `/${isQuery ? '?taskId=' : ''}${id}`,
   content: ({ props: { title, completedAt }, template }) =>
     template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`,
-  css: {
-    ':host': {
-      width: calc(`100% - ${cssVar('xl')} * 1.5`),
-      a: {
-        display: 'flex',
-        color: white(),
-        paddingBlock: cssVar('md'),
-        paddingInline: calc(`${cssVar('xl')} / 2`),
-        lineHeight: 1,
-        span: {
-          width: '100%',
-          lineHeight: 'inherit',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          '&.done': { textDecoration: 'line-through' }
-        },
-        '&:focus, &:focus-visible': { span: { color: 'inherit' } }
+  css: ({ cssToString }) => `
+    :host {
+      width: ${calc(`100% - ${size(12)}`)};
+
+      a {
+        display: flex;
+        color: ${white()};
+        padding: ${size(4)};
+
+        span {
+          ${cssToString(truncate())}
+          width: 100%;
+          line-height: inherit;
+
+          &.done { text-decoration: line-through; }
+        }
       }
     }
-  }
+  `
 })

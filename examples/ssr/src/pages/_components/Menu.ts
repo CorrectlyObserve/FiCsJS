@@ -82,5 +82,5 @@ export default fics<Data, Props>({
       })}
     `
   },
-  css: { ':host': flexCenter('y', 'column') }
+  css: ({ cssToString }) => `:host {${cssToString(flexCenter('y', 'column'))}}`
 })

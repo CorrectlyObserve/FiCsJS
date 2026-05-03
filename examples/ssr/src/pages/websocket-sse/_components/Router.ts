@@ -1,5 +1,4 @@
 import { ficsRouter } from 'ficsjs/router'
-import { cssVar } from 'ficsjs/style'
 import Chat from '@/pages/websocket-sse/_components/Chat'
 import Stream from '@/pages/websocket-sse/_components/Stream'
 import { $userName } from '@/store'
@@ -30,9 +29,13 @@ export default ficsRouter<{ messages: Message[]; logs: string[] }>({
     },
     { path: `${CHAT_PAGE}/stream`, content: ({ children: { stream } }) => stream }
   ],
-  css: {
-    ':host div': { maxWidth: cssVar('chat-width'), 'p:last-child': { 'margin-bottom': '0' } }
-  },
+  css: `
+    div {
+      max-width: var(--chat-width);
+
+      p:last-child { margin-bottom: 0; }
+    }
+  `,
   options: {
     websocket: {
       path: API_PATHS.ws,

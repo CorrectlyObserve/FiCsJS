@@ -18,5 +18,5 @@ export default () =>
         </p>
       `
     },
-    css: { 'a:hover': { background: white(0.1) } }
+    css: `a:hover { background: ${white(0.1)}; }`
   })

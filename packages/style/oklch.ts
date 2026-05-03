@@ -1,4 +1,4 @@
-import { browserError, clampRatio, isBlankString, numberError, typedEntries } from '../core/helpers'
+import { browserError, isBlankString, numberError, typedEntries } from '../core/helpers'
 import type { Color } from './types'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
@@ -78,19 +78,29 @@ const cache: Map<string, Color.Oklch> = new Map(),
     if (!match)
       throw new Error(`The oklch() literal "${literal}" must match the format ${OKLCH_LITERAL}...`)
 
-    const parts: string[] = match[1].split(/\s+/).filter(Boolean)
+    const segments: string[] = match[1].split('/').map(s => s.trim())
+
+    if (segments.length > 2)
+      throw new Error(`The oklch() literal "${literal}" must contain at most one "/" separator...`)
+
+    const [lch, alpha]: string[] = match[1].split('/').map(s => s.trim()),
+      parts: string[] = lch.split(/\s+/).filter(Boolean)
+
     if (parts.length < 3)
       throw new Error(
         `The oklch() literal "${literal}" must contain at least three values (L C H) like ${OKLCH_LITERAL}...`
       )
 
-    let [l, c, h, a]: (string | number)[] = parts
-    l = l.endsWith('%') ? parseFloat(l) / 100 : parseFloat(l)
-    c = parseFloat(c)
-    h = parseFloat(h)
-    a = a === undefined ? 1 : parseFloat(a)
+    const parsePercent = (s: string): number =>
+      s.endsWith('%') ? parseFloat(s) / 100 : parseFloat(s)
 
-    numberError({ l, c, h, a }, 'non-negative')
+    const l: number = parsePercent(parts[0]),
+      c: number = parseFloat(parts[1]),
+      h: number = parseFloat(parts[2]),
+      a: number = alpha ? parsePercent(alpha) : 1
+
+    numberError({ l, c, h }, 'non-negative')
+    numberError({ a }, 'ratio')
     return { l, c, h, a }
   },
   alphaFromHex = (hex: string): number => {
@@ -167,6 +177,12 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return oklch
   }
 
+/**
+ * @param options.darker Must be a number between 0 and 1.
+ * @param options.lighter Must be a number between 0 and 1.
+ * @param options.opacity Must be a number between 0 and 1.
+ * @param options.chroma Must be a non-negative number.
+ */
 export default (color: string, options?: Color.Ctx): string => {
   const resolved: string = convertCssVar(color).trim()
   let oklch: Color.Oklch, alpha: number
@@ -182,13 +198,17 @@ export default (color: string, options?: Color.Ctx): string => {
   }
 
   const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
-  numberError({ darker, lighter, chroma, opacity }, 'non-negative')
+  numberError({ darker, lighter, opacity }, 'ratio')
+  numberError({ chroma }, 'non-negative')
 
   if (darker > 0 && lighter > 0)
     throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
 
-  const { l, c, h }: Color.Oklch = oklch,
-    delta: number = darker > 0 ? -darker : lighter > 0 ? lighter : 0
+  const { l, c, h }: Color.Oklch = oklch
+  let lightness: number = l + (darker > 0 ? -darker : lighter > 0 ? lighter : 0)
 
-  return `oklch(${clampRatio(l + delta) * 100}% ${c * chroma} ${h} / ${clampRatio(opacity * alpha)})`
+  if (lightness < 0) lightness = 0
+  else if (lightness > 1) lightness = 1
+
+  return `oklch(${lightness * 100}% ${c * chroma} ${h} / ${opacity * alpha})`
 }

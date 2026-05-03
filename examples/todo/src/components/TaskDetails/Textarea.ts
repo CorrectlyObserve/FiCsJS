@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { calc, cssVar, flexCenter, forScreenReaders } from 'ficsjs/style'
+import { calc, flexCenter, forScreenReaders, size } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -20,17 +20,20 @@ export default fics<{}, Props>({
       <textarea id="${id}" placeholder="${placeholder}" aria-describedby="${id}-info">${value}</textarea>
     </div>
   `,
-  css: {
-    div: {
-      ...flexCenter('x', 'column'),
-      label: { paddingBlockEnd: cssVar('xs') },
-      p: forScreenReaders,
-      textarea: {
-        height: calc('+', calc('*', cssVar('xs'), 1.5, 2), calc('*', cssVar('md'), 1.5, 6)),
-        resize: 'none'
+  css: ({ cssToString }) => `
+    div {
+      ${cssToString(flexCenter('x', 'column'))}
+
+      label { padding-block-end: ${size(2)}; }
+
+      p {${cssToString(forScreenReaders)}}
+
+      textarea {
+        height: ${calc(`${size(3)} + ${size(6 * 6)} + ${size(3)}`)};
+        resize: none;
       }
     }
-  },
+  `,
   actions: {
     textarea: {
       input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],

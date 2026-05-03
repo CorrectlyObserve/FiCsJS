@@ -1,4 +1,4 @@
-import { browserError, numberError } from './../core/helpers'
+import { browserError, numberError } from '../core/helpers'
 import type { Operator } from './types'
 
 export function calc(expression: string): Readonly<string>
@@ -19,9 +19,12 @@ export const hideScrollbar = {
   '-ms-overflow-style': 'none'
 } as const
 
+/** @param rem Must be a non-negative number if it is a number. */
 export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
 
-  typeof rem === 'number' ? numberError({ rem }) : (rem = parseFloat(rem.trim()))
+  if (typeof rem === 'string') rem = parseFloat(rem.trim())
+
+  numberError({ rem }, 'non-negative')
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }

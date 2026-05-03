@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { calc, cssVar, forScreenReaders } from 'ficsjs/style'
+import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/materials/Loading'
 import { Lang } from '@/types'
@@ -21,6 +21,10 @@ export default fics<Data, { lang: Lang }>({
   children: [Button(), Loading()],
   data: () => ({ seconds: MAX, descriptions: [], isCounting: true }),
   i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
+  props: {
+    descendant: ({ children: { button } }) => button,
+    values: () => ({ fixedUnit: 48 })
+  },
   html: ({
     children: { button, loading },
     data,
@@ -56,16 +60,25 @@ export default fics<Data, { lang: Lang }>({
       </div>
     `
   },
-  css: {
-    p: {
-      '&[role="status"]': forScreenReaders,
-      '&[aria-hidden="true"]': {
-        marginBlockEnd: cssVar('xl'),
-        [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: cssVar('lg') }
+  css: ({ cssToString }) => `
+    p {
+      &[role="status"] {${cssToString(forScreenReaders)}}
+
+      &[aria-hidden="true"] {
+        margin-block-end: ${size(8)};
+
+        @media (max-width: ${breakpoints.sm}) {
+          margin-block-end: ${size(6)};
+        }
       }
-    },
-    div: { display: 'flex', flexDirection: 'column', gap: calc(`${cssVar('outline')} * 8`) }
-  },
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: ${size(4)};
+    }
+  `,
   hooks: {
     mounted: ({ data, poll }) => {
       data.seconds = MAX

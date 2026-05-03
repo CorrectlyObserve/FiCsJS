@@ -1,6 +1,6 @@
 import { fics } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { calc, cssVar, flexCenter } from 'ficsjs/style'
+import { calc, cssVar, flexCenter, size } from 'ficsjs/style'
 import Loading from '@/components/materials/Loading'
 import Icon from '@/components/materials/Icon'
 import Input from '@/components/materials/Input'
@@ -170,31 +170,28 @@ export default fics<Data, Props>({
   css: {
     div: {
       '&.menu': {
-        marginBlockEnd: cssVar('xl'),
+        marginBlockEnd: size(8),
         div: {
           ...flexCenter('xy'),
-          marginBlockEnd: cssVar('md'),
+          marginBlockEnd: size(4),
           '&:last-child': { marginBlockEnd: 0 },
           '.input': { marginInlineEnd: cssVar('outline') },
           span: { paddingInline: cssVar('outline') }
         },
         [`@media (max-width: ${sm})`]: {
-          marginBlockEnd: cssVar('md'),
-          div: { marginBlockEnd: cssVar('xs') }
+          marginBlockEnd: size(4),
+          div: { marginBlockEnd: size(2) }
         }
       },
       '&.task': {
         ...flexCenter('y'),
         width: sm,
-        maxWidth: calc('-', calc(`${cssVar('md')} * 30`), `${cssVar('xl')} * 2`),
+        maxWidth: size(120 - 16),
         marginInline: 'auto',
-        marginBlockEnd: cssVar('xs'),
+        marginBlockEnd: size(2),
         '&:last-child': { marginBlockEnd: 0 },
-        [`@media (max-width: ${sm})`]: { width: '100%' },
-        div: {
-          ...flexCenter('y'),
-          width: calc('-', calc(`100% - ${cssVar('xl')}`), `${cssVar('xs')} * 2`)
-        }
+        [`@media (max-width: ${sm})`]: { width: calc(`100% - ${size(12)}`) },
+        div: { ...flexCenter('y'), width: calc(`100% - ${size(12)}`) }
       }
     }
   },

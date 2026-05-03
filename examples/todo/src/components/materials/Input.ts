@@ -1,5 +1,5 @@
 import { fics } from 'ficsjs'
-import { cssVar, flexCenter, forScreenReaders } from 'ficsjs/style'
+import { cssVar, flexCenter, forScreenReaders, size, textSize } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -45,22 +45,26 @@ export default () =>
         </div>
       `
     },
-    css: {
-      div: ({ props: { isError, error } }) => ({
-        ...flexCenter('x', 'column'),
-        label: { paddingBlockEnd: cssVar('xs') },
-        p: {
-          '&:first-of-type': {
-            fontSize: cssVar('sm'),
-            color: cssVar('red'),
-            marginBlockEnd: cssVar('xs'),
-            textAlign: 'left'
-          },
-          '&:last-of-type': forScreenReaders
-        },
-        input: isError && error ? { borderColor: cssVar('red') } : {}
-      })
-    },
+    css: ({ props: { isError, error }, cssToString }) => `
+      div {
+        ${cssToString(flexCenter('x', 'column'))}
+
+        label { padding-block-end: ${size(2)}; }
+
+        p {
+          &:first-of-type {
+            ${cssToString(textSize('sm'))}
+            color: ${cssVar('red')};
+            margin-block-end: ${size(2)};
+            text-align: left;
+          }
+
+          &:last-of-type {${cssToString(forScreenReaders)}}
+        }
+
+        ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
+      }
+    `,
     actions: {
       input: {
         input: [({ props: { input }, value }) => input(value!), { debounce: 200 }],
