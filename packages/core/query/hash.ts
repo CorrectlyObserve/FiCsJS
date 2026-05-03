@@ -1,0 +1,31 @@
+import consts from './constants'
+
+const {
+  hash: { CIRCULAR, DATE, FALSE, MAP, NULL, SET, TRUE, UNDEFINED }
+} = consts
+
+/** @warning DO NOT pass this function directly to `Array.prototype.map` like `array.map(hash)`. */
+const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
+  if (key === undefined) return UNDEFINED
+  if (key === null) return NULL
+  if (typeof key === 'boolean') return key ? TRUE : FALSE
+  if (typeof key === 'number') return `${key}`
+  if (typeof key === 'string') return `"${key}"`
+
+  if (typeof key !== 'object') return key.toString()
+
+  if (seen.has(key as object)) return CIRCULAR
+  seen.add(key as object)
+
+  if (key instanceof Date) return `${DATE}${key.getTime()}`
+  if (key instanceof Map) return `${MAP}[${hash([...key.entries()], seen)}]`
+  if (key instanceof Set) return `${SET}[${hash([...key.values()], seen)}]`
+  if (Array.isArray(key)) return `[${key.map(_key => hash(_key, seen)).join(',')}]`
+
+  return `{${Object.keys(key)
+    .sort()
+    .map(_key => `${_key}:${hash((key as Record<string, unknown>)[_key], seen)}`)
+    .join(',')}}`
+}
+
+export default hash
