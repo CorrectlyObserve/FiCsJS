@@ -2,9 +2,9 @@ import { numberError } from './helpers'
 import type { Crud, SetTimeout } from './types'
 
 /**
- * @param options.timeout Must be a non-negative integer.
- * @param options.maxRetry Must be a non-negative integer.
- * @param options.delay Must be a non-negative integer.
+ * @param options.timeoutMs Must be a non-negative integer if it is a number.
+ * @param options.intervalMs Must be a non-negative integer if it is a number.
+ * @param options.maxRetries Must be a non-negative integer if it is a number.
  */
 export default async <T>({
   endpoint,
@@ -13,12 +13,19 @@ export default async <T>({
   reRender,
   options
 }: Crud.Ctx): Promise<T | void> => {
-  const { key, timeout, maxRetry, delay, ..._options }: Crud.Options = options ?? {},
+  const {
+      key,
+      timeoutMs,
+      intervalMs,
+      maxRetries = MAX_RETRIES,
+      signal,
+      ...args
+    }: Crud.Options = options ?? {},
     { onChunk } = options && 'onChunk' in options ? (options as Crud.StreamOptions) : {}
 
-  numberError({ timeout, maxRetry, delay }, 'non-negative-int')
+  numberError({ timeoutMs, intervalMs }, 'non-negative-int')
 
-  const method: string = _options.method?.toUpperCase() ?? 'GET'
+  const method: string = args.method?.toUpperCase() ?? 'GET'
 
   if (onChunk && method !== 'GET')
     throw new Error('The stream option is only available for GET requests...')
