@@ -37,9 +37,7 @@ export default class State<S> {
 
   get(): S {
     this.#assertAlive()
-
-    if (states.has(this.#key)) return states.get(this.#key) as S
-    throw new Error(`The "${this.#key}" is not defined in states...`)
+    return this.#state
   }
 
   set(value: S): void {
@@ -63,33 +61,17 @@ export default class State<S> {
   }
 
   subscribe(key: string, callback: (state: S) => void): void {
-    this.#assertAlive()
+    this.#assertWritable()
 
-    if (!writableStates.has(this.#key)) throw new Error(`The "${this.#key}" is readonly...`)
-
-    key = key.trim()
-    if (isBlankString(key)) throw new Error('The "key" to subscribe must be a non-empty string...')
-
-    if (this.#subscribers.has(key))
-      throw new Error(`The subscriber key "${key}" is already registered...`)
-
-    this.#subscribers.set(key, () => callback(states.get(this.#key) as S))
+    this.#subscribers.set(this.#normalizeKey(key, 'subscribe'), callback)
   }
 
   unsubscribe(key?: string): void {
     this.#assertAlive()
 
-    if (key) {
-      key = key.trim()
-      if (isBlankString(key))
-        throw new Error('The "key" to unsubscribe must be a non-empty string...')
-
-      if (!this.#subscribers.has(key))
-        throw new Error(`The subscriber key "${key}" was not found...`)
-
-      this.#subscribers.delete(key)
-    } else if (this.#subscribers.size > 0) this.#subscribers.clear()
-    else throw new Error(`The state "${this.#key}" does not have subscribers...`)
+    if (key) this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
+    else if (this.#subscribers.size > 0) this.#subscribers.clear()
+    else throw new Error('This state does not have subscribers...')
   }
 
   destroy(): void {
