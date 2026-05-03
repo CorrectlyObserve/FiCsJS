@@ -35,6 +35,7 @@ export default <D extends object, P>({
     wsUrl.protocol = protocol.startsWith('https') ? 'wss:' : 'ws:'
 
     const websocket: WebSocket = new WebSocket(wsUrl.toString(), protocols),
+      isStale = (): boolean => activeWebsocket !== websocket,
       getParams: () => Omit<WebSocketNS.Ctx.Params<D, P>, 'event'> = () => ({
         ...getDataProps(true),
         websocket: {
@@ -54,7 +55,7 @@ export default <D extends object, P>({
     })
 
     websocket.onopen = (event: Event): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
 
       reconnectedCount = 0
       clearReconnectTimer()
@@ -62,7 +63,7 @@ export default <D extends object, P>({
     }
 
     websocket.onmessage = (event: MessageEvent): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
       onmessage?.({ ...getParams(), event })
     }
 
@@ -87,13 +88,13 @@ export default <D extends object, P>({
     }
 
     websocket.onerror = (event: Event): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
 
       onerror?.({ ...getParams(), event })
       autoReconnect()
     }
     websocket.onclose = (event: CloseEvent): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
 
       activeWebsocket = null
       setWebSocketProp(undefined)
