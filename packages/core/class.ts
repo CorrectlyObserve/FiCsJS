@@ -1354,8 +1354,8 @@ export default class FiCsElement<D extends object, P extends object> {
       if (handler !== 'click' && options?.blur)
         throw new Error('The "blur" is enabled only if the handler is click...')
 
-      const { debounce, throttle, blur, once }: Action.Options = options ?? {}
-      if (debounce && throttle)
+      const { debounceMs, throttleMs, blur, once }: Action.Options = options ?? {}
+      if (debounceMs && throttleMs)
         throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
 
       const callback = (event: Event): void => {
