@@ -52,9 +52,10 @@ export declare namespace Crud {
 
   interface Options extends RequestInit {
     key?: string
-    timeout?: number
-    maxRetry?: number
-    delay?: number
+    timeoutMs?: number
+    intervalMs?: number
+    maxRetries?: number
+    signal?: AbortSignal
   }
 
   interface StreamOptions extends Options {
