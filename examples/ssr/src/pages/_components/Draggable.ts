@@ -293,7 +293,7 @@ export default <T>() =>
             if (targetZone && droppedZone !== targetZone)
               data.droppedZone = targetZone as HTMLElement
           },
-          { throttle: 200 }
+          { throttleMs: 200 }
         ],
         dragend: ({ data, event }) => {
           data.draggingIndex = NaN
@@ -316,7 +316,7 @@ export default <T>() =>
 
             element.focus()
           },
-          { throttle: 500 }
+          { throttleMs: 500 }
         ],
         keydown: async ({
           data: { getDraggableElement, focusItemByIndex },
