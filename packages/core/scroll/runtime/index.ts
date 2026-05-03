@@ -8,29 +8,15 @@ import { fetchWithinThreshold, readPageParam, rebaseUrlSync, updatePageParam } f
 import syncResize from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 /**
  * @param scrollOptions.options.unit Must be a positive integer.
  * @param scrollOptions.options.itemMinSize Must be a positive number.
  * @param scrollOptions.options.bufferLength Must be a non-negative integer.
-<<<<<<< Updated upstream
- * @param scrollOptions.options.throttle Must be a non-negative integer.
- * @param scrollOptions.options.thresholdRate Must be a number between 0 and 1.
- * @param scrollOptions.totalCount Must be a non-negative integer.
- * @param scrollOptions.prevTotalCount Must be a non-negative integer.
- */
-=======
  * @param scrollOptions.options.throttleMs Must be a non-negative integer.
  * @param scrollOptions.options.thresholdRatio Must be a number between 0 and 1.
  * @param scrollOptions.totalCount Must be a non-negative integer.
  * @param scrollOptions.prevTotalCount Must be a non-negative integer.
  */
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 const runInfiniteVirtualScroll = <D extends object, P extends object>({
   name,
   instanceId,
@@ -57,34 +43,11 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       } = scrollOptions.options(getDataProps(true))
 
       numberError({ unit }, 'positive-int')
-<<<<<<< Updated upstream
-      numberError({ itemMinSize }, 'positive')
-      numberError({ bufferLength, throttle }, 'non-negative-int')
-      numberError({ thresholdRate }, 'ratio')
-
-      return { unit, itemMinSize, bufferLength, throttle, thresholdRate, ...args }
-=======
-<<<<<<< Updated upstream
-      numberError({ itemMinSize })
-      numberError({ bufferLength }, 'non-negative-int')
-      numberError({ throttle }, 'non-negative')
-
-      return {
-        unit,
-        itemMinSize,
-        bufferLength,
-        throttle,
-        thresholdRate: clampRatio(thresholdRate),
-        ...args
-      }
-=======
       numberError({ itemMinSize }, 'positive')
       numberError({ bufferLength, throttleMs }, 'non-negative-int')
       numberError({ thresholdRatio }, 'ratio')
 
       return { unit, itemMinSize, bufferLength, throttleMs, thresholdRatio, ...args }
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     },
     deactivateRuntime = (): void => {
       if (scrollObservers) {
