@@ -8,7 +8,8 @@ export interface Backoff {
 
 export interface Options {
   readonly?: boolean
-  backoff?: Partial<Backoff>
+  intervalMs?: number
+  maxRetries?: number
   forcedUpgrade?: boolean
 }
 
