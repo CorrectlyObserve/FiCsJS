@@ -12,7 +12,27 @@ export default class State<S> {
   }
 
   #assertAlive(): void {
-    if (this.#isDestroyed) throw new Error('This state instance is destroyed...')
+    if (this.#isDestroyed) throw new Error('This state is destroyed...')
+  }
+
+  #assertWritable(): void {
+    this.#assertAlive()
+    if (this.#readonly) throw new Error('This state is readonly...')
+  }
+
+  #normalizeKey(key: string, type: 'subscribe' | 'unsubscribe'): string {
+    key = key.trim()
+
+    if (isBlankString(key))
+      throw new Error(`The subscriber key "${key}" to ${type} must be a non-empty string...`)
+
+    if (type === 'subscribe' && this.#subscribers.has(key))
+      throw new Error(`The subscriber key "${key}" is already registered...`)
+
+    if (type === 'unsubscribe' && !this.#subscribers.has(key))
+      throw new Error(`The subscriber key "${key}" is not found...`)
+
+    return key
   }
 
   get(): S {
