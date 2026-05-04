@@ -1,4 +1,4 @@
-import { numberError } from './helpers'
+import { delay, getDelayMs, MAX_RETRIES, numberError, shouldRetry } from './helpers'
 import type { Crud, SetTimeout } from './types'
 
 /**
@@ -33,40 +33,61 @@ export default async <T>({
   if (method === 'HEAD') throw new Error('The HEAD method is not supported in the crud function...')
 
   const handleRes = async (): Promise<T | void> => {
+    let attempt: number = 0
+
+    const fetchOnce = async (): Promise<Response> => {
+      const controller: AbortController = new AbortController(),
+        cleanups: (() => void)[] = []
+
+      if (signal)
+        if (signal.aborted) controller.abort(signal.reason)
+        else {
+          const onAbort = (): void => controller.abort(signal.reason)
+
+          signal.addEventListener('abort', onAbort, { once: true })
+          cleanups.push(() => signal.removeEventListener('abort', onAbort))
+        }
+
+      let timer: SetTimeout | undefined
+      if (timeoutMs && timeoutMs > 0)
+        timer = setTimeout(
+          () => controller.abort(new DOMException('Timeout', 'AbortError')),
+          timeoutMs
+        )
+
+      try {
+        const res: Response = await fetch(endpoint, { ...args, signal: controller.signal })
+        /** @remarks Forces HTTP errors (4xx/5xx) into the outer catch block for retry evaluation. */
+        if (!res.ok) throw res
+
+        return res
+      } finally {
+        if (timer) clearTimeout(timer)
+        for (const cleanup of cleanups) cleanup()
+      }
+    }
     const res: Response = await (async () => {
-      let attempt: number = 0
-
       while (true) {
-        const controller: AbortController = new AbortController(),
-          { signal }: { signal: AbortSignal } = controller
-        let timeoutId: SetTimeout | undefined
-
-        if (timeout && timeout > 0) timeoutId = setTimeout(() => controller.abort(), timeout)
-
         try {
-          const res: Response = await fetch(endpoint, { ..._options, signal })
-
-          if (timeoutId) clearTimeout(timeoutId)
-          return res
+          return await fetchOnce()
         } catch (error) {
-          if (timeoutId) clearTimeout(timeoutId)
+          attempt++
 
-          if (signal.aborted)
-            throw new Error(
-              `The request to "${endpoint}" ${timeout && timeout > 0 ? `timed out after ${timeout}ms` : 'was aborted'}...`
-            )
-
-          if (maxRetry && attempt < maxRetry) {
-            attempt++
-            await new Promise(resolve => setTimeout(resolve, delay ?? 0))
-            continue
+          if (!shouldRetry({ error, attempt, maxRetries, signal })) {
+            if (error instanceof Response)
+              throw new Error(`${error.status} ${error.statusText}: The request failed...`)
+            throw error
           }
-          throw error
+
+          try {
+            await delay(getDelayMs({ error, attempt, intervalMs }), signal)
+          } catch {
+            throw error
+          }
         }
       }
     })()
 
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}: The request failed...`)
     if (res.status === 204) return
 
     const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
@@ -112,7 +133,6 @@ export default async <T>({
 
   apiStatuses.set(key, true)
   enqueue(() => reRender(true), 're-render')
-  await new Promise(resolve => setTimeout(resolve, delay ?? 0))
 
   try {
     return await handleRes()
