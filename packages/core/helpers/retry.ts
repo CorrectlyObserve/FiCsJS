@@ -87,6 +87,39 @@ const parseRetryAfter = (error: Response | unknown): number | null => {
   return Math.max(0, date - Date.now())
 }
 
+/**
+ * @param attempt Must be a positive integer.
+ * @param maxRetries Must be a non-negative integer.
+ */
+export const shouldRetry = ({
+  error,
+  attempt,
+  maxRetries,
+  signal
+}: {
+  error: unknown
+  attempt: number
+  maxRetries: number
+  signal?: AbortSignal
+}): boolean => {
+  numberError({ attempt }, 'positive-int')
+  numberError({ maxRetries }, 'non-negative-int')
+
+  const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
+  if (isIntentional || signal?.aborted || attempt > maxRetries) return false
+
+  if (error instanceof Response) {
+    const { status }: { status: number } = error
+
+    if (status === REQUEST_TIMEOUT || status === TOO_MANY_REQUESTS) return true
+    if (status >= CLIENT_ERROR && status < SERVER_ERROR) return false
+    return status >= SERVER_ERROR
+  }
+
+  const isNetworkError: boolean = error instanceof TypeError
+  return isNetworkError
+}
+
 export const watch = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> =>
   new Promise((resolve, reject) => {
     if (signal?.aborted) return reject(signal.reason)
