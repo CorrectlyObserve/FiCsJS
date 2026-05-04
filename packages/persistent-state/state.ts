@@ -309,8 +309,15 @@ export default class PersistentState<S> {
     const channel: BroadcastChannel = new BroadcastChannel(this.#stateId)
 
     channel.onmessage = (event: MessageEvent<SyncPayload<S>>): void => {
-      if (event.data.type === 'set') this.#callSubscribers(event.data.state)
-      else if (event.data.type === 'delete') {
+      if (event.data.type === 'set') {
+        const errors: Error[] = this.#callSubscribers(event.data.state)
+
+        if (errors.length > 0)
+          console.error(
+            `Cross-tab subscriber notification failed for state "${this.#stateId}"...`,
+            new AggregateError(errors)
+          )
+      } else if (event.data.type === 'delete') {
         this.#isDestroyed = true
 
         this.#subscribers.clear()
@@ -390,8 +397,10 @@ export default class PersistentState<S> {
         store.put({ ...state, state: newState, updatedAt: Date.now() })
         await this.#awaitTransaction(store)
 
-        this.#callSubscribers(newState)
         this.#sendSyncPayload({ type: 'set', state: newState, timestamp: Date.now() })
+
+        const errors: Error[] = this.#callSubscribers(newState)
+        if (errors.length > 0) throw new AggregateError(errors)
       }
     })
   }
