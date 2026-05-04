@@ -43,8 +43,8 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
 export const getDelayMs = ({
   error,
   attempt,
-  baseMs = BASE_MS,
-  maxMs = MAX_MS,
+  intervalMs = INTERVAL_MS,
+  maxDelayMs = MAX_DELAY_MS,
   jitterRatio = JITTER_RATIO
 }: {
   error: unknown
