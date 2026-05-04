@@ -44,7 +44,7 @@ export const getDelayToRetry = ({
   return base + Math.random() * base * jitterRatio
 }
 
-export const parseRetryAfter = (error: Response | unknown): number | null => {
+const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
 
   const header: string | null = error.headers.get('Retry-After')
@@ -53,33 +53,16 @@ export const parseRetryAfter = (error: Response | unknown): number | null => {
   const seconds: number = Number(header)
 
   if (Number.isFinite(seconds)) {
-    numberError({ seconds }, 'non-negative-int')
+    if (seconds < 0) return null
 
     const ms: number = seconds * 1_000
     return ms
   }
 
-  const date: number = Date.parse(header),
-    now: number = Date.now()
+  const date: number = Date.parse(header)
+  if (!Number.isFinite(date)) return null
 
-  numberError({ date }, 'positive-int')
-  return Math.max(0, date - now)
-}
-
-export const shouldRetry = (error: unknown): boolean => {
-  const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
-  if (isIntentional) return false
-
-  if (error instanceof Response) {
-    const { status }: { status: number } = error
-
-    if (status === REQUEST_TIMEOUT || status === TOO_MANY_REQUESTS) return true
-    if (status >= CLIENT_ERROR && status < SERVER_ERROR) return false
-    return status >= SERVER_ERROR
-  }
-
-  const isNetworkError: boolean = error instanceof TypeError
-  return isNetworkError
+  return Math.max(0, date - Date.now())
 }
 
 export const watch = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> =>
