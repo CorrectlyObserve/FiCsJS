@@ -1,0 +1,524 @@
+import {
+  delay,
+  getDelayMs,
+  isObject,
+  isBrowser,
+  MAX_DELAY_MS,
+  MAX_RETRIES,
+  numberError,
+  shouldRetry,
+  typedEntries,
+  watch
+} from '../helpers'
+import type { Query } from '../types'
+import consts from './constants'
+import hash from './hash'
+
+const { GC_LIMIT_MS, STALE_MS } = consts
+
+export default class QueryCache<T> {
+  readonly #entries: Map<string, Query.Entry<T>> = new Map()
+  readonly #listeners: Map<string, Set<Query.Listener<T>>> = new Map()
+  readonly #config: Query.Config.Global
+  readonly #onOnline?: () => void
+  readonly #onChangeVisibility?: () => void
+  #isDestroyed: boolean = false
+
+  constructor(config?: Query.Config.Global) {
+    this.#config = {
+      staleMs: STALE_MS,
+      gcLimitMs: GC_LIMIT_MS,
+      maxDelayMs: MAX_DELAY_MS,
+      maxRetries: MAX_RETRIES,
+      refetchIntervalMs: 0,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+      ...config
+    }
+
+    const { staleMs, gcLimitMs, maxRetries }: Query.Config.Global = this.#config
+    numberError({ staleMs, gcLimitMs, maxRetries }, 'non-negative-int')
+
+    if (isBrowser()) {
+      this.#onOnline = () => this.#refresh(this.#config.refetchOnReconnect)
+      this.#onChangeVisibility = () => {
+        if (document.visibilityState === 'visible') this.#refresh(this.#config.refetchOnFocus)
+      }
+
+      window.addEventListener('online', this.#onOnline)
+      window.addEventListener('visibilitychange', this.#onChangeVisibility)
+    }
+  }
+
+  #isRefetchable(entry: Query.Entry<T>): boolean {
+    return entry.subscribers.size > 0 && !entry.isOptimistic
+  }
+
+  #refresh(isEnabled: boolean): void {
+    if (!isEnabled) return
+
+    for (const entry of this.#entries.values())
+      if (this.#isRefetchable(entry) && this.isStale(entry.key)) void this.fetch(entry.key)
+  }
+
+  #dispatchState(entry: Query.Entry<T>, partial: Partial<Query.State<T>>): void {
+    entry.state = { ...entry.state, ...partial }
+
+    const { hashed, state, key }: Query.Entry<T> = entry,
+      listeners: Set<Query.Listener<T>> | undefined = this.#listeners.get(hashed)
+
+    if (!listeners) return
+
+    for (const listener of listeners)
+      try {
+        listener(hashed, state)
+      } catch (error) {
+        this.#config.onError?.(key, error)
+      }
+  }
+
+  #unscheduleGc(entry: Query.Entry<T>): void {
+    if (entry.gcTimer) {
+      clearTimeout(entry.gcTimer)
+      entry.gcTimer = undefined
+    }
+  }
+
+  #emitMetric(event: Query.Metric.Payload): void {
+    if (!this.#config.onMetric) return
+
+    try {
+      this.#config.onMetric({ module: 'query-cache', ...event })
+    } catch (error) {
+      console.error(
+        `The onMetric callback in QueryCache failed during the '${event.type}' event...`,
+        error
+      )
+    }
+  }
+
+  #scheduleGc(entry: Query.Entry<T>): void {
+    this.#unscheduleGc(entry)
+
+    entry.gcTimer = setTimeout(() => {
+      if (entry.subscribers.size === 0 && !entry.isOptimistic) {
+        entry.abort?.abort()
+
+        if (entry.refetchTimer) clearInterval(entry.refetchTimer)
+
+        this.#entries.delete(entry.hashed)
+        this.#listeners.delete(entry.hashed)
+
+        this.#emitMetric({ type: 'cache:evict', key: entry.key, reason: 'gc' })
+      }
+    }, this.#config.gcLimitMs)
+  }
+
+  #applyRefetchTimer(entry: Query.Entry<T>): void {
+    if (entry.refetchTimer) {
+      clearInterval(entry.refetchTimer)
+      entry.refetchTimer = undefined
+    }
+
+    if (entry.refetchIntervalMs > 0 && entry.subscribers.size > 0)
+      entry.refetchTimer = setInterval(() => {
+        if (this.#isRefetchable(entry)) void this.fetch(entry.key)
+      }, entry.refetchIntervalMs)
+  }
+
+  #partialMatch(key: Query.Key, partial: Query.Key): boolean {
+    const { length }: { length: number } = partial
+    if (length === 0) return true
+
+    if (length > key.length) return false
+
+    for (let i = 0; i < length; i++) {
+      const k: unknown = key[i],
+        p: unknown = partial[i]
+
+      if (k === p) continue
+      if (!isObject(k) || !isObject(p) || hash([k]) !== hash([p])) return false
+    }
+
+    return true
+  }
+
+  #match(filter?: Query.Filter<T>): Query.Entry<T>[] {
+    const entries: Query.Entry<T>[] = [...this.#entries.values()]
+
+    if (!filter) return entries
+
+    return entries.filter(entry => {
+      const isKeyMatch: boolean = filter.key
+        ? filter.isExactlyMatched
+          ? hash(entry.key) === hash(filter.key)
+          : this.#partialMatch(entry.key, filter.key)
+        : true
+
+      if (!isKeyMatch || (filter.predicate && !filter.predicate(entry))) return false
+
+      return true
+    })
+  }
+
+  #endOptimisticUpdate({ entry, result, attempt, startedAt }: Query.EndOptimisticUpdate<T>): void {
+    entry.isOptimistic = false
+    this.#emitMetric({
+      type: 'optimistic:end',
+      key: entry.key,
+      result,
+      attempt,
+      durationMs: performance.now() - startedAt
+    })
+
+    const isFetchable: boolean = entry.subscribers.size > 0 && !!entry.fetcher,
+      isRefetchNeeded: boolean = result === 'reverted' || entry.state.updatedAt === 0
+
+    if (isFetchable && isRefetchNeeded) void this.fetch(entry.key)
+  }
+
+  /** @param config Must be non-negative integers. */
+  ensure({ key, fetcher, config }: Query.Ensure<T>): Query.Entry<T> {
+    const hashed: string = hash(key),
+      existing: Query.Entry<T> | undefined = this.#entries.get(hashed)
+
+    numberError({ ...config }, 'non-negative-int')
+
+    if (existing) {
+      if (fetcher) existing.fetcher = fetcher
+
+      const prevIntervalMs: number = existing.refetchIntervalMs
+
+      for (const [key, value] of typedEntries({ ...config }))
+        if (value !== undefined) existing[key] = value
+
+      if (existing.refetchIntervalMs !== prevIntervalMs) this.#applyRefetchTimer(existing)
+      return existing
+    }
+
+    const { staleMs, maxRetries, refetchIntervalMs }: Query.Config.Entry = this.#config,
+      entry: Query.Entry<T> = {
+        key,
+        hashed,
+        state: { isFetching: false, updatedAt: 0 },
+        fetcher: fetcher ?? null,
+        staleMs: staleMs ?? this.#config.staleMs,
+        maxDelayMs: this.#config.maxDelayMs,
+        maxRetries: maxRetries ?? this.#config.maxRetries,
+        refetchIntervalMs: refetchIntervalMs ?? this.#config.refetchIntervalMs,
+        subscribers: new Set(),
+        inflight: null,
+        abort: null,
+        isOptimistic: false,
+        fetchId: 0
+      }
+
+    this.#entries.set(hashed, entry)
+    return entry
+  }
+
+  isStale(key: Query.Key): boolean {
+    const entry: Query.Entry<T> | undefined = this.#entries.get(hash(key))
+    if (!entry) return true
+
+    const { state, staleMs }: Query.Entry<T> = entry
+
+    if (state.updatedAt === 0) return true
+    return Date.now() - state.updatedAt > staleMs
+  }
+
+  async fetch(key: Query.Key): Promise<void> {
+    const entry: Query.Entry<T> | undefined = this.#entries.get(hash(key))
+    if (!entry || !entry.fetcher || entry.isOptimistic) return
+
+    if (entry.inflight) return entry.inflight
+
+    entry.abort?.abort()
+    entry.abort = new AbortController()
+
+    const { signal }: { signal: AbortSignal } = entry.abort,
+      fetchId: number = ++entry.fetchId,
+      isCurrentFetch = (): boolean => entry.fetchId === fetchId
+
+    if (!isCurrentFetch()) return
+    this.#dispatchState(entry, { isFetching: true })
+
+    const promise: Promise<void> = (async () => {
+      let attempt: number = 1
+
+      while (true) {
+        if (!isCurrentFetch()) return
+
+        const startedAt: number = performance.now()
+        this.#emitMetric({ type: 'fetch:start', key: entry.key, attempt })
+
+        try {
+          const value: T = await entry.fetcher!({ key: entry.key, signal })
+
+          if (!isCurrentFetch()) return
+
+          this.#dispatchState(entry, {
+            value,
+            error: undefined,
+            isFetching: false,
+            updatedAt: Date.now()
+          })
+
+          this.#emitMetric({
+            type: 'fetch:success',
+            key: entry.key,
+            attempt,
+            durationMs: performance.now() - startedAt
+          })
+          this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'fetch' })
+
+          return
+        } catch (error) {
+          if (!isCurrentFetch()) return
+
+          const willRetry: boolean = shouldRetry({
+            error,
+            attempt,
+            maxRetries: entry.maxRetries,
+            signal
+          })
+
+          this.#emitMetric({
+            type: 'fetch:error',
+            key: entry.key,
+            attempt,
+            durationMs: performance.now() - startedAt,
+            error,
+            willRetry
+          })
+
+          if (!willRetry) {
+            if (!isCurrentFetch()) return
+            this.#dispatchState(entry, { error, isFetching: false })
+            this.#config.onError?.(entry.key, error)
+            return
+          }
+
+          try {
+            await delay(getDelayMs({ error, attempt }), signal)
+          } catch {
+            return
+          } finally {
+            attempt++
+          }
+        }
+      }
+    })()
+
+    entry.inflight = promise
+
+    try {
+      await promise
+    } finally {
+      if (entry.inflight === promise) {
+        entry.inflight = null
+        entry.abort = null
+      }
+    }
+  }
+
+  /** @param staleMs Must be non-negative integers if it is a number. */
+  async prefetch(key: Query.Key, fetcher: Query.Fetcher<T>, staleMs?: number): Promise<void> {
+    if (this.#isDestroyed) return
+
+    numberError({ staleMs }, 'non-negative-int')
+
+    const entry: Query.Entry<T> = this.ensure({ key, fetcher, config: { staleMs } })
+
+    if (this.isStale(key)) await this.fetch(key)
+    if (entry.subscribers.size === 0) this.#scheduleGc(entry)
+  }
+
+  subscribe({ hashed, instanceId, listener }: Query.Subscription<T>): void {
+    if (this.#isDestroyed) return
+
+    const entry: Query.Entry<T> | undefined = this.#entries.get(hashed)
+    if (!entry) return
+
+    entry.subscribers.add(instanceId)
+    this.#unscheduleGc(entry)
+
+    if (!this.#listeners.has(hashed)) this.#listeners.set(hashed, new Set())
+    this.#listeners.get(hashed)!.add(listener)
+
+    this.#applyRefetchTimer(entry)
+    this.#emitMetric({
+      type: 'subscribe',
+      key: entry.key,
+      subscriberCount: entry.subscribers.size
+    })
+  }
+
+  unsubscribe({ hashed, instanceId, listener }: Query.Subscription<T>): void {
+    const entry: Query.Entry<T> | undefined = this.#entries.get(hashed)
+    if (!entry) return
+
+    entry.subscribers.delete(instanceId)
+    this.#listeners.get(hashed)?.delete(listener)
+
+    this.#emitMetric({
+      type: 'unsubscribe',
+      key: entry.key,
+      subscriberCount: entry.subscribers.size
+    })
+
+    if (entry.subscribers.size === 0) {
+      this.#scheduleGc(entry)
+
+      if (entry.refetchTimer) {
+        clearInterval(entry.refetchTimer)
+        entry.refetchTimer = undefined
+      }
+    }
+  }
+
+  setQuery(key: Query.Key, newQuery: T | ((current: T | undefined) => T)): void {
+    if (this.#isDestroyed) return
+
+    const hashed: string = hash(key),
+      entry: Query.Entry<T> = this.#entries.get(hashed) ?? this.ensure({ key })
+
+    this.#dispatchState(entry, {
+      value: newQuery instanceof Function ? newQuery(entry.state.value) : newQuery,
+      updatedAt: Date.now()
+    })
+    this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'manual' })
+
+    if (entry.subscribers.size === 0) this.#scheduleGc(entry)
+  }
+
+  getQuery(key: Query.Key): T | undefined {
+    return this.#entries.get(hash(key))?.state.value
+  }
+
+  expire(filter?: Query.Filter<T>): void {
+    for (const entry of this.#match(filter)) {
+      this.#dispatchState(entry, { updatedAt: 0 })
+
+      if (this.#isRefetchable(entry)) void this.fetch(entry.key)
+    }
+  }
+
+  abort(filter?: Query.Filter<T>): void {
+    for (const entry of this.#match(filter)) {
+      if (!entry.abort) continue
+
+      entry.abort.abort()
+      entry.fetchId++
+      entry.inflight = null
+
+      if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
+    }
+  }
+
+  async optimisticUpdate({
+    key,
+    newQuery,
+    updater,
+    maxRetries,
+    signal
+  }: Query.OptimisticUpdate<T>): Promise<void> {
+    if (this.#isDestroyed) return
+
+    const entry: Query.Entry<T> = this.#entries.get(hash(key)) ?? this.ensure({ key }),
+      { lastOptimisticTask }: Query.Entry<T> = entry,
+      { promise, resolve }: PromiseWithResolvers<void> = Promise.withResolvers<void>()
+
+    entry.lastOptimisticTask = promise
+
+    if (lastOptimisticTask) {
+      this.#emitMetric({ type: 'optimistic:enqueue', key })
+
+      try {
+        await watch(
+          lastOptimisticTask.catch(() => {}),
+          signal
+        )
+      } catch (error) {
+        resolve()
+        if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined
+        throw error
+      }
+    }
+
+    this.abort({ key, isExactlyMatched: true })
+
+    entry.isOptimistic = true
+    this.#emitMetric({ type: 'optimistic:start', key })
+
+    const { value }: { value?: T } = entry.state
+    this.#dispatchState(entry, {
+      value: newQuery instanceof Function ? newQuery(value) : newQuery,
+      updatedAt: Date.now()
+    })
+    this.#emitMetric({ type: 'cache:update', key, source: 'optimistic' })
+
+    const startedAt: number = performance.now()
+    let attempt: number = 0
+
+    try {
+      while (true)
+        try {
+          await updater()
+          this.#endOptimisticUpdate({ entry, result: 'success', attempt, startedAt })
+          return
+        } catch (error) {
+          attempt++
+
+          if (
+            !shouldRetry({
+              error,
+              attempt,
+              maxRetries: maxRetries ?? this.#config.maxRetries,
+              signal
+            })
+          ) {
+            this.#dispatchState(entry, { value, updatedAt: Date.now() })
+            this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
+            throw error
+          }
+
+          const delayMs: number = getDelayMs({ error, attempt })
+
+          try {
+            await delay(delayMs, signal)
+          } catch {
+            this.#dispatchState(entry, { value, updatedAt: Date.now() })
+            this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
+
+            /** @remarks Rethrow updater()'s original error, not delay()'s AbortError. */
+            throw error
+          }
+        }
+    } finally {
+      resolve()
+      if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined
+    }
+  }
+
+  destroy(): void {
+    if (this.#isDestroyed) return
+
+    this.#isDestroyed = true
+
+    for (const entry of this.#entries.values()) {
+      entry.abort?.abort()
+      this.#unscheduleGc(entry)
+      if (entry.refetchTimer) clearInterval(entry.refetchTimer)
+
+      this.#emitMetric({ type: 'cache:evict', key: entry.key, reason: 'destroy' })
+    }
+
+    this.#entries.clear()
+    this.#listeners.clear()
+
+    if (this.#onOnline) window.removeEventListener('online', this.#onOnline)
+    if (this.#onChangeVisibility)
+      window.removeEventListener('visibilitychange', this.#onChangeVisibility)
+  }
+}
