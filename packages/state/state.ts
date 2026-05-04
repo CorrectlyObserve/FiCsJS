@@ -24,7 +24,7 @@ export default class State<S> {
     key = key.trim()
 
     if (isBlankString(key))
-      throw new Error(`The subscriber key "${key}" to ${type} must be a non-empty string...`)
+      throw new Error(`The subscriber key to ${type} must be a non-empty string...`)
 
     if (type === 'subscribe' && this.#subscribers.has(key))
       throw new Error(`The subscriber key "${key}" is already registered...`)
