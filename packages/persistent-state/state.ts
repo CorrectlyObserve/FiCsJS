@@ -117,9 +117,7 @@ export default class PersistentState<S> {
     for (const subscriber of this.#metricSubscribers)
       try {
         subscriber(metric)
-      } catch {
-        return
-      }
+      } catch {}
   }
 
   async #track<T>({
@@ -252,7 +250,7 @@ export default class PersistentState<S> {
     return this.#initPromise
   }
 
-  #abortTransaction(store: IDBObjectStore, error: string): void {
+  #abortTransaction(store: IDBObjectStore, error: string): never {
     if (store.transaction?.mode === 'readwrite') store.transaction.abort()
     throw new Error(error)
   }
@@ -428,7 +426,7 @@ export default class PersistentState<S> {
     })
   }
 
-  async saveSnapshot(snapshotId: string): Promise<number | void> {
+  async saveSnapshot(snapshotId: string): Promise<number> {
     this.#assertAlive()
 
     snapshotId = snapshotId.trim()
@@ -449,16 +447,13 @@ export default class PersistentState<S> {
             this.#promisifyReq<State<S> | undefined>(stateStore)
           ])
 
-        if (snapshot) {
+        if (snapshot)
           this.#abortTransaction(
             snapshotStore,
             `The snapshot with snapshot ID ${snapshotId} already exists...`
           )
-          return
-        }
 
-        if (!currentState)
-          return this.#abortTransaction(stateStore, 'The state was not found...') as never
+        if (!currentState) this.#abortTransaction(stateStore, 'The state was not found...')
 
         const now: number = Date.now(),
           req: IDBRequest<IDBValidKey> = snapshotStore.add({
