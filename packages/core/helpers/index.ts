@@ -11,7 +11,7 @@ import {
   typedEntries,
   uid
 } from './others'
-import { delay, getDelayToRetry, parseRetryAfter, shouldRetry, watch } from './retry'
+import { delay, getDelayMs, shouldRetry, watch } from './retry'
 import { isBlankString, isEmptyObject, isObject, isPlainObject } from './typeCheck'
 
 const { MAX_DELAY_MS, MAX_RETRIES } = consts
@@ -21,7 +21,7 @@ export {
   convertStr,
   deepEqual,
   delay,
-  getDelayToRetry,
+  getDelayMs,
   isBlankString,
   isBrowser,
   isEmptyObject,
@@ -33,7 +33,6 @@ export {
   normalizePath,
   normalizeRootMargin,
   numberError,
-  parseRetryAfter,
   shouldRetry,
   toArray,
   typedEntries,
