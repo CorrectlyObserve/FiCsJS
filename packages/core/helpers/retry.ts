@@ -32,24 +32,38 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
 
     signal?.addEventListener('abort', onAbort, { once: true })
   })
+}
 
-export const getDelayToRetry = ({
+/**
+ * @param attempt Must be a positive integer.
+ * @param intervalMs Must be a non-negative integer if it is a number.
+ * @param maxDelayMs Must be a non-negative integer if it is a number.
+ * @param jitterRatio Must be a number between 0 and 1 if it is a number.
+ */
+export const getDelayMs = ({
+  error,
   attempt,
   baseMs = BASE_MS,
   maxMs = MAX_MS,
   jitterRatio = JITTER_RATIO
 }: {
+  error: unknown
   attempt: number
-  baseMs?: number
-  maxMs?: number
+  intervalMs?: number
+  maxDelayMs?: number
   jitterRatio?: number
 }): number => {
-  numberError({ attempt }, 'non-negative-int')
-  numberError({ baseMs, maxMs }, 'positive-int')
+  numberError({ attempt }, 'positive-int')
+  numberError({ intervalMs, maxDelayMs }, 'non-negative-int')
   numberError({ jitterRatio }, 'ratio')
 
-  const base: number = Math.min(baseMs * 2 ** (attempt - 1), maxMs)
-  return base + Math.random() * base * jitterRatio
+  const retryAfterMs: number | null = parseRetryAfter(error)
+  if (retryAfterMs !== null) return retryAfterMs
+
+  const baseMs: number = Math.min(intervalMs * 2 ** (attempt - 1), maxDelayMs)
+
+  /** @remarks Prevents DDoS by adding jitterRatio to the retry delay. */
+  return baseMs + Math.random() * baseMs * jitterRatio
 }
 
 const parseRetryAfter = (error: Response | unknown): number | null => {
