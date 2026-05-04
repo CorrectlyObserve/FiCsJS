@@ -9,20 +9,28 @@ const {
   statusCode: { CLIENT_ERROR, REQUEST_TIMEOUT, SERVER_ERROR, TOO_MANY_REQUESTS }
 } = constants
 
-export const delay = (ms: number, signal: AbortSignal): Promise<void> =>
-  new Promise((resolve, reject) => {
-    if (signal.aborted) return reject(signal.reason)
+/** @param ms Must be a non-negative integer. */
+export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
+  numberError({ ms }, 'non-negative-int')
+
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason)
 
     const onAbort = (): void => {
-        clearTimeout(timer)
-        reject(signal.reason)
+        cleanup()
+        reject(signal?.reason)
       },
-      timer: SetTimeout = setTimeout(() => {
-        signal.removeEventListener('abort', onAbort)
-        resolve()
-      }, ms)
+      cleanup = (): void => {
+        signal?.removeEventListener('abort', onAbort)
+        clearTimeout(timer)
+      }
 
-    signal.addEventListener('abort', onAbort, { once: true })
+    const timer: SetTimeout = setTimeout(() => {
+      cleanup()
+      resolve()
+    }, ms)
+
+    signal?.addEventListener('abort', onAbort, { once: true })
   })
 
 export const getDelayToRetry = ({
