@@ -268,7 +268,7 @@ export default class PersistentState<S> {
     queueMicrotask(() => channel.close())
   }
 
-  #callSubscribers(state: S): void {
+  #callSubscribers(state: S): Error[] {
     const errors: Error[] = []
 
     for (const [key, subscriber] of Array.from(this.#subscribers))
@@ -285,7 +285,7 @@ export default class PersistentState<S> {
         )
       }
 
-    if (errors.length > 0) throw new AggregateError(errors)
+    return errors
   }
 
   #normalizeKey(key: string, type: 'subscribe' | 'unsubscribe'): string {
