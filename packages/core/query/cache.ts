@@ -1,8 +1,8 @@
 import {
   delay,
   getDelayMs,
-  isObject,
   isBrowser,
+  isObject,
   MAX_DELAY_MS,
   MAX_RETRIES,
   numberError,
@@ -14,8 +14,6 @@ import type { Query } from '../types'
 import consts from './constants'
 import hash from './hash'
 
-const { GC_LIMIT_MS, STALE_MS } = consts
-
 export default class QueryCache<T> {
   readonly #entries: Map<string, Query.Entry<T>> = new Map()
   readonly #listeners: Map<string, Set<Query.Listener<T>>> = new Map()
@@ -26,8 +24,8 @@ export default class QueryCache<T> {
 
   constructor(config?: Query.Config.Global) {
     this.#config = {
-      staleMs: STALE_MS,
-      gcLimitMs: GC_LIMIT_MS,
+      staleMs: consts.STALE_MS,
+      gcLimitMs: consts.GC_LIMIT_MS,
       maxDelayMs: MAX_DELAY_MS,
       maxRetries: MAX_RETRIES,
       refetchIntervalMs: 0,
