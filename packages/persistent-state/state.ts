@@ -413,21 +413,38 @@ export default class PersistentState<S> {
       task: async () => {
         await this.#init()
 
-        const store: IDBObjectStore = this.#getObjectStore(),
-          key: IDBValidKey | undefined = await this.#promisifyReq(store, { isOnlyKey: true })
+        const stores: string[] = options?.cascade ? [STATE_STORE, SNAPSHOT_STORE] : [STATE_STORE],
+          tx: IDBTransaction = this.#db.transaction(stores, 'readwrite'),
+          stateStore: IDBObjectStore = tx.objectStore(STATE_STORE)
 
-        if (!key) return this.#abortTransaction(store, 'The state was not found...')
+        const key: IDBValidKey | undefined = await this.#promisifyReq(stateStore, {
+          isOnlyKey: true
+        })
+        if (!key) return this.#abortTransaction(stateStore, 'The state was not found...')
 
-        store.delete(key)
-        await this.#awaitTransaction(store)
-        this.#isDestroyed = true
+        stateStore.delete(key)
 
         if (options?.cascade) {
-          const store: IDBObjectStore = this.#getObjectStore({ isSnapshot: true })
+          const snapshotStore: IDBObjectStore = tx.objectStore(SNAPSHOT_STORE),
+            cursorReq: IDBRequest<IDBCursorWithValue | null> = snapshotStore
+              .index(STATE_ID_INDEX)
+              .openCursor(IDBKeyRange.only(this.#stateId))
 
-          store.clear()
-          await this.#awaitTransaction(store)
+          await new Promise<void>((resolve, reject) => {
+            cursorReq.onsuccess = () => {
+              const { result }: { result: IDBCursorWithValue | null } = cursorReq
+
+              if (result) {
+                result.delete()
+                result.continue()
+              } else resolve()
+            }
+            cursorReq.onerror = () => reject(cursorReq.error)
+          })
         }
+
+        await this.#awaitTransaction(stateStore)
+        this.#isDestroyed = true
 
         this.#sendSyncPayload({ type: 'delete', timestamp: Date.now() })
 
