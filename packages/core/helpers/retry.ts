@@ -82,17 +82,17 @@ export const shouldRetry = (error: unknown): boolean => {
   return isNetworkError
 }
 
-export const watch = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> =>
+export const watch = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> =>
   new Promise((resolve, reject) => {
-    if (signal.aborted) return reject(signal.reason)
+    if (signal?.aborted) return reject(signal.reason)
 
-    const cleanup = (): void => signal.removeEventListener('abort', onAbort)
+    const cleanup = (): void => signal?.removeEventListener('abort', onAbort)
     const onAbort = (): void => {
       cleanup()
-      reject(signal.reason)
+      reject(signal?.reason)
     }
 
-    signal.addEventListener('abort', onAbort, { once: true })
+    signal?.addEventListener('abort', onAbort, { once: true })
 
     promise.then(
       (value: T) => {
