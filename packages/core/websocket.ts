@@ -1,4 +1,4 @@
-import { isEmptyObject } from './helpers'
+import { getDelayMs, isEmptyObject, numberError } from './helpers'
 import type { SetTimeout, WebSocket as WebSocketNS } from './types'
 
 export default <D extends object, P>({
@@ -79,7 +79,7 @@ export default <D extends object, P>({
               reconnectedCount++
               connect()
             },
-            interval * (isExponential ? 2 ** reconnectedCount : 1)
+            getDelayMs({ error: null, attempt: reconnectedCount + 1, intervalMs })
           )
       }
     }
