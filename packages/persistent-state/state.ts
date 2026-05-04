@@ -258,10 +258,14 @@ export default class PersistentState<S> {
   #sendSyncPayload(payload: SyncPayload<S>): void {
     if (typeof BroadcastChannel === 'undefined') return
 
-    const channel: BroadcastChannel = this.#channel ?? new BroadcastChannel(this.#stateId)
-    channel.postMessage(payload)
+    if (this.#channel) {
+      this.#channel.postMessage(payload)
+      return
+    }
 
-    if (!this.#channel) channel.close()
+    const channel: BroadcastChannel = new BroadcastChannel(this.#stateId)
+    channel.postMessage(payload)
+    queueMicrotask(() => channel.close())
   }
 
   #callSubscribers(state: S): void {
@@ -288,7 +292,7 @@ export default class PersistentState<S> {
     key = key.trim()
 
     if (isBlankString(key))
-      throw new Error(`The subscriber key "${key}" to ${type} must be a non-empty string...`)
+      throw new Error(`The subscriber key to ${type} must be a non-empty string...`)
 
     if (type === 'subscribe' && this.#subscribers.has(key))
       throw new Error(`The subscriber key "${key}" is already registered...`)
