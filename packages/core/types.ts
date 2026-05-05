@@ -283,7 +283,6 @@ export declare namespace Query {
     maxDelayMs: number
     maxRetries: number
     refetchIntervalMs: number
-    subscribers: Set<string>
     inflight: Promise<void> | null
     abort: AbortController | null
     isOptimistic: boolean
