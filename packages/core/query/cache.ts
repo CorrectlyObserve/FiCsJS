@@ -337,13 +337,12 @@ export default class QueryCache<T> {
     if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
-  subscribe({ hashed, instanceId, listener }: Query.Subscription<T>): void {
+  subscribe({ hashed, listener }: { hashed: string; listener: Query.Listener<T> }): void {
     if (this.#isDestroyed) return
 
     const entry: Query.Entry<T> | undefined = this.#entries.get(hashed)
     if (!entry) return
 
-    entry.subscribers.add(instanceId)
     this.#unscheduleGc(entry)
 
     if (!this.#listeners.has(hashed)) this.#listeners.set(hashed, new Set())
@@ -357,11 +356,10 @@ export default class QueryCache<T> {
     })
   }
 
-  unsubscribe({ hashed, instanceId, listener }: Query.Subscription<T>): void {
+  unsubscribe({ hashed, listener }: { hashed: string; listener: Query.Listener<T> }): void {
     const entry: Query.Entry<T> | undefined = this.#entries.get(hashed)
     if (!entry) return
 
-    entry.subscribers.delete(instanceId)
     this.#listeners.get(hashed)?.delete(listener)
 
     this.#emitMetric({
