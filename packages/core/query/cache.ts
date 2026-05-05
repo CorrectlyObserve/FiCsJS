@@ -54,7 +54,7 @@ export default class QueryCache<T> {
   }
 
   #isRefetchable(entry: Query.Entry<T>): boolean {
-    return entry.subscribers.size > 0 && !entry.isOptimistic
+    return this.#subscriberCount(entry.hashed) > 0 && !entry.isOptimistic
   }
 
   #refresh(isEnabled: boolean): void {
@@ -104,7 +104,7 @@ export default class QueryCache<T> {
     this.#unscheduleGc(entry)
 
     entry.gcTimer = setTimeout(() => {
-      if (entry.subscribers.size === 0 && !entry.isOptimistic) {
+      if (this.#subscriberCount(entry.hashed) === 0 && !entry.isOptimistic) {
         entry.abort?.abort()
 
         if (entry.refetchTimer) clearInterval(entry.refetchTimer)
@@ -123,7 +123,7 @@ export default class QueryCache<T> {
       entry.refetchTimer = undefined
     }
 
-    if (entry.refetchIntervalMs > 0 && entry.subscribers.size > 0)
+    if (entry.refetchIntervalMs > 0 && this.#subscriberCount(entry.hashed) > 0)
       entry.refetchTimer = setInterval(() => {
         if (this.#isRefetchable(entry)) void this.fetch(entry.key)
       }, entry.refetchIntervalMs)
@@ -174,7 +174,7 @@ export default class QueryCache<T> {
       durationMs: performance.now() - startedAt
     })
 
-    const isFetchable: boolean = entry.subscribers.size > 0 && !!entry.fetcher,
+    const isFetchable: boolean = this.#subscriberCount(entry.hashed) > 0 && !!entry.fetcher,
       isRefetchNeeded: boolean = result === 'reverted' || entry.state.updatedAt === 0
 
     if (isFetchable && isRefetchNeeded) void this.fetch(entry.key)
@@ -334,7 +334,7 @@ export default class QueryCache<T> {
     const entry: Query.Entry<T> = this.ensure({ key, fetcher, config: { staleMs } })
 
     if (this.isStale(key)) await this.fetch(key)
-    if (entry.subscribers.size === 0) this.#scheduleGc(entry)
+    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
   subscribe({ hashed, instanceId, listener }: Query.Subscription<T>): void {
@@ -353,7 +353,7 @@ export default class QueryCache<T> {
     this.#emitMetric({
       type: 'subscribe',
       key: entry.key,
-      subscriberCount: entry.subscribers.size
+      subscriberCount: this.#subscriberCount(hashed)
     })
   }
 
@@ -367,10 +367,10 @@ export default class QueryCache<T> {
     this.#emitMetric({
       type: 'unsubscribe',
       key: entry.key,
-      subscriberCount: entry.subscribers.size
+      subscriberCount: this.#subscriberCount(hashed)
     })
 
-    if (entry.subscribers.size === 0) {
+    if (this.#subscriberCount(hashed) === 0) {
       this.#scheduleGc(entry)
 
       if (entry.refetchTimer) {
@@ -392,7 +392,7 @@ export default class QueryCache<T> {
     })
     this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'manual' })
 
-    if (entry.subscribers.size === 0) this.#scheduleGc(entry)
+    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
   getQuery(key: Query.Key): T | undefined {
