@@ -209,7 +209,6 @@ export default class QueryCache<T> {
         maxDelayMs: this.#config.maxDelayMs,
         maxRetries: maxRetries ?? this.#config.maxRetries,
         refetchIntervalMs: refetchIntervalMs ?? this.#config.refetchIntervalMs,
-        subscribers: new Set(),
         inflight: null,
         abort: null,
         isOptimistic: false,
