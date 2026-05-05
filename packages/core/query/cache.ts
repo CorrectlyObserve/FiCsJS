@@ -21,6 +21,7 @@ export default class QueryCache<T> {
   readonly #onOnline?: () => void
   readonly #onChangeVisibility?: () => void
   #isDestroyed: boolean = false
+  #api?: Query.Api
 
   constructor(config?: Query.Config.Global) {
     this.#config = {
@@ -518,5 +519,19 @@ export default class QueryCache<T> {
     if (this.#onOnline) window.removeEventListener('online', this.#onOnline)
     if (this.#onChangeVisibility)
       window.removeEventListener('visibilitychange', this.#onChangeVisibility)
+  }
+
+  get api(): Query.Api {
+    if (!this.#api)
+      this.#api = {
+        setQuery: this.setQuery.bind(this),
+        getQuery: this.getQuery.bind(this),
+        expire: this.expire.bind(this),
+        abort: this.abort.bind(this),
+        prefetch: this.prefetch.bind(this),
+        optimisticUpdate: this.optimisticUpdate.bind(this) as Query.Api['optimisticUpdate']
+      }
+
+    return this.#api
   }
 }
