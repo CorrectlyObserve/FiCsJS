@@ -19,5 +19,5 @@ const configQueryCache = (config?: Query.Config.Global): void => {
     return (currentCache ??= new QueryCache<unknown>())
   }
 
-export { createQueryCache, syncQueryCache }
+export { configQueryCache, getQueryCache, syncQueryCache }
 export type { QueryCache }
