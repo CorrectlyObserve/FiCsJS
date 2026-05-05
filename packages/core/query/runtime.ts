@@ -6,9 +6,7 @@ const syncQueryCache = <D extends object, P, T>({
   queryCache,
   getDataProps,
   options
-}: { queryCache: QueryCache<T> } & Query.Runtime<D, P, T>):
-  | { sync: () => void; destroy: () => void }
-  | undefined => {
+}: { queryCache: QueryCache<T> } & Query.RuntimeCtx<D, P, T>): Query.Runtime | undefined => {
   if (!options) return undefined
 
   const subscriptions: Map<string, () => void> = new Map(),
