@@ -49,6 +49,10 @@ export default class QueryCache<T> {
     }
   }
 
+  #subscriberCount(hashed: string): number {
+    return this.#listeners.get(hashed)?.size ?? 0
+  }
+
   #isRefetchable(entry: Query.Entry<T>): boolean {
     return entry.subscribers.size > 0 && !entry.isOptimistic
   }
