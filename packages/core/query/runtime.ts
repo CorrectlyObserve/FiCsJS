@@ -3,11 +3,10 @@ import QueryCache from './cache'
 import hash from './hash'
 
 const syncQueryCache = <D extends object, P, T>({
-  cache,
-  instanceId,
+  queryCache,
   getDataProps,
   options
-}: { cache: QueryCache<T> } & Query.Runtime<D, P, T>):
+}: { queryCache: QueryCache<T> } & Query.Runtime<D, P, T>):
   | { sync: () => void; destroy: () => void }
   | undefined => {
   if (!options) return undefined
@@ -25,7 +24,7 @@ const syncQueryCache = <D extends object, P, T>({
       const hashed: string = hash(key)
       hashes.add(hashed)
 
-      const entry: Query.Entry<T> = cache.ensure({ key, fetcher, config: args }),
+      const entry: Query.Entry<T> = queryCache.ensure({ key, fetcher, config: args }),
         existing: Query.Callback<D, P, T> | undefined = callbacks.get(hashed)
 
       if (existing) {
@@ -47,12 +46,12 @@ const syncQueryCache = <D extends object, P, T>({
         },
         listener = (_: string, state: Query.State<T>): void => call(state, getDataProps(true))
 
-      cache.subscribe({ hashed, instanceId, listener })
+      queryCache.subscribe({ hashed, listener })
       call(entry.state, getDataProps(true))
 
-      if (cache.isStale(key)) void cache.fetch(key)
+      if (queryCache.isStale(key)) void queryCache.fetch(key)
 
-      subscriptions.set(hashed, () => cache.unsubscribe({ hashed, instanceId, listener }))
+      subscriptions.set(hashed, () => queryCache.unsubscribe({ hashed, listener }))
     }
 
     for (const [hashed, unsubscribe] of subscriptions)
