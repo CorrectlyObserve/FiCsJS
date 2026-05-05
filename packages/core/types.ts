@@ -87,7 +87,7 @@ export declare namespace Css {
 }
 
 export declare namespace DataProps {
-  type Getter<D extends object, P> = <B extends boolean = false>(isCrud?: B) => Payload<D, P, B>
+  type Getter<D extends object, P> = <B extends boolean = false>(hasMethods?: B) => Payload<D, P, B>
 
   type Payload<D extends object, P, B extends boolean = false> = {
     data: D
