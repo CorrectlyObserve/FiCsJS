@@ -204,6 +204,7 @@ export declare namespace Options {
     websocket?: WebSocket.Options<D, P>
     sse?: SSE.Options<D, P>
     scroll?: Scroll.Resolved<D, P>
+    query?: Query.Runtime<D, P, unknown>['options']
   }
 }
 
