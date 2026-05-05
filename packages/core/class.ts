@@ -40,6 +40,7 @@ import type {
   I18n,
   Options,
   Props,
+  Query,
   Scroll,
   SetTimeout,
   SingleOrArray,
@@ -96,6 +97,7 @@ export default class FiCsElement<D extends object, P extends object> {
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
   #hasDescribed: boolean = false
+  #queryRuntime?: Query.Runtime
 
   constructor({
     name,
