@@ -469,11 +469,12 @@ export default class FiCsElement<D extends object, P extends object> {
     return { key, durationMs } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
   }
 
-  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
+  #getDataProps<B extends boolean = false>(hasMethods?: B): DataProps.Payload<D, P, B> {
     return {
       data: this.#data,
       props: this.#props,
-      crud: isCrud ? this.#crud.bind(this) : undefined
+      crud: hasMethods ? this.#crud.bind(this) : undefined,
+      queryCache: hasMethods ? getQueryCache().api : undefined
     } as DataProps.Payload<D, P, B>
   }
 
