@@ -1,5 +1,6 @@
 import FiCsElement from './class'
 import consts from './constants'
+import type { QueryCache } from './query'
 
 export declare namespace Action {
   interface Ctx<D extends object, P> {
