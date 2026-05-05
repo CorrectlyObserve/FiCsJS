@@ -1527,6 +1527,12 @@ export default class FiCsElement<D extends object, P extends object> {
 
           this.#eventSource = eventSource
           this.#removeEventListeners = removeEventListeners
+
+          that.#queryRuntime = syncQueryCache({
+            queryCache: getQueryCache(),
+            getDataProps: that.#getDataProps.bind(that),
+            options: that.#options.query
+          })
         }
 
         #deactivateRuntime(): void {
@@ -1538,6 +1544,9 @@ export default class FiCsElement<D extends object, P extends object> {
 
           this.#removeEventListeners?.()
           this.#removeEventListeners = undefined
+
+          that.#queryRuntime?.destroy()
+          that.#queryRuntime = undefined
         }
 
         #init() {
@@ -1614,6 +1623,7 @@ export default class FiCsElement<D extends object, P extends object> {
           }
 
           this.#deactivateRuntime()
+
           if (that.#scrollObservers) {
             for (const observer of ['intersection', 'mutation', 'resize'] as const)
               that.#scrollObservers[observer].disconnect()
