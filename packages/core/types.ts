@@ -345,7 +345,9 @@ export declare namespace Query {
 
   type Result = 'success' | 'reverted'
 
-  interface Runtime<D extends object, P, T> {
+  type Runtime = { sync: () => void; destroy: () => void }
+
+  interface RuntimeCtx<D extends object, P, T> {
     getDataProps: DataProps.Getter<D, P>
     options?: (ctx: DataProps.Payload<D, P, true>) => Options<D, P, T>[]
   }
