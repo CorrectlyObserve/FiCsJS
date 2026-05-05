@@ -348,12 +348,6 @@ export declare namespace Query {
     options?: (ctx: DataProps.Payload<D, P, true>) => Options<D, P, T>[]
   }
 
-  interface Subscription<T> {
-    hashed: string
-    instanceId: string
-    listener: Listener<T>
-  }
-
   interface State<T> {
     value?: T
     error?: unknown
