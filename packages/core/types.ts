@@ -230,6 +230,11 @@ export interface Props<D extends object, P> {
 }
 
 export declare namespace Query {
+  type Api = Pick<
+    QueryCache<unknown>,
+    'setQuery' | 'getQuery' | 'expire' | 'abort' | 'prefetch' | 'optimisticUpdate'
+  >
+
   interface Callback<D extends object, P, T> {
     onSuccess: (ctx: DataProps.Payload<D, P, true>, value: T) => void
     onError?: (ctx: DataProps.Payload<D, P, true>, error: unknown) => void
