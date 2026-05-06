@@ -265,8 +265,16 @@ export default class FiCsElement<D extends object, P extends object> {
     })
 
     if (options) {
-      const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
-        options
+      const {
+        ssr,
+        telemetry,
+        lazyLoad,
+        rootMargin,
+        websocket,
+        sse,
+        scroll,
+        query
+      }: Options.Ctx<D, P> = options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
 
@@ -346,6 +354,8 @@ export default class FiCsElement<D extends object, P extends object> {
             break
         }
       }
+
+      if (this.#isBrowser && typeof query === 'function') this.#options.query = query
     }
 
     if (className) this.#classNames = typeof className === 'function' ? className : className.trim()
