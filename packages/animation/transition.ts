@@ -29,15 +29,19 @@ const style = (
 
 export const fade = (transition: string, mode: TransitionMode = 'in-out') => style(transition, mode)
 
-export const slide = (
-  direction: 'top' | 'bottom' | 'left' | 'right',
-  transition: string,
-  mode: TransitionMode = 'in-out'
-) =>
-  style(transition, mode, {
+export const slide = ({
+  transition,
+  mode,
+  direction
+}: {
+  transition: string
+  mode?: TransitionMode
+  direction: Direction
+}) =>
+  style(transition, mode ?? 'in-out', {
     prop: 'translate',
     shown: '0 0',
-    hidden: { top: '0 -100%', bottom: '0 100%', left: '-100% 0', right: '100% 0' }[direction]
+    hidden: hiddenStyle('100%')[direction]
   })
 
 export const zoom = (transition: string, mode: TransitionMode = 'in-out') =>
