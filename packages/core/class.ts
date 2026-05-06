@@ -1679,25 +1679,23 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (!isOnlyHtml) this.#buildCss(shadowRoot)
 
-      if (this.#isBrowser) {
-        const addAllElements = (elements: Element[] | Set<Element>): void => {
-          for (const element of elements) {
-            if (element instanceof Element && !this.#newElements.has(element))
-              this.#newElements.add(element)
+      const addAllElements = (elements: Element[] | Set<Element>): void => {
+        for (const element of elements) {
+          if (element instanceof Element && !this.#newElements.has(element))
+            this.#newElements.add(element)
 
-            addAllElements(this.#getChildNodes(element) as Element[])
-          }
+          addAllElements(this.#getChildNodes(element) as Element[])
         }
-
-        addAllElements(this.#newElements)
-
-        for (const [selector, action] of typedEntries(this.#actions))
-          for (const element of this.#getElements(component, selector))
-            if (this.#newElements.has(element))
-              this.#addEventListener({ element, shadowRoot, entries: typedEntries(action) })
-
-        this.#newElements.clear()
       }
+
+      addAllElements(this.#newElements)
+
+      for (const [selector, action] of typedEntries(this.#actions))
+        for (const element of this.#getElements(component, selector))
+          if (this.#newElements.has(element))
+            this.#addEventListener({ element, shadowRoot, entries: typedEntries(action) })
+
+      this.#newElements.clear()
     } finally {
       this.#isInRerendering = false
     }
