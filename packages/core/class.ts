@@ -775,9 +775,8 @@ export default class FiCsElement<D extends object, P extends object> {
       })
 
     const contents: Html.Content<D, P>[] = this.#html({
-      ...this.#getDataProps(),
+      ...this.#getDataProps(true),
       children: this.#children,
-      crud: this.#crud.bind(this),
       template: (
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
