@@ -1,4 +1,4 @@
-import type { TransitionMode } from './types'
+import type { Direction, TransitionMode } from './types'
 
 const style = (
     transition: string,
@@ -28,6 +28,23 @@ const style = (
     }) as const
 
 export const fade = (transition: string, mode: TransitionMode = 'in-out') => style(transition, mode)
+
+export const float = ({
+  transition,
+  mode,
+  distance,
+  direction
+}: {
+  transition: string
+  mode?: TransitionMode
+  distance?: string
+  direction: Direction
+}) =>
+  style(transition, mode ?? 'in-out', {
+    prop: 'translate',
+    shown: '0 0',
+    hidden: hiddenStyle(distance ?? '1rem')[direction]
+  })
 
 export const slide = ({
   transition,
