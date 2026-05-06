@@ -1665,6 +1665,8 @@ export default class FiCsElement<D extends object, P extends object> {
           if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
         }
 
+      this.#queryRuntime?.sync()
+
       if (!isOnlyHtml) {
         this.#setClassNames(component)
         this.#setAttrs(component)
