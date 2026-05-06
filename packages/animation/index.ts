@@ -1,5 +1,5 @@
 import { pulse, spin } from './loading'
-import { fade, slide, zoom } from './transition'
+import { fade, float, slide, zoom } from './transition'
 import vibrate from './vibrate'
 
-export { fade, pulse, slide, spin, vibrate, zoom }
+export { fade, float, pulse, slide, spin, vibrate, zoom }
