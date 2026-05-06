@@ -10,5 +10,5 @@ export default {
     TRUE: 'T',
     UNDEFINED: 'U'
   },
-  STALE_MS: 0
+  STALE_MS: 60_000
 } as const
