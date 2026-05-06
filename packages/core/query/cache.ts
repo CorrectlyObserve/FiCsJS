@@ -199,7 +199,7 @@ export default class QueryCache<T> {
       return existing
     }
 
-    const { staleMs, maxRetries, refetchIntervalMs }: Query.Config.Entry = this.#config,
+    const { staleMs, maxRetries, refetchIntervalMs }: Query.Config.Entry = config ?? {},
       entry: Query.Entry<T> = {
         key,
         hashed,
