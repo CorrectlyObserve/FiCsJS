@@ -105,9 +105,7 @@ export default <D extends object, P>({
 
     if (!key) continue
 
-    /**
-     * @remarks Prevents excessive updates during rapid scrolling.
-     */
+    /** @remarks Prevents excessive updates during rapid scrolling. */
     if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
 
     /**
