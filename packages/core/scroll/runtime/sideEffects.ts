@@ -35,10 +35,7 @@ export const fetchWithinThreshold = <D extends object, P>({
   if (scrollAmount > clientSize) {
     if (!hasScrolled && scrollOffset === 0) return
 
-    /**
-     * @remarks
-     * The remaining distance in pixels to the end of the scrollable content.
-     */
+    /** @remarks The remaining distance in pixels to the end of the scrollable content. */
     const distance: number = scrollAmount - (scrollOffset + clientSize),
       threshold: number = getAveSize({ aveSize, itemMinSize }) * bufferLength
     if (distance > threshold) return
