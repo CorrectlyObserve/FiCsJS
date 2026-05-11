@@ -1,3 +1,5 @@
 import State from './state'
+import type { Options } from './types'
 
-export default <S>(value: S, options?: { readonly: boolean }): State<S> => new State(value, options)
+/** @param options.version must be a positive integer if it is a number. */
+export default <S>(value: S, options?: Options.Global<S>): State<S> => new State(value, options)
