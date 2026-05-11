@@ -1,7 +1,6 @@
 import { isBrowser } from '../helpers'
 import type { Query } from '../types'
 import QueryCache from './cache'
-import syncQueryCache from './runtime'
 
 let currentCache: QueryCache<unknown> | null = null,
   isLocked: boolean = false
