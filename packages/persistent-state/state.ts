@@ -11,8 +11,14 @@ import type { SingleOrArray } from '../core/types'
 import consts from './constants'
 import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
-const generator: Generator<number> = uid(),
-  { COMPOSITE_ID_INDEX, SNAPSHOT_ID_INDEX, SNAPSHOT_STORE, STATE_ID_INDEX, STATE_STORE } = consts
+const {
+  COMPOSITE_ID_INDEX,
+  SNAPSHOT_ID_INDEX,
+  SNAPSHOT_STORE,
+  STATE_ID_INDEX,
+  STATE_STORE,
+  VERSION
+} = consts
 
 export default class PersistentState<S> {
   readonly #stateId: string
@@ -168,7 +174,7 @@ export default class PersistentState<S> {
 
         try {
           const db: IDBDatabase = await new Promise<IDBDatabase>((resolve, reject) => {
-            const req: IDBOpenDBRequest = indexedDB.open('ficsPersistentStates', 1)
+            const req: IDBOpenDBRequest = indexedDB.open('fics_persistent_states', VERSION)
 
             req.onupgradeneeded = () => {
               const { result }: { result: IDBDatabase } = req,
