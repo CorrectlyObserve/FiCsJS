@@ -108,9 +108,7 @@ export default <D extends object, P>({
     /** @remarks Prevents excessive updates during rapid scrolling. */
     if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
 
-    /**
-     * @remarks Prepares element-to-index mapping before measurement.
-     */
+    /** @remarks Prepares element-to-index mapping before measurement. */
     cache.elementIndexes.set(item, absoluteIndex)
 
     const prevKey: string | undefined = indexKeys.get(absoluteIndex)
