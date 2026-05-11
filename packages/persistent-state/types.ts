@@ -35,7 +35,6 @@ export interface QueryOptions {
 
 export interface Snapshot<S> extends State<S> {
   snapshotId: string
-  readonly: true
 }
 
 export interface State<S> {
