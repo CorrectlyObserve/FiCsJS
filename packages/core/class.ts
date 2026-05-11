@@ -1233,8 +1233,7 @@ export default class FiCsElement<D extends object, P extends object> {
     const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
     if (css.length === 0) return
 
-    if (!this.#styleSheet) this.#styleSheet = new CSSStyleSheet()
-
+    this.#styleSheet ??= new CSSStyleSheet()
     const cssText: string = this.#cssToString([
       `${consts.hostSelector.ITSELF}{display:block}`,
       ...css
