@@ -1744,6 +1744,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
+    if (this.#isBrowser && !isQueryCacheLocked()) lockQueryCache()
     this.#initProps()
     this.#hasDescribed = true
     this.#callback('created')
