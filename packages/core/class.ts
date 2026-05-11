@@ -797,7 +797,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
-        if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
+          this.#childrenStore[instanceId] ??= curr
         curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
