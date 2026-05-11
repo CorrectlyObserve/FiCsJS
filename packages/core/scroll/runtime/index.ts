@@ -209,12 +209,8 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
           if (rebaseUrlSync({ scrollOptions, parameter, ...args }))
             pageParam = readPageParam(parameter)
 
-          /**
-           * @remarks
-           * Initializes pageParam for URL sync if it doesn't already exist.
-           */
-          if (parameter && scrollOptions.urlSync.pageParam === undefined)
-            scrollOptions.urlSync.pageParam = pageParam
+          /** @remarks Initializes pageParam for URL sync if it doesn't already exist. */
+          if (parameter) scrollOptions.urlSync.pageParam ??= pageParam
 
           pageParam = updatePageParam({ scrollOptions, parameter, pageParam, ...args })
 
