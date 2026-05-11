@@ -45,10 +45,7 @@ export const fetchWithinThreshold = <D extends object, P>({
   Promise.resolve()
     .then(method)
     .catch(error => {
-      /**
-       * @remarks
-       * Resets `lastTriggeredCount` on failure to allow retries.
-       */
+      /** @remarks Resets `lastTriggeredCount` on failure to allow retries. */
       scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
 
       try {
