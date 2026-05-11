@@ -214,7 +214,6 @@ export default class PersistentState<S> {
             store.add({
               stateId: this.#stateId,
               state: this.#state,
-              readonly: this.#readonly,
               createdAt: now,
               updatedAt: now
             })
