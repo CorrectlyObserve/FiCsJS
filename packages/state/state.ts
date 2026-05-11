@@ -17,7 +17,7 @@ export default class State<S> {
 
   #assertWritable(): void {
     this.#assertAlive()
-    if (this.#readonly) throw new Error('This state is readonly...')
+    if (this.#options.readonly) throw new Error('This state is readonly...')
   }
 
   #normalizeKey(key: string, type: 'subscribe' | 'unsubscribe'): string {
