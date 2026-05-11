@@ -43,19 +43,30 @@ export default class State<S> {
   set(newState: S): void {
     this.#assertWritable()
 
+    if (this.#isUpdateLocked)
+      throw new Error('The set method cannot be called during subscriber notification...')
+
     if (deepEqual(this.#state, newState)) return
 
     this.#state = newState
 
     const errors: Error[] = []
-    for (const [key, subscriber] of Array.from(this.#subscribers))
-      try {
-        subscriber(newState)
-      } catch (error) {
-        const cause: Error = error instanceof Error ? error : new Error(String(error))
+    this.#isUpdateLocked = true
 
-        errors.push(new Error(`The subscriber "${key}" threw during notification...`, { cause }))
-      }
+    try {
+      for (const [key, subscriber] of Array.from(this.#subscribers))
+        try {
+          subscriber(newState)
+        } catch (error) {
+          const cause: Error = error instanceof Error ? error : new Error(String(error))
+
+          errors.push(new Error(`The subscriber "${key}" threw during notification...`, { cause }))
+        }
+    } finally {
+      this.#isUpdateLocked = false
+    }
+
+    if (this.#state === newState) this.#setToSessionStorage(newState)
 
     if (errors.length > 0) throw new AggregateError(errors)
   }
