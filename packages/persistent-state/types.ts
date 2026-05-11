@@ -1,3 +1,14 @@
+export interface Ctx<S> {
+  stateId: string
+  state: S
+  options?: {
+    readonly?: boolean
+    intervalMs?: number
+    maxRetries?: number
+    forcedUpgrade?: boolean
+  }
+}
+
 export type Metric =
   | { type: 'init'; stateId: string; durationMs: number; attempt: number; error?: unknown }
   | { type: 'get' | 'set' | 'delete'; stateId: string; durationMs: number; error?: unknown }
@@ -15,13 +26,6 @@ export type Metric =
       snapshotCount: number
       error?: unknown
     }
-
-export interface Options {
-  readonly?: boolean
-  intervalMs?: number
-  maxRetries?: number
-  forcedUpgrade?: boolean
-}
 
 export interface QueryOptions {
   snapshotId?: string
