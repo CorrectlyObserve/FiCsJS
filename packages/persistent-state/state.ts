@@ -88,12 +88,8 @@ export default class PersistentState<S> {
       })
     }
 
-    let { snapshotId, isOnlyKey }: QueryOptions = options || {}
-
-    if (snapshotId !== undefined) {
-      snapshotId = snapshotId.trim()
-      if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
-    }
+    let { snapshotId, isOnlyKey }: QueryOptions = options ?? {}
+    if (snapshotId !== undefined) snapshotId = this.#normalizeSnapshotId(snapshotId)
 
     const index: IDBIndex = arg.index(snapshotId ? COMPOSITE_ID_INDEX : STATE_ID_INDEX),
       id: SingleOrArray<string> = snapshotId ? [this.#stateId, snapshotId] : this.#stateId,
