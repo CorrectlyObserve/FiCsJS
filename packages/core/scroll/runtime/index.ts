@@ -175,8 +175,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
 
   rebaseUrlSync({ scrollOptions, parameter, ...args })
 
-  if (parameter && scrollOptions.urlSync.pageParam === undefined)
-    scrollOptions.urlSync.pageParam = pageParam
+  if (parameter) scrollOptions.urlSync.pageParam ??= pageParam
 
   let lastScrolledAt: number = 0
   addEventListener({
