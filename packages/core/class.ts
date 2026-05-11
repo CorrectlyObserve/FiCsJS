@@ -40,7 +40,6 @@ import type {
   I18n,
   Options,
   Props,
-  Query,
   Scroll,
   SetTimeout,
   SingleOrArray,
@@ -97,7 +96,6 @@ export default class FiCsElement<D extends object, P extends object> {
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
   #hasDescribed: boolean = false
-  #queryRuntime?: Query.Runtime
 
   constructor({
     name,
@@ -265,16 +263,8 @@ export default class FiCsElement<D extends object, P extends object> {
     })
 
     if (options) {
-      const {
-        ssr,
-        telemetry,
-        lazyLoad,
-        rootMargin,
-        websocket,
-        sse,
-        scroll,
-        query
-      }: Options.Ctx<D, P> = options
+      const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
+        options
 
       if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
 
@@ -354,8 +344,6 @@ export default class FiCsElement<D extends object, P extends object> {
             break
         }
       }
-
-      if (this.#isBrowser && typeof query === 'function') this.#options.query = query
     }
 
     if (className) this.#classNames = typeof className === 'function' ? className : className.trim()
@@ -1536,12 +1524,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
           this.#eventSource = eventSource
           this.#removeEventListeners = removeEventListeners
-
-          that.#queryRuntime = syncQueryCache({
-            queryCache: getQueryCache(),
-            getDataProps: that.#getDataProps.bind(that),
-            options: that.#options.query
-          })
         }
 
         #deactivateRuntime(): void {
@@ -1553,9 +1535,6 @@ export default class FiCsElement<D extends object, P extends object> {
 
           this.#removeEventListeners?.()
           this.#removeEventListeners = undefined
-
-          that.#queryRuntime?.destroy()
-          that.#queryRuntime = undefined
         }
 
         #init() {
@@ -1673,8 +1652,6 @@ export default class FiCsElement<D extends object, P extends object> {
           const _key: keyof D = key as keyof D
           if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
         }
-
-      this.#queryRuntime?.sync()
 
       if (!isOnlyHtml) {
         this.#setClassNames(component)
