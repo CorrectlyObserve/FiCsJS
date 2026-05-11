@@ -99,9 +99,7 @@ export default <D extends object, P>({
 
   for (const [index, item] of items.entries()) {
     const absoluteIndex: number = startIndex + index,
-      /**
-       * @remarks The fenwick tree is 1-indexed.
-       */
+      /** @remarks The fenwick tree is 1-indexed. */
       fenwickTreeIndex: number = absoluteIndex - cache.startIndex + 1,
       key: string | null = item.getAttribute('key')
 
