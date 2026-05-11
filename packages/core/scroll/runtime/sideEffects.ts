@@ -116,9 +116,8 @@ export const updatePageParam = <D extends object, P>({
     }: Scroll.Resolved<D, P> = scrollOptions,
     nextStartIndex = index ?? startIndex
 
-  if (scrollOptions.urlSync.index === undefined) scrollOptions.urlSync.index = nextStartIndex
-
-  if (scrollOptions.urlSync.pageParam === undefined) scrollOptions.urlSync.pageParam = pageParam
+  scrollOptions.urlSync.index ??= nextStartIndex
+  scrollOptions.urlSync.pageParam ??= pageParam
 
   const {
       urlSync: { index: _index, pageParam: _pageParam }
