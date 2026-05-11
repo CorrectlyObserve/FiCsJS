@@ -9,7 +9,7 @@ import {
 } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 import consts from './constants'
-import type { Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
+import type { Ctx, Metric, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 const {
   COMPOSITE_ID_INDEX,
@@ -34,7 +34,7 @@ export default class PersistentState<S> {
   #channel?: BroadcastChannel
   #isDestroyed = false
 
-  constructor(state: S, options?: Options) {
+  constructor({ stateId, state, options }: Ctx<S>) {
     browserError()
 
     this.#stateId = `fics-persistent-state-${generator.next().value}`
