@@ -1,17 +1,17 @@
-import consts from '../../constants'
+import { constants } from '../../constants'
 import { isBlankString } from '../../helpers'
 import type { Template } from '../../types'
-import escape from '../escape'
-import error from './error'
+import { escape } from '../escape'
+import { error } from './error'
 import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
 import { hasSymbol, isQuote } from './validator'
 
 const {
   symbols: { SANITIZED, UNSAFE_HTML }
-} = consts
+} = constants
 
-export default <T>({
+export const sanitize = <T>({
   strings,
   variables,
   name,
