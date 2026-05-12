@@ -1,6 +1,6 @@
 import type { SetTimeout } from '../types'
-import constants from './constants'
-import numberError from './numberError'
+import { constants } from './constants'
+import { numberError } from './numberError'
 
 const {
   INTERVAL_MS,
