@@ -1,4 +1,4 @@
-import PersistentState from './state'
+import { PersistentState } from './state'
 import type { Ctx } from './types'
 
 /**
