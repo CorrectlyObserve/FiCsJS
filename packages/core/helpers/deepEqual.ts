@@ -10,7 +10,7 @@ import { isObject } from './typeCheck'
  * @remarks
  * For change detection, updates should be **immutable**; mutating nested objects can be seen as "no change".
  */
-const deepEqual = (
+export const deepEqual = (
   current: any,
   newValue: any,
   weakMaps: { current: WeakMap<any, any>; new: WeakMap<any, any> } = {
