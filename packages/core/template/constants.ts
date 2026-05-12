@@ -1,4 +1,4 @@
-export default {
+export const constants = {
   char: {
     COMMENT_OPEN_TAG: '<!--',
     COMMENT_CLOSE_TAG: '-->',
