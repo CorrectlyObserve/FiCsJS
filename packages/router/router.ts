@@ -1,4 +1,4 @@
-import FiCsElement from '../core/class'
+import { FiCsElement } from '../core/class'
 import { normalizePath } from '../core/helpers'
 import type { Html } from '../core/types'
 import { FICS_NAVIGATE } from './constants'
