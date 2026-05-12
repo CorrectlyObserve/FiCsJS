@@ -1,7 +1,7 @@
 import { browserError, deepEqual, isBlankString, isPlainObject, numberError } from '../core/helpers'
 import type { Options } from './types'
 
-export default class State<S> {
+export class State<S> {
   static #keyUsageCounts: Map<string, number> = new Map()
   static #duplicateKeys: Set<string> = new Set()
   readonly #options: Options.Local = { readonly: false, version: 1, strictMode: true }
