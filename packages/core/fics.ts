@@ -1,4 +1,4 @@
-import FiCsElement from './class'
+import { FiCsElement } from './class'
 import type { FiCs } from './types'
 
 export const fics = <D extends object, P extends object>({
