@@ -1,5 +1,5 @@
 import type { SingleOrArray } from '../types'
-import numberError from './numberError'
+import { numberError } from './numberError'
 import { isPlainObject } from './typeCheck'
 
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
