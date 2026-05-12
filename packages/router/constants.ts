@@ -1,1 +1,1 @@
-export default 'fics:navigate' as const
+export const FICS_NAVIGATE = 'fics:navigate' as const
