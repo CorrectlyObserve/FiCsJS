@@ -1,11 +1,11 @@
 import { numberError, normalizeRootMargin } from '../../helpers'
 import type { Scroll } from '../../types'
 import { resetCache } from '../cache'
-import consts from '../constants'
+import { constants } from '../constants'
 import { clearTimers, getProperty, isValidNumber } from '../helpers'
 import { getRootElement, getSentinel, restoreAxisOffset, updateFirstVisible } from './dom'
 import { fetchWithinThreshold, readPageParam, rebaseUrlSync, updatePageParam } from './sideEffects'
-import syncResize from './syncResize'
+import { syncResize } from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
 
 /**
@@ -17,7 +17,7 @@ import { updateAveSize, updateRange } from './virtualizer'
  * @param scrollOptions.totalCount Must be a non-negative integer.
  * @param scrollOptions.prevTotalCount Must be a non-negative integer.
  */
-const runInfiniteVirtualScroll = <D extends object, P extends object>({
+export const runInfiniteVirtualScroll = <D extends object, P extends object>({
   name,
   instanceId,
   shadowRoot,
@@ -38,7 +38,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
         itemMinSize,
         bufferLength = 0,
         throttleMs = 0,
-        thresholdRatio = consts.THRESHOLD_RATIO,
+        thresholdRatio = constants.THRESHOLD_RATIO,
         ...args
       } = scrollOptions.options(getDataProps(true))
 
@@ -278,5 +278,3 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   setScrollObservers({ root, ...observers })
   scrollOptions.isEnabled = true
 }
-
-export default runInfiniteVirtualScroll
