@@ -1,7 +1,7 @@
 import { isEmptyObject, typedEntries } from './helpers'
 import type { Action, DataProps, SSE } from './types'
 
-export default <D extends object, P>({
+export const openEventSource = <D extends object, P>({
   options,
   getDataProps,
   debounce,
