@@ -1,5 +1,5 @@
-import consts from './constants'
-import runCrud from './crud'
+import { constants } from './constants'
+import { crud } from './crud'
 import {
   browserError,
   convertStr,
@@ -15,16 +15,16 @@ import {
   uid
 } from './helpers'
 import { i18n } from './i18n'
-import enqueue from './queue'
-import scrollConsts from './scroll/constants'
+import { enqueue } from './queue'
+import { constants as scrollConstants } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
-import runInfiniteVirtualScroll from './scroll/runtime'
-import scrollTemplate from './scroll/template'
+import { runInfiniteVirtualScroll } from './scroll/runtime'
+import { scrollTemplate } from './scroll/template'
 import { getQueryCache, isQueryCacheLocked, lockQueryCache } from './query'
-import openEventSource from './sse'
-import escape from './template/escape'
-import applyShowAttr from './template/forSsr'
-import sanitize from './template/sanitize'
+import { openEventSource } from './sse'
+import { escape } from './template/escape'
+import { applyShowAttr } from './template/forSsr'
+import { sanitize } from './template/sanitize'
 import type {
   Action,
   Attrs,
@@ -49,7 +49,7 @@ import type {
   Void,
   WebSocket as WebSocketNS
 } from './types'
-import openWebSocket from './websocket'
+import { openWebSocket } from './websocket'
 
 export default class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
@@ -129,7 +129,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${consts.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
+    this.#instanceId =
+      instanceId ?? `${constants.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
     if (!generator) {
@@ -298,7 +299,7 @@ export default class FiCsElement<D extends object, P extends object> {
               { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
                 this.#getDataProps(true)
               ),
-              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
+              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConstants
 
             numberError({ unit }, 'positive-int')
             numberError({ itemMinSize }, 'positive')
@@ -519,7 +520,7 @@ export default class FiCsElement<D extends object, P extends object> {
     })
 
     try {
-      const result: T | void = await runCrud({
+      const result: T | void = await crud({
         endpoint,
         apiStatuses: this.#apiStatuses,
         enqueue: this.#enqueue.bind(this),
@@ -588,7 +589,7 @@ export default class FiCsElement<D extends object, P extends object> {
             )
 
           child.#clonedSelves.set(instanceId, cloned)
-          if (child.#clonedSelves.size > consts.CLONED_SELVES_LENGTH) {
+          if (child.#clonedSelves.size > constants.CLONED_SELVES_LENGTH) {
             const oldestKey: string | undefined = child.#clonedSelves.keys().next().value
             if (oldestKey) child.#clonedSelves.delete(oldestKey)
           }
@@ -686,7 +687,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #isBooleanAttr(attr: string): boolean {
-    return consts.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
+    return constants.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
   }
 
   #isBooleanAttrEnabled(attr: string, value: string): boolean {
@@ -748,7 +749,7 @@ export default class FiCsElement<D extends object, P extends object> {
         attrs: { FICS_ID, SHOW },
         symbols: { SANITIZED, UNSAFE_HTML },
         VAR_TAG_NAME
-      } = consts,
+      } = constants,
       template: Html.Template<D, P> = (
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
@@ -797,7 +798,7 @@ export default class FiCsElement<D extends object, P extends object> {
       if (curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
-          this.#childrenStore[instanceId] ??= curr
+        this.#childrenStore[instanceId] ??= curr
         curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
@@ -824,7 +825,7 @@ export default class FiCsElement<D extends object, P extends object> {
       {
         attrs: { FICS_ID, SHOW },
         VAR_TAG_NAME
-      } = consts
+      } = constants
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -1181,8 +1182,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const ssrHost: string = `div#${this.#name}`
         return selector
-          .replace(new RegExp(`${consts.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
-          .replace(new RegExp(`${consts.hostSelector.STRICT}`, 'g'), ssrHost)
+          .replace(new RegExp(`${constants.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
+          .replace(new RegExp(`${constants.hostSelector.STRICT}`, 'g'), ssrHost)
       },
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
         typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
@@ -1235,7 +1236,7 @@ export default class FiCsElement<D extends object, P extends object> {
 
     this.#styleSheet ??= new CSSStyleSheet()
     const cssText: string = this.#cssToString([
-      `${consts.hostSelector.ITSELF}{display:block}`,
+      `${constants.hostSelector.ITSELF}{display:block}`,
       ...css
     ])
 
@@ -1256,7 +1257,7 @@ export default class FiCsElement<D extends object, P extends object> {
     let trimmedSelector: string = selector.trim()
     const {
       hostSelector: { ITSELF }
-    } = consts
+    } = constants
 
     if (trimmedSelector === ITSELF) return [component]
 
@@ -1572,7 +1573,7 @@ export default class FiCsElement<D extends object, P extends object> {
               })
 
           that.#removeChildNodes(this)
-          Reflect.set(this, convertStr(consts.attrs.FICS_ID, 'camel'), that.#instanceId)
+          Reflect.set(this, convertStr(constants.attrs.FICS_ID, 'camel'), that.#instanceId)
 
           that.#cache.component = this
           this.#activateRuntime()
