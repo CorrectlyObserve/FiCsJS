@@ -11,8 +11,8 @@ import {
   watch
 } from '../helpers'
 import type { Query } from '../types'
-import consts from './constants'
-import hash from './hash'
+import { constants } from './constants'
+import { hash } from './hash'
 
 export default class QueryCache<T> {
   readonly #entries: Map<string, Query.Entry<T>> = new Map()
