@@ -42,9 +42,7 @@ const resolveDescendants = ({ html, resolveInstanceId }: Template.ForSsr): strin
   return `${prev}${instanceId}${next}`
 }
 
-export default ({ html, resolveInstanceId }: Template.ForSsr): string => {
-  const showAttr: RegExp = regExp.ATTR(consts.attrs.SHOW.replace(regExp.SPECIAL_CHAR, '\\$&'))
-  let showAttrIndex: number = html.indexOf(consts.attrs.SHOW)
+export const applyShowAttr = ({ html, resolveInstanceId }: Template.ForSsr): string => {
 
   while (showAttrIndex > -1) {
     const openIndex: number = html.lastIndexOf(LEFT_ANGLE_BRACKET, showAttrIndex),
