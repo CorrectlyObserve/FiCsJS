@@ -1,4 +1,4 @@
-import State from './state'
+import { State } from './state'
 import type { Options } from './types'
 
 /** @param options.version must be a positive integer if it is a number. */
