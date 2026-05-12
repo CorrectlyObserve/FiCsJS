@@ -1,4 +1,4 @@
-import FiCsElement from './class'
+import { FiCsElement } from './class'
 import { toArray } from './helpers'
 import type { Css, SingleOrArray } from './types'
 
