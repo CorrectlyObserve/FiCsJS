@@ -51,7 +51,7 @@ import type {
 } from './types'
 import { openWebSocket } from './websocket'
 
-export default class FiCsElement<D extends object, P extends object> {
+export class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
