@@ -6,7 +6,7 @@ const translate3d = (x: number | string) => ({ transform: `translate3d(${x}, 0, 
  * @param durationSec Must be greater than 0. Default is `0.4`.
  * @param unit Must be a positive integer. Default is `2`.
  */
-export default (durationSec = 0.4, unit = 2) => {
+export const vibrate = (durationSec = 0.4, unit = 2) => {
   numberError({ durationSec }, 'positive')
   numberError({ unit }, 'positive-int')
 
