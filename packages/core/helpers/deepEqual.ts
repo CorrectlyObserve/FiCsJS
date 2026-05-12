@@ -117,5 +117,3 @@ export const deepEqual = (
 
   return true
 }
-
-export default deepEqual
