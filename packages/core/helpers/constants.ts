@@ -1,4 +1,4 @@
-export default {
+export const constants = {
   INTERVAL_MS: 1_000,
   JITTER_RATIO: 0.3,
   MAX_DELAY_MS: 30_000,
