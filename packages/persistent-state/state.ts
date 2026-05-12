@@ -20,7 +20,7 @@ const {
   VERSION
 } = consts
 
-export default class PersistentState<S> {
+export class PersistentState<S> {
   readonly #stateId: string
   readonly #state: S
   readonly #readonly: boolean = false
