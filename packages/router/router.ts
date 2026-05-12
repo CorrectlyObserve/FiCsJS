@@ -15,7 +15,7 @@ const setRouterData = <D extends object>(data: RouterData<D>, pathname: string):
   params.set('queries', queries)
 }
 
-export default <D extends object>({
+export const ficsRouter = <D extends object>({
   children,
   data,
   pathname = '/',
