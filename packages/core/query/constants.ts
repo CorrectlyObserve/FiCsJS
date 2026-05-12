@@ -1,4 +1,4 @@
-export default {
+export const constants = {
   GC_LIMIT_MS: 300_000,
   hash: {
     CIRCULAR: '~',
