@@ -6,7 +6,7 @@ import type { Crud, SetTimeout } from './types'
  * @param options.intervalMs Must be a non-negative integer if it is a number.
  * @param options.maxRetries Must be a non-negative integer if it is a number.
  */
-export default async <T>({
+export const crud = async <T>({
   endpoint,
   apiStatuses,
   enqueue,
