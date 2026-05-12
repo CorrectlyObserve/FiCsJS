@@ -39,7 +39,7 @@ const isKeyChanged = (key: string, prevKey: string | undefined): prevKey is stri
     return { prevSize, prevIndexSize }
   }
 
-export default <D extends object, P>({
+export const syncResize = <D extends object, P>({
   getScrollOptions,
   getIsVertical,
   observers,
