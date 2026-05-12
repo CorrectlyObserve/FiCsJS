@@ -1,6 +1,6 @@
 import type { Template } from '../../types'
-import consts from '../constants'
-import error from './error'
+import { constants } from '../constants'
+import { error } from './error'
 import { isQuote, isSpace, isValidAttrName } from './validator'
 
 const {
@@ -12,7 +12,7 @@ const {
     EQUAL_SIGN
   },
   regExp: { INVALID_ATTR_FRAGMENT }
-} = consts
+} = constants
 
 export const getTemplateContexts = (strings: TemplateStringsArray): Template.Context[] => {
   const contexts: Template.Context[] = new Array(Math.max(strings.length - 1, 0))
