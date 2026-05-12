@@ -76,7 +76,7 @@ const ids: Set<string> = new Set(),
     })
   }
 
-export default (task: Task): void => {
+export const enqueue = (task: Task): void => {
   if (!isBrowser()) return
 
   const queueId: string = getQueueId(task)
