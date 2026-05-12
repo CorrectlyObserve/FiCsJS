@@ -5,7 +5,7 @@ const {
 } = consts
 
 /** @warning DO NOT pass this function directly to `Array.prototype.map` like `array.map(hash)`. */
-const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
+export const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
   if (key === undefined) return UNDEFINED
   if (key === null) return NULL
   if (typeof key === 'boolean') return key ? TRUE : FALSE
@@ -27,5 +27,3 @@ const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
     .map(_key => `${_key}:${hash((key as Record<string, unknown>)[_key], seen)}`)
     .join(',')}}`
 }
-
-export default hash
