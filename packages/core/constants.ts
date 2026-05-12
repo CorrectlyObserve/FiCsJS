@@ -1,6 +1,6 @@
 const HOST_SELECTOR = ':host' as const
 
-export default {
+export const constants = {
   a11y: { STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"' },
   attrs: { FICS_ID: 'fics-id', SHOW: 'fics-show-syntax' },
   BOOLEAN_ATTRS: new Set([
