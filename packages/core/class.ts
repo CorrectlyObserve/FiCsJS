@@ -7,6 +7,7 @@ import {
   isBlankString,
   isBrowser,
   isEmptyObject,
+  isObject,
   joinArray,
   normalizeRootMargin,
   numberError,
@@ -795,7 +796,7 @@ export class FiCsElement<D extends object, P extends object> {
     })[SANITIZED]
 
     return contents.reduce((prev, curr) => {
-      if (curr instanceof FiCsElement) {
+      if (isObject(curr) && curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
         this.#childrenStore[instanceId] ??= curr
