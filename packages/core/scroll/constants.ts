@@ -1,4 +1,4 @@
-export default {
+export const constants = {
   CACHE_LENGTH: 200,
   FRAME_INTERVAL_MS: 16,
   SIZE_DELTA_TOLERANCE_PX: 1,
