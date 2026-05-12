@@ -1,24 +1,8 @@
-import flexCenter from './flexCenter'
-import forScreenReaders from './forScreenReaders'
-import oklch from './oklch'
-import { calc, cssVar, hideScrollbar, remToPx } from './others'
-import positionCenter from './positionCenter'
-import { circle, rect, size } from './size'
-import textSize from './textSize'
-import truncate from './truncate'
-
-export {
-  calc,
-  circle,
-  cssVar,
-  flexCenter,
-  forScreenReaders,
-  hideScrollbar,
-  oklch,
-  positionCenter,
-  rect,
-  remToPx,
-  size,
-  textSize,
-  truncate
-}
+export { flexCenter } from './flexCenter'
+export { forScreenReaders } from './forScreenReaders'
+export { oklch } from './oklch'
+export { calc, cssVar, hideScrollbar, remToPx } from './others'
+export { positionCenter } from './positionCenter'
+export { circle, rect, size } from './size'
+export { textSize } from './textSize'
+export { truncate } from './truncate'
