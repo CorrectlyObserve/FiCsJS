@@ -10,7 +10,7 @@ import { clearTimers, getAveSize, getScrollAttr, getProperty, isValidNumber } fr
  * @param scrollOptions.startIndex Must be a non-negative integer.
  * @param scrollOptions.endIndex Must be a non-negative integer.
  */
-const scrollTemplate = <D extends object, P extends object, T>({
+export const scrollTemplate = <D extends object, P extends object, T>({
   instanceId,
   getDataProps,
   template,
@@ -144,5 +144,3 @@ const scrollTemplate = <D extends object, P extends object, T>({
     </div>
   `
 }
-
-export default scrollTemplate
