@@ -1,6 +1,6 @@
 import type { TextSize } from './types'
 
-export default (size: TextSize, isLineHeightNone?: boolean) => {
+export const textSize = (size: TextSize, isLineHeightNone?: boolean) => {
   let fontSize: string, lineHeight: string
 
   switch (size) {
