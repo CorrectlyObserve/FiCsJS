@@ -1,7 +1,7 @@
 import { browserError, isBlankString } from '../core/helpers'
 import CUSTOM_EVENT_NAME from './constants'
 
-export default (
+export const goto = (
   href: string,
   { isWithoutHistory }: { isWithoutHistory: boolean } = { isWithoutHistory: false }
 ): void => {
