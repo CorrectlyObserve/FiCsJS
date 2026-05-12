@@ -5,7 +5,7 @@ const {
   } = consts,
   quotePattern: RegExp = new RegExp(`[${DOUBLE_QUOTE}${SINGLE_QUOTE}]`, 'g')
 
-export default (str: string, context: 'attr' | 'text-content' = 'attr'): string => {
+export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): string => {
   const escapedTextContent: string = str.replace(
     /[&<>]/g,
     char =>
