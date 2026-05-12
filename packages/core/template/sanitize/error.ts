@@ -1,7 +1,7 @@
 import type { Template } from '../../types'
 import consts from '../constants'
 
-export default (name: string, type: 'name' | 'unquoted' | Template.Context | unknown) => {
+export const error = (name: string, type: 'name' | 'unquoted' | Template.Context | unknown) => {
   switch (type) {
     case 'name':
     case 'unquoted':
