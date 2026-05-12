@@ -1,4 +1,4 @@
-export default {
+export const constants = {
   COMPOSITE_ID_INDEX: 'compositeId',
   SNAPSHOT_ID_INDEX: 'snapshotId',
   SNAPSHOT_STORE: 'snapshots',
