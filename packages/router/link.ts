@@ -1,4 +1,4 @@
-import FiCsElement from '../core/class'
+import { FiCsElement } from '../core/class'
 import { isBlankString } from '../core/helpers'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
