@@ -1,7 +1,7 @@
 import { getDelayMs, isEmptyObject, numberError } from './helpers'
 import type { SetTimeout, WebSocket as WebSocketNS } from './types'
 
-export default <D extends object, P>({
+export const openWebSocket = <D extends object, P>({
   options,
   getDataProps,
   setWebSocketProp
