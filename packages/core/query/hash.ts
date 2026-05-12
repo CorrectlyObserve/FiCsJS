@@ -1,8 +1,8 @@
-import consts from './constants'
+import { constants } from './constants'
 
 const {
   hash: { CIRCULAR, DATE, FALSE, MAP, NULL, SET, TRUE, UNDEFINED }
-} = consts
+} = constants
 
 /** @warning DO NOT pass this function directly to `Array.prototype.map` like `array.map(hash)`. */
 export const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
