@@ -8,7 +8,7 @@ import {
   uid
 } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
-import consts from './constants'
+import { constants } from './constants'
 import type { Ctx, Metric, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 const {
@@ -18,7 +18,7 @@ const {
   STATE_ID_INDEX,
   STATE_STORE,
   VERSION
-} = consts
+} = constants
 
 export class PersistentState<S> {
   readonly #stateId: string
