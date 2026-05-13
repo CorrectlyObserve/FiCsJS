@@ -14,19 +14,19 @@ import type { Query } from '../types'
 import { constants } from './constants'
 import { hash } from './hash'
 
-export default class QueryCache<T> {
-  readonly #entries: Map<string, Query.Entry<T>> = new Map()
-  readonly #listeners: Map<string, Set<Query.Listener<T>>> = new Map()
+export class QueryCache {
+  readonly #entries: Map<string, Query.Entry> = new Map()
+  readonly #listeners: Map<string, Set<Query.Listener>> = new Map()
   readonly #config: Query.Config.Global
   readonly #onOnline?: () => void
   readonly #onChangeVisibility?: () => void
   #isDestroyed: boolean = false
   #api?: Query.Api
 
-  constructor(config?: Query.Config.Global) {
+  constructor(config?: Partial<Query.Config.Global>) {
     this.#config = {
-      staleMs: consts.STALE_MS,
-      gcLimitMs: consts.GC_LIMIT_MS,
+      staleMs: constants.STALE_MS,
+      gcLimitMs: constants.GC_LIMIT_MS,
       maxDelayMs: MAX_DELAY_MS,
       maxRetries: MAX_RETRIES,
       refetchIntervalMs: 0,
@@ -35,8 +35,13 @@ export default class QueryCache<T> {
       ...config
     }
 
-    const { staleMs, gcLimitMs, maxRetries }: Query.Config.Global = this.#config
-    numberError({ staleMs, gcLimitMs, maxRetries }, 'non-negative-int')
+    const { staleMs, gcLimitMs, maxDelayMs, maxRetries, refetchIntervalMs }: Query.Config.Global =
+      this.#config
+
+    numberError(
+      { staleMs, gcLimitMs, maxDelayMs, maxRetries, refetchIntervalMs },
+      'non-negative-int'
+    )
 
     if (isBrowser()) {
       this.#onOnline = () => this.#refresh(this.#config.refetchOnReconnect)
@@ -53,7 +58,7 @@ export default class QueryCache<T> {
     return this.#listeners.get(hashed)?.size ?? 0
   }
 
-  #isRefetchable(entry: Query.Entry<T>): boolean {
+  #isRefetchable(entry: Query.Entry): boolean {
     return this.#subscriberCount(entry.hashed) > 0 && !entry.isOptimistic
   }
 
@@ -64,11 +69,11 @@ export default class QueryCache<T> {
       if (this.#isRefetchable(entry) && this.isStale(entry.key)) void this.fetch(entry.key)
   }
 
-  #dispatchState(entry: Query.Entry<T>, partial: Partial<Query.State<T>>): void {
+  #dispatchState(entry: Query.Entry, partial: Partial<Query.State>): void {
     entry.state = { ...entry.state, ...partial }
 
-    const { hashed, state, key }: Query.Entry<T> = entry,
-      listeners: Set<Query.Listener<T>> | undefined = this.#listeners.get(hashed)
+    const { hashed, state, key }: Query.Entry = entry,
+      listeners: Set<Query.Listener> | undefined = this.#listeners.get(hashed)
 
     if (!listeners) return
 
@@ -80,7 +85,7 @@ export default class QueryCache<T> {
       }
   }
 
-  #unscheduleGc(entry: Query.Entry<T>): void {
+  #unscheduleGc(entry: Query.Entry): void {
     if (entry.gcTimer) {
       clearTimeout(entry.gcTimer)
       entry.gcTimer = undefined
@@ -100,7 +105,7 @@ export default class QueryCache<T> {
     }
   }
 
-  #scheduleGc(entry: Query.Entry<T>): void {
+  #scheduleGc(entry: Query.Entry): void {
     this.#unscheduleGc(entry)
 
     entry.gcTimer = setTimeout(() => {
@@ -117,7 +122,7 @@ export default class QueryCache<T> {
     }, this.#config.gcLimitMs)
   }
 
-  #applyRefetchTimer(entry: Query.Entry<T>): void {
+  #applyRefetchTimer(entry: Query.Entry): void {
     if (entry.refetchTimer) {
       clearInterval(entry.refetchTimer)
       entry.refetchTimer = undefined
@@ -146,8 +151,8 @@ export default class QueryCache<T> {
     return true
   }
 
-  #match(filter?: Query.Filter<T>): Query.Entry<T>[] {
-    const entries: Query.Entry<T>[] = [...this.#entries.values()]
+  #match(filter?: Query.Filter): Query.Entry[] {
+    const entries: Query.Entry[] = [...this.#entries.values()]
 
     if (!filter) return entries
 
@@ -164,7 +169,7 @@ export default class QueryCache<T> {
     })
   }
 
-  #endOptimisticUpdate({ entry, result, attempt, startedAt }: Query.EndOptimisticUpdate<T>): void {
+  #endOptimisticUpdate({ entry, result, attempt, startedAt }: Query.EndOptimisticUpdate): void {
     entry.isOptimistic = false
     this.#emitMetric({
       type: 'optimistic:end',
@@ -181,9 +186,9 @@ export default class QueryCache<T> {
   }
 
   /** @param config Must be non-negative integers. */
-  ensure({ key, fetcher, config }: Query.Ensure<T>): Query.Entry<T> {
+  ensure({ key, fetcher, config }: Query.Ensure): Query.Entry {
     const hashed: string = hash(key),
-      existing: Query.Entry<T> | undefined = this.#entries.get(hashed)
+      existing: Query.Entry | undefined = this.#entries.get(hashed)
 
     numberError({ ...config }, 'non-negative-int')
 
@@ -200,7 +205,7 @@ export default class QueryCache<T> {
     }
 
     const { staleMs, maxRetries, refetchIntervalMs }: Query.Config.Entry = config ?? {},
-      entry: Query.Entry<T> = {
+      entry: Query.Entry = {
         key,
         hashed,
         state: { isFetching: false, updatedAt: 0 },
@@ -220,17 +225,17 @@ export default class QueryCache<T> {
   }
 
   isStale(key: Query.Key): boolean {
-    const entry: Query.Entry<T> | undefined = this.#entries.get(hash(key))
+    const entry: Query.Entry | undefined = this.#entries.get(hash(key))
     if (!entry) return true
 
-    const { state, staleMs }: Query.Entry<T> = entry
+    const { state, staleMs }: Query.Entry = entry
 
     if (state.updatedAt === 0) return true
     return Date.now() - state.updatedAt > staleMs
   }
 
   async fetch(key: Query.Key): Promise<void> {
-    const entry: Query.Entry<T> | undefined = this.#entries.get(hash(key))
+    const entry: Query.Entry | undefined = this.#entries.get(hash(key))
     if (!entry || !entry.fetcher || entry.isOptimistic) return
 
     if (entry.inflight) return entry.inflight
@@ -255,7 +260,7 @@ export default class QueryCache<T> {
         this.#emitMetric({ type: 'fetch:start', key: entry.key, attempt })
 
         try {
-          const value: T = await entry.fetcher!({ key: entry.key, signal })
+          const value: unknown = await entry.fetcher!({ key: entry.key, signal })
 
           if (!isCurrentFetch()) return
 
@@ -302,7 +307,7 @@ export default class QueryCache<T> {
           }
 
           try {
-            await delay(getDelayMs({ error, attempt }), signal)
+            await delay(getDelayMs({ error, attempt, maxDelayMs: entry.maxDelayMs }), signal)
           } catch {
             return
           } finally {
@@ -324,22 +329,52 @@ export default class QueryCache<T> {
     }
   }
 
-  /** @param staleMs Must be non-negative integers if it is a number. */
-  async prefetch(key: Query.Key, fetcher: Query.Fetcher<T>, staleMs?: number): Promise<void> {
+  /** @param configOrStaleMs Must be non-negative integers when numeric values are provided. */
+  async prefetch<T = unknown>(
+    key: Query.Key,
+    fetcher: Query.Fetcher<T>,
+    staleMs?: number
+  ): Promise<void>
+  async prefetch<T = unknown>(
+    key: Query.Key,
+    fetcher: Query.Fetcher<T>,
+    config?: Query.Config.Entry
+  ): Promise<void>
+  async prefetch<T = unknown>(
+    key: Query.Key,
+    fetcher: Query.Fetcher<T>,
+    configOrStaleMs?: Query.Config.Entry | number
+  ): Promise<void> {
     if (this.#isDestroyed) return
 
-    numberError({ staleMs }, 'non-negative-int')
+    const config: Query.Config.Entry | undefined =
+      typeof configOrStaleMs === 'number' || configOrStaleMs === undefined
+        ? { staleMs: configOrStaleMs }
+        : configOrStaleMs
 
-    const entry: Query.Entry<T> = this.ensure({ key, fetcher, config: { staleMs } })
+    numberError(
+      {
+        staleMs: config?.staleMs,
+        maxRetries: config?.maxRetries,
+        refetchIntervalMs: config?.refetchIntervalMs
+      },
+      'non-negative-int'
+    )
+
+    const entry: Query.Entry = this.ensure({
+      key,
+      fetcher: fetcher as Query.Fetcher<unknown>,
+      config
+    })
 
     if (this.isStale(key)) await this.fetch(key)
     if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
-  subscribe({ hashed, listener }: { hashed: string; listener: Query.Listener<T> }): void {
+  subscribe({ hashed, listener }: { hashed: string; listener: Query.Listener }): void {
     if (this.#isDestroyed) return
 
-    const entry: Query.Entry<T> | undefined = this.#entries.get(hashed)
+    const entry: Query.Entry | undefined = this.#entries.get(hashed)
     if (!entry) return
 
     this.#unscheduleGc(entry)
@@ -355,8 +390,8 @@ export default class QueryCache<T> {
     })
   }
 
-  unsubscribe({ hashed, listener }: { hashed: string; listener: Query.Listener<T> }): void {
-    const entry: Query.Entry<T> | undefined = this.#entries.get(hashed)
+  unsubscribe({ hashed, listener }: { hashed: string; listener: Query.Listener }): void {
+    const entry: Query.Entry | undefined = this.#entries.get(hashed)
     if (!entry) return
 
     this.#listeners.get(hashed)?.delete(listener)
@@ -377,14 +412,17 @@ export default class QueryCache<T> {
     }
   }
 
-  setQuery(key: Query.Key, newQuery: T | ((current: T | undefined) => T)): void {
+  setQuery<T = unknown>(key: Query.Key, newQuery: T | ((current: T | undefined) => T)): void {
     if (this.#isDestroyed) return
 
     const hashed: string = hash(key),
-      entry: Query.Entry<T> = this.#entries.get(hashed) ?? this.ensure({ key })
+      entry: Query.Entry = this.#entries.get(hashed) ?? this.ensure({ key })
 
     this.#dispatchState(entry, {
-      value: newQuery instanceof Function ? newQuery(entry.state.value) : newQuery,
+      value:
+        newQuery instanceof Function
+          ? (newQuery as (current: T | undefined) => T)(entry.state.value as T | undefined)
+          : newQuery,
       updatedAt: Date.now()
     })
     this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'manual' })
@@ -392,20 +430,20 @@ export default class QueryCache<T> {
     if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
-  getQuery(key: Query.Key): T | undefined {
-    return this.#entries.get(hash(key))?.state.value
+  getQuery<T = unknown>(key: Query.Key): T | undefined {
+    return this.#entries.get(hash(key))?.state.value as T | undefined
   }
 
-  expire(filter?: Query.Filter<T>): void {
-    for (const entry of this.#match(filter)) {
+  expire(filter?: Query.Filter): void {
+    for (const entry of this.#match(filter as Query.Filter | undefined)) {
       this.#dispatchState(entry, { updatedAt: 0 })
 
       if (this.#isRefetchable(entry)) void this.fetch(entry.key)
     }
   }
 
-  abort(filter?: Query.Filter<T>): void {
-    for (const entry of this.#match(filter)) {
+  abort(filter?: Query.Filter): void {
+    for (const entry of this.#match(filter as Query.Filter | undefined)) {
       if (!entry.abort) continue
 
       entry.abort.abort()
@@ -416,7 +454,7 @@ export default class QueryCache<T> {
     }
   }
 
-  async optimisticUpdate({
+  async optimisticUpdate<T = unknown>({
     key,
     newQuery,
     updater,
@@ -425,8 +463,8 @@ export default class QueryCache<T> {
   }: Query.OptimisticUpdate<T>): Promise<void> {
     if (this.#isDestroyed) return
 
-    const entry: Query.Entry<T> = this.#entries.get(hash(key)) ?? this.ensure({ key }),
-      { lastOptimisticTask }: Query.Entry<T> = entry,
+    const entry: Query.Entry = this.#entries.get(hash(key)) ?? this.ensure({ key }),
+      { lastOptimisticTask }: Query.Entry = entry,
       { promise, resolve }: PromiseWithResolvers<void> = Promise.withResolvers<void>()
 
     entry.lastOptimisticTask = promise
@@ -451,7 +489,7 @@ export default class QueryCache<T> {
     entry.isOptimistic = true
     this.#emitMetric({ type: 'optimistic:start', key })
 
-    const { value }: { value?: T } = entry.state
+    const { value }: { value?: T } = entry.state as Query.State<T>
     this.#dispatchState(entry, {
       value: newQuery instanceof Function ? newQuery(value) : newQuery,
       updatedAt: Date.now()
@@ -483,10 +521,8 @@ export default class QueryCache<T> {
             throw error
           }
 
-          const delayMs: number = getDelayMs({ error, attempt })
-
           try {
-            await delay(delayMs, signal)
+            await delay(getDelayMs({ error, attempt, maxDelayMs: this.#config.maxDelayMs }), signal)
           } catch {
             this.#dispatchState(entry, { value, updatedAt: Date.now() })
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
@@ -530,7 +566,7 @@ export default class QueryCache<T> {
         expire: this.expire.bind(this),
         abort: this.abort.bind(this),
         prefetch: this.prefetch.bind(this),
-        optimisticUpdate: this.optimisticUpdate.bind(this) as Query.Api['optimisticUpdate']
+        optimisticUpdate: this.optimisticUpdate.bind(this)
       }
 
     return this.#api
