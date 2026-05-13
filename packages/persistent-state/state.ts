@@ -349,9 +349,7 @@ export class PersistentState<S> {
   }
 
   subscribe(key: string, callback: (state: S) => void): void {
-    this.#assertAlive()
-
-    if (this.#readonly) throw new Error(`The "${this.#stateId}" is readonly...`)
+    this.#assertWritable()
 
     this.#subscribers.set(this.#normalizeKey(key, 'subscribe'), callback)
     this.#syncBetweenCrossTabs()
