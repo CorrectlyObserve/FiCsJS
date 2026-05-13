@@ -1,22 +1,28 @@
-import { isBrowser } from '../helpers'
 import type { Query } from '../types'
-import QueryCache from './cache'
+import { QueryCache } from './cache'
 
-let currentCache: QueryCache<unknown> | null = null,
+let currentCache: QueryCache | null = null,
   isLocked: boolean = false
 
-const configQueryCache = (config?: Query.Config.Global): void => {
-    if (isLocked)
-      throw new Error(
-        'The configQueryCache function must be called before any FiCsElement is described in the browser...'
-      )
-    currentCache?.destroy()
-    currentCache = new QueryCache<unknown>(config)
-  },
-  getQueryCache = (): QueryCache<unknown> => {
-    if (isBrowser()) isLocked = true
-    return (currentCache ??= new QueryCache<unknown>())
-  }
+export const configQueryCache = (config?: Partial<Query.Config.Global>): void => {
+  if (isLocked)
+    throw new Error(
+      'The configQueryCache function must be called before any FiCsElement is described in the browser...'
+    )
 
-export { configQueryCache, getQueryCache, syncQueryCache }
+  currentCache?.destroy()
+  currentCache = createQueryCache(config)
+}
+
+export const createQueryCache = (config?: Partial<Query.Config.Global>): QueryCache =>
+  new QueryCache(config)
+
+export const getQueryCache = (): QueryCache => (currentCache ??= createQueryCache())
+
+export const isQueryCacheLocked = (): boolean => isLocked
+
+export const lockQueryCache = (): void => {
+  isLocked = true
+}
+
 export type { QueryCache }
