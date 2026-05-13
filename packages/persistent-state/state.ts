@@ -341,7 +341,7 @@ export class PersistentState<S> {
 
         if (errors.length > 0)
           console.error(
-            `Cross-tab subscriber notification failed for state "${this.#stateId}"...`,
+            `The cross-tab subscriber notification failed for the persistent state "${this.#stateId}"...`,
             new AggregateError(errors)
           )
       } else if (event.data.type === 'delete') {
