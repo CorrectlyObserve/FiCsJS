@@ -14,7 +14,7 @@ export default fics({
   data: () => ({
     status: '',
     methods: ['PUT', 'PATCH', 'DELETE'] as Method[],
-    users,
+    users: [] as User[],
     userId: NaN,
     draggingIndex: NaN,
     highlightedZone: null as HTMLElement | null,
@@ -70,7 +70,7 @@ export default fics({
     template,
     attributes: { statusLiveRegion }
   }) => {
-    const { status, methods, users, userId } = data
+    const { status, methods, userId } = data
 
     return template`
       <p class="sr-only" ${statusLiveRegion}>${status}</p>
