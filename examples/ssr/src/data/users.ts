@@ -1,6 +1,6 @@
 import type { User } from '@/types'
 
-export const API_PATH = 'https://jsonplaceholder.typicode.com/users' as const
+export const BASE_URL = 'https://jsonplaceholder.typicode.com/users' as const
 
 const fetchUsers = async (): Promise<User[]> => {
   const res = await fetch(API_PATH),
