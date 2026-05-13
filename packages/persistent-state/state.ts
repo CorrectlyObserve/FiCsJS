@@ -64,6 +64,58 @@ export class PersistentState<S> {
       .objectStore(storeName)
   }
 
+  #emitMetric(metric: Metric): void {
+    if (this.#metricSubscribers.size === 0) return
+
+    for (const subscriber of this.#metricSubscribers)
+      try {
+        subscriber(metric)
+      } catch {}
+  }
+
+  async #track<T>({
+    type,
+    task,
+    payload
+  }: {
+    type: Metric['type']
+    task: () => Promise<T>
+    payload?: (result: T | undefined) => { snapshotId?: string; snapshotCount?: number }
+  }): Promise<T> {
+    const startedAt: number = performance.now()
+
+    try {
+      const result: T = await task()
+
+      this.#emitMetric({
+        type,
+        stateId: this.#stateId,
+        durationMs: performance.now() - startedAt,
+        ...payload?.(result)
+      } as Metric)
+
+      return result
+    } catch (error) {
+      this.#emitMetric({
+        type,
+        stateId: this.#stateId,
+        durationMs: performance.now() - startedAt,
+        error,
+        ...payload?.(undefined)
+      } as Metric)
+
+      throw error
+    }
+  }
+
+  #getObjectStore(options?: { isSnapshot?: boolean; isReadonly?: boolean }): IDBObjectStore {
+    const storeName: string = options?.isSnapshot ? SNAPSHOT_STORE : STATE_STORE
+
+    return this.#db
+      .transaction(storeName, options?.isReadonly ? 'readonly' : 'readwrite')
+      .objectStore(storeName)
+  }
+
   #promisifyReq<T>(store: IDBObjectStore, options?: QueryOptions): Promise<T>
   #promisifyReq<T>(store: IDBObjectStore, options: { isAllSnapshots: true }): Promise<Snapshot<S>[]>
   #promisifyReq(req: IDBRequest<IDBValidKey>): Promise<IDBValidKey>
@@ -111,50 +163,6 @@ export class PersistentState<S> {
       transaction.onerror = () => reject(transaction.error)
       transaction.onabort = () => reject(transaction.error)
     })
-  }
-
-  #emitMetric(metric: Metric): void {
-    if (this.#metricSubscribers.size === 0) return
-
-    for (const subscriber of this.#metricSubscribers)
-      try {
-        subscriber(metric)
-      } catch {}
-  }
-
-  async #track<T>({
-    type,
-    task,
-    payload
-  }: {
-    type: Metric['type']
-    task: () => Promise<T>
-    payload?: (result: T | undefined) => { snapshotId?: string; snapshotCount?: number }
-  }): Promise<T> {
-    const startedAt: number = performance.now()
-
-    try {
-      const result: T = await task()
-
-      this.#emitMetric({
-        type,
-        stateId: this.#stateId,
-        durationMs: performance.now() - startedAt,
-        ...payload?.(result)
-      } as Metric)
-
-      return result
-    } catch (error) {
-      this.#emitMetric({
-        type,
-        stateId: this.#stateId,
-        durationMs: performance.now() - startedAt,
-        error,
-        ...payload?.(undefined)
-      } as Metric)
-
-      throw error
-    }
   }
 
   async #init(): Promise<void> {
@@ -348,34 +356,6 @@ export class PersistentState<S> {
     })
   }
 
-  subscribe(key: string, callback: (state: S) => void): void {
-    this.#assertWritable()
-
-    this.#subscribers.set(this.#normalizeKey(key, 'subscribe'), callback)
-    this.#syncBetweenCrossTabs()
-  }
-
-  unsubscribe(key?: string): void {
-    this.#assertAlive()
-
-    if (key === undefined) this.#subscribers.clear()
-    else this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
-
-    if (this.#subscribers.size === 0) {
-      this.#channel?.close()
-      this.#channel = undefined
-    }
-  }
-
-  subscribeMetric(subscriber: (metric: Metric) => void): () => void {
-    this.#assertAlive()
-    this.#metricSubscribers.add(subscriber)
-
-    return () => {
-      this.#metricSubscribers.delete(subscriber)
-    }
-  }
-
   async set(newState: S): Promise<void> {
     this.#assertWritable()
 
@@ -403,6 +383,34 @@ export class PersistentState<S> {
         if (errors.length > 0) throw new AggregateError(errors)
       }
     })
+  }
+
+  subscribe(key: string, callback: (state: S) => void): void {
+    this.#assertWritable()
+
+    this.#subscribers.set(this.#normalizeKey(key, 'subscribe'), callback)
+    this.#syncBetweenCrossTabs()
+  }
+
+  unsubscribe(key?: string): void {
+    this.#assertAlive()
+
+    if (key === undefined) this.#subscribers.clear()
+    else this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
+
+    if (this.#subscribers.size === 0) {
+      this.#channel?.close()
+      this.#channel = undefined
+    }
+  }
+
+  subscribeMetric(subscriber: (metric: Metric) => void): () => void {
+    this.#assertAlive()
+    this.#metricSubscribers.add(subscriber)
+
+    return () => {
+      this.#metricSubscribers.delete(subscriber)
+    }
   }
 
   async delete(options?: { cascade?: boolean }): Promise<void> {
