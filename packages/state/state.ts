@@ -162,7 +162,7 @@ export class State<S> {
   }
 
   #assertAlive(): void {
-    if (this.#isDeleted) throw new Error('This state is destroyed...')
+    if (this.#isDeleted) throw new Error('This state has been already deleted...')
   }
 
   #assertWritable(): void {
