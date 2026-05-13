@@ -233,15 +233,9 @@ export interface Props<D extends object, P> {
 
 export declare namespace Query {
   type Api = Pick<
-    QueryCache<unknown>,
+    QueryCache,
     'setQuery' | 'getQuery' | 'expire' | 'abort' | 'prefetch' | 'optimisticUpdate'
   >
-
-  interface Callback<D extends object, P, T> {
-    onSuccess: (ctx: DataProps.Payload<D, P, true>, value: T) => void
-    onError?: (ctx: DataProps.Payload<D, P, true>, error: unknown) => void
-    onFetching?: (ctx: DataProps.Payload<D, P, true>) => void
-  }
 
   namespace Config {
     interface Entry {
@@ -263,24 +257,24 @@ export declare namespace Query {
     }
   }
 
-  interface EndOptimisticUpdate<T> {
-    entry: Query.Entry<T>
+  interface EndOptimisticUpdate {
+    entry: Entry
     result: Result
     attempt: number
     startedAt: number
   }
 
-  interface Ensure<T> {
-    key: Query.Key
-    fetcher?: Query.Fetcher<T>
+  interface Ensure {
+    key: Key
+    fetcher?: Fetcher
     config?: Config.Entry
   }
 
-  interface Entry<T> {
+  interface Entry {
     readonly key: Key
     readonly hashed: string
-    state: State<T>
-    fetcher: Fetcher<T> | null
+    state: State
+    fetcher: Fetcher | null
     staleMs: number
     maxDelayMs: number
     maxRetries: number
@@ -294,17 +288,17 @@ export declare namespace Query {
     lastOptimisticTask?: Promise<void>
   }
 
-  interface Filter<T> {
+  interface Filter {
     key?: Key
     isExactlyMatched?: boolean
-    predicate?: (entry: { key: Key; state: State<T> }) => boolean
+    predicate?: (entry: { key: Key; state: State }) => boolean
   }
 
-  type Fetcher<T> = (ctx: { key: Key; signal: AbortSignal }) => Promise<T>
+  type Fetcher<T = unknown> = (ctx: { key: Key; signal: AbortSignal }) => Promise<T>
 
   type Key = readonly unknown[]
 
-  type Listener<T> = (hashed: string, state: State<T>) => void
+  type Listener = (hashed: string, state: State) => void
 
   namespace Metric {
     type Event = { module: 'query-cache' } & Payload
@@ -330,29 +324,16 @@ export declare namespace Query {
   }
 
   interface OptimisticUpdate<T> {
-    key: Query.Key
+    key: Key
     newQuery: T | ((current: T | undefined) => T)
     updater: () => Promise<T>
     maxRetries?: number
     signal?: AbortSignal
   }
 
-  interface Options<D extends object, P, T> extends Config.Entry, Callback<D, P, T> {
-    key: Key
-    fetcher: Fetcher<T>
-    enabled?: boolean
-  }
-
   type Result = 'success' | 'reverted'
 
-  type Runtime = { sync: () => void; destroy: () => void }
-
-  interface RuntimeCtx<D extends object, P, T> {
-    getDataProps: DataProps.Getter<D, P>
-    options?: (ctx: DataProps.Payload<D, P, true>) => Options<D, P, T>[]
-  }
-
-  interface State<T> {
+  interface State<T = unknown> {
     value?: T
     error?: unknown
     isFetching: boolean
