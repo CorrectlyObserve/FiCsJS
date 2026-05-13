@@ -540,7 +540,7 @@ export class PersistentState<S> {
   }
 
   async deleteSnapshot(snapshotId: string): Promise<void> {
-    this.#assertAlive()
+    this.#assertWritable()
 
     snapshotId = this.#normalizeSnapshotId(snapshotId)
 
