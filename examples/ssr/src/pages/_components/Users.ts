@@ -67,6 +67,7 @@ export default fics({
     children: { button, draggable },
     data,
     crud,
+    queryCache,
     template,
     attributes: { statusLiveRegion }
   }) => {
