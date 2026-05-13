@@ -455,7 +455,7 @@ export class PersistentState<S> {
   }
 
   async saveSnapshot(snapshotId: string): Promise<number> {
-    this.#assertAlive()
+    this.#assertWritable()
 
     snapshotId = this.#normalizeSnapshotId(snapshotId)
 
