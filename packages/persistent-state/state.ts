@@ -460,8 +460,7 @@ export class PersistentState<S> {
   async saveSnapshot(snapshotId: string): Promise<number> {
     this.#assertAlive()
 
-    snapshotId = snapshotId.trim()
-    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
+    snapshotId = this.#normalizeSnapshotId(snapshotId)
 
     return this.#track({
       type: 'snapshot:save',
@@ -524,8 +523,7 @@ export class PersistentState<S> {
   async getSnapshot(snapshotId: string): Promise<S> {
     this.#assertAlive()
 
-    snapshotId = snapshotId.trim()
-    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
+    snapshotId = this.#normalizeSnapshotId(snapshotId)
 
     return this.#track({
       type: 'snapshot:get',
@@ -547,8 +545,7 @@ export class PersistentState<S> {
   async deleteSnapshot(snapshotId: string): Promise<void> {
     this.#assertAlive()
 
-    snapshotId = snapshotId.trim()
-    if (!snapshotId) throw new Error('The "snapshotId" must be a non-empty string...')
+    snapshotId = this.#normalizeSnapshotId(snapshotId)
 
     return this.#track({
       type: 'snapshot:delete',
