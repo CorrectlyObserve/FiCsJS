@@ -391,7 +391,6 @@ export class PersistentState<S> {
           state: State<S> | undefined = await this.#promisifyReq(store)
 
         if (!state) return this.#abortTransaction(store, 'The state was not found...')
-        if (state.readonly) return this.#abortTransaction(store, 'The state is readonly...')
 
         if (deepEqual(state.state, newState)) return
 
