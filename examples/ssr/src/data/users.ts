@@ -2,11 +2,5 @@ import type { User } from '@/types'
 
 export const BASE_URL = 'https://jsonplaceholder.typicode.com/users' as const
 
-const fetchUsers = async (): Promise<User[]> => {
-  const res = await fetch(API_PATH),
-    json: User[] = await res.json()
-
-  return json
-}
-
-export const users: User[] = await fetchUsers()
+export const fetchUsers = async ({ signal }: { signal: AbortSignal }): Promise<User[]> =>
+  await fetch(BASE_URL, { signal }).then(res => res.json())
