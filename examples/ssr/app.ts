@@ -2,13 +2,15 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
+import { createQueryCache } from 'ficsjs'
 import Link from './src/components/Link'
 import Users from './src/pages/_components/Users'
 import ChatButton from './src/components/ChatButton'
 import Photos from './src/pages/scroll/_components/Photos'
 import Tab from './src/pages/websocket-sse/_components/Tab'
 import Router from './src/pages/websocket-sse/_components/Router'
-import { SSEMessage, Message } from './src/types'
+import { fetchUsers } from './src/data/users'
+import { Message, SSEMessage, User } from './src/types'
 import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
 
 const app = new Hono()
@@ -49,20 +51,25 @@ const template = ({
   link = Link(),
   chatButton = ChatButton()
 
-app.get('/', c =>
-  c.html(
+app.get('/', async c => {
+  const queryCache = createQueryCache()
+
+  await queryCache.prefetch(['users'], fetchUsers)
+  const users = queryCache.getQuery<User[]>(['users']) ?? []
+
+  return c.html(
     template({
       title: 'FiCsJS with Hono',
       description: 'This is a simple example of FiCsJS with Hono in SSR.',
       content: `
         ${link.toString({ href: '/scroll', text: 'Go to the scroll page' })}
-        ${Users.toString()}
+        ${Users.toString({ users })}
         ${chatButton.toString()}
       `,
       path: '/index'
     })
   )
-)
+})
 
 app.get('/scroll', c =>
   c.html(
