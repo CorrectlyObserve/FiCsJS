@@ -125,16 +125,23 @@ export default fics({
     }
   `,
   hooks: {
-    mounted: async ({ data, crud }) => {
-      const { users } = data
-      data.users = [
-        ...users,
-        await crud<User>(API_PATH, {
+    mounted: async ({ data, queryCache, crud }) => {
+      const cachedUsers = queryCache.getQuery<User[]>(['users'])
+
+      if (cachedUsers === undefined) queryCache.setQuery(['users'], data.users)
+      else data.users = cachedUsers
+
+      if (data.users.length === 0) return
+
+      const newUser = await crud<User>(BASE_URL, {
           method: 'POST',
-          body: JSON.stringify(users[Math.floor(Math.random() * users.length)]),
+          body: JSON.stringify(data.users[Math.floor(Math.random() * data.users.length)]),
           headers
-        })
-      ]
+        }),
+        newUsers = [...data.users, newUser]
+
+      data.users = newUsers
+      queryCache.setQuery(['users'], newUsers)
     }
   }
 })
