@@ -3,7 +3,7 @@ import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Draggable from '@/pages/_components/Draggable'
 import UserContent from '@/pages/_components/UserContent'
-import { API_PATH, users } from '@/data/users'
+import { BASE_URL } from '@/data/users'
 import type { Method, User } from '@/types'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
@@ -33,7 +33,7 @@ export default fics({
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
         isSelected: (user: User) => data.userId === user.id,
         getNewItem: async (user: User) => {
-          const newUser = await crud<User>(API_PATH, {
+          const newUser = await crud<User>(BASE_URL, {
               method: 'POST',
               body: JSON.stringify(user),
               headers
@@ -87,7 +87,7 @@ export default fics({
               } else {
                 const name = prompt('Please enter a new user name.')
                 if (name) {
-                  await crud<User>(`${API_PATH}/${userId}`, {
+                  await crud<User>(`${BASE_URL}/${userId}`, {
                     ...options,
                     body: JSON.stringify({ id: userId, name })
                   })
