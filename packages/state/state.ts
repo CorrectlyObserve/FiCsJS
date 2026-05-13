@@ -9,7 +9,7 @@ export class State<S> {
   #state: S
   #isLossyWarned: boolean = false
   #isUpdateLocked: boolean = false
-  #isDestroyed: boolean = false
+  #isDeleted: boolean = false
 
   constructor(state: S, options?: Options.Global<S>) {
     this.#state = state
@@ -162,7 +162,7 @@ export class State<S> {
   }
 
   #assertAlive(): void {
-    if (this.#isDestroyed) throw new Error('This state is destroyed...')
+    if (this.#isDeleted) throw new Error('This state is destroyed...')
   }
 
   #assertWritable(): void {
@@ -235,9 +235,9 @@ export class State<S> {
   }
 
   destroy(): void {
-    if (this.#isDestroyed) return
+    if (this.#isDeleted) return
 
-    this.#isDestroyed = true
+    this.#isDeleted = true
     this.#subscribers.clear()
     this.#reduceKeyUsageCount(this.#options?.sessionStorage)
 
