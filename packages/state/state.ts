@@ -234,7 +234,7 @@ export class State<S> {
     else this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
   }
 
-  destroy(): void {
+  delete(): void {
     if (this.#isDeleted) return
 
     this.#isDeleted = true
