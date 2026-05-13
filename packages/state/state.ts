@@ -235,7 +235,7 @@ export class State<S> {
   }
 
   delete(): void {
-    if (this.#isDeleted) return
+    this.#assertAlive()
 
     this.#isDeleted = true
     this.#subscribers.clear()
