@@ -3,7 +3,7 @@ import { zoom } from 'ficsjs/animation'
 import { queries } from 'ficsjs/router'
 import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import { BASE_URL, getPhotos, UNIT_LENGTH } from '@/data/photos'
 import AxisButton from '@/pages/scroll/_components/AxisButton'
 import Skeleton from '@/pages/scroll/_components/Skeleton'
 import type { Photo } from '@/types'
@@ -83,7 +83,7 @@ export default fics({
               ${skeleton}
               <img
                 class="clickable mx-auto"
-                src="${API_PATH}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
+                src="${BASE_URL}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
                 alt="Image created by ${author}"
                 key="${id}"
                 data-index="${index}"
