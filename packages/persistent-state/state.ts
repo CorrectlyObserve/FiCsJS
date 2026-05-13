@@ -32,7 +32,7 @@ export class PersistentState<S> {
   #db!: IDBDatabase
   #initPromise?: Promise<void>
   #channel?: BroadcastChannel
-  #isDestroyed = false
+  #isDeleted = false
 
   constructor({ stateId, state, options }: Ctx<S>) {
     browserError()
@@ -319,7 +319,7 @@ export class PersistentState<S> {
             new AggregateError(errors)
           )
       } else if (event.data.type === 'delete') {
-        this.#isDestroyed = true
+        this.#isDeleted = true
 
         this.#subscribers.clear()
         this.#metricSubscribers.clear()
@@ -445,7 +445,7 @@ export class PersistentState<S> {
         }
 
         await this.#awaitTransaction(stateStore)
-        this.#isDestroyed = true
+        this.#isDeleted = true
 
         this.#sendSyncPayload({ type: 'delete', timestamp: Date.now() })
 
