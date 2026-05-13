@@ -53,7 +53,7 @@ export class PersistentState<S> {
   }
 
   #assertAlive(): void {
-    if (this.#isDestroyed) throw new Error('This persistent state is destroyed...')
+    if (this.#isDeleted) throw new Error('This persistent state has been already deleted...')
   }
 
   #getObjectStore(options?: { isSnapshot?: boolean; isReadonly?: boolean }): IDBObjectStore {
