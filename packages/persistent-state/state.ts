@@ -377,7 +377,10 @@ export class PersistentState<S> {
   }
 
   async set(newState: S): Promise<void> {
-    this.#assertAlive()
+    this.#assertWritable()
+
+    if (this.#isUpdateLocked)
+      throw new Error('The set method cannot be called during subscriber notification...')
 
     return this.#track({
       type: 'set',
