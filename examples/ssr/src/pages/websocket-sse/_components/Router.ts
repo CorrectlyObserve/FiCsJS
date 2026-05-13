@@ -1,7 +1,7 @@
 import { ficsRouter } from 'ficsjs/router'
 import Chat from '@/pages/websocket-sse/_components/Chat'
 import Stream from '@/pages/websocket-sse/_components/Stream'
-import { $userName } from '@/store'
+import { $userName } from '@/stores'
 import type { Message } from '@/types'
 import { API_PATHS, CHAT_PAGE, getTimestamp } from '@/utils'
 
