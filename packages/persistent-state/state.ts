@@ -31,6 +31,7 @@ export class PersistentState<S> {
   #db!: IDBDatabase
   #initPromise?: Promise<void>
   #channel?: BroadcastChannel
+  #isUpdateLocked = false
   #isDeleted = false
 
   constructor({ stateId, state, options }: Ctx<S>) {
@@ -291,19 +292,25 @@ export class PersistentState<S> {
   #callSubscribers(state: S): Error[] {
     const errors: Error[] = []
 
-    for (const [key, subscriber] of Array.from(this.#subscribers))
-      try {
-        subscriber(state)
-      } catch (error) {
-        const cause: Error = error instanceof Error ? error : new Error(String(error))
+    this.#isUpdateLocked = true
 
-        errors.push(
-          new Error(
-            `The subscriber "${key}" of the state "${this.#stateId}" failed during the notification...`,
-            { cause }
+    try {
+      for (const [key, subscriber] of Array.from(this.#subscribers))
+        try {
+          subscriber(state)
+        } catch (error) {
+          const cause: Error = error instanceof Error ? error : new Error(String(error))
+
+          errors.push(
+            new Error(
+              `The subscriber "${key}" of the persistent state "${this.#stateId}" failed during the notification...`,
+              { cause }
+            )
           )
-        )
-      }
+        }
+    } finally {
+      this.#isUpdateLocked = false
+    }
 
     return errors
   }
