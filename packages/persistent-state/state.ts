@@ -4,8 +4,7 @@ import {
   getDelayMs,
   isBlankString,
   MAX_RETRIES,
-  numberError,
-  uid
+  numberError
 } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 import { constants } from './constants'
@@ -37,8 +36,11 @@ export class PersistentState<S> {
   constructor({ stateId, state, options }: Ctx<S>) {
     browserError()
 
-    this.#stateId = `fics-persistent-state-${generator.next().value}`
+    if (isBlankString(stateId)) throw new Error('The "stateId" key must be a non-empty string...')
+
+    this.#stateId = stateId.trim()
     this.#state = state
+
     if (options) {
       const { readonly, intervalMs, maxRetries, forcedUpgrade }: Options = options
 
