@@ -28,7 +28,7 @@ export default fics({
     },
     {
       descendant: ({ children: { draggable } }) => draggable,
-      values: ({ data, children: { userContent }, crud }) => ({
+      values: ({ data, children: { userContent }, crud, queryCache }) => ({
         array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
         isSelected: (user: User) => data.userId === user.id,
@@ -53,6 +53,7 @@ export default fics({
           }
 
           data.users = newArray
+          queryCache.setQuery(['users'], newArray)
         },
         selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
       })
@@ -81,9 +82,14 @@ export default fics({
               const options = { method, ...headers }
 
               if (method === 'DELETE') {
-                await crud<User>(`${API_PATH}/${userId}`, options)
-                data.users = users.filter(({ id }) => id !== userId)
+                await crud<User>(`${BASE_URL}/${userId}`, options)
+
+                const newUsers = data.users.filter(({ id }) => id !== userId)
+
+                data.users = newUsers
                 data.status = `The user with ID ${userId} was deleted.`
+
+                queryCache.setQuery(['users'], newUsers)
               } else {
                 const name = prompt('Please enter a new user name.')
                 if (name) {
@@ -92,8 +98,14 @@ export default fics({
                     body: JSON.stringify({ id: userId, name })
                   })
 
-                  data.users = users.map(user => (user.id === userId ? { ...user, name } : user))
+                  const newUsers = data.users.map(user =>
+                    user.id === userId ? { ...user, name } : user
+                  )
+
+                  data.users = newUsers
                   data.status = `The user with ID ${userId} was updated.`
+
+                  queryCache.setQuery(['users'], newUsers)
                 }
               }
 
