@@ -42,7 +42,7 @@ export class PersistentState<S> {
     this.#state = state
 
     if (options) {
-      const { readonly, intervalMs, maxRetries, forcedUpgrade }: Options = options
+      const { readonly, intervalMs, maxRetries, forcedUpgrade }: Ctx<S>['options'] = options
 
       if (readonly) this.#readonly = readonly
 
