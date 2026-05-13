@@ -62,13 +62,11 @@ export default fics({
     show,
     apiStatuses: { isLoading },
     attributes: { statusLiveRegion, boolean },
-    isBrowser,
-    isDeferred,
     scroll
   }) => {
     const skeletons = [...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)
 
-    if (!isBrowser || !isDeferred) return template`<div class="flex-x">${skeletons}</div>`
+    if (photos.length === 0) return template`<div class="flex-x">${skeletons}</div>`
 
     return template`
       ${axisButton}
