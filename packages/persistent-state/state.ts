@@ -358,9 +358,8 @@ export class PersistentState<S> {
   unsubscribe(key?: string): void {
     this.#assertAlive()
 
-    if (key) this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
-    else if (this.#subscribers.size > 0) this.#subscribers.clear()
-    else throw new Error(`The state "${this.#stateId}" does not have subscribers...`)
+    if (key === undefined) this.#subscribers.clear()
+    else this.#subscribers.delete(this.#normalizeKey(key, 'unsubscribe'))
 
     if (this.#subscribers.size === 0) {
       this.#channel?.close()
