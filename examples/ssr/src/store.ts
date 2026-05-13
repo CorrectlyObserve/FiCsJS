@@ -1,3 +1,3 @@
-import createState from 'ficsjs/state'
+import { createState } from 'ficsjs/state'
 
-export const $userName = createState<string>('')
+export const $userName = createState<string>('', { sessionStorage: 'userName' })
