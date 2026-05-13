@@ -259,6 +259,15 @@ export class PersistentState<S> {
     return this.#initPromise
   }
 
+  #assertAlive(): void {
+    if (this.#isDeleted) throw new Error('This persistent state has been already deleted...')
+  }
+
+  #assertWritable(): void {
+    this.#assertAlive()
+    if (this.#readonly) throw new Error(`The state "${this.#stateId}" is readonly...`)
+  }
+
   #abortTransaction(store: IDBObjectStore, error: string): never {
     if (store.transaction?.mode === 'readwrite') store.transaction.abort()
     throw new Error(error)
