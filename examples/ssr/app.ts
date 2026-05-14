@@ -9,7 +9,7 @@ import ChatButton from './src/components/ChatButton'
 import Photos from './src/pages/scroll/_components/Photos'
 import Tab from './src/pages/websocket-sse/_components/Tab'
 import Router from './src/pages/websocket-sse/_components/Router'
-import { fetchUsers } from './src/data/users'
+import { fetchUsers, USERS_KEY } from './src/data/users'
 import { Message, SSEMessage, User } from './src/types'
 import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
 
@@ -54,8 +54,8 @@ const template = ({
 app.get('/', async c => {
   const queryCache = createQueryCache()
 
-  await queryCache.prefetch(['users'], fetchUsers)
-  const users = queryCache.getQuery<User[]>(['users']) ?? []
+  await queryCache.prefetch(USERS_KEY, fetchUsers)
+  const users = queryCache.getQuery<User[]>(USERS_KEY) ?? []
 
   return c.html(
     template({
