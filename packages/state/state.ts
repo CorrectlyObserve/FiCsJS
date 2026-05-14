@@ -91,7 +91,7 @@ export class State<S> {
             this.#setToSessionStorage(this.#state)
           }
       } catch (error) {
-        this.#reduceKeyUsageCount(storageKey)
+        this.#decrementKeyUsageCount(storageKey)
         throw error
       }
     }
@@ -147,7 +147,7 @@ export class State<S> {
     }
   }
 
-  #reduceKeyUsageCount(storageKey?: string): number {
+  #decrementKeyUsageCount(storageKey?: string): number {
     if (!storageKey) return 0
 
     const usageCount: number = State.#keyUsageCounts.get(storageKey) ?? 0,
@@ -239,7 +239,7 @@ export class State<S> {
 
     this.#isDeleted = true
     this.#subscribers.clear()
-    this.#reduceKeyUsageCount(this.#options?.sessionStorage)
+    this.#decrementKeyUsageCount(this.#options?.sessionStorage)
 
     /** @remarks Detaches the state reference to prevent memory leaks. */
     this.#state = undefined as unknown as S
