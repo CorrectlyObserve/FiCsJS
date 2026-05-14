@@ -3,7 +3,7 @@ import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Draggable from '@/pages/_components/Draggable'
 import UserContent from '@/pages/_components/UserContent'
-import { BASE_URL } from '@/data/users'
+import { BASE_URL, USERS_KEY } from '@/data/users'
 import type { Method, User } from '@/types'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
