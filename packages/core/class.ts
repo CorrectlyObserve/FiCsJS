@@ -96,6 +96,7 @@ export class FiCsElement<D extends object, P extends object> {
   #webSocketProp?: WebSocketNS.Prop
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
+  #abortController: AbortController = new AbortController()
   #hasDescribed: boolean = false
 
   constructor({
@@ -203,7 +204,8 @@ export class FiCsElement<D extends object, P extends object> {
                 ...this.#getDataProps(true),
                 ref: (selector: string) => this.#queryDeeply(selector),
                 debounce: this.#debounce.bind(this),
-                throttle: this.#throttle.bind(this)
+                throttle: this.#throttle.bind(this),
+                signal: this.#abortController.signal
               })
               this.#emitMetric({
                 key: 'updated',
@@ -1432,7 +1434,8 @@ export class FiCsElement<D extends object, P extends object> {
         ...this.#getDataProps(true),
         ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
         debounce: this.#debounce.bind(this),
-        throttle: this.#throttle.bind(this)
+        throttle: this.#throttle.bind(this),
+        signal: this.#abortController.signal
       },
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
@@ -1581,6 +1584,8 @@ export class FiCsElement<D extends object, P extends object> {
         }
 
         async connectedCallback(): Promise<void> {
+          if (that.#abortController.signal.aborted) that.#abortController = new AbortController()
+
           if (this.#isRendered) this.#activateRuntime()
           else {
             const mount = (): void => {
@@ -1610,6 +1615,8 @@ export class FiCsElement<D extends object, P extends object> {
             clearTimeout(that.#poll)
             that.#poll = undefined
           }
+
+          if (!that.#abortController.signal.aborted) that.#abortController.abort()
 
           this.#deactivateRuntime()
 
