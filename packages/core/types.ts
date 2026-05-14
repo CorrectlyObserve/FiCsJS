@@ -162,6 +162,7 @@ export declare namespace Hook {
     ref: (selector: string) => Element | null
     debounce: RateLimitFn
     throttle: RateLimitFn
+    signal: AbortSignal
   }
 
   type Key<D extends object, P> = keyof Lifecycle<D, P>
