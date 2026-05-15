@@ -371,6 +371,28 @@ export class QueryCache {
     if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
+  set<T = unknown>(key: Query.Key, newQuery: T | ((current: T | undefined) => T)): void {
+    if (this.#isDestroyed) return
+
+    const hashed: string = hash(key),
+      entry: Query.Entry = this.#entries.get(hashed) ?? this.ensure({ key })
+
+    this.#dispatchState(entry, {
+      value:
+        newQuery instanceof Function
+          ? (newQuery as (current: T | undefined) => T)(entry.state.value as T | undefined)
+          : newQuery,
+      updatedAt: Date.now()
+    })
+    this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'manual' })
+
+    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
+  }
+
+  get<T = unknown>(key: Query.Key): T | undefined {
+    return this.#entries.get(hash(key))?.state.value as T | undefined
+  }
+
   subscribe({ hashed, listener }: { hashed: string; listener: Query.Listener }): void {
     if (this.#isDestroyed) return
 
