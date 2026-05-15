@@ -58,6 +58,19 @@ export class PersistentState<S> {
       this.#options.intervalMs = intervalMs
       if (maxRetries !== undefined) this.#options.maxRetries = maxRetries
     }
+
+    const usageCount: number = (PersistentState.#stateIdUsageCounts.get(this.#stateId) ?? 0) + 1
+    PersistentState.#stateIdUsageCounts.set(this.#stateId, usageCount)
+
+    if (usageCount > 1) {
+      const errorMessage: string = `The stateId "${this.#stateId}" is used by multiple PersistentState instances in the same tab...`
+
+      if (this.#options.strictMode === true) throw new Error(errorMessage)
+      else if (!PersistentState.#duplicatedStateIds.has(this.#stateId)) {
+        PersistentState.#duplicatedStateIds.add(this.#stateId)
+        console.warn(`${errorMessage} This can lead to unintended side effects.`)
+      }
+    }
   }
 
   #decrementStateIdUsageCount(): void {
