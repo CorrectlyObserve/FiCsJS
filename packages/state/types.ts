@@ -5,8 +5,8 @@ export interface Options<S> {
   readonly?: boolean
   strictMode?: boolean
   onError?: (error: unknown, operation: Operation) => void
-  session?: {
-    key: string
+  sessionStorage?: {
+    key?: string
     validate?: (value: unknown) => value is S
   }
 }
