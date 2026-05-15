@@ -559,6 +559,26 @@ export class QueryCache {
     }
   }
 
+  expire(filter?: Query.Filter): void {
+    for (const entry of this.#match(filter as Query.Filter | undefined)) {
+      this.#dispatchState(entry, { updatedAt: 0 })
+
+      if (this.#isRefetchable(entry)) void this.fetch(entry.key)
+    }
+  }
+
+  abort(filter?: Query.Filter): void {
+    for (const entry of this.#match(filter as Query.Filter | undefined)) {
+      if (!entry.abort) continue
+
+      entry.abort.abort()
+      entry.fetchId++
+      entry.inflight = null
+
+      if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
+    }
+  }
+
   destroy(): void {
     if (this.#isDestroyed) return
 
