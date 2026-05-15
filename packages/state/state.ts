@@ -183,11 +183,6 @@ export class State<S> {
     return key
   }
 
-  get(): S {
-    this.#assertAlive()
-    return this.#state
-  }
-
   set(newState: S): void {
     this.#assertWritable()
 
@@ -217,6 +212,11 @@ export class State<S> {
     if (this.#state === newState) this.#setToSessionStorage(newState)
 
     if (errors.length > 0) throw new AggregateError(errors)
+  }
+
+  get(): S {
+    this.#assertAlive()
+    return this.#state
   }
 
   subscribe(key: string, callback: (state: S) => void): void {
