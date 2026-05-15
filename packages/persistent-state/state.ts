@@ -344,16 +344,16 @@ export class PersistentState<S> {
 
     const channel: BroadcastChannel = new BroadcastChannel(this.#stateId)
 
-    channel.onmessage = (event: MessageEvent<SyncPayload<S>>): void => {
-      if (event.data.type === 'set') {
-        const errors: Error[] = this.#callSubscribers(event.data.state)
+    channel.onmessage = ({ data }: MessageEvent<SyncPayload<S>>): void => {
+      if (data.type === 'set') {
+        const errors: Error[] = this.#callSubscribers(data.state)
 
         if (errors.length > 0)
           console.error(
             `The cross-tab subscriber notification failed for the persistent state "${this.#stateId}"...`,
             new AggregateError(errors)
           )
-      } else if (event.data.type === 'delete') {
+      } else if (data.type === 'delete') {
         this.#decrementStateIdUsageCount()
         this.#isDeleted = true
 
