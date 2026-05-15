@@ -357,23 +357,6 @@ export class PersistentState<S> {
     this.#channel = channel
   }
 
-  async get(): Promise<S> {
-    this.#assertAlive()
-
-    return this.#track({
-      type: 'get',
-      task: async () => {
-        await this.#init()
-
-        const store: IDBObjectStore = this.#getObjectStore({ isReadonly: true }),
-          state: State<S> | undefined = await this.#promisifyReq(store)
-
-        if (!state) throw new Error('The state was not found...')
-        return state.state
-      }
-    })
-  }
-
   async set(newState: S): Promise<void> {
     this.#assertWritable()
 
@@ -399,6 +382,23 @@ export class PersistentState<S> {
 
         const errors: Error[] = this.#callSubscribers(newState)
         if (errors.length > 0) throw new AggregateError(errors)
+      }
+    })
+  }
+
+  async get(): Promise<S> {
+    this.#assertAlive()
+
+    return this.#track({
+      type: 'get',
+      task: async () => {
+        await this.#init()
+
+        const store: IDBObjectStore = this.#getObjectStore({ isReadonly: true }),
+          state: State<S> | undefined = await this.#promisifyReq(store)
+
+        if (!state) throw new Error('The state was not found...')
+        return state.state
       }
     })
   }
