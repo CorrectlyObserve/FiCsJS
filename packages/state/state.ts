@@ -3,7 +3,7 @@ import type { Options } from './types'
 
 export class State<S> {
   static #keyUsageCounts: Map<string, number> = new Map()
-  static #duplicateKeys: Set<string> = new Set()
+  static #duplicatedKeys: Set<string> = new Set()
   readonly #options: Options.Local = { readonly: false, version: 1, strictMode: true }
   readonly #subscribers: Map<string, (state: S) => void> = new Map()
   #state: S
@@ -45,8 +45,8 @@ export class State<S> {
           const errorMessage: string = `${subject} is used by multiple State instances...`
 
           if (this.#options.strictMode === true) throw new Error(errorMessage)
-          else if (!State.#duplicateKeys.has(storageKey)) {
-            State.#duplicateKeys.add(storageKey)
+          else if (!State.#duplicatedKeys.has(storageKey)) {
+            State.#duplicatedKeys.add(storageKey)
             console.warn(`${errorMessage} This can lead to unintended side effects.`)
           }
         }
