@@ -38,7 +38,10 @@ export default fics({
               body: JSON.stringify(user),
               headers
             }),
-            maxId = data.users.reduce((max, { id }) => (id > max ? id : max), 0)
+            maxId = Math.max(
+              0,
+              ...(queryCache.get<User[]>(USERS_KEY) ?? data.users).map(({ id }) => id)
+            )
 
           return { ...newUser, id: maxId + 1 }
         },
