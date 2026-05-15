@@ -52,8 +52,7 @@ export default fics({
               : 'A user was moved.'
           }
 
-          data.users = newArray
-          queryCache.setQuery(['users'], newArray)
+          queryCache.set<User[]>(USERS_KEY, newArray)
         },
         selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
       })
@@ -88,7 +87,7 @@ export default fics({
                   newQuery: current => (current ?? []).filter(({ id }) => id !== userId),
                   updater: async () => {
                     await crud<User>(`${BASE_URL}/${userId}`, options)
-                    return queryCache.getQuery<User[]>(USERS_KEY) ?? []
+                    return queryCache.get<User[]>(USERS_KEY) ?? []
                   }
                 })
 
@@ -106,7 +105,8 @@ export default fics({
                         ...options,
                         body: JSON.stringify({ id: userId, name })
                       })
-                      return queryCache.getQuery<User[]>(USERS_KEY) ?? []
+
+                      return queryCache.get<User[]>(USERS_KEY) ?? []
                     }
                   })
 
