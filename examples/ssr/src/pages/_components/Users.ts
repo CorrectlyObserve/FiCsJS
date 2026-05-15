@@ -132,23 +132,29 @@ export default fics({
     }
   `,
   hooks: {
-    mounted: async ({ data, queryCache, crud }) => {
-      const cachedUsers = queryCache.getQuery<User[]>(['users'])
-
-      if (cachedUsers === undefined) queryCache.setQuery(['users'], data.users)
-      else data.users = cachedUsers
-
+    created: ({ data, queryCache, signal }) => {
+      queryCache.bindData({ key: USERS_KEY, data, dataKey: 'users', signal })
+    },
+    mounted: async ({ data, queryCache, crud, signal }) => {
       if (data.users.length === 0) return
 
-      const newUser = await crud<User>(BASE_URL, {
-          method: 'POST',
-          body: JSON.stringify(data.users[Math.floor(Math.random() * data.users.length)]),
-          headers
-        }),
-        newUsers = [...data.users, newUser]
+      const user = data.users[Math.floor(Math.random() * data.users.length)],
+        maxId = Math.max(0, ...data.users.map(({ id }) => id))
 
-      data.users = newUsers
-      queryCache.setQuery(['users'], newUsers)
+      await queryCache.optimisticUpdate<User[]>({
+        key: USERS_KEY,
+        newQuery: current => [...(current ?? []), { ...user, id: maxId + 1 }],
+        updater: async () => {
+          await crud<User>(BASE_URL, {
+            method: 'POST',
+            body: JSON.stringify(user),
+            headers
+          })
+
+          return queryCache.get<User[]>(USERS_KEY) ?? []
+        },
+        signal
+      })
     }
   }
 })
