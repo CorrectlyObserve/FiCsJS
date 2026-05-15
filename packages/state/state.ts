@@ -151,14 +151,12 @@ export class State<S> {
     if (!storageKey) return 0
 
     const usageCount: number = State.#keyUsageCounts.get(storageKey) ?? 0,
-      reducedUsageCount: number = Math.max(0, usageCount - 1)
+      decrementedUsageCount: number = Math.max(0, usageCount - 1)
 
-    if (reducedUsageCount === 0) State.#keyUsageCounts.delete(storageKey)
-    else State.#keyUsageCounts.set(storageKey, reducedUsageCount)
+    if (decrementedUsageCount === 0) State.#keyUsageCounts.delete(storageKey)
+    else State.#keyUsageCounts.set(storageKey, decrementedUsageCount)
 
-    if (reducedUsageCount <= 1) State.#duplicateKeys.delete(storageKey)
-
-    return reducedUsageCount
+    if (decrementedUsageCount <= 1) State.#duplicatedKeys.delete(storageKey)
   }
 
   #assertAlive(): void {
