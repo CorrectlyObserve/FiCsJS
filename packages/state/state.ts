@@ -147,8 +147,8 @@ export class State<S> {
     }
   }
 
-  #decrementKeyUsageCount(storageKey?: string): number {
-    if (!storageKey) return 0
+  #decrementKeyUsageCount(storageKey?: string): void {
+    if (!storageKey) return
 
     const usageCount: number = State.#keyUsageCounts.get(storageKey) ?? 0,
       decrementedUsageCount: number = Math.max(0, usageCount - 1)
