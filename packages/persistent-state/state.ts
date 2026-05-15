@@ -8,7 +8,7 @@ import {
 } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
 import { constants } from './constants'
-import type { Ctx, Metric, QueryOptions, Snapshot, State, SyncPayload } from './types'
+import type { Ctx, Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 const {
   COMPOSITE_ID_INDEX,
