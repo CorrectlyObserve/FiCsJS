@@ -354,6 +354,7 @@ export class PersistentState<S> {
             new AggregateError(errors)
           )
       } else if (event.data.type === 'delete') {
+        this.#decrementStateIdUsageCount()
         this.#isDeleted = true
 
         this.#subscribers.clear()
@@ -479,6 +480,7 @@ export class PersistentState<S> {
         }
 
         await this.#awaitTransaction(stateStore)
+        this.#decrementStateIdUsageCount()
         this.#isDeleted = true
 
         this.#sendSyncPayload({ type: 'delete', timestamp: Date.now() })
