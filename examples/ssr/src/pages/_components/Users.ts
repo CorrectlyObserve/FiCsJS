@@ -83,30 +83,33 @@ export default fics({
               const options = { method, ...headers }
 
               if (method === 'DELETE') {
-                await crud<User>(`${BASE_URL}/${userId}`, options)
+                await queryCache.optimisticUpdate<User[]>({
+                  key: USERS_KEY,
+                  newQuery: current => (current ?? []).filter(({ id }) => id !== userId),
+                  updater: async () => {
+                    await crud<User>(`${BASE_URL}/${userId}`, options)
+                    return queryCache.getQuery<User[]>(USERS_KEY) ?? []
+                  }
+                })
 
-                const newUsers = data.users.filter(({ id }) => id !== userId)
-
-                data.users = newUsers
                 data.status = `The user with ID ${userId} was deleted.`
-
-                queryCache.setQuery(['users'], newUsers)
               } else {
                 const name = prompt('Please enter a new user name.')
                 if (name) {
-                  await crud<User>(`${BASE_URL}/${userId}`, {
-                    ...options,
-                    body: JSON.stringify({ id: userId, name })
+                  await queryCache.optimisticUpdate<User[]>({
+                    key: USERS_KEY,
+                    newQuery: current =>
+                      (current ?? []).map(user => (user.id === userId ? { ...user, name } : user)),
+                    updater: async () => {
+                      await crud<User>(`${BASE_URL}/${userId}`, {
+                        ...options,
+                        body: JSON.stringify({ id: userId, name })
+                      })
+                      return queryCache.getQuery<User[]>(USERS_KEY) ?? []
+                    }
                   })
 
-                  const newUsers = data.users.map(user =>
-                    user.id === userId ? { ...user, name } : user
-                  )
-
-                  data.users = newUsers
                   data.status = `The user with ID ${userId} was updated.`
-
-                  queryCache.setQuery(['users'], newUsers)
                 }
               }
 
