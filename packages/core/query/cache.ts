@@ -561,12 +561,13 @@ export class QueryCache {
   get api(): Query.Api {
     if (!this.#api)
       this.#api = {
-        setQuery: this.setQuery.bind(this),
-        getQuery: this.getQuery.bind(this),
-        expire: this.expire.bind(this),
-        abort: this.abort.bind(this),
         prefetch: this.prefetch.bind(this),
-        optimisticUpdate: this.optimisticUpdate.bind(this)
+        set: this.set.bind(this),
+        get: this.get.bind(this),
+        bindData: this.bindData.bind(this),
+        optimisticUpdate: this.optimisticUpdate.bind(this),
+        expire: this.expire.bind(this),
+        abort: this.abort.bind(this)
       }
 
     return this.#api
