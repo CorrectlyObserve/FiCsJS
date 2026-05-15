@@ -119,6 +119,11 @@ export class PersistentState<S> {
       .objectStore(storeName)
   }
 
+  #normalizeSnapshotId(snapshotId: string): string {
+    if (isBlankString(snapshotId)) throw new Error('The "snapshotId" must be a non-empty string...')
+    return snapshotId.trim()
+  }
+
   #promisifyReq<T>(store: IDBObjectStore, options?: QueryOptions): Promise<T>
   #promisifyReq<T>(store: IDBObjectStore, options: { isAllSnapshots: true }): Promise<Snapshot<S>[]>
   #promisifyReq(req: IDBRequest<IDBValidKey>): Promise<IDBValidKey>
