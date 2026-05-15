@@ -61,12 +61,14 @@ export class PersistentState<S> {
     if (this.#isDeleted) throw new Error('This persistent state has been already deleted...')
   }
 
-  #getObjectStore(options?: { isSnapshot?: boolean; isReadonly?: boolean }): IDBObjectStore {
-    const storeName: string = options?.isSnapshot ? SNAPSHOT_STORE : STATE_STORE
+  #decrementStateIdUsageCount(): void {
+    const usageCount: number = PersistentState.#stateIdUsageCounts.get(this.#stateId) ?? 0,
+      decrementedUsageCount: number = Math.max(0, usageCount - 1)
 
-    return this.#db
-      .transaction(storeName, options?.isReadonly ? 'readonly' : 'readwrite')
-      .objectStore(storeName)
+    if (decrementedUsageCount === 0) PersistentState.#stateIdUsageCounts.delete(this.#stateId)
+    else PersistentState.#stateIdUsageCounts.set(this.#stateId, decrementedUsageCount)
+
+    if (decrementedUsageCount <= 1) PersistentState.#duplicatedStateIds.delete(this.#stateId)
   }
 
   #emitMetric(metric: Metric): void {
