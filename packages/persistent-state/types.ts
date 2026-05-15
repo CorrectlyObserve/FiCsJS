@@ -27,22 +27,12 @@ export type Metric =
       error?: unknown
     }
 
-export declare namespace Options {
-  interface Global {
-    readonly?: boolean
-    strictMode?: boolean
-    forcedUpgrade?: boolean
-    intervalMs?: number
-    maxRetries?: number
-  }
-
-  interface Local {
-    readonly: boolean
-    strictMode: boolean
-    forcedUpgrade: boolean
-    maxRetries: number
-    intervalMs?: number
-  }
+export interface Options {
+  readonly?: boolean
+  strictMode?: boolean
+  forcedUpgrade?: boolean
+  intervalMs?: number
+  maxRetries?: number
 }
 
 export interface QueryOptions {
