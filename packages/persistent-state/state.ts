@@ -20,6 +20,8 @@ const {
 } = constants
 
 export class PersistentState<S> {
+  static #stateIdUsageCounts: Map<string, number> = new Map()
+  static #duplicatedStateIds: Set<string> = new Set()
   readonly #stateId: string
   readonly #state: S
   readonly #readonly: boolean = false
