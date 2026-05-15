@@ -1,12 +1,7 @@
 export interface Ctx<S> {
   stateId: string
   state: S
-  options?: {
-    readonly?: boolean
-    intervalMs?: number
-    maxRetries?: number
-    forcedUpgrade?: boolean
-  }
+  options?: Options
 }
 
 export type Metric =
