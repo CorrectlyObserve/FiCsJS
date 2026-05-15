@@ -95,6 +95,7 @@ export default fics({
                 data.status = `The user with ID ${userId} was deleted.`
               } else {
                 const name = prompt('Please enter a new user name.')
+
                 if (name) {
                   await queryCache.optimisticUpdate<User[]>({
                     key: USERS_KEY,
