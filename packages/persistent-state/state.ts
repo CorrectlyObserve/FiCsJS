@@ -24,10 +24,12 @@ export class PersistentState<S> {
   static #duplicatedStateIds: Set<string> = new Set()
   readonly #stateId: string
   readonly #state: S
-  readonly #readonly: boolean = false
-  readonly #intervalMs?: number
-  readonly #maxRetries?: number
-  readonly #isForcedUpgrade: boolean = false
+  readonly #options: Omit<Options, 'maxRetries'> & { maxRetries: number } = {
+    readonly: false,
+    strictMode: true,
+    forcedUpgrade: false,
+    maxRetries: MAX_RETRIES
+  }
   readonly #subscribers: Map<string, (state: S) => void> = new Map()
   readonly #metricSubscribers: Set<(metric: Metric) => void> = new Set()
   #db!: IDBDatabase
@@ -45,20 +47,17 @@ export class PersistentState<S> {
     this.#state = state
 
     if (options) {
-      const { readonly, intervalMs, maxRetries, forcedUpgrade }: Ctx<S>['options'] = options
+      const { readonly, strictMode, forcedUpgrade, intervalMs, maxRetries }: Ctx<S>['options'] =
+        options
 
-      if (readonly) this.#readonly = readonly
+      if (readonly) this.#options.readonly = readonly
+      if (strictMode === false) this.#options.strictMode = false
+      if (forcedUpgrade) this.#options.forcedUpgrade = forcedUpgrade
 
       numberError({ intervalMs, maxRetries }, 'non-negative-int')
-      this.#intervalMs = intervalMs
-      this.#maxRetries = maxRetries
-
-      if (forcedUpgrade) this.#isForcedUpgrade = forcedUpgrade
+      this.#options.intervalMs = intervalMs
+      if (maxRetries !== undefined) this.#options.maxRetries = maxRetries
     }
-  }
-
-  #assertAlive(): void {
-    if (this.#isDeleted) throw new Error('This persistent state has been already deleted...')
   }
 
   #decrementStateIdUsageCount(): void {
@@ -218,7 +217,7 @@ export class PersistentState<S> {
 
           db.onversionchange = () => {
             db.close()
-            if (this.#isForcedUpgrade) window.location.reload()
+            if (this.#options.forcedUpgrade) window.location.reload()
           }
 
           this.#db = db
@@ -253,7 +252,7 @@ export class PersistentState<S> {
             error
           })
 
-          if (attempt > (this.#maxRetries ?? MAX_RETRIES)) {
+          if (attempt > this.#options.maxRetries) {
             this.#initPromise = undefined
             throw new Error(`PersistentState initialization failed after ${attempt} retries.`, {
               cause: error
@@ -261,7 +260,10 @@ export class PersistentState<S> {
           }
 
           await new Promise(resolve =>
-            setTimeout(resolve, getDelayMs({ error, attempt, intervalMs: this.#intervalMs }))
+            setTimeout(
+              resolve,
+              getDelayMs({ error, attempt, intervalMs: this.#options.intervalMs })
+            )
           )
           this.#initPromise = undefined
         }
@@ -277,7 +279,7 @@ export class PersistentState<S> {
 
   #assertWritable(): void {
     this.#assertAlive()
-    if (this.#readonly) throw new Error(`The state "${this.#stateId}" is readonly...`)
+    if (this.#options.readonly) throw new Error(`The state "${this.#stateId}" is readonly...`)
   }
 
   #abortTransaction(store: IDBObjectStore, error: string): never {
