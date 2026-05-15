@@ -3,7 +3,7 @@ import { createState } from 'ficsjs/state'
 import { Lang, Task } from '@/types'
 import { getTimestamp } from '@/utils/others'
 
-export const $lang = createState<Lang>('en', { sessionStorage: 'lang' })
+export const $lang = createState<Lang>('en', { sessionStorage: { key: 'lang' } })
 export const $tasks = createPersistentState<Task[]>({ stateId: 'tasks', state: [] })
 
 let setQueue: Promise<Task[]> = Promise.resolve([])
