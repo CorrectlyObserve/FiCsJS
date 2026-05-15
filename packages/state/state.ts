@@ -4,101 +4,109 @@ import type { Options } from './types'
 export class State<S> {
   static #keyUsageCounts: Map<string, number> = new Map()
   static #duplicatedKeys: Set<string> = new Set()
-  readonly #options: Options.Local = { readonly: false, version: 1, strictMode: true }
+  readonly #options: Omit<Options<S>, 'validate'> = {
+    version: 1,
+    readonly: false,
+    strictMode: true
+  }
   readonly #subscribers: Map<string, (state: S) => void> = new Map()
   #state: S
   #isLossyWarned: boolean = false
   #isUpdateLocked: boolean = false
   #isDeleted: boolean = false
 
-  constructor(state: S, options?: Options.Global<S>) {
+  constructor(state: S, options?: Options<S>) {
     this.#state = state
 
-    if (options?.readonly === true) this.#options.readonly = true
+    if (options) {
+      const { version, readonly, strictMode, session, onError } = options
 
-    if (options?.version !== undefined) {
-      numberError({ version: options.version }, 'positive-int')
-      this.#options.version = options.version
-    }
+      if (version) {
+        numberError({ version }, 'positive-int')
+        this.#options.version = version
+      }
 
-    if (options?.strictMode === false) this.#options.strictMode = false
+      if (readonly) this.#options.readonly = readonly
 
-    if (options?.onError !== undefined) this.#options.onError = options.onError
+      if (strictMode === false) this.#options.strictMode = false
 
-    if (options?.sessionStorage !== undefined) {
-      browserError()
+      if (onError) this.#options.onError = onError
 
-      const storageKey: string = options.sessionStorage.trim()
+      if (session) {
+        browserError()
 
-      if (isBlankString(storageKey))
-        throw new Error('The "sessionStorage" key must be a non-empty string...')
+        const key: string = session.key.trim()
 
-      this.#options.sessionStorage = storageKey
+        if (isBlankString(key))
+          throw new Error('The "sessionStorage" key must be a non-empty string...')
 
-      try {
-        const usageCount: number = (State.#keyUsageCounts.get(storageKey) ?? 0) + 1
-        State.#keyUsageCounts.set(storageKey, usageCount)
-
-        const subject: string = `The sessionStorage key "${storageKey}"`
-
-        if (usageCount > 1) {
-          const errorMessage: string = `${subject} is used by multiple State instances...`
-
-          if (this.#options.strictMode === true) throw new Error(errorMessage)
-          else if (!State.#duplicatedKeys.has(storageKey)) {
-            State.#duplicatedKeys.add(storageKey)
-            console.warn(`${errorMessage} This can lead to unintended side effects.`)
-          }
-        }
-
-        let stored: string | null = null
+        this.#options.session ??= { key }
 
         try {
-          stored = sessionStorage.getItem(storageKey)
-        } catch (error) {
-          this.#options.onError?.(error, 'read')
-        }
+          const usageCount: number = (State.#keyUsageCounts.get(key) ?? 0) + 1
+          State.#keyUsageCounts.set(key, usageCount)
 
-        if (stored === null) this.#setToSessionStorage(this.#state)
-        else
-          try {
-            const customizedSubject = `The stored state with ${subject.charAt(0).toLowerCase() + subject.slice(1)}`,
-              parsed: unknown = JSON.parse(stored)
+          const subject: string = `The sessionStorage key "${key}"`
 
-            if (!isPlainObject(parsed))
-              throw new Error(`The stored state with ${customizedSubject} is invalid...`)
+          if (usageCount > 1) {
+            const errorMessage: string = `${subject} is used by multiple State instances...`
 
-            const { version, data }: { version?: unknown; data?: S } = parsed
-
-            if (version !== this.#options.version)
-              throw new Error(
-                `The stored state with ${customizedSubject} has a version mismatch...`
-              )
-
-            if (options.validate?.(data) === false)
-              throw new Error(`The stored state with ${customizedSubject} failed validation...`)
-
-            this.#state = data
-          } catch (error) {
-            if (this.#options.sessionStorage)
-              try {
-                sessionStorage.removeItem(this.#options.sessionStorage)
-              } catch (purgeError) {
-                this.#options.onError?.(purgeError, 'remove')
-              }
-
-            this.#options.onError?.(error, 'read')
-            this.#setToSessionStorage(this.#state)
+            if (this.#options.strictMode === true) throw new Error(errorMessage)
+            else if (!State.#duplicatedKeys.has(key)) {
+              State.#duplicatedKeys.add(key)
+              console.warn(`${errorMessage} This can lead to unintended side effects.`)
+            }
           }
-      } catch (error) {
-        this.#decrementKeyUsageCount(storageKey)
-        throw error
+
+          let stored: string | null = null
+
+          try {
+            stored = sessionStorage.getItem(key)
+          } catch (error) {
+            this.#options.onError?.(error, 'read')
+          }
+
+          if (stored === null) this.#setToSessionStorage(this.#state)
+          else
+            try {
+              const customizedSubject = `The stored state with ${subject.charAt(0).toLowerCase() + subject.slice(1)}`,
+                parsed: unknown = JSON.parse(stored)
+
+              if (!isPlainObject(parsed))
+                throw new Error(`The stored state with ${customizedSubject} is invalid...`)
+
+              const { version, data }: { version?: unknown; data?: S } = parsed
+
+              if (version !== this.#options.version)
+                throw new Error(
+                  `The stored state with ${customizedSubject} has a version mismatch...`
+                )
+
+              if (session.validate?.(data) === false)
+                throw new Error(`The stored state with ${customizedSubject} failed validation...`)
+
+              this.#state = data
+            } catch (error) {
+              if (this.#options.session?.key)
+                try {
+                  sessionStorage.removeItem(this.#options.session.key)
+                } catch (purgeError) {
+                  this.#options.onError?.(purgeError, 'remove')
+                }
+
+              this.#options.onError?.(error, 'read')
+              this.#setToSessionStorage(this.#state)
+            }
+        } catch (error) {
+          this.#decrementKeyUsageCount(key)
+          throw error
+        }
       }
     }
   }
 
   #setToSessionStorage(state: S): void {
-    if (!this.#options.sessionStorage) return
+    if (!this.#options.session?.key) return
 
     let serialized: string | undefined
 
@@ -128,7 +136,7 @@ export class State<S> {
 
       if (hasLossyType && !this.#isLossyWarned) {
         console.warn(
-          `The state with the sessionStorage key "${this.#options.sessionStorage}" has JSON-lossy values and they may not be accurately restored.`
+          `The state with the sessionStorage key "${this.#options.session?.key}" has JSON-lossy values and they may not be accurately restored.`
         )
         this.#isLossyWarned = true
       }
@@ -141,7 +149,7 @@ export class State<S> {
     if (!serialized) return
 
     try {
-      sessionStorage.setItem(this.#options.sessionStorage, serialized)
+      sessionStorage.setItem(this.#options.session?.key, serialized)
     } catch (error) {
       this.#options.onError?.(error, 'write')
     }
@@ -237,7 +245,7 @@ export class State<S> {
 
     this.#isDeleted = true
     this.#subscribers.clear()
-    this.#decrementKeyUsageCount(this.#options?.sessionStorage)
+    this.#decrementKeyUsageCount(this.#options?.session?.key)
 
     /** @remarks Detaches the state reference to prevent memory leaks. */
     this.#state = undefined as unknown as S
