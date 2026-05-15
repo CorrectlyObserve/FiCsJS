@@ -1,4 +1,4 @@
-import { browserError, deepEqual, isBlankString, isPlainObject, numberError } from '../core/helpers'
+import { deepEqual, isBlankString, isBrowser, isPlainObject, numberError } from '../core/helpers'
 import type { Options } from './types'
 
 export class State<S> {
@@ -19,7 +19,8 @@ export class State<S> {
     this.#state = state
 
     if (options) {
-      const { version, readonly, strictMode, session, onError } = options
+      const { version, readonly, strictMode, onError, sessionStorage: { validate } = {} }: Options<S> = options
+      let { sessionStorage: { key } = {} }: Options<S> = options
 
       if (version) {
         numberError({ version }, 'positive-int')
@@ -27,20 +28,17 @@ export class State<S> {
       }
 
       if (readonly) this.#options.readonly = readonly
-
       if (strictMode === false) this.#options.strictMode = false
 
       if (onError) this.#options.onError = onError
 
-      if (session) {
-        browserError()
-
-        const key: string = session.key.trim()
+      if (key && isBrowser()) {
+        key = key.trim()
 
         if (isBlankString(key))
           throw new Error('The "sessionStorage" key must be a non-empty string...')
 
-        this.#options.session ??= { key }
+        this.#options.sessionStorage ??= { key }
 
         try {
           const usageCount: number = (State.#keyUsageCounts.get(key) ?? 0) + 1
@@ -82,14 +80,14 @@ export class State<S> {
                   `The stored state with ${customizedSubject} has a version mismatch...`
                 )
 
-              if (session.validate?.(data) === false)
+              if (validate?.(data) === false)
                 throw new Error(`The stored state with ${customizedSubject} failed validation...`)
 
               this.#state = data
             } catch (error) {
-              if (this.#options.session?.key)
+              if (this.#options.sessionStorage?.key)
                 try {
-                  sessionStorage.removeItem(this.#options.session.key)
+                  sessionStorage.removeItem(this.#options.sessionStorage.key)
                 } catch (purgeError) {
                   this.#options.onError?.(purgeError, 'remove')
                 }
@@ -106,7 +104,7 @@ export class State<S> {
   }
 
   #setToSessionStorage(state: S): void {
-    if (!this.#options.session?.key) return
+    if (!this.#options.sessionStorage?.key) return
 
     let serialized: string | undefined
 
@@ -136,7 +134,7 @@ export class State<S> {
 
       if (hasLossyType && !this.#isLossyWarned) {
         console.warn(
-          `The state with the sessionStorage key "${this.#options.session?.key}" has JSON-lossy values and they may not be accurately restored.`
+          `The state with the sessionStorage key "${this.#options.sessionStorage?.key}" has JSON-lossy values and they may not be accurately restored.`
         )
         this.#isLossyWarned = true
       }
@@ -149,7 +147,7 @@ export class State<S> {
     if (!serialized) return
 
     try {
-      sessionStorage.setItem(this.#options.session?.key, serialized)
+      sessionStorage.setItem(this.#options.sessionStorage?.key, serialized)
     } catch (error) {
       this.#options.onError?.(error, 'write')
     }
@@ -245,7 +243,7 @@ export class State<S> {
 
     this.#isDeleted = true
     this.#subscribers.clear()
-    this.#decrementKeyUsageCount(this.#options?.session?.key)
+    this.#decrementKeyUsageCount(this.#options?.sessionStorage?.key)
 
     /** @remarks Detaches the state reference to prevent memory leaks. */
     this.#state = undefined as unknown as S
