@@ -85,6 +85,10 @@ export class QueryCache {
       }
   }
 
+  #getEntry(key: Query.Key): Query.Entry {
+    return this.#entries.get(hash(key)) ?? this.ensure({ key })
+  }
+
   #unscheduleGc(entry: Query.Entry): void {
     if (entry.gcTimer) {
       clearTimeout(entry.gcTimer)
