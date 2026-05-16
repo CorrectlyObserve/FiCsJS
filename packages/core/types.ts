@@ -234,7 +234,7 @@ export interface Props<D extends object, P> {
 export declare namespace Query {
   type Api = Pick<
     QueryCache,
-    'setQuery' | 'getQuery' | 'expire' | 'abort' | 'prefetch' | 'optimisticUpdate'
+    'prefetch' | 'set' | 'get' | 'bindData' | 'optimisticUpdate' | 'expire' | 'abort'
   >
 
   namespace Config {
