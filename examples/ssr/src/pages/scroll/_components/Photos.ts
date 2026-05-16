@@ -192,7 +192,7 @@ export default fics({
         { once: true }
       ],
       error: [
-        ({ data, event: { currentTarget }, attributes: { key } }) => {
+        ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
           if (!currentTarget) return
 
           const img = currentTarget as HTMLImageElement,
@@ -201,11 +201,13 @@ export default fics({
           if (Number.isInteger(index)) {
             const photo = data.photos[index]
 
-            if (photo && photo.id === key && !photo.isLoaded) {
-              const newPhotos: Photo[] = [...data.photos]
-              newPhotos[index] = { ...photo, isLoaded: true }
-              data.photos = newPhotos
-            }
+            if (photo && photo.id === key && !photo.isLoaded)
+              queryCache.set<Photo[]>(PHOTOS_KEY, current => {
+                const newPhotos = [...(current ?? data.photos)]
+
+                newPhotos[index] = { ...photo, isLoaded: true }
+                return newPhotos
+              })
           }
 
           img.replaceWith(img.cloneNode(true))
