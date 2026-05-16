@@ -378,8 +378,7 @@ export class QueryCache {
   set<T = unknown>(key: Query.Key, newQuery: T | ((current: T | undefined) => T)): void {
     if (this.#isDestroyed) return
 
-    const hashed: string = hash(key),
-      entry: Query.Entry = this.#entries.get(hashed) ?? this.ensure({ key })
+    const entry: Query.Entry = this.#getEntry(key)
 
     this.#dispatchState(entry, {
       value:
@@ -489,7 +488,7 @@ export class QueryCache {
   }: Query.OptimisticUpdate<T>): Promise<void> {
     if (this.#isDestroyed) return
 
-    const entry: Query.Entry = this.#entries.get(hash(key)) ?? this.ensure({ key }),
+    const entry: Query.Entry = this.#getEntry(key),
       { lastOptimisticTask }: Query.Entry = entry,
       { promise, resolve }: PromiseWithResolvers<void> = Promise.withResolvers<void>()
 
