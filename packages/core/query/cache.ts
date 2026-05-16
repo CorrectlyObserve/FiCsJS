@@ -529,8 +529,10 @@ export class QueryCache {
     try {
       while (true)
         try {
-          await updater()
+          this.#dispatchState(entry, { value: await updater(), updatedAt: Date.now() })
+          this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'optimistic' })
           this.#endOptimisticUpdate({ entry, result: 'success', attempt, startedAt })
+
           return
         } catch (error) {
           attempt++
