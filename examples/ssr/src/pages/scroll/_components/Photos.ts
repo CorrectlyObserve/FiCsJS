@@ -176,7 +176,7 @@ export default fics({
   actions: {
     img: {
       load: [
-        ({ data, event: { currentTarget }, attributes: { key } }) => {
+        ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
           if (!currentTarget) return
 
           const index = parseInt((currentTarget as HTMLImageElement).dataset.index ?? '')
@@ -185,9 +185,12 @@ export default fics({
           const photo = data.photos[index]
           if (!photo || photo.id !== key || photo.isLoaded) return
 
-          const newPhotos: Photo[] = [...data.photos]
-          newPhotos[index] = { ...photo, isLoaded: true }
-          data.photos = newPhotos
+          queryCache.set<Photo[]>(PHOTOS_KEY, current => {
+            const newPhotos = [...(current ?? data.photos)]
+
+            newPhotos[index] = { ...photo, isLoaded: true }
+            return newPhotos
+          })
         },
         { once: true }
       ],
