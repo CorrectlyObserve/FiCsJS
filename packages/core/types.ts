@@ -237,6 +237,15 @@ export declare namespace Query {
     'prefetch' | 'set' | 'get' | 'bindData' | 'optimisticUpdate' | 'expire' | 'abort'
   >
 
+  interface Binding<D extends object, T = unknown> {
+    key: Key
+    data: D
+    dataKey: keyof D
+    signal?: AbortSignal
+    shouldSyncCache?: boolean
+    select?: (state: State<T>, current: D[keyof D]) => D[keyof D]
+  }
+
   namespace Config {
     interface Entry {
       staleMs?: number
