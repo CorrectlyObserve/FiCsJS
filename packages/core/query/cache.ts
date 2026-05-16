@@ -437,46 +437,48 @@ export class QueryCache {
     }
   }
 
-  setQuery<T = unknown>(key: Query.Key, newQuery: T | ((current: T | undefined) => T)): void {
+  bindData<D extends object, T = unknown>({
+    key,
+    data,
+    dataKey,
+    signal,
+    shouldSyncCache = true,
+    select
+  }: Query.Binding<D, T>): void {
     if (this.#isDestroyed) return
 
-    const hashed: string = hash(key),
-      entry: Query.Entry = this.#entries.get(hashed) ?? this.ensure({ key })
+    if (shouldSyncCache && this.get<T>(key) === undefined) this.set<D[keyof D]>(key, data[dataKey])
 
-    this.#dispatchState(entry, {
-      value:
-        newQuery instanceof Function
-          ? (newQuery as (current: T | undefined) => T)(entry.state.value as T | undefined)
-          : newQuery,
-      updatedAt: Date.now()
+    const subscribeQuery = (
+      key: Query.Key,
+      listener: (state: Query.State<T>) => void
+    ): (() => void) => {
+      if (this.#isDestroyed) return () => {}
+
+      const entry: Query.Entry = this.#getEntry(key),
+        _listener: Query.Listener = (_: string, state: Query.State<unknown>) =>
+          listener(state as Query.State<T>)
+
+      this.subscribe({ hashed: entry.hashed, listener: _listener })
+      listener(entry.state as Query.State<T>)
+
+      return () => this.unsubscribe({ hashed: entry.hashed, listener: _listener })
+    }
+
+    const unsubscribe = subscribeQuery(key, state => {
+      data[dataKey] = (
+        select ? select(state, data[dataKey]) : (state.value ?? data[dataKey])
+      ) as D[keyof D]
     })
-    this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'manual' })
 
-    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
-  }
+    if (!signal) return
 
-  getQuery<T = unknown>(key: Query.Key): T | undefined {
-    return this.#entries.get(hash(key))?.state.value as T | undefined
-  }
-
-  expire(filter?: Query.Filter): void {
-    for (const entry of this.#match(filter as Query.Filter | undefined)) {
-      this.#dispatchState(entry, { updatedAt: 0 })
-
-      if (this.#isRefetchable(entry)) void this.fetch(entry.key)
+    if (signal.aborted) {
+      unsubscribe()
+      return
     }
-  }
 
-  abort(filter?: Query.Filter): void {
-    for (const entry of this.#match(filter as Query.Filter | undefined)) {
-      if (!entry.abort) continue
-
-      entry.abort.abort()
-      entry.fetchId++
-      entry.inflight = null
-
-      if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
-    }
+    signal.addEventListener('abort', unsubscribe, { once: true })
   }
 
   async optimisticUpdate<T = unknown>({
