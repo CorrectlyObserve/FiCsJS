@@ -442,12 +442,12 @@ export class QueryCache {
     data,
     dataKey,
     signal,
-    shouldSyncCache = true,
+    shouldInitCache = true,
     select
   }: Query.Binding<D, T>): void {
     if (this.#isDestroyed) return
 
-    if (shouldSyncCache && this.get<T>(key) === undefined) this.set<D[keyof D]>(key, data[dataKey])
+    if (shouldInitCache && this.get<T>(key) === undefined) this.set<D[keyof D]>(key, data[dataKey])
 
     const subscribeQuery = (
       key: Query.Key,
