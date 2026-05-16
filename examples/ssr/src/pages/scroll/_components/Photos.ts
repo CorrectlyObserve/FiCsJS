@@ -261,10 +261,34 @@ export default fics({
       rootMargin: PHOTO_SIZE,
       bufferLength: 2,
       throttleMs: 200,
-      method: async () =>
-        await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
-          photos => (data.photos = [...data.photos, ...photos])
-        )
+      method: async () => {
+        if (data.page < 1) return
+
+        const nextPage = data.page + 1,
+          key = ['photos', nextPage] as const,
+          cachedPhotos: Photo[] | undefined = queryCache.get<Photo[]>(key)
+
+        if (cachedPhotos !== undefined) {
+          queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...cachedPhotos])
+          queryCache.set<number>(PAGE_KEY, nextPage)
+          return
+        }
+
+        await queryCache.optimisticUpdate<number>({
+          key: PAGE_KEY,
+          newQuery: nextPage,
+          updater: async () => {
+            const photos = await crud<Photo[]>(getPhotos(nextPage), { key: 'isLoading' })
+
+            if (data.page !== nextPage) return nextPage
+
+            queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...photos])
+            queryCache.set<Photo[]>(key, photos)
+
+            return nextPage
+          }
+        })
+      }
     })
   }
 })
