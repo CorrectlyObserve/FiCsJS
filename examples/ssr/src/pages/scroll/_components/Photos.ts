@@ -24,13 +24,20 @@ export default fics({
     author: '',
     onEscapeKeydown: null as ((event: KeyboardEvent) => void) | null
   }),
-  deferredData: async ({ data, crud }) => {
-    data.page++
+  deferredData: async ({ data, queryCache }) => {
+    const nextPage = data.page + 1,
+      key = ['photos', nextPage] as const
 
-    return await crud<Photo[]>(getPhotos(data.page)).then(photos => ({
-      page: data.page,
-      photos
-    }))
+    await queryCache.prefetch<Photo[]>(key, ({ signal }) =>
+      fetch(getPhotos(nextPage), { signal }).then(resolve => resolve.json())
+    )
+
+    const photos = queryCache.get<Photo[]>(key) ?? []
+
+    queryCache.set<Photo[]>(PHOTOS_KEY, photos)
+    queryCache.set<number>(PAGE_KEY, nextPage)
+
+    return { page: nextPage, photos }
   },
   props: [
     {
@@ -252,7 +259,7 @@ export default fics({
     }
   },
   options: {
-    scroll: ({ data, crud }) => ({
+    scroll: ({ data, crud, queryCache }) => ({
       unit: UNIT_LENGTH,
       itemMinSize: PHOTO_SIZE,
       axis: data.isHorizontal ? 'horizontal' : 'vertical',
