@@ -242,7 +242,7 @@ export declare namespace Query {
     data: D
     dataKey: keyof D
     signal?: AbortSignal
-    shouldSyncCache?: boolean
+    shouldInitCache?: boolean
     select?: (state: State<T>, current: D[keyof D]) => D[keyof D]
   }
 
