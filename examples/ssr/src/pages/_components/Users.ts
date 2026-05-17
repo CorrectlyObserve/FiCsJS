@@ -42,6 +42,32 @@ export default fics({
             data.status = addedUser
               ? `A new user with ID ${addedUser.id} was added.`
               : 'A user was moved.'
+
+            if (addedUser) {
+              void queryCache
+                .optimisticUpdate<User[]>({
+                  key: USERS_KEY,
+                  newQuery: newArray,
+                  updater: async () => {
+                    const createdUser = await crud<User>(BASE_URL, {
+                      method: 'POST',
+                      headers,
+                      body: JSON.stringify(addedUser)
+                    })
+
+                    return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
+                      user.id === addedUser.id ? { ...addedUser, ...createdUser } : user
+                    )
+                  }
+                })
+                .catch(() => {
+                  const message = 'The new user could not be added.'
+                  data.status = message
+                  throw new Error(message)
+                })
+
+              return
+            }
           }
 
           queryCache.set<User[]>(USERS_KEY, newArray)
