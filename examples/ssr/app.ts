@@ -55,7 +55,7 @@ app.get('/', async c => {
   const queryCache = createQueryCache()
 
   await queryCache.prefetch(USERS_KEY, fetchUsers)
-  const users = queryCache.getQuery<User[]>(USERS_KEY) ?? []
+  const users = queryCache.get<User[]>(USERS_KEY) ?? []
 
   return c.html(
     template({
