@@ -287,7 +287,7 @@ export default fics({
           updater: async () => {
             const photos = await crud<Photo[]>(getPhotos(nextPage), { key: 'isLoading' })
 
-            if (data.page !== nextPage) return nextPage
+            if (data.page !== nextPage) return data.page
 
             queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...photos])
             queryCache.set<Photo[]>(key, photos)
