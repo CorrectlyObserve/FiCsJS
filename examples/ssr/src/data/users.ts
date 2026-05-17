@@ -6,16 +6,17 @@ export const fetchUsers = async ({ signal }: { signal: AbortSignal }): Promise<U
   await fetch(BASE_URL, { signal }).then(res => res.json())
 
 export const getExpectedUser = (users: User[], userId: User['id']): User => {
-  let targetUser: User | undefined
-  let maxId = 0
+  let targetUser: User | undefined,
+    maxId = 0
 
   for (const user of users) {
-    if (user.id === userId) targetUser = user
-    if (user.id > maxId) maxId = user.id
+    const { id } = user
+
+    if (id === userId) targetUser = user
+    if (id > maxId) maxId = id
   }
 
   if (!targetUser) throw new Error(`The user with ID ${userId} does not exist.`)
-
   return { ...targetUser, id: maxId + 1 }
 }
 
