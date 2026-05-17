@@ -127,20 +127,24 @@ export default fics({
     mounted: async ({ data, queryCache, crud, signal }) => {
       if (data.users.length === 0) return
 
-      const user = data.users[Math.floor(Math.random() * data.users.length)],
-        maxId = Math.max(0, ...data.users.map(({ id }) => id))
+      const users = queryCache.get<User[]>(USERS_KEY) ?? data.users,
+        newUser = users[Math.floor(Math.random() * users.length)],
+        expectedUser = getExpectedUser(users, newUser.id)
 
       await queryCache.optimisticUpdate<User[]>({
         key: USERS_KEY,
-        newQuery: current => [...(current ?? []), { ...user, id: maxId + 1 }],
+        newQuery: current => [...(current ?? []), expectedUser],
         updater: async () => {
-          await crud<User>(BASE_URL, {
-            method: 'POST',
-            body: JSON.stringify(user),
-            headers
-          })
+          const createdUser = await crud<User>(BASE_URL, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(expectedUser)
+            }),
+            currentUsers = (queryCache.get<User[]>(USERS_KEY) ?? []).filter(
+              ({ id }) => id !== expectedUser.id
+            )
 
-          return queryCache.get<User[]>(USERS_KEY) ?? []
+          return [...currentUsers, { ...expectedUser, ...createdUser }]
         },
         signal
       })
