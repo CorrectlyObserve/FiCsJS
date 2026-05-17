@@ -71,15 +71,15 @@ export default fics({
           button.setIndividualProps(index, {
             buttonText: method,
             click: async () => {
-              const options = { method, ...headers }
-
               if (method === 'DELETE') {
+                const filteredUsers = (users: User[]) => users.filter(({ id }) => id !== userId)
+
                 await queryCache.optimisticUpdate<User[]>({
                   key: USERS_KEY,
-                  newQuery: current => (current ?? []).filter(({ id }) => id !== userId),
+                  newQuery: current => filteredUsers(current ?? []),
                   updater: async () => {
-                    await crud<User>(`${BASE_URL}/${userId}`, options)
-                    return queryCache.get<User[]>(USERS_KEY) ?? []
+                    await crud<User>(`${BASE_URL}/${userId}`, { method, headers })
+                    return filteredUsers(queryCache.get<User[]>(USERS_KEY) ?? [])
                   }
                 })
 
@@ -88,17 +88,34 @@ export default fics({
                 const name = prompt('Please enter a new user name.')
 
                 if (name) {
+                  const currentUser = (queryCache.get<User[]>(USERS_KEY) ?? data.users).find(
+                    ({ id }) => id === userId
+                  )
+
+                  if (!currentUser) {
+                    data.userId = NaN
+                    return
+                  }
+
                   await queryCache.optimisticUpdate<User[]>({
                     key: USERS_KEY,
                     newQuery: current =>
                       (current ?? []).map(user => (user.id === userId ? { ...user, name } : user)),
                     updater: async () => {
-                      await crud<User>(`${BASE_URL}/${userId}`, {
-                        ...options,
-                        body: JSON.stringify({ id: userId, name })
+                      const createdUser = await crud<User>(`${BASE_URL}/${userId}`, {
+                        method,
+                        headers,
+                        body: JSON.stringify(
+                          method === 'PUT' ? { ...currentUser, name } : { id: userId, name }
+                        )
                       })
 
-                      return queryCache.get<User[]>(USERS_KEY) ?? []
+                      return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user => {
+                        if (user.id === userId)
+                          return method === 'PUT' ? createdUser : { ...user, ...createdUser }
+
+                        return user
+                      })
                     }
                   })
 
