@@ -3,7 +3,7 @@ import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Draggable from '@/pages/_components/Draggable'
 import UserContent from '@/pages/_components/UserContent'
-import { BASE_URL, USERS_KEY } from '@/data/users'
+import { BASE_URL, getExpectedUser, USERS_KEY } from '@/data/users'
 import type { Method, User } from '@/types'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
@@ -32,19 +32,8 @@ export default fics({
         array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
         isSelected: (user: User) => data.userId === user.id,
-        getNewItem: async (user: User) => {
-          const newUser = await crud<User>(BASE_URL, {
-              method: 'POST',
-              body: JSON.stringify(user),
-              headers
-            }),
-            maxId = Math.max(
-              0,
-              ...(queryCache.get<User[]>(USERS_KEY) ?? data.users).map(({ id }) => id)
-            )
-
-          return { ...newUser, id: maxId + 1 }
-        },
+        getNewItem: (user: User) =>
+          getExpectedUser(queryCache.get<User[]>(USERS_KEY) ?? data.users, user.id),
         updateArray: (newArray: User[]) => {
           if (newArray.length >= data.users.length) {
             const userIds = new Set(data.users.map(({ id }) => id)),
