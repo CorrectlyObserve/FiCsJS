@@ -69,7 +69,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft
         width: 100%;
         min-height: ${cssVar('min-height')};
 
-        @container (width >= ${breakpoints.lg}) {
+        @container (width >= ${breakpoints.LG}) {
           .tasks + .task-details {
             padding-inline-start: ${size(8)};
             box-shadow: ${size(-2)} 0px ${size(2)} ${size(-2)} ${shadowColor};
