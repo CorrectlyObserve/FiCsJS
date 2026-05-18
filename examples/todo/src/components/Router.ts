@@ -4,7 +4,8 @@ import Tasks from '@/components/Tasks'
 import TaskDetail from '@/components/TaskDetails'
 import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
-import type { Lang, Task as TaskType } from '@/types'
+import type { Task as TaskType } from '@/types'
+import type { Lang } from '@/utils/lang'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
 export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft?: TaskType }>({
