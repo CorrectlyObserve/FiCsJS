@@ -179,7 +179,7 @@ export default fics<Data, Props>({
           '.input': { marginInlineEnd: cssVar('outline') },
           span: { paddingInline: cssVar('outline') }
         },
-        [`@media (max-width: ${sm})`]: {
+        [`@media (max-width: ${SM})`]: {
           marginBlockEnd: size(4),
           div: { marginBlockEnd: size(2) }
         }
