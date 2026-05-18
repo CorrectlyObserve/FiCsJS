@@ -18,6 +18,12 @@ export interface SSEMessage {
   data: string
 }
 
+export interface Updated<T> {
+  fromIndex: number
+  toIndex: number
+  item: T
+}
+
 export interface User {
   id: number
   name: string
