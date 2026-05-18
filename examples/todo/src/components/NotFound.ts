@@ -66,10 +66,7 @@ export default fics<Data, { lang: Lang }>({
 
       &[aria-hidden="true"] {
         margin-block-end: ${size(8)};
-
-        @media (max-width: ${breakpoints.sm}) {
-          margin-block-end: ${size(6)};
-        }
+        @media (max-width: ${breakpoints.SM}) { margin-block-end: ${size(6)}; }
       }
     }
 
