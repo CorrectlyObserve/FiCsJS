@@ -35,7 +35,7 @@ interface Props {
   updateTasks: (tasks: Task[]) => void
 }
 
-const { sm } = breakpoints
+const { SM } = breakpoints
 
 export default fics<Data, Props>({
   name: 'task-details',
@@ -175,10 +175,10 @@ export default fics<Data, Props>({
   },
   css: {
     'div.container': {
-      width: sm,
+      width: SM,
       maxWidth: size(120 - 16),
       marginInline: 'auto',
-      [`@media (max-width: ${sm})`]: { width: '100%' },
+      [`@media (max-width: ${SM})`]: { width: '100%' },
       fieldset: {
         display: 'flex',
         flexDirection: 'column',
