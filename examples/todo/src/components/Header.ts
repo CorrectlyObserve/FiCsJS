@@ -4,10 +4,10 @@ import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
-import type { Lang } from '@/types'
+import { Lang, LANG_LIST } from '@/utils/lang'
 import { breakpoints } from '@/utils/others'
 
-export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string }, {}>({
+export default fics<{ langs: readonly Lang[]; lang: Lang; isShown: boolean; label: string }, {}>({
   name: 'header',
   children: [
     ficsLink({
