@@ -17,7 +17,7 @@ export default fics<{ langs: readonly Lang[]; lang: Lang; isShown: boolean; labe
     }),
     Button()
   ],
-  data: () => ({ langs: ['en', 'ja'], lang: 'en', isShown: false }),
+  data: () => ({ langs: LANG_LIST, lang: 'en', isShown: false }),
   i18nData: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
   html: ({ children: { link, button }, data, template, show }) => {
     const { langs, lang, isShown, label } = data
