@@ -80,7 +80,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
         'div.container': {
           ...positionCenter('y'),
           right: calc(`${size(8)} + ${cssVar('outline')}`),
-          [`@media (max-width: ${breakpoints.sm})`]: {
+          [`@media (max-width: ${breakpoints.SM})`]: {
             right: calc(`${size(3)} + ${cssVar('outline')}`)
           },
           '.langs': {
