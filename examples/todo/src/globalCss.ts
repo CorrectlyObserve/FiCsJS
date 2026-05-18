@@ -22,7 +22,7 @@ export default {
   h2: {
     ...textSize('xl'),
     marginBlockEnd: size(8),
-    [`@media (max-width: ${breakpoints.sm})`]: { marginBlockEnd: size(6) }
+    [`@media (max-width: ${breakpoints.SM})`]: { marginBlockEnd: size(6) }
   },
   'label:hover': { cursor: 'pointer' },
   'input, textarea': {
