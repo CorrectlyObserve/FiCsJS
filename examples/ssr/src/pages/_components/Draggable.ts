@@ -23,6 +23,18 @@ interface Props<T> {
 }
 
 const DRAGGABLE_ATTR = '[draggable="true"]' as const,
+  getToIndex = ({
+    fromIndex,
+    isDown,
+    isCopy
+  }: {
+    fromIndex: number
+    isDown: boolean
+    isCopy: boolean
+  }): number => {
+    if (isDown) return fromIndex + 1
+    return isCopy ? fromIndex : fromIndex - 1
+  },
   updateItem = <T>({
     array,
     fromIndex,
@@ -77,7 +89,7 @@ export default <T>() =>
             const updated = updateItem({
               array,
               fromIndex,
-              toIndex: fromIndex + (direction === 'up' ? -1 : 1),
+              toIndex: getToIndex({ fromIndex, isDown: direction === 'down', isCopy }),
               isCopy
             })
 
@@ -329,16 +341,16 @@ export default <T>() =>
             return
           }
 
-          const isArrowUp = keyEvent.key === 'ArrowUp',
-            isArrowDown = keyEvent.key === 'ArrowDown'
+          const isUp = keyEvent.key === 'ArrowUp',
+            isDown = keyEvent.key === 'ArrowDown'
 
-          if (!isArrowUp && !isArrowDown) return
+          if (!isUp && !isDown) return
           keyEvent.preventDefault()
 
           const updated = updateItem({
             array,
             fromIndex,
-            toIndex: fromIndex + (isArrowUp ? -1 : 1),
+            toIndex: getToIndex({ fromIndex, isDown, isCopy: keyEvent.altKey }),
             isCopy: keyEvent.altKey
           })
 
