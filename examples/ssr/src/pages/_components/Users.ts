@@ -4,7 +4,7 @@ import Button from '@/components/Button'
 import Draggable from '@/pages/_components/Draggable'
 import UserContent from '@/pages/_components/UserContent'
 import { BASE_URL, getExpectedUser, USERS_KEY } from '@/data/users'
-import type { Method, User } from '@/types'
+import type { Method, Updated, User } from '@/types'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
 
@@ -32,45 +32,37 @@ export default fics({
         array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
         isSelected: (user: User) => data.userId === user.id,
-        getNewItem: (user: User) =>
-          getExpectedUser(queryCache.get<User[]>(USERS_KEY) ?? data.users, user.id),
-        updateArray: (newArray: User[]) => {
-          if (newArray.length >= data.users.length) {
-            const userIds = new Set(data.users.map(({ id }) => id)),
-              addedUser = newArray.find(({ id }) => !userIds.has(id))
-
-            data.status = addedUser
-              ? `A new user with ID ${addedUser.id} was added.`
-              : 'A user was moved.'
-
-            if (addedUser) {
-              void queryCache
-                .optimisticUpdate<User[]>({
-                  key: USERS_KEY,
-                  newQuery: newArray,
-                  updater: async () => {
-                    const createdUser = await crud<User>(BASE_URL, {
-                      method: 'POST',
-                      headers,
-                      body: JSON.stringify(addedUser)
-                    })
-
-                    return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
-                      user.id === addedUser.id ? { ...addedUser, ...createdUser } : user
-                    )
-                  }
-                })
-                .catch(() => {
-                  const message = 'The new user could not be added.'
-                  data.status = message
-                  throw new Error(message)
-                })
-
-              return
-            }
-          }
-
+        onMove: ({ newArray }: Updated<User> & { newArray: User[] }) => {
+          data.status = 'A user was moved.'
           queryCache.set<User[]>(USERS_KEY, newArray)
+        },
+        onCopy: ({ item: { id }, toIndex }: Updated<User>) => {
+          const users = queryCache.get<User[]>(USERS_KEY) ?? data.users,
+            newArray = [...users],
+            expectedUser = getExpectedUser(users, id)
+
+          newArray.splice(toIndex, 0, expectedUser)
+          data.status = `A new user with ID ${expectedUser.id} was added.`
+
+          void queryCache
+            .optimisticUpdate<User[]>({
+              key: USERS_KEY,
+              newQuery: newArray,
+              updater: async () => {
+                const createdUser = await crud<User>(BASE_URL, {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify(expectedUser)
+                })
+
+                return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
+                  user.id === expectedUser.id ? { ...expectedUser, ...createdUser } : user
+                )
+              }
+            })
+            .catch(() => {
+              data.status = 'The new user could not be added.'
+            })
         },
         selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
       })
