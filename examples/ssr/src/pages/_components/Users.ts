@@ -50,13 +50,14 @@ export default fics({
               newQuery: newArray,
               updater: async () => {
                 const createdUser = await crud<User>(BASE_URL, {
-                  method: 'POST',
-                  headers,
-                  body: JSON.stringify(expectedUser)
-                })
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(expectedUser)
+                  }),
+                  userWithExpectedId = { ...expectedUser, ...createdUser, id: expectedUser.id }
 
                 return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
-                  user.id === expectedUser.id ? { ...expectedUser, ...createdUser } : user
+                  user.id === expectedUser.id ? userWithExpectedId : user
                 )
               }
             })
@@ -177,9 +178,10 @@ export default fics({
             }),
             currentUsers = (queryCache.get<User[]>(USERS_KEY) ?? []).filter(
               ({ id }) => id !== expectedUser.id
-            )
+            ),
+            userWithExpectedId = { ...expectedUser, ...createdUser, id: expectedUser.id }
 
-          return [...currentUsers, { ...expectedUser, ...createdUser }]
+          return [...currentUsers, userWithExpectedId]
         },
         signal
       })
