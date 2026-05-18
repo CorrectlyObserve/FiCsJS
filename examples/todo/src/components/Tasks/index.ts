@@ -33,7 +33,7 @@ interface Props {
   setTasks: (tasks: Task[]) => void
 }
 
-const { sm } = breakpoints
+const { SM } = breakpoints
 
 export default fics<Data, Props>({
   name: 'tasks',
@@ -185,12 +185,12 @@ export default fics<Data, Props>({
       },
       '&.task': {
         ...flexCenter('y'),
-        width: sm,
+        width: SM,
         maxWidth: size(120 - 16),
         marginInline: 'auto',
         marginBlockEnd: size(2),
         '&:last-child': { marginBlockEnd: 0 },
-        [`@media (max-width: ${sm})`]: { width: calc(`100% - ${size(12)}`) },
+        [`@media (max-width: ${SM})`]: { width: calc(`100% - ${size(12)}`) },
         div: { ...flexCenter('y'), width: calc(`100% - ${size(12)}`) }
       }
     }
