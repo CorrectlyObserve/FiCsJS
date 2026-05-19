@@ -4,31 +4,43 @@ import Router from '@/components/Router'
 import Footer from '@/components/Footer'
 import globalCss from '@/globalCss'
 import { $lang } from '@/stores'
+import type { Lang } from '@/utils/lang'
 
 configGlobalCss(globalCss)
 configI18n('/i18n')
 
-const lang = window.location.pathname.slice(1).split('/')[0] === 'ja' ? 'ja' : 'en'
+const sequence = (() => {
+    let current = 0
+    return {
+      next: () => ++current,
+      isLatest: (seqId: number) => seqId === current
+    }
+  })(),
+  metaDescription = document.head.querySelector("meta[name='description']")
 
-if (lang === 'ja') {
-  const { title, description } = await i18n<Record<'title' | 'description', string>>({
-    lang,
-    key: 'head'
-  })
+const syncHead = async (lang: Lang): Promise<void> => {
+    const seqId = sequence.next(),
+      { title, description } = await i18n<Record<'title' | 'description', string>>({
+        lang,
+        key: 'head'
+      })
 
-  document.documentElement.lang = lang
-  document.title = title
+    if (!sequence.isLatest(seqId)) return
 
-  const metaTag = document.head.querySelector("meta[name='description']")
-  if (metaTag && metaTag?.hasAttribute('content')) metaTag.setAttribute('content', description)
-}
-
-$lang.set(lang)
-$lang.subscribe('lang', lang => {
-  document.documentElement.lang = lang
-  Router.setData('lang', lang)
-})
+    document.title = title
+    if (metaDescription?.hasAttribute('content'))
+      metaDescription.setAttribute('content', description)
+  },
+  syncLang = (lang: Lang): void => {
+    document.documentElement.lang = lang
+    Header.setData('lang', lang)
+    Router.setData('lang', lang)
+    void syncHead(lang)
+  }
 
 Header.describe()
 Router.describe()
 Footer.describe()
+
+syncLang($lang.get())
+$lang.subscribe('lang', syncLang)
