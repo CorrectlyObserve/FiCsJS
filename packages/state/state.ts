@@ -19,7 +19,13 @@ export class State<S> {
     this.#state = state
 
     if (options) {
-      const { version, readonly, strictMode, onError, sessionStorage: { validate } = {} }: Options<S> = options
+      const {
+        version,
+        readonly,
+        strictMode,
+        onError,
+        sessionStorage: { validate } = {}
+      }: Options<S> = options
       let { sessionStorage: { key } = {} }: Options<S> = options
 
       if (version) {
