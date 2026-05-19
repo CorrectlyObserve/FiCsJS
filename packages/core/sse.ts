@@ -36,7 +36,7 @@ export const openEventSource = <D extends object, P>({
     const { debounceMs, throttleMs, once }: Action.Options = options ?? {}
 
     if (debounceMs && throttleMs)
-      throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
+      throw new Error('Both "debounceMs" and "throttleMs" options cannot be used at the same time...')
 
     let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
       method({ ...getCtx(), event })
