@@ -527,7 +527,9 @@ export class QueryCache {
     let attempt: number = 0
 
     try {
-      while (true)
+      while (true) {
+        attempt++
+
         try {
           this.#dispatchState(entry, { value: await updater(), updatedAt: Date.now() })
           this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'optimistic' })
@@ -535,8 +537,6 @@ export class QueryCache {
 
           return
         } catch (error) {
-          attempt++
-
           if (
             !shouldRetry({
               error,
@@ -560,6 +560,7 @@ export class QueryCache {
             throw error
           }
         }
+      }
     } finally {
       resolve()
       if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined
