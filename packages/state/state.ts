@@ -4,7 +4,7 @@ import type { Options } from './types'
 export class State<S> {
   static #keyUsageCounts: Map<string, number> = new Map()
   static #duplicatedKeys: Set<string> = new Set()
-  readonly #options: Omit<Options<S>, 'validate'> = {
+  readonly #options: Options<S> = {
     version: 1,
     readonly: false,
     strictMode: true
