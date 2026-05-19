@@ -72,7 +72,7 @@ export const openWebSocket = <D extends object, P>({
         const { intervalMs, maxRetries }: WebSocketNS.Options<D, P>['reconnect'] = reconnect
         numberError({ intervalMs, maxRetries }, 'non-negative-int')
 
-        if ((maxRetries && reconnectedCount < maxRetries) || !maxRetries)
+        if ((maxRetries && reconnectedCount < maxRetries) || maxRetries === undefined)
           reconnectedTimer = setTimeout(
             () => {
               reconnectedTimer = null
