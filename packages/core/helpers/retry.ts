@@ -63,7 +63,9 @@ export const getDelayMs = ({
   const baseMs: number = Math.min(intervalMs * 2 ** (attempt - 1), maxDelayMs)
 
   /** @remarks Prevents DDoS by adding jitterRatio to the retry delay. */
-  return baseMs + Math.random() * baseMs * jitterRatio
+  const fractionalMs: number = baseMs + Math.random() * baseMs * jitterRatio
+
+  return Math.floor(fractionalMs)
 }
 
 const parseRetryAfter = (error: Response | unknown): number | null => {
