@@ -159,7 +159,7 @@ export default fics({
       const initialPage = parseInt(queries().page)
       if (Number.isInteger(initialPage) && initialPage > 0) data.page = initialPage - 1
 
-      const params = { data, signal, shouldSyncCache: false }
+      const params = { data, signal, shouldInitCache: false }
 
       queryCache.bindData({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
       queryCache.bindData({ ...params, key: PAGE_KEY, dataKey: 'page' })
