@@ -546,7 +546,6 @@ export class PersistentState<S> {
             stateId: this.#stateId,
             snapshotId,
             state: currentState.state,
-            readonly: true,
             createdAt: now,
             updatedAt: now
           }),
