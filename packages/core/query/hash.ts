@@ -6,13 +6,15 @@ const {
 
 /** @warning DO NOT pass this function directly to `Array.prototype.map` like `array.map(hash)`. */
 export const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
+  if (typeof key === 'symbol' || typeof key === 'function')
+    throw new Error('Symbols and Functions cannot be used as query keys...')
+
   if (key === undefined) return UNDEFINED
   if (key === null) return NULL
   if (typeof key === 'boolean') return key ? TRUE : FALSE
   if (typeof key === 'number') return `${key}`
+  if (typeof key === 'bigint') return `${key}n`
   if (typeof key === 'string') return `"${key}"`
-
-  if (typeof key !== 'object') return key.toString()
 
   if (seen.has(key as object)) return CIRCULAR
   seen.add(key as object)
