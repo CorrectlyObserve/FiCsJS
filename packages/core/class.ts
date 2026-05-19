@@ -1360,7 +1360,7 @@ export class FiCsElement<D extends object, P extends object> {
 
       const { debounceMs, throttleMs, blur, once }: Action.Options = options ?? {}
       if (debounceMs && throttleMs)
-        throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
+        throw new Error('Both "debounceMs" and "throttleMs" options cannot be used at the same time...')
 
       const callback = (event: Event): void => {
         const attrs: Record<string, string> = {}
