@@ -33,7 +33,6 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
     signal?.addEventListener('abort', onAbort, { once: true })
   })
 }
-
 /**
  * @param attempt Must be a positive integer.
  * @param intervalMs Must be a non-negative integer if it is a number.
