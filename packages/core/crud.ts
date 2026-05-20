@@ -73,11 +73,8 @@ export const crud = async <T>({
         } catch (error) {
           attempt++
 
-          if (!shouldRetry({ error, attempt, maxRetries, signal })) {
-            if (error instanceof Response)
-              throw new Error(`${error.status} ${error.statusText}: The request failed...`)
-            throw error
-          }
+          if (!shouldRetry({ error, attempt, maxRetries, signal }))
+            throw new Error(`The ${method} request to "${endpoint}" failed...`, { cause: error })
 
           try {
             await delay(getDelayMs({ error, attempt, intervalMs }), signal)
