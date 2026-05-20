@@ -21,7 +21,7 @@ import { constants as scrollConstants } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import { runInfiniteVirtualScroll } from './scroll/runtime'
 import { scrollTemplate } from './scroll/template'
-import { getQueryCache, isQueryCacheLocked, lockQueryCache } from './query'
+import { getQueryCache, isQueryCacheLocked, lockQueryCache, type QueryCache } from './query'
 import { openEventSource } from './sse'
 import { escape } from './template/escape'
 import { applyShowAttr } from './template/forSsr'
@@ -97,6 +97,7 @@ export class FiCsElement<D extends object, P extends object> {
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
   #abortController: AbortController = new AbortController()
+  #ssrQueryCache: QueryCache | null = null
   #hasDescribed: boolean = false
 
   constructor({
@@ -478,7 +479,7 @@ export class FiCsElement<D extends object, P extends object> {
       data: this.#data,
       props: this.#props,
       crud: hasMethods ? this.#crud.bind(this) : undefined,
-      queryCache: hasMethods ? getQueryCache().api : undefined
+      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined
     } as DataProps.Payload<D, P, B>
   }
 
@@ -1360,7 +1361,9 @@ export class FiCsElement<D extends object, P extends object> {
 
       const { debounceMs, throttleMs, blur, once }: Action.Options = options ?? {}
       if (debounceMs && throttleMs)
-        throw new Error('Both "debounceMs" and "throttleMs" options cannot be used at the same time...')
+        throw new Error(
+          'Both "debounceMs" and "throttleMs" options cannot be used at the same time...'
+        )
 
       const callback = (event: Event): void => {
         const attrs: Record<string, string> = {}
@@ -1703,49 +1706,55 @@ export class FiCsElement<D extends object, P extends object> {
     throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
   }
 
-  toString(data?: Partial<D>): string {
+  toString({ data, queryCache }: { data?: Partial<D>; queryCache?: QueryCache } = {}): string {
     if (this.#isBrowser)
       throw new Error(
         `The "toString" method can only be called in the server environment in ${this.#name}...`
       )
 
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
-      that.#initProps()
+      if (queryCache) that.#ssrQueryCache = queryCache
 
-      if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
+      try {
+        that.#initProps()
 
-      const attrs: string[] = []
-      if (that.#classNames && !isBlankString(that.#computedClassName))
-        attrs.push(`class="${escape(that.#computedClassName)}"`)
+        if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
 
-      if (that.#computedAttrs.length > 0)
-        for (const [key, value] of that.#computedAttrs)
-          if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
-          else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
+        const attrs: string[] = []
+        if (that.#classNames && !isBlankString(that.#computedClassName))
+          attrs.push(`class="${escape(that.#computedClassName)}"`)
 
-      const slotAttrs: string = joinArray([
-          `id="${that.#name}"`,
-          `slot="${that.#instanceId}"`,
-          `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
-        ]),
-        html: string = applyShowAttr({
-          html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
-          resolveInstanceId: (instanceId: string): string => {
-            if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
-              throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
+        if (that.#computedAttrs.length > 0)
+          for (const [key, value] of that.#computedAttrs)
+            if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
+            else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
 
-            return render(that.#childrenStore[instanceId])
-          }
-        }),
-        css = (_css: Css.Sheet<D, P>[]): string =>
-          _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
+        const slotAttrs: string = joinArray([
+            `id="${that.#name}"`,
+            `slot="${that.#instanceId}"`,
+            `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
+          ]),
+          html: string = applyShowAttr({
+            html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
+            resolveInstanceId: (instanceId: string): string => {
+              if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
+                throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-      return `
-        <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
-          <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
-          <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
-        </${that.#name}>
-      `
+              return render(that.#childrenStore[instanceId])
+            }
+          }),
+          css = (_css: Css.Sheet<D, P>[]): string =>
+            _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
+
+        return `
+          <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
+            <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
+            <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
+          </${that.#name}>
+        `
+      } finally {
+        that.#ssrQueryCache = null
+      }
     }
 
     if (data) for (const [key, value] of typedEntries(data as D)) this.#rawData[key] = value
