@@ -39,6 +39,7 @@ import type {
   Html,
   Hook,
   I18n,
+  Optimistic,
   Options,
   Props,
   Scroll,
