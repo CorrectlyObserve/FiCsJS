@@ -552,7 +552,7 @@ export declare namespace Telemetry {
   }
 
   interface Ctx<D extends object, P> {
-    key: keyof Telemetry.Detail<D, P>
+    key: keyof Detail<D, P>
     error?: unknown
     startedAt?: number
     detail: Detail<D, P>[Ctx<D, P>['key']]
@@ -563,6 +563,13 @@ export declare namespace Telemetry {
     crud: Crud
     updated: { key: 'updated'; dataKey: keyof D; durationMs: number }
     hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; durationMs: number }
+    optimistic: {
+      key: 'optimistic'
+      statusKey?: string
+      dataKeys?: readonly (keyof D)[]
+      result?: Optimistic.Result
+      durationMs: number
+    }
   }
 
   interface Metric<D extends object, P> extends Ctx<D, P> {
