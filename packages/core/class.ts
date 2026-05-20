@@ -1471,7 +1471,7 @@ export class FiCsElement<D extends object, P extends object> {
 
           let times: number = 0
           const execute: SetTimeout = setTimeout(function run() {
-            if ((maxRetries && times >= maxRetries) || (exit && exit())) {
+            if ((maxRetries !== undefined && times >= maxRetries) || (exit && exit())) {
               clearTimeout(execute)
               return
             }

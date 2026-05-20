@@ -76,18 +76,15 @@ export class State<S> {
               const customizedSubject = `The stored state with ${subject.charAt(0).toLowerCase() + subject.slice(1)}`,
                 parsed: unknown = JSON.parse(stored)
 
-              if (!isPlainObject(parsed))
-                throw new Error(`The stored state with ${customizedSubject} is invalid...`)
+              if (!isPlainObject(parsed)) throw new Error(`${customizedSubject} is invalid...`)
 
               const { version, data }: { version?: unknown; data?: S } = parsed
 
               if (version !== this.#options.version)
-                throw new Error(
-                  `The stored state with ${customizedSubject} has a version mismatch...`
-                )
+                throw new Error(`${customizedSubject} has a version mismatch...`)
 
               if (validate?.(data) === false)
-                throw new Error(`The stored state with ${customizedSubject} failed validation...`)
+                throw new Error(`${customizedSubject} failed validation...`)
 
               this.#state = data
             } catch (error) {
