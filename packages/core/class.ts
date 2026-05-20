@@ -480,7 +480,8 @@ export class FiCsElement<D extends object, P extends object> {
       data: this.#data,
       props: this.#props,
       crud: hasMethods ? this.#crud.bind(this) : undefined,
-      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined
+      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined,
+      optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
     } as DataProps.Payload<D, P, B>
   }
 
