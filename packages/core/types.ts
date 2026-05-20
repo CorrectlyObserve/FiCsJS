@@ -361,7 +361,13 @@ export declare namespace Query {
       | { type: 'unsubscribe'; key: Key; subscriberCount: number }
       | { type: 'optimistic:enqueue'; key: Key }
       | { type: 'optimistic:start'; key: Key }
-      | { type: 'optimistic:end'; key: Key; result: Result; attempt: number; durationMs: number }
+      | {
+          type: 'optimistic:end'
+          key: Key
+          result: Optimistic.Result
+          attempt: number
+          durationMs: number
+        }
   }
 
   interface OptimisticUpdate<T> {
