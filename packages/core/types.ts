@@ -300,7 +300,7 @@ export declare namespace Query {
 
   interface EndOptimisticUpdate {
     entry: Entry
-    result: Result
+    result: Optimistic.Result
     attempt: number
     startedAt: number
   }
