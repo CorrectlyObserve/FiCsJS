@@ -23,7 +23,7 @@ export const crud = async <T>({
     }: Crud.Options = options ?? {},
     { onChunk } = options && 'onChunk' in options ? (options as Crud.StreamOptions) : {}
 
-  numberError({ timeoutMs, intervalMs }, 'non-negative-int')
+  numberError({ timeoutMs, intervalMs, maxRetries }, 'non-negative-int')
 
   const method: string = args.method?.toUpperCase() ?? 'GET'
 
