@@ -28,7 +28,7 @@ export class State<S> {
       }: Options<S> = options
       let { sessionStorage: { key } = {} }: Options<S> = options
 
-      if (version) {
+      if (version !== undefined) {
         numberError({ version }, 'positive-int')
         this.#options.version = version
       }
