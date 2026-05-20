@@ -7,7 +7,8 @@ import Input from '@/components/materials/Input'
 import Button from '@/components/materials/Button'
 import Link from '@/components/Tasks/Link'
 import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
-import type { Lang, Task } from '@/types'
+import type { Task } from '@/types'
+import type { Lang } from '@/utils/lang'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
@@ -33,7 +34,7 @@ interface Props {
   setTasks: (tasks: Task[]) => void
 }
 
-const { sm } = breakpoints
+const { SM } = breakpoints
 
 export default fics<Data, Props>({
   name: 'tasks',
@@ -178,19 +179,19 @@ export default fics<Data, Props>({
           '.input': { marginInlineEnd: cssVar('outline') },
           span: { paddingInline: cssVar('outline') }
         },
-        [`@media (max-width: ${sm})`]: {
+        [`@media (max-width: ${SM})`]: {
           marginBlockEnd: size(4),
           div: { marginBlockEnd: size(2) }
         }
       },
       '&.task': {
         ...flexCenter('y'),
-        width: sm,
+        width: SM,
         maxWidth: size(120 - 16),
         marginInline: 'auto',
         marginBlockEnd: size(2),
         '&:last-child': { marginBlockEnd: 0 },
-        [`@media (max-width: ${sm})`]: { width: calc(`100% - ${size(12)}`) },
+        [`@media (max-width: ${SM})`]: { width: calc(`100% - ${size(12)}`) },
         div: { ...flexCenter('y'), width: calc(`100% - ${size(12)}`) }
       }
     }

@@ -1,7 +1,7 @@
 import { isEmptyObject, typedEntries } from './helpers'
 import type { Action, DataProps, SSE } from './types'
 
-export default <D extends object, P>({
+export const openEventSource = <D extends object, P>({
   options,
   getDataProps,
   debounce,
@@ -33,16 +33,16 @@ export default <D extends object, P>({
     method: SSE.Method<D, P>,
     options?: Action.Options
   ): void => {
-    const { debounce: debounceTime, throttle: throttleTime, once }: Action.Options = options ?? {}
+    const { debounceMs, throttleMs, once }: Action.Options = options ?? {}
 
-    if (debounceTime && throttleTime)
-      throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
+    if (debounceMs && throttleMs)
+      throw new Error('Both "debounceMs" and "throttleMs" options cannot be used at the same time...')
 
     let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>
       method({ ...getCtx(), event })
 
-    if (debounceTime) callback = debounce(callback, debounceTime)
-    else if (throttleTime) callback = throttle(callback, throttleTime)
+    if (debounceMs) callback = debounce(callback, debounceMs)
+    else if (throttleMs) callback = throttle(callback, throttleMs)
 
     eventSource.addEventListener(handler, callback, { once })
     listeners.push({ handler, callback })

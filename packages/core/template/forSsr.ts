@@ -1,7 +1,7 @@
-import consts from '../constants'
+import { constants } from '../constants'
 import { isBlankString } from '../helpers'
 import type { Template } from '../types'
-import templateConstants from './constants'
+import { constants as templateConstants } from './constants'
 
 const {
     char: { LEFT_ANGLE_BRACKET, RIGHT_ANGLE_BRACKET },
@@ -20,12 +20,12 @@ const {
   }
 
 const resolveDescendants = ({ html, resolveInstanceId }: Template.ForSsr): string => {
-  const varBegin: string = `<${consts.VAR_TAG_NAME} ${consts.attrs.FICS_ID}="`,
+  const varBegin: string = `<${constants.VAR_TAG_NAME} ${constants.attrs.FICS_ID}="`,
     varBeginIndex: number = html.indexOf(varBegin)
 
   if (varBeginIndex < 0) return html
 
-  const varEnd: string = `"></${consts.VAR_TAG_NAME}>`,
+  const varEnd: string = `"></${constants.VAR_TAG_NAME}>`,
     varEndIndex: number = html.indexOf(varEnd, varBeginIndex + varBegin.length)
 
   if (varEndIndex < 0) return html
@@ -42,9 +42,9 @@ const resolveDescendants = ({ html, resolveInstanceId }: Template.ForSsr): strin
   return `${prev}${instanceId}${next}`
 }
 
-export default ({ html, resolveInstanceId }: Template.ForSsr): string => {
-  const showAttr: RegExp = regExp.ATTR(consts.attrs.SHOW.replace(regExp.SPECIAL_CHAR, '\\$&'))
-  let showAttrIndex: number = html.indexOf(consts.attrs.SHOW)
+export const applyShowAttr = ({ html, resolveInstanceId }: Template.ForSsr): string => {
+  const showAttr: RegExp = regExp.ATTR(constants.attrs.SHOW.replace(regExp.SPECIAL_CHAR, '\\$&'))
+  let showAttrIndex: number = html.indexOf(constants.attrs.SHOW)
 
   while (showAttrIndex > -1) {
     const openIndex: number = html.lastIndexOf(LEFT_ANGLE_BRACKET, showAttrIndex),
@@ -61,7 +61,7 @@ export default ({ html, resolveInstanceId }: Template.ForSsr): string => {
     } else tag = tag.replace(regExp.TAG_END, ` style="${DISPLAY_NONE}"$1`)
 
     html = `${html.slice(0, openIndex)}${tag}${html.slice(closeIndex + 1)}`
-    showAttrIndex = html.indexOf(consts.attrs.SHOW, openIndex + tag.length)
+    showAttrIndex = html.indexOf(constants.attrs.SHOW, openIndex + tag.length)
   }
 
   return resolveDescendants({ html, resolveInstanceId })

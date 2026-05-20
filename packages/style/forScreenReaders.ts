@@ -1,4 +1,4 @@
-export default {
+export const forScreenReaders = {
   position: 'absolute',
   width: '1px',
   height: '1px',

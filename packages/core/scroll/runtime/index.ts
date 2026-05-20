@@ -1,23 +1,23 @@
 import { numberError, normalizeRootMargin } from '../../helpers'
 import type { Scroll } from '../../types'
 import { resetCache } from '../cache'
-import consts from '../constants'
+import { constants } from '../constants'
 import { clearTimers, getProperty, isValidNumber } from '../helpers'
 import { getRootElement, getSentinel, restoreAxisOffset, updateFirstVisible } from './dom'
 import { fetchWithinThreshold, readPageParam, rebaseUrlSync, updatePageParam } from './sideEffects'
-import syncResize from './syncResize'
+import { syncResize } from './syncResize'
 import { updateAveSize, updateRange } from './virtualizer'
 
 /**
  * @param scrollOptions.options.unit Must be a positive integer.
  * @param scrollOptions.options.itemMinSize Must be a positive number.
  * @param scrollOptions.options.bufferLength Must be a non-negative integer.
- * @param scrollOptions.options.throttle Must be a non-negative integer.
- * @param scrollOptions.options.thresholdRate Must be a number between 0 and 1.
+ * @param scrollOptions.options.throttleMs Must be a non-negative integer.
+ * @param scrollOptions.options.thresholdRatio Must be a number between 0 and 1.
  * @param scrollOptions.totalCount Must be a non-negative integer.
  * @param scrollOptions.prevTotalCount Must be a non-negative integer.
  */
-const runInfiniteVirtualScroll = <D extends object, P extends object>({
+export const runInfiniteVirtualScroll = <D extends object, P extends object>({
   name,
   instanceId,
   shadowRoot,
@@ -37,17 +37,17 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
         unit,
         itemMinSize,
         bufferLength = 0,
-        throttle = 0,
-        thresholdRate = consts.THRESHOLD_RATE,
+        throttleMs = 0,
+        thresholdRatio = constants.THRESHOLD_RATIO,
         ...args
       } = scrollOptions.options(getDataProps(true))
 
       numberError({ unit }, 'positive-int')
       numberError({ itemMinSize }, 'positive')
-      numberError({ bufferLength, throttle }, 'non-negative-int')
-      numberError({ thresholdRate }, 'ratio')
+      numberError({ bufferLength, throttleMs }, 'non-negative-int')
+      numberError({ thresholdRatio }, 'ratio')
 
-      return { unit, itemMinSize, bufferLength, throttle, thresholdRate, ...args }
+      return { unit, itemMinSize, bufferLength, throttleMs, thresholdRatio, ...args }
     },
     deactivateRuntime = (): void => {
       if (scrollObservers) {
@@ -175,8 +175,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
 
   rebaseUrlSync({ scrollOptions, parameter, ...args })
 
-  if (parameter && scrollOptions.urlSync.pageParam === undefined)
-    scrollOptions.urlSync.pageParam = pageParam
+  if (parameter) scrollOptions.urlSync.pageParam ??= pageParam
 
   let lastScrolledAt: number = 0
   addEventListener({
@@ -186,7 +185,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
       [
         'scroll',
         () => {
-          const { trigger, parameter, throttle, ...args }: Scroll.Clamped =
+          const { trigger, parameter, throttleMs, ...args }: Scroll.Clamped =
             getResolvedOptions(scrollOptions)
           if (trigger === false) return
 
@@ -196,7 +195,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
            * and avoid potential issues with event listeners.
            */
           const now: number = Date.now()
-          if (now - lastScrolledAt < throttle) return
+          if (now - lastScrolledAt < throttleMs) return
           lastScrolledAt = now
 
           scrollOptions.flags.hasScrolled = true
@@ -210,12 +209,8 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
           if (rebaseUrlSync({ scrollOptions, parameter, ...args }))
             pageParam = readPageParam(parameter)
 
-          /**
-           * @remarks
-           * Initializes pageParam for URL sync if it doesn't already exist.
-           */
-          if (parameter && scrollOptions.urlSync.pageParam === undefined)
-            scrollOptions.urlSync.pageParam = pageParam
+          /** @remarks Initializes pageParam for URL sync if it doesn't already exist. */
+          if (parameter) scrollOptions.urlSync.pageParam ??= pageParam
 
           pageParam = updatePageParam({ scrollOptions, parameter, pageParam, ...args })
 
@@ -235,7 +230,7 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
               scrollOptions.totalSize = scrollAreaSize
               reRender()
             }
-          }, throttle)
+          }, throttleMs)
         }
       ]
     ]
@@ -283,5 +278,3 @@ const runInfiniteVirtualScroll = <D extends object, P extends object>({
   setScrollObservers({ root, ...observers })
   scrollOptions.isEnabled = true
 }
-
-export default runInfiniteVirtualScroll

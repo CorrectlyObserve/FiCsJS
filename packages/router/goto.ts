@@ -1,7 +1,7 @@
 import { browserError, isBlankString } from '../core/helpers'
-import CUSTOM_EVENT_NAME from './constants'
+import { FICS_NAVIGATE } from './constants'
 
-export default (
+export const goto = (
   href: string,
   { isWithoutHistory }: { isWithoutHistory: boolean } = { isWithoutHistory: false }
 ): void => {
@@ -11,5 +11,5 @@ export default (
   if (isBlankString(href)) return
 
   window.history[isWithoutHistory ? 'replaceState' : 'pushState']({}, '', href)
-  window.dispatchEvent(new CustomEvent(CUSTOM_EVENT_NAME, { detail: { href } }))
+  window.dispatchEvent(new CustomEvent(FICS_NAVIGATE, { detail: { href } }))
 }

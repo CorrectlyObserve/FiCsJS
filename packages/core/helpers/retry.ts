@@ -1,50 +1,74 @@
 import type { SetTimeout } from '../types'
-import constants from './constants'
-import numberError from './numberError'
+import { constants } from './constants'
+import { numberError } from './numberError'
 
 const {
-  BASE_MS,
+  INTERVAL_MS,
   JITTER_RATIO,
-  MAX_MS,
+  MAX_DELAY_MS,
   statusCode: { CLIENT_ERROR, REQUEST_TIMEOUT, SERVER_ERROR, TOO_MANY_REQUESTS }
 } = constants
 
-export const delay = (ms: number, signal: AbortSignal): Promise<void> =>
-  new Promise((resolve, reject) => {
-    if (signal.aborted) return reject(signal.reason)
+/** @param ms Must be a non-negative integer. */
+export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
+  numberError({ ms }, 'non-negative-int')
+
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(signal.reason)
 
     const onAbort = (): void => {
-        clearTimeout(timer)
-        reject(signal.reason)
+        cleanup()
+        reject(signal?.reason)
       },
-      timer: SetTimeout = setTimeout(() => {
-        signal.removeEventListener('abort', onAbort)
-        resolve()
-      }, ms)
+      cleanup = (): void => {
+        signal?.removeEventListener('abort', onAbort)
+        clearTimeout(timer)
+      }
 
-    signal.addEventListener('abort', onAbort, { once: true })
+    const timer: SetTimeout = setTimeout(() => {
+      cleanup()
+      resolve()
+    }, ms)
+
+    signal?.addEventListener('abort', onAbort, { once: true })
   })
-
-export const getDelayToRetry = ({
-  attempt,
-  baseMs = BASE_MS,
-  maxMs = MAX_MS,
-  jitterRatio = JITTER_RATIO
-}: {
-  attempt: number
-  baseMs?: number
-  maxMs?: number
-  jitterRatio?: number
-}): number => {
-  numberError({ attempt }, 'non-negative-int')
-  numberError({ baseMs, maxMs }, 'positive-int')
-  numberError({ jitterRatio }, 'ratio')
-
-  const base: number = Math.min(baseMs * 2 ** (attempt - 1), maxMs)
-  return base + Math.random() * base * jitterRatio
 }
 
-export const parseRetryAfter = (error: Response | unknown): number | null => {
+/**
+ * @param attempt Must be a positive integer.
+ * @param intervalMs Must be a non-negative integer if it is a number.
+ * @param maxDelayMs Must be a non-negative integer if it is a number.
+ * @param jitterRatio Must be a number between 0 and 1 if it is a number.
+ */
+export const getDelayMs = ({
+  error,
+  attempt,
+  intervalMs = INTERVAL_MS,
+  maxDelayMs = MAX_DELAY_MS,
+  jitterRatio = JITTER_RATIO
+}: {
+  error: unknown
+  attempt: number
+  intervalMs?: number
+  maxDelayMs?: number
+  jitterRatio?: number
+}): number => {
+  numberError({ attempt }, 'positive-int')
+  numberError({ intervalMs, maxDelayMs }, 'non-negative-int')
+  numberError({ jitterRatio }, 'ratio')
+
+  const retryAfterMs: number | null = parseRetryAfter(error)
+  if (retryAfterMs !== null) return retryAfterMs
+
+  const baseMs: number = Math.min(intervalMs * 2 ** (attempt - 1), maxDelayMs)
+
+  /** @remarks Prevents DDoS by adding jitterRatio to the retry delay. */
+  const fractionalMs: number = baseMs + Math.random() * baseMs * jitterRatio
+
+  return Math.floor(fractionalMs)
+}
+
+const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
 
   const header: string | null = error.headers.get('Retry-After')
@@ -53,22 +77,38 @@ export const parseRetryAfter = (error: Response | unknown): number | null => {
   const seconds: number = Number(header)
 
   if (Number.isFinite(seconds)) {
-    numberError({ seconds }, 'non-negative-int')
+    if (seconds < 0) return null
 
     const ms: number = seconds * 1_000
     return ms
   }
 
-  const date: number = Date.parse(header),
-    now: number = Date.now()
+  const date: number = Date.parse(header)
+  if (!Number.isFinite(date)) return null
 
-  numberError({ date }, 'positive-int')
-  return Math.max(0, date - now)
+  return Math.max(0, date - Date.now())
 }
 
-export const shouldRetry = (error: unknown): boolean => {
+/**
+ * @param attempt Must be a positive integer.
+ * @param maxRetries Must be a non-negative integer.
+ */
+export const shouldRetry = ({
+  error,
+  attempt,
+  maxRetries,
+  signal
+}: {
+  error: unknown
+  attempt: number
+  maxRetries: number
+  signal?: AbortSignal
+}): boolean => {
+  numberError({ attempt }, 'positive-int')
+  numberError({ maxRetries }, 'non-negative-int')
+
   const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
-  if (isIntentional) return false
+  if (isIntentional || signal?.aborted || attempt > maxRetries) return false
 
   if (error instanceof Response) {
     const { status }: { status: number } = error
@@ -82,17 +122,17 @@ export const shouldRetry = (error: unknown): boolean => {
   return isNetworkError
 }
 
-export const watch = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> =>
+export const watch = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> =>
   new Promise((resolve, reject) => {
-    if (signal.aborted) return reject(signal.reason)
+    if (signal?.aborted) return reject(signal.reason)
 
-    const cleanup = (): void => signal.removeEventListener('abort', onAbort)
+    const cleanup = (): void => signal?.removeEventListener('abort', onAbort)
     const onAbort = (): void => {
       cleanup()
-      reject(signal.reason)
+      reject(signal?.reason)
     }
 
-    signal.addEventListener('abort', onAbort, { once: true })
+    signal?.addEventListener('abort', onAbort, { once: true })
 
     promise.then(
       (value: T) => {

@@ -35,10 +35,7 @@ export const fetchWithinThreshold = <D extends object, P>({
   if (scrollAmount > clientSize) {
     if (!hasScrolled && scrollOffset === 0) return
 
-    /**
-     * @remarks
-     * The remaining distance in pixels to the end of the scrollable content.
-     */
+    /** @remarks The remaining distance in pixels to the end of the scrollable content. */
     const distance: number = scrollAmount - (scrollOffset + clientSize),
       threshold: number = getAveSize({ aveSize, itemMinSize }) * bufferLength
     if (distance > threshold) return
@@ -48,10 +45,7 @@ export const fetchWithinThreshold = <D extends object, P>({
   Promise.resolve()
     .then(method)
     .catch(error => {
-      /**
-       * @remarks
-       * Resets `lastTriggeredCount` on failure to allow retries.
-       */
+      /** @remarks Resets `lastTriggeredCount` on failure to allow retries. */
       scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
 
       try {
@@ -116,9 +110,8 @@ export const updatePageParam = <D extends object, P>({
     }: Scroll.Resolved<D, P> = scrollOptions,
     nextStartIndex = index ?? startIndex
 
-  if (scrollOptions.urlSync.index === undefined) scrollOptions.urlSync.index = nextStartIndex
-
-  if (scrollOptions.urlSync.pageParam === undefined) scrollOptions.urlSync.pageParam = pageParam
+  scrollOptions.urlSync.index ??= nextStartIndex
+  scrollOptions.urlSync.pageParam ??= pageParam
 
   const {
       urlSync: { index: _index, pageParam: _pageParam }

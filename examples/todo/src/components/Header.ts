@@ -4,10 +4,10 @@ import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
-import type { Lang } from '@/types'
+import { Lang, LANG_LIST } from '@/utils/lang'
 import { breakpoints } from '@/utils/others'
 
-export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string }, {}>({
+export default fics<{ langs: readonly Lang[]; lang: Lang; isShown: boolean; label: string }, {}>({
   name: 'header',
   children: [
     ficsLink({
@@ -17,7 +17,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
     }),
     Button()
   ],
-  data: () => ({ langs: ['en', 'ja'], lang: 'en', isShown: false }),
+  data: () => ({ langs: LANG_LIST, lang: 'en', isShown: false }),
   i18nData: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
   html: ({ children: { link, button }, data, template, show }) => {
     const { langs, lang, isShown, label } = data
@@ -80,7 +80,7 @@ export default fics<{ langs: Lang[]; lang: Lang; isShown: boolean; label: string
         'div.container': {
           ...positionCenter('y'),
           right: calc(`${size(8)} + ${cssVar('outline')}`),
-          [`@media (max-width: ${breakpoints.sm})`]: {
+          [`@media (max-width: ${breakpoints.SM})`]: {
             right: calc(`${size(3)} + ${cssVar('outline')}`)
           },
           '.langs': {

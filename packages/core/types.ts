@@ -1,5 +1,6 @@
-import FiCsElement from './class'
-import consts from './constants'
+import { FiCsElement } from './class'
+import { constants } from './constants'
+import type { QueryCache } from './query'
 
 export declare namespace Action {
   interface Ctx<D extends object, P> {
@@ -23,8 +24,8 @@ export declare namespace Action {
   ) => void
 
   interface Options {
-    debounce?: number
-    throttle?: number
+    debounceMs?: number
+    throttleMs?: number
     blur?: boolean
     once?: boolean
   }
@@ -52,9 +53,10 @@ export declare namespace Crud {
 
   interface Options extends RequestInit {
     key?: string
-    timeout?: number
-    maxRetry?: number
-    delay?: number
+    timeoutMs?: number
+    intervalMs?: number
+    maxRetries?: number
+    signal?: AbortSignal
   }
 
   interface StreamOptions extends Options {
@@ -86,12 +88,12 @@ export declare namespace Css {
 }
 
 export declare namespace DataProps {
-  type Getter<D extends object, P> = <B extends boolean = false>(isCrud?: B) => Payload<D, P, B>
+  type Getter<D extends object, P> = <B extends boolean = false>(hasMethods?: B) => Payload<D, P, B>
 
   type Payload<D extends object, P, B extends boolean = false> = {
     data: D
     props: P
-  } & (B extends true ? { crud: Crud.Fetcher } : {})
+  } & (B extends true ? { crud: Crud.Fetcher; queryCache: Query.Api } : {})
 }
 
 export type Descendant = FiCsElement<any, any>
@@ -145,7 +147,7 @@ export declare namespace Html {
     apiStatuses: Record<string, boolean>
     attributes: {
       boolean: (condition: boolean | undefined) => 'true' | 'false'
-      statusLiveRegion: typeof consts.a11y.STATUS_LIVE_REGION
+      statusLiveRegion: typeof constants.a11y.STATUS_LIVE_REGION
     }
   }
 
@@ -160,6 +162,7 @@ export declare namespace Hook {
     ref: (selector: string) => Element | null
     debounce: RateLimitFn
     throttle: RateLimitFn
+    signal: AbortSignal
   }
 
   type Key<D extends object, P> = keyof Lifecycle<D, P>
@@ -177,8 +180,8 @@ export declare namespace Hook {
   }
 
   interface Polling {
-    interval: number
-    max?: number
+    intervalMs: number
+    maxRetries?: number
     exit?: () => boolean
   }
 }
@@ -228,6 +231,127 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
+export declare namespace Query {
+  type Api = Pick<
+    QueryCache,
+    'prefetch' | 'set' | 'get' | 'bindData' | 'optimisticUpdate' | 'expire' | 'abort'
+  >
+
+  interface Binding<D extends object, T = unknown> {
+    key: Key
+    data: D
+    dataKey: keyof D
+    signal?: AbortSignal
+    shouldInitCache?: boolean
+    select?: (state: State<T>, current: D[keyof D]) => D[keyof D]
+  }
+
+  namespace Config {
+    interface Entry {
+      staleMs?: number
+      maxRetries?: number
+      refetchIntervalMs?: number
+    }
+
+    interface Global {
+      staleMs: number
+      gcLimitMs: number
+      maxDelayMs: number
+      maxRetries: number
+      refetchIntervalMs: number
+      refetchOnFocus: boolean
+      refetchOnReconnect: boolean
+      onMetric?: (event: Metric.Event) => void
+      onError?: (key: Key, error: unknown) => void
+    }
+  }
+
+  interface EndOptimisticUpdate {
+    entry: Entry
+    result: Result
+    attempt: number
+    startedAt: number
+  }
+
+  interface Ensure {
+    key: Key
+    fetcher?: Fetcher
+    config?: Config.Entry
+  }
+
+  interface Entry {
+    readonly key: Key
+    readonly hashed: string
+    state: State
+    fetcher: Fetcher | null
+    staleMs: number
+    maxDelayMs: number
+    maxRetries: number
+    refetchIntervalMs: number
+    inflight: Promise<void> | null
+    abort: AbortController | null
+    isOptimistic: boolean
+    fetchId: number
+    gcTimer?: SetTimeout
+    refetchTimer?: ReturnType<typeof setInterval>
+    lastOptimisticTask?: Promise<void>
+  }
+
+  interface Filter {
+    key?: Key
+    isExactlyMatched?: boolean
+    predicate?: (entry: { key: Key; state: State }) => boolean
+  }
+
+  type Fetcher<T = unknown> = (ctx: { key: Key; signal: AbortSignal }) => Promise<T>
+
+  type Key = readonly unknown[]
+
+  type Listener = (hashed: string, state: State) => void
+
+  namespace Metric {
+    type Event = { module: 'query-cache' } & Payload
+
+    type Payload =
+      | { type: 'fetch:start'; key: Key; attempt: number }
+      | { type: 'fetch:success'; key: Key; attempt: number; durationMs: number }
+      | {
+          type: 'fetch:error'
+          key: Key
+          attempt: number
+          durationMs: number
+          error: unknown
+          willRetry: boolean
+        }
+      | { type: 'cache:update'; key: Key; source: 'fetch' | 'manual' | 'optimistic' }
+      | { type: 'cache:evict'; key: Key; reason: 'gc' | 'destroy' }
+      | { type: 'subscribe'; key: Key; subscriberCount: number }
+      | { type: 'unsubscribe'; key: Key; subscriberCount: number }
+      | { type: 'optimistic:enqueue'; key: Key }
+      | { type: 'optimistic:start'; key: Key }
+      | { type: 'optimistic:end'; key: Key; result: Result; attempt: number; durationMs: number }
+  }
+
+  interface OptimisticUpdate<T> {
+    key: Key
+    newQuery: T | ((current: T | undefined) => T)
+    /** @remarks Returns the final authoritative value to commit on success. */
+    updater: () => Promise<T>
+    maxRetries?: number
+    signal?: AbortSignal
+  }
+
+  type Result = 'success' | 'reverted'
+
+  interface State<T = unknown> {
+    value?: T
+    error?: unknown
+    isFetching: boolean
+    /** @remarks `0` means the data has never been fetched. */
+    updatedAt: number
+  }
+}
+
 type RateLimitFn = <T extends unknown[]>(
   func: (...args: T) => void,
   time: number
@@ -249,15 +373,15 @@ export declare namespace Scroll {
     countFenwickTree: number[]
   }
 
-  interface Clamped extends Omit<Options, 'bufferLength' | 'throttle' | 'thresholdRate'> {
+  interface Clamped extends Omit<Options, 'bufferLength' | 'throttleMs' | 'thresholdRatio'> {
     bufferLength: number
-    throttle: number
-    thresholdRate: number
+    throttleMs: number
+    thresholdRatio: number
   }
 
   namespace Ctx {
     interface OffsetBeforeIndex {
-      cache: Scroll.Cache | undefined
+      cache?: Scroll.Cache
       totalCount: number
       index: number
       aveSize: number
@@ -314,10 +438,10 @@ export declare namespace Scroll {
     bufferLength?: number
     /** @param cacheLength Must be a non-negative integer. */
     cacheLength?: number
-    /** @param throttle Must be a non-negative integer. */
-    throttle?: number
-    /** @param thresholdRate Must be a number between 0 and 1. */
-    thresholdRate?: number
+    /** @param throttleMs Must be a non-negative integer. */
+    throttleMs?: number
+    /** @param thresholdRatio Must be a number between 0 and 1. */
+    thresholdRatio?: number
     method: () => void
     onError?: (error: unknown) => void
   }
@@ -383,6 +507,14 @@ export interface Task {
 }
 
 export declare namespace Telemetry {
+  interface Crud {
+    key: string
+    endpoint: string
+    method: string
+    isStream: boolean
+    durationMs: number
+  }
+
   interface Ctx<D extends object, P> {
     key: keyof Telemetry.Detail<D, P>
     error?: unknown
@@ -391,16 +523,10 @@ export declare namespace Telemetry {
   }
 
   interface Detail<D extends object, P> {
-    queue: { key: Task['key']; duration: number }
-    crud: {
-      key: string
-      endpoint: string
-      method: string
-      isStream: boolean
-      duration: number
-    }
-    updated: { key: 'updated'; dataKey: keyof D; duration: number }
-    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; duration: number }
+    queue: { key: Task['key']; durationMs: number }
+    crud: Crud
+    updated: { key: 'updated'; dataKey: keyof D; durationMs: number }
+    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; durationMs: number }
   }
 
   interface Metric<D extends object, P> extends Ctx<D, P> {
@@ -482,7 +608,11 @@ export declare namespace WebSocket {
   interface Options<D extends object, P> {
     path: string
     protocols?: SingleOrArray<string>
-    reconnect?: { interval: number; max?: number; isExponential?: boolean }
+    /**
+     * @param intervalMs Must be a non-negative integer.
+     * @param maxRetries Must be a non-negative integer if it is a number.
+     */
+    reconnect?: { intervalMs: number; maxRetries?: number }
     onopen?: (ctx: Ctx.Params<D, P> & { event: Event }) => void
     onmessage?: (ctx: Ctx.Params<D, P> & { event: MessageEvent }) => void
     onerror?: (ctx: Ctx.Params<D, P> & { event: Event }) => void

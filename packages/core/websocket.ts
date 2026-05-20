@@ -1,7 +1,7 @@
-import { isEmptyObject } from './helpers'
+import { getDelayMs, isEmptyObject, numberError } from './helpers'
 import type { SetTimeout, WebSocket as WebSocketNS } from './types'
 
-export default <D extends object, P>({
+export const openWebSocket = <D extends object, P>({
   options,
   getDataProps,
   setWebSocketProp
@@ -35,6 +35,7 @@ export default <D extends object, P>({
     wsUrl.protocol = protocol.startsWith('https') ? 'wss:' : 'ws:'
 
     const websocket: WebSocket = new WebSocket(wsUrl.toString(), protocols),
+      isStale = (): boolean => activeWebsocket !== websocket,
       getParams: () => Omit<WebSocketNS.Ctx.Params<D, P>, 'event'> = () => ({
         ...getDataProps(true),
         websocket: {
@@ -54,7 +55,7 @@ export default <D extends object, P>({
     })
 
     websocket.onopen = (event: Event): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
 
       reconnectedCount = 0
       clearReconnectTimer()
@@ -62,38 +63,35 @@ export default <D extends object, P>({
     }
 
     websocket.onmessage = (event: MessageEvent): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
       onmessage?.({ ...getParams(), event })
     }
 
     const autoReconnect = (): void => {
       if (!isManuallyClosed && reconnect && !reconnectedTimer) {
-        const {
-          interval,
-          max,
-          isExponential
-        }: NonNullable<WebSocketNS.Options<D, P>>['reconnect'] = reconnect
+        const { intervalMs, maxRetries }: WebSocketNS.Options<D, P>['reconnect'] = reconnect
+        numberError({ intervalMs, maxRetries }, 'non-negative-int')
 
-        if ((max && reconnectedCount < max) || !max)
+        if ((maxRetries && reconnectedCount < maxRetries) || maxRetries === undefined)
           reconnectedTimer = setTimeout(
             () => {
               reconnectedTimer = null
               reconnectedCount++
               connect()
             },
-            interval * (isExponential ? 2 ** reconnectedCount : 1)
+            getDelayMs({ error: null, attempt: reconnectedCount + 1, intervalMs })
           )
       }
     }
 
     websocket.onerror = (event: Event): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
 
       onerror?.({ ...getParams(), event })
       autoReconnect()
     }
     websocket.onclose = (event: CloseEvent): void => {
-      if (activeWebsocket !== websocket) return
+      if (isStale()) return
 
       activeWebsocket = null
       setWebSocketProp(undefined)

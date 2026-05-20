@@ -1,11 +1,11 @@
 import { isPlainObject } from '../../helpers'
 import type { Template } from '../../types'
-import consts from '../constants'
+import { constants } from '../constants'
 
 const {
   char: { DOUBLE_QUOTE, SINGLE_QUOTE },
   regExp: { CONTROL_CHAR, INVALID_ATTR_FRAGMENT }
-} = consts
+} = constants
 
 export const hasSymbol = <T, S extends symbol>(
   variable: unknown,

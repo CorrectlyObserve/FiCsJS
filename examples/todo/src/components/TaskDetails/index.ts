@@ -7,8 +7,9 @@ import Input from '@/components/materials/Input'
 import Textarea from '@/components/TaskDetails/Textarea'
 import Button from '@/components/materials/Button'
 import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
-import type { Lang, Task } from '@/types'
+import type { Task } from '@/types'
 import convertTimestamp from '@/utils/convertTimestamp'
+import type { Lang } from '@/utils/lang'
 import { breakpoints, getTimestamp, white } from '@/utils/others'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
@@ -35,7 +36,7 @@ interface Props {
   updateTasks: (tasks: Task[]) => void
 }
 
-const { sm } = breakpoints
+const { SM } = breakpoints
 
 export default fics<Data, Props>({
   name: 'task-details',
@@ -175,10 +176,10 @@ export default fics<Data, Props>({
   },
   css: {
     'div.container': {
-      width: sm,
+      width: SM,
       maxWidth: size(120 - 16),
       marginInline: 'auto',
-      [`@media (max-width: ${sm})`]: { width: '100%' },
+      [`@media (max-width: ${SM})`]: { width: '100%' },
       fieldset: {
         display: 'flex',
         flexDirection: 'column',

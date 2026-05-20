@@ -3,8 +3,8 @@ import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Draggable from '@/pages/_components/Draggable'
 import UserContent from '@/pages/_components/UserContent'
-import { API_PATH, users } from '@/data/users'
-import type { Method, User } from '@/types'
+import { BASE_URL, getExpectedUser, USERS_KEY } from '@/data/users'
+import type { Method, Updated, User } from '@/types'
 
 const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
 
@@ -14,7 +14,7 @@ export default fics({
   data: () => ({
     status: '',
     methods: ['PUT', 'PATCH', 'DELETE'] as Method[],
-    users,
+    users: [] as User[],
     userId: NaN,
     draggingIndex: NaN,
     highlightedZone: null as HTMLElement | null,
@@ -28,31 +28,42 @@ export default fics({
     },
     {
       descendant: ({ children: { draggable } }) => draggable,
-      values: ({ data, children: { userContent }, crud }) => ({
+      values: ({ data, children: { userContent }, crud, queryCache }) => ({
         array: data.users,
         slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
         isSelected: (user: User) => data.userId === user.id,
-        getNewItem: async (user: User) => {
-          const newUser = await crud<User>(API_PATH, {
-              method: 'POST',
-              body: JSON.stringify(user),
-              headers
-            }),
-            maxId = data.users.reduce((max, { id }) => (id > max ? id : max), 0)
-
-          return { ...newUser, id: maxId + 1 }
+        onMove: ({ newArray }: Updated<User> & { newArray: User[] }) => {
+          data.status = 'A user was moved.'
+          queryCache.set<User[]>(USERS_KEY, newArray)
         },
-        updateArray: (newArray: User[]) => {
-          if (newArray.length >= data.users.length) {
-            const userIds = new Set(data.users.map(({ id }) => id)),
-              addedUser = newArray.find(({ id }) => !userIds.has(id))
+        onCopy: ({ item: { id }, toIndex }: Updated<User>) => {
+          const users = queryCache.get<User[]>(USERS_KEY) ?? data.users,
+            newArray = [...users],
+            expectedUser = getExpectedUser(users, id)
 
-            data.status = addedUser
-              ? `A new user with ID ${addedUser.id} was added.`
-              : 'A user was moved.'
-          }
+          newArray.splice(toIndex, 0, expectedUser)
+          data.status = `A new user with ID ${expectedUser.id} was added.`
 
-          data.users = newArray
+          void queryCache
+            .optimisticUpdate<User[]>({
+              key: USERS_KEY,
+              newQuery: newArray,
+              updater: async () => {
+                const createdUser = await crud<User>(BASE_URL, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(expectedUser)
+                  }),
+                  userWithExpectedId = { ...expectedUser, ...createdUser, id: expectedUser.id }
+
+                return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
+                  user.id === expectedUser.id ? userWithExpectedId : user
+                )
+              }
+            })
+            .catch(() => {
+              data.status = 'The new user could not be added.'
+            })
         },
         selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
       })
@@ -66,10 +77,11 @@ export default fics({
     children: { button, draggable },
     data,
     crud,
+    queryCache,
     template,
     attributes: { statusLiveRegion }
   }) => {
-    const { status, methods, users, userId } = data
+    const { status, methods, userId } = data
 
     return template`
       <p class="sr-only" ${statusLiveRegion}>${status}</p>
@@ -78,21 +90,54 @@ export default fics({
           button.setIndividualProps(index, {
             buttonText: method,
             click: async () => {
-              const options = { method, ...headers }
-
               if (method === 'DELETE') {
-                await crud<User>(`${API_PATH}/${userId}`, options)
-                data.users = users.filter(({ id }) => id !== userId)
+                const filteredUsers = (users: User[]) => users.filter(({ id }) => id !== userId)
+
+                await queryCache.optimisticUpdate<User[]>({
+                  key: USERS_KEY,
+                  newQuery: current => filteredUsers(current ?? []),
+                  updater: async () => {
+                    await crud<User>(`${BASE_URL}/${userId}`, { method, headers })
+                    return filteredUsers(queryCache.get<User[]>(USERS_KEY) ?? [])
+                  }
+                })
+
                 data.status = `The user with ID ${userId} was deleted.`
               } else {
                 const name = prompt('Please enter a new user name.')
+
                 if (name) {
-                  await crud<User>(`${API_PATH}/${userId}`, {
-                    ...options,
-                    body: JSON.stringify({ id: userId, name })
+                  const currentUser = (queryCache.get<User[]>(USERS_KEY) ?? data.users).find(
+                    ({ id }) => id === userId
+                  )
+
+                  if (!currentUser) {
+                    data.userId = NaN
+                    return
+                  }
+
+                  await queryCache.optimisticUpdate<User[]>({
+                    key: USERS_KEY,
+                    newQuery: current =>
+                      (current ?? []).map(user => (user.id === userId ? { ...user, name } : user)),
+                    updater: async () => {
+                      const createdUser = await crud<User>(`${BASE_URL}/${userId}`, {
+                        method,
+                        headers,
+                        body: JSON.stringify(
+                          method === 'PUT' ? { ...currentUser, name } : { id: userId, name }
+                        )
+                      })
+
+                      return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user => {
+                        if (user.id === userId)
+                          return method === 'PUT' ? createdUser : { ...user, ...createdUser }
+
+                        return user
+                      })
+                    }
                   })
 
-                  data.users = users.map(user => (user.id === userId ? { ...user, name } : user))
                   data.status = `The user with ID ${userId} was updated.`
                 }
               }
@@ -112,16 +157,34 @@ export default fics({
     }
   `,
   hooks: {
-    mounted: async ({ data, crud }) => {
-      const { users } = data
-      data.users = [
-        ...users,
-        await crud<User>(API_PATH, {
-          method: 'POST',
-          body: JSON.stringify(users[Math.floor(Math.random() * users.length)]),
-          headers
-        })
-      ]
+    created: ({ data, queryCache, signal }) => {
+      queryCache.bindData({ key: USERS_KEY, data, dataKey: 'users', signal })
+    },
+    mounted: async ({ data, queryCache, crud, signal }) => {
+      if (data.users.length === 0) return
+
+      const users = queryCache.get<User[]>(USERS_KEY) ?? data.users,
+        newUser = users[Math.floor(Math.random() * users.length)],
+        expectedUser = getExpectedUser(users, newUser.id)
+
+      await queryCache.optimisticUpdate<User[]>({
+        key: USERS_KEY,
+        newQuery: current => [...(current ?? []), expectedUser],
+        updater: async () => {
+          const createdUser = await crud<User>(BASE_URL, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(expectedUser)
+            }),
+            currentUsers = (queryCache.get<User[]>(USERS_KEY) ?? []).filter(
+              ({ id }) => id !== expectedUser.id
+            ),
+            userWithExpectedId = { ...expectedUser, ...createdUser, id: expectedUser.id }
+
+          return [...currentUsers, userWithExpectedId]
+        },
+        signal
+      })
     }
   }
 })

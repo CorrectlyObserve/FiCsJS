@@ -1,5 +1,5 @@
-import consts from './constants'
-import runCrud from './crud'
+import { constants } from './constants'
+import { crud } from './crud'
 import {
   browserError,
   convertStr,
@@ -7,6 +7,7 @@ import {
   isBlankString,
   isBrowser,
   isEmptyObject,
+  isObject,
   joinArray,
   normalizeRootMargin,
   numberError,
@@ -15,15 +16,16 @@ import {
   uid
 } from './helpers'
 import { i18n } from './i18n'
-import enqueue from './queue'
-import scrollConsts from './scroll/constants'
+import { enqueue } from './queue'
+import { constants as scrollConstants } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
-import runInfiniteVirtualScroll from './scroll/runtime'
-import scrollTemplate from './scroll/template'
-import openEventSource from './sse'
-import escape from './template/escape'
-import applyShowAttr from './template/forSsr'
-import sanitize from './template/sanitize'
+import { runInfiniteVirtualScroll } from './scroll/runtime'
+import { scrollTemplate } from './scroll/template'
+import { createQueryCache, getQueryCache, lockQueryCache, type QueryCache } from './query'
+import { openEventSource } from './sse'
+import { escape } from './template/escape'
+import { applyShowAttr } from './template/forSsr'
+import { sanitize } from './template/sanitize'
 import type {
   Action,
   Attrs,
@@ -48,9 +50,9 @@ import type {
   Void,
   WebSocket as WebSocketNS
 } from './types'
-import openWebSocket from './websocket'
+import { openWebSocket } from './websocket'
 
-export default class FiCsElement<D extends object, P extends object> {
+export class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeContext: { instance: Descendant; updater: () => void } | null = null
@@ -94,6 +96,8 @@ export default class FiCsElement<D extends object, P extends object> {
   #webSocketProp?: WebSocketNS.Prop
   #scrollObservers?: Scroll.Observers
   #poll?: SetTimeout
+  #abortController: AbortController = new AbortController()
+  #ssrQueryCache: QueryCache | null = null
   #hasDescribed: boolean = false
 
   constructor({
@@ -128,7 +132,8 @@ export default class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId = instanceId ?? `${consts.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
+    this.#instanceId =
+      instanceId ?? `${constants.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
     if (!generator) {
@@ -200,7 +205,8 @@ export default class FiCsElement<D extends object, P extends object> {
                 ...this.#getDataProps(true),
                 ref: (selector: string) => this.#queryDeeply(selector),
                 debounce: this.#debounce.bind(this),
-                throttle: this.#throttle.bind(this)
+                throttle: this.#throttle.bind(this),
+                signal: this.#abortController.signal
               })
               this.#emitMetric({
                 key: 'updated',
@@ -297,7 +303,7 @@ export default class FiCsElement<D extends object, P extends object> {
               { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
                 this.#getDataProps(true)
               ),
-              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConsts
+              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConstants
 
             numberError({ unit }, 'positive-int')
             numberError({ itemMinSize }, 'positive')
@@ -427,10 +433,7 @@ export default class FiCsElement<D extends object, P extends object> {
     method,
     isStream,
     startedAt
-  }: Omit<Telemetry.Detail<D, P>['crud'], 'duration'> & { startedAt?: number }): Telemetry.Detail<
-    D,
-    P
-  >['crud']
+  }: Omit<Telemetry.Crud, 'durationMs'> & { startedAt?: number }): Telemetry.Crud
   #createDetail({
     key,
     startedAt
@@ -460,22 +463,23 @@ export default class FiCsElement<D extends object, P extends object> {
     dataKey?: keyof D
     startedAt?: number
   }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
-    const duration: number = startedAt === undefined ? 0 : Date.now() - startedAt
+    const durationMs: number = startedAt === undefined ? 0 : Date.now() - startedAt
 
     if (endpoint && method && isStream !== undefined)
-      return { key, endpoint, method, isStream, duration } as Telemetry.Detail<D, P>['crud']
+      return { key, endpoint, method, isStream, durationMs } as Telemetry.Crud
 
     if (dataKey !== undefined)
-      return { key: 'updated', dataKey, duration } as Telemetry.Detail<D, P>['updated']
+      return { key: 'updated', dataKey, durationMs } as Telemetry.Detail<D, P>['updated']
 
-    return { key, duration } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
+    return { key, durationMs } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
   }
 
-  #getDataProps<B extends boolean = false>(isCrud?: B): DataProps.Payload<D, P, B> {
+  #getDataProps<B extends boolean = false>(hasMethods?: B): DataProps.Payload<D, P, B> {
     return {
       data: this.#data,
       props: this.#props,
-      crud: isCrud ? this.#crud.bind(this) : undefined
+      crud: hasMethods ? this.#crud.bind(this) : undefined,
+      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined
     } as DataProps.Payload<D, P, B>
   }
 
@@ -514,10 +518,13 @@ export default class FiCsElement<D extends object, P extends object> {
       method: string = options?.method?.toUpperCase() ?? 'GET',
       isStream: boolean = !!(options && 'onChunk' in options)
 
-    this.#emitMetric({ key: 'crud', detail: this.#createDetail({ key, endpoint, method, isStream }) })
+    this.#emitMetric({
+      key: 'crud',
+      detail: this.#createDetail({ key, endpoint, method, isStream })
+    })
 
     try {
-      const result: T | void = await runCrud({
+      const result: T | void = await crud({
         endpoint,
         apiStatuses: this.#apiStatuses,
         enqueue: this.#enqueue.bind(this),
@@ -586,7 +593,7 @@ export default class FiCsElement<D extends object, P extends object> {
             )
 
           child.#clonedSelves.set(instanceId, cloned)
-          if (child.#clonedSelves.size > consts.CLONED_SELVES_LENGTH) {
+          if (child.#clonedSelves.size > constants.CLONED_SELVES_LENGTH) {
             const oldestKey: string | undefined = child.#clonedSelves.keys().next().value
             if (oldestKey) child.#clonedSelves.delete(oldestKey)
           }
@@ -684,7 +691,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   #isBooleanAttr(attr: string): boolean {
-    return consts.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
+    return constants.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
   }
 
   #isBooleanAttrEnabled(attr: string, value: string): boolean {
@@ -746,7 +753,7 @@ export default class FiCsElement<D extends object, P extends object> {
         attrs: { FICS_ID, SHOW },
         symbols: { SANITIZED, UNSAFE_HTML },
         VAR_TAG_NAME
-      } = consts,
+      } = constants,
       template: Html.Template<D, P> = (
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
@@ -761,9 +768,8 @@ export default class FiCsElement<D extends object, P extends object> {
       })
 
     const contents: Html.Content<D, P>[] = this.#html({
-      ...this.#getDataProps(),
+      ...this.#getDataProps(true),
       children: this.#children,
-      crud: this.#crud.bind(this),
       template: (
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
@@ -793,10 +799,10 @@ export default class FiCsElement<D extends object, P extends object> {
     })[SANITIZED]
 
     return contents.reduce((prev, curr) => {
-      if (curr instanceof FiCsElement) {
+      if (isObject(curr) && curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
-        if (!(instanceId in this.#childrenStore)) this.#childrenStore[instanceId] = curr
+        this.#childrenStore[instanceId] ??= curr
         curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
@@ -823,7 +829,7 @@ export default class FiCsElement<D extends object, P extends object> {
       {
         attrs: { FICS_ID, SHOW },
         VAR_TAG_NAME
-      } = consts
+      } = constants
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -1180,8 +1186,8 @@ export default class FiCsElement<D extends object, P extends object> {
 
         const ssrHost: string = `div#${this.#name}`
         return selector
-          .replace(new RegExp(`${consts.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
-          .replace(new RegExp(`${consts.hostSelector.STRICT}`, 'g'), ssrHost)
+          .replace(new RegExp(`${constants.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
+          .replace(new RegExp(`${constants.hostSelector.STRICT}`, 'g'), ssrHost)
       },
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
         typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
@@ -1232,10 +1238,9 @@ export default class FiCsElement<D extends object, P extends object> {
     const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
     if (css.length === 0) return
 
-    if (!this.#styleSheet) this.#styleSheet = new CSSStyleSheet()
-
+    this.#styleSheet ??= new CSSStyleSheet()
     const cssText: string = this.#cssToString([
-      `${consts.hostSelector.ITSELF}{display:block}`,
+      `${constants.hostSelector.ITSELF}{display:block}`,
       ...css
     ])
 
@@ -1256,7 +1261,7 @@ export default class FiCsElement<D extends object, P extends object> {
     let trimmedSelector: string = selector.trim()
     const {
       hostSelector: { ITSELF }
-    } = consts
+    } = constants
 
     if (trimmedSelector === ITSELF) return [component]
 
@@ -1315,30 +1320,30 @@ export default class FiCsElement<D extends object, P extends object> {
 
   #debounce<T extends (...args: Parameters<T>) => void>(
     func: T,
-    time: number
+    ms: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative-int')
+    numberError({ ms }, 'non-negative-int')
 
     let timeout: SetTimeout | undefined
 
     return (...args: Parameters<T>): void => {
       if (timeout) clearTimeout(timeout)
-      timeout = setTimeout(() => func(...args), time)
+      timeout = setTimeout(() => func(...args), ms)
     }
   }
 
   #throttle<T extends (...args: Parameters<T>) => void>(
     func: T,
-    time: number
+    ms: number
   ): (...args: Parameters<T>) => void {
-    numberError({ time }, 'non-negative-int')
+    numberError({ ms }, 'non-negative-int')
 
     let lastTime: number = 0
 
     return (...args: Parameters<T>): void => {
       const now: number = Date.now()
 
-      if (now - lastTime >= time) {
+      if (now - lastTime >= ms) {
         lastTime = now
         func(...args)
       }
@@ -1354,9 +1359,11 @@ export default class FiCsElement<D extends object, P extends object> {
       if (handler !== 'click' && options?.blur)
         throw new Error('The "blur" is enabled only if the handler is click...')
 
-      const { debounce, throttle, blur, once }: Action.Options = options ?? {}
-      if (debounce && throttle)
-        throw new Error('Both "debounce" and "throttle" options cannot be used at the same time...')
+      const { debounceMs, throttleMs, blur, once }: Action.Options = options ?? {}
+      if (debounceMs && throttleMs)
+        throw new Error(
+          'Both "debounceMs" and "throttleMs" options cannot be used at the same time...'
+        )
 
       const callback = (event: Event): void => {
         const attrs: Record<string, string> = {}
@@ -1392,10 +1399,10 @@ export default class FiCsElement<D extends object, P extends object> {
 
       element.addEventListener(
         handler,
-        debounce
-          ? this.#debounce(callback, debounce)
-          : throttle
-            ? this.#throttle(callback, throttle)
+        debounceMs
+          ? this.#debounce(callback, debounceMs)
+          : throttleMs
+            ? this.#throttle(callback, throttleMs)
             : callback,
         { once }
       )
@@ -1430,7 +1437,8 @@ export default class FiCsElement<D extends object, P extends object> {
         ...this.#getDataProps(true),
         ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
         debounce: this.#debounce.bind(this),
-        throttle: this.#throttle.bind(this)
+        throttle: this.#throttle.bind(this),
+        signal: this.#abortController.signal
       },
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
@@ -1457,22 +1465,21 @@ export default class FiCsElement<D extends object, P extends object> {
       const that: FiCsElement<D, P> = this,
         poll = (
           func: ({ times }: { times: number }) => void,
-          { interval, max, exit }: Hook.Polling
+          { intervalMs, maxRetries, exit }: Hook.Polling
         ): void => {
-          numberError({ interval }, 'non-negative-int')
-          numberError({ max }, 'positive-int')
+          numberError({ intervalMs, maxRetries }, 'non-negative-int')
 
           let times: number = 0
           const execute: SetTimeout = setTimeout(function run() {
-            if ((max && times >= max) || (exit && exit())) {
+            if ((maxRetries !== undefined && times >= maxRetries) || (exit && exit())) {
               clearTimeout(execute)
               return
             }
 
             func({ times })
             times++
-            that.#poll = setTimeout(run, interval)
-          }, interval)
+            that.#poll = setTimeout(run, intervalMs)
+          }, intervalMs)
 
           that.#poll = execute
         }
@@ -1573,13 +1580,15 @@ export default class FiCsElement<D extends object, P extends object> {
               })
 
           that.#removeChildNodes(this)
-          Reflect.set(this, convertStr(consts.attrs.FICS_ID, 'camel'), that.#instanceId)
+          Reflect.set(this, convertStr(constants.attrs.FICS_ID, 'camel'), that.#instanceId)
 
           that.#cache.component = this
           this.#activateRuntime()
         }
 
         async connectedCallback(): Promise<void> {
+          if (that.#abortController.signal.aborted) that.#abortController = new AbortController()
+
           if (this.#isRendered) this.#activateRuntime()
           else {
             const mount = (): void => {
@@ -1610,7 +1619,10 @@ export default class FiCsElement<D extends object, P extends object> {
             that.#poll = undefined
           }
 
+          if (!that.#abortController.signal.aborted) that.#abortController.abort()
+
           this.#deactivateRuntime()
+
           if (that.#scrollObservers) {
             for (const observer of ['intersection', 'mutation', 'resize'] as const)
               that.#scrollObservers[observer].disconnect()
@@ -1664,25 +1676,23 @@ export default class FiCsElement<D extends object, P extends object> {
 
       if (!isOnlyHtml) this.#buildCss(shadowRoot)
 
-      if (this.#isBrowser) {
-        const addAllElements = (elements: Element[] | Set<Element>): void => {
-          for (const element of elements) {
-            if (element instanceof Element && !this.#newElements.has(element))
-              this.#newElements.add(element)
+      const addAllElements = (elements: Element[] | Set<Element>): void => {
+        for (const element of elements) {
+          if (element instanceof Element && !this.#newElements.has(element))
+            this.#newElements.add(element)
 
-            addAllElements(this.#getChildNodes(element) as Element[])
-          }
+          addAllElements(this.#getChildNodes(element) as Element[])
         }
-
-        addAllElements(this.#newElements)
-
-        for (const [selector, action] of typedEntries(this.#actions))
-          for (const element of this.#getElements(component, selector))
-            if (this.#newElements.has(element))
-              this.#addEventListener({ element, shadowRoot, entries: typedEntries(action) })
-
-        this.#newElements.clear()
       }
+
+      addAllElements(this.#newElements)
+
+      for (const [selector, action] of typedEntries(this.#actions))
+        for (const element of this.#getElements(component, selector))
+          if (this.#newElements.has(element))
+            this.#addEventListener({ element, shadowRoot, entries: typedEntries(action) })
+
+      this.#newElements.clear()
     } finally {
       this.#isInRerendering = false
     }
@@ -1696,49 +1706,55 @@ export default class FiCsElement<D extends object, P extends object> {
     throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
   }
 
-  toString(data?: Partial<D>): string {
+  toString({ data, queryCache }: { data?: Partial<D>; queryCache?: QueryCache } = {}): string {
     if (this.#isBrowser)
       throw new Error(
         `The "toString" method can only be called in the server environment in ${this.#name}...`
       )
 
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
-      that.#initProps()
+      that.#ssrQueryCache = queryCache ??= createQueryCache()
 
-      if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
+      try {
+        that.#initProps()
 
-      const attrs: string[] = []
-      if (that.#classNames && !isBlankString(that.#computedClassName))
-        attrs.push(`class="${escape(that.#computedClassName)}"`)
+        if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
 
-      if (that.#computedAttrs.length > 0)
-        for (const [key, value] of that.#computedAttrs)
-          if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
-          else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
+        const attrs: string[] = []
+        if (that.#classNames && !isBlankString(that.#computedClassName))
+          attrs.push(`class="${escape(that.#computedClassName)}"`)
 
-      const slotAttrs: string = joinArray([
-          `id="${that.#name}"`,
-          `slot="${that.#instanceId}"`,
-          `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
-        ]),
-        html: string = applyShowAttr({
-          html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
-          resolveInstanceId: (instanceId: string): string => {
-            if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
-              throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
+        if (that.#computedAttrs.length > 0)
+          for (const [key, value] of that.#computedAttrs)
+            if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
+            else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
 
-            return render(that.#childrenStore[instanceId])
-          }
-        }),
-        css = (_css: Css.Sheet<D, P>[]): string =>
-          _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
+        const slotAttrs: string = joinArray([
+            `id="${that.#name}"`,
+            `slot="${that.#instanceId}"`,
+            `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
+          ]),
+          html: string = applyShowAttr({
+            html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
+            resolveInstanceId: (instanceId: string): string => {
+              if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
+                throw new Error(`The element does not have a valid instanceId in ${that.#name}...`)
 
-      return `
-        <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
-          <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
-          <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
-        </${that.#name}>
-      `
+              return render(that.#childrenStore[instanceId])
+            }
+          }),
+          css = (_css: Css.Sheet<D, P>[]): string =>
+            _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
+
+        return `
+          <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
+            <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
+            <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
+          </${that.#name}>
+        `
+      } finally {
+        that.#ssrQueryCache = null
+      }
     }
 
     if (data) for (const [key, value] of typedEntries(data as D)) this.#rawData[key] = value
@@ -1746,6 +1762,7 @@ export default class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
+    if (this.#isBrowser) lockQueryCache()
     this.#initProps()
     this.#hasDescribed = true
     this.#callback('created')

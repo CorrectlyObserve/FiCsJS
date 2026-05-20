@@ -4,7 +4,8 @@ import Tasks from '@/components/Tasks'
 import TaskDetail from '@/components/TaskDetails'
 import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
-import type { Lang, Task as TaskType } from '@/types'
+import type { Task as TaskType } from '@/types'
+import type { Lang } from '@/utils/lang'
 import { breakpoints, measureOffsetWidth } from '@/utils/others'
 
 export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft?: TaskType }>({
@@ -69,7 +70,7 @@ export default ficsRouter<{ lang: Lang; tasks: TaskType[]; taskId: number; draft
         width: 100%;
         min-height: ${cssVar('min-height')};
 
-        @container (width >= ${breakpoints.lg}) {
+        @container (width >= ${breakpoints.LG}) {
           .tasks + .task-details {
             padding-inline-start: ${size(8)};
             box-shadow: ${size(-2)} 0px ${size(2)} ${size(-2)} ${shadowColor};

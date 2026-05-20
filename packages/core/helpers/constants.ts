@@ -1,7 +1,8 @@
-export default {
-  BASE_MS: 1_000,
+export const constants = {
+  INTERVAL_MS: 1_000,
   JITTER_RATIO: 0.3,
-  MAX_MS: 30_000,
+  MAX_DELAY_MS: 30_000,
+  MAX_RETRIES: 3,
   statusCode: {
     CLIENT_ERROR: 400,
     REQUEST_TIMEOUT: 408,

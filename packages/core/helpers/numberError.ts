@@ -1,7 +1,7 @@
 import { typedEntries } from './others'
 
 /**　@remarks Ignores undefined values　*/
-export default (
+export const numberError = (
   numbers: Record<string, number | undefined>,
   condition:
     | 'finite'

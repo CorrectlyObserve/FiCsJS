@@ -1,6 +1,6 @@
 import type { Scroll } from '../../types'
 import { evictCache, rebuildFenwickTrees } from '../cache'
-import consts from '../constants'
+import { constants } from '../constants'
 import { fenwickTree, getProperty, isValidNumber } from '../helpers'
 import { getItemsInScrollArea, updateFirstVisible } from './dom'
 import { updateAveSize, updateRange } from './virtualizer'
@@ -39,7 +39,7 @@ const isKeyChanged = (key: string, prevKey: string | undefined): prevKey is stri
     return { prevSize, prevIndexSize }
   }
 
-export default <D extends object, P>({
+export const syncResize = <D extends object, P>({
   getScrollOptions,
   getIsVertical,
   observers,
@@ -48,7 +48,7 @@ export default <D extends object, P>({
   unit,
   itemMinSize,
   bufferLength,
-  thresholdRate,
+  thresholdRatio,
   reRender
 }: {
   getScrollOptions: () => Scroll.Resolved<D, P>
@@ -59,7 +59,7 @@ export default <D extends object, P>({
   unit: number
   itemMinSize: number
   bufferLength: number
-  thresholdRate: number
+  thresholdRatio: number
   reRender: Scroll.Ctx.Runtime<D, P>['reRender']
 }): void => {
   const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
@@ -99,22 +99,16 @@ export default <D extends object, P>({
 
   for (const [index, item] of items.entries()) {
     const absoluteIndex: number = startIndex + index,
-      /**
-       * @remarks The fenwick tree is 1-indexed.
-       */
+      /** @remarks The fenwick tree is 1-indexed. */
       fenwickTreeIndex: number = absoluteIndex - cache.startIndex + 1,
       key: string | null = item.getAttribute('key')
 
     if (!key) continue
 
-    /**
-     * @remarks Prevents excessive updates during rapid scrolling.
-     */
+    /** @remarks Prevents excessive updates during rapid scrolling. */
     if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
 
-    /**
-     * @remarks Prepares element-to-index mapping before measurement.
-     */
+    /** @remarks Prepares element-to-index mapping before measurement. */
     cache.elementIndexes.set(item, absoluteIndex)
 
     const prevKey: string | undefined = indexKeys.get(absoluteIndex)
@@ -156,7 +150,7 @@ export default <D extends object, P>({
     scrollOptions.timers.resize = setTimeout(() => {
       const _scrollOptions: Scroll.Resolved<D, P> = getScrollOptions()
 
-      updateAveSize({ scrollOptions: _scrollOptions, itemMinSize, thresholdRate })
+      updateAveSize({ scrollOptions: _scrollOptions, itemMinSize, thresholdRatio })
       updateRange({
         scrollOptions: _scrollOptions,
         root,
@@ -166,82 +160,76 @@ export default <D extends object, P>({
         bufferLength,
         reRender
       })
-    }, consts.FRAME_INTERVAL_MS)
+    }, constants.FRAME_INTERVAL_MS)
   }
 
   if (hasSizeChanged) setResizeTimer()
 
-  if (!observers.resize)
-    observers.resize = new ResizeObserver(entries => {
-      const { cache }: { cache: Scroll.Cache } = getScrollOptions(),
-        {
-          indexSizes,
-          indexKeys,
-          elementIndexes,
-          startIndex,
-          maxLength,
-          sizeFenwickTree,
-          countFenwickTree
-        }: Scroll.Cache = cache
-      let _hasSizeChanged: boolean = false
+  observers.resize ??= new ResizeObserver(entries => {
+    const { cache }: { cache: Scroll.Cache } = getScrollOptions(),
+      {
+        indexSizes,
+        indexKeys,
+        elementIndexes,
+        startIndex,
+        maxLength,
+        sizeFenwickTree,
+        countFenwickTree
+      }: Scroll.Cache = cache
+    let _hasSizeChanged: boolean = false
 
-      for (const { target, contentRect } of entries) {
-        const targetElement: HTMLElement = target as HTMLElement,
-          key: string | null = targetElement.getAttribute('key')
-        if (!key) continue
+    for (const { target, contentRect } of entries) {
+      const targetElement: HTMLElement = target as HTMLElement,
+        key: string | null = targetElement.getAttribute('key')
+      if (!key) continue
 
-        const index: number | undefined = elementIndexes.get(targetElement)
+      const index: number | undefined = elementIndexes.get(targetElement)
 
-        if (index === undefined) continue
+      if (index === undefined) continue
 
-        /**
-         * @remarks The fenwick tree is 1-indexed.
-         */
-        const fenwickTreeIndex: number = index - startIndex + 1
-        /**
-         * @remarks Prevents excessive updates during rapid scrolling.
-         */
-        if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
+      /** @remarks The fenwick tree is 1-indexed. */
+      const fenwickTreeIndex: number = index - startIndex + 1
 
-        const prevKey: string | undefined = indexKeys.get(index)
-        if (isKeyChanged(key, prevKey)) {
-          cache.elementSizes.delete(prevKey)
+      /** @remarks Prevents excessive updates during rapid scrolling. */
+      if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
 
-          const removedSize: number | undefined = indexSizes.get(index)
-          if (removedSize !== undefined) {
-            fenwickTree.add(sizeFenwickTree, fenwickTreeIndex, -removedSize)
-            fenwickTree.add(countFenwickTree, fenwickTreeIndex, -1)
-          }
-          cache.indexSizes.delete(index)
+      const prevKey: string | undefined = indexKeys.get(index)
+      if (isKeyChanged(key, prevKey)) {
+        cache.elementSizes.delete(prevKey)
+
+        const removedSize: number | undefined = indexSizes.get(index)
+        if (removedSize !== undefined) {
+          fenwickTree.add(sizeFenwickTree, fenwickTreeIndex, -removedSize)
+          fenwickTree.add(countFenwickTree, fenwickTreeIndex, -1)
         }
-
-        const size: number = (contentRect as any)[
-          getProperty({ isVertical: getIsVertical(), type: 'size' })
-        ]
-        if (!isValidNumber(size)) continue
-
-        const {
-          prevSize,
-          prevIndexSize
-        }: { prevSize: number | undefined; prevIndexSize: number | undefined } = upsertMeasuredSize(
-          {
-            cache,
-            key,
-            index,
-            size,
-            fenwickTreeIndex,
-            sizeFenwickTree,
-            countFenwickTree
-          }
-        )
-
-        if (!isKeyChanged(key, prevKey) && prevSize === size && prevIndexSize === size) continue
-        _hasSizeChanged = true
+        cache.indexSizes.delete(index)
       }
 
-      if (!_hasSizeChanged) return
-      setResizeTimer()
-    })
+      const size: number = (contentRect as any)[
+        getProperty({ isVertical: getIsVertical(), type: 'size' })
+      ]
+      if (!isValidNumber(size)) continue
+
+      const {
+        prevSize,
+        prevIndexSize
+      }: { prevSize: number | undefined; prevIndexSize: number | undefined } = upsertMeasuredSize({
+        cache,
+        key,
+        index,
+        size,
+        fenwickTreeIndex,
+        sizeFenwickTree,
+        countFenwickTree
+      })
+
+      if (!isKeyChanged(key, prevKey) && prevSize === size && prevIndexSize === size) continue
+      _hasSizeChanged = true
+    }
+
+    if (!_hasSizeChanged) return
+    setResizeTimer()
+  })
 
   observers.resize.disconnect()
   for (const item of items) observers.resize.observe(item)

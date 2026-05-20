@@ -1,7 +1,7 @@
 import type { Template } from '../../types'
-import consts from '../constants'
+import { constants } from '../constants'
 
-export default (name: string, type: 'name' | 'unquoted' | Template.Context | unknown) => {
+export const error = (name: string, type: 'name' | 'unquoted' | Template.Context | unknown) => {
   switch (type) {
     case 'name':
     case 'unquoted':
@@ -11,8 +11,8 @@ export default (name: string, type: 'name' | 'unquoted' | Template.Context | unk
 
     case 'text':
     case 'tag':
-    case consts.char.DOUBLE_QUOTE:
-    case consts.char.SINGLE_QUOTE:
+    case constants.char.DOUBLE_QUOTE:
+    case constants.char.SINGLE_QUOTE:
       return new Error(
         `HTML content cannot be interpolated into an ${type === 'tag' ? 'element tag' : 'attribute value'} in the ${name}...`
       )

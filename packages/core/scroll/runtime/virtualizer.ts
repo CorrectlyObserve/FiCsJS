@@ -1,17 +1,17 @@
 import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
 import { getOffsetBeforeIndex, rebuildFenwickTrees } from '../cache'
-import consts from '../constants'
+import { constants } from '../constants'
 import { fenwickTree, getAveSize, getScrollMetrics, isValidNumber } from '../helpers'
 
 export const updateAveSize = <D extends object, P>({
   scrollOptions,
   itemMinSize,
-  thresholdRate
+  thresholdRatio
 }: {
   scrollOptions: Scroll.Resolved<D, P>
   itemMinSize: number
-  thresholdRate: number
+  thresholdRatio: number
 }): boolean => {
   const { cache, aveSize, totalCount }: Scroll.Resolved<D, P> = scrollOptions,
     { startIndex, maxLength, sizeFenwickTree, countFenwickTree } = cache,
@@ -29,11 +29,11 @@ export const updateAveSize = <D extends object, P>({
 
   const measuredAve: number = Math.max(itemMinSize, measuredSize / measuredCount),
     delta: number = measuredAve - prevAveSize,
-    threshold: number = prevAveSize * thresholdRate
+    threshold: number = prevAveSize * thresholdRatio
 
   if (Math.abs(delta) < threshold) return false
 
-  scrollOptions.aveSize = prevAveSize + delta * consts.SMOOTHING_FACTOR
+  scrollOptions.aveSize = prevAveSize + delta * constants.SMOOTHING_FACTOR
   return true
 }
 
@@ -125,7 +125,8 @@ export const updateRange = <D extends object, P>({
     nextTotalSize = Math.max(estimatedTotalSize, totalSize)
 
   const hasRangeChanged: boolean = nextStartIndex !== startIndex || nextEndIndex !== endIndex,
-    hasSizeChanged: boolean = Math.abs(totalSize - nextTotalSize) >= consts.SIZE_DELTA_TOLERANCE
+    hasSizeChanged: boolean =
+      Math.abs(totalSize - nextTotalSize) >= constants.SIZE_DELTA_TOLERANCE_PX
 
   if (hasRangeChanged || hasSizeChanged) {
     scrollOptions.startIndex = nextStartIndex

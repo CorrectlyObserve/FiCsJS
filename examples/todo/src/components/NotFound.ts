@@ -3,7 +3,7 @@ import { goto } from 'ficsjs/router'
 import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/materials/Loading'
-import { Lang } from '@/types'
+import type { Lang } from '@/utils/lang'
 import { breakpoints } from '@/utils/others'
 
 interface Data {
@@ -66,10 +66,7 @@ export default fics<Data, { lang: Lang }>({
 
       &[aria-hidden="true"] {
         margin-block-end: ${size(8)};
-
-        @media (max-width: ${breakpoints.sm}) {
-          margin-block-end: ${size(6)};
-        }
+        @media (max-width: ${breakpoints.SM}) { margin-block-end: ${size(6)}; }
       }
     }
 
@@ -95,7 +92,7 @@ export default fics<Data, { lang: Lang }>({
 
           data.seconds--
         },
-        { interval: 1000, exit: () => data.seconds <= 0 }
+        { intervalMs: 1000, exit: () => data.seconds <= 0 }
       )
     }
   },

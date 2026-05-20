@@ -3,7 +3,7 @@ import { zoom } from 'ficsjs/animation'
 import { queries } from 'ficsjs/router'
 import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { API_PATH, getPhotos, UNIT_LENGTH } from '@/data/photos'
+import { BASE_URL, getPhotos, PAGE_KEY, PHOTOS_KEY, UNIT_LENGTH } from '@/data/photos'
 import AxisButton from '@/pages/scroll/_components/AxisButton'
 import Skeleton from '@/pages/scroll/_components/Skeleton'
 import type { Photo } from '@/types'
@@ -24,13 +24,20 @@ export default fics({
     author: '',
     onEscapeKeydown: null as ((event: KeyboardEvent) => void) | null
   }),
-  deferredData: async ({ data, crud }) => {
-    data.page++
+  deferredData: async ({ data, queryCache }) => {
+    const nextPage = data.page + 1,
+      key = ['photos', nextPage] as const
 
-    return await crud<Photo[]>(getPhotos(data.page)).then(photos => ({
-      page: data.page,
-      photos
-    }))
+    await queryCache.prefetch<Photo[]>(key, ({ signal }) =>
+      fetch(getPhotos(nextPage), { signal }).then(resolve => resolve.json())
+    )
+
+    const photos = queryCache.get<Photo[]>(key) ?? []
+
+    queryCache.set<Photo[]>(PHOTOS_KEY, photos)
+    queryCache.set<number>(PAGE_KEY, nextPage)
+
+    return { page: nextPage, photos }
   },
   props: [
     {
@@ -62,13 +69,11 @@ export default fics({
     show,
     apiStatuses: { isLoading },
     attributes: { statusLiveRegion, boolean },
-    isBrowser,
-    isDeferred,
     scroll
   }) => {
     const skeletons = [...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)
 
-    if (!isBrowser || !isDeferred) return template`<div class="flex-x">${skeletons}</div>`
+    if (photos.length === 0) return template`<div class="flex-x">${skeletons}</div>`
 
     return template`
       ${axisButton}
@@ -83,7 +88,7 @@ export default fics({
               ${skeleton}
               <img
                 class="clickable mx-auto"
-                src="${API_PATH}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
+                src="${BASE_URL}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
                 alt="Image created by ${author}"
                 key="${id}"
                 data-index="${index}"
@@ -150,9 +155,14 @@ export default fics({
     }
   },
   hooks: {
-    created: ({ data }) => {
+    created: ({ data, queryCache, signal }) => {
       const initialPage = parseInt(queries().page)
       if (Number.isInteger(initialPage) && initialPage > 0) data.page = initialPage - 1
+
+      const params = { data, signal, shouldInitCache: false }
+
+      queryCache.bindData({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
+      queryCache.bindData({ ...params, key: PAGE_KEY, dataKey: 'page' })
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
@@ -178,7 +188,7 @@ export default fics({
   actions: {
     img: {
       load: [
-        ({ data, event: { currentTarget }, attributes: { key } }) => {
+        ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
           if (!currentTarget) return
 
           const index = parseInt((currentTarget as HTMLImageElement).dataset.index ?? '')
@@ -187,14 +197,17 @@ export default fics({
           const photo = data.photos[index]
           if (!photo || photo.id !== key || photo.isLoaded) return
 
-          const newPhotos: Photo[] = [...data.photos]
-          newPhotos[index] = { ...photo, isLoaded: true }
-          data.photos = newPhotos
+          queryCache.set<Photo[]>(PHOTOS_KEY, current => {
+            const newPhotos = [...(current ?? data.photos)]
+
+            newPhotos[index] = { ...photo, isLoaded: true }
+            return newPhotos
+          })
         },
         { once: true }
       ],
       error: [
-        ({ data, event: { currentTarget }, attributes: { key } }) => {
+        ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
           if (!currentTarget) return
 
           const img = currentTarget as HTMLImageElement,
@@ -203,11 +216,13 @@ export default fics({
           if (Number.isInteger(index)) {
             const photo = data.photos[index]
 
-            if (photo && photo.id === key && !photo.isLoaded) {
-              const newPhotos: Photo[] = [...data.photos]
-              newPhotos[index] = { ...photo, isLoaded: true }
-              data.photos = newPhotos
-            }
+            if (photo && photo.id === key && !photo.isLoaded)
+              queryCache.set<Photo[]>(PHOTOS_KEY, current => {
+                const newPhotos = [...(current ?? data.photos)]
+
+                newPhotos[index] = { ...photo, isLoaded: true }
+                return newPhotos
+              })
           }
 
           img.replaceWith(img.cloneNode(true))
@@ -229,7 +244,7 @@ export default fics({
             if (closeButton instanceof HTMLButtonElement) setTimeout(() => closeButton.focus())
           }
         },
-        { throttle: 500 }
+        { throttleMs: 500 }
       ],
       keydown: [
         ({ event }) => {
@@ -239,12 +254,12 @@ export default fics({
           keyEvent.preventDefault()
           ;(keyEvent.currentTarget as HTMLElement | null)?.click()
         },
-        { throttle: 500 }
+        { throttleMs: 500 }
       ]
     }
   },
   options: {
-    scroll: ({ data, crud }) => ({
+    scroll: ({ data, crud, queryCache }) => ({
       unit: UNIT_LENGTH,
       itemMinSize: PHOTO_SIZE,
       axis: data.isHorizontal ? 'horizontal' : 'vertical',
@@ -252,11 +267,35 @@ export default fics({
       parameter: 'page',
       rootMargin: PHOTO_SIZE,
       bufferLength: 2,
-      throttle: 200,
-      method: async () =>
-        await crud<Photo[]>(getPhotos(++data.page), { key: 'isLoading' }).then(
-          photos => (data.photos = [...data.photos, ...photos])
-        )
+      throttleMs: 200,
+      method: async () => {
+        if (data.page < 1) return
+
+        const nextPage = data.page + 1,
+          key = ['photos', nextPage] as const,
+          cachedPhotos: Photo[] | undefined = queryCache.get<Photo[]>(key)
+
+        if (cachedPhotos !== undefined) {
+          queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...cachedPhotos])
+          queryCache.set<number>(PAGE_KEY, nextPage)
+          return
+        }
+
+        await queryCache.optimisticUpdate<number>({
+          key: PAGE_KEY,
+          newQuery: nextPage,
+          updater: async () => {
+            const photos = await crud<Photo[]>(getPhotos(nextPage), { key: 'isLoading' })
+
+            if (data.page !== nextPage) return data.page
+
+            queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...photos])
+            queryCache.set<Photo[]>(key, photos)
+
+            return nextPage
+          }
+        })
+      }
     })
   }
 })

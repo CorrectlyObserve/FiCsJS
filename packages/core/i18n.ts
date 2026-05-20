@@ -1,70 +1,74 @@
-import { isBlankString, normalizePath, toArray } from '../core/helpers'
+import { isBlankString, isBrowser, normalizePath, toArray } from '../core/helpers'
 import type { SingleOrArray, Translations } from '../core/types'
 
-let _directory: string = ''
+const i18nClosure = (() => {
+  let _directory: string = ''
+  const translationsCache: Map<string, Translations> = new Map(),
+    promiseCache: Map<string, Promise<Translations>> = new Map()
 
-const translationsCache: Map<string, Translations> = new Map(),
-  promiseCache: Map<string, Promise<Translations>> = new Map()
+  return {
+    configI18n: (directory: string): void => {
+      const normalized: string = normalizePath(directory)
 
-export const configI18n = (directory: string): void => {
-  const normalized: string = normalizePath(directory)
+      if (_directory && _directory !== normalized) {
+        translationsCache.clear()
+        promiseCache.clear()
+      }
+      _directory = normalized
+    },
+    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }): Promise<T> => {
+      if (isBlankString(_directory))
+        throw new Error(
+          'The i18n function cannot be called before calling the configI18n function...'
+        )
 
-  if (_directory && _directory !== normalized) {
-    translationsCache.clear()
-    promiseCache.clear()
-  }
-  _directory = normalized
-}
+      if (isBlankString(lang)) throw new Error('The "lang" must be a non-empty string...')
 
-export const i18n = async <T>({
-  lang,
-  key
-}: {
-  lang: string
-  key: SingleOrArray<string>
-}): Promise<T> => {
-  if (isBlankString(_directory))
-    throw new Error('The configI18n function cannot be called before calling the i18n function...')
+      const url: string = `${_directory}/${lang}.json`
 
-  if (isBlankString(lang)) throw new Error('The "lang" must be a non-empty string...')
+      if (!isBrowser() && !url.startsWith('http'))
+        throw new Error(`The i18n url "${url}" must be an absolute URL in SSR/Edge environments...`)
 
-  const url: string = `${_directory}/${lang}.json`,
-    keys: string[] = toArray(key),
-    fetchTranslations = async (lang: string): Promise<Translations> => {
-      if (translationsCache.has(lang)) return translationsCache.get(lang)!
-      if (promiseCache.has(lang)) return promiseCache.get(lang)!
+      const keys: string[] = toArray(key),
+        fetchTranslations = async (lang: string): Promise<Translations> => {
+          if (translationsCache.has(lang)) return translationsCache.get(lang)!
+          if (promiseCache.has(lang)) return promiseCache.get(lang)!
 
-      const translations: Promise<Translations> = (async (): Promise<Translations> => {
-        try {
-          const res: Response = await fetch(url)
+          const translations: Promise<Translations> = (async (): Promise<Translations> => {
+            try {
+              const res: Response = await fetch(url)
 
-          if (!res.ok)
-            throw new Error(
-              `${res.status} ${res.statusText}: The request to load the ${url} failed...`
-            )
+              if (!res.ok)
+                throw new Error(
+                  `${res.status} ${res.statusText}: The request to load the ${url} failed...`
+                )
 
-          const json: Translations = await res.json()
+              const json: Translations = await res.json()
 
-          translationsCache.set(lang, json)
-          return json
-        } finally {
-          promiseCache.delete(lang)
+              translationsCache.set(lang, json)
+              return json
+            } finally {
+              promiseCache.delete(lang)
+            }
+          })()
+
+          promiseCache.set(lang, translations)
+          return translations
         }
-      })()
 
-      promiseCache.set(lang, translations)
-      return translations
+      const translations: Translations = await fetchTranslations(lang)
+
+      if (keys.length === 0) return translations as T
+
+      let _translations: Translations | undefined = translations
+      for (const _key of keys) _translations = _translations?.[_key] as Translations | undefined
+
+      if (_translations === undefined)
+        throw new Error(`The key "${keys.join('.')}" does not exist in the ${url}...`)
+
+      return _translations as T
     }
+  }
+})()
 
-  const translations: Translations = await fetchTranslations(lang)
-
-  if (keys.length === 0) return translations as T
-
-  let _translations: Translations | undefined = translations
-  for (const _key of keys) _translations = _translations?.[_key] as Translations | undefined
-
-  if (_translations === undefined)
-    throw new Error(`The key "${keys.join('.')}" does not exist in the ${url}...`)
-
-  return _translations as T
-}
+export const { configI18n, i18n } = i18nClosure

@@ -1,9 +1,9 @@
-import FiCsElement from '../core/class'
+import { FiCsElement } from '../core/class'
 import { normalizePath } from '../core/helpers'
 import type { Html } from '../core/types'
-import CUSTOM_EVENT_NAME from './constants'
+import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
-import goto from './goto'
+import { goto } from './goto'
 import { getQueries, params } from './params'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData } from './types'
 
@@ -15,7 +15,7 @@ const setRouterData = <D extends object>(data: RouterData<D>, pathname: string):
   params.set('queries', queries)
 }
 
-export default <D extends object>({
+export const ficsRouter = <D extends object>({
   children,
   data,
   pathname = '/',
@@ -149,11 +149,11 @@ export default <D extends object>({
         }
 
         window.addEventListener('popstate', onPopState)
-        window.addEventListener(CUSTOM_EVENT_NAME, onCustomEvent)
+        window.addEventListener(FICS_NAVIGATE, onCustomEvent)
 
         removeEventListeners = (): void => {
           window.removeEventListener('popstate', onPopState)
-          window.removeEventListener(CUSTOM_EVENT_NAME, onCustomEvent)
+          window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
         }
       },
       updated: hooks?.updated,

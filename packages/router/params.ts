@@ -1,5 +1,5 @@
 import { isBrowser } from '../core/helpers'
-import CUSTOM_EVENT_NAME from './constants'
+import { FICS_NAVIGATE } from './constants'
 import type { ParamType } from './types'
 
 class Params {
@@ -12,7 +12,7 @@ class Params {
 
     this.#saveQueries()
     window.addEventListener('popstate', this.#saveQueries.bind(this))
-    window.addEventListener(CUSTOM_EVENT_NAME, this.#saveQueries.bind(this))
+    window.addEventListener(FICS_NAVIGATE, this.#saveQueries.bind(this))
   }
 
   #saveQueries(): void {
