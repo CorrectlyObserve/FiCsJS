@@ -20,19 +20,13 @@ const queryCacheClosure = (() => {
     },
     createQueryCache,
     getQueryCache: (): QueryCache => (currentCache ??= createQueryCache()),
-    isQueryCacheLocked: (): boolean => isLocked,
     lockQueryCache: (): void => {
-      isLocked = true
+      if (!isLocked) isLocked = true
     }
   }
 })()
 
-export const {
-  configQueryCache,
-  createQueryCache,
-  getQueryCache,
-  isQueryCacheLocked,
-  lockQueryCache
-} = queryCacheClosure
+export const { configQueryCache, createQueryCache, getQueryCache, lockQueryCache } =
+  queryCacheClosure
 
 export type { QueryCache }
