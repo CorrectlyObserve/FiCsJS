@@ -93,7 +93,9 @@ export declare namespace DataProps {
   type Payload<D extends object, P, B extends boolean = false> = {
     data: D
     props: P
-  } & (B extends true ? { crud: Crud.Fetcher; queryCache: Query.Api } : {})
+  } & (B extends true
+    ? { crud: Crud.Fetcher; queryCache: Query.Api; optimisticUpdate: Optimistic.Fn<D> }
+    : {})
 }
 
 export type Descendant = FiCsElement<any, any>
