@@ -62,8 +62,8 @@ app.get('/', async c => {
       title: 'FiCsJS with Hono',
       description: 'This is a simple example of FiCsJS with Hono in SSR.',
       content: `
-        ${link.toString({ href: '/scroll', text: 'Go to the scroll page' })}
-        ${Users.toString({ users })}
+        ${link.toString({ data: { href: '/scroll', text: 'Go to the scroll page' } })}
+        ${Users.toString({ data: { users } })}
         ${chatButton.toString()}
       `,
       path: '/index'
@@ -78,7 +78,7 @@ app.get('/scroll', c =>
       description:
         'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
       content: `
-        ${link.toString({ href: '/', text: 'Back to the top page' })}
+        ${link.toString({ data: { href: '/', text: 'Back to the top page' } })}
         ${Photos.toString()}
         ${chatButton.toString()}
       `,
@@ -93,7 +93,7 @@ app.get(CHAT_PAGE, c =>
       title: 'WebSocket and SSE',
       description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
       content: `
-        ${link.toString({ href: '/', text: 'Back to the top page' })}
+        ${link.toString({ data: { href: '/', text: 'Back to the top page' } })}
         ${Tab.toString()}
         ${Router.toString()}
       `,
