@@ -1713,7 +1713,7 @@ export class FiCsElement<D extends object, P extends object> {
       )
 
     const render = (that: FiCsElement<D, P>, data?: Partial<D>): string => {
-      if (queryCache) that.#ssrQueryCache = queryCache
+      that.#ssrQueryCache = queryCache ??= createQueryCache()
 
       try {
         that.#initProps()
