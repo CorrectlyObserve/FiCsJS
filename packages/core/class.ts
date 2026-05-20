@@ -21,7 +21,7 @@ import { constants as scrollConstants } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import { runInfiniteVirtualScroll } from './scroll/runtime'
 import { scrollTemplate } from './scroll/template'
-import { getQueryCache, isQueryCacheLocked, lockQueryCache, type QueryCache } from './query'
+import { createQueryCache, getQueryCache, lockQueryCache, type QueryCache } from './query'
 import { openEventSource } from './sse'
 import { escape } from './template/escape'
 import { applyShowAttr } from './template/forSsr'
@@ -1762,7 +1762,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    if (this.#isBrowser && !isQueryCacheLocked()) lockQueryCache()
+    if (this.#isBrowser) lockQueryCache()
     this.#initProps()
     this.#hasDescribed = true
     this.#callback('created')
