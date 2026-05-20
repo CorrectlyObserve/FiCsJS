@@ -190,6 +190,36 @@ export interface I18n {
   i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
+export declare namespace Optimistic {
+  interface Config<D extends object, T> {
+    apply: (ctx: { data: D }) => Void
+    commit: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
+    dataKeys?: readonly (keyof D)[]
+    statusKey?: string
+    timeoutMs?: number
+    intervalMs?: number
+    maxRetries?: number
+    externalSignal?: AbortSignal
+  }
+
+  interface Ctx<D extends object, T> {
+    data: D
+    apiStatuses: Map<string, boolean>
+    enqueue: (func: () => Void, key: Task['key']) => void
+    reRender: (isOnlyHtml?: boolean) => Promise<void>
+    config: Config<D, T>
+    signal: AbortSignal
+    guardKey?: (key: keyof D) => void
+    chains: Map<string, Promise<void>>
+    activeScopes: Set<string>
+    componentName: string
+  }
+
+  type Fn<D extends object> = <T>(config: Config<D, T>) => Promise<T>
+
+  type Result = 'success' | 'reverted'
+}
+
 export declare namespace Options {
   interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
@@ -340,8 +370,6 @@ export declare namespace Query {
     maxRetries?: number
     signal?: AbortSignal
   }
-
-  type Result = 'success' | 'reverted'
 
   interface State<T = unknown> {
     value?: T
