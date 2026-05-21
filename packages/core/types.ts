@@ -205,19 +205,23 @@ export declare namespace Optimistic {
   }
 
   interface Ctx<D extends object, T> {
+    host: Host<D>
+    config: Config<D, T>
+  }
+
+  type Fn<D extends object> = <T>(config: Config<D, T>) => Promise<T>
+
+  interface Host<D extends object> {
+    name: string
     data: D
     apiStatuses: Map<string, boolean>
     enqueue: (func: () => Void, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
-    config: Config<D, T>
     signal: AbortSignal
-    guardKey?: (key: keyof D) => void
     chains: Map<string, Promise<void>>
     activeScopes: Set<string>
-    componentName: string
+    guardKey?: (key: keyof D) => void
   }
-
-  type Fn<D extends object> = <T>(config: Config<D, T>) => Promise<T>
 
   type Result = 'success' | 'reverted'
 }
