@@ -169,7 +169,7 @@ export declare namespace Html {
 
   interface Syntaxes<D extends object, P extends object> {
     children: Children
-    props: P
+    props: DeepReadonly.Core<P>
     template: Template<D, P>
     unsafeHtml: (str: string) => Record<symbol, string>
     show: (condition: boolean) => string
