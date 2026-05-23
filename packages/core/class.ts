@@ -545,6 +545,8 @@ export class FiCsElement<D extends object, P extends object> {
         startedAt,
         detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
       })
+
+      throw error
     }
   }
 
