@@ -98,6 +98,33 @@ export declare namespace DataProps {
     : {})
 }
 
+export declare namespace DeepReadonly {
+  type Core<T> = T extends Primitive
+    ? T
+    : T extends Map<infer K, infer V>
+      ? ReadonlyMap<Core<K>, Core<V>>
+      : T extends Set<infer V>
+        ? ReadonlySet<Core<V>>
+        : T extends ReadonlyArray<infer V>
+          ? ReadonlyArray<Core<V>>
+          : { readonly [K in keyof T]: Core<T[K]> }
+
+  type Primitive =
+    | string
+    | number
+    | boolean
+    | bigint
+    | symbol
+    | undefined
+    | null
+    | Function
+    | Date
+    | RegExp
+    | Error
+    | Promise<unknown>
+    | EventTarget
+}
+
 export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
