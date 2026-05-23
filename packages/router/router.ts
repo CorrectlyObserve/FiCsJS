@@ -1,6 +1,6 @@
 import { FiCsElement } from '../core/class'
 import { normalizePath } from '../core/helpers'
-import type { Html } from '../core/types'
+import type { DeepReadonly, Html } from '../core/types'
 import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
@@ -64,7 +64,7 @@ export const ficsRouter = <D extends object>({
                 )
 
               if (pathname !== redirectedPath) {
-                data.pathname = redirectedPath
+                ;(data as RouterData<D>).pathname = redirectedPath
                 goto(redirect, { isWithoutHistory: true })
               }
 
@@ -86,7 +86,7 @@ export const ficsRouter = <D extends object>({
 
             if (content) {
               const _content: Returned<RouterData<D>, {}> = content({
-                data,
+                data: data as DeepReadonly.Core<RouterData<D>>,
                 template,
                 ...args
               })
@@ -119,7 +119,7 @@ export const ficsRouter = <D extends object>({
             }
 
           if (notFound) {
-            data.pathname = '/404'
+            ;(data as RouterData<D>).pathname = '/404'
             params.set('dynamicPaths', {})
             goto('/404', { isWithoutHistory: true })
             return render(notFound)
