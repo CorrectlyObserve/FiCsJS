@@ -1799,11 +1799,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   getData<K extends keyof D>(key: K): D[typeof key] {
-    if (!this.#hasDescribed)
-      throw new Error(
-        `The getData method cannot be called before calling the describe method in ${this.#name}...`
-      )
-
+    this.#assertDescribed('getData')
     return this.#data[key] as D[typeof key]
   }
 }
