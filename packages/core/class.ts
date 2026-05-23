@@ -1714,6 +1714,49 @@ export class FiCsElement<D extends object, P extends object> {
       throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
   }
 
+  async #optimisticUpdate<T>(config: Optimistic.Config<D, T>): Promise<T> {
+    const key = 'optimistic' as const,
+      startedAt: number = Date.now(),
+      { statusKey, dataKeys } = config,
+      detail: Telemetry.Base<D, P>['optimistic'] = { key, statusKey, dataKeys }
+
+    this.#emitMetric({ key, detail: this.#createDetail(detail) })
+
+    try {
+      const value: T = await optimisticUpdate<D, T>({
+        host: {
+          name: this.#name,
+          data: this.#data,
+          apiStatuses: this.#apiStatuses,
+          enqueue: this.#enqueue.bind(this),
+          reRender: this.#reRender.bind(this),
+          signal: this.#abortController.signal,
+          chains: this.#optimisticChains,
+          activeScopes: this.#activeOptimisticScopes,
+          guardKey: (k: keyof D) => this.#guardRouterKey(k)
+        },
+        config
+      })
+
+      this.#emitMetric({
+        key,
+        startedAt,
+        detail: this.#createDetail({ ...detail, result: 'success' }, startedAt)
+      })
+
+      return value
+    } catch (error) {
+      this.#emitMetric({
+        key,
+        error,
+        startedAt,
+        detail: this.#createDetail({ ...detail, result: 'reverted' }, startedAt)
+      })
+
+      throw error
+    }
+  }
+
   getChildren(): Children {
     throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
   }
