@@ -244,7 +244,7 @@ export declare namespace Optimistic {
     name: string
     data: D
     apiStatuses: Map<string, boolean>
-    enqueue: (func: () => Void, key: Task['key']) => void
+    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     signal: AbortSignal
     chains: Map<string, Promise<void>>
