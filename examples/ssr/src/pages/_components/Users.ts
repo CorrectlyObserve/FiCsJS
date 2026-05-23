@@ -158,7 +158,7 @@ export default fics({
   `,
   hooks: {
     created: ({ data, queryCache, signal }) => {
-      queryCache.bindData({ key: USERS_KEY, data, dataKey: 'users', signal })
+      queryCache.bindTo({ key: USERS_KEY, data, dataKey: 'users', signal })
     },
     mounted: async ({ data, queryCache, crud, signal }) => {
       if (data.users.length === 0) return
