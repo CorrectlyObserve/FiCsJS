@@ -289,7 +289,9 @@ export interface Props<D extends object, P> {
         }: {
           getData: <K extends keyof D>(
             key: K
-          ) => D[K] extends (...args: infer A) => infer R ? (...args: A) => R : DeepReadonly.Core<D[K]>
+          ) => D[K] extends (...args: infer A) => infer R
+            ? (...args: A) => R
+            : DeepReadonly.Core<D[K]>
           sendToWebsocket?: (value: WebSocket.Value) => void
         }) => unknown
       >
