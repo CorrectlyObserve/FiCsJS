@@ -1707,6 +1707,13 @@ export class FiCsElement<D extends object, P extends object> {
       throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
   }
 
+  #assertDescribed(methodName: string): void {
+    if (!this.#hasDescribed)
+      throw new Error(
+        `The ${methodName} method cannot be called before calling the describe method in ${this.#name}...`
+      )
+  }
+
   getChildren(): Children {
     throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
   }
