@@ -301,7 +301,7 @@ export type ProxyMutable<T> = { [K in keyof T]: DeepReadonly.Core<T[K]> }
 export declare namespace Query {
   type Api = Pick<
     QueryCache,
-    'prefetch' | 'set' | 'get' | 'bindData' | 'optimisticUpdate' | 'expire' | 'abort'
+    'prefetch' | 'set' | 'get' | 'bindTo' | 'optimisticUpdate' | 'expire' | 'abort'
   >
 
   interface Binding<D extends object, T = unknown> {
