@@ -33,6 +33,8 @@ export declare namespace Action {
 
 export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
 
+export type AwaitableVoid = void | Promise<void>
+
 export type Children = Record<string, Descendant>
 
 export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
@@ -653,8 +655,6 @@ export declare namespace Template {
 export type Translations = Record<string, unknown>
 
 type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
-
-export type Void = void | Promise<void>
 
 export declare namespace WebSocket {
   namespace Ctx {
