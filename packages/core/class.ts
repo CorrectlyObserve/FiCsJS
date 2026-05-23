@@ -1702,16 +1702,16 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #guardRouterKey(key: keyof D): void {
-    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-      throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
-  }
-
   #assertDescribed(methodName: string): void {
     if (!this.#hasDescribed)
       throw new Error(
         `The ${methodName} method cannot be called before calling the describe method in ${this.#name}...`
       )
+  }
+
+  #guardRouterKey(key: keyof D): void {
+    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
+      throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
   }
 
   getChildren(): Children {
