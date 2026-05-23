@@ -606,18 +606,8 @@ export declare namespace Telemetry {
     detail: Detail<D, P>[Ctx<D, P>['key']]
   }
 
-  interface Detail<D extends object, P> {
-    queue: { key: Task['key']; durationMs: number }
-    crud: Crud
-    updated: { key: 'updated'; dataKey: keyof D; durationMs: number }
-    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; durationMs: number }
-    optimistic: {
-      key: 'optimistic'
-      statusKey?: string
-      dataKeys?: readonly (keyof D)[]
-      result?: Optimistic.Result
-      durationMs: number
-    }
+  type Detail<D extends object, P> = {
+    [K in keyof Base<D, P>]: Base<D, P>[K] & { durationMs: number }
   }
 
   interface Metric<D extends object, P> extends Ctx<D, P> {
