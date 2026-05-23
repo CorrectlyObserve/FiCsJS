@@ -573,7 +573,7 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => Void
+  func: () => AwaitableVoid
   key: 'define' | 're-render' | 'fetch'
 }
 
