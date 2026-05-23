@@ -91,8 +91,8 @@ export declare namespace DataProps {
   type Getter<D extends object, P> = <B extends boolean = false>(hasMethods?: B) => Payload<D, P, B>
 
   type Payload<D extends object, P, B extends boolean = false> = {
-    data: D
-    props: P
+    data: B extends true ? ProxyMutable<D> : DeepReadonly.Core<D>
+    props: DeepReadonly.Core<P>
   } & (B extends true
     ? { crud: Crud.Fetcher; queryCache: Query.Api; optimisticUpdate: Optimistic.Fn<D> }
     : {})
