@@ -578,6 +578,19 @@ export interface Task {
 }
 
 export declare namespace Telemetry {
+  interface Base<D extends object, P> {
+    crud: Omit<Telemetry.Crud, 'durationMs'>
+    hook: { key: Exclude<Hook.Key<D, P>, 'updated'> }
+    queue: { key: Task['key'] }
+    optimistic: {
+      key: 'optimistic'
+      statusKey?: string
+      dataKeys?: readonly (keyof D)[]
+      result?: Optimistic.Result
+    }
+    updated: { key: 'updated'; dataKey: keyof D }
+  }
+
   interface Crud {
     key: string
     endpoint: string
