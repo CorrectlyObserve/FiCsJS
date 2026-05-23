@@ -294,6 +294,8 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
+export type ProxyMutable<T> = { [K in keyof T]: DeepReadonly.Core<T[K]> }
+
 export declare namespace Query {
   type Api = Pick<
     QueryCache,
