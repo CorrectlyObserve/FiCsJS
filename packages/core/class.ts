@@ -473,14 +473,16 @@ export class FiCsElement<D extends object, P extends object> {
     return { key, durationMs } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
   }
 
-  #getDataProps<B extends boolean = false>(hasMethods?: B): DataProps.Payload<D, P, B> {
+  #getDataProps(): DataProps.Payload<D, P, false>
+  #getDataProps(hasMethods: true): DataProps.Payload<D, P, true>
+  #getDataProps(hasMethods?: boolean): DataProps.Payload<D, P, boolean> {
     return {
       data: this.#data,
       props: this.#props,
       crud: hasMethods ? this.#crud.bind(this) : undefined,
       queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined,
       optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
-    } as DataProps.Payload<D, P, B>
+    } as DataProps.Payload<D, P, boolean>
   }
 
   #enqueue(func: () => AwaitableVoid, key: Task['key']): void {
