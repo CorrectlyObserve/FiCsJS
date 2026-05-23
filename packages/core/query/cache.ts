@@ -614,7 +614,7 @@ export class QueryCache {
         prefetch: this.prefetch.bind(this),
         set: this.set.bind(this),
         get: this.get.bind(this),
-        bindData: this.bindData.bind(this),
+        bindTo: this.bindTo.bind(this),
         optimisticUpdate: this.optimisticUpdate.bind(this),
         expire: this.expire.bind(this),
         abort: this.abort.bind(this)
