@@ -4,6 +4,7 @@ import type {
   ClassName,
   Css,
   DataProps,
+  DeepReadonly,
   Descendant,
   Html,
   Hook,
@@ -21,7 +22,7 @@ export interface FiCsLink<P extends object> {
   props?: SingleOrArray<Props<{}, P>>
   className?: ClassName<{}, P>
   attributes?: Attrs<{}, P>
-  href: (({ props }: { props: P }) => string) | string
+  href: (({ props }: { props: DeepReadonly.Core<P> }) => string) | string
   content: Content<{}, P>
   css?: Css.Ctx<{}, P>
   actions?: Action.Handlers<{}, P>
