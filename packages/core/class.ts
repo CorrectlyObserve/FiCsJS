@@ -1788,6 +1788,7 @@ export class FiCsElement<D extends object, P extends object> {
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
     this.#assertDescribed('setData')
+    this.#guardRouterKey(key)
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
