@@ -437,7 +437,7 @@ export class QueryCache {
     }
   }
 
-  bindData<D extends object, T = unknown>({
+  bindTo<D extends object, T = unknown>({
     key,
     data,
     dataKey,
