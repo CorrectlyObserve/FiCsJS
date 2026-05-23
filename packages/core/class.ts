@@ -1787,14 +1787,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    if (!this.#hasDescribed)
-      throw new Error(
-        `The setData method cannot be called before calling the describe method in ${this.#name}...`
-      )
-
-    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-      throw new Error(`The "${key as string}" cannot be modified in the router component...`)
-
+    this.#assertDescribed('setData')
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
