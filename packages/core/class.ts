@@ -416,8 +416,6 @@ export class FiCsElement<D extends object, P extends object> {
       })
     } catch (callbackError) {
       console.error(`The telemetry ${type} callback failed...`, callbackError)
-    } finally {
-      if (isError) throw error
     }
   }
 
