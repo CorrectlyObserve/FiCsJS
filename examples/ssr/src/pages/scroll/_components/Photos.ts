@@ -161,8 +161,8 @@ export default fics({
 
       const params = { data, signal, shouldInitCache: false }
 
-      queryCache.bindData({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
-      queryCache.bindData({ ...params, key: PAGE_KEY, dataKey: 'page' })
+      queryCache.bindTo({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
+      queryCache.bindTo({ ...params, key: PAGE_KEY, dataKey: 'page' })
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
