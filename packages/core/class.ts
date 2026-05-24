@@ -445,14 +445,14 @@ export class FiCsElement<D extends object, P extends object> {
   #crud(endpoint: string, options: Crud.StreamOptions): Promise<void>
   async #crud<T>(endpoint: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
     const startedAt: number = Date.now(),
-      key: string = options?.key ?? 'crud',
-      method: string = options?.method?.toUpperCase() ?? 'GET',
-      isStream: boolean = !!(options && 'onChunk' in options)
+      details: Telemetry.Details<D, P>['crud'] = {
+        key: options?.key ?? '',
+        endpoint,
+        method: options?.method?.toUpperCase() ?? 'GET',
+        isStream: !!(options && 'onChunk' in options)
+      }
 
-    this.#emitMetric({
-      key: 'crud',
-      detail: this.#createDetail({ key, endpoint, method, isStream })
-    })
+    this.#emitMetric({ key: 'crud', details })
 
     try {
       const result: T | void = await crud({
@@ -463,20 +463,10 @@ export class FiCsElement<D extends object, P extends object> {
         options
       })
 
-      this.#emitMetric({
-        key: 'crud',
-        startedAt,
-        detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
-      })
+      this.#emitMetric({ key: 'crud', startedAt, details })
       return result
     } catch (error) {
-      this.#emitMetric({
-        key: 'crud',
-        error,
-        startedAt,
-        detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
-      })
-
+      this.#emitMetric({ key: 'crud', error, startedAt, details })
       throw error
     }
   }
