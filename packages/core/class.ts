@@ -1735,6 +1735,11 @@ export class FiCsElement<D extends object, P extends object> {
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
+  setDataOptimistically<T>(config: Optimistic.Config<D, T>): Promise<T> {
+    this.#assertDescribed('setDataOptimistically')
+    return this.#optimisticUpdate(config)
+  }
+
   getData<K extends keyof D>(key: K): D[typeof key] {
     this.#assertDescribed('getData')
     return this.#data[key] as D[typeof key]
