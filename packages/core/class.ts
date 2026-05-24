@@ -199,7 +199,7 @@ export class FiCsElement<D extends object, P extends object> {
           if (updated && dataKey in updated) {
             const startedAt: number = Date.now()
 
-            this.#emitMetric({ key: 'updated', detail: this.#createDetail({ dataKey }) })
+            this.#emitMetric({ key: 'updated', details: { dataKey } })
 
             try {
               updated[dataKey]!({
@@ -209,18 +209,9 @@ export class FiCsElement<D extends object, P extends object> {
                 throttle: this.#throttle.bind(this),
                 signal: this.#abortController.signal
               })
-              this.#emitMetric({
-                key: 'updated',
-                startedAt,
-                detail: this.#createDetail({ dataKey, startedAt })
-              })
+              this.#emitMetric({ key: 'updated', startedAt, details: { dataKey } })
             } catch (error) {
-              this.#emitMetric({
-                key: 'updated',
-                error,
-                startedAt,
-                detail: this.#createDetail({ dataKey, startedAt })
-              })
+              this.#emitMetric({ key: 'updated', error, startedAt, details: { dataKey } })
             }
           }
 
