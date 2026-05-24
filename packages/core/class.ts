@@ -85,8 +85,10 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
-  readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
+  readonly #apiStatuses: Map<string, boolean> = new Map()
+  readonly #optimisticChains: Map<string, Promise<void>> = new Map()
+  readonly #optimisticActiveScopes: Set<string> = new Set()
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
   #isDeferred: boolean = true
@@ -468,6 +470,38 @@ export class FiCsElement<D extends object, P extends object> {
       return result
     } catch (error) {
       this.#emitMetric({ key: 'crud', error, startedAt, details })
+      throw error
+    }
+  }
+
+  async #optimisticUpdate<T>(config: Optimistic.Config<D, T>): Promise<T> {
+    const startedAt: number = Date.now(),
+      KEY = 'optimistic' as const,
+      { statusKey, dataKeys } = config,
+      details: Telemetry.Details<D, P>[typeof KEY] = { statusKey, dataKeys }
+
+    this.#emitMetric({ key: KEY, details })
+
+    try {
+      const value: T = await optimisticUpdate<D, T>({
+        runtime: {
+          name: this.#name,
+          data: this.#data,
+          apiStatuses: this.#apiStatuses,
+          enqueue: this.#enqueue.bind(this),
+          reRender: this.#reRender.bind(this),
+          signal: this.#abortController.signal,
+          chains: this.#optimisticChains,
+          activeScopes: this.#optimisticActiveScopes,
+          guardKey: (k: keyof D) => this.#guardRouterKey(k)
+        },
+        config
+      })
+
+      this.#emitMetric({ key: KEY, startedAt, details: { ...details, result: 'success' } })
+      return value
+    } catch (error) {
+      this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
       throw error
     }
   }
@@ -1623,38 +1657,6 @@ export class FiCsElement<D extends object, P extends object> {
   #guardRouterKey(key: keyof D): void {
     if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
       throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
-  }
-
-  async #optimisticUpdate<T>(config: Optimistic.Config<D, T>): Promise<T> {
-    const startedAt: number = Date.now(),
-      KEY = 'optimistic' as const,
-      { statusKey, dataKeys } = config,
-      details: Telemetry.Details<D, P>[typeof KEY] = { statusKey, dataKeys }
-
-    this.#emitMetric({ key: KEY, details })
-
-    try {
-      const value: T = await optimisticUpdate<D, T>({
-        host: {
-          name: this.#name,
-          data: this.#data,
-          apiStatuses: this.#apiStatuses,
-          enqueue: this.#enqueue.bind(this),
-          reRender: this.#reRender.bind(this),
-          signal: this.#abortController.signal,
-          chains: this.#optimisticChains,
-          activeScopes: this.#activeOptimisticScopes,
-          guardKey: (k: keyof D) => this.#guardRouterKey(k)
-        },
-        config
-      })
-
-      this.#emitMetric({ key: KEY, startedAt, details: { ...details, result: 'success' } })
-      return value
-    } catch (error) {
-      this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
-      throw error
-    }
   }
 
   getChildren(): Children {
