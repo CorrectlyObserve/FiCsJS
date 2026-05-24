@@ -580,42 +580,24 @@ export interface Task {
 }
 
 export declare namespace Telemetry {
-  interface Base<D extends object, P> {
-    crud: Omit<Telemetry.Crud, 'durationMs'>
-    hook: { key: Exclude<Hook.Key<D, P>, 'updated'> }
-    queue: { key: Task['key'] }
-    optimistic: {
-      key: 'optimistic'
-      statusKey?: string
-      dataKeys?: readonly (keyof D)[]
-      result?: Optimistic.Result
-    }
-    updated: { key: 'updated'; dataKey: keyof D }
-  }
-
-  interface Crud {
-    key: string
-    endpoint: string
-    method: string
-    isStream: boolean
-    durationMs: number
-  }
-
   interface Ctx<D extends object, P> {
-    key: keyof Detail<D, P>
+    key: keyof Details<D, P>
     error?: unknown
     startedAt?: number
-    detail: Detail<D, P>[Ctx<D, P>['key']]
+    details: Details<D, P>[Ctx<D, P>['key']]
   }
 
-  type Detail<D extends object, P> = {
-    [K in keyof Base<D, P>]: Base<D, P>[K] & { durationMs: number }
-  }
+  type Details<D extends object, P> = {
+    crud: { key: string; endpoint: string; method: string; isStream: boolean }
+    optimistic: { statusKey?: string; dataKeys?: readonly (keyof D)[]; result?: Optimistic.Result }
+    updated: { dataKey: keyof D }
+  } & { [K in Exclude<Hook.Key<D, P>, 'updated'> | Task['key']]: {} }
 
-  interface Metric<D extends object, P> extends Ctx<D, P> {
-    status: Status
+  interface Metric<D extends object, P> extends Omit<Ctx<D, P>, 'details'> {
     name: string
     instanceId: string
+    status: 'starting' | 'success' | 'error'
+    details: Details<D, P>[Ctx<D, P>['key']] & { durationMs: number }
     timestamp: number
   }
 
@@ -623,8 +605,6 @@ export declare namespace Telemetry {
     onMetric?: (metric: Metric<D, P>) => void
     onError?: (metric: Metric<D, P>) => void
   }
-
-  type Status = 'starting' | 'success' | 'error'
 }
 
 export declare namespace Template {
