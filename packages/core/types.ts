@@ -234,13 +234,15 @@ export declare namespace Optimistic {
   }
 
   interface Ctx<D extends object, T> {
-    host: Host<D>
+    runtime: Runtime<D>
     config: Config<D, T>
   }
 
   type Fn<D extends object> = <T>(config: Config<D, T>) => Promise<T>
 
-  interface Host<D extends object> {
+  type Result = 'success' | 'reverted'
+
+  interface Runtime<D extends object> {
     name: string
     data: D
     apiStatuses: Map<string, boolean>
@@ -251,8 +253,6 @@ export declare namespace Optimistic {
     activeScopes: Set<string>
     guardKey?: (key: keyof D) => void
   }
-
-  type Result = 'success' | 'reverted'
 }
 
 export declare namespace Options {
