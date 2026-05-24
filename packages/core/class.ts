@@ -400,77 +400,24 @@ export class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #emitMetric({ key, error, startedAt, detail }: Telemetry.Ctx<D, P>): void {
+  #emitMetric({ key, error, startedAt, details }: Telemetry.Ctx<D, P>): void {
     const isError: boolean = error !== undefined,
       type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric'
 
     try {
+      const timestamp: number = Date.now()
       this.#options.telemetry?.[type]?.({
         key,
-        status: startedAt === undefined ? 'starting' : isError ? 'error' : 'success',
         name: this.#name,
         instanceId: this.#instanceId,
+        status: startedAt === undefined ? 'starting' : isError ? 'error' : 'success',
         error,
-        detail,
-        timestamp: Date.now()
+        details: { ...details, durationMs: startedAt === undefined ? 0 : timestamp - startedAt },
+        timestamp
       })
     } catch (callbackError) {
       console.error(`The telemetry ${type} callback failed...`, callbackError)
     }
-  }
-
-  #createDetail({
-    key,
-    startedAt
-  }: {
-    key: Task['key']
-    startedAt?: number
-  }): Telemetry.Detail<D, P>['queue']
-  #createDetail({
-    key,
-    endpoint,
-    method,
-    isStream,
-    startedAt
-  }: Omit<Telemetry.Crud, 'durationMs'> & { startedAt?: number }): Telemetry.Crud
-  #createDetail({
-    key,
-    startedAt
-  }: {
-    key: Exclude<Hook.Key<D, P>, 'updated'>
-    startedAt?: number
-  }): Telemetry.Detail<D, P>['hook']
-  #createDetail({
-    dataKey,
-    startedAt
-  }: {
-    dataKey: keyof D
-    startedAt?: number
-  }): Telemetry.Detail<D, P>['updated']
-  #createDetail({
-    key,
-    endpoint,
-    method,
-    isStream,
-    dataKey,
-    startedAt
-  }: {
-    key?: Task['key'] | Hook.Key<D, P> | string
-    endpoint?: string
-    method?: string
-    isStream?: boolean
-    dataKey?: keyof D
-    startedAt?: number
-  }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
-    const durationMs: number = startedAt === undefined ? 0 : Date.now() - startedAt
-
-    if (endpoint && method && isStream !== undefined)
-      return { key, endpoint, method, isStream, durationMs } as Telemetry.Crud
-
-    if (dataKey !== undefined)
-      return { key: 'updated', dataKey, durationMs } as Telemetry.Detail<D, P>['updated']
-
-    return { key, durationMs } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
   }
 
   #getDataProps(): DataProps.Payload<D, P, false>
