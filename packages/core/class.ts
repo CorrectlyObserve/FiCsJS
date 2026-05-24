@@ -1365,22 +1365,13 @@ export class FiCsElement<D extends object, P extends object> {
       },
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
-        this.#emitMetric({ key: 'hook', detail: this.#createDetail({ key }) })
+        this.#emitMetric({ key, details: {} })
 
         try {
           callback()
-          this.#emitMetric({
-            key: 'hook',
-            startedAt,
-            detail: this.#createDetail({ key, startedAt })
-          })
+          this.#emitMetric({ key, startedAt, details: {} })
         } catch (error) {
-          this.#emitMetric({
-            key: 'hook',
-            error,
-            startedAt,
-            detail: this.#createDetail({ key, startedAt })
-          })
+          this.#emitMetric({ key, error, startedAt, details: {} })
         }
       }
 
