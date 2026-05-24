@@ -430,13 +430,13 @@ export class FiCsElement<D extends object, P extends object> {
       key,
       func: async (): Promise<void> => {
         const startedAt: number = Date.now()
-        this.#emitMetric({ key, details: {} })
+        this.#emitMetric({ key })
 
         try {
           await func()
-          this.#emitMetric({ key, startedAt, details: {} })
+          this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({ key, error, startedAt, details: {} })
+          this.#emitMetric({ key, error, startedAt })
         }
       }
     })
