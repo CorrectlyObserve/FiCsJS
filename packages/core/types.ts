@@ -584,7 +584,7 @@ export declare namespace Telemetry {
     key: keyof Details<D, P>
     error?: unknown
     startedAt?: number
-    details: Details<D, P>[Ctx<D, P>['key']]
+    details?: Details<D, P>[Ctx<D, P>['key']]
   }
 
   type Details<D extends object, P> = {
