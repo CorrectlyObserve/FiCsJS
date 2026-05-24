@@ -1627,11 +1627,11 @@ export class FiCsElement<D extends object, P extends object> {
 
   async #optimisticUpdate<T>(config: Optimistic.Config<D, T>): Promise<T> {
     const startedAt: number = Date.now(),
-      key = 'optimistic' as const,
+      KEY = 'optimistic' as const,
       { statusKey, dataKeys } = config,
-      details: Telemetry.Details<D, P>[typeof key] = { statusKey, dataKeys }
+      details: Telemetry.Details<D, P>[typeof KEY] = { statusKey, dataKeys }
 
-    this.#emitMetric({ key, details })
+    this.#emitMetric({ key: KEY, details })
 
     try {
       const value: T = await optimisticUpdate<D, T>({
@@ -1649,10 +1649,10 @@ export class FiCsElement<D extends object, P extends object> {
         config
       })
 
-      this.#emitMetric({ key, startedAt, details: { ...details, result: 'success' } })
+      this.#emitMetric({ key: KEY, startedAt, details: { ...details, result: 'success' } })
       return value
     } catch (error) {
-      this.#emitMetric({ key, error, startedAt, details: { ...details, result: 'reverted' } })
+      this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
       throw error
     }
   }
