@@ -195,11 +195,12 @@ export class FiCsElement<D extends object, P extends object> {
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
           if (subscribers) for (const updater of subscribers) updater()
 
-          const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
+          const KEY = 'updated' as const,
+            updated: Hook.Lifecycle<D, P>[typeof KEY] | undefined = this.#hooks.updated
+
           if (updated && dataKey in updated) {
             const startedAt: number = Date.now()
-
-            this.#emitMetric({ key: 'updated', details: { dataKey } })
+            this.#emitMetric({ key: KEY, details: { dataKey } })
 
             try {
               updated[dataKey]!({
@@ -209,9 +210,9 @@ export class FiCsElement<D extends object, P extends object> {
                 throttle: this.#throttle.bind(this),
                 signal: this.#abortController.signal
               })
-              this.#emitMetric({ key: 'updated', startedAt, details: { dataKey } })
+              this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
             } catch (error) {
-              this.#emitMetric({ key: 'updated', error, startedAt, details: { dataKey } })
+              this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
             }
           }
 
