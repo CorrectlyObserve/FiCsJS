@@ -16,6 +16,7 @@ import {
   uid
 } from './helpers'
 import { i18n } from './i18n'
+import { optimisticUpdate } from './optimisticUpdate'
 import { enqueue } from './queue'
 import { constants as scrollConstants } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
