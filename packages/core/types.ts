@@ -589,7 +589,11 @@ export declare namespace Telemetry {
 
   type Details<D extends object, P> = {
     crud: { key: string; endpoint: string; method: string; isStream: boolean }
-    optimistic: { statusKey?: string; dataKeys?: Optimistic.DataKeys<D>; result?: Optimistic.Result }
+    optimistic: {
+      statusKey?: string
+      dataKeys?: Optimistic.DataKeys<D>
+      result?: Optimistic.Result
+    }
     updated: { dataKey: keyof D }
   } & { [K in Exclude<Hook.Key<D, P>, 'updated'> | Task['key']]: {} }
 
