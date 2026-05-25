@@ -8,6 +8,7 @@ import type { Crud, SetTimeout } from './types'
  */
 export const crud = async <T>({
   endpoint,
+  name,
   apiStatuses,
   enqueue,
   reRender,
