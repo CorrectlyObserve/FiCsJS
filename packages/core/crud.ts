@@ -52,7 +52,13 @@ export const crud = async <T>({
       let timer: SetTimeout | undefined
       if (timeoutMs && timeoutMs > 0)
         timer = setTimeout(
-          () => controller.abort(new DOMException('Timeout', 'AbortError')),
+          () =>
+            controller.abort(
+              new DOMException(
+                `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`,
+                'AbortError'
+              )
+            ),
           timeoutMs
         )
 
