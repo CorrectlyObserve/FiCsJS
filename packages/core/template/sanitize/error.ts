@@ -6,7 +6,7 @@ export const error = (name: string, type: 'name' | 'unquoted' | Template.Context
     case 'name':
     case 'unquoted':
       return new Error(
-        `The attribute fragment in ${name} is ${type === 'name' ? 'invalid' : 'not properly closed'}...`
+        `The attribute fragment in the ${name} is ${type === 'name' ? 'invalid' : 'not properly closed'}...`
       )
 
     case 'text':
