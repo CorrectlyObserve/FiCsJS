@@ -356,6 +356,8 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
+
+    this.#optimisticUpdateFn = optimisticUpdate()
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -483,7 +485,7 @@ export class FiCsElement<D extends object, P extends object> {
     this.#emitMetric({ key: KEY, details })
 
     try {
-      const value: T = await optimisticUpdate<D, T>({
+      const optimisticUpdated: T = await this.#optimisticUpdateFn({
         runtime: {
           name: this.#name,
           data: this.#data,
@@ -491,15 +493,13 @@ export class FiCsElement<D extends object, P extends object> {
           enqueue: this.#enqueue.bind(this),
           reRender: this.#reRender.bind(this),
           signal: this.#abortController.signal,
-          chains: this.#optimisticChains,
-          activeScopes: this.#optimisticActiveScopes,
           guardKey: (k: keyof D) => this.#guardRouterKey(k)
         },
         config
       })
 
       this.#emitMetric({ key: KEY, startedAt, details: { ...details, result: 'success' } })
-      return value
+      return optimisticUpdated
     } catch (error) {
       this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
       throw error
