@@ -88,8 +88,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #apiStatuses: Map<string, boolean> = new Map()
-  readonly #optimisticChains: Map<string, Promise<void>> = new Map()
-  readonly #optimisticActiveScopes: Set<string> = new Set()
+  readonly #optimisticUpdateFn: ReturnType<typeof optimisticUpdate>
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
   #isDeferred: boolean = true
