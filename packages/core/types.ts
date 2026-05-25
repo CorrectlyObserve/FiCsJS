@@ -251,8 +251,6 @@ export declare namespace Optimistic {
     enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     signal: AbortSignal
-    chains: Map<string, Promise<void>>
-    activeScopes: Set<string>
     guardKey?: (key: keyof D) => void
   }
 }
