@@ -225,7 +225,7 @@ export declare namespace Optimistic {
   interface Config<D extends object, T> {
     apply: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
     commit: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
-    dataKeys?: readonly (keyof D)[]
+    dataKeys?: DataKeys<D>
     statusKey?: string
     timeoutMs?: number
     intervalMs?: number
