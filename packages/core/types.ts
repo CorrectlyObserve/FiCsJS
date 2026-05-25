@@ -238,6 +238,8 @@ export declare namespace Optimistic {
     config: Config<D, T>
   }
 
+  type DataKeys<D extends object> = readonly (keyof D)[]
+
   type Fn<D extends object> = <T>(config: Config<D, T>) => Promise<T>
 
   type Result = 'success' | 'reverted'
