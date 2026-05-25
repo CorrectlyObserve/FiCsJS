@@ -462,6 +462,7 @@ export class FiCsElement<D extends object, P extends object> {
     try {
       const result: T | void = await crud({
         endpoint,
+        name: this.#name,
         apiStatuses: this.#apiStatuses,
         enqueue: this.#enqueue.bind(this),
         reRender: this.#reRender.bind(this),
