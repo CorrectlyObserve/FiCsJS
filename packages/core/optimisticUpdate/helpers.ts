@@ -9,22 +9,21 @@ export const createBackup = <D extends object>(
     originalKeys: ReadonlySet<keyof D> = new Set(getDataKeys(data))
 
   const backup = (target: D, prop: keyof D): void => {
-    if (modifiedKeys.has(prop)) return
+      if (modifiedKeys.has(prop)) return
 
-    guardKey?.(prop)
+      guardKey?.(prop)
 
-    if (typeof target[prop] === 'function') backupData[prop] = target[prop]
-    else
-      try {
-        backupData[prop] = structuredClone(target[prop])
-      } catch (error) {
-        throw new Error(`The value "${String(prop)}" cannot be deep-cloned...`, { cause: error })
-      }
+      if (typeof target[prop] === 'function') backupData[prop] = target[prop]
+      else
+        try {
+          backupData[prop] = structuredClone(target[prop])
+        } catch (error) {
+          throw new Error(`The value "${String(prop)}" cannot be deep-cloned...`, { cause: error })
+        }
 
-    modifiedKeys.add(prop)
-  }
-
-  const backedUpData: ProxyMutable<D> = new Proxy(data, {
+      modifiedKeys.add(prop)
+    },
+    backedUpData: ProxyMutable<D> = new Proxy(data, {
       set(target, prop, value, receiver): boolean {
         backup(target, prop as keyof D)
         return Reflect.set(target, prop, value, receiver)
