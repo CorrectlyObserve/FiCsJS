@@ -495,6 +495,7 @@ export class FiCsElement<D extends object, P extends object> {
       const optimisticUpdated: T = await this.#optimisticUpdateFn({
         runtime: {
           name: this.#name,
+          rawData: this.#rawData,
           data: this.#data,
           activeApis: this.#activeApis,
           enqueue: this.#enqueue.bind(this),
