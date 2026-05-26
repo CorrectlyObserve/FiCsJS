@@ -484,7 +484,7 @@ export class QueryCache {
   async optimisticUpdate<T = unknown>({
     key,
     newQuery,
-    updater,
+    mutator,
     maxRetries,
     signal
   }: Query.OptimisticUpdate<T>): Promise<void> {
@@ -531,7 +531,7 @@ export class QueryCache {
         attempt++
 
         try {
-          this.#dispatchState(entry, { value: await updater(), updatedAt: Date.now() })
+          this.#dispatchState(entry, { value: await mutator(), updatedAt: Date.now() })
           this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'optimistic' })
           this.#endOptimisticUpdate({ entry, result: 'success', attempt, startedAt })
 
@@ -556,7 +556,7 @@ export class QueryCache {
             this.#dispatchState(entry, { value, updatedAt: Date.now() })
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
 
-            /** @remarks Rethrow updater()'s original error, not delay()'s AbortError. */
+            /** @remarks Rethrow mutator()'s original error, not delay()'s AbortError. */
             throw error
           }
         }
