@@ -224,8 +224,8 @@ export interface I18n {
 
 export declare namespace Optimistic {
   interface Config<D extends object, T> {
-    apply: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
-    commit: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
+    updateData: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
+    mutate: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
     dataKeys?: DataKeys<D>
     statusKey?: string
     timeoutMs?: number
