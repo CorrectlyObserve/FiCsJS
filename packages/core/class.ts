@@ -403,7 +403,8 @@ export class FiCsElement<D extends object, P extends object> {
 
   #emitMetric({ key, error, startedAt, details }: Telemetry.Ctx<D, P>): void {
     const isError: boolean = error !== undefined,
-      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric'
+      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric',
+      hasNotStarted = startedAt === undefined
 
     try {
       const timestamp: number = Date.now()
@@ -411,9 +412,9 @@ export class FiCsElement<D extends object, P extends object> {
         key,
         name: this.#name,
         instanceId: this.#instanceId,
-        status: startedAt === undefined ? 'starting' : isError ? 'error' : 'success',
+        status: hasNotStarted ? 'starting' : isError ? 'error' : 'success',
         error,
-        details: { ...details, durationMs: startedAt === undefined ? 0 : timestamp - startedAt },
+        details: { ...(details ?? {}), durationMs: hasNotStarted ? 0 : timestamp - startedAt },
         timestamp
       })
     } catch (callbackError) {
