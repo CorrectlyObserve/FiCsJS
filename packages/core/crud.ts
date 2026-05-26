@@ -88,6 +88,7 @@ export const crud = async <T>({
           try {
             await delay(getDelayMs({ error, attempt, intervalMs }), signal)
           } catch {
+            /** @remarks Rethrow fetch()'s original error, not delay()'s AbortError. */
             throw error
           }
         }
