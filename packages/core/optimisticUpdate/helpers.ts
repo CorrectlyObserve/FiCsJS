@@ -10,7 +10,7 @@ export const createBackup = <D extends object>({
   guardKey?: (key: keyof D) => void
 }): Optimistic.Backup<D> => {
   const backupData: Partial<D> = {},
-    modifiedKeys: Set<keyof D> = new Set(),
+    touchedKeys: Set<keyof D> = new Set(),
     originalKeys: ReadonlySet<keyof D> = new Set(getDataKeys(rawData))
 
   const backup = (prop: keyof D): void => {
