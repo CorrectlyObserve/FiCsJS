@@ -42,6 +42,7 @@ export const createBackup = <D extends object>({
       }
     }) as ProxyMutable<D>,
     rollback = (): void => {
+      /** @remarks Cleans up newly added keys to ensure a complete rollback to the original state. */
       for (const touchedKey of touchedKeys)
         if (!originalKeys.has(touchedKey)) delete data[touchedKey]
 
