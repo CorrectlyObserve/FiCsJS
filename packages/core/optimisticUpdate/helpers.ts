@@ -38,10 +38,8 @@ export const createBackup = <D extends object>(
       for (const currentKey of getDataKeys(data))
         if (!originalKeys.has(currentKey)) delete data[currentKey]
 
-      for (const modifiedKey of modifiedKeys) {
-        const backedUp: Partial<D>[keyof D] = backupData[modifiedKey]
-        if (originalKeys.has(modifiedKey) && backedUp !== undefined) data[modifiedKey] = backedUp
-      }
+      for (const modifiedKey of modifiedKeys)
+        if (originalKeys.has(modifiedKey)) data[modifiedKey] = backupData[modifiedKey] as D[keyof D]
     }
 
   return { backedUpData, rollback, modifiedKeys }
