@@ -463,7 +463,7 @@ export class FiCsElement<D extends object, P extends object> {
       const result: T | void = await crud({
         endpoint,
         name: this.#name,
-        apiStatuses: this.#apiStatuses,
+        activeApis: this.#activeApis,
         enqueue: this.#enqueue.bind(this),
         reRender: this.#reRender.bind(this),
         options
@@ -490,7 +490,7 @@ export class FiCsElement<D extends object, P extends object> {
         runtime: {
           name: this.#name,
           data: this.#data,
-          apiStatuses: this.#apiStatuses,
+          activeApis: this.#activeApis,
           enqueue: this.#enqueue.bind(this),
           reRender: this.#reRender.bind(this),
           signal: this.#abortController.signal,
@@ -735,7 +735,7 @@ export class FiCsElement<D extends object, P extends object> {
       ): Html.Sanitized<D, P> => template(strings, ...variables),
       unsafeHtml: (str: string): Record<symbol, string> => ({ [UNSAFE_HTML]: str }),
       show: (condition: boolean): string => (condition ? '' : SHOW),
-      apiStatuses: Object.fromEntries(this.#apiStatuses),
+      activeApis: Object.fromEntries(this.#activeApis),
       attributes: {
         boolean: (condition: boolean | undefined): 'true' | 'false' =>
           condition ? 'true' : 'false',
