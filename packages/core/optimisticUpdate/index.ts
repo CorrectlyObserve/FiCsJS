@@ -88,7 +88,7 @@ export const optimisticUpdate = () => {
               'AbortError'
             )
 
-          const { backedUpData, rollback, modifiedKeys }: Optimistic.Backup<D> = createBackup({
+          const { backedUpData, rollback, touchedKeys }: Optimistic.Backup<D> = createBackup({
             rawData,
             data,
             guardKey
@@ -103,10 +103,10 @@ export const optimisticUpdate = () => {
 
           if (hasDataKeys(dataKeys)) {
             const declaredDataKeys: Set<keyof D> = new Set(dataKeys!)
-            for (const modifiedKey of modifiedKeys)
-              if (!declaredDataKeys.has(modifiedKey))
+            for (const touchedKey of touchedKeys)
+              if (!declaredDataKeys.has(touchedKey))
                 console.warn(
-                  `The Undeclared key '${String(modifiedKey)}' was modified. Please add it to 'dataKeys' for concurrent safety...`
+                  `The Undeclared key '${String(touchedKey)}' was modified. Please add it to 'dataKeys' for concurrent safety...`
                 )
           }
 
