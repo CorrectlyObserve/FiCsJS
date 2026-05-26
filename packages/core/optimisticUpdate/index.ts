@@ -162,7 +162,7 @@ export const optimisticUpdate = () => {
                 await delay(getDelayMs({ error, attempt, intervalMs }), controller.signal)
               } catch {
                 rollback()
-                /** @remarks Rethrow mutate()'s original error, not delay()'s AbortError. */
+                /** @remarks Rethrows mutate()'s original error, not delay()'s AbortError. */
                 throw error
               }
             }
