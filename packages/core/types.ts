@@ -226,7 +226,7 @@ export declare namespace Optimistic {
   interface Backup<D extends object> {
     backedUpData: ProxyMutable<D>
     rollback: () => void
-    modifiedKeys: Set<keyof D>
+    touchedKeys: Set<keyof D>
   }
 
   interface Config<D extends object, T> {
