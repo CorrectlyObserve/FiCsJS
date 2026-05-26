@@ -67,7 +67,7 @@ export default fics({
     data: { isHorizontal, photos, photoId, author },
     template,
     show,
-    apiStatuses: { isLoading },
+    activeApis: { isLoading },
     attributes: { statusLiveRegion, boolean },
     scroll
   }) => {
