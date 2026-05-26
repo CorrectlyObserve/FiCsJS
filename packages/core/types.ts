@@ -253,6 +253,7 @@ export declare namespace Optimistic {
 
   interface Runtime<D extends object> {
     name: string
+    rawData: D
     data: D
     activeApis: Map<string, boolean>
     enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
