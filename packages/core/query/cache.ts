@@ -556,7 +556,7 @@ export class QueryCache {
             this.#dispatchState(entry, { value, updatedAt: Date.now() })
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
 
-            /** @remarks Rethrow mutator()'s original error, not delay()'s AbortError. */
+            /** @remarks Rethrows mutator()'s original error, not delay()'s AbortError. */
             throw error
           }
         }
