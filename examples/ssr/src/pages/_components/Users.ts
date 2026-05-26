@@ -48,7 +48,7 @@ export default fics({
             .optimisticUpdate<User[]>({
               key: USERS_KEY,
               newQuery: newArray,
-              updater: async () => {
+              mutator: async () => {
                 const createdUser = await crud<User>(BASE_URL, {
                     method: 'POST',
                     headers,
@@ -96,7 +96,7 @@ export default fics({
                 await queryCache.optimisticUpdate<User[]>({
                   key: USERS_KEY,
                   newQuery: current => filteredUsers(current ?? []),
-                  updater: async () => {
+                  mutator: async () => {
                     await crud<User>(`${BASE_URL}/${userId}`, { method, headers })
                     return filteredUsers(queryCache.get<User[]>(USERS_KEY) ?? [])
                   }
@@ -120,7 +120,7 @@ export default fics({
                     key: USERS_KEY,
                     newQuery: current =>
                       (current ?? []).map(user => (user.id === userId ? { ...user, name } : user)),
-                    updater: async () => {
+                    mutator: async () => {
                       const createdUser = await crud<User>(`${BASE_URL}/${userId}`, {
                         method,
                         headers,
@@ -158,7 +158,7 @@ export default fics({
   `,
   hooks: {
     created: ({ data, queryCache, signal }) => {
-      queryCache.bindData({ key: USERS_KEY, data, dataKey: 'users', signal })
+      queryCache.bindTo({ key: USERS_KEY, data, dataKey: 'users', signal })
     },
     mounted: async ({ data, queryCache, crud, signal }) => {
       if (data.users.length === 0) return
@@ -170,7 +170,7 @@ export default fics({
       await queryCache.optimisticUpdate<User[]>({
         key: USERS_KEY,
         newQuery: current => [...(current ?? []), expectedUser],
-        updater: async () => {
+        mutator: async () => {
           const createdUser = await crud<User>(BASE_URL, {
               method: 'POST',
               headers,

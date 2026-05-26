@@ -67,7 +67,7 @@ export default fics({
     data: { isHorizontal, photos, photoId, author },
     template,
     show,
-    apiStatuses: { isLoading },
+    activeApis: { isLoading },
     attributes: { statusLiveRegion, boolean },
     scroll
   }) => {
@@ -161,8 +161,8 @@ export default fics({
 
       const params = { data, signal, shouldInitCache: false }
 
-      queryCache.bindData({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
-      queryCache.bindData({ ...params, key: PAGE_KEY, dataKey: 'page' })
+      queryCache.bindTo({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
+      queryCache.bindTo({ ...params, key: PAGE_KEY, dataKey: 'page' })
     },
     mounted: ({ data, throttle }) => {
       window.history.scrollRestoration = 'manual'
@@ -284,7 +284,7 @@ export default fics({
         await queryCache.optimisticUpdate<number>({
           key: PAGE_KEY,
           newQuery: nextPage,
-          updater: async () => {
+          mutator: async () => {
             const photos = await crud<Photo[]>(getPhotos(nextPage), { key: 'isLoading' })
 
             if (data.page !== nextPage) return data.page

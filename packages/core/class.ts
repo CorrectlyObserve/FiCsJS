@@ -16,6 +16,7 @@ import {
   uid
 } from './helpers'
 import { i18n } from './i18n'
+import { optimisticUpdate } from './optimisticUpdate'
 import { enqueue } from './queue'
 import { constants as scrollConstants } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
@@ -29,6 +30,7 @@ import { sanitize } from './template/sanitize'
 import type {
   Action,
   Attrs,
+  AwaitableVoid,
   Children,
   ClassName,
   Crud,
@@ -39,6 +41,7 @@ import type {
   Html,
   Hook,
   I18n,
+  Optimistic,
   Options,
   Props,
   Scroll,
@@ -47,7 +50,6 @@ import type {
   SSE,
   Task,
   Telemetry,
-  Void,
   WebSocket as WebSocketNS
 } from './types'
 import { openWebSocket } from './websocket'
@@ -55,7 +57,7 @@ import { openWebSocket } from './websocket'
 export class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
-  static #activeContext: { instance: Descendant; updater: () => void } | null = null
+  static #activeEffect: { instance: Descendant; run: () => void } | null = null
   static globalCss: Css.Global[] = []
   readonly #nameKey: string
   readonly #instanceId: string
@@ -84,8 +86,9 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
-  readonly #apiStatuses: Map<string, boolean> = new Map()
   readonly #clonedSelves: Map<string, Descendant> = new Map()
+  readonly #activeApis: Map<string, boolean> = new Map()
+  readonly #optimisticUpdateFn: ReturnType<typeof optimisticUpdate>
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
   #isDeferred: boolean = true
@@ -175,11 +178,11 @@ export class FiCsElement<D extends object, P extends object> {
 
       this.#data = new Proxy(this.#rawData, {
         get: (target, prop, receiver): D[keyof D] => {
-          if (FiCsElement.#activeContext) {
+          if (FiCsElement.#activeEffect) {
             const key: keyof D = prop as keyof D
 
             if (!this.#subscribers.data.has(key)) this.#subscribers.data.set(key, new Set())
-            this.#subscribers.data.get(key)!.add(FiCsElement.#activeContext.updater)
+            this.#subscribers.data.get(key)!.add(FiCsElement.#activeEffect.run)
           }
 
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
@@ -192,13 +195,14 @@ export class FiCsElement<D extends object, P extends object> {
           this.#rawData[dataKey] = value
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
-          if (subscribers) for (const updater of subscribers) updater()
+          if (subscribers) for (const run of subscribers) run()
 
-          const updated: Hook.Lifecycle<D, P>['updated'] | undefined = this.#hooks.updated
+          const KEY = 'updated' as const,
+            updated: Hook.Lifecycle<D, P>[typeof KEY] | undefined = this.#hooks.updated
+
           if (updated && dataKey in updated) {
             const startedAt: number = Date.now()
-
-            this.#emitMetric({ key: 'updated', detail: this.#createDetail({ dataKey }) })
+            this.#emitMetric({ key: KEY, details: { dataKey } })
 
             try {
               updated[dataKey]!({
@@ -208,18 +212,14 @@ export class FiCsElement<D extends object, P extends object> {
                 throttle: this.#throttle.bind(this),
                 signal: this.#abortController.signal
               })
-              this.#emitMetric({
-                key: 'updated',
-                startedAt,
-                detail: this.#createDetail({ dataKey, startedAt })
-              })
+              this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
             } catch (error) {
-              this.#emitMetric({
-                key: 'updated',
-                error,
-                startedAt,
-                detail: this.#createDetail({ dataKey, startedAt })
-              })
+              this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
+              if (!this.#options.telemetry?.onError)
+                console.error(
+                  `The updated hook of "${String(dataKey)}" failed in the ${this.#name}...`,
+                  error
+                )
             }
           }
 
@@ -238,11 +238,11 @@ export class FiCsElement<D extends object, P extends object> {
 
     this.#props = new Proxy(this.#rawProps, {
       get: (target, prop, receiver): P[keyof P] => {
-        if (FiCsElement.#activeContext) {
+        if (FiCsElement.#activeEffect) {
           const key: keyof P = prop as keyof P
 
           if (!this.#subscribers.props.has(key)) this.#subscribers.props.set(key, new Set())
-          this.#subscribers.props.get(key)!.add(FiCsElement.#activeContext.updater)
+          this.#subscribers.props.get(key)!.add(FiCsElement.#activeEffect.run)
         }
 
         return this.#bindFunction(Reflect.get(target, prop, receiver)) as P[keyof P]
@@ -255,7 +255,7 @@ export class FiCsElement<D extends object, P extends object> {
         this.#rawProps[key] = value
 
         const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
-        if (subscribers) for (const updater of subscribers) updater()
+        if (subscribers) for (const run of subscribers) run()
 
         if (this.#clonedSelves.size > 0)
           for (const clone of this.#clonedSelves.values()) clone.#props[key] = value
@@ -361,6 +361,8 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
+
+    this.#optimisticUpdateFn = optimisticUpdate()
   }
 
   #clone(instanceId?: string): FiCsElement<D, P> {
@@ -399,112 +401,53 @@ export class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #emitMetric({ key, error, startedAt, detail }: Telemetry.Ctx<D, P>): void {
+  #emitMetric({ key, error, startedAt, details }: Telemetry.Ctx<D, P>): void {
     const isError: boolean = error !== undefined,
-      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric'
+      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric',
+      hasNotStarted = startedAt === undefined
 
     try {
+      const timestamp: number = Date.now()
       this.#options.telemetry?.[type]?.({
         key,
-        status: startedAt === undefined ? 'starting' : isError ? 'error' : 'success',
         name: this.#name,
         instanceId: this.#instanceId,
+        status: hasNotStarted ? 'starting' : isError ? 'error' : 'success',
         error,
-        detail,
-        timestamp: Date.now()
+        details: { ...(details ?? {}), durationMs: hasNotStarted ? 0 : timestamp - startedAt },
+        timestamp
       })
     } catch (callbackError) {
       console.error(`The telemetry ${type} callback failed...`, callbackError)
-    } finally {
-      if (isError) throw error
     }
   }
 
-  #createDetail({
-    key,
-    startedAt
-  }: {
-    key: Task['key']
-    startedAt?: number
-  }): Telemetry.Detail<D, P>['queue']
-  #createDetail({
-    key,
-    endpoint,
-    method,
-    isStream,
-    startedAt
-  }: Omit<Telemetry.Crud, 'durationMs'> & { startedAt?: number }): Telemetry.Crud
-  #createDetail({
-    key,
-    startedAt
-  }: {
-    key: Exclude<Hook.Key<D, P>, 'updated'>
-    startedAt?: number
-  }): Telemetry.Detail<D, P>['hook']
-  #createDetail({
-    dataKey,
-    startedAt
-  }: {
-    dataKey: keyof D
-    startedAt?: number
-  }): Telemetry.Detail<D, P>['updated']
-  #createDetail({
-    key,
-    endpoint,
-    method,
-    isStream,
-    dataKey,
-    startedAt
-  }: {
-    key?: Task['key'] | Hook.Key<D, P> | string
-    endpoint?: string
-    method?: string
-    isStream?: boolean
-    dataKey?: keyof D
-    startedAt?: number
-  }): Telemetry.Detail<D, P>[keyof Telemetry.Detail<D, P>] {
-    const durationMs: number = startedAt === undefined ? 0 : Date.now() - startedAt
-
-    if (endpoint && method && isStream !== undefined)
-      return { key, endpoint, method, isStream, durationMs } as Telemetry.Crud
-
-    if (dataKey !== undefined)
-      return { key: 'updated', dataKey, durationMs } as Telemetry.Detail<D, P>['updated']
-
-    return { key, durationMs } as Telemetry.Detail<D, P>['queue'] | Telemetry.Detail<D, P>['hook']
-  }
-
-  #getDataProps<B extends boolean = false>(hasMethods?: B): DataProps.Payload<D, P, B> {
+  #getDataProps(): DataProps.Payload<D, P, false>
+  #getDataProps(hasMethods: true): DataProps.Payload<D, P, true>
+  #getDataProps(hasMethods?: boolean): DataProps.Payload<D, P, boolean> {
     return {
       data: this.#data,
       props: this.#props,
       crud: hasMethods ? this.#crud.bind(this) : undefined,
-      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined
-    } as DataProps.Payload<D, P, B>
+      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined,
+      optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
+    } as DataProps.Payload<D, P, boolean>
   }
 
-  #enqueue(func: () => Void, key: Task['key']): void {
+  #enqueue(func: () => AwaitableVoid, key: Task['key']): void {
     enqueue({
       instanceId: this.#instanceId,
       key,
       func: async (): Promise<void> => {
         const startedAt: number = Date.now()
-        this.#emitMetric({ key: 'queue', detail: this.#createDetail({ key }) })
+        this.#emitMetric({ key })
 
         try {
           await func()
-          this.#emitMetric({
-            key: 'queue',
-            startedAt,
-            detail: this.#createDetail({ key, startedAt })
-          })
+          this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({
-            key: 'queue',
-            error,
-            startedAt,
-            detail: this.#createDetail({ key, startedAt })
-          })
+          this.#emitMetric({ key, error, startedAt })
+          if (!this.#options.telemetry?.onError) throw error
         }
       }
     })
@@ -514,37 +457,61 @@ export class FiCsElement<D extends object, P extends object> {
   #crud(endpoint: string, options: Crud.StreamOptions): Promise<void>
   async #crud<T>(endpoint: string, options?: Crud.Options | Crud.StreamOptions): Promise<T | void> {
     const startedAt: number = Date.now(),
-      key: string = options?.key ?? 'crud',
-      method: string = options?.method?.toUpperCase() ?? 'GET',
-      isStream: boolean = !!(options && 'onChunk' in options)
+      details: Telemetry.Details<D, P>['crud'] = {
+        key: options?.key ?? '',
+        endpoint,
+        method: options?.method?.toUpperCase() ?? 'GET',
+        isStream: !!(options && 'onChunk' in options)
+      }
 
-    this.#emitMetric({
-      key: 'crud',
-      detail: this.#createDetail({ key, endpoint, method, isStream })
-    })
+    this.#emitMetric({ key: 'crud', details })
 
     try {
       const result: T | void = await crud({
         endpoint,
-        apiStatuses: this.#apiStatuses,
+        name: this.#name,
+        activeApis: this.#activeApis,
         enqueue: this.#enqueue.bind(this),
         reRender: this.#reRender.bind(this),
         options
       })
 
-      this.#emitMetric({
-        key: 'crud',
-        startedAt,
-        detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
-      })
+      this.#emitMetric({ key: 'crud', startedAt, details })
       return result
     } catch (error) {
-      this.#emitMetric({
-        key: 'crud',
-        error,
-        startedAt,
-        detail: this.#createDetail({ key, endpoint, method, isStream, startedAt })
+      this.#emitMetric({ key: 'crud', error, startedAt, details })
+      throw error
+    }
+  }
+
+  async #optimisticUpdate<T>(config: Optimistic.Config<D, T>): Promise<T> {
+    const startedAt: number = Date.now(),
+      KEY = 'optimistic' as const,
+      { statusKey, dataKeys } = config,
+      details: Telemetry.Details<D, P>[typeof KEY] = { statusKey, dataKeys }
+
+    this.#emitMetric({ key: KEY, details })
+
+    try {
+      const optimisticUpdated: T = await this.#optimisticUpdateFn({
+        runtime: {
+          name: this.#name,
+          rawData: this.#rawData,
+          data: this.#data,
+          activeApis: this.#activeApis,
+          enqueue: this.#enqueue.bind(this),
+          reRender: this.#reRender.bind(this),
+          signal: this.#abortController.signal,
+          guardKey: (k: keyof D) => this.#guardRouterKey(k)
+        },
+        config
       })
+
+      this.#emitMetric({ key: KEY, startedAt, details: { ...details, result: 'success' } })
+      return optimisticUpdated
+    } catch (error) {
+      this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
+      throw error
     }
   }
 
@@ -625,8 +592,8 @@ export class FiCsElement<D extends object, P extends object> {
 
       if (descendants.length === 0) continue
 
-      const updater = (): void => {
-        FiCsElement.#activeContext = { instance: this, updater }
+      const run = (): void => {
+        FiCsElement.#activeEffect = { instance: this, run }
 
         try {
           for (const _descendant of descendants)
@@ -640,11 +607,11 @@ export class FiCsElement<D extends object, P extends object> {
             ))
               _descendant.#props[key] = value
         } finally {
-          FiCsElement.#activeContext = null
+          FiCsElement.#activeEffect = null
         }
       }
 
-      updater()
+      run()
     }
 
     this.#addSetIndividualProps()
@@ -776,7 +743,7 @@ export class FiCsElement<D extends object, P extends object> {
       ): Html.Sanitized<D, P> => template(strings, ...variables),
       unsafeHtml: (str: string): Record<symbol, string> => ({ [UNSAFE_HTML]: str }),
       show: (condition: boolean): string => (condition ? '' : SHOW),
-      apiStatuses: Object.fromEntries(this.#apiStatuses),
+      activeApis: Object.fromEntries(this.#activeApis),
       attributes: {
         boolean: (condition: boolean | undefined): 'true' | 'false' =>
           condition ? 'true' : 'false',
@@ -1442,22 +1409,14 @@ export class FiCsElement<D extends object, P extends object> {
       },
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
-        this.#emitMetric({ key: 'hook', detail: this.#createDetail({ key }) })
+        this.#emitMetric({ key })
 
         try {
           callback()
-          this.#emitMetric({
-            key: 'hook',
-            startedAt,
-            detail: this.#createDetail({ key, startedAt })
-          })
+          this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({
-            key: 'hook',
-            error,
-            startedAt,
-            detail: this.#createDetail({ key, startedAt })
-          })
+          this.#emitMetric({ key, error, startedAt })
+          if (!this.#options.telemetry?.onError) throw error
         }
       }
 
@@ -1698,6 +1657,18 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #assertDescribed(methodName: string): void {
+    if (!this.#hasDescribed)
+      throw new Error(
+        `The ${methodName} method cannot be called before calling the describe method in ${this.#name}...`
+      )
+  }
+
+  #guardRouterKey(key: keyof D): void {
+    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
+      throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
+  }
+
   getChildren(): Children {
     throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
   }
@@ -1771,23 +1742,18 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
-    if (!this.#hasDescribed)
-      throw new Error(
-        `The setData method cannot be called before calling the describe method in ${this.#name}...`
-      )
-
-    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-      throw new Error(`The "${key as string}" cannot be modified in the router component...`)
-
+    this.#assertDescribed('setData')
+    this.#guardRouterKey(key)
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
-  getData<K extends keyof D>(key: K): D[typeof key] {
-    if (!this.#hasDescribed)
-      throw new Error(
-        `The getData method cannot be called before calling the describe method in ${this.#name}...`
-      )
+  setDataOptimistically<T>(config: Optimistic.Config<D, T>): Promise<T> {
+    this.#assertDescribed('setDataOptimistically')
+    return this.#optimisticUpdate(config)
+  }
 
+  getData<K extends keyof D>(key: K): D[typeof key] {
+    this.#assertDescribed('getData')
     return this.#data[key] as D[typeof key]
   }
 }

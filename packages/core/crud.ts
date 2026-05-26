@@ -8,7 +8,8 @@ import type { Crud, SetTimeout } from './types'
  */
 export const crud = async <T>({
   endpoint,
-  apiStatuses,
+  name,
+  activeApis,
   enqueue,
   reRender,
   options
@@ -51,7 +52,13 @@ export const crud = async <T>({
       let timer: SetTimeout | undefined
       if (timeoutMs && timeoutMs > 0)
         timer = setTimeout(
-          () => controller.abort(new DOMException('Timeout', 'AbortError')),
+          () =>
+            controller.abort(
+              new DOMException(
+                `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`,
+                'AbortError'
+              )
+            ),
           timeoutMs
         )
 
@@ -74,11 +81,14 @@ export const crud = async <T>({
           attempt++
 
           if (!shouldRetry({ error, attempt, maxRetries, signal }))
-            throw new Error(`The ${method} request to "${endpoint}" failed...`, { cause: error })
+            throw new Error(`The ${method} request to "${endpoint}" failed in the ${name}...`, {
+              cause: error
+            })
 
           try {
             await delay(getDelayMs({ error, attempt, intervalMs }), signal)
           } catch {
+            /** @remarks Rethrows fetch()'s original error, not delay()'s AbortError. */
             throw error
           }
         }
@@ -125,16 +135,16 @@ export const crud = async <T>({
 
   if (!key) return await handleRes()
 
-  if (apiStatuses.get(key))
+  if (activeApis.get(key))
     console.warn(`The internal API status key "${key}" is already in progress...`)
 
-  apiStatuses.set(key, true)
+  activeApis.set(key, true)
   enqueue(() => reRender(true), 're-render')
 
   try {
     return await handleRes()
   } finally {
-    apiStatuses.set(key, false)
+    activeApis.set(key, false)
     enqueue(() => reRender(true), 're-render')
   }
 }

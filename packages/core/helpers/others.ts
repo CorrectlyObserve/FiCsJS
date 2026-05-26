@@ -44,9 +44,5 @@ export const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] 
 
 export function* uid(): Generator<number> {
   let n: number = 1
-
-  while (true) {
-    yield n
-    n++
-  }
+  while (true) yield n++
 }

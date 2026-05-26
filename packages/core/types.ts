@@ -33,6 +33,8 @@ export declare namespace Action {
 
 export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
 
+export type AwaitableVoid = void | Promise<void>
+
 export type Children = Record<string, Descendant>
 
 export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
@@ -40,8 +42,9 @@ export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
 export declare namespace Crud {
   interface Ctx {
     endpoint: string
-    apiStatuses: Map<string, boolean>
-    enqueue: (func: () => Void, key: Task['key']) => void
+    name: string
+    activeApis: Map<string, boolean>
+    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     options?: Options | StreamOptions
   }
@@ -91,9 +94,38 @@ export declare namespace DataProps {
   type Getter<D extends object, P> = <B extends boolean = false>(hasMethods?: B) => Payload<D, P, B>
 
   type Payload<D extends object, P, B extends boolean = false> = {
-    data: D
-    props: P
-  } & (B extends true ? { crud: Crud.Fetcher; queryCache: Query.Api } : {})
+    data: B extends true ? ProxyMutable<D> : DeepReadonly.Core<D>
+    props: Readonly<P>
+  } & (B extends true
+    ? { crud: Crud.Fetcher; queryCache: Query.Api; optimisticUpdate: Optimistic.Fn<D> }
+    : {})
+}
+
+export declare namespace DeepReadonly {
+  type Core<T> = T extends Primitive
+    ? T
+    : T extends Map<infer K, infer V>
+      ? ReadonlyMap<Core<K>, Core<V>>
+      : T extends Set<infer V>
+        ? ReadonlySet<Core<V>>
+        : T extends ReadonlyArray<infer V>
+          ? ReadonlyArray<Core<V>>
+          : { readonly [K in keyof T]: Core<T[K]> }
+
+  type Primitive =
+    | string
+    | number
+    | boolean
+    | bigint
+    | symbol
+    | undefined
+    | null
+    | Function
+    | Date
+    | RegExp
+    | Error
+    | Promise<unknown>
+    | EventTarget
 }
 
 export type Descendant = FiCsElement<any, any>
@@ -140,11 +172,11 @@ export declare namespace Html {
 
   interface Syntaxes<D extends object, P extends object> {
     children: Children
-    props: P
+    props: Readonly<P>
     template: Template<D, P>
     unsafeHtml: (str: string) => Record<symbol, string>
     show: (condition: boolean) => string
-    apiStatuses: Record<string, boolean>
+    activeApis: Record<string, boolean>
     attributes: {
       boolean: (condition: boolean | undefined) => 'true' | 'false'
       statusLiveRegion: typeof constants.a11y.STATUS_LIVE_REGION
@@ -190,6 +222,47 @@ export interface I18n {
   i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
 }
 
+export declare namespace Optimistic {
+  interface Backup<D extends object> {
+    backedUpData: ProxyMutable<D>
+    rollback: () => void
+    touchedKeys: Set<keyof D>
+  }
+
+  interface Config<D extends object, T> {
+    updateData: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
+    mutate: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
+    dataKeys?: DataKeys<D>
+    statusKey?: string
+    timeoutMs?: number
+    intervalMs?: number
+    maxRetries?: number
+    externalSignal?: AbortSignal
+  }
+
+  interface Ctx<D extends object, T> {
+    runtime: Runtime<D>
+    config: Config<D, T>
+  }
+
+  type DataKeys<D extends object> = readonly (keyof D)[]
+
+  type Fn<D extends object> = <T>(config: Config<D, T>) => Promise<T>
+
+  type Result = 'success' | 'reverted'
+
+  interface Runtime<D extends object> {
+    name: string
+    rawData: D
+    data: D
+    activeApis: Map<string, boolean>
+    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
+    reRender: (isOnlyHtml?: boolean) => Promise<void>
+    signal: AbortSignal
+    guardKey?: (key: keyof D) => void
+  }
+}
+
 export declare namespace Options {
   interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
@@ -224,17 +297,21 @@ export interface Props<D extends object, P> {
         }: {
           getData: <K extends keyof D>(
             key: K
-          ) => D[K] extends (...args: infer A) => infer R ? (...args: A) => R : D[K]
+          ) => D[K] extends (...args: infer A) => infer R
+            ? (...args: A) => R
+            : DeepReadonly.Core<D[K]>
           sendToWebsocket?: (value: WebSocket.Value) => void
         }) => unknown
       >
     | Record<string, unknown>
 }
 
+export type ProxyMutable<T> = { [K in keyof T]: DeepReadonly.Core<T[K]> }
+
 export declare namespace Query {
   type Api = Pick<
     QueryCache,
-    'prefetch' | 'set' | 'get' | 'bindData' | 'optimisticUpdate' | 'expire' | 'abort'
+    'prefetch' | 'set' | 'get' | 'bindTo' | 'optimisticUpdate' | 'expire' | 'abort'
   >
 
   interface Binding<D extends object, T = unknown> {
@@ -268,7 +345,7 @@ export declare namespace Query {
 
   interface EndOptimisticUpdate {
     entry: Entry
-    result: Result
+    result: Optimistic.Result
     attempt: number
     startedAt: number
   }
@@ -329,19 +406,23 @@ export declare namespace Query {
       | { type: 'unsubscribe'; key: Key; subscriberCount: number }
       | { type: 'optimistic:enqueue'; key: Key }
       | { type: 'optimistic:start'; key: Key }
-      | { type: 'optimistic:end'; key: Key; result: Result; attempt: number; durationMs: number }
+      | {
+          type: 'optimistic:end'
+          key: Key
+          result: Optimistic.Result
+          attempt: number
+          durationMs: number
+        }
   }
 
   interface OptimisticUpdate<T> {
     key: Key
     newQuery: T | ((current: T | undefined) => T)
-    /** @remarks Returns the final authoritative value to commit on success. */
-    updater: () => Promise<T>
+    /** @remarks Returns the final authoritative value from the server on success. */
+    mutator: () => Promise<T>
     maxRetries?: number
     signal?: AbortSignal
   }
-
-  type Result = 'success' | 'reverted'
 
   interface State<T = unknown> {
     value?: T
@@ -502,37 +583,33 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => Void
+  func: () => AwaitableVoid
   key: 'define' | 're-render' | 'fetch'
 }
 
 export declare namespace Telemetry {
-  interface Crud {
-    key: string
-    endpoint: string
-    method: string
-    isStream: boolean
-    durationMs: number
-  }
-
   interface Ctx<D extends object, P> {
-    key: keyof Telemetry.Detail<D, P>
+    key: keyof Details<D, P>
     error?: unknown
     startedAt?: number
-    detail: Detail<D, P>[Ctx<D, P>['key']]
+    details?: Details<D, P>[Ctx<D, P>['key']]
   }
 
-  interface Detail<D extends object, P> {
-    queue: { key: Task['key']; durationMs: number }
-    crud: Crud
-    updated: { key: 'updated'; dataKey: keyof D; durationMs: number }
-    hook: { key: Exclude<Hook.Key<D, P>, 'updated'>; durationMs: number }
-  }
+  type Details<D extends object, P> = {
+    crud: { key: string; endpoint: string; method: string; isStream: boolean }
+    optimistic: {
+      statusKey?: string
+      dataKeys?: Optimistic.DataKeys<D>
+      result?: Optimistic.Result
+    }
+    updated: { dataKey: keyof D }
+  } & { [K in Exclude<Hook.Key<D, P>, 'updated'> | Task['key']]: {} }
 
-  interface Metric<D extends object, P> extends Ctx<D, P> {
-    status: Status
+  interface Metric<D extends object, P> extends Omit<Ctx<D, P>, 'details'> {
     name: string
     instanceId: string
+    status: 'starting' | 'success' | 'error'
+    details: Details<D, P>[Ctx<D, P>['key']] & { durationMs: number }
     timestamp: number
   }
 
@@ -540,8 +617,6 @@ export declare namespace Telemetry {
     onMetric?: (metric: Metric<D, P>) => void
     onError?: (metric: Metric<D, P>) => void
   }
-
-  type Status = 'starting' | 'success' | 'error'
 }
 
 export declare namespace Template {
@@ -577,8 +652,6 @@ export declare namespace Template {
 export type Translations = Record<string, unknown>
 
 type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
-
-export type Void = void | Promise<void>
 
 export declare namespace WebSocket {
   namespace Ctx {
