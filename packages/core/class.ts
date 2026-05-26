@@ -178,11 +178,11 @@ export class FiCsElement<D extends object, P extends object> {
 
       this.#data = new Proxy(this.#rawData, {
         get: (target, prop, receiver): D[keyof D] => {
-          if (FiCsElement.#activeContext) {
+          if (FiCsElement.#activeEffect) {
             const key: keyof D = prop as keyof D
 
             if (!this.#subscribers.data.has(key)) this.#subscribers.data.set(key, new Set())
-            this.#subscribers.data.get(key)!.add(FiCsElement.#activeContext.updater)
+            this.#subscribers.data.get(key)!.add(FiCsElement.#activeEffect.run)
           }
 
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
@@ -195,7 +195,7 @@ export class FiCsElement<D extends object, P extends object> {
           this.#rawData[dataKey] = value
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
-          if (subscribers) for (const updater of subscribers) updater()
+          if (subscribers) for (const run of subscribers) run()
 
           const KEY = 'updated' as const,
             updated: Hook.Lifecycle<D, P>[typeof KEY] | undefined = this.#hooks.updated
@@ -233,11 +233,11 @@ export class FiCsElement<D extends object, P extends object> {
 
     this.#props = new Proxy(this.#rawProps, {
       get: (target, prop, receiver): P[keyof P] => {
-        if (FiCsElement.#activeContext) {
+        if (FiCsElement.#activeEffect) {
           const key: keyof P = prop as keyof P
 
           if (!this.#subscribers.props.has(key)) this.#subscribers.props.set(key, new Set())
-          this.#subscribers.props.get(key)!.add(FiCsElement.#activeContext.updater)
+          this.#subscribers.props.get(key)!.add(FiCsElement.#activeEffect.run)
         }
 
         return this.#bindFunction(Reflect.get(target, prop, receiver)) as P[keyof P]
@@ -250,7 +250,7 @@ export class FiCsElement<D extends object, P extends object> {
         this.#rawProps[key] = value
 
         const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
-        if (subscribers) for (const updater of subscribers) updater()
+        if (subscribers) for (const run of subscribers) run()
 
         if (this.#clonedSelves.size > 0)
           for (const clone of this.#clonedSelves.values()) clone.#props[key] = value
@@ -584,8 +584,8 @@ export class FiCsElement<D extends object, P extends object> {
 
       if (descendants.length === 0) continue
 
-      const updater = (): void => {
-        FiCsElement.#activeContext = { instance: this, updater }
+      const run = (): void => {
+        FiCsElement.#activeEffect = { instance: this, run }
 
         try {
           for (const _descendant of descendants)
@@ -599,11 +599,11 @@ export class FiCsElement<D extends object, P extends object> {
             ))
               _descendant.#props[key] = value
         } finally {
-          FiCsElement.#activeContext = null
+          FiCsElement.#activeEffect = null
         }
       }
 
-      updater()
+      run()
     }
 
     this.#addSetIndividualProps()
