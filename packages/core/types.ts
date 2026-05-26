@@ -411,8 +411,8 @@ export declare namespace Query {
   interface OptimisticUpdate<T> {
     key: Key
     newQuery: T | ((current: T | undefined) => T)
-    /** @remarks Returns the final authoritative value to commit on success. */
-    updater: () => Promise<T>
+    /** @remarks Returns the final authoritative value from the server on success. */
+    mutator: () => Promise<T>
     maxRetries?: number
     signal?: AbortSignal
   }
