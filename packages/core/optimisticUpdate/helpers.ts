@@ -3,7 +3,7 @@ import type { Optimistic, ProxyMutable } from '../types'
 export const createBackup = <D extends object>(
   data: D,
   guardKey?: (key: keyof D) => void
-): { trackedData: ProxyMutable<D>; rollback: () => void; modifiedKeys: Set<keyof D> } => {
+): { backedUpData: ProxyMutable<D>; rollback: () => void; modifiedKeys: Set<keyof D> } => {
   const backupData: Partial<D> = {},
     modifiedKeys: Set<keyof D> = new Set(),
     originalKeys: ReadonlySet<keyof D> = new Set(getDataKeys(data))
@@ -24,7 +24,7 @@ export const createBackup = <D extends object>(
     modifiedKeys.add(prop)
   }
 
-  const trackedData: ProxyMutable<D> = new Proxy(data, {
+  const backedUpData: ProxyMutable<D> = new Proxy(data, {
       set(target, prop, value, receiver): boolean {
         backup(target, prop as keyof D)
         return Reflect.set(target, prop, value, receiver)
@@ -44,7 +44,7 @@ export const createBackup = <D extends object>(
       }
     }
 
-  return { trackedData, rollback, modifiedKeys }
+  return { backedUpData, rollback, modifiedKeys }
 }
 
 export const getDataKeys = <D extends object>(
