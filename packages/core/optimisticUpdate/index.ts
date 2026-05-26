@@ -35,7 +35,9 @@ export const optimisticUpdate = () => {
 
     for (const targetKey of targetKeys)
       if (lockedKeys.has(targetKey))
-        throw new Error(`The scope "${targetKey}" is deadlocked in the ${name}...`)
+        throw new Error(
+          `The target key "${targetKey}" is currently in use by optimistic update in the ${name}...`
+        )
 
     const awaitingTasks: Promise<void>[] = [],
       seenTasks: Set<Promise<void>> = new Set()
