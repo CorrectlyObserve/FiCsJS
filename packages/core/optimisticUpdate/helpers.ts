@@ -1,22 +1,30 @@
 import type { Optimistic, ProxyMutable } from '../types'
 
-export const createBackup = <D extends object>(
-  data: D,
+export const createBackup = <D extends object>({
+  rawData,
+  data,
+  guardKey
+}: {
+  rawData: D
+  data: D
   guardKey?: (key: keyof D) => void
-): { backedUpData: ProxyMutable<D>; rollback: () => void; modifiedKeys: Set<keyof D> } => {
+}): Optimistic.Backup<D> => {
   const backupData: Partial<D> = {},
     modifiedKeys: Set<keyof D> = new Set(),
-    originalKeys: ReadonlySet<keyof D> = new Set(getDataKeys(data))
+    originalKeys: ReadonlySet<keyof D> = new Set(getDataKeys(rawData))
 
-  const backup = (target: D, prop: keyof D): void => {
+  const backup = (prop: keyof D): void => {
       if (modifiedKeys.has(prop)) return
 
       guardKey?.(prop)
 
-      if (typeof target[prop] === 'function') backupData[prop] = target[prop]
+      /** @remarks Reads from raw data to avoid capturing bound function wrappers from the data Proxy. */
+      const rawDatum: D[keyof D] = rawData[prop]
+
+      if (typeof rawDatum === 'function') backupData[prop] = rawDatum
       else
         try {
-          backupData[prop] = structuredClone(target[prop])
+          backupData[prop] = structuredClone(rawDatum)
         } catch (error) {
           throw new Error(`The value "${String(prop)}" cannot be deep-cloned...`, { cause: error })
         }
@@ -25,11 +33,11 @@ export const createBackup = <D extends object>(
     },
     backedUpData: ProxyMutable<D> = new Proxy(data, {
       set(target, prop, value, receiver): boolean {
-        backup(target, prop as keyof D)
+        backup(prop as keyof D)
         return Reflect.set(target, prop, value, receiver)
       },
       deleteProperty(target, prop): boolean {
-        backup(target, prop as keyof D)
+        backup(prop as keyof D)
         return Reflect.deleteProperty(target, prop)
       }
     }) as ProxyMutable<D>,
