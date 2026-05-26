@@ -215,6 +215,11 @@ export class FiCsElement<D extends object, P extends object> {
               this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
             } catch (error) {
               this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
+              if (!this.#options.telemetry?.onError)
+                console.error(
+                  `The updated hook of "${String(dataKey)}" failed in the ${this.#name}...`,
+                  error
+                )
             }
           }
 
@@ -441,6 +446,7 @@ export class FiCsElement<D extends object, P extends object> {
           this.#emitMetric({ key, startedAt })
         } catch (error) {
           this.#emitMetric({ key, error, startedAt })
+          if (!this.#options.telemetry?.onError) throw error
         }
       }
     })
@@ -1408,6 +1414,7 @@ export class FiCsElement<D extends object, P extends object> {
           this.#emitMetric({ key, startedAt })
         } catch (error) {
           this.#emitMetric({ key, error, startedAt })
+          if (!this.#options.telemetry?.onError) throw error
         }
       }
 
