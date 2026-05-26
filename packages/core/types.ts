@@ -223,6 +223,12 @@ export interface I18n {
 }
 
 export declare namespace Optimistic {
+  interface Backup<D extends object> {
+    backedUpData: ProxyMutable<D>
+    rollback: () => void
+    modifiedKeys: Set<keyof D>
+  }
+
   interface Config<D extends object, T> {
     updateData: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
     mutate: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
