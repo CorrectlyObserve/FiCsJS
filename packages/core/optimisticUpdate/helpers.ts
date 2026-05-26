@@ -14,7 +14,7 @@ export const createBackup = <D extends object>({
     originalKeys: ReadonlySet<keyof D> = new Set(getDataKeys(rawData))
 
   const backup = (prop: keyof D): void => {
-      if (modifiedKeys.has(prop)) return
+      if (touchedKeys.has(prop)) return
 
       guardKey?.(prop)
 
@@ -29,7 +29,7 @@ export const createBackup = <D extends object>({
           throw new Error(`The value "${String(prop)}" cannot be deep-cloned...`, { cause: error })
         }
 
-      modifiedKeys.add(prop)
+      touchedKeys.add(prop)
     },
     backedUpData: ProxyMutable<D> = new Proxy(data, {
       set(target, prop, value, receiver): boolean {
@@ -42,14 +42,14 @@ export const createBackup = <D extends object>({
       }
     }) as ProxyMutable<D>,
     rollback = (): void => {
-      for (const currentKey of getDataKeys(data))
-        if (!originalKeys.has(currentKey)) delete data[currentKey]
+      for (const touchedKey of touchedKeys)
+        if (!originalKeys.has(touchedKey)) delete data[touchedKey]
 
-      for (const modifiedKey of modifiedKeys)
-        if (originalKeys.has(modifiedKey)) data[modifiedKey] = backupData[modifiedKey] as D[keyof D]
+      for (const touchedKey of touchedKeys)
+        if (originalKeys.has(touchedKey)) data[touchedKey] = backupData[touchedKey] as D[keyof D]
     }
 
-  return { backedUpData, rollback, modifiedKeys }
+  return { backedUpData, rollback, touchedKeys }
 }
 
 export const getDataKeys = <D extends object>(
