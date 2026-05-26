@@ -12,7 +12,7 @@ export const optimisticUpdate = () => {
     lockedKeys: Set<string> = new Set()
 
   return async <D extends object, T>({
-    runtime: { name, data, activeApis, enqueue, reRender, signal, guardKey },
+    runtime: { name, rawData, data, activeApis, enqueue, reRender, signal, guardKey },
     config: {
       updateData,
       mutate,
