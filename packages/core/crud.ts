@@ -9,7 +9,7 @@ import type { Crud, SetTimeout } from './types'
 export const crud = async <T>({
   endpoint,
   name,
-  apiStatuses,
+  activeApis,
   enqueue,
   reRender,
   options
@@ -134,16 +134,16 @@ export const crud = async <T>({
 
   if (!key) return await handleRes()
 
-  if (apiStatuses.get(key))
+  if (activeApis.get(key))
     console.warn(`The internal API status key "${key}" is already in progress...`)
 
-  apiStatuses.set(key, true)
+  activeApis.set(key, true)
   enqueue(() => reRender(true), 're-render')
 
   try {
     return await handleRes()
   } finally {
-    apiStatuses.set(key, false)
+    activeApis.set(key, false)
     enqueue(() => reRender(true), 're-render')
   }
 }
