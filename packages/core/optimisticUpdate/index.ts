@@ -81,104 +81,98 @@ export const optimisticUpdate = () => {
         const signals: (() => void)[] = [registerAbort(signal)]
         if (externalSignal) signals.push(registerAbort(externalSignal))
 
-        const cleanupSignals = (): void => {
-          for (const cleanup of signals) cleanup()
-        }
-
-        if (controller.signal.aborted) {
-          cleanupSignals()
-          throw new DOMException(
-            `Optimistic update aborted before applying in the ${name}...`,
-            'AbortError'
-          )
-        }
-
-        const { backedUpData, rollback, modifiedKeys } = createBackup(data, guardKey)
-
         try {
-          await updateData({ data: backedUpData })
-        } catch (error) {
-          rollback()
-          cleanupSignals()
-          throw error
-        }
+          if (controller.signal.aborted)
+            throw new DOMException(
+              `Optimistic update aborted before applying in the ${name}...`,
+              'AbortError'
+            )
 
-        if (hasDataKeys(dataKeys)) {
-          const declaredDataKeys: Set<keyof D> = new Set(dataKeys!)
-          for (const modifiedKey of modifiedKeys)
-            if (!declaredDataKeys.has(modifiedKey))
-              console.warn(
-                `The Undeclared key '${String(modifiedKey)}' was modified. Please add it to 'dataKeys' for concurrent safety...`
-              )
-        }
+          const { backedUpData, rollback, modifiedKeys } = createBackup(data, guardKey)
 
-        if (controller.signal.aborted) {
-          rollback()
-          cleanupSignals()
-          throw new DOMException(
-            `Optimistic update aborted after applying in the ${name}...`,
-            'AbortError'
-          )
-        }
+          try {
+            await updateData({ data: backedUpData })
+          } catch (error) {
+            rollback()
+            throw error
+          }
 
-        if (statusKey) {
-          if (activeApis.get(statusKey))
-            console.warn(`The internal API status key "${statusKey}" is already in progress...`)
-
-          activeApis.set(statusKey, true)
-          enqueue(() => reRender(true), 're-render')
-        }
-
-        let attempt: number = 0
-
-        try {
-          while (true) {
-            let error: unknown
-
-            try {
-              let timer: SetTimeout | undefined
-              if (timeoutMs && timeoutMs > 0)
-                timer = setTimeout(
-                  () =>
-                    controller.abort(
-                      new DOMException(
-                        `Optimistic update timed out in the ${name}...`,
-                        'AbortError'
-                      )
-                    ),
-                  timeoutMs
+          if (hasDataKeys(dataKeys)) {
+            const declaredDataKeys: Set<keyof D> = new Set(dataKeys!)
+            for (const modifiedKey of modifiedKeys)
+              if (!declaredDataKeys.has(modifiedKey))
+                console.warn(
+                  `The Undeclared key '${String(modifiedKey)}' was modified. Please add it to 'dataKeys' for concurrent safety...`
                 )
+          }
+
+          if (controller.signal.aborted) {
+            rollback()
+            throw new DOMException(
+              `Optimistic update aborted after applying in the ${name}...`,
+              'AbortError'
+            )
+          }
+
+          if (statusKey) {
+            if (activeApis.get(statusKey))
+              console.warn(`The internal API status key "${statusKey}" is already in progress...`)
+
+            activeApis.set(statusKey, true)
+            enqueue(() => reRender(true), 're-render')
+          }
+
+          let attempt: number = 0
+
+          try {
+            while (true) {
+              let error: unknown
 
               try {
-                return await mutate({ signal: controller.signal, attempt })
-              } finally {
-                if (timer) clearTimeout(timer)
+                let timer: SetTimeout | undefined
+                if (timeoutMs && timeoutMs > 0)
+                  timer = setTimeout(
+                    () =>
+                      controller.abort(
+                        new DOMException(
+                          `Optimistic update timed out in the ${name}...`,
+                          'AbortError'
+                        )
+                      ),
+                    timeoutMs
+                  )
+
+                try {
+                  return await mutate({ signal: controller.signal, attempt })
+                } finally {
+                  if (timer) clearTimeout(timer)
+                }
+              } catch (_error) {
+                error = _error
               }
-            } catch (_error) {
-              error = _error
+
+              attempt++
+
+              if (!shouldRetry({ error, attempt, maxRetries, signal: controller.signal })) {
+                rollback()
+                throw error
+              }
+
+              try {
+                await delay(getDelayMs({ error, attempt, intervalMs }), controller.signal)
+              } catch {
+                rollback()
+                throw error
+              }
             }
-
-            attempt++
-
-            if (!shouldRetry({ error, attempt, maxRetries, signal: controller.signal })) {
-              rollback()
-              throw error
-            }
-
-            try {
-              await delay(getDelayMs({ error, attempt, intervalMs }), controller.signal)
-            } catch {
-              rollback()
-              throw error
+          } finally {
+            if (statusKey) {
+              activeApis.set(statusKey, false)
+              enqueue(() => reRender(true), 're-render')
             }
           }
         } finally {
-          cleanupSignals()
-
-          if (statusKey) {
-            activeApis.set(statusKey, false)
-            enqueue(() => reRender(true), 're-render')
-          }
+          for (const cleanup of signals) cleanup()
         }
       } finally {
         for (const targetKey of targetKeys) lockedKeys.delete(targetKey)
