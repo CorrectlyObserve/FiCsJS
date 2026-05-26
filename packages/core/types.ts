@@ -248,7 +248,7 @@ export declare namespace Optimistic {
   interface Runtime<D extends object> {
     name: string
     data: D
-    apiStatuses: Map<string, boolean>
+    activeApis: Map<string, boolean>
     enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     signal: AbortSignal
