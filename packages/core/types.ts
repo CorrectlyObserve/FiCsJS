@@ -176,7 +176,7 @@ export declare namespace Html {
     template: Template<D, P>
     unsafeHtml: (str: string) => Record<symbol, string>
     show: (condition: boolean) => string
-    apiStatuses: Record<string, boolean>
+    activeApis: Record<string, boolean>
     attributes: {
       boolean: (condition: boolean | undefined) => 'true' | 'false'
       statusLiveRegion: typeof constants.a11y.STATUS_LIVE_REGION
