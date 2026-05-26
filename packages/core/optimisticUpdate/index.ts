@@ -88,7 +88,11 @@ export const optimisticUpdate = () => {
               'AbortError'
             )
 
-          const { backedUpData, rollback, modifiedKeys } = createBackup(data, guardKey)
+          const { backedUpData, rollback, modifiedKeys }: Optimistic.Backup<D> = createBackup({
+            rawData,
+            data,
+            guardKey
+          })
 
           try {
             await updateData({ data: backedUpData })
