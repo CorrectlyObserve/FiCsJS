@@ -284,7 +284,7 @@ export default fics({
         await queryCache.optimisticUpdate<number>({
           key: PAGE_KEY,
           newQuery: nextPage,
-          updater: async () => {
+          mutator: async () => {
             const photos = await crud<Photo[]>(getPhotos(nextPage), { key: 'isLoading' })
 
             if (data.page !== nextPage) return data.page
