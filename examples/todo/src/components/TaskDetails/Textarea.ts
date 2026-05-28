@@ -1,4 +1,4 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
 import { calc, flexCenter, forScreenReaders, size } from 'ficsjs/style'
 
 interface Props {
@@ -11,35 +11,40 @@ interface Props {
   blur?: () => void
 }
 
-export default fics<{}, Props>({
-  name: 'textarea',
-  html: ({ props: { id, label, description, placeholder, value }, template }) => template`
+const html: FiCs.Html<{}, Props> = ({
+  props: { id, label, description, placeholder, value },
+  template
+}) =>
+  template`
     <div>
       <label for="${id}">${label}</label>
       <p id="${id}-info">${description}</p>
       <textarea id="${id}" placeholder="${placeholder}" aria-describedby="${id}-info">${value}</textarea>
     </div>
-  `,
-  css: ({ cssToString }) => `
-    div {
-      ${cssToString(flexCenter('x', 'column'))}
+  `
 
-      label { padding-block-end: ${size(2)}; }
+const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
+  div {
+    ${cssToString(flexCenter('x', 'column'))}
 
-      p {${cssToString(forScreenReaders)}}
+    label { padding-block-end: ${size(2)}; }
 
-      textarea {
-        height: ${calc(`${size(3)} + ${size(6 * 6)} + ${size(3)}`)};
-        resize: none;
-      }
-    }
-  `,
-  actions: {
-    textarea: {
-      input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
-      blur: ({ props: { value, blur } }) => {
-        if (value !== '' && blur) blur()
-      }
+    p {${cssToString(forScreenReaders)}}
+
+    textarea {
+      height: ${calc(`${size(3)} + ${size(6 * 6)} + ${size(3)}`)};
+      resize: none;
     }
   }
-})
+`
+
+const actions: FiCs.Actions<{}, Props> = {
+  textarea: {
+    input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
+    blur: ({ props: { value, blur } }) => {
+      if (value !== '' && blur) blur()
+    }
+  }
+}
+
+export default fics<{}, Props>({ name: 'textarea', html, css, actions })
