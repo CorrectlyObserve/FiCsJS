@@ -184,8 +184,9 @@ export const optimisticUpdate = () => {
       }
     } finally {
       resolve()
+
+      /** @remarks Cleans up the latestTask if there is no further promise. */
       for (const targetKey of targetKeys)
-        /** @remarks Cleans up the latestTask if there is no further promise. */
         if (latestTasks.get(targetKey) === promise) latestTasks.delete(targetKey)
     }
   }
