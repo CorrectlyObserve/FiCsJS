@@ -36,7 +36,7 @@ export declare namespace FiCsRouter {
 
   type Children = Descendant[] | undefined
 
-  type Css<D extends object> = SingleOrArray<Css.Rules<RouterData<D>, {}> | string> | undefined
+  type Css<D extends object> = Css.Ctx<RouterData<D>, {}> | undefined
 
   type Hooks<D extends object> = Hook.Lifecycle<RouterData<D>, {}> | undefined
 
