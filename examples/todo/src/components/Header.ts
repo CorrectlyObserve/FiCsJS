@@ -1,4 +1,4 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
@@ -7,7 +7,96 @@ import { $lang } from '@/stores'
 import { Lang, LANG_LIST } from '@/utils/lang'
 import { breakpoints } from '@/utils/others'
 
-export default fics<{ langs: readonly Lang[]; lang: Lang; isShown: boolean; label: string }, {}>({
+interface Data {
+  langs: readonly Lang[]
+  lang: Lang
+  isShown: boolean
+  label: string
+}
+
+const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template, show }) => {
+  const { langs, lang, isShown, label } = data
+
+  return template`
+    <header>
+      <h1>${link}</h1>
+      <div class="container">
+        ${button.setIndividualProps('toggle', {
+          isPressed: isShown,
+          controls: 'lang-menu',
+          buttonText: lang.toUpperCase(),
+          click: () => (data.isShown = !data.isShown)
+        })}
+        <div class="langs" id="lang-menu" role="group" aria-label="${label}" ${show(isShown)}>
+          ${langs.map(
+            _lang => template`
+              ${button.setIndividualProps(_lang, {
+                type: lang === _lang ? 'selected' : 'normal',
+                isPressed: lang === _lang,
+                buttonText: _lang.toUpperCase(),
+                click: () => {
+                  $lang.set(_lang)
+                  data.lang = _lang
+                  data.isShown = false
+                }
+              })}
+            `
+          )}
+        </div>
+      </div>
+    </header>
+  `
+}
+
+const css: FiCs.Css<Data, {}> = {
+  ':host': {
+    position: 'sticky',
+    top: 0,
+    width: '100vw',
+    height: cssVar('header-height'),
+    background: cssVar('black'),
+    zIndex: 10,
+    header: {
+      ...flexCenter('xy'),
+      position: 'relative',
+      h1: {
+        ...flexCenter('y'),
+        ...textSize('2xl'),
+        height: cssVar('header-height'),
+        background: cssVar('gradation'),
+        backgroundClip: 'text',
+        webkitTextFillColor: 'transparent',
+        '@media (forced-colors: active)': {
+          background: 'none',
+          backgroundClip: 'border-box',
+          webkitTextFillColor: 'CanvasText',
+          color: 'CanvasText'
+        }
+      },
+      'div.container': {
+        ...positionCenter('y'),
+        right: calc(`${size(8)} + ${cssVar('outline')}`),
+        [`@media (max-width: ${breakpoints.SM})`]: {
+          right: calc(`${size(3)} + ${cssVar('outline')}`)
+        },
+        '.langs': {
+          ...fade(cssVar('transition')),
+          position: 'absolute',
+          right: 0,
+          display: 'flex',
+          gap: calc(`${cssVar('outline')} * 2`),
+          marginBlockStart: calc(`${cssVar('outline')} * 2`)
+        }
+      }
+    }
+  }
+}
+
+const hooks: FiCs.Hooks<Data, {}> = {
+  created: ({ data }) => (data.lang = document.documentElement.lang as Lang)
+}
+
+export default fics<Data, {}>({
   name: 'header',
   children: [
     ficsLink({
@@ -19,81 +108,7 @@ export default fics<{ langs: readonly Lang[]; lang: Lang; isShown: boolean; labe
   ],
   data: () => ({ langs: LANG_LIST, lang: 'en', isShown: false }),
   i18nData: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
-  html: ({ children: { link, button }, data, template, show }) => {
-    const { langs, lang, isShown, label } = data
-
-    return template`
-      <header>
-        <h1>${link}</h1>
-        <div class="container">
-          ${button.setIndividualProps('toggle', {
-            isPressed: isShown,
-            controls: 'lang-menu',
-            buttonText: lang.toUpperCase(),
-            click: () => (data.isShown = !data.isShown)
-          })}
-          <div class="langs" id="lang-menu" role="group" aria-label="${label}" ${show(isShown)}>
-            ${langs.map(
-              _lang => template`
-                ${button.setIndividualProps(_lang, {
-                  type: lang === _lang ? 'selected' : 'normal',
-                  isPressed: lang === _lang,
-                  buttonText: _lang.toUpperCase(),
-                  click: () => {
-                    $lang.set(_lang)
-                    data.lang = _lang
-                    data.isShown = false
-                  }
-                })}
-              `
-            )}
-          </div>
-        </div>
-      </header>
-    `
-  },
-  css: {
-    ':host': {
-      position: 'sticky',
-      top: 0,
-      width: '100vw',
-      height: cssVar('header-height'),
-      background: cssVar('black'),
-      zIndex: 10,
-      header: {
-        ...flexCenter('xy'),
-        position: 'relative',
-        h1: {
-          ...flexCenter('y'),
-          ...textSize('2xl'),
-          height: cssVar('header-height'),
-          background: cssVar('gradation'),
-          backgroundClip: 'text',
-          webkitTextFillColor: 'transparent',
-          '@media (forced-colors: active)': {
-            background: 'none',
-            backgroundClip: 'border-box',
-            webkitTextFillColor: 'CanvasText',
-            color: 'CanvasText'
-          }
-        },
-        'div.container': {
-          ...positionCenter('y'),
-          right: calc(`${size(8)} + ${cssVar('outline')}`),
-          [`@media (max-width: ${breakpoints.SM})`]: {
-            right: calc(`${size(3)} + ${cssVar('outline')}`)
-          },
-          '.langs': {
-            ...fade(cssVar('transition')),
-            position: 'absolute',
-            right: 0,
-            display: 'flex',
-            gap: calc(`${cssVar('outline')} * 2`),
-            marginBlockStart: calc(`${cssVar('outline')} * 2`)
-          }
-        }
-      }
-    }
-  },
-  hooks: { created: ({ data }) => (data.lang = document.documentElement.lang as Lang) }
+  html,
+  css,
+  hooks
 })
