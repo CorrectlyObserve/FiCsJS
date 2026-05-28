@@ -22,7 +22,7 @@ export declare namespace FiCsLink {
 
   type Content<P extends object> = _Content<{}, P>
 
-  type Css<P> = SingleOrArray<Css.Rules<{}, P> | string> | undefined
+  type Css<P> = Css.Ctx<{}, P> | undefined
 
   type Href<P> = (({ props }: { props: P }) => string) | string
 
@@ -36,7 +36,7 @@ export declare namespace FiCsRouter {
 
   type Children = Descendant[] | undefined
 
-  type Css<D extends object> = SingleOrArray<Css.Rules<RouterData<D>, {}> | string> | undefined
+  type Css<D extends object> = Css.Ctx<RouterData<D>, {}> | undefined
 
   type Hooks<D extends object> = Hook.Lifecycle<RouterData<D>, {}> | undefined
 

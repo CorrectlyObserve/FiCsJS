@@ -77,9 +77,10 @@ export const runInfiniteVirtualScroll = <D extends object, P extends object>({
       /** @remarks Resets processing state and locks fetch until runtime is explicitly resumed. */
       scrollOptions.fetch.isFetching = false
       scrollOptions.flags.isFetchLocked = true
-    } else
+    } else {
       /** @remarks Fully deactivates runtime to avoid leaving a partially active state. */
       deactivateRuntime()
+    }
 
     return
   }

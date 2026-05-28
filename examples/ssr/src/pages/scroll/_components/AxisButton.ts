@@ -1,22 +1,33 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
 import Icon from '@/components/Icon'
 import { dark } from '@/utils'
 import { MoveHorizontal, MoveVertical } from 'lucide-static'
 
-export default fics<{}, { isHorizontal: boolean; click: () => void }>({
+interface Props {
+  isHorizontal: boolean
+  click: () => void
+}
+
+const props: FiCs.Props<{}, Props> = {
+  descendant: ({ children: { icon } }) => icon,
+  values: ({ props: { isHorizontal, click } }) => ({
+    svg: isHorizontal ? MoveVertical : MoveHorizontal,
+    ariaLabel: `Switch axis direction to ${isHorizontal ? 'vertical' : 'horizontal'}`,
+    isLarge: true,
+    isPressed: isHorizontal,
+    click
+  })
+}
+
+const html: FiCs.Html<{}, Props> = ({ children: { icon }, template }) => template`${icon}`
+
+const css: FiCs.Css<{}, Props> = `:host { background: ${dark()}; }`
+
+export default fics<{}, Props>({
   name: 'axis-button',
   className: 'fixed bottom-8 left-4 z-1',
   children: [Icon()],
-  props: {
-    descendant: ({ children: { icon } }) => icon,
-    values: ({ props: { isHorizontal, click } }) => ({
-      svg: isHorizontal ? MoveVertical : MoveHorizontal,
-      ariaLabel: `Switch axis direction to ${isHorizontal ? 'vertical' : 'horizontal'}`,
-      isLarge: true,
-      isPressed: isHorizontal,
-      click
-    })
-  },
-  html: ({ children: { icon }, template }) => template`${icon}`,
-  css: `:host { background: ${dark()}; }`
+  props,
+  html,
+  css
 })

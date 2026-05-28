@@ -22,6 +22,9 @@
   "linter": {
     "enabled": false
   },
+  "assist": {
+    "enabled": false
+  },
   "files": {
     "includes": ["**", "!**/*.md", "!**/*.css"]
   }
