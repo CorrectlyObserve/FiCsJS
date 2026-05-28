@@ -1,5 +1,9 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
 import { cssVar, flexCenter, forScreenReaders, size, textSize } from 'ficsjs/style'
+
+interface Data {
+  isComposing: boolean
+}
 
 interface Props {
   id: string
@@ -15,79 +19,81 @@ interface Props {
   blur?: () => void
 }
 
+const html: FiCs.Html<Data, Props> = ({
+  props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
+  template,
+  show,
+  attributes: { boolean }
+}) => {
+  const hasError = !!(isError && error)
+  return template`
+    <div>
+      ${!isAriaLabel ? template`<label for="${id}">${label}</label>` : ''}
+      <p id="${id}-error" ${show(hasError)} role="alert" aria-live="polite">${error ?? ''}</p>
+      <p id="${id}-info">${description}</p>
+      <input
+        id="${id}"
+        value="${value}"
+        placeholder="${placeholder}"
+        ${isAriaLabel ? `aria-label="${label}"` : ''}
+        aria-describedby="${[`${id}-info`, hasError ? `${id}-error` : ''].filter(Boolean).join(' ')}"
+        aria-invalid="${boolean(hasError)}"
+        ${hasError ? `aria-errormessage="${id}-error"` : ''}
+        type="text"
+      />
+    </div>
+  `
+}
+
+const css: FiCs.Css<Data, Props> = ({ props: { isError, error }, cssToString }) => `
+  div {
+    ${cssToString(flexCenter('x', 'column'))}
+
+    label { padding-block-end: ${size(2)}; }
+
+    p {
+      &:first-of-type {
+        ${cssToString(textSize('sm'))}
+        color: ${cssVar('red')};
+        margin-block-end: ${size(2)};
+        text-align: left;
+      }
+
+      &:last-of-type {${cssToString(forScreenReaders)}}
+    }
+
+    ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
+  }
+`
+
+const actions: FiCs.Actions<Data, Props> = {
+  input: {
+    input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
+    compositionstart: ({ data }) => {
+      data.isComposing = true
+    },
+    compositionend: ({ data }) => {
+      data.isComposing = false
+    },
+    keydown: [
+      ({ data: { isComposing }, props: { value, enterKey }, event }) => {
+        if ((value !== '' && (event as KeyboardEvent).key) === 'Enter' && !isComposing && enterKey)
+          enterKey()
+      },
+      { throttleMs: 500 }
+    ],
+    blur: ({ props: { value, blur } }) => {
+      if (value !== '' && blur) blur()
+    }
+  }
+}
+
 export default () =>
-  fics<{ isComposing: boolean }, Props>({
+  fics<Data, Props>({
     name: 'input',
     data: () => ({ isComposing: false }),
     className: 'input',
-    html: ({
-      props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
-      template,
-      show,
-      attributes: { boolean }
-    }) => {
-      const hasError = !!(isError && error)
-      return template`
-        <div>
-          ${!isAriaLabel ? template`<label for="${id}">${label}</label>` : ''}
-          <p id="${id}-error" ${show(hasError)} role="alert" aria-live="polite">${error ?? ''}</p>
-          <p id="${id}-info">${description}</p>
-          <input
-            id="${id}"
-            value="${value}"
-            placeholder="${placeholder}"
-            ${isAriaLabel ? `aria-label="${label}"` : ''}
-            aria-describedby="${[`${id}-info`, hasError ? `${id}-error` : ''].filter(Boolean).join(' ')}"
-            aria-invalid="${boolean(hasError)}"
-            ${hasError ? `aria-errormessage="${id}-error"` : ''}
-            type="text"
-          />
-        </div>
-      `
-    },
-    css: ({ props: { isError, error }, cssToString }) => `
-      div {
-        ${cssToString(flexCenter('x', 'column'))}
-
-        label { padding-block-end: ${size(2)}; }
-
-        p {
-          &:first-of-type {
-            ${cssToString(textSize('sm'))}
-            color: ${cssVar('red')};
-            margin-block-end: ${size(2)};
-            text-align: left;
-          }
-
-          &:last-of-type {${cssToString(forScreenReaders)}}
-        }
-
-        ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
-      }
-    `,
-    actions: {
-      input: {
-        input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
-        compositionstart: ({ data }) => {
-          data.isComposing = true
-        },
-        compositionend: ({ data }) => {
-          data.isComposing = false
-        },
-        keydown: [
-          ({ data: { isComposing }, props: { value, enterKey }, event }) => {
-            if (
-              (value !== '' && (event as KeyboardEvent).key) === 'Enter' &&
-              !isComposing &&
-              enterKey
-            )
-              enterKey()
-          },
-          { throttleMs: 500 }
-        ],
-        blur: ({ props: { value, blur } }) => {
-          if (value !== '' && blur) blur()
-        }
-      }
-    }
+    html,
+    css,
+    actions
   })
