@@ -1,9 +1,18 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $userName } from '@/stores'
 import type { Message } from '@/types'
 import { white } from '@/utils'
+
+interface Data {
+  comment: string
+}
+
+interface Props {
+  messages: Message[]
+  sendMessage: (message: Message) => void
+}
 
 const LINK_HEIGHT = '3.75rem' as const, // (3rem (height) + 12px (margin bottom)) / 16
   TAB_HEIGHT = '4.625rem' as const, // (50px (height) + 24px (margin bottom)) / 16
@@ -14,117 +23,128 @@ const LINK_HEIGHT = '3.75rem' as const, // (3rem (height) + 12px (margin bottom)
   BODY_HEIGHT =
     `calc(${LINK_HEIGHT} + ${TAB_HEIGHT} + ${H2_HEIGHT} + ${H2_MARGIN_BOTTOM} + ${FIXED_AREA_HEIGHT} + ${MAIN_MARGIN_BOTTOM})` as const
 
-export default fics<
-  { comment: string },
-  { messages: Message[]; sendMessage: (message: Message) => void }
->({
-  name: 'chat',
-  children: [Button()],
-  data: () => ({ comment: '' }),
-  props: {
-    descendant: ({ children: { button } }) => button,
-    values: ({ data, props: { sendMessage } }) => ({
-      isDisabled: data.comment.trim() === '',
-      buttonText: 'Send',
-      click: () => {
-        const userName = $userName.get()
-        if (userName === '') return
+const props: FiCs.Props<Data, Props> = {
+  descendant: ({ children: { button } }) => button,
+  values: ({ data, props: { sendMessage } }) => ({
+    isDisabled: data.comment.trim() === '',
+    buttonText: 'Send',
+    click: () => {
+      const userName = $userName.get()
+      if (userName === '') return
 
-        sendMessage({ userName, comment: data.comment })
-        data.comment = ''
-      }
-    })
-  },
-  html: ({ children: { button }, data: { comment }, props: { messages }, template }) => {
-    const currentUserName = $userName.get()
+      sendMessage({ userName, comment: data.comment })
+      data.comment = ''
+    }
+  })
+}
 
-    return template`
-      <h2 class="text-lg text-white text-center mb-6">Chat</h2>
-      <div
-        class="w-full block mx-auto overflow-y-auto"
-        role="log"
-        aria-live="polite"
-        aria-relevant="additions"
-      >
-        ${messages.map(
-          ({ userName, comment }, index) => template`
-            <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
-              <div ${userName === currentUserName ? 'aria-label="Your message"' : ''}>
-                <p class="text-white mb-2">${userName}</p>
-                <p class="text-white px-3 py-2 rounded-lg whitespace-pre-line">${comment}</p>
-              </div>
+const html: FiCs.Html<Data, Props> = ({
+  children: { button },
+  data: { comment },
+  props: { messages },
+  template
+}) => {
+  const currentUserName = $userName.get()
+
+  return template`
+    <h2 class="text-lg text-white text-center mb-6">Chat</h2>
+    <div
+      class="w-full block mx-auto overflow-y-auto"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
+      ${messages.map(
+        ({ userName, comment }, index) => template`
+          <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
+            <div ${userName === currentUserName ? 'aria-label="Your message"' : ''}>
+              <p class="text-white mb-2">${userName}</p>
+              <p class="text-white px-3 py-2 rounded-lg whitespace-pre-line">${comment}</p>
             </div>
-          `
-        )}
+          </div>
+        `
+      )}
+    </div>
+    <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
+      <label class="sr-only" for="message">Message</label>
+      <div class="w-full max-w-xl gap-4">
+        <textarea
+          id="message"
+          aria-describedby="message-help"
+          class="w-full text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
+          placeholder="Please enter your message"
+          rows="3"
+        >${comment}</textarea>
+        ${button}
       </div>
-      <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
-        <label class="sr-only" for="message">Message</label>
-        <div class="w-full max-w-xl gap-4">
-          <textarea
-            id="message"
-            aria-describedby="message-help"
-            class="w-full text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
-            placeholder="Please enter your message"
-            rows="3"
-          >${comment}</textarea>
-          ${button}
-        </div>
-        <p id="message-help" class="text-sm text-white">Press the Shift + Enter keys to send.</p>
-      </div>
-    `
-  },
-  css: {
-    div: {
-      '&.block': {
-        maxHeight: calc(
-          `100dvh - ${cssVar('header-height')} - ${BODY_HEIGHT} - ${cssVar('footer-height')}`
-        ),
-        maxWidth: cssVar('chat-width'),
-        'div[key]': {
-          '&:last-child': { marginBlockEnd: '0' },
-          div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
-        }
-      },
-      '&.absolute': {
-        ...flexCenter('y', 'column'),
-        bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
-        div: {
-          ...flexCenter('y'),
-          textarea: {
-            '&:hover': { background: white(0.1) },
-            '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
-          }
-        }
+      <p id="message-help" class="text-sm text-white">Press the Shift + Enter keys to send.</p>
+    </div>
+  `
+}
+
+const css: FiCs.Css<Data, Props> = {
+  div: {
+    '&.block': {
+      maxHeight: calc(
+        `100dvh - ${cssVar('header-height')} - ${BODY_HEIGHT} - ${cssVar('footer-height')}`
+      ),
+      maxWidth: cssVar('chat-width'),
+      'div[key]': {
+        '&:last-child': { marginBlockEnd: '0' },
+        div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
       }
-    }
-  },
-  hooks: {
-    created: () => {
-      if ($userName.get() !== '') return
-
-      const newUserName = prompt('Please enter your name.')
-      newUserName ? $userName.set(newUserName) : (window.location.href = '/')
-    }
-  },
-  actions: {
-    textarea: {
-      input: ({ data, event: { currentTarget } }) =>
-        (data.comment = (currentTarget as HTMLTextAreaElement).value),
-      keydown: ({ data, props: { sendMessage }, event }) => {
-        if (window.matchMedia('(pointer: coarse)').matches) return
-
-        const userName = $userName.get()
-        const { comment } = data,
-          keyboardEvent = event as KeyboardEvent,
-          isEnterKey = keyboardEvent.key === 'Enter'
-
-        if (userName === '' || comment.trim() === '' || !isEnterKey || !keyboardEvent.shiftKey)
-          return
-
-        keyboardEvent.preventDefault()
-        sendMessage({ userName, comment })
-        data.comment = ''
+    },
+    '&.absolute': {
+      ...flexCenter('y', 'column'),
+      bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
+      div: {
+        ...flexCenter('y'),
+        textarea: {
+          '&:hover': { background: white(0.1) },
+          '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
+        }
       }
     }
   }
+}
+
+const hooks: FiCs.Hooks<Data, Props> = {
+  created: () => {
+    if ($userName.get() !== '') return
+
+    const newUserName = prompt('Please enter your name.')
+    newUserName ? $userName.set(newUserName) : (window.location.href = '/')
+  }
+}
+
+const actions: FiCs.Actions<Data, Props> = {
+  textarea: {
+    input: ({ data, event: { currentTarget } }) =>
+      (data.comment = (currentTarget as HTMLTextAreaElement).value),
+    keydown: ({ data, props: { sendMessage }, event }) => {
+      if (window.matchMedia('(pointer: coarse)').matches) return
+
+      const userName = $userName.get()
+      const { comment } = data,
+        keyboardEvent = event as KeyboardEvent,
+        isEnterKey = keyboardEvent.key === 'Enter'
+
+      if (userName === '' || comment.trim() === '' || !isEnterKey || !keyboardEvent.shiftKey) return
+
+      keyboardEvent.preventDefault()
+      sendMessage({ userName, comment })
+      data.comment = ''
+    }
+  }
+}
+
+export default fics<Data, Props>({
+  name: 'chat',
+  children: [Button()],
+  data: () => ({ comment: '' }),
+  props,
+  html,
+  css,
+  hooks,
+  actions
 })
