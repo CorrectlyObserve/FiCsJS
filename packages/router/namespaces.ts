@@ -22,7 +22,7 @@ export declare namespace FiCsLink {
 
   type Content<P extends object> = _Content<{}, P>
 
-  type Css<P> = SingleOrArray<Css.Rules<{}, P> | string> | undefined
+  type Css<P> = Css.Ctx<{}, P> | undefined
 
   type Href<P> = (({ props }: { props: P }) => string) | string
 
