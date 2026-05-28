@@ -1,4 +1,4 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { Direction } from '@/types'
@@ -20,6 +20,46 @@ interface Props {
   isAtLast: boolean
   moveItem: (direction: Direction, isCopy: boolean) => void | Promise<void>
 }
+
+const html: FiCs.Html<Data, Props> = ({
+  children: { icon },
+  data,
+  props: { isDisabled, isAtFirst, isAtLast, moveItem },
+  template,
+  attributes: { statusLiveRegion }
+}) => {
+  const { isCopy, buttons } = data
+
+  return template`
+    <p class="sr-only" ${statusLiveRegion}>The current mode is ${isCopy ? 'copy' : 'move'}.</p>
+    ${buttons(isCopy).map(({ id, svg, ariaLabel, isPressed }) => {
+      const isFirstItem = id === 'up' && isAtFirst,
+        isLastItem = id === 'down' && isAtLast
+
+      return template`
+        ${icon.setIndividualProps(id, {
+          svg,
+          ariaLabel,
+          isLarge: true,
+          isDisabled: isDisabled || (!isCopy && (isFirstItem || isLastItem)),
+          isActive: isCopy && id === 'action',
+          isPressed,
+          click: async () => {
+            if (id === 'action') {
+              data.isCopy = !data.isCopy
+              return
+            }
+
+            await moveItem(id, isCopy)
+          }
+        })}
+      `
+    })}
+  `
+}
+
+const css: FiCs.Css<Data, Props> = ({ cssToString }) =>
+  `:host {${cssToString(flexCenter('y', 'column'))}}`
 
 export default fics<Data, Props>({
   name: 'menu',
@@ -46,41 +86,6 @@ export default fics<Data, Props>({
     ]
   }),
   className: 'fixed bottom-8 left-4 z-1',
-  html: ({
-    children: { icon },
-    data,
-    props: { isDisabled, isAtFirst, isAtLast, moveItem },
-    template,
-    attributes: { statusLiveRegion }
-  }) => {
-    const { isCopy, buttons } = data
-
-    return template`
-      <p class="sr-only" ${statusLiveRegion}>The current mode is ${isCopy ? 'copy' : 'move'}.</p>
-      ${buttons(isCopy).map(({ id, svg, ariaLabel, isPressed }) => {
-        const isFirstItem = id === 'up' && isAtFirst,
-          isLastItem = id === 'down' && isAtLast
-
-        return template`
-          ${icon.setIndividualProps(id, {
-            svg,
-            ariaLabel,
-            isLarge: true,
-            isDisabled: isDisabled || (!isCopy && (isFirstItem || isLastItem)),
-            isActive: isCopy && id === 'action',
-            isPressed,
-            click: async () => {
-              if (id === 'action') {
-                data.isCopy = !data.isCopy
-                return
-              }
-
-              await moveItem(id, isCopy)
-            }
-          })}
-        `
-      })}
-    `
-  },
-  css: ({ cssToString }) => `:host {${cssToString(flexCenter('y', 'column'))}}`
+  html,
+  css
 })
