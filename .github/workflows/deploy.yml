@@ -1,4 +1,4 @@
-name: Deploy to example applications
+name: Deploy Example Applications
 
 on:
   push:
