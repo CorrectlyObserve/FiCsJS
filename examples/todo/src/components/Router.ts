@@ -8,7 +8,7 @@ import type { Task as TaskType } from '@/types'
 import type { Lang } from '@/utils/lang'
 import { breakpoints } from '@/utils/others'
 
-interface Data {
+export interface Data {
   lang: Lang
   tasks: TaskType[]
   taskId: number
