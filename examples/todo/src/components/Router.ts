@@ -6,7 +6,7 @@ import NotFound from '@/components/NotFound'
 import { getAllTasks, getTask } from '@/stores'
 import type { Task as TaskType } from '@/types'
 import type { Lang } from '@/utils/lang'
-import { breakpoints, measureOffsetWidth } from '@/utils/others'
+import { breakpoints } from '@/utils/others'
 
 interface Data {
   lang: Lang
@@ -44,24 +44,6 @@ const props: FiCsRouter.Props<Data> = [
       updateTasks: (tasks: TaskType[]) => (data.tasks = tasks)
     })
   }
-]
-
-const pages: FiCsRouter.Pages<Data> = [
-  {
-    path: '/',
-    content: ({
-      children: { tasks, taskDetails },
-      data: {
-        queries: { taskId }
-      },
-      template
-    }) => {
-      if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
-      return tasks
-    }
-  },
-  { path: '/:taskId', content: ({ children: { taskDetails } }) => taskDetails },
-  { path: '/redirect', redirect: '/' }
 ]
 
 const css: FiCsRouter.Css<Data> = {
@@ -126,8 +108,6 @@ export default ficsRouter<Data>({
   children: [Tasks, TaskDetail, NotFound],
   data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
   props,
-  pages,
-  notFound: { content: ({ children: { notFound } }) => notFound },
   css,
   hooks
 })
