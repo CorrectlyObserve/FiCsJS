@@ -4,3 +4,6 @@ saveTextLockfile = true
 ignoreScripts = true
 minimumReleaseAge = 604_800 # 7days
 minimumReleaseAgeExcludes = []
+
+[install.lifecycle]
+ignoreScripts = true
