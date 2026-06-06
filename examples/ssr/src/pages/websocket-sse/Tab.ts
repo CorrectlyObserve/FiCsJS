@@ -40,7 +40,7 @@ export default fics({
   data: () => ({
     tabs: [
       { href: CHAT_PAGE, text: 'Chat' },
-      { href: `${CHAT_PAGE}/logs`, text: 'Logs' },
+      { href: `${CHAT_PAGE}/activities`, text: 'Activities' },
       { href: `${CHAT_PAGE}/stream`, text: 'Stream' }
     ],
     current: ''

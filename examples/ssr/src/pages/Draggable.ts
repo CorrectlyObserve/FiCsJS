@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { oklch } from 'ficsjs/style'
-import Menu from '@/pages/_components/Menu'
+import Menu from '@/pages/Menu'
 import { Direction, Updated } from '@/types'
 import { white } from '@/utils'
 

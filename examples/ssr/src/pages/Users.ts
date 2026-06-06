@@ -2,8 +2,8 @@ import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { BASE_URL, getExpectedUser, USERS_KEY } from '@/data/users'
-import Draggable from '@/pages/_components/Draggable'
-import UserContent from '@/pages/_components/UserContent'
+import Draggable from '@/pages/Draggable'
+import UserContent from '@/pages/UserContent'
 import type { Method, Updated, User } from '@/types'
 
 interface Data {
