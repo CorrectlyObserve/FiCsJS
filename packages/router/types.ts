@@ -12,8 +12,8 @@ import type {
   SingleOrArray
 } from '../core/types'
 
-export type Content<D extends object, P extends object> = (
-  syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P>
+export type Content<D extends object, P extends object, T = {}> = (
+  syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P> & T
 ) => Returned<D, P>
 
 export interface FiCsLink<P extends object> {
