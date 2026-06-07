@@ -271,7 +271,7 @@ export class FiCsElement<D extends object, P extends object> {
       const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
         options
 
-      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
+      if (ssr === false || lazyLoad) this.#options.ssr = false
 
       if (telemetry && !isEmptyObject(telemetry)) this.#options.telemetry = telemetry
 
