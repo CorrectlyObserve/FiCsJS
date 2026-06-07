@@ -34,8 +34,6 @@ export interface FiCsRouter<D extends object> {
   props?: SingleOrArray<Props<RouterData<D>, {}>>
   className?: ClassName<RouterData<D>, {}>
   attributes?: Attrs<RouterData<D>, {}>
-  pages: Page<D>[]
-  notFound?: PageContent<D>
   css?: Css.Ctx<RouterData<D>, {}>
   hooks?: Hook.Lifecycle<RouterData<D>, {}>
   options?: Options.Ctx<RouterData<D>, {}>
