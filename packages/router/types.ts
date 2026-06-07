@@ -41,6 +41,7 @@ export interface FiCsRouter<D extends object> {
 
 export interface Page<D extends object> extends PageContent<D> {
   path: string
+  meta?: Record<string, string>
 }
 
 export interface PageContent<D extends object> {
