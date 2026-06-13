@@ -50,7 +50,7 @@ const options: FiCsRouter.Options<Data> = {
   }
 }
 
-const config: FiCsRouter.Config<Data> = {
+const spa: FiCsRouter.Spa<Data> = {
   pathname: CHAT_PAGE,
   children: [Chat, Stream],
   data: () => ({ messages: [], activities: [] }),
@@ -59,4 +59,4 @@ const config: FiCsRouter.Config<Data> = {
   options
 }
 
-export default config
+export default spa
