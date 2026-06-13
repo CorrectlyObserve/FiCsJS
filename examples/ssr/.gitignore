@@ -1,2 +1,4 @@
 .tailwindcss.txt
 src/routes.gen.ts
+src/rpc.client.gen.ts
+src/rpc.server.gen.ts
