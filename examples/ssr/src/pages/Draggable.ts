@@ -71,7 +71,7 @@ const DRAGGABLE_ATTR = '[draggable="true"]' as const,
 
 export default <T>() => {
   const props: FiCs.Props<Data, Props<T>> = {
-    descendant: ({ children: { menu } }) => menu,
+    descendants: ({ children: { menu } }) => menu,
     values: ({ props: { array, isSelected, onMove, onCopy } }) => {
       const getSelectedIndex = (): number => array.findIndex(item => isSelected(item)),
         selectedIndex = getSelectedIndex()
