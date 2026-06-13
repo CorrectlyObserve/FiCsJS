@@ -422,6 +422,15 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  get #queryCache(): QueryCache {
+    if (this.#ssrQueryCache) return this.#ssrQueryCache
+
+    if (!this.#isBrowser)
+      throw new Error(`Please pass a queryCache via toString({ queryCache }) in ${this.#name}...`)
+
+    return getQueryCache()
+  }
+
   #getDataProps(): DataProps.Payload<D, P, false>
   #getDataProps(hasMethods: true): DataProps.Payload<D, P, true>
   #getDataProps(hasMethods?: boolean): DataProps.Payload<D, P, boolean> {
@@ -429,7 +438,7 @@ export class FiCsElement<D extends object, P extends object> {
       data: this.#data,
       props: this.#props,
       crud: hasMethods ? this.#crud.bind(this) : undefined,
-      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined,
+      queryCache: hasMethods ? this.#queryCache.api : undefined,
       optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
     } as DataProps.Payload<D, P, boolean>
   }
