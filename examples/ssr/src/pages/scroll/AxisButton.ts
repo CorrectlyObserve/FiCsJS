@@ -9,7 +9,7 @@ interface Props {
 }
 
 const props: FiCs.Props<{}, Props> = {
-  descendant: ({ children: { icon } }) => icon,
+  descendants: ({ children: { icon } }) => icon,
   values: ({ props: { isHorizontal, click } }) => ({
     svg: isHorizontal ? MoveVertical : MoveHorizontal,
     ariaLabel: `Switch axis direction to ${isHorizontal ? 'vertical' : 'horizontal'}`,
