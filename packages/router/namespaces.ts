@@ -44,7 +44,7 @@ export declare namespace FiCsRouter {
 
   type Options<D extends object> = Options.Ctx<RouterData<D>, {}> | undefined
 
-  type Pages<D extends object> = Page<D>[]
+  type Page<D extends object> = _Content<RouterData<D>, {}>
 
   type Props<D extends object> = SingleOrArray<_Props<RouterData<D>, {}>> | undefined
 }
