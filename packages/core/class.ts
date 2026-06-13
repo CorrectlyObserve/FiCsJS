@@ -30,7 +30,7 @@ import { sanitize } from './template/sanitize'
 import type {
   Action,
   Attrs,
-  AwaitableVoid,
+  Awaitable,
   Children,
   ClassName,
   Crud,
@@ -434,7 +434,7 @@ export class FiCsElement<D extends object, P extends object> {
     } as DataProps.Payload<D, P, boolean>
   }
 
-  #enqueue(func: () => AwaitableVoid, key: Task['key']): void {
+  #enqueue(func: () => Awaitable, key: Task['key']): void {
     enqueue({
       instanceId: this.#instanceId,
       key,
