@@ -33,7 +33,7 @@ export declare namespace Action {
 
 export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
 
-export type AwaitableVoid = void | Promise<void>
+export type Awaitable<T = void> = T | Promise<T>
 
 export type Children = Record<string, Descendant>
 
