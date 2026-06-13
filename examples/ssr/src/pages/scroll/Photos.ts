@@ -40,7 +40,7 @@ const deferredData = async ({ data, queryCache }: FiCs.DeferredContext<Data, {}>
 
 const props: FiCs.Props<Data, {}> = [
   {
-    descendant: ({ children: { icon } }) => icon,
+    descendants: ({ children: { icon } }) => icon,
     values: ({ data }) => ({
       svg: CircleX,
       ariaLabel: 'Close the dialog',
@@ -52,7 +52,7 @@ const props: FiCs.Props<Data, {}> = [
     })
   },
   {
-    descendant: ({ children: { axisButton } }) => axisButton,
+    descendants: ({ children: { axisButton } }) => axisButton,
     values: ({ data }) => ({
       isHorizontal: data.isHorizontal,
       click: () => (data.isHorizontal = !data.isHorizontal)
