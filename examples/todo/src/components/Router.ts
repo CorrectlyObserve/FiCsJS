@@ -17,16 +17,14 @@ export interface Data {
 
 const props: FiCsRouter.Props<Data> = [
   {
-    descendant: ({ children: { tasks, taskDetails, notFound } }) => [
-      tasks,
-      taskDetails,
-      notFound,
-      ...[tasks, taskDetails, notFound].map(({ getChildren }) => getChildren().loading)
-    ],
+    descendants: ({ children: { tasks, taskDetails, notFound } }) => {
+      const targets = [tasks, taskDetails, notFound]
+      return [...targets, ...targets.map(child => child.getChildren().loading)]
+    },
     values: ({ data: { lang } }) => ({ lang })
   },
   {
-    descendant: ({ children: { tasks } }) => tasks,
+    descendants: ({ children: { tasks } }) => tasks,
     values: ({ data }) => ({
       tasks: data.tasks,
       taskId: data.taskId,
@@ -34,7 +32,7 @@ const props: FiCsRouter.Props<Data> = [
     })
   },
   {
-    descendant: ({ children: { taskDetails } }) => taskDetails,
+    descendants: ({ children: { taskDetails } }) => taskDetails,
     values: ({ data }) => ({
       draft: data.draft,
       editTask: (value: Partial<TaskType>) => {
