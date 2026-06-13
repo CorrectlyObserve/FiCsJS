@@ -24,7 +24,7 @@ const LINK_HEIGHT = '3.75rem' as const, // (3rem (height) + 12px (margin bottom)
     `calc(${LINK_HEIGHT} + ${TAB_HEIGHT} + ${H2_HEIGHT} + ${H2_MARGIN_BOTTOM} + ${FIXED_AREA_HEIGHT} + ${MAIN_MARGIN_BOTTOM})` as const
 
 const props: FiCs.Props<Data, Props> = {
-  descendant: ({ children: { button } }) => button,
+  descendants: ({ children: { button } }) => button,
   values: ({ data, props: { sendMessage } }) => ({
     isDisabled: data.comment.trim() === '',
     buttonText: 'Send',
