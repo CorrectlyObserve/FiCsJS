@@ -15,12 +15,11 @@ const props: FiCs.Props<{}, {}> = {
 const html: FiCs.Html<{}, {}> = ({ children: { icon }, template }) => template`${icon}`
 const css: FiCs.Css<{}, {}> = `:host { background: ${dark()}; }`
 
-export default () =>
-  fics({
-    name: 'chat-button',
-    className: 'fixed bottom-8 right-4',
-    children: [Icon()],
-    props,
-    html,
-    css
-  })
+export default fics({
+  name: 'chat-button',
+  className: 'fixed bottom-8 right-4',
+  children: [Icon()],
+  props,
+  html,
+  css
+})
