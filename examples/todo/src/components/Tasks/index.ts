@@ -38,7 +38,7 @@ const { SM } = breakpoints
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendant: ({ children: { input } }) => input,
+    descendants: ({ children: { input } }) => input,
     values: ({ data, props: { setTasks } }) => {
       const { value, description, placeholder } = data
 
@@ -60,7 +60,7 @@ const props: FiCs.Props<Data, Props> = [
     }
   },
   {
-    descendant: ({ children: { button } }) => button,
+    descendants: ({ children: { button } }) => button,
     values: ({ data }) => ({
       type: 'label',
       isPressed: data.isShown,
