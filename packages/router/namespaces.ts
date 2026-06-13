@@ -9,7 +9,7 @@ import type {
   Options,
   SingleOrArray
 } from '../core/types'
-import type { Content as _Content, Page, PageContent, RouterData } from './types'
+import type { Content as _Content, FiCsRouter as _FiCsRouter, Returned, RouterData } from './types'
 
 export declare namespace FiCsLink {
   type Actions<P> = Action.Handlers<{}, P> | undefined
