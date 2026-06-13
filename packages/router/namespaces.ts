@@ -32,9 +32,9 @@ export declare namespace FiCsLink {
 export declare namespace FiCsRouter {
   type Attributes<D extends object> = Attrs<RouterData<D>, {}> | undefined
 
-  type ClassName<D extends object> = _ClassName<RouterData<D>, {}> | undefined
-
   type Children = Descendant[] | undefined
+
+  type ClassName<D extends object> = _ClassName<RouterData<D>, {}> | undefined
 
   type Css<D extends object> = Css.Ctx<RouterData<D>, {}> | undefined
 
