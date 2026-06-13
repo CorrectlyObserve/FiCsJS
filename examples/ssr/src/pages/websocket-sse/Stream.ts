@@ -13,7 +13,7 @@ let streamSession = 0,
   streamAbortController: AbortController | null
 
 const props: FiCs.Props<Data, {}> = {
-  descendant: ({ children: { icon } }) => icon,
+  descendants: ({ children: { icon } }) => icon,
   values: ({ data }) => ({
     svg: RefreshCcw,
     ariaLabel: `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`,
