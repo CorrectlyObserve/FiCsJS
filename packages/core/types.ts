@@ -283,7 +283,7 @@ export declare namespace Options {
 }
 
 export interface Props<D extends object, P> {
-  descendant: (ctx: { children: Children }) => SingleOrArray<Descendant>
+  descendants: (ctx: { children: Children }) => SingleOrArray<Descendant>
   values: (
     ctx: DataProps.Payload<D, P, true> & { children: Children } & {
       sendToWebsocket: (value: WebSocket.Value) => void
