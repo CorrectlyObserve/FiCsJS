@@ -44,7 +44,7 @@ export declare namespace Crud {
     endpoint: string
     name: string
     activeApis: Map<string, boolean>
-    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
+    enqueue: (func: () => Awaitable, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     options?: Options | StreamOptions
   }
@@ -230,7 +230,7 @@ export declare namespace Optimistic {
   }
 
   interface Config<D extends object, T> {
-    updateData: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
+    updateData: (ctx: { data: ProxyMutable<D> }) => Awaitable
     mutate: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
     dataKeys?: DataKeys<D>
     statusKey?: string
@@ -256,7 +256,7 @@ export declare namespace Optimistic {
     rawData: D
     data: D
     activeApis: Map<string, boolean>
-    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
+    enqueue: (func: () => Awaitable, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     signal: AbortSignal
     guardKey?: (key: keyof D) => void
@@ -583,7 +583,7 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => AwaitableVoid
+  func: () => Awaitable
   key: 'define' | 're-render' | 'fetch'
 }
 
