@@ -40,7 +40,7 @@ const { SM } = breakpoints
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendant: ({ children: { icon } }) => icon,
+    descendants: ({ children: { icon } }) => icon,
     values: ({ props: { draft, editTask } }) => ({
       click: () => {
         if ('completedAt' in draft)
@@ -49,7 +49,7 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendant: ({ children: { input } }) => input,
+    descendants: ({ children: { input } }) => input,
     values: ({
       data: { labels, isError, error, descriptions, placeholders },
       props: { draft, editTask }
@@ -65,7 +65,7 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendant: ({ children: { textarea } }) => textarea,
+    descendants: ({ children: { textarea } }) => textarea,
     values: ({ data: { labels, descriptions, placeholders }, props: { draft, editTask } }) => ({
       id: 'description',
       label: labels[1],
