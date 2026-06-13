@@ -47,4 +47,8 @@ export declare namespace FiCsRouter {
   type Page<D extends object> = _Content<RouterData<D>, {}>
 
   type Props<D extends object> = SingleOrArray<_Props<RouterData<D>, {}>> | undefined
+
+  type Spa<D extends object> = _FiCsRouter<D>
+
+  type SSRLayout<T extends object> = (ctx: { slot: string } & T) => Awaitable<string>
 }
