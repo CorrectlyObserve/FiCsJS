@@ -10,5 +10,6 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": ["dist", "scripts", "**/*.test.ts"]
 }
