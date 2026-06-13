@@ -1,6 +1,7 @@
 import type {
   Action,
   Attrs,
+  Awaitable,
   ClassName as _ClassName,
   Css,
   Descendant,
