@@ -21,7 +21,7 @@ interface Props {
 const MAX = 20 as const
 
 const props: FiCs.Props<Data, Props> = {
-  descendant: ({ children: { button } }) => button,
+  descendants: ({ children: { button } }) => button,
   values: () => ({ fixedUnit: 48 })
 }
 
