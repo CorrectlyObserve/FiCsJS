@@ -51,5 +51,5 @@ export declare namespace FiCsRouter {
 
   type Spa<D extends object> = _FiCsRouter<D>
 
-  type SSRLayout<T extends object> = (ctx: { slot: string } & T) => Awaitable<string>
+  type SsrLayout<T extends object> = (ctx: { slot: string } & T) => Awaitable<string>
 }
