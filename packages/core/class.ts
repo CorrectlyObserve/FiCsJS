@@ -581,22 +581,22 @@ export class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    for (const { descendant, values } of this.#propsSources) {
+    for (const { descendants, values } of this.#propsSources) {
       addGetChildren()
 
-      const descendants: Descendant[] = toArray(descendant({ children: this.#children })).filter(
+      const _descendants: Descendant[] = toArray(descendants({ children: this.#children })).filter(
         (descendant: Descendant): descendant is Descendant => descendant !== undefined
       )
 
       this.#removePublicMethod({ method: 'getChildren' })
 
-      if (descendants.length === 0) continue
+      if (_descendants.length === 0) continue
 
       const run = (): void => {
         FiCsElement.#activeEffect = { instance: this, run }
 
         try {
-          for (const _descendant of descendants)
+          for (const descendant of _descendants)
             for (const [key, value] of typedEntries(
               values({
                 ...this.#getDataProps(true),
@@ -605,7 +605,7 @@ export class FiCsElement<D extends object, P extends object> {
                   this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
               })
             ))
-              _descendant.#props[key] = value
+              descendant.#props[key] = value
         } finally {
           FiCsElement.#activeEffect = null
         }
