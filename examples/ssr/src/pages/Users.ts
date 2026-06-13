@@ -20,11 +20,11 @@ const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8'
 
 const props: FiCs.Props<Data, {}> = [
   {
-    descendant: ({ children: { button, draggable } }) => [button, draggable.getChildren().menu],
+    descendants: ({ children: { button, draggable } }) => [button, draggable.getChildren().menu],
     values: ({ data: { userId } }) => ({ isDisabled: !Number.isInteger(userId) })
   },
   {
-    descendant: ({ children: { draggable } }) => draggable,
+    descendants: ({ children: { draggable } }) => draggable,
     values: ({ data, children: { userContent }, crud, queryCache }) => ({
       array: data.users,
       slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
@@ -66,7 +66,7 @@ const props: FiCs.Props<Data, {}> = [
     })
   },
   {
-    descendant: ({ children: { userContent } }) => userContent,
+    descendants: ({ children: { userContent } }) => userContent,
     values: ({ data: { userId } }) => ({ userId })
   }
 ]
