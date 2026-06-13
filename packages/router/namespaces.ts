@@ -40,7 +40,7 @@ export declare namespace FiCsRouter {
 
   type Hooks<D extends object> = Hook.Lifecycle<RouterData<D>, {}> | undefined
 
-  type NotFound<D extends object> = PageContent<D> | undefined
+  type Layout<D extends object> = _Content<RouterData<D>, {}, { slot: Returned<D, {}> }>
 
   type Options<D extends object> = Options.Ctx<RouterData<D>, {}> | undefined
 
