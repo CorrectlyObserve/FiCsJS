@@ -51,6 +51,9 @@
     "type": "git",
     "url": "https://github.com/CorrectlyObserve/ficsjs.git"
   },
+  "sideEffects": [
+    "./dist/router/rpc/serverOnly.js"
+  ],
   "scripts": {
     "build": "rm -rf dist && bunx tsc",
     "minify": "find ./dist -name '*.js' -exec bunx terser {} --compress --mangle --output {} \\;",
