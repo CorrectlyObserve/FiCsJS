@@ -4,7 +4,7 @@ import { CHAT_PAGE, dark } from '@/utils'
 import { MessageCircleMore } from 'lucide-static'
 
 const props: FiCs.Props<{}, {}> = {
-  descendant: ({ children: { icon } }) => icon,
+  descendants: ({ children: { icon } }) => icon,
   values: () => ({
     svg: MessageCircleMore,
     ariaLabel: 'Go to the chat page',
