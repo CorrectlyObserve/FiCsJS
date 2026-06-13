@@ -18,6 +18,9 @@
     "LICENSE",
     "README.md"
   ],
+  "bin": {
+    "fics-routes": "./dist/router/fs/cli.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/core/index.js",
