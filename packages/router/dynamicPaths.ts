@@ -4,7 +4,8 @@ export const dynamicPathToRegex = (path: string): RegExp => {
   if (!path.startsWith('/')) path = `/${path}`
 
   const escapeRegex = (param: string): string => param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    common = '/([^/]+?)' as const
+    required = '/([^/]+?)' as const,
+    caughtAll = '/(.*?)' as const
 
   let match: RegExpExecArray | null,
     pattern: string = '',
@@ -13,8 +14,11 @@ export const dynamicPathToRegex = (path: string): RegExp => {
   dynamicRegex.lastIndex = 0
 
   while ((match = dynamicRegex.exec(path))) {
-    const staticPart: string = path.slice(lastIndex, match.index)
-    pattern += `${escapeRegex(staticPart)}${match[2] ? `(?:${common})?` : common}`
+    const staticPart: string = path.slice(lastIndex, match.index),
+      flag: string | undefined = match[2],
+      segment: string = flag === '*' ? caughtAll : flag === '?' ? `(?:${required})?` : required
+
+    pattern += `${escapeRegex(staticPart)}${segment}`
 
     lastIndex = match.index + match[0].length
   }
