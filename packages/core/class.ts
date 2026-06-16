@@ -553,7 +553,6 @@ export class FiCsElement<D extends object, P extends object> {
               if (!(key in props)) descendant.#props[key] = value
 
             for (const [key, value] of typedEntries({ ...props })) descendant.#props[key] = value
-
             return descendant
           }
 
