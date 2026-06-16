@@ -72,9 +72,9 @@ export const sanitize = <T>({
             : escape(stringified, context === 'text' ? 'text-content' : 'attr')
 
       if (!isBlankString(fragment)) converted.push(fragment)
-    }
+    },
+    contexts: Template.Context[] = getTemplateContexts(strings)
 
-  const contexts: Template.Context[] = getTemplateContexts(strings)
   for (let index = 0; index < variables.length; index++) {
     const context: Template.Context = contexts[index],
       template: string = strings[index]
