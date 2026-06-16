@@ -1158,7 +1158,8 @@ export class FiCsElement<D extends object, P extends object> {
         return key
       },
       normalizeHost = (selector: string | number): string => {
-        if (!isSsr || typeof selector === 'number') return selector.toString()
+        if (typeof selector === 'number') return selector.toString()
+        if (!isSsr) return selector
 
         const ssrHost: string = `div#${this.#name}`
         return selector
