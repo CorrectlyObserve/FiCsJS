@@ -1162,9 +1162,14 @@ export class FiCsElement<D extends object, P extends object> {
         if (!isSsr) return selector
 
         const ssrHost: string = `div#${this.#name}`
-        return selector
-          .replace(new RegExp(`${constants.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
-          .replace(new RegExp(`${constants.hostSelector.STRICT}`, 'g'), ssrHost)
+
+        /** @remarks Excludes `:host-context()` */
+        if (/^\s*:host(?!-)/.test(selector))
+          return selector
+            .replace(new RegExp(`${constants.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
+            .replace(new RegExp(`${constants.hostSelector.STRICT}`, 'g'), ssrHost)
+
+        return `:where(${ssrHost}) ${selector}`
       },
       convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
         typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
