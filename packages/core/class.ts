@@ -1247,13 +1247,27 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (trimmedSelector === ITSELF) return [component]
 
-    const isDirectChild: boolean = trimmedSelector.startsWith(`${ITSELF} >`)
-    if (isDirectChild || trimmedSelector.startsWith(`${ITSELF} `)) {
-      const sliced: string = trimmedSelector.slice(ITSELF.length)
-      trimmedSelector = isDirectChild ? `:scope ${sliced}` : sliced.trimStart()
+    const shadowRoot: ShadowRoot = this.#getShadowRoot(component),
+      isDirectChild: boolean = trimmedSelector.startsWith(`${ITSELF} >`)
+
+    if (isDirectChild) {
+      const directChildSelector: string = trimmedSelector
+        .slice(ITSELF.length)
+        .replace(/^\s*>\s*/, '')
+        .trim()
+
+      try {
+        return Array.from(shadowRoot.children).filter((element: Element): boolean =>
+          element.matches(directChildSelector)
+        )
+      } catch (error) {
+        throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
+      }
     }
 
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+    if (trimmedSelector.startsWith(`${ITSELF} `))
+      trimmedSelector = trimmedSelector.slice(ITSELF.length).trimStart()
+
     try {
       return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
     } catch (error) {
