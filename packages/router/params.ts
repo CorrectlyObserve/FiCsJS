@@ -20,16 +20,14 @@ class Params {
   }
 
   set(type: ParamType, value: Record<string, string>): void {
-    if (!this.#isBrowser)
-      throw new Error('Params can only be accessed in the browser environment...')
+    /** @remarks Don't throw an error since SSR calls this. */
+    if (!this.#isBrowser) return
 
     type === 'dynamicPaths' ? (this.#dynamicPaths = { ...value }) : (this.#queries = { ...value })
   }
 
   get(type: ParamType): Record<string, string> {
-    if (!this.#isBrowser)
-      throw new Error('Params can only be accessed in the browser environment...')
-
+    if (!this.#isBrowser) return {}
     return type === 'dynamicPaths' ? { ...this.#dynamicPaths } : { ...this.#queries }
   }
 }
