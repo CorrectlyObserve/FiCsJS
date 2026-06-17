@@ -60,6 +60,7 @@
     "prepublishOnly": "bun run build && bun run minify && cp ../README.md ./README.md && cp ../LICENSE ./LICENSE"
   },
   "devDependencies": {
+    "@types/node": "25.9.2",
     "terser": "^5.39.0"
   },
   "engines": {

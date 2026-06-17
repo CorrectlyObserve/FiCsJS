@@ -45,7 +45,11 @@
     "packages": {
       "name": "ficsjs",
       "version": "0.0.8",
+      "bin": {
+        "fics-routes": "./dist/router/fs/cli.js"
+      },
       "devDependencies": {
+        "@types/node": "25.9.2",
         "terser": "^5.39.0"
       }
     }
@@ -681,10 +685,10 @@
     ],
 
     "@types/node": [
-      "@types/node@22.13.10",
+      "@types/node@25.9.2",
       "",
-      { "dependencies": { "undici-types": "~6.20.0" } },
-      "sha512-I6LPUvlRH+O6VRUqYOcMudhaIdUVWfsjnZavnsraHvpBwaEyMN29ry+0UVJhImYL16xsscu0aske3yA+uPOWfw=="
+      { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } },
+      "sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw=="
     ],
 
     "acorn": [
@@ -1926,10 +1930,10 @@
     ],
 
     "undici-types": [
-      "undici-types@6.20.0",
+      "undici-types@7.24.6",
       "",
       {},
-      "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="
+      "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="
     ],
 
     "universalify": [
@@ -2122,6 +2126,13 @@
       "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA=="
     ],
 
+    "bun-types/@types/node": [
+      "@types/node@22.13.10",
+      "",
+      { "dependencies": { "undici-types": "~6.20.0" } },
+      "sha512-I6LPUvlRH+O6VRUqYOcMudhaIdUVWfsjnZavnsraHvpBwaEyMN29ry+0UVJhImYL16xsscu0aske3yA+uPOWfw=="
+    ],
+
     "caniuse-api/browserslist": [
       "browserslist@4.24.4",
       "",
@@ -2184,6 +2195,13 @@
       "",
       { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.3" } },
       "sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ=="
+    ],
+
+    "bun-types/@types/node/undici-types": [
+      "undici-types@6.20.0",
+      "",
+      {},
+      "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="
     ],
 
     "caniuse-api/browserslist/electron-to-chromium": [
