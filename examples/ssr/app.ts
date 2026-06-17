@@ -18,17 +18,17 @@ const app = new Hono()
 app.get('/dist/*', serveStatic({ root: './' }))
 
 const template = ({
-    title,
-    description,
-    content,
-    path
-  }: {
-    title: string
-    description: string
-    content: string
-    path: string
-  }): string =>
-    `
+  title,
+  description,
+  content,
+  path
+}: {
+  title: string
+  description: string
+  content: string
+  path: string
+}): string =>
+  `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -103,29 +103,31 @@ app.get(CHAT_PAGE, c =>
 )
 
 const createServerMessage = (comment: string): string =>
-    JSON.stringify({ userName: 'Server', comment }),
-  messages: Message[] = [],
-  wsClients = new Set<ServerWebSocket>(),
-  wsClientUsernames = new Map<ServerWebSocket, string>(),
-  broadcastMessage = (message: string | Message): void => {
-    for (const client of wsClients)
-      try {
-        client.send(
-          typeof message === 'string' ? createServerMessage(message) : JSON.stringify(message)
-        )
-      } catch {
-        wsClients.delete(client)
-      }
-  },
-  sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
-  broadcastSseMessage = (message: string): void => {
-    for (const sender of sseClients)
-      try {
-        void sender({ event: 'log', data: `${getTimestamp()}: ${message}` })
-      } catch {
-        sseClients.delete(sender)
-      }
-  }
+  JSON.stringify({ userName: 'Server', comment })
+
+const messages: Message[] = []
+const wsClients = new Set<ServerWebSocket>()
+const wsClientUsernames = new Map<ServerWebSocket, string>()
+
+const broadcastMessage = (message: string | Message): void => {
+  for (const client of wsClients)
+    try {
+      client.send(
+        typeof message === 'string' ? createServerMessage(message) : JSON.stringify(message)
+      )
+    } catch {
+      wsClients.delete(client)
+    }
+}
+const sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>()
+const broadcastSseMessage = (message: string): void => {
+  for (const sender of sseClients)
+    try {
+      void sender({ event: 'log', data: `${getTimestamp()}: ${message}` })
+    } catch {
+      sseClients.delete(sender)
+    }
+}
 
 app.get(
   API_PATHS.ws,
