@@ -44,7 +44,7 @@ export interface Page<D extends object = Record<string, unknown>> extends PageCo
   meta?: Record<string, string>
 }
 
-export interface PageContent<D extends object> {
+export interface PageContent<D extends object = Record<string, unknown>> {
   content?: Content<RouterData<D>, {}>
   redirect?: string
 }
