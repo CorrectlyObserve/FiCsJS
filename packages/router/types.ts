@@ -75,14 +75,8 @@ export declare namespace Routing {
     redirectFn?: Routing.RedirectFn
   }
 
-  interface Route {
-    path: string
-    page: Module
-    layout?: Module
-  }
-
   interface Spec {
-    routes: Route[]
+    routes: { path: string; page: Module; layout?: Module }[]
     redirects?: Redirects
     statusModules?: Record<string, Module>
   }
