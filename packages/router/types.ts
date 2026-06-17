@@ -57,3 +57,39 @@ export type RouterData<D extends object> = D & {
   pathname: string
   queries: Record<string, string>
 }
+
+export declare namespace Routing {
+  interface Module {
+    default?: unknown
+    redirect?: string
+    meta?: Record<string, string>
+  }
+
+  type RedirectFn = (pathname: string) => string | null
+
+  type Redirects = Record<string, string> | RedirectFn
+
+  interface Registry<D extends object = Record<string, unknown>> {
+    pages: Page<D>[] | null
+    statusModules: Record<string, PageContent<D> | undefined>
+    redirectFn?: RedirectFn
+  }
+
+  interface Resolved<D extends object = Record<string, unknown>> {
+    pages: Page<D>[]
+    statusModules: Record<string, PageContent<D> | undefined>
+    redirectFn?: Routing.RedirectFn
+  }
+
+  interface Route {
+    path: string
+    module: Module
+    layout?: Module
+  }
+
+  interface Spec {
+    routes: Route[]
+    redirects?: Redirects
+    statusModules?: Record<string, Module>
+  }
+}
