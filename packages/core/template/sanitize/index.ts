@@ -11,6 +11,24 @@ const {
   symbols: { SANITIZED, UNSAFE_HTML }
 } = constants
 
+const isSpaceNeeded = <T>(converted: (T | string)[], firstInsertedIndex: number): boolean => {
+  const isNonEmptyString = (value: T | string | undefined): value is string =>
+    typeof value === 'string' && value !== ''
+
+  if (!isNonEmptyString(converted[firstInsertedIndex])) return false
+
+  for (let index = firstInsertedIndex - 1; index >= 0; index--) {
+    const prev: T | string = converted[index]
+
+    if (!isNonEmptyString(prev)) continue
+
+    /** @remarks ignores `=` and `-`. */
+    return !/[\s<=-]$/.test(prev)
+  }
+
+  return false
+}
+
 export const sanitize = <T>({
   strings,
   variables,
@@ -86,8 +104,17 @@ export const sanitize = <T>({
       const processedTemplate: string = converted.length === length ? template.trimEnd() : template
       if (processedTemplate !== '') converted.splice(length, 0, processedTemplate)
     } else {
-      if (template !== '') converted.push(template)
+      let _index: number = converted.length
+
+      if (template !== '') {
+        converted.push(template)
+        _index++
+      }
+
       processValue(variables[index], context)
+
+      if (context === 'tag' && isSpaceNeeded(converted, _index))
+        converted[_index] = ` ${converted[_index]}`
     }
   }
 
