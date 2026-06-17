@@ -69,12 +69,6 @@ export declare namespace Routing {
 
   type Redirects = Record<string, string> | RedirectFn
 
-  interface Registry<D extends object = Record<string, unknown>> {
-    pages: Page<D>[] | null
-    statusModules: Record<string, PageContent<D> | undefined>
-    redirectFn?: RedirectFn
-  }
-
   interface Resolved<D extends object = Record<string, unknown>> {
     pages: Page<D>[]
     statusModules: Record<string, PageContent<D> | undefined>
