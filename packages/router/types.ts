@@ -83,7 +83,7 @@ export declare namespace Routing {
 
   interface Route {
     path: string
-    module: Module
+    page: Module
     layout?: Module
   }
 
