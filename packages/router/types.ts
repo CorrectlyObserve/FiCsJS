@@ -39,7 +39,7 @@ export interface FiCsRouter<D extends object> {
   options?: Options.Ctx<RouterData<D>, {}>
 }
 
-export interface Page<D extends object> extends PageContent<D> {
+export interface Page<D extends object = Record<string, unknown>> extends PageContent<D> {
   path: string
   meta?: Record<string, string>
 }
