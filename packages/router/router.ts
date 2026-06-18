@@ -15,19 +15,29 @@ const setRouterData = <D extends object>(data: RouterData<D>, pathname: string):
   params.set('queries', queries)
 }
 
-export const ficsRouter = <D extends object>({
-  children,
-  data,
-  pathname = '/',
-  props,
-  className,
-  attributes,
-  pages,
-  notFound,
-  css,
-  hooks,
-  options
-}: FiCsRouter<D>): FiCsElement<RouterData<D>, {}> => {
+export const ficsRouter = <D extends object>(
+  config: FiCsRouter<D>,
+  spec?: Routing.Spec
+): FiCsElement<RouterData<D>, {}> => {
+  const {
+      children,
+      data,
+      pathname = '/',
+      props,
+      className,
+      attributes,
+      css,
+      hooks,
+      options
+    }: FiCsRouter<D> = config,
+    {
+      pages,
+      statusModules: { notFound },
+      redirectFn
+    }: Readonly<Routing.Resolved> = resolveRoutingSpec(spec),
+    _pages = pages as Page<D>[],
+    _notFound = notFound as PageContent<D> | undefined
+
   let removeEventListeners: () => void = () => {}
 
   return new FiCsElement<RouterData<D>, {}>({
@@ -44,7 +54,7 @@ export const ficsRouter = <D extends object>({
           const staticPages: Page<D>[] = [],
             dynamicPages: Page<D>[] = []
 
-          for (const { path, ..._args } of pages) {
+          for (const { path, ..._args } of _pages) {
             dynamicRegex.lastIndex = 0
 
             const _pages: Page<D>[] = dynamicRegex.test(path) ? dynamicPages : staticPages
@@ -118,11 +128,11 @@ export const ficsRouter = <D extends object>({
               return render({ ..._args })
             }
 
-          if (notFound) {
+          if (_notFound) {
             ;(data as RouterData<D>).pathname = '/404'
             params.set('dynamicPaths', {})
             goto('/404', { isWithoutHistory: true })
-            return render(notFound)
+            return render(_notFound)
           }
           throw new Error(`The "${pathname}" does not exist on pages...`)
         }
