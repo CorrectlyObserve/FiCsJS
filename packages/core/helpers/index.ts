@@ -6,6 +6,7 @@ export { deepEqual } from './deepEqual'
 export { numberError } from './numberError'
 export {
   convertStr,
+  escape,
   joinArray,
   normalizePath,
   normalizeRootMargin,
