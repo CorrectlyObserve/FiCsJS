@@ -38,6 +38,8 @@ export const ficsRouter = <D extends object>(
     _pages = pages as Page<D>[],
     _notFound = notFound as PageContent<D> | undefined
 
+  if (_pages.length === 0) throw new Error('Please configure routes...')
+
   const redirectMap: ReadonlyMap<string, string> = new Map(
     _pages
       .filter(({ redirect }) => typeof redirect === 'string')
