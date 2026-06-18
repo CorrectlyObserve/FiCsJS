@@ -133,29 +133,31 @@ export const ficsRouter = <D extends object>({
     hooks: {
       created: ({ data, ...args }) => {
         hooks?.created?.({ data, ...args })
-        setRouterData(data, window.location.pathname)
-      },
-      mounted: ({ data, ...args }) => {
-        hooks?.mounted?.({ data, ...args })
 
-        const onPopState: () => void = (): void => setRouterData(data, window.location.pathname)
+        const onPopState: () => void = (): void =>
+          setRouterData(data, window.location.pathname, redirectMap, redirectFn)
+
+        window.addEventListener('popstate', onPopState)
+
         const onCustomEvent: (event: Event) => void = (event): void => {
           const {
               detail: { href }
             }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
             { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
-          setRouterData(data, pathname)
+          setRouterData(data, pathname, redirectMap, redirectFn)
         }
 
-        window.addEventListener('popstate', onPopState)
         window.addEventListener(FICS_NAVIGATE, onCustomEvent)
 
         removeEventListeners = (): void => {
           window.removeEventListener('popstate', onPopState)
           window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
         }
+
+        setRouterData(data, window.location.pathname, redirectMap, redirectFn)
       },
+      mounted: hooks?.mounted,
       updated: hooks?.updated,
       destroyed: ({ ...args }) => {
         removeEventListeners()
