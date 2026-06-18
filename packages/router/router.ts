@@ -38,6 +38,11 @@ export const ficsRouter = <D extends object>(
     _pages = pages as Page<D>[],
     _notFound = notFound as PageContent<D> | undefined
 
+  const redirectMap: ReadonlyMap<string, string> = new Map(
+    _pages
+      .filter(({ redirect }) => typeof redirect === 'string')
+      .map(({ path, redirect }) => [normalizePath(path), redirect!])
+  )
   let removeEventListeners: () => void = () => {}
 
   return new FiCsElement<RouterData<D>, {}>({
