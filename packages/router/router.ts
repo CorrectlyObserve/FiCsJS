@@ -4,6 +4,7 @@ import type { DeepReadonly, Html } from '../core/types'
 import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
+import { applyMeta } from './meta'
 import { getQueries, params } from './params'
 import { resolveRouting } from './registry'
 import type {
@@ -145,25 +146,22 @@ export const ficsRouter = <D extends object>(
             throw new Error('Either "content" or "redirect" must be specified...')
           }
 
-          if (pathname === '/404' && notFound) {
-            params.set('dynamicPaths', {})
-            return render(notFound)
-          }
-
           const staticPage: Page<D> | undefined = staticPages.find(
             ({ path }) => pathname === normalizePath(path)
           )
           if (staticPage) {
             params.set('dynamicPaths', {})
 
-            const { content, redirect }: Page<D> = staticPage
+            const { meta, content, redirect }: Page<D> = staticPage
+            applyMeta(meta)
             return render({ content, redirect })
           }
 
-          for (const { path, ..._args } of dynamicPages)
+          for (const { path, meta, content, redirect } of dynamicPages)
             if (dynamicPathToRegex(path).test(pathname)) {
               params.set('dynamicPaths', getDynamicPaths(path))
-              return render({ ..._args })
+              applyMeta(meta)
+              return render({ content, redirect })
             }
 
           if (_notFound) {
@@ -172,6 +170,7 @@ export const ficsRouter = <D extends object>(
             goto('/404', { isWithoutHistory: true })
             return render(_notFound)
           }
+
           throw new Error(`The "${pathname}" does not exist on pages...`)
         }
 
