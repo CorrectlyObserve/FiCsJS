@@ -51,6 +51,12 @@ export interface PageContent<D extends object = Record<string, unknown>> {
 
 export type ParamType = 'dynamicPaths' | 'queries'
 
+export interface Redirect {
+  pathname: string
+  redirectMap: ReadonlyMap<string, string>
+  redirectFn?: Routing.RedirectFn
+}
+
 export type Returned<D extends object, P extends object> = Descendant | Html.Sanitized<D, P>
 
 export type RouterData<D extends object> = D & {
