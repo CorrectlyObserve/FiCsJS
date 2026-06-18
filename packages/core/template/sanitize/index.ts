@@ -1,7 +1,6 @@
 import { constants } from '../../constants'
-import { isBlankString } from '../../helpers'
+import { escape, isBlankString } from '../../helpers'
 import type { Template } from '../../types'
-import { escape } from '../escape'
 import { error } from './error'
 import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
