@@ -1,5 +1,6 @@
 export { goto } from './goto'
 export { ficsLink } from './link'
+export { renderMeta } from './meta'
 export type { FiCsLink, FiCsRouter } from './namespaces'
 export { dynamicPaths, queries } from './params'
 export { ficsRouter } from './router'
