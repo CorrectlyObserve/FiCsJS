@@ -1,7 +1,6 @@
-import { isBlankString, joinArray } from '../../helpers'
+import { escape, isBlankString, joinArray } from '../../helpers'
 import type { Template } from '../../types'
 import { constants } from '../constants'
-import { escape } from '../escape'
 import { error } from './error'
 import { parseQuotedAttr } from './parser'
 import { isQuote, isValidAttrName, isSpace } from './validator'
