@@ -11,7 +11,7 @@ export const registerRoutes = (spec: Routing.Spec): void => {
   registry.redirectFn = redirectFn
 }
 
-export const resolveRoutingSpec = (spec?: Routing.Spec): Readonly<Routing.Resolved> => {
+export const resolveRouting = (spec?: Routing.Spec): Readonly<Routing.Resolved> => {
   if (!spec) return registry
 
   const { routes, redirects, statusModules }: Routing.Spec = spec,
