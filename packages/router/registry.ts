@@ -5,7 +5,7 @@ import type { Page, PageContent, Routing } from './types'
 const registry: Routing.Resolved = { pages: [], statusModules: {}, redirectFn: undefined }
 
 export const registerRoutes = (spec: Routing.Spec): void => {
-  const { pages, statusModules, redirectFn }: Routing.Resolved = resolveRoutingSpec(spec)
+  const { pages, statusModules, redirectFn }: Routing.Resolved = resolveRouting(spec)
   registry.pages = pages
   registry.statusModules = statusModules
   registry.redirectFn = redirectFn
