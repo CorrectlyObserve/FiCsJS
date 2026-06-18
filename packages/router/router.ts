@@ -5,6 +5,7 @@ import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { getQueries, params } from './params'
+import { resolveRouting } from './registry'
 import type {
   FiCsRouter,
   Page,
@@ -64,7 +65,7 @@ export const ficsRouter = <D extends object>(
       pages,
       statusModules: { notFound },
       redirectFn
-    }: Readonly<Routing.Resolved> = resolveRoutingSpec(spec),
+    }: Readonly<Routing.Resolved> = resolveRouting(spec),
     _pages = pages as Page<D>[],
     _notFound = notFound as PageContent<D> | undefined
 
