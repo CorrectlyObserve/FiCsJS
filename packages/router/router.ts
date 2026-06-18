@@ -7,10 +7,32 @@ import { goto } from './goto'
 import { getQueries, params } from './params'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData } from './types'
 
-const setRouterData = <D extends object>(data: RouterData<D>, pathname: string): void => {
+const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Redirect): string => {
+  const normalized: string = normalizePath(pathname)
+  let redirect: string | undefined = redirectMap.get(normalized)
+
+  if (redirect === undefined && redirectFn) {
+    const result: string | null = redirectFn(normalized)
+    if (typeof result === 'string') redirect = result
+  }
+  if (redirect === undefined) return normalized
+
+  const { origin, pathname: _pathname } = window.location,
+    resolvedPath: string = normalizePath(new URL(redirect, origin).pathname)
+
+  if (_pathname !== resolvedPath) goto(redirect, { isWithoutHistory: true })
+  return resolvedPath
+}
+
+const setRouterData = <D extends object>({
+  data,
+  pathname,
+  redirectMap,
+  redirectFn
+}: Redirect & { data: RouterData<D> }): void => {
   const queries: Record<string, string> = getQueries()
 
-  data.pathname = pathname
+  data.pathname = resolveRedirect({ pathname, redirectMap, redirectFn })
   data.queries = queries
   params.set('queries', queries)
 }
