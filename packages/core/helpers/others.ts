@@ -7,6 +7,16 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
 }
 
+export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): string => {
+  const escaped: string = str.replace(
+    /[&<>]/g,
+    char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char] as string
+  )
+
+  if (context === 'text-content') return escaped
+  return escaped.replace(/["']/g, char => ({ '"': '&quot;', "'": '&#39;' })[char] as string)
+}
+
 export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
   arr.join(isSpaceAdded ? ' ' : '').trim()
 
