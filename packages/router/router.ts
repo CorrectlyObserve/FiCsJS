@@ -5,7 +5,15 @@ import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { getQueries, params } from './params'
-import type { FiCsRouter, Page, PageContent, Returned, RouterData } from './types'
+import type {
+  FiCsRouter,
+  Page,
+  PageContent,
+  Redirect,
+  Returned,
+  RouterData,
+  Routing
+} from './types'
 
 const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Redirect): string => {
   const normalized: string = normalizePath(pathname)
