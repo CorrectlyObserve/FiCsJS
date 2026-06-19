@@ -117,8 +117,8 @@ export const sanitize = <T>({
     }
   }
 
-  const trailing: string = strings[strings.length - 1]
-  if (trailing !== '') converted.push(trailing)
+  const trailing: string | undefined = strings.at(-1)
+  if (trailing !== undefined && trailing !== '') converted.push(trailing)
 
   return converted
 }
