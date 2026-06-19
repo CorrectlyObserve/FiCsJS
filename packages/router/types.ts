@@ -65,6 +65,20 @@ export type RouterData<D extends object> = D & {
 }
 
 export declare namespace Routing {
+  namespace Ctx {
+    interface CollectFiles<T> {
+      filePaths: string[]
+      extensions: string[]
+      type: T
+    }
+
+    interface Redirect {
+      pathname: string
+      redirectMap: ReadonlyMap<string, string>
+      redirectFn?: Routing.RedirectFn
+    }
+  }
+
   interface Module {
     default?: unknown
     redirect?: string
