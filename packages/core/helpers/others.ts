@@ -21,7 +21,7 @@ export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
   arr.join(isSpaceAdded ? ' ' : '').trim()
 
 export const normalizePath = (path: string): string =>
-  path === '/' ? '/' : path.replace(/\/+$/, '')
+  path === '/' ? '/' : removeTrailingSlash(path)
 
 export const normalizeRootMargin = (rootMargin?: string | number): string => {
   if (typeof rootMargin === 'number') {
