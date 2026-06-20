@@ -38,6 +38,8 @@ export const normalizeRootMargin = (rootMargin?: string | number): string => {
   return joinArray(right || bottom ? [top, right!, bottom ?? top, right!] : new Array(4).fill(top))
 }
 
+export const removeTrailingSlash = (path: string): string => path.replace(/\/+$/, '')
+
 export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   if (Array.isArray(param)) return [...param]
 
