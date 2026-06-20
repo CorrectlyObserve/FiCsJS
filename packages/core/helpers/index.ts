@@ -10,6 +10,7 @@ export {
   joinArray,
   normalizePath,
   normalizeRootMargin,
+  removeTrailingSlash,
   toArray,
   typedEntries,
   uid
