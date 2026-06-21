@@ -73,6 +73,8 @@ export declare namespace Routing {
     }
   }
 
+  type Extensions = Readonly<string[]>
+
   interface Module {
     default?: unknown
     redirect?: string
