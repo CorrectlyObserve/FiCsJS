@@ -62,8 +62,8 @@ export declare namespace Routing {
   namespace Ctx {
     interface CollectFiles<T> {
       filePaths: string[]
-      extensions: string[]
-      type: T
+      extensions: Extensions
+      expectedType: T
     }
 
     interface Redirect {
