@@ -59,6 +59,15 @@ export type RouterData<D extends object> = D & {
 }
 
 export declare namespace Routing {
+  interface Config {
+    dir?: string
+    output?: string
+    pageFile?: string
+    extensions?: Routing.Extensions
+    /** @remarks The URL prefix of the RPC client. Defaults to '/_rpc'. */
+    basePath?: string
+  }
+
   namespace Ctx {
     interface CollectFiles<T> {
       filePaths: string[]
