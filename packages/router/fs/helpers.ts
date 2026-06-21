@@ -1,7 +1,7 @@
 import { removeTrailingSlash } from './../../core/helpers'
 import type { Routing, ServerFile } from '../types'
 import { fileNames } from './constants'
-import { resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, PAGE, SERVER, SPA } = fileNames
 
@@ -98,6 +98,11 @@ export const toAbsolute = <T extends Record<string, string | undefined>>(
   }
 
   return result
+}
+
+export const toRelative = (from: string, to: string): string => {
+  const _relative: string = toPosix(relative(dirname(from), to))
+  return _relative.startsWith('.') ? _relative : `./${_relative}`
 }
 
 export const toSpecifier = (path: string, baseDir: string): string =>
