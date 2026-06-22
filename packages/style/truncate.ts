@@ -1,6 +1,6 @@
 import { numberError } from '../core/helpers'
 
-/** @param maxLines Must be a positive integer. Default is `1`. */
+/** @param maxLines Must be a positive integer. Defaults to `1`. */
 export const truncate = (maxLines: number = 1) => {
   numberError({ maxLines }, 'positive-int')
 
