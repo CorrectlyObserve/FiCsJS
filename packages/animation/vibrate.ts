@@ -3,8 +3,8 @@ import { numberError } from '../core/helpers'
 const translate3d = (x: number | string) => ({ transform: `translate3d(${x}, 0, 0)` }) as const
 
 /**
- * @param durationSec Must be greater than 0. Default is `0.4`.
- * @param unit Must be a positive integer. Default is `2`.
+ * @param durationSec Must be greater than 0. Defaults to `0.4`.
+ * @param unit Must be a positive integer. Defaults to `2`.
  */
 export const vibrate = (durationSec = 0.4, unit = 2) => {
   numberError({ durationSec }, 'positive')
