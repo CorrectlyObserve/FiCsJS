@@ -82,6 +82,12 @@ export declare namespace Routing {
     meta?: Record<string, string>
   }
 
+  interface Options {
+    baseDir?: string
+    pageFile?: string
+    extensions?: Routing.Extensions
+  }
+
   interface Redirect {
     pathname: string
     redirectMap: ReadonlyMap<string, string>
