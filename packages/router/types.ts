@@ -82,10 +82,20 @@ export declare namespace Routing {
     meta?: Record<string, string>
   }
 
-  interface Options {
-    baseDir?: string
-    pageFile?: string
-    extensions?: Routing.Extensions
+  namespace Options {
+    interface Generate {
+      baseDir?: string
+      pageFile?: string
+      extensions?: Routing.Extensions
+    }
+
+    interface Register {
+      render: (ctx: Routing.Render) => string
+      createContext?: (ctx: Routing.Host) => Record<string, unknown>
+      toRoutePath?: (path: string) => string
+      serverError?: Routing.ServerModule
+      redirects?: Routing.Redirects
+    }
   }
 
   interface Plugin {
