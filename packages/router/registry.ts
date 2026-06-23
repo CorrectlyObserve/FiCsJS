@@ -18,7 +18,7 @@ export const resolveRouting = (spec?: Routing.Spec): Readonly<Routing.Resolved> 
     pages: Page[] = []
 
   for (const { path, page, layout } of routes)
-    pages.push(resolveModule(layout ? applyLayout({ layout, page }) : page, path))
+    pages.push(resolveModule(applyLayout({ layout, page }), path))
 
   let redirectFn: Routing.RedirectFn | undefined
 
