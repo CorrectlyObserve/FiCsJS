@@ -9,7 +9,7 @@ import { getQueries, params } from './params'
 import { resolveRouting } from './registry'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData, Routing } from './types'
 
-const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Routing.Ctx.Redirect): string => {
+const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Routing.Redirect): string => {
   const normalized: string = normalizePath(pathname)
   let redirect: string | undefined = redirectMap.get(normalized)
 
@@ -31,7 +31,7 @@ const setRouterData = <D extends object>({
   pathname,
   redirectMap,
   redirectFn
-}: Routing.Ctx.Redirect & { data: RouterData<D> }): void => {
+}: Routing.Redirect & { data: RouterData<D> }): void => {
   const queries: Record<string, string> = getQueries()
 
   data.pathname = resolveRedirect({ pathname, redirectMap, redirectFn })
