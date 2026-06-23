@@ -1,6 +1,6 @@
 import { removeTrailingSlash } from './../../core/helpers'
 import type { Routing } from '../types'
-import { configDefaults, fileNames } from './constants'
+import { BASE_DIR, configDefaults, EXTENSIONS, fileNames } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, PAGE, SERVER, SPA } = fileNames
@@ -72,6 +72,13 @@ export const removeExt = (file: string): string => {
   const ext: string = getExt(file)
   return ext === '' ? file : file.slice(0, file.length - ext.length)
 }
+
+export const resolveOptions = (
+  options?: Routing.Options
+): Required<Pick<Routing.Options, 'baseDir' | 'extensions'>> => ({
+  baseDir: options?.baseDir ?? BASE_DIR,
+  extensions: options?.extensions ?? EXTENSIONS
+})
 
 export const toAbsolute = <T extends Record<string, string | undefined>>(
   paths: T
