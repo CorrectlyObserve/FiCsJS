@@ -1,5 +1,7 @@
 export const BASE_DIR = './pages' as const
 
+export const configDefaults = { dir: 'src/pages', output: 'src/routes.gen.ts' } as const
+
 export const EXTENSIONS = ['.js', '.ts'] as const
 
 export const fileNames = {
@@ -10,8 +12,6 @@ export const fileNames = {
   SPA: '+spa',
   status: { NOT_FOUND: '+404', SERVER_ERROR: '+500' }
 } as const
-
-export const pageDir = { INPUT: 'src/pages', OUTPUT_BASE: './pages' } as const
 
 export const rpcFiles = {
   BASE_DIR: '/_rpc',
