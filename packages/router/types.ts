@@ -126,7 +126,7 @@ export declare namespace Routing {
   }
 
   interface Spec {
-    routes: { path: string; page: Module; layout?: Module }[]
+    routes: Route<Module>[]
     redirects?: Redirects
     statusModules?: Record<string, Module>
   }
