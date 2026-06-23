@@ -93,7 +93,7 @@ export declare namespace Routing {
     enforce?: 'pre' | 'post'
     buildStart?: () => void
     configureServer?: (server: { watcher: { add: (path: string) => void } }) => void
-    handleHotUpdate?: (ctx: { file: string }) => void
+    handleHotUpdate?: ({ file }: { file: string }) => void
     transform?: ({ id, code }: { id: string; code: string }) => { code: string; map: null } | null
   }
 
