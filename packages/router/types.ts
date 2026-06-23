@@ -88,6 +88,15 @@ export declare namespace Routing {
     extensions?: Routing.Extensions
   }
 
+  interface Plugin {
+    name: string
+    enforce?: 'pre' | 'post'
+    buildStart?: () => void
+    configureServer?: (server: { watcher: { add: (path: string) => void } }) => void
+    handleHotUpdate?: (ctx: { file: string }) => void
+    transform?: ({ id, code }: { id: string; code: string }) => { code: string; map: null } | null
+  }
+
   interface Redirect {
     pathname: string
     redirectMap: ReadonlyMap<string, string>
