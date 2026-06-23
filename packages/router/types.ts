@@ -94,7 +94,7 @@ export declare namespace Routing {
     buildStart?: () => void
     configureServer?: (server: { watcher: { add: (path: string) => void } }) => void
     handleHotUpdate?: ({ file }: { file: string }) => void
-    transform?: ({ id, code }: { id: string; code: string }) => { code: string; map: null } | null
+    transform?: ({ id, code }: { id: string; code: string }) => Transformed | null
   }
 
   interface Redirect {
