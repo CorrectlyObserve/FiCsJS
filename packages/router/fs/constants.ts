@@ -2,6 +2,8 @@ export const BASE_DIR = './pages' as const
 
 export const configDefaults = { DIR: 'src/pages', OUTPUT: 'src/routes.gen.ts' } as const
 
+export const exitCodes = { SUCCESS: 0, FAILURE: 1 } as const
+
 export const EXTENSIONS = ['.js', '.ts'] as const
 
 export const fileNames = {
