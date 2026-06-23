@@ -124,4 +124,10 @@ export declare namespace Routing {
     redirects?: Redirects
     statusModules?: Record<string, Module>
   }
+
+  interface Transformed {
+    code: string
+    /** @remarks No source map — the transformation only prepends one line. */
+    map: null
+  }
 }
