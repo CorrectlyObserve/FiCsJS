@@ -7,24 +7,23 @@ const { LAYOUT, PAGE, SERVER, SPA } = fileNames
 
 export const cleanPath = (path: string): string => toPosix(path).replace(/^\.?\//, '')
 
-export function collectFiles(
-  ctx: Routing.Ctx.CollectFiles<typeof LAYOUT | typeof SPA>
-): Map<string, string>
+export function getFiles(ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA>): Map<string, string>
 
-export function collectFiles(
-  ctx: Routing.Ctx.CollectFiles<typeof SERVER> & { baseDir: string }
-): ServerFile[]
+export function getFiles(
+  ctx: Routing.FilesQuery<typeof SERVER> & { baseDir: string }
+): Routing.Rpc[]
 
-export function collectFiles({
+export function getFiles({
   filePaths,
   extensions,
   expectedType,
   baseDir
-}: Routing.Ctx.CollectFiles<typeof LAYOUT | typeof SPA | typeof SERVER> & { baseDir?: string }):
+}: Routing.FilesQuery<typeof LAYOUT | typeof SPA | typeof SERVER> & { baseDir?: string }):
   | Map<string, string>
-  | ServerFile[] {
+  | Routing.Rpc[] {
   const files: Map<string, string> = new Map(),
-    serverFiles: ServerFile[] = []
+    rpcs: Routing.Rpc[] = [],
+    isRpc: boolean = expectedType === SERVER
 
   for (const path of filePaths) {
     const segments: string[] = cleanPath(path).split('/'),
@@ -32,19 +31,18 @@ export function collectFiles({
 
     if (!isValidFileType({ file, expectedType, extensions })) continue
 
-    const _segments: string[] = segments.slice(0, -1)
+    const dirs: string[] = segments.slice(0, -1)
 
-    if (expectedType === SERVER && baseDir) {
-      serverFiles.push({
-        dirSegments: _segments.filter(seg => seg !== 'index'),
+    if (isRpc && baseDir)
+      rpcs.push({
+        dirs: dirs.filter(seg => seg !== 'index'),
         specifier: toSpecifier(path, baseDir)
       })
-    } else files.set(_segments.join('/'), path)
+    else files.set(dirs.join('/'), path)
   }
 
   /** @remarks Ensures deterministic build output across different OS file systems. */
-  if (expectedType === SERVER)
-    return serverFiles.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
+  if (isRpc) return rpcs.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
 
   return files
 }
