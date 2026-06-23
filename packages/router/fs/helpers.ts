@@ -74,8 +74,8 @@ export const removeExt = (file: string): string => {
 }
 
 export const resolveOptions = (
-  options?: Routing.Options
-): Required<Pick<Routing.Options, 'baseDir' | 'extensions'>> => ({
+  options?: Routing.Options.Generate
+): Required<Pick<Routing.Options.Generate, 'baseDir' | 'extensions'>> => ({
   baseDir: options?.baseDir ?? BASE_DIR,
   extensions: options?.extensions ?? EXTENSIONS
 })
