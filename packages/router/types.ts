@@ -92,6 +92,12 @@ export declare namespace Routing {
 
   type Redirects = Record<string, string> | RedirectFn
 
+  interface Render {
+    meta: Record<string, string>
+    content: string
+    path: string
+  }
+
   interface Resolved<D extends object = Record<string, unknown>> {
     pages: Page<D>[]
     statusModules: Record<string, PageContent<D> | undefined>
