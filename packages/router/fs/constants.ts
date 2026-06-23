@@ -1,6 +1,6 @@
 export const BASE_DIR = './pages' as const
 
-export const configDefaults = { dir: 'src/pages', output: 'src/routes.gen.ts' } as const
+export const configDefaults = { DIR: 'src/pages', OUTPUT: 'src/routes.gen.ts' } as const
 
 export const EXTENSIONS = ['.js', '.ts'] as const
 
