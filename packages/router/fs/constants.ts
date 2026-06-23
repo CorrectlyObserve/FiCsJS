@@ -14,7 +14,7 @@ export const fileNames = {
 } as const
 
 export const rpcFiles = {
-  BASE_DIR: '/_rpc',
+  BASE_PATH: '/_rpc',
   CLIENT: 'rpc.client.ts',
   SERVER: 'rpc.server.ts'
 } as const
