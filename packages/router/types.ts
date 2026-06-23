@@ -82,6 +82,12 @@ export declare namespace Routing {
     meta?: Record<string, string>
   }
 
+  interface Redirect {
+    pathname: string
+    redirectMap: ReadonlyMap<string, string>
+    redirectFn?: RedirectFn
+  }
+
   type RedirectFn = (pathname: string) => string | null
 
   type Redirects = Record<string, string> | RedirectFn
