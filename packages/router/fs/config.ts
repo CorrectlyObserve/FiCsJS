@@ -32,7 +32,7 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
 
   scan(_dir)
 
-  const options: Routing.Options = { baseDir: toRelative(_output, _dir), pageFile, extensions },
+  const options: Routing.Options.Generate = { baseDir: toRelative(_output, _dir), pageFile, extensions },
     outputDir: string = dirname(_output),
     rpc = generateRpcs({ filePaths, options, basePath })
 
