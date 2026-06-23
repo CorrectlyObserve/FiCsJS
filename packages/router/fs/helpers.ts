@@ -1,6 +1,6 @@
 import { removeTrailingSlash } from './../../core/helpers'
-import type { Routing, ServerFile } from '../types'
-import { fileNames } from './constants'
+import type { Routing } from '../types'
+import { configDefaults, fileNames } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, PAGE, SERVER, SPA } = fileNames
@@ -83,11 +83,11 @@ export const toAbsolute = <T extends Record<string, string | undefined>>(
 
     switch (key) {
       case 'dir':
-        result[key] = resolve(value ?? 'src/pages')
+        result[key] = resolve(value || configDefaults.DIR)
         break
 
       case 'output':
-        result[key] = resolve(value ?? 'src/routes.gen.ts')
+        result[key] = resolve(value || configDefaults.OUTPUT)
         break
 
       default:
