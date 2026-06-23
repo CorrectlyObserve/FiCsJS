@@ -13,6 +13,8 @@ export const fileNames = {
   status: { NOT_FOUND: '+404', SERVER_ERROR: '+500' }
 } as const
 
+export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
+
 export const rpcFiles = {
   BASE_PATH: '/_rpc',
   CLIENT: 'rpc.client.ts',
