@@ -68,21 +68,13 @@ export declare namespace Routing {
     basePath?: string
   }
 
-  namespace Ctx {
-    interface CollectFiles<T> {
-      filePaths: string[]
-      extensions: Extensions
-      expectedType: T
-    }
-
-    interface Redirect {
-      pathname: string
-      redirectMap: ReadonlyMap<string, string>
-      redirectFn?: Routing.RedirectFn
-    }
-  }
-
   type Extensions = Readonly<string[]>
+
+  interface FilesQuery<T> {
+    filePaths: string[]
+    extensions: Extensions
+    expectedType: T
+  }
 
   interface Module {
     default?: unknown
