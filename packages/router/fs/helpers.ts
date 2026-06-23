@@ -7,6 +7,14 @@ const { LAYOUT, PAGE, SERVER, SPA } = fileNames
 
 export const cleanPath = (path: string): string => toPosix(path).replace(/^\.?\//, '')
 
+export const getDirName = (path: string, isPathCleaned: boolean = true): string =>
+  (isPathCleaned ? cleanPath(path) : path).split('/').slice(0, -1).join('/')
+
+export const getExt = (file: string): string => {
+  const dot: number = file.lastIndexOf('.')
+  return dot <= 0 ? '' : file.slice(dot)
+}
+
 export function getFiles(ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA>): Map<string, string>
 
 export function getFiles(
@@ -46,14 +54,6 @@ export function getFiles({
 
   return files
 }
-
-export const getExt = (file: string): string => {
-  const dot: number = file.lastIndexOf('.')
-  return dot <= 0 ? '' : file.slice(dot)
-}
-
-export const getDirName = (path: string, isPathCleaned: boolean = true): string =>
-  (isPathCleaned ? cleanPath(path) : path).split('/').slice(0, -1).join('/')
 
 export const isValidFileType = ({
   file,
