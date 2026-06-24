@@ -151,6 +151,12 @@ export declare namespace Routing {
     meta?: Record<string, string>
   }
 
+  interface ServerRoute<C = Record<string, unknown>> {
+    path: string
+    page: ServerModule<C>
+    layout?: Module
+  }
+
   interface Spec {
     routes: Route<Module>[]
     redirects?: Redirects
