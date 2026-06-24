@@ -19,7 +19,7 @@ export function getFiles(ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA>): M
 
 export function getFiles(
   ctx: Routing.FilesQuery<typeof SERVER> & { baseDir: string }
-): Routing.Rpc[]
+): Routing.ServerEntries
 
 export function getFiles({
   filePaths,
@@ -28,7 +28,7 @@ export function getFiles({
   baseDir
 }: Routing.FilesQuery<typeof LAYOUT | typeof SPA | typeof SERVER> & { baseDir?: string }):
   | Map<string, string>
-  | Routing.Rpc[] {
+  | Routing.ServerEntries {
   const files: Map<string, string> = new Map(),
     rpcs: Routing.Rpc[] = [],
     isRpc: boolean = expectedType === SERVER
