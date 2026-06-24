@@ -50,7 +50,8 @@ export function getFiles({
   }
 
   /** @remarks Ensures deterministic build output across different OS file systems. */
-  if (isServerFile) return entries.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
+  if (isServerFile)
+    return entries.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
 
   return files
 }
