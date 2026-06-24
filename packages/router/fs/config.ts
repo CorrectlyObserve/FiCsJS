@@ -1,18 +1,14 @@
 import type { Routing } from './../types'
-import { rpcFiles } from './constants'
+import { config } from './constants'
 import { generateRoutes } from './route'
 import { toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRpcs } from './rpc'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 
-const writeIfChanged = (path: string, content: string): boolean => {
-  const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
-  if (prevContent === content) return false
-
-  writeFileSync(path, content)
-  return true
-}
+const {
+    rpc: { CLIENT, SERVER }
+  } = config
 
 export const configRoutes = (config: Routing.Config = {}): boolean => {
   const { dir, output, pageFile, extensions, basePath }: Routing.Config = config,
@@ -37,8 +33,8 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
     rpc = generateRpcs({ filePaths, options, basePath })
 
   if (rpc) {
-    writeIfChanged(join(outputDir, rpcFiles.CLIENT), rpc.client)
-    writeIfChanged(join(outputDir, rpcFiles.SERVER), rpc.server)
+    writeIfChanged(join(outputDir, CLIENT), rpc.client)
+    writeIfChanged(join(outputDir, SERVER), rpc.server)
   }
 
   return writeIfChanged(_output, generateRoutes(filePaths, options))
