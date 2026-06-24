@@ -1,0 +1,1 @@
+export { routesPlugin } from './plugin'
