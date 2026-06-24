@@ -3,32 +3,17 @@ import { streamSSE } from 'hono/streaming'
 import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import { createQueryCache } from 'ficsjs'
-import Link from './src/components/Link'
-import Users from './src/pages/_components/Users'
-import ChatButton from './src/components/ChatButton'
-import Photos from './src/pages/scroll/_components/Photos'
-import Tab from './src/pages/websocket-sse/_components/Tab'
-import Router from './src/pages/websocket-sse/_components/Router'
-import { fetchUsers, USERS_KEY } from './src/data/users'
-import { Message, SSEMessage, User } from './src/types'
+import { registerPages, type Routing } from 'ficsjs/router'
+import { routes, redirects } from './src/routes.gen'
+import { Message, SSEMessage } from './src/types'
 import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
 
 const app = new Hono()
 
 app.get('/dist/*', serveStatic({ root: './' }))
 
-const template = ({
-  title,
-  description,
-  content,
-  path
-}: {
-  title: string
-  description: string
-  content: string
-  path: string
-}): string =>
-  `
+registerPages(app, routes, {
+  render: ({ meta: { title = '', description = '' }, content, path }: Routing.Render): string => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -48,59 +33,11 @@ const template = ({
       </body>
     </html>
   `,
-  link = Link(),
-  chatButton = ChatButton()
-
-app.get('/', async c => {
-  const queryCache = createQueryCache()
-
-  await queryCache.prefetch(USERS_KEY, fetchUsers)
-  const users = queryCache.get<User[]>(USERS_KEY) ?? []
-
-  return c.html(
-    template({
-      title: 'FiCsJS with Hono',
-      description: 'This is a simple example of FiCsJS with Hono in SSR.',
-      content: `
-        ${link.toString({ data: { href: '/scroll', text: 'Go to the scroll page' } })}
-        ${Users.toString({ data: { users } })}
-        ${chatButton.toString()}
-      `,
-      path: '/index'
-    })
-  )
+  createContext: () => ({ queryCache: createQueryCache() }),
+  redirects,
+  /** @remarks Converts ":name*" to Hono's catch-all params format ":name{.+}". */
+  toHostRoutePath: path => path.replace(/:([^/*]+)\*/g, ':$1{.+}')
 })
-
-app.get('/scroll', c =>
-  c.html(
-    template({
-      title: 'Infinite and virtual scroll',
-      description:
-        'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
-      content: `
-        ${link.toString({ data: { href: '/', text: 'Back to the top page' } })}
-        ${Photos.toString()}
-        ${chatButton.toString()}
-      `,
-      path: '/scroll'
-    })
-  )
-)
-
-app.get(CHAT_PAGE, c =>
-  c.html(
-    template({
-      title: 'WebSocket and SSE',
-      description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
-      content: `
-        ${link.toString({ data: { href: '/', text: 'Back to the top page' } })}
-        ${Tab.toString()}
-        ${Router.toString()}
-      `,
-      path: CHAT_PAGE
-    })
-  )
-)
 
 const createServerMessage = (comment: string): string =>
   JSON.stringify({ userName: 'Server', comment })
