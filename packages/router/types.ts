@@ -141,6 +141,11 @@ export declare namespace Routing {
     layout?: T
   }
 
+  type ServerEntries = {
+    dirs: string[]
+    specifier: string
+  }[]
+
   interface Spec {
     routes: Route<Module>[]
     redirects?: Redirects
