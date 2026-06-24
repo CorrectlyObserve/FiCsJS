@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { configRoutes } from './config'
 import { configDefaults, exitCodes } from './constants'
 
