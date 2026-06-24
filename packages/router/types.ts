@@ -146,6 +146,11 @@ export declare namespace Routing {
     specifier: string
   }[]
 
+  interface ServerModule<C = Record<string, unknown>> {
+    default?: (ctx: C) => Awaitable<string>
+    meta?: Record<string, string>
+  }
+
   interface Spec {
     routes: Route<Module>[]
     redirects?: Redirects
