@@ -76,6 +76,12 @@ export declare namespace Routing {
     expectedType: T
   }
 
+  interface Host {
+    html: (content: string, status?: number) => unknown
+    redirect: (url: string, status?: number) => unknown
+    req: unknown
+  }
+
   interface Module {
     default?: unknown
     redirect?: string
