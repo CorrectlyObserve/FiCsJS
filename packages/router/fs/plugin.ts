@@ -53,8 +53,8 @@ export const routesPlugin = (config: Routing.Config & { watch?: boolean } = {}):
           throw error
         }
     },
-    transform(params: { id: string; code: string }): Routing.Transformed | null {
-      return injectRoutes({ ...params, output })
+    transform(code: string, id: string): Routing.Transformed | null {
+      return injectRoutes({ id, code, output })
     }
   } as const
 }
