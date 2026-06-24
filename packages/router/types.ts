@@ -95,11 +95,11 @@ export declare namespace Routing {
       extensions?: Routing.Extensions
     }
 
-    interface Register {
+    interface Register<C = Record<string, unknown>> {
       render: (ctx: Routing.Render) => string
-      createContext?: (ctx: Routing.Host) => Record<string, unknown>
-      toRoutePath?: (path: string) => string
-      serverError?: Routing.ServerModule
+      toHostRoutePath: (path: string) => string
+      createContext?: (ctx: Routing.Host) => C
+      serverError?: Routing.ServerModule<C>
       redirects?: Routing.Redirects
     }
   }
