@@ -8,7 +8,14 @@ import { dirname, join, relative } from 'node:path'
 
 const {
     rpc: { CLIENT, SERVER }
-  } = config
+  } = config,
+  writeIfChanged = (path: string, content: string): boolean => {
+    const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
+    if (prevContent === content) return false
+
+    writeFileSync(path, content)
+    return true
+  }
 
 export const configRoutes = (config: Routing.Config = {}): boolean => {
   const { dir, output, pageFile, extensions, basePath }: Routing.Config = config,
@@ -28,7 +35,11 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
 
   scan(_dir)
 
-  const options: Routing.Options.Generate = { baseDir: toRelative(_output, _dir), pageFile, extensions },
+  const options: Routing.Options.Generate = {
+      baseDir: toRelative(_output, _dir),
+      pageFile,
+      extensions
+    },
     outputDir: string = dirname(_output),
     rpc = generateRpcs({ filePaths, options, basePath })
 
