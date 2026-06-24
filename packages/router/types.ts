@@ -1,6 +1,7 @@
 import type {
   Action,
   Attrs,
+  Awaitable,
   ClassName,
   Css,
   DataProps,
