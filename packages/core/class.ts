@@ -895,13 +895,12 @@ export class FiCsElement<D extends object, P extends object> {
             oldAttrList[name] = { value, namespaceURI, localName }
           }
 
-          const isOldChildNodeHTMLElement: boolean = isHTMLElement(oldChildNode)
           for (let i = 0; i < newAttrs.length; i++) {
             const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i],
               oldAttr: Omit<Html.PickedAttr, 'name'> | undefined = oldAttrList[name],
               isDiffAttr: boolean = oldAttr?.value !== value
 
-            if (isOldChildNodeHTMLElement) {
+            if (isHTMLElement(oldChildNode)) {
               const isBoolean: boolean = that.#isBooleanAttr(name),
                 prop: string = convertStr(name, 'camel'),
                 hasProp: boolean = prop in oldChildNode,
@@ -930,7 +929,7 @@ export class FiCsElement<D extends object, P extends object> {
           }
 
           for (const name in oldAttrList)
-            if (isOldChildNodeHTMLElement) {
+            if (isHTMLElement(oldChildNode)) {
               if (that.#isBooleanAttr(name)) {
                 const prop: string = convertStr(name, 'camel')
                 if (prop in oldChildNode) Reflect.set(oldChildNode, prop, false)
