@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { configRoutes } from './config'
-import { configDefaults, exitCodes } from './constants'
+import { config, exitCodes } from './constants'
 
 /** @remarks Removes the runtime and script paths. */
 const args: string[] = process.argv.slice(2),
@@ -11,8 +11,8 @@ const args: string[] = process.argv.slice(2),
       fics-routes [options]
 
     Options:
-      --dir <path>      Pages directory to scan (default: ${configDefaults.DIR})
-      --output <path>   File to write the generated module to (default: ${configDefaults.OUTPUT})
+      --dir <path>      Pages directory to scan (default: ${config.DIR})
+      --output <path>   File to write the generated module to (default: ${config.OUTPUT})
       -h, --help        Show this help and exit
   `.trim(),
   die = (message: string): never => {
