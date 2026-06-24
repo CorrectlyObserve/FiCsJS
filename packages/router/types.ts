@@ -170,3 +170,9 @@ export declare namespace Routing {
     map: null
   }
 }
+
+export interface TypeNode {
+  children: Map<string, TypeNode>
+  alias?: string
+  dynamic?: { name: string; node: TypeNode }
+}
