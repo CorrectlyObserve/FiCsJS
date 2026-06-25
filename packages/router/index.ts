@@ -1,3 +1,4 @@
+export { registerPages } from './host'
 export { goto } from './goto'
 export { ficsLink } from './link'
 export { renderMeta } from './meta'
