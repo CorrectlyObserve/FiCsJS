@@ -29,7 +29,7 @@ registerPages(app, routes, {
         </header>
         <main class="pb-8">${content}</main>
         <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="/dist/${path.replace(/^\/+/, '')}.js"></script>
+        <script type="module" src="/dist/${path.split('/').filter(Boolean)[0] ?? 'index'}.js"></script>
       </body>
     </html>
   `,
