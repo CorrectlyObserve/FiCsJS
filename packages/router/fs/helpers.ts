@@ -56,6 +56,8 @@ export function getFiles({
   return files
 }
 
+export const indent = (length: number = 1): string => '  '.repeat(length)
+
 export const isValidFileType = ({
   file,
   expectedType,
