@@ -1,4 +1,4 @@
-import type { Routing } from './../types'
+import type { Routing, VitePlugin } from './../types'
 import { configRoutes } from './config'
 import { MODULE_EXT_REGEX } from './constants'
 import { toAbsolute, toRelative } from './helpers'
@@ -26,7 +26,8 @@ const injectRoutes = ({
   return { code: `import '${relativeId}';\n${code}`, map: null }
 }
 
-export const routesPlugin = (config: Routing.Config & { watch?: boolean } = {}): Routing.Plugin => {
+/** @remarks Depends on Vite. */
+export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = {}): VitePlugin => {
   const { dir, output }: { dir: string; output: string } = toAbsolute({
     dir: config.dir,
     output: config.output
