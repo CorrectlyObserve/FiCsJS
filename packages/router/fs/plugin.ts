@@ -37,22 +37,13 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
     name: 'fics-routes',
     enforce: 'pre',
     buildStart(): void {
-      try {
-        configRoutes(config)
-      } catch (error) {
-        throw error
-      }
+      configRoutes(config)
     },
     configureServer({ watcher }: { watcher: { add: (path: string) => void } }): void {
       if (config.watch) watcher.add(dir)
     },
     handleHotUpdate({ file }: { file: string }): void {
-      if (file.startsWith(dir))
-        try {
-          configRoutes(config)
-        } catch (error) {
-          throw error
-        }
+      if (file.startsWith(dir)) configRoutes(config)
     },
     transform(code: string, id: string): { code: string; map: null } | null {
       return injectRoutes({ id, code, output })
