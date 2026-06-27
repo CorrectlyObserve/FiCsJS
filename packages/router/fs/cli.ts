@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 import { configRoutes } from './config'
 import { config, exitCodes } from './constants'
+import { indent, joinLines } from './helpers'
 
 /** @remarks Removes the runtime and script paths. */
 const args: string[] = process.argv.slice(2),
-  help: string = `
-    fics-routes — generate routes.gen.ts from a file-based pages directory
-
-    Usage:
-      fics-routes [options]
-
-    Options:
-      --dir <path>      Pages directory to scan (default: ${config.DIR})
-      --output <path>   File to write the generated module to (default: ${config.OUTPUT})
-      -h, --help        Show this help and exit
-  `.trim(),
+  help: string = joinLines([
+    'fics-routes — generate routes.gen.ts from a file-based pages directory',
+    '',
+    'Usage:',
+    `${indent()}fics-routes [options]`,
+    '',
+    'Options:',
+    `${indent()}--dir <path>      Pages directory to scan (default: ${config.DIR})`,
+    `${indent()}--output <path>   File to write the generated module to (default: ${config.OUTPUT})`,
+    `${indent()}-h, --help        Show this help and exit`
+  ]),
   die = (message: string): never => {
     process.stderr.write(`fics-routes: ${message}\n`)
     process.exit(exitCodes.FAILURE)
