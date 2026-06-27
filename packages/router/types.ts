@@ -105,15 +105,6 @@ export declare namespace Routing {
     }
   }
 
-  interface Plugin {
-    name: string
-    enforce?: 'pre' | 'post'
-    buildStart?: () => void
-    configureServer?: (server: { watcher: { add: (path: string) => void } }) => void
-    handleHotUpdate?: ({ file }: { file: string }) => void
-    transform?: (code: string, id: string) => Transformed | null
-  }
-
   interface Redirect {
     pathname: string
     redirectMap: ReadonlyMap<string, string>
@@ -169,4 +160,20 @@ export interface TypeNode {
   children: Map<string, TypeNode>
   alias?: string
   dynamic?: { name: string; node: TypeNode }
+}
+
+export interface VitePlugin {
+  name: string
+  enforce: 'pre'
+  buildStart: () => void
+  configureServer: (server: { watcher: { add: (path: string) => void } }) => void
+  handleHotUpdate: ({ file }: { file: string }) => void
+  transform: (
+    code: string,
+    id: string
+  ) => {
+    code: string
+    /** @remarks No source map — the transformation only prepends one line. */
+    map: null
+  } | null
 }
