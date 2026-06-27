@@ -40,7 +40,7 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
       configRoutes(config)
     },
     configureServer({ watcher }: { watcher: { add: (path: string) => void } }): void {
-      if (config.watch) watcher.add(dir)
+      if (config.watch ?? true) watcher.add(dir)
     },
     handleHotUpdate({ file }: { file: string }): void {
       if (file.startsWith(dir)) configRoutes(config)
