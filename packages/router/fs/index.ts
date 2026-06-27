@@ -1,1 +1,1 @@
-export { routesPlugin } from './plugin'
+export { viteRoutesPlugin } from './plugin'
