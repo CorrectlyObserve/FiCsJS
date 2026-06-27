@@ -71,6 +71,9 @@ export const isValidFileType = ({
   return removeExt(file) === expectedType
 }
 
+export const joinLines = (lines: string[], isComma: boolean = false): string =>
+  lines.join(`${isComma ? ',' : ''}\n`)
+
 export const removeExt = (file: string): string => {
   const ext: string = getExt(file)
   return ext === '' ? file : file.slice(0, file.length - ext.length)
