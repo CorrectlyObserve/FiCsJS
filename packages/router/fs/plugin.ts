@@ -11,7 +11,7 @@ const injectRoutes = ({
   code: string
   id: string
   output: string
-}): Routing.Transformed | null => {
+}): { code: string; map: null } | null => {
   const cleanedId: string = id.split('?')[0],
     isModule: boolean = MODULE_EXT_REGEX.test(cleanedId),
     isNodeModule: boolean = cleanedId.includes('/node_modules/'),
@@ -53,7 +53,7 @@ export const routesPlugin = (config: Routing.Config & { watch?: boolean } = {}):
           throw error
         }
     },
-    transform(code: string, id: string): Routing.Transformed | null {
+    transform(code: string, id: string): { code: string; map: null } | null {
       return injectRoutes({ id, code, output })
     }
   } as const
