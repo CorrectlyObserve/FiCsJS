@@ -12,7 +12,7 @@ export const mutationOnly = <I, O, C>(
   procedure: Rpc.Procedure<I, O, C>
 ): Rpc.Procedure<I, O, C> => ({
   ...procedure,
-  handler: async (input, ctx) => {
+  handler: (input: I, ctx: Rpc.Ctx<C>) => {
     if (isBodiless(ctx.req.method)) {
       const code = 'METHOD_NOT_ALLOWED' as const
       throw new RpcError({
