@@ -158,6 +158,12 @@ export declare namespace Routing {
 }
 
 export declare namespace Rpc {
+  type Ctx<C = unknown> = {
+    req: Request
+    signal: AbortSignal
+    dynamicParams: Record<string, string>
+  } & C
+
   interface ErrorInit {
     code: string
     message: string
@@ -205,6 +211,28 @@ export declare namespace Rpc {
         }
       | { type: 'reject'; path: string; reason: 'not-found' | 'bad-request' }
   }
+
+  interface Procedure<I = unknown, O = unknown, C = unknown> {
+    input?: (raw: unknown) => Awaitable<I>
+    handler: (input: I, ctx: Ctx<C>) => Awaitable<O>
+  }
+
+  type Serializable<T> = T extends string | number | boolean | null | undefined
+    ? T
+    : T extends readonly (infer U)[]
+      ? readonly Serializable<U>[]
+      : T extends (...args: never[]) => unknown
+        ? never
+        : T extends object
+          ? { [K in keyof T]: Serializable<T[K]> }
+          : never
+
+  type ValidatedProcedure<I, O, C> = [O] extends [Serializable<O> | void]
+    ? Procedure<I, O, C>
+    : {
+        readonly __rpcError: 'The RPC handler return must be JSON-serializable or void...'
+        readonly returned: O
+      }
 }
 
 export interface TypeNode {
