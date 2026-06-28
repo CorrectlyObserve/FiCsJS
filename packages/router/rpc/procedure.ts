@@ -1,6 +1,7 @@
 import { statusCodes } from '../constants'
 import type { Rpc } from '../types'
 import { RpcError } from './error'
+import { isBodiless } from './helpers'
 
 export const createDefineProcedure =
   <C = unknown>() =>
@@ -12,8 +13,7 @@ export const mutationOnly = <I, O, C>(
 ): Rpc.Procedure<I, O, C> => ({
   ...procedure,
   handler: async (input, ctx) => {
-    const { method }: { method: string } = ctx.req
-    if (method === 'GET' || method === 'HEAD') {
+    if (isBodiless(ctx.req.method)) {
       const code = 'METHOD_NOT_ALLOWED' as const
       throw new RpcError({
         code,
