@@ -168,6 +168,42 @@ export declare namespace Rpc {
     client: string
     server: string
   }
+
+  type Method = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+
+  namespace Metric {
+    type Event = { module: 'rpc' } & Payload
+
+    type Payload =
+      | { type: 'request:start'; path: string; method: Method; attempt: number }
+      | {
+          type: 'request:success'
+          path: string
+          method: Method
+          attempt: number
+          durationMs: number
+        }
+      | {
+          type: 'request:error'
+          path: string
+          method: Method
+          attempt: number
+          durationMs: number
+          error: unknown
+          willRetry: boolean
+        }
+      | { type: 'handle:start'; path: string; method: Method }
+      | { type: 'handle:success'; path: string; method: Method; durationMs: number }
+      | {
+          type: 'handle:error'
+          path: string
+          method: Method
+          durationMs: number
+          error: unknown
+          stage: 'validate' | 'handle'
+        }
+      | { type: 'reject'; path: string; reason: 'not-found' | 'bad-request' }
+  }
 }
 
 export interface TypeNode {
