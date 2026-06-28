@@ -156,6 +156,13 @@ export declare namespace Routing {
   }
 }
 
+export declare namespace Rpc {
+  interface Generated {
+    client: string
+    server: string
+  }
+}
+
 export interface TypeNode {
   children: Map<string, TypeNode>
   alias?: string
