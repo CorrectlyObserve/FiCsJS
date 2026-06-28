@@ -1,6 +1,6 @@
 import { removeTrailingSlash } from './../../core/helpers'
 import type { Routing } from '../types'
-import { BASE_DIR, config, EXTENSIONS, fileNames } from './constants'
+import { BASE_DIR, config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, PAGE, SERVER, SPA } = fileNames
@@ -114,6 +114,19 @@ export const toAbsolute = <T extends Record<string, string | undefined>>(
 export const toRelative = (from: string, to: string): string => {
   const _relative: string = toPosix(relative(dirname(from), to))
   return _relative.startsWith('.') ? _relative : `./${_relative}`
+}
+
+export const toRoute = (segment: string): string => {
+  const catchAll: RegExpMatchArray | null = segment.match(segments.CATCH_ALL)
+  if (catchAll) return `:${catchAll[1]}*`
+
+  const dynamic: RegExpMatchArray | null = segment.match(segments.DYNAMIC)
+  if (dynamic) return `:${dynamic[1]}`
+
+  if (segment.includes('[') || segment.includes(']'))
+    throw new Error(`The segment "${segment}" is invalid...`)
+
+  return segment
 }
 
 export const toSpecifier = (path: string, baseDir: string): string =>
