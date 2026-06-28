@@ -12,6 +12,7 @@ import type {
   Props,
   SingleOrArray
 } from '../core/types'
+import { RPC_MODULE_TYPE } from './constants'
 
 export type Content<D extends object, P extends object, T = {}> = (
   syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P> & T
@@ -172,7 +173,7 @@ export declare namespace Rpc {
   type Method = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
   namespace Metric {
-    type Event = { module: 'rpc' } & Payload
+    type Event = Payload & typeof RPC_MODULE_TYPE
 
     type Payload =
       | { type: 'request:start'; path: string; method: Method; attempt: number }
