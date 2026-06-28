@@ -1,4 +1,4 @@
-import type { Routing } from './../types'
+import type { Routing, Rpc } from './../types'
 import { config } from './constants'
 import { generateRoutes } from './route'
 import { toAbsolute, toPosix, toRelative } from './helpers'
@@ -41,11 +41,14 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
       extensions
     },
     outputDir: string = dirname(_output),
-    rpc = generateRpcs({ filePaths, options, basePath })
+    { client, server }: Rpc.Generated = generateRpcs({ filePaths, options, basePath }) ?? {
+      client: '',
+      server: ''
+    }
 
-  if (rpc) {
-    writeIfChanged(join(outputDir, CLIENT), rpc.client)
-    writeIfChanged(join(outputDir, SERVER), rpc.server)
+  if (client && server) {
+    writeIfChanged(join(outputDir, CLIENT), client)
+    writeIfChanged(join(outputDir, SERVER), server)
   }
 
   return writeIfChanged(_output, generateRoutes(filePaths, options))
