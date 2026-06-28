@@ -157,6 +157,13 @@ export declare namespace Routing {
 }
 
 export declare namespace Rpc {
+  interface ErrorInit {
+    code: string
+    message: string
+    status?: number
+    expose?: boolean
+  }
+
   interface Generated {
     client: string
     server: string
