@@ -42,13 +42,7 @@ export const removeTrailingSlash = (path: string): string => path.replace(/\/+$/
 
 export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   if (Array.isArray(param)) return [...param]
-
-  if (!isPlainObject(param)) return [param]
-
-  const prototype: Object = Object.getPrototypeOf(param)
-  if (prototype === Object.prototype || prototype === null) return [{ ...param }]
-
-  return [param]
+  return isPlainObject(param) ? [{ ...param }] : [param]
 }
 
 export const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] =>
