@@ -1,5 +1,6 @@
+import { RPC_BASE_PATH } from './../constants'
 import type { Routing, Rpc, TypeNode } from './../types'
-import { config, fileNames, segments } from './constants'
+import { fileNames, segments } from './constants'
 import { getFiles, indent, joinLines, resolveOptions, toRoute } from './helpers'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
@@ -88,7 +89,7 @@ export const generateRpcs = ({
       `import { createRpcClient } from 'ficsjs/rpc'`,
       importModules('client'),
       '',
-      `export const api = createRpcClient<${renderType(root)}>('${basePath ?? config.rpc.BASE_PATH}')`,
+      `export const api = createRpcClient<${renderType(root)}>('${basePath ?? RPC_BASE_PATH}')`,
       ''
     ]),
     server = joinLines([
