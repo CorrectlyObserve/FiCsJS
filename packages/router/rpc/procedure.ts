@@ -1,4 +1,3 @@
-import { statusCodes } from '../constants'
 import type { Rpc } from '../types'
 import { RpcError } from './error'
 import { isBodiless } from './helpers'
@@ -13,14 +12,11 @@ export const mutationOnly = <I, O, C>(
 ): Rpc.Procedure<I, O, C> => ({
   ...procedure,
   handler: (input: I, ctx: Rpc.Ctx<C>) => {
-    if (isBodiless(ctx.req.method)) {
-      const code = 'METHOD_NOT_ALLOWED' as const
+    if (isBodiless(ctx.req.method))
       throw new RpcError({
-        code,
-        message: 'This procedure does not accept GET or HEAD requests...',
-        status: statusCodes[code]
+        code: 'METHOD_NOT_ALLOWED',
+        message: 'This procedure does not accept GET or HEAD requests...'
       })
-    }
 
     return procedure.handler(input, ctx)
   }
