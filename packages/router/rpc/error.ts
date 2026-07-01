@@ -5,7 +5,7 @@ export class RpcError extends Error {
   readonly status?: number
   readonly expose: boolean
 
-  constructor({ code, message, status, expose }: Rpc.ErrorInit) {
+  constructor({ code, message, expose }: Rpc.ErrorInit) {
     super(message)
     this.name = 'RpcError'
     this.code = code
