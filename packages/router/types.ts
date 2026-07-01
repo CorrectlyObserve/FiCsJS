@@ -208,7 +208,7 @@ export declare namespace Rpc {
           error: unknown
           stage: 'validate' | 'handle'
         }
-      | { type: 'reject'; path: string; reason: 'not-found' | 'bad-request' }
+      | { type: 'reject'; path: string; reason: 'not-found' | 'bad-request' | 'payload-too-large' }
   }
 
   interface Procedure<I = unknown, O = unknown, C = unknown> {
