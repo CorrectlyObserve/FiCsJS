@@ -6,9 +6,7 @@ import { generateRpcs } from './rpc'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 
-const {
-    rpc: { CLIENT, SERVER }
-  } = config,
+const { RPC_CLIENT, RPC_SERVER } = config,
   writeIfChanged = (path: string, content: string): boolean => {
     const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
     if (prevContent === content) return false
@@ -47,8 +45,8 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
     }
 
   if (client && server) {
-    writeIfChanged(join(outputDir, CLIENT), client)
-    writeIfChanged(join(outputDir, SERVER), server)
+    writeIfChanged(join(outputDir, RPC_CLIENT), client)
+    writeIfChanged(join(outputDir, RPC_SERVER), server)
   }
 
   return writeIfChanged(_output, generateRoutes(filePaths, options))
