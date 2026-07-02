@@ -1,4 +1,5 @@
 import { statusCodes } from './../constants'
+import type { Rpc } from './../types'
 import {
   APPLICATION_JSON,
   CONTENT_TYPE,
@@ -9,7 +10,6 @@ import {
 import { getByteLength, isHeadMethod } from './helpers'
 import { emitMetric } from './metric'
 import { RpcError } from './error'
-import type { Rpc } from './types'
 
 export const errorRes = <C = unknown>({
   error,
@@ -22,8 +22,8 @@ export const errorRes = <C = unknown>({
   req
 }: {
   error: unknown
-  onMetric: Rpc.HandlerOptions<C>['onMetric']
-  onError?: Rpc.HandlerOptions<C>['onError']
+  onMetric: Rpc.Options.Handler<C>['onMetric']
+  onError?: Rpc.Options.Handler<C>['onError']
   path: string
   method: Rpc.Method
   startedAt: number
@@ -46,10 +46,11 @@ export const errorRes = <C = unknown>({
 
   onError?.(error, { path, req })
 
-  const isHandleStage = stage === 'handle'
+  if (stage === 'handle') return res({ code: 'INTERNAL_SERVER_ERROR', error: true })
+
   return res({
-    code: isHandleStage ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST',
-    error: isHandleStage ? true : 'The provided request input does not match the expected format...'
+    code: 'BAD_REQUEST',
+    error: 'The provided request input does not match the expected format...'
   })
 }
 
@@ -59,7 +60,7 @@ export const reject = <C = unknown>({
   code,
   error
 }: {
-  onMetric: Rpc.HandlerOptions<C>['onMetric']
+  onMetric: Rpc.Options.Handler<C>['onMetric']
   path: string
   code: keyof typeof metricReasons
   error: string | true
