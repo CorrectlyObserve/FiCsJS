@@ -38,6 +38,14 @@
       "import": "./dist/router/index.js",
       "types": "./dist/router/index.d.ts"
     },
+    "./router/plugin": {
+      "import": "./dist/router/fs/index.js",
+      "types": "./dist/router/fs/index.d.ts"
+    },
+    "./router/server-only": {
+      "import": "./dist/router/serverOnly.js",
+      "types": "./dist/router/serverOnly.d.ts"
+    },
     "./state": {
       "import": "./dist/state/index.js",
       "types": "./dist/state/index.d.ts"
