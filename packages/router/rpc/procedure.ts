@@ -1,11 +1,11 @@
-import type { Rpc } from '../types'
+import type { Rpc } from './../types'
 import { RpcError } from './error'
 import { isBodiless } from './helpers'
 
-export const createDefineProcedure =
-  <C = unknown>() =>
-  <I, O>(procedure: Rpc.Procedure<I, O, C>): Rpc.ValidatedProcedure<I, O, C> =>
+export const initRpc = <C = unknown>() => ({
+  defineProcedure: <I, O>(procedure: Rpc.Procedure<I, O, C>): Rpc.ValidatedProcedure<I, O, C> =>
     procedure as unknown as Rpc.ValidatedProcedure<I, O, C>
+})
 
 export const mutationOnly = <I, O, C>(
   procedure: Rpc.Procedure<I, O, C>
