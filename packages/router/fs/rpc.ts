@@ -86,7 +86,7 @@ export const generateRpcs = ({
       ),
     client = joinLines([
       note,
-      `import { createRpcClient } from 'ficsjs/rpc'`,
+      `import { createRpcClient } from 'ficsjs/router'`,
       importModules('client'),
       '',
       `export const api = createRpcClient<${renderType(root)}>('${basePath ?? RPC_BASE_PATH}')`,
