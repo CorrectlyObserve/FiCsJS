@@ -84,16 +84,17 @@ export const res = ({
     throw new Error(`The status code ${code} is not a valid HTTP status code...`)
 
   const statusCode = code as keyof typeof statusCodes,
-    payload = error
+    payload: unknown = error
       ? { error: { code, message: error === true ? DEFAULT_ERRORS[statusCode] : error } }
       : body,
     headers: Headers = new Headers(cacheHeaders),
-    _isHeadMethod = isHeadMethod(method ?? 'GET')
+    _isHeadMethod: boolean = isHeadMethod(method ?? 'GET')
 
   let serialized: string | null = null
 
   if (payload !== null && payload !== undefined) {
     serialized = JSON.stringify(payload)
+
     if (!headers.has(CONTENT_TYPE)) headers.set(CONTENT_TYPE, APPLICATION_JSON)
 
     if (_isHeadMethod && !headers.has(CONTENT_LENGTH))
