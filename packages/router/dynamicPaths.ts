@@ -29,10 +29,10 @@ export const dynamicPathToRegex = (path: string): RegExp => {
 
 export const dynamicRegex: RegExp = /\/:([^\/?*]+)(\?|\*)?/g
 
-export const getDynamicPaths = (path: string, pathname?: string): Record<string, string> => {
+export const getDynamicPaths = (pattern: string, pathname?: string): Record<string, string> => {
   if (pathname === undefined) browserError()
 
-  const regexes: RegExpExecArray | null = dynamicPathToRegex(path).exec(
+  const regexes: RegExpExecArray | null = dynamicPathToRegex(pattern).exec(
       pathname ?? window.location.pathname
     ),
     paths: Record<string, string> = {},
@@ -40,7 +40,7 @@ export const getDynamicPaths = (path: string, pathname?: string): Record<string,
   let match: RegExpExecArray | null
 
   dynamicRegex.lastIndex = 0
-  while ((match = dynamicRegex.exec(path))) names.push(match[1])
+  while ((match = dynamicRegex.exec(pattern))) names.push(match[1])
 
   if (regexes && regexes.length > 0)
     for (const [index, value] of regexes.slice(1).entries()) {
