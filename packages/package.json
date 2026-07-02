@@ -60,7 +60,7 @@
     "url": "https://github.com/CorrectlyObserve/ficsjs.git"
   },
   "sideEffects": [
-    "./dist/router/rpc/serverOnly.js"
+    "./dist/router/serverOnly.js"
   ],
   "scripts": {
     "build": "rm -rf dist && bunx tsc",
