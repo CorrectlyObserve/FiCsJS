@@ -1,30 +1,30 @@
 import { browserError } from '../core/helpers'
 
-export const dynamicPathToRegex = (path: string): RegExp => {
-  if (!path.startsWith('/')) path = `/${path}`
+export const dynamicPathToRegex = (pattern: string): RegExp => {
+  if (!pattern.startsWith('/')) pattern = `/${pattern}`
 
   const escapeRegex = (param: string): string => param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
     required = '/([^/]+?)' as const,
     caughtAll = '/(.*?)' as const
 
   let match: RegExpExecArray | null,
-    pattern: string = '',
+    source: string = '',
     lastIndex: number = 0
 
   dynamicRegex.lastIndex = 0
 
-  while ((match = dynamicRegex.exec(path))) {
-    const staticPart: string = path.slice(lastIndex, match.index),
+  while ((match = dynamicRegex.exec(pattern))) {
+    const staticPart: string = pattern.slice(lastIndex, match.index),
       flag: string | undefined = match[2],
       segment: string = flag === '*' ? caughtAll : flag === '?' ? `(?:${required})?` : required
 
-    pattern += `${escapeRegex(staticPart)}${segment}`
+    source += `${escapeRegex(staticPart)}${segment}`
 
     lastIndex = match.index + match[0].length
   }
-  pattern += escapeRegex(path.slice(lastIndex))
+  source += escapeRegex(pattern.slice(lastIndex))
 
-  return new RegExp(`^${pattern}/?$`)
+  return new RegExp(`^${source}/?$`)
 }
 
 export const dynamicRegex: RegExp = /\/:([^\/?*]+)(\?|\*)?/g
