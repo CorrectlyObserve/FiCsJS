@@ -211,6 +211,31 @@ export declare namespace Rpc {
       | { type: 'reject'; path: string; reason: 'not-found' | 'bad-request' | 'payload-too-large' }
   }
 
+  namespace Options {
+    interface Call {
+      headers?: HeadersInit
+      maxRetries?: number
+      timeoutMs?: number
+      method?: Method
+      signal?: AbortSignal
+    }
+
+    interface Client<E = Metric.Event> {
+      headers?: HeadersInit
+      maxRetries?: number
+      timeoutMs?: number
+      onMetric?: (event: E) => void
+    }
+
+    interface Handler<C = unknown, E = Metric.Event> {
+      createContext?: (req: Request) => C | Promise<C>
+      onError?: (error: unknown, info: { path: string; req: Request }) => void
+      onMetric?: (event: E) => void
+      basePath?: string
+      maxBodyBytes?: number
+    }
+  }
+
   interface Procedure<I = unknown, O = unknown, C = unknown> {
     input?: (raw: unknown) => Awaitable<I>
     handler: (input: I, ctx: Ctx<C>) => Awaitable<O>
