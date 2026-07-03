@@ -53,3 +53,19 @@ export declare namespace FiCsRouter {
 
   type SsrLayout<T extends object> = (ctx: { slot: string } & T) => Awaitable<string>
 }
+
+export declare namespace FiCsRouting {
+  type Host = Routing.Host
+
+  type Module<C = Record<string, unknown>> = Routing.ServerModule<C>
+
+  type Options<C = Record<string, unknown>> = Routing.Options.Register<C>
+
+  type RedirectFn = Routing.RedirectFn
+
+  type Redirects = Routing.Redirects
+
+  type Render = Routing.Render
+
+  type Route<C = Record<string, unknown>> = Routing.ServerRoute<C>
+}
