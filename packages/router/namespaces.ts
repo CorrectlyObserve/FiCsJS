@@ -83,3 +83,17 @@ export declare namespace FiCsRpcClient {
 
   type MetricEvent = Extract<Rpc.Metric.Event, { type: `request:${string}` }>
 }
+
+export declare namespace FiCsRpcServer {
+  type Ctx<C = unknown> = Rpc.Ctx<C>
+
+  type ErrorInit = Rpc.ErrorInit
+
+  type Method = Rpc.Method
+
+  type MetricEvent = Exclude<Rpc.Metric.Event, { type: `request:${string}` }>
+
+  type Options<C = unknown> = Rpc.Options.Handler<C, MetricEvent>
+
+  type Procedure<I = unknown, O = unknown, C = unknown> = Rpc.Procedure<I, O, C>
+}
