@@ -69,3 +69,17 @@ export declare namespace FiCsRouting {
 
   type Route<C = Record<string, unknown>> = Routing.ServerRoute<C>
 }
+
+export declare namespace FiCsRpcClient {
+  type CallOptions = Rpc.Options.Call
+
+  type Client<R> = Rpc.Client<R>
+
+  type ClientOptions = Rpc.Options.Client<MetricEvent>
+
+  type ErrorInit = Rpc.ErrorInit
+
+  type Method = Rpc.Method
+
+  type MetricEvent = Extract<Rpc.Metric.Event, { type: `request:${string}` }>
+}
