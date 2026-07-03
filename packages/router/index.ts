@@ -1,7 +1,7 @@
 export { goto } from './goto'
 export { ficsLink } from './link'
 export { renderMeta } from './meta'
-export type { FiCsLink, FiCsRouter } from './namespaces'
+export type { FiCsRpcClient as FiCsRpc, FiCsLink, FiCsRouter } from './namespaces'
 export { dynamicPaths, queries } from './params'
 export { registerRoutes } from './registry'
 export { ficsRouter } from './router'
