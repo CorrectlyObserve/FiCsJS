@@ -1,7 +1,8 @@
 import { browserError } from '../core/helpers'
+import { prependSlash } from './helpers'
 
 export const dynamicPathToRegex = (pattern: string): RegExp => {
-  if (!pattern.startsWith('/')) pattern = `/${pattern}`
+  pattern = prependSlash(pattern)
 
   const escapeRegex = (param: string): string => param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
     required = '/([^/]+?)' as const,
@@ -31,6 +32,9 @@ export const dynamicRegex: RegExp = /\/:([^\/?*]+)(\?|\*)?/g
 
 export const getDynamicPaths = (pattern: string, pathname?: string): Record<string, string> => {
   if (pathname === undefined) browserError()
+
+  pattern = prependSlash(pattern)
+  pathname = pathname ? prependSlash(pathname) : window.location.pathname
 
   const regexes: RegExpExecArray | null = dynamicPathToRegex(pattern).exec(
       pathname ?? window.location.pathname
