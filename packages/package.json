@@ -63,7 +63,8 @@
     "./dist/router/serverOnly.js"
   ],
   "scripts": {
-    "build": "rm -rf dist && bunx tsc",
+    "build": "rm -rf dist && bunx tsc && bun run build:cli",
+    "build:cli": "bun build router/fs/cli.ts --outfile dist/router/fs/cli.js --target=node && node -e \"require('fs').chmodSync('dist/router/fs/cli.js', 0o755)\"",
     "minify": "find ./dist -name '*.js' -exec bunx terser {} --compress --mangle --output {} \\;",
     "prepublishOnly": "bun run build && bun run minify && cp ../README.md ./README.md && cp ../LICENSE ./LICENSE"
   },
