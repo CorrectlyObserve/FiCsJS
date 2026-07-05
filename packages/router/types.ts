@@ -212,10 +212,7 @@ export declare namespace Rpc {
   }
 
   namespace Options {
-    interface Call {
-      headers?: HeadersInit
-      maxRetries?: number
-      timeoutMs?: number
+    interface Call extends Omit<Client, 'onMetric'> {
       method?: Method
       signal?: AbortSignal
     }
