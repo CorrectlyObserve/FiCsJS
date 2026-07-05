@@ -138,6 +138,13 @@ export const request = async ({
   }
 }
 
+export const resolveSegments = (segments: string[], lastArgs: unknown[] | null): string[] => {
+  if (lastArgs === null) return segments
+
+  const [arg, ..._options]: unknown[] = lastArgs
+  return [...segments, assertSafeSegment(String(arg))]
+}
+
 const toRpcError = async (error: unknown): Promise<RpcError> => {
   if (error instanceof RpcError) return error
 
