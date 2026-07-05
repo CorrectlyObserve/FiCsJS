@@ -69,7 +69,7 @@ export const reject = <C = unknown>({
   return res({ code, error })
 }
 
-export const res = ({
+export const response = ({
   body,
   error,
   code,
