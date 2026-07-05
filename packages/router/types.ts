@@ -222,8 +222,9 @@ export declare namespace Rpc {
 
     interface Client<E = Metric.Event> {
       headers?: HeadersInit
-      maxRetries?: number
       timeoutMs?: number
+      intervalMs?: number
+      maxRetries?: number
       onMetric?: (event: E) => void
     }
 
