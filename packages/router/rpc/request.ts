@@ -8,6 +8,9 @@ export const assertSafeSegment = (segment: string): string => {
   return segment
 }
 
+export const resolvePrefix = (segments: string[], pending: unknown[] | null): string[] =>
+  pending === null ? segments : [...segments, assertSafeSegment(String(pending[0]))]
+
 const toRpcError = async (error: unknown): Promise<RpcError> => {
   if (error instanceof RpcError) return error
 
