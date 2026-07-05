@@ -95,7 +95,8 @@ export const crud = async <T>({
       }
     })()
 
-    if (res.status === 204) return
+    const NO_CONTENT = 204 as const
+    if (res.status === NO_CONTENT) return
 
     const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
       isJson: boolean = contentType.startsWith('application/json'),
