@@ -12,7 +12,7 @@ import {
 } from './constants'
 import { getByteLength, isBodiless } from './helpers'
 import { emitMetric } from './metric'
-import { errorRes, reject, res } from './response'
+import { errorRes, reject, response } from './response'
 
 export const createRpcHandler = <C = unknown>(
   manifests: readonly { prefix: string; module: Record<string, unknown> }[],
@@ -51,7 +51,7 @@ export const createRpcHandler = <C = unknown>(
       /** @remarks Means the OPTIONS request a browser auto-sends before a cross-origin call to check it is allowed. It runs no procedure. */
       isCorsPreflight: boolean = method === 'OPTIONS'
 
-    if (isCorsPreflight) return res({ code: 'NO_CONTENT' })
+    if (isCorsPreflight) return response({ code: 'NO_CONTENT' })
 
     let { pathname: path, searchParams }: URL = new URL(url)
 
@@ -155,7 +155,7 @@ export const createRpcHandler = <C = unknown>(
         durationMs: performance.now() - startedAt
       })
 
-      return res({
+      return response({
         body,
         code: body === undefined ? 'NO_CONTENT' : 'OK',
         cacheHeaders: isBodiless(method) ? { 'cache-control': 'private, no-store' } : undefined,
