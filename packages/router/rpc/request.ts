@@ -2,6 +2,12 @@ import { isObject } from '../../core/helpers'
 import type { Rpc } from './../types'
 import { RpcError } from './error'
 
+export const assertSafeSegment = (segment: string): string => {
+  if (segment === '' || segment === '.' || segment === '..' || segment.includes('/'))
+    throw new Error(`The RPC segment "${segment}" is invalid...`)
+  return segment
+}
+
 const toRpcError = async (error: unknown): Promise<RpcError> => {
   if (error instanceof RpcError) return error
 
