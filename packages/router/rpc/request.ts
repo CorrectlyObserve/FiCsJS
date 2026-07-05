@@ -1,6 +1,18 @@
-import { isObject } from '../../core/helpers'
+import {
+  delay,
+  getDelayMs,
+  isObject,
+  MAX_RETRIES,
+  numberError,
+  removeTrailingSlash,
+  shouldRetry
+} from './../../core/helpers'
+import { statusCodes } from './../constants'
 import type { Rpc } from './../types'
+import { APPLICATION_JSON, CONTENT_TYPE, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
+import { isBodiless } from './helpers'
+import { emitMetric } from './metric'
 
 export const assertSafeSegment = (segment: string): string => {
   if (segment === '' || segment === '.' || segment === '..' || segment.includes('/'))
@@ -8,8 +20,123 @@ export const assertSafeSegment = (segment: string): string => {
   return segment
 }
 
-export const resolvePrefix = (segments: string[], pending: unknown[] | null): string[] =>
-  pending === null ? segments : [...segments, assertSafeSegment(String(pending[0]))]
+/**
+ * @param options.maxRetries Must be a non-negative integer if it is a number.
+ * @param options.timeoutMs Must be a non-negative integer if it is a number.
+ * @param options.intervalMs Must be a non-negative integer if it is a number.
+ */
+export const request = async ({
+  basePath,
+  path,
+  input,
+  method,
+  headers,
+  timeoutMs,
+  intervalMs,
+  maxRetries = MAX_RETRIES,
+  onMetric,
+  signal
+}: {
+  basePath: string
+  path: string
+  input: unknown
+  method: Rpc.Method
+  headers: Headers
+  signal?: AbortSignal
+} & Omit<Rpc.Options.Client, 'headers'>): Promise<unknown> => {
+  numberError({ timeoutMs, intervalMs, maxRetries }, 'non-negative-int')
+
+  let url: string = `${removeTrailingSlash(basePath)}/${path}`,
+    body: string | undefined
+
+  if (input !== undefined)
+    if (isBodiless(method)) {
+      const separator: string = url.includes('?') ? '&' : '?'
+      url += `${separator}${RPC_INPUT_PARAM}=${encodeURIComponent(JSON.stringify(input))}`
+    } else {
+      body = JSON.stringify(input)
+      headers.set(CONTENT_TYPE, APPLICATION_JSON)
+    }
+
+  let attempt: number = 1
+  while (true) {
+    const startedAt: number = performance.now(),
+      controller: AbortController = new AbortController(),
+      cleanups: (() => void)[] = []
+
+    if (signal)
+      if (signal.aborted) controller.abort(signal.reason)
+      else {
+        const onAbort = (): void => controller.abort(signal!.reason)
+        signal.addEventListener('abort', onAbort, { once: true })
+        cleanups.push(() => signal!.removeEventListener('abort', onAbort))
+      }
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+    if (timeoutMs && timeoutMs > 0)
+      timer = setTimeout(
+        () =>
+          controller.abort(
+            new DOMException(
+              `The RPC "${path}" timed out after ${timeoutMs}ms in the ${method} method...`,
+              'AbortError'
+            )
+          ),
+        timeoutMs
+      )
+
+    emitMetric(onMetric, { type: 'request:start', path, method, attempt })
+
+    let error: unknown
+    try {
+      const res: Response = await fetch(url, { method, headers, body, signal: controller.signal })
+      if (!res.ok) throw res
+
+      emitMetric(onMetric, {
+        type: 'request:success',
+        path,
+        method,
+        attempt,
+        durationMs: performance.now() - startedAt
+      })
+
+      if (res.status === statusCodes.NO_CONTENT) return undefined
+
+      const contentType: string = res.headers.get(CONTENT_TYPE)?.toLowerCase() ?? ''
+      if (!contentType.startsWith(APPLICATION_JSON)) return undefined
+
+      return await res.json()
+    } catch (_error) {
+      error = _error
+    } finally {
+      if (timer) clearTimeout(timer)
+      for (const cleanup of cleanups) cleanup()
+    }
+
+    const willRetry: boolean = shouldRetry({ error, attempt, maxRetries, signal })
+
+    emitMetric(onMetric, {
+      type: 'request:error',
+      path,
+      method,
+      attempt,
+      durationMs: performance.now() - startedAt,
+      error,
+      willRetry
+    })
+
+    if (!willRetry) throw await toRpcError(error)
+
+    try {
+      await delay(getDelayMs({ error, attempt, intervalMs }), signal)
+    } catch (abortedError) {
+      /** @remarks Surfaces the abort (not the fetch error) so RPC callers can tell cancellation from failure. */
+      throw await toRpcError(abortedError)
+    }
+
+    attempt++
+  }
+}
 
 const toRpcError = async (error: unknown): Promise<RpcError> => {
   if (error instanceof RpcError) return error
