@@ -41,14 +41,14 @@ export const errorRes = <C = unknown>({
 
   if (error instanceof RpcError) {
     const { code, message, expose }: RpcError = error
-    return res({ code, error: expose ? message : true })
+    return response({ code, error: expose ? message : true })
   }
 
   onError?.(error, { path, req })
 
-  if (stage === 'handle') return res({ code: 'INTERNAL_SERVER_ERROR', error: true })
+  if (stage === 'handle') return response({ code: 'INTERNAL_SERVER_ERROR', error: true })
 
-  return res({
+  return response({
     code: 'BAD_REQUEST',
     error: 'The provided request input does not match the expected format...'
   })
@@ -66,7 +66,7 @@ export const reject = <C = unknown>({
   error: string | true
 }): Response => {
   emitMetric(onMetric, { type: 'reject', path, reason: metricReasons[code] })
-  return res({ code, error })
+  return response({ code, error })
 }
 
 export const response = ({
