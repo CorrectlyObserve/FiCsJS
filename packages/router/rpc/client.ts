@@ -4,7 +4,7 @@ import { assertSafeSegment, request, resolveSegments } from './request'
 
 export const createRpcClient = <R>(
   basePath: string,
-  { headers: clientHeaders, onMetric, ...args }: Rpc.Options.Client = {}
+  { headers: clientHeaders, ...clientArgs }: Rpc.Options.Client = {}
 ): Rpc.Client<R> => {
   const createChainProxy = (segments: string[], lastArgs: unknown[] | null): unknown => {
     let promise: Promise<unknown> | undefined
@@ -24,6 +24,7 @@ export const createRpcClient = <R>(
           if (callHeaders)
             for (const [key, value] of new Headers(callHeaders)) headers.set(key, value)
 
+          const args: Omit<Rpc.Options.Client, 'headers'> = { ...clientArgs }
           for (const [key, value] of typedEntries(callArgs)) if (value) args[key] = value
 
           promise ??= request({
@@ -32,7 +33,6 @@ export const createRpcClient = <R>(
             input,
             headers,
             ...args,
-            onMetric,
             method,
             signal
           })
