@@ -116,19 +116,6 @@ export const toRelative = (from: string, to: string): string => {
   return _relative.startsWith('.') ? _relative : `./${_relative}`
 }
 
-export const toRoute = (segment: string): string => {
-  const catchAll: RegExpMatchArray | null = segment.match(segments.CATCH_ALL)
-  if (catchAll) return `:${catchAll[1]}*`
-
-  const dynamic: RegExpMatchArray | null = segment.match(segments.DYNAMIC)
-  if (dynamic) return `:${dynamic[1]}`
-
-  if (segment.includes('[') || segment.includes(']'))
-    throw new Error(`The segment "${segment}" is invalid...`)
-
-  return segment
-}
-
 export const toSpecifier = (path: string, baseDir: string): string =>
   `${removeTrailingSlash(baseDir)}/${removeExt(cleanPath(path))}`
 
