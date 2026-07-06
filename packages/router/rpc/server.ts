@@ -34,7 +34,7 @@ export const createRpcHandler = <C = unknown>(
         continue
 
       const pattern: string = prefix ? `${prefix}/${key}` : key
-      if (staticMap.has(pattern) || dynamics.some(({ pattern: _pattern }) => _pattern === pattern))
+      if (staticMap.has(pattern) || dynamics.some(({ pattern: p }) => p === pattern))
         throw new Error(`The RPC procedure path "${pattern}" already exists...`)
 
       if (isDynamicPath(pattern))
@@ -64,10 +64,10 @@ export const createRpcHandler = <C = unknown>(
       dynamicParams: Record<string, string> = {}
 
     if (!procedure)
-      for (const { pattern, regex, procedure: _procedure } of dynamics) {
+      for (const { pattern, regex, procedure: p } of dynamics) {
         const _path: string = prependSlash(path)
         if (regex.test(_path)) {
-          procedure = _procedure
+          procedure = p
           dynamicParams = getDynamicPaths(pattern, _path)
           break
         }
