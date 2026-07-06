@@ -5,6 +5,23 @@ import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, PAGE, SERVER, SPA } = fileNames
 
+export const buildRoute = (pathSegments: string[]): string => {
+  return pathSegments
+    .map((segment: string) => {
+      const catchAll: RegExpMatchArray | null = segment.match(segments.CATCH_ALL)
+      if (catchAll) return `:${catchAll[1]}*`
+
+      const dynamic: RegExpMatchArray | null = segment.match(segments.DYNAMIC)
+      if (dynamic) return `:${dynamic[1]}`
+
+      if (segment.includes('[') || segment.includes(']'))
+        throw new Error(`The segment "${segment}" is invalid...`)
+
+      return segment
+    })
+    .join('/')
+}
+
 export const cleanPath = (path: string): string => toPosix(path).replace(/^\.?\//, '')
 
 export const getDirName = (path: string, isPathCleaned: boolean = true): string =>
