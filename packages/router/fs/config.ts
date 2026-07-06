@@ -17,9 +17,9 @@ const { RPC_CLIENT, RPC_SERVER } = config,
 
 export const configRoutes = (config: Routing.Config = {}): boolean => {
   const { dir, output, pageFile, extensions, basePath }: Routing.Config = config,
-    { dir: _dir, output: _output }: { dir: string; output: string } = toAbsolute({ dir, output })
+    { dir: d, output: o }: { dir: string; output: string } = toAbsolute({ dir, output })
 
-  if (!existsSync(_dir)) throw new Error(`The directory "${_dir}" does not exist...`)
+  if (!existsSync(d)) throw new Error(`The directory "${d}" does not exist...`)
 
   const filePaths: string[] = [],
     scan = (current: string): void => {
@@ -27,18 +27,18 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
         const joined: string = join(current, entry.name)
 
         if (entry.isDirectory()) scan(joined)
-        else if (entry.isFile()) filePaths.push(toPosix(relative(_dir, joined)))
+        else if (entry.isFile()) filePaths.push(toPosix(relative(d, joined)))
       }
     }
 
-  scan(_dir)
+  scan(d)
 
   const options: Routing.Options.Generate = {
-      baseDir: toRelative(_output, _dir),
+      baseDir: toRelative(o, d),
       pageFile,
       extensions
     },
-    outputDir: string = dirname(_output),
+    outputDir: string = dirname(o),
     { client, server }: Rpc.Generated = generateRpcs({ filePaths, options, basePath }) ?? {
       client: '',
       server: ''
@@ -49,5 +49,5 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
     writeIfChanged(join(outputDir, RPC_SERVER), server)
   }
 
-  return writeIfChanged(_output, generateRoutes(filePaths, options))
+  return writeIfChanged(o, generateRoutes(filePaths, options))
 }
