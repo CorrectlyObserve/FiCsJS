@@ -1,7 +1,7 @@
 import { RPC_BASE_PATH } from './../constants'
 import type { Routing, Rpc, TypeNode } from './../types'
 import { fileNames, segments } from './constants'
-import { getFiles, indent, joinLines, resolveOptions, toRoute } from './helpers'
+import { buildRoute, getFiles, indent, joinLines, resolveOptions } from './helpers'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
   renderType = ({ alias, children, dynamic }: TypeNode): string => {
@@ -47,7 +47,7 @@ export const generateRpcs = ({
   for (const [index, { dirs }] of rpcs.entries()) {
     const alias: string = aliases[index]
 
-    manifests.push(`{ prefix: ${JSON.stringify(dirs.map(toRoute).join('/'))}, module: ${alias} }`)
+    manifests.push(`{ prefix: ${JSON.stringify(buildRoute(dirs))}, module: ${alias} }`)
 
     let node: TypeNode = root
     for (const segment of dirs) {
