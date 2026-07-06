@@ -19,10 +19,10 @@ const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Routing.Redirect
   }
   if (redirect === undefined) return normalized
 
-  const { origin, pathname: _pathname } = window.location,
+  const { origin, pathname: p } = window.location,
     resolvedPath: string = normalizePath(new URL(redirect, origin).pathname)
 
-  if (_pathname !== resolvedPath) goto(redirect, { isWithoutHistory: true })
+  if (p !== resolvedPath) goto(redirect, { isWithoutHistory: true })
   return resolvedPath
 }
 
