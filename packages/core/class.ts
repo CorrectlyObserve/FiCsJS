@@ -1194,7 +1194,7 @@ export class FiCsElement<D extends object, P extends object> {
 
       const topLevelCss: string[] = [],
         joinCss = (cssTexts: string[]): string =>
-          joinArray([prev, ...cssTexts, ...topLevelCss], false)
+          joinArray([prev, ...cssTexts, ...topLevelCss], { space: false })
 
       if (typeof curr === 'function')
         return joinCss([
