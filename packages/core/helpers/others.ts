@@ -17,8 +17,8 @@ export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): 
   return escaped.replace(/["']/g, char => ({ '"': '&quot;', "'": '&#39;' })[char] as string)
 }
 
-export const joinArray = <T>(arr: T[], isSpaceAdded: boolean = true): string =>
-  arr.join(isSpaceAdded ? ' ' : '').trim()
+export const joinArray = <T>(arr: T[], { space = true }: { space?: boolean } = {}): string =>
+  arr.join(space ? ' ' : '').trim()
 
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : removeTrailingSlash(path)

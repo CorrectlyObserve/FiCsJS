@@ -100,7 +100,7 @@ export const generateRpcs = ({
       'export const rpcRouter = [',
       joinLines(
         manifests.map(entry => `${indent()}${entry}`),
-        true
+        { comma: true }
       ),
       ']',
       ''
