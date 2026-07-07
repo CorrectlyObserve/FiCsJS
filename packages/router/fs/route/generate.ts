@@ -19,6 +19,36 @@ export const generateExports = (
   ])
 }
 
+export const generateImports = (
+  baseDir: string,
+  routes: RouteEntry[],
+  { uniqueLayouts, layoutAliases }: LayoutContext,
+  { spaDirs, spaFiles, spaConfigAlias }: SpaContext,
+  { presentStatus, redirectSource, spaStatusSources, spaStatusAlias }: SpecialFilesContext
+): string => {
+  const _toSpecifier = (path: string): string => `'${toSpecifier(path, baseDir)}'`
+  return joinLines(
+    [
+      spaDirs.length > 0 ? `import { ficsRouter } from ${routerImport()}` : '',
+      redirectSource ? `import ${REDIRECT_PATH} from ${_toSpecifier(redirectSource)}` : '',
+      ...presentStatus.map(
+        ({ propName, source }) => `import * as __${propName} from ${_toSpecifier(source)}`
+      ),
+      ...spaDirs.flatMap(dir => [
+        `import ${spaConfigAlias.get(dir)} from ${_toSpecifier(spaFiles.get(dir)!)}`,
+        ...Array.from(spaStatusSources.get(dir)!.entries()).map(
+          ([propName, src]) =>
+            `import * as ${spaStatusAlias.get(dir)!.get(propName)} from ${_toSpecifier(src)}`
+        )
+      ]),
+      ...uniqueLayouts.map(
+        src => `import * as ${layoutAliases.get(src)} from ${_toSpecifier(src)}`
+      ),
+      ...routes.map(({ specifier }, index) => `import * as route${index} from '${specifier}'`)
+    ].filter(line => line !== '')
+  )
+}
+
 export const generateOptions = ({ presentStatus, redirectSource }: SpecialFilesContext): string => {
   const options: string[] = ['']
 
