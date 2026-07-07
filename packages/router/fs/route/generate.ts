@@ -3,6 +3,16 @@ import { fileNames, REDIRECT_PATH, routerImport } from './../constants'
 import { buildRoute, indent, joinLines, toSpecifier } from './../helpers'
 import type { LayoutContext, RouteEntry, SpaContext, SpecialFilesContext } from './types'
 
+const buildEntry = ({
+  length,
+  path,
+  config
+}: {
+  length?: number
+  path: string
+  config: string
+}): string => `${indent(length)}{ path: '${path}', page: ${config} }`
+
 export const generateEntries = ({
   routes,
   layouts,
