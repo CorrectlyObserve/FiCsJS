@@ -227,7 +227,7 @@ export const runInfiniteVirtualScroll = <D extends object, P extends object>({
             numberError({ scrollAreaSize }, 'non-negative')
 
             const { totalSize }: Scroll.Resolved<D, P> = scrollOptions
-            if (!isValidNumber(totalSize, false) || scrollAreaSize > totalSize) {
+            if (!isValidNumber(totalSize, { positive: false }) || scrollAreaSize > totalSize) {
               scrollOptions.totalSize = scrollAreaSize
               reRender()
             }
