@@ -46,18 +46,18 @@ export const generateEntries = ({
 
     if (spaDir === null) {
       mainRoutes.push(
-        buildEntry({
-          path,
-          config: layout === null ? `route${i}` : `route${i}, layout: ${layoutAliases.get(layout)}`
-        })
+        buildEntry({ path, config: buildPageConfig({ base: `route${i}`, layout, layoutAliases }) })
       )
       continue
     }
 
     if (routeIsSpaEntry[i]) {
       const ref: string = `(route${i} as { meta?: Record<string, string> })`,
-        module: string = `{ default: () => ${spaAlias.get(spaDir)}.toString(), meta: ${ref}.meta }`,
-        config: string = `${layout === null ? module : `${module}, layout: ${layoutAliases.get(layout)}`}`
+        config: string = buildPageConfig({
+          base: `{ default: () => ${spaAlias.get(spaDir)}.toString(), meta: ${ref}.meta }`,
+          layout,
+          layoutAliases
+        })
 
       mainRoutes.push(buildEntry({ path, config }))
 
