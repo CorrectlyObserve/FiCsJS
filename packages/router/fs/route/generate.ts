@@ -14,7 +14,7 @@ export const generateExports = (
         `export const ${propName} = ${presentStatus.find(({ propName: pn }) => pn === propName) ? `__${propName}` : 'undefined'}`
     ),
     `export const redirects = ${redirectSource ? REDIRECT_PATH : 'undefined'}`,
-    `export type AppPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
+    `export type FiCsRoutingPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
   ])
 }
 
