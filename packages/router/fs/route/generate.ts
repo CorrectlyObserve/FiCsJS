@@ -4,14 +4,28 @@ import { buildRoute, indent, joinLines, toSpecifier } from './../helpers'
 import type { LayoutContext, RouteEntry, SpaContext, SpecialFilesContext } from './types'
 
 const buildEntry = ({
-  length,
-  path,
-  config
-}: {
-  length?: number
-  path: string
-  config: string
-}): string => `${indent(length)}{ path: '${path}', page: ${config} }`
+    length,
+    path,
+    config
+  }: {
+    length?: number
+    path: string
+    config: string
+  }): string => `${indent(length)}{ path: '${path}', page: ${config} }`,
+  buildPageConfig = ({
+    base,
+    layout,
+    layoutAliases,
+    shouldApply = true
+  }: {
+    base: string
+    layout: string | null
+    layoutAliases: LayoutContext['layoutAliases']
+    shouldApply?: boolean
+  }): string => {
+    if (layout === null || !shouldApply) return base
+    return `${base}, layout: ${layoutAliases.get(layout)}`
+  }
 
 export const generateEntries = ({
   routes,
