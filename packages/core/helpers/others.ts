@@ -4,7 +4,7 @@ import { isPlainObject } from './typeCheck'
 
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-  return str.toLowerCase().replace(/-([a-z])/g, (_, char) => char.toUpperCase())
+  return str.toLowerCase().replace(/[-_]([a-z])/g, (_, char) => char.toUpperCase())
 }
 
 export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): string => {
