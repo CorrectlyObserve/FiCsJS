@@ -9,10 +9,12 @@ export const generateExports = (
   ]
 
   return joinLines([
-    ...Object.values(STATUS_FILES).map(
-      ({ propName }) =>
-        `export const ${propName} = ${presentStatus.find(({ propName: pn }) => pn === propName) ? `__${propName}` : 'undefined'}`
-    ),
+    ...Object.keys(fileNames.status).map(key => {
+      const propName: string = convertStr(key, 'camel')
+      return `export const ${propName} = ${
+        presentStatus.some(({ propName: pn }) => pn === propName) ? `__${propName}` : 'undefined'
+      }`
+    }),
     `export const redirects = ${redirectSource ? REDIRECT_PATH : 'undefined'}`,
     `export type FiCsRoutingPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
   ])
