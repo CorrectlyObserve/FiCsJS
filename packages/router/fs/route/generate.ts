@@ -1,5 +1,4 @@
-import { joinLines } from '../helpers'
-import { STATUS_FILES, type RouteEntry, type SpecialFilesContext } from './types'
+import { REDIRECT_PATH, routerImport } from './../constants'
 
 export const generateExports = (
   routes: RouteEntry[],
@@ -14,7 +13,7 @@ export const generateExports = (
       ({ propName }) =>
         `export const ${propName} = ${presentStatus.find(({ propName: pn }) => pn === propName) ? `__${propName}` : 'undefined'}`
     ),
-    `export const redirects = ${redirectSource ? '__redirect' : 'undefined'}`,
+    `export const redirects = ${redirectSource ? REDIRECT_PATH : 'undefined'}`,
     `export type AppPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
   ])
 }
