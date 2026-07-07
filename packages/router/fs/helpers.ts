@@ -24,8 +24,8 @@ export const buildRoute = (pathSegments: string[]): string => {
 
 export const cleanPath = (path: string): string => toPosix(path).replace(/^\.?\//, '')
 
-export const getDirName = (path: string, isPathCleaned: boolean = true): string =>
-  (isPathCleaned ? cleanPath(path) : path).split('/').slice(0, -1).join('/')
+export const getDirName = (path: string, { clean = true }: { clean?: boolean } = {}): string =>
+  (clean ? cleanPath(path) : path).split('/').slice(0, -1).join('/')
 
 export const getExt = (file: string): string => {
   const dot: number = file.lastIndexOf('.')
