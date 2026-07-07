@@ -18,3 +18,15 @@ export const generateExports = (
     `export type AppPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
   ])
 }
+
+export const generateOptions = ({ presentStatus, redirectSource }: SpecialFilesContext): string => {
+  const options: string[] = ['']
+
+  if (redirectSource) options.push(`redirects: ${REDIRECT_PATH}`)
+  if (presentStatus.length > 0)
+    options.push(
+      `statusModules: { ${presentStatus.map(({ propName: pn }) => `${pn}: __${pn}`).join(', ')} }`
+    )
+
+  return options.length > 1 ? options.join(', ') : ''
+}
