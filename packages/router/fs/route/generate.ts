@@ -23,21 +23,19 @@ export const generateEntries = ({
   presentStatus
 }: { routes: RouteEntry[] } & LayoutContext & SpaContext & SpecialFilesContext): string => {
   const mainRoutes: string[] = [],
-    catchAllRoutes: string[] = [],
-    buildEntry = (path: string, config: string): string =>
-      `${indent()}{ path: '${path}', page: ${config} }`
+    catchAllRoutes: string[] = []
 
   for (let i = 0; i < routes.length; i++) {
-    const route: RouteEntry = routes[i],
+    const { path }: RouteEntry = routes[i],
       spaDir: string | null = routeSpaDirs[i],
       layout: string | null = layouts[i]
 
     if (spaDir === null) {
       mainRoutes.push(
-        buildEntry(
-          route.path,
-          layout === null ? `route${i}` : `route${i}, layout: ${layoutAliases.get(layout)}`
-        )
+        buildEntry({
+          path,
+          config: layout === null ? `route${i}` : `route${i}, layout: ${layoutAliases.get(layout)}`
+        })
       )
       continue
     }
@@ -47,17 +45,19 @@ export const generateEntries = ({
         module: string = `{ default: () => ${spaAlias.get(spaDir)}.toString(), meta: ${ref}.meta }`,
         config: string = `${layout === null ? module : `${module}, layout: ${layoutAliases.get(layout)}`}`
 
-      mainRoutes.push(buildEntry(route.path, config))
+      mainRoutes.push(buildEntry({ path, config }))
 
       const prefix: string = spaDir ? `${buildRoute(spaDir.split('/'))}/` : ''
-      catchAllRoutes.push(buildEntry(`/${prefix}:rest*`, config))
+      catchAllRoutes.push(buildEntry({ path: `/${prefix}:rest*`, config }))
     }
   }
 
   return joinLines(
     [
       ...mainRoutes,
-      ...presentStatus.map(({ urlPath, propName }) => buildEntry(urlPath, `__${propName}`)),
+      ...presentStatus.map(({ urlPath, propName }) =>
+        buildEntry({ path: urlPath, config: `__${propName}` })
+      ),
       ...catchAllRoutes
     ],
     { comma: true }
