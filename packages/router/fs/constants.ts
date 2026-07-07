@@ -17,7 +17,7 @@ export const fileNames = {
   REDIRECT: '+redirect',
   SERVER: '+server',
   SPA: '+spa',
-  status: { NOT_FOUND: '+404', SERVER_ERROR: '+500' }
+  status: { NOT_FOUND: '+404', INTERNAL_SERVER_ERROR: '+500' }
 } as const
 
 export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
