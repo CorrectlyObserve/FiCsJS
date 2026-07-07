@@ -1,6 +1,6 @@
 import { RPC_BASE_PATH } from './../constants'
 import type { Routing, Rpc, TypeNode } from './../types'
-import { fileNames, segments } from './constants'
+import { fileNames, routerImport, segments } from './constants'
 import { buildRoute, getFiles, indent, joinLines, resolveOptions } from './helpers'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
@@ -86,7 +86,7 @@ export const generateRpcs = ({
       ),
     client = joinLines([
       note,
-      `import { createRpcClient } from 'ficsjs/router'`,
+      `import { createRpcClient } from ${routerImport()}`,
       importModules('client'),
       '',
       `export const api = createRpcClient<${renderType(root)}>('${basePath ?? RPC_BASE_PATH}')`,
@@ -94,7 +94,7 @@ export const generateRpcs = ({
     ]),
     server = joinLines([
       note,
-      `import 'ficsjs/router/server-only'`,
+      `import ${routerImport('server-only')}`,
       importModules('server'),
       '',
       'export const rpcRouter = [',
