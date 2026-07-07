@@ -22,6 +22,8 @@ export const fileNames = {
 
 export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
 
+export const routerImport = (path?: string) => `'ficsjs/router${path ? `/${path}` : ''}'` as const
+
 export const segments = {
   CATCH_ALL: /^\[\.\.\.([^[\].]+)\]$/,
   DYNAMIC: /^\[([^[\].]+)\]$/
