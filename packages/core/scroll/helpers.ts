@@ -101,5 +101,7 @@ export const getProperty = ({
   return prefix ? `${prefix}${property[0].toUpperCase()}${property.slice(1)}` : property
 }
 
-export const isValidNumber = (value: number, isPositiveRequired: boolean = true): boolean =>
-  Number.isFinite(value) && (!isPositiveRequired || value > 0)
+export const isValidNumber = (
+  value: number,
+  { positive = true }: { positive?: boolean } = {}
+): boolean => Number.isFinite(value) && (!positive || value > 0)
