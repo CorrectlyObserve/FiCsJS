@@ -1,6 +1,6 @@
 import { convertStr } from './../../../core/helpers'
 import { fileNames, REDIRECT_PATH, routerImport } from './../constants'
-import { buildRoute, indent, joinLines, toSpecifier } from './../helpers'
+import { buildRoute, getDirName, indent, joinLines, toSpecifier } from './../helpers'
 import type { LayoutContext, RouteEntry, SpaContext, SpecialFilesContext } from './types'
 
 const buildEntry = ({
@@ -138,4 +138,64 @@ export const generateOptions = ({ presentStatus, redirectSource }: SpecialFilesC
     )
 
   return options.length > 1 ? options.join(', ') : ''
+}
+
+export const generateSpaRouters = ({
+  routes,
+  layouts,
+  layoutAliases,
+  spaDirs,
+  spaAlias,
+  spaConfigAlias,
+  routeSpaDirs,
+  spaStatusSources,
+  spaStatusAlias
+}: { routes: RouteEntry[] } & LayoutContext & SpaContext & SpecialFilesContext): string => {
+  return joinLines(
+    spaDirs.map(dir => {
+      const routeEntries: string[] = []
+
+      for (let i = 0; i < routes.length; i++) {
+        if (routeSpaDirs[i] !== dir) continue
+
+        const layout: string | null = layouts[i],
+          isUnderBoundary = (layout: string): boolean => getDirName(layout).startsWith(`${dir}/`)
+
+        routeEntries.push(
+          buildEntry({
+            length: 3,
+            path: routes[i].path,
+            config: buildPageConfig({
+              base: `route${i}`,
+              layout,
+              layoutAliases,
+              shouldApply: isUnderBoundary(layout!)
+            })
+          })
+        )
+      }
+
+      const lines: string[] = [
+          `export const ${spaAlias.get(dir)} = ficsRouter(${spaConfigAlias.get(dir)}, {`,
+          `${indent(2)}routes: [`,
+          joinLines(routeEntries, { comma: true }),
+          `${indent(2)}]`
+        ],
+        statusKeys: string[] = Array.from(spaStatusSources.get(dir)?.keys() || [])
+
+      if (statusKeys.length > 0) {
+        lines[lines.length - 1] += ','
+        lines.push(
+          `${indent(2)}statusModules: {`,
+          joinLines(
+            statusKeys.map(key => `${indent(3)}${key}: ${spaStatusAlias.get(dir)?.get(key)}`),
+            { comma: true }
+          ),
+          `${indent(2)}}`
+        )
+      }
+
+      return joinLines([...lines, '})'])
+    })
+  )
 }
