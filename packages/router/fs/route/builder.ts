@@ -1,7 +1,9 @@
+import { convertStr, typedEntries } from './../../../core/helpers'
+import { prependSlash } from './../../helpers'
 import type { Routing } from './../../types'
-import { fileNames } from './../constants'
+import { fileNames, prefixes } from './../constants'
 import { getFiles, toSpecifier } from './../helpers'
-import { findClosestDir } from './finder'
+import { findClosestDir, findFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
 export const buildEntries = ({
@@ -49,5 +51,53 @@ export const buildLayoutCtx = ({
     layouts,
     uniques,
     alias: new Map(uniques.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`]))
+  }
+}
+
+export const buildSpecialCtx = ({
+  dirs,
+  filePaths,
+  extensions
+}: Omit<Routing.BuilderQuery, 'routes'> & { dirs: string[] }): Routing.Ctx.Special => {
+  const entries = typedEntries(fileNames.statuses),
+    statuses: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
+    aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>()
+  let counter: number = 0
+
+  for (const dir of dirs) {
+    const status: Map<string, string> = new Map<string, string>(),
+      alias: Map<string, string> = new Map<string, string>()
+
+    for (const [key, target] of entries) {
+      const prop: string = convertStr(key, 'camel'),
+        src: string | null = findFileSrc({ filePaths, extensions, target, dir })
+
+      if (src !== null) {
+        status.set(prop, src)
+        alias.set(prop, `${prefixes.STATUS}${counter++}`)
+      }
+    }
+
+    statuses.set(dir, status)
+    aliases.set(dir, alias)
+  }
+
+  const globalStatus: Routing.GlobalStatuses = entries.reduce<Routing.GlobalStatuses>(
+    (entry, [key, target]) => {
+      const src: string | null = findFileSrc({ filePaths, extensions, target })
+
+      if (src !== null)
+        entry.push({ prop: convertStr(key, 'camel'), path: prependSlash(target.slice(1)), src })
+
+      return entry
+    },
+    []
+  )
+
+  return {
+    globalStatus,
+    redirect: findFileSrc({ filePaths, extensions, target: fileNames.REDIRECT }),
+    statuses,
+    aliases
   }
 }
