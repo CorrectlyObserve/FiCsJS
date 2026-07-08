@@ -23,7 +23,7 @@ export const fileNames = {
 
 export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
 
-export const REDIRECT_PATH = '__redirect' as const
+export const prefixes = { REDIRECT: '__redirect', STATUS: '__status' } as const
 
 export const routerImport = (path: string = '') =>
   `'ficsjs/router${path ? `/${path}` : ''}'` as const
