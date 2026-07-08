@@ -1,5 +1,5 @@
-import type { Routing } from './../../types'
-import { cleanPath, getDirName, getExt, removeExt } from './../helpers'
+import type { Routing } from '../../types'
+import { cleanPath, getDirName, getExt, removeExt } from '../helpers'
 
 export const findClosestDir = (
   src: string,
