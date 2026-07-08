@@ -2,10 +2,10 @@ import type { Routing } from './../../types'
 import { cleanPath, getDirName, getExt, removeExt } from './../helpers'
 
 export const findClosestDir = (
-  source: string,
+  src: string,
   map: Map<string, string>
 ): { key: string; value: string } | null => {
-  let dir: string = getDirName(source)
+  let dir: string = getDirName(src)
 
   while (true) {
     if (map.has(dir)) return { key: dir, value: map.get(dir)! }
