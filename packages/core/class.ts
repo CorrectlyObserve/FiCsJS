@@ -1189,7 +1189,7 @@ export class FiCsElement<D extends object, P extends object> {
           ''
         )
 
-    return css.reduce((prev, curr) => {
+    return css.reduce<string>((prev, curr) => {
       if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
       const topLevelCss: string[] = [],
@@ -1211,7 +1211,7 @@ export class FiCsElement<D extends object, P extends object> {
           ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
         )
       )
-    }, '') as string
+    }, '')
   }
 
   #buildCss(shadowRoot: ShadowRoot): void {
