@@ -41,13 +41,13 @@ export const buildLayoutCtx = ({
     layouts: Routing.Ctx.Layout['layouts'] = routes.map(
       ({ src }) => findClosestDir(src, layoutFiles)?.value ?? null
     ),
-    uniqueLayouts: Routing.Ctx.Layout['uniqueLayouts'] = [
+    uniques: Routing.Ctx.Layout['uniques'] = [
       ...new Set(layouts.filter((layout): layout is string => layout !== null))
     ]
 
   return {
     layouts,
-    uniqueLayouts,
-    layoutAliases: new Map(uniqueLayouts.map((layout, index) => [layout, `__layout${index}`]))
+    uniques,
+    alias: new Map(uniques.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`]))
   }
 }
