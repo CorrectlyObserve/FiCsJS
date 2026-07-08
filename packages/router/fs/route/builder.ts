@@ -3,7 +3,7 @@ import { fileNames } from './../constants'
 import { getFiles } from './../helpers'
 import { findClosestDir } from './find'
 
-export const buildLayoutContext = ({
+export const buildLayoutCtx = ({
   routes,
   filePaths,
   extensions
