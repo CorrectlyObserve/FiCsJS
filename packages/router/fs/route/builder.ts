@@ -59,7 +59,7 @@ export const buildSpecialCtx = ({
   filePaths,
   extensions
 }: Omit<Routing.BuilderQuery, 'routes'> & { dirs: string[] }): Routing.Ctx.Special => {
-  const entries = typedEntries(fileNames.statuses),
+  const statusEntries = typedEntries(fileNames.statuses),
     statuses: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
     aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>()
   let counter: number = 0
@@ -68,7 +68,7 @@ export const buildSpecialCtx = ({
     const status: Map<string, string> = new Map<string, string>(),
       alias: Map<string, string> = new Map<string, string>()
 
-    for (const [key, target] of entries) {
+    for (const [key, target] of statusEntries) {
       const prop: string = convertStr(key, 'camel'),
         src: string | null = findFileSrc({ filePaths, extensions, target, dir })
 
@@ -82,14 +82,14 @@ export const buildSpecialCtx = ({
     aliases.set(dir, alias)
   }
 
-  const globalStatus: Routing.GlobalStatuses = entries.reduce<Routing.GlobalStatuses>(
-    (entry, [key, target]) => {
+  const globalStatus: Routing.GlobalStatuses = statusEntries.reduce<Routing.GlobalStatuses>(
+    (entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
       if (src !== null)
-        entry.push({ prop: convertStr(key, 'camel'), path: prependSlash(target.slice(1)), src })
+        entries.push({ prop: convertStr(key, 'camel'), path: prependSlash(target.slice(1)), src })
 
-      return entry
+      return entries
     },
     []
   )
