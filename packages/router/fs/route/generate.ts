@@ -128,16 +128,16 @@ export const generateImports = (
   )
 }
 
-export const generateOptions = ({ presentStatus, redirectSource }: SpecialFilesContext): string => {
-  const options: string[] = ['']
+export const generateRegisterRoutes = ({ currentStatuses, redirect }: Routing.Ctx.Special): string => {
+  const options: string[] = ['routes']
 
-  if (redirectSource) options.push(`redirects: ${REDIRECT_PATH}`)
-  if (presentStatus.length > 0)
+  if (redirect) options.push(`redirects: ${prefixes.REDIRECT}`)
+  if (currentStatuses.length > 0)
     options.push(
-      `statusModules: { ${presentStatus.map(({ propName: pn }) => `${pn}: __${pn}`).join(', ')} }`
+      `statusModules: { ${currentStatuses.map(({ prop }) => `${prop}: __${prop}`).join(', ')} }`
     )
 
-  return options.length > 1 ? options.join(', ') : ''
+  return `registerRoutes({ ${options.join(', ')} })`
 }
 
 export const generateSpaRouters = ({
