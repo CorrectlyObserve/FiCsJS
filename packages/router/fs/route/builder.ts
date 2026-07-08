@@ -1,7 +1,32 @@
 import type { Routing } from './../../types'
 import { fileNames } from './../constants'
-import { getFiles } from './../helpers'
-import { findClosestDir } from './find'
+import { getFiles, toSpecifier } from './../helpers'
+import { findClosestDir } from './finder'
+import { compareRoutes, toRoute } from './path'
+
+export const buildEntries = ({
+  filePaths,
+  extensions,
+  baseDir
+}: Omit<Routing.BuilderQuery, 'routes'> & { baseDir: string }): Routing.RouteEntry[] => {
+  const routes: Routing.RouteEntry[] = [],
+    seen: Map<string, string> = new Map()
+
+  for (const filePath of filePaths) {
+    const path: string | null = toRoute(filePath, extensions)
+    if (path === null) continue
+
+    const existing: string | undefined = seen.get(path)
+    if (existing)
+      throw new Error(
+        `The duplicated route "${path}" is defined in both "${existing}" and "${filePath}"...`
+      )
+    seen.set(path, filePath)
+    routes.push({ path, specifier: toSpecifier(filePath, baseDir), src: filePath })
+  }
+
+  return routes.sort(compareRoutes)
+}
 
 export const buildLayoutCtx = ({
   routes,
