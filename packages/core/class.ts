@@ -773,7 +773,7 @@ export class FiCsElement<D extends object, P extends object> {
         })
     })[SANITIZED]
 
-    return contents.reduce((prev, curr) => {
+    return contents.reduce<string>((prev, curr) => {
       if (isObject(curr) && curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
@@ -782,7 +782,7 @@ export class FiCsElement<D extends object, P extends object> {
       }
 
       return `${prev}${curr}`
-    }, '') as string
+    }, '')
   }
 
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
