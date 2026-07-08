@@ -16,7 +16,7 @@ export const findClosestDir = (
   }
 }
 
-export const findSpecificFile = ({
+export const findFileSrc = ({
   filePaths,
   extensions,
   target,
