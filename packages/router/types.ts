@@ -134,6 +134,12 @@ export declare namespace Routing {
     layout?: T
   }
 
+  interface RouteEntry {
+    path: string
+    specifier: string
+    src: string
+  }
+
   type ServerEntries = {
     dirs: string[]
     specifier: string
