@@ -3,13 +3,12 @@ import { isDynamicPath } from './../../helpers'
 import type { Routing } from './../../types'
 import { fileNames } from './../constants'
 import { buildRoute, cleanPath, isValidFileType } from './../helpers'
-import type { RouteEntry } from './types'
 
 const rankOf = (route: string): number => (route.includes('*') ? 2 : isDynamicPath(route) ? 1 : 0)
 
 export const compareRoutes = (
-  { path: targetPath }: RouteEntry,
-  { path: comparedPath }: RouteEntry
+  { path: targetPath }: Routing.RouteEntry,
+  { path: comparedPath }: Routing.RouteEntry
 ): number => {
   const rankDiff: number = rankOf(targetPath) - rankOf(comparedPath)
   if (rankDiff !== 0) return rankDiff
