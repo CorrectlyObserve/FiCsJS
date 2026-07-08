@@ -84,6 +84,12 @@ export declare namespace Routing {
     expectedType: T
   }
 
+  type GlobalStatuses = {
+    prop: string
+    path: string
+    src: string
+  }[]
+
   interface Host {
     html: (content: string, status?: number) => unknown
     redirect: (url: string, status?: number) => unknown
