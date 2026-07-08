@@ -14,7 +14,7 @@ export const buildLayoutContext = ({
       extensions
     }),
     layouts: Routing.Ctx.Layout['layouts'] = routes.map(
-      ({ source }) => findClosestDir(source, layoutFiles)?.value ?? null
+      ({ src }) => findClosestDir(src, layoutFiles)?.value ?? null
     ),
     uniqueLayouts: Routing.Ctx.Layout['uniqueLayouts'] = [
       ...new Set(layouts.filter((layout): layout is string => layout !== null))
