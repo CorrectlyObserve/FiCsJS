@@ -1,27 +1,22 @@
-import type { Routing } from '../../types'
-import { fileNames } from '../constants'
-import { getFiles } from '../helpers'
+import type { Routing } from './../../types'
+import { fileNames } from './../constants'
+import { getFiles } from './../helpers'
 import { findClosestDir } from './find'
-import { type LayoutContext, type RouteEntry } from './types'
 
 export const buildLayoutContext = ({
   routes,
   filePaths,
   extensions
-}: {
-  routes: RouteEntry[]
-  filePaths: string[]
-  extensions: Routing.Extensions
-}): LayoutContext => {
+}: Routing.BuilderQuery): Routing.Ctx.Layout => {
   const layoutFiles: Map<string, string> = getFiles({
       filePaths,
       expectedType: fileNames.LAYOUT,
       extensions
     }),
-    layouts: (string | null)[] = routes.map(
+    layouts: Routing.Ctx.Layout['layouts'] = routes.map(
       ({ source }) => findClosestDir(source, layoutFiles)?.value ?? null
     ),
-    uniqueLayouts: string[] = [
+    uniqueLayouts: Routing.Ctx.Layout['uniqueLayouts'] = [
       ...new Set(layouts.filter((layout): layout is string => layout !== null))
     ]
 
