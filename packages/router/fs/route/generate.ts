@@ -144,20 +144,20 @@ export const generateRegisterRoutes = ({ globalStatus, redirect }: Routing.Ctx.S
 export const generateSpaRouters = ({
   routes,
   layouts,
-  layoutAliases,
-  spaDirs,
-  spaAlias,
-  spaConfigAlias,
-  routeSpaDirs,
-  spaStatusSources,
-  spaStatusAlias
-}: { routes: RouteEntry[] } & LayoutContext & SpaContext & SpecialFilesContext): string => {
+  alias: layoutAlias,
+  dirs,
+  alias: spaAlias,
+  configAlias,
+  routeDirs,
+  statuses,
+  aliases
+}: Routing.Ctx.All): string => {
   return joinLines(
-    spaDirs.map(dir => {
+    dirs.map(dir => {
       const routeEntries: string[] = []
 
       for (let i = 0; i < routes.length; i++) {
-        if (routeSpaDirs[i] !== dir) continue
+        if (routeDirs[i] !== dir) continue
 
         const layout: string | null = layouts[i],
           isUnderBoundary = (layout: string): boolean => getDirName(layout).startsWith(`${dir}/`)
@@ -169,7 +169,7 @@ export const generateSpaRouters = ({
             config: buildPageConfig({
               base: `route${i}`,
               layout,
-              layoutAliases,
+              alias: layoutAlias,
               shouldApply: isUnderBoundary(layout!)
             })
           })
@@ -177,19 +177,19 @@ export const generateSpaRouters = ({
       }
 
       const lines: string[] = [
-          `export const ${spaAlias.get(dir)} = ficsRouter(${spaConfigAlias.get(dir)}, {`,
+          `export const ${spaAlias.get(dir)} = ficsRouter(${configAlias.get(dir)}, {`,
           `${indent(2)}routes: [`,
           joinLines(routeEntries, { comma: true }),
           `${indent(2)}]`
         ],
-        statusKeys: string[] = Array.from(spaStatusSources.get(dir)?.keys() || [])
+        statusKeys: string[] = Array.from(statuses.get(dir)?.keys() || [])
 
       if (statusKeys.length > 0) {
         lines[lines.length - 1] += ','
         lines.push(
           `${indent(2)}statusModules: {`,
           joinLines(
-            statusKeys.map(key => `${indent(3)}${key}: ${spaStatusAlias.get(dir)?.get(key)}`),
+            statusKeys.map(key => `${indent(3)}${key}: ${aliases.get(dir)?.get(key)}`),
             { comma: true }
           ),
           `${indent(2)}}`
