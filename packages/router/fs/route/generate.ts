@@ -30,23 +30,26 @@ const buildEntry = ({
 export const generateEntries = ({
   routes,
   layouts,
-  layoutAliases,
-  spaAlias,
-  routeSpaDirs,
+  alias: layoutAlias,
+  alias: spaAlias,
+  routeDirs,
   routeIsSpaEntry,
-  presentStatus
-}: { routes: RouteEntry[] } & LayoutContext & SpaContext & SpecialFilesContext): string => {
+  globalStatus
+}: Routing.Ctx.All): string => {
   const mainRoutes: string[] = [],
     catchAllRoutes: string[] = []
 
   for (let i = 0; i < routes.length; i++) {
-    const { path }: RouteEntry = routes[i],
-      spaDir: string | null = routeSpaDirs[i],
+    const { path }: Routing.RouteEntry = routes[i],
+      routeDir: string | null = routeDirs[i],
       layout: string | null = layouts[i]
 
-    if (spaDir === null) {
+    if (routeDir === null) {
       mainRoutes.push(
-        buildEntry({ path, config: buildPageConfig({ base: `route${i}`, layout, layoutAliases }) })
+        buildEntry({
+          path,
+          config: buildPageConfig({ base: `route${i}`, layout, alias: layoutAlias })
+        })
       )
       continue
     }
@@ -54,14 +57,14 @@ export const generateEntries = ({
     if (routeIsSpaEntry[i]) {
       const ref: string = `(route${i} as { meta?: Record<string, string> })`,
         config: string = buildPageConfig({
-          base: `{ default: () => ${spaAlias.get(spaDir)}.toString(), meta: ${ref}.meta }`,
+          base: `{ default: () => ${spaAlias.get(routeDir)}.toString(), meta: ${ref}.meta }`,
           layout,
-          layoutAliases
+          alias: layoutAlias
         })
 
       mainRoutes.push(buildEntry({ path, config }))
 
-      const prefix: string = spaDir ? `${buildRoute(spaDir.split('/'))}/` : ''
+      const prefix: string = routeDir ? `${buildRoute(routeDir.split('/'))}/` : ''
       catchAllRoutes.push(buildEntry({ path: `/${prefix}:rest*`, config }))
     }
   }
@@ -69,9 +72,7 @@ export const generateEntries = ({
   return joinLines(
     [
       ...mainRoutes,
-      ...presentStatus.map(({ urlPath, propName }) =>
-        buildEntry({ path: urlPath, config: `__${propName}` })
-      ),
+      ...globalStatus.map(({ path, prop }) => buildEntry({ path, config: `__${prop}` })),
       ...catchAllRoutes
     ],
     { comma: true }
