@@ -79,22 +79,22 @@ export const generateEntries = ({
 }
 
 export const generateExports = (
-  routes: RouteEntry[],
-  { presentStatus, redirectSource }: SpecialFilesContext
+  routes: Routing.RouteEntry[],
+  { globalStatus, redirect }: Routing.Ctx.Special
 ): string => {
-  const uniquePaths: string[] = [
-    ...new Set([...routes.map(({ path }) => path), ...presentStatus.map(({ urlPath }) => urlPath)])
+  const uniques: string[] = [
+    ...new Set([...routes.map(({ path }) => path), ...globalStatus.map(({ path }) => path)])
   ]
 
   return joinLines([
-    ...Object.keys(fileNames.status).map(key => {
-      const propName: string = convertStr(key, 'camel')
-      return `export const ${propName} = ${
-        presentStatus.some(({ propName: pn }) => pn === propName) ? `__${propName}` : 'undefined'
+    ...Object.keys(fileNames.statuses).map(key => {
+      const prop: string = convertStr(key, 'camel')
+      return `export const ${prop} = ${
+        globalStatus.some(({ prop: p }) => p === prop) ? `__${prop}` : 'undefined'
       }`
     }),
-    `export const redirects = ${redirectSource ? REDIRECT_PATH : 'undefined'}`,
-    `export type FiCsRoutingPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
+    `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
+    `export type FiCsRoutingPath = ${uniques.length === 0 ? 'never' : uniques.map(path => `'${path}'`).join(' | ')}`
   ])
 }
 
