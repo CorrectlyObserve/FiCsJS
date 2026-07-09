@@ -76,6 +76,34 @@ export declare namespace Routing {
     basePath?: string
   }
 
+  namespace Ctx {
+    interface All extends Layout, Spa, Special {
+      routes: RouteEntry[]
+    }
+
+    interface Layout {
+      layouts: (string | null)[]
+      uniques: string[]
+      alias: Map<string, string>
+    }
+
+    interface Spa {
+      dirs: string[]
+      files: Map<string, string>
+      alias: Map<string, string>
+      configAlias: Map<string, string>
+      routeDirs: (string | null)[]
+      routeIsSpaEntry: boolean[]
+    }
+
+    interface Special {
+      globalStatus: GlobalStatuses
+      redirect: string | null
+      statuses: Map<string, Map<string, string>>
+      aliases: Map<string, Map<string, string>>
+    }
+  }
+
   type Extensions = Readonly<string[]>
 
   interface FilesQuery<T> {
