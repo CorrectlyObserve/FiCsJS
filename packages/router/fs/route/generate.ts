@@ -15,16 +15,16 @@ const buildEntry = ({
   buildPageConfig = ({
     base,
     layout,
-    layoutAliases,
+    alias,
     shouldApply = true
   }: {
     base: string
     layout: string | null
-    layoutAliases: LayoutContext['layoutAliases']
+    alias: Routing.Ctx.Layout['alias']
     shouldApply?: boolean
   }): string => {
     if (layout === null || !shouldApply) return base
-    return `${base}, layout: ${layoutAliases.get(layout)}`
+    return `${base}, layout: ${alias.get(layout)}`
   }
 
 export const generateEntries = ({
