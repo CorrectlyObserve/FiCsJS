@@ -1,7 +1,7 @@
 import { convertStr } from './../../../core/helpers'
-import { fileNames, REDIRECT_PATH, routerImport } from './../constants'
+import type { Routing } from './../../types'
+import { fileNames, prefixes, routerImport } from './../constants'
 import { buildRoute, getDirName, indent, joinLines, toSpecifier } from './../helpers'
-import type { LayoutContext, RouteEntry, SpaContext, SpecialFilesContext } from './types'
 
 const buildEntry = ({
     length,
@@ -99,31 +99,32 @@ export const generateExports = (
   ])
 }
 
-export const generateImports = (
-  baseDir: string,
-  routes: RouteEntry[],
-  { uniqueLayouts, layoutAliases }: LayoutContext,
-  { spaDirs, spaFiles, spaConfigAlias }: SpaContext,
-  { presentStatus, redirectSource, spaStatusSources, spaStatusAlias }: SpecialFilesContext
-): string => {
-  const _toSpecifier = (path: string): string => `'${toSpecifier(path, baseDir)}'`
+export const generateImports = ({
+  baseDir,
+  routes,
+  uniques,
+  alias,
+  dirs,
+  files,
+  configAlias,
+  globalStatus,
+  redirect,
+  statuses,
+  aliases
+}: { baseDir: string } & Routing.Ctx.All): string => {
+  const _toSpecifier = (src: string): string => `'${toSpecifier(src, baseDir)}'`
   return joinLines(
     [
-      spaDirs.length > 0 ? `import { ficsRouter } from ${routerImport()}` : '',
-      redirectSource ? `import ${REDIRECT_PATH} from ${_toSpecifier(redirectSource)}` : '',
-      ...presentStatus.map(
-        ({ propName, source }) => `import * as __${propName} from ${_toSpecifier(source)}`
-      ),
-      ...spaDirs.flatMap(dir => [
-        `import ${spaConfigAlias.get(dir)} from ${_toSpecifier(spaFiles.get(dir)!)}`,
-        ...Array.from(spaStatusSources.get(dir)!.entries()).map(
-          ([propName, src]) =>
-            `import * as ${spaStatusAlias.get(dir)!.get(propName)} from ${_toSpecifier(src)}`
+      dirs.length > 0 ? `import { ficsRouter } from ${routerImport()}` : '',
+      redirect ? `import ${prefixes.REDIRECT} from ${_toSpecifier(redirect)}` : '',
+      ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
+      ...dirs.flatMap(dir => [
+        `import ${configAlias.get(dir)} from ${_toSpecifier(files.get(dir)!)}`,
+        ...Array.from(statuses.get(dir)!.entries()).map(
+          ([prop, src]) => `import * as ${aliases.get(dir)!.get(prop)} from ${_toSpecifier(src)}`
         )
       ]),
-      ...uniqueLayouts.map(
-        src => `import * as ${layoutAliases.get(src)} from ${_toSpecifier(src)}`
-      ),
+      ...uniques.map(src => `import * as ${alias.get(src)} from ${_toSpecifier(src)}`),
       ...routes.map(({ specifier }, index) => `import * as route${index} from '${specifier}'`)
     ].filter(line => line !== '')
   )
