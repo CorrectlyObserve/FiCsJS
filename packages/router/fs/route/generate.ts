@@ -128,13 +128,13 @@ export const generateImports = (
   )
 }
 
-export const generateRegisterRoutes = ({ currentStatuses, redirect }: Routing.Ctx.Special): string => {
+export const generateRegisterRoutes = ({ globalStatus, redirect }: Routing.Ctx.Special): string => {
   const options: string[] = ['routes']
 
   if (redirect) options.push(`redirects: ${prefixes.REDIRECT}`)
-  if (currentStatuses.length > 0)
+  if (globalStatus.length > 0)
     options.push(
-      `statusModules: { ${currentStatuses.map(({ prop }) => `${prop}: __${prop}`).join(', ')} }`
+      `statusModules: { ${globalStatus.map(({ prop }) => `${prop}: __${prop}`).join(', ')} }`
     )
 
   return `registerRoutes({ ${options.join(', ')} })`
