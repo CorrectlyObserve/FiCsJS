@@ -92,8 +92,10 @@ export declare namespace Routing {
       files: Map<string, string>
       alias: Map<string, string>
       configAlias: Map<string, string>
-      routeDirs: (string | null)[]
-      routeIsSpaEntry: boolean[]
+      /** @remarks Parallel array for routes */
+      spaOwners: (string | null)[]
+      /** @remarks Parallel array for routes */
+      areSpaRoot: boolean[]
     }
 
     interface Special {
