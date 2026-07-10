@@ -50,7 +50,7 @@ export const buildLayoutCtx = ({
   return {
     layouts,
     uniques,
-    alias: new Map(uniques.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`]))
+    layoutAlias: new Map(uniques.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`]))
   }
 }
 
