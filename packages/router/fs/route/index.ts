@@ -8,7 +8,7 @@ import {
   generateImports,
   generateRegisterRoutes,
   generateSpaRouters
-} from './generate'
+} from './generator'
 
 export const generateRoutes = (filePaths: string[], options?: Routing.Options.Generate): string => {
   const { baseDir, extensions }: { baseDir: string; extensions: Routing.Extensions } =
