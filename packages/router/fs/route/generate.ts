@@ -32,8 +32,8 @@ export const generateEntries = ({
   layouts,
   alias: layoutAlias,
   alias: spaAlias,
-  routeDirs,
-  routeIsSpaEntry,
+  spaOwners,
+  areSpaRoot,
   globalStatus
 }: Routing.Ctx.All): string => {
   const mainRoutes: string[] = [],
@@ -41,10 +41,10 @@ export const generateEntries = ({
 
   for (let i = 0; i < routes.length; i++) {
     const { path }: Routing.RouteEntry = routes[i],
-      routeDir: string | null = routeDirs[i],
+      spaOwner: string | null = spaOwners[i],
       layout: string | null = layouts[i]
 
-    if (routeDir === null) {
+    if (spaOwner === null) {
       mainRoutes.push(
         buildEntry({
           path,
@@ -54,17 +54,17 @@ export const generateEntries = ({
       continue
     }
 
-    if (routeIsSpaEntry[i]) {
+    if (areSpaRoot[i]) {
       const ref: string = `(route${i} as { meta?: Record<string, string> })`,
         config: string = buildPageConfig({
-          base: `{ default: () => ${spaAlias.get(routeDir)}.toString(), meta: ${ref}.meta }`,
+          base: `{ default: () => ${spaAlias.get(spaOwner)}.toString(), meta: ${ref}.meta }`,
           layout,
           alias: layoutAlias
         })
 
       mainRoutes.push(buildEntry({ path, config }))
 
-      const prefix: string = routeDir ? `${buildRoute(routeDir.split('/'))}/` : ''
+      const prefix: string = spaOwner ? `${buildRoute(spaOwner.split('/'))}/` : ''
       catchAllRoutes.push(buildEntry({ path: `/${prefix}:rest*`, config }))
     }
   }
@@ -149,7 +149,7 @@ export const generateSpaRouters = ({
   dirs,
   alias: spaAlias,
   configAlias,
-  routeDirs,
+  spaOwners,
   statuses,
   aliases
 }: Routing.Ctx.All): string => {
@@ -158,7 +158,7 @@ export const generateSpaRouters = ({
       const routeEntries: string[] = []
 
       for (let i = 0; i < routes.length; i++) {
-        if (routeDirs[i] !== dir) continue
+        if (spaOwners[i] !== dir) continue
 
         const layout: string | null = layouts[i],
           isUnderBoundary = (layout: string): boolean => getDirName(layout).startsWith(`${dir}/`)
