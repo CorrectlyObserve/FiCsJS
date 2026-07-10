@@ -103,7 +103,7 @@ export const generateImports = ({
   baseDir,
   routes,
   uniques,
-  alias,
+  layoutAlias,
   dirs,
   files,
   configAlias,
@@ -124,7 +124,7 @@ export const generateImports = ({
           ([prop, src]) => `import * as ${aliases.get(dir)!.get(prop)} from ${_toSpecifier(src)}`
         )
       ]),
-      ...uniques.map(src => `import * as ${alias.get(src)} from ${_toSpecifier(src)}`),
+      ...uniques.map(src => `import * as ${layoutAlias.get(src)} from ${_toSpecifier(src)}`),
       ...routes.map(({ specifier }, index) => `import * as route${index} from '${specifier}'`)
     ].filter(line => line !== '')
   )
