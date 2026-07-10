@@ -128,6 +128,14 @@ export const toAbsolute = <T extends Record<string, string | undefined>>(
   return result
 }
 
+export const toPascal = (path: string): string =>
+  path
+    .split(/[-_/]/)
+    .reduce(
+      (prev, curr) => `${prev}${curr === '' ? '' : curr[0].toUpperCase() + curr.slice(1)}`,
+      ''
+    )
+
 export const toRelative = (from: string, to: string): string => {
   const _relative: string = toPosix(relative(dirname(from), to))
   return _relative.startsWith('.') ? _relative : `./${_relative}`
