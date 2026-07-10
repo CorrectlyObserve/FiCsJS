@@ -30,8 +30,8 @@ const buildEntry = ({
 export const generateEntries = ({
   routes,
   layouts,
-  alias: layoutAlias,
-  alias: spaAlias,
+  layoutAlias,
+  spaAlias,
   spaOwners,
   areSpaRoot,
   globalStatus
@@ -48,7 +48,7 @@ export const generateEntries = ({
       mainRoutes.push(
         buildEntry({
           path,
-          config: buildPageConfig({ base: `route${i}`, layout, alias: layoutAlias })
+          config: buildPageConfig({ base: `route${i}`, layout, layoutAlias })
         })
       )
       continue
@@ -59,7 +59,7 @@ export const generateEntries = ({
         config: string = buildPageConfig({
           base: `{ default: () => ${spaAlias.get(spaOwner)}.toString(), meta: ${ref}.meta }`,
           layout,
-          alias: layoutAlias
+          layoutAlias
         })
 
       mainRoutes.push(buildEntry({ path, config }))
