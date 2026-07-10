@@ -84,7 +84,7 @@ export declare namespace Routing {
     interface Layout {
       layouts: (string | null)[]
       uniques: string[]
-      alias: Map<string, string>
+      layoutAlias: Map<string, string>
     }
 
     interface Spa {
