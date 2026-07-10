@@ -145,9 +145,9 @@ export const generateRegisterRoutes = ({ globalStatus, redirect }: Routing.Ctx.S
 export const generateSpaRouters = ({
   routes,
   layouts,
-  alias: layoutAlias,
+  layoutAlias,
   dirs,
-  alias: spaAlias,
+  spaAlias,
   configAlias,
   spaOwners,
   statuses,
@@ -170,8 +170,8 @@ export const generateSpaRouters = ({
             config: buildPageConfig({
               base: `route${i}`,
               layout,
-              alias: layoutAlias,
-              shouldApply: isUnderBoundary(layout!)
+              layoutAlias,
+              shouldApply: layout !== null && isUnderBoundary(layout)
             })
           })
         )
