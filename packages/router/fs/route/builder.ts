@@ -2,7 +2,7 @@ import { convertStr, typedEntries } from './../../../core/helpers'
 import { prependSlash } from './../../helpers'
 import type { Routing } from './../../types'
 import { fileNames, prefixes } from './../constants'
-import { getFiles, toSpecifier } from './../helpers'
+import { getDirName, getFiles, toPascal, toSpecifier } from './../helpers'
 import { findClosestDir, findFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
@@ -51,6 +51,49 @@ export const buildLayoutCtx = ({
     layouts,
     uniques,
     alias: new Map(uniques.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`]))
+  }
+}
+
+export const buildSpaCtx = ({
+  routes,
+  filePaths,
+  extensions
+}: Routing.BuilderQuery): Routing.Ctx.Spa => {
+  const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
+    dirs: string[] = Array.from(files.keys()).sort(),
+    alias: Map<string, string> = new Map<string, string>(),
+    configAlias: Map<string, string> = new Map<string, string>()
+
+  for (const dir of dirs) {
+    const name: string = toPascal(dir)
+    alias.set(dir, name)
+    configAlias.set(dir, `__${name}Config`)
+
+    const error: string = `The nested SPA '${dir}/${fileNames.SPA}' is not supported...`
+    let parent: string = dir
+    while (parent.includes('/')) {
+      parent = parent.slice(0, parent.lastIndexOf('/'))
+      if (files.has(parent)) throw new Error(error)
+    }
+
+    if (files.has('') && dir !== '') throw new Error(error)
+  }
+
+  const spaOwners: (string | null)[] = routes.map(
+      ({ src }) => findClosestDir(src, files)?.key ?? null
+    ),
+    areSpaRoot: boolean[] = routes.map(({ src }, index) => {
+      const spaOwner: string | null = spaOwners[index]
+      return spaOwner !== null && spaOwner === getDirName(src)
+    })
+
+  return {
+    dirs,
+    files,
+    alias,
+    configAlias,
+    spaOwners,
+    areSpaRoot
   }
 }
 
