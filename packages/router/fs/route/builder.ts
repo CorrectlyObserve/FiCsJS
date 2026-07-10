@@ -61,12 +61,12 @@ export const buildSpaCtx = ({
 }: Routing.BuilderQuery): Routing.Ctx.Spa => {
   const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
     dirs: string[] = Array.from(files.keys()).sort(),
-    alias: Map<string, string> = new Map<string, string>(),
+    spaAlias: Map<string, string> = new Map<string, string>(),
     configAlias: Map<string, string> = new Map<string, string>()
 
   for (const dir of dirs) {
     const name: string = toPascal(dir)
-    alias.set(dir, name)
+    spaAlias.set(dir, name)
     configAlias.set(dir, `__${name}Config`)
 
     const error: string = `The nested SPA '${dir}/${fileNames.SPA}' is not supported...`
@@ -90,7 +90,7 @@ export const buildSpaCtx = ({
   return {
     dirs,
     files,
-    alias,
+    spaAlias,
     configAlias,
     spaOwners,
     areSpaRoot
