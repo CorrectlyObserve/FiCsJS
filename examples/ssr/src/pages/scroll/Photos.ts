@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { zoom } from 'ficsjs/animation'
-import { queries } from 'ficsjs/router'
+import { goto, queries } from 'ficsjs/router'
 import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import AxisButton from '@/pages/scroll/AxisButton'
@@ -164,7 +164,9 @@ const css: FiCs.Css<Data, {}> = {
 const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {
     const initialPage = parseInt(queries().page)
+
     if (Number.isInteger(initialPage) && initialPage > 0) data.page = initialPage - 1
+    else goto('/scroll?page=1', { isWithoutHistory: true })
 
     const params = { data, signal, shouldInitCache: false }
 
