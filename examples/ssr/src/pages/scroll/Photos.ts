@@ -3,7 +3,6 @@ import { zoom } from 'ficsjs/animation'
 import { queries } from 'ficsjs/router'
 import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { BASE_URL, getPhotos, PAGE_KEY, PHOTOS_KEY, UNIT_LENGTH } from '@/data/photos'
 import AxisButton from '@/pages/scroll/AxisButton'
 import Skeleton from '@/pages/scroll/Skeleton'
 import type { Photo } from '@/types'
@@ -20,7 +19,12 @@ interface Data {
   onEscapeKeydown: ((event: KeyboardEvent) => void) | null
 }
 
-const PHOTO_SIZE = 200 as const
+const BASE_URL = 'https://picsum.photos' as const,
+  UNIT_LENGTH = 8 as const,
+  PHOTO_SIZE = 200 as const,
+  PAGE_KEY = ['page'] as const,
+  PHOTOS_KEY = ['photos'] as const,
+  getPhotos = (page: number) => `${BASE_URL}/v2/list?page=${page}&limit=${UNIT_LENGTH}` as const
 
 const deferredData = async ({ data, queryCache }: FiCs.DeferredContext<Data, {}>) => {
   const nextPage = data.page + 1,
