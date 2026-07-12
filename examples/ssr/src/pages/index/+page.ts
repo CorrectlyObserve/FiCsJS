@@ -1,11 +1,9 @@
-import { createQueryCache } from 'ficsjs'
+import { type QueryCache } from 'ficsjs'
 import ChatButton from '@/components/ChatButton'
 import Link from '@/components/Link'
-import { fetchUsers, USERS_KEY } from '@/data/users'
-import Users from '@/pages/Users'
+import Users, { USERS_KEY } from '@/pages/Users'
+import { getUsers } from '@/server/users'
 import type { User } from '@/types'
-
-type QueryCache = ReturnType<typeof createQueryCache>
 
 export const meta = {
   title: 'FiCsJS with Hono',
@@ -13,7 +11,7 @@ export const meta = {
 }
 
 export default async ({ queryCache }: { queryCache: QueryCache }): Promise<string> => {
-  await queryCache.prefetch(USERS_KEY, fetchUsers)
+  await queryCache.prefetch(USERS_KEY, async () => getUsers())
   const users: User[] = queryCache.get<User[]>(USERS_KEY) ?? []
 
   return `
