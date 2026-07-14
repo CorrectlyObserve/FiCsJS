@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { RPC_BASE_PATH } from './../constants'
 import { configRoutes } from './config'
 import { config, exitCodes } from './constants'
 import { indent, joinLines } from './helpers'
@@ -12,15 +13,16 @@ const args: string[] = process.argv.slice(2),
     `${indent()}fics-routes [options]`,
     '',
     'Options:',
-    `${indent()}--dir <path>      Pages directory to scan (default: ${config.DIR})`,
-    `${indent()}--output <path>   File to write the generated module to (default: ${config.OUTPUT})`,
-    `${indent()}-h, --help        Show this help and exit`
+    `${indent()}--dir <path>       Pages directory to scan (default: ${config.DIR})`,
+    `${indent()}--output <path>    File to write the generated module to (default: ${config.OUTPUT})`,
+    `${indent()}--basePath <path>  RPC URL prefix baked into the client & handler (default: ${RPC_BASE_PATH})`,
+    `${indent()}-h, --help         Show this help and exit`
   ]),
   die = (message: string): never => {
     process.stderr.write(`fics-routes: ${message}\n`)
     process.exit(exitCodes.FAILURE)
   },
-  options: { dir?: string; output?: string } = {}
+  options: { dir?: string; output?: string; basePath?: string } = {}
 
 for (let i = 0; i < args.length; ) {
   const raw: string = args[i]
@@ -33,7 +35,7 @@ for (let i = 0; i < args.length; ) {
     hasEqual: boolean = equal >= 0,
     flag: string = hasEqual ? raw.slice(0, equal) : raw
 
-  if (flag !== '--dir' && flag !== '--output')
+  if (flag !== '--dir' && flag !== '--output' && flag !== '--basePath')
     die(`The argument "${raw}" is not recognized — try --help...`)
 
   let inline: string | undefined = hasEqual ? raw.slice(equal + 1) : undefined
@@ -51,6 +53,9 @@ for (let i = 0; i < args.length; ) {
   options[flag.slice('--'.length) as keyof typeof options] = inline
   i++
 }
+
+if (options.basePath !== undefined && !options.basePath.startsWith('/'))
+  die(`The --basePath must start with "/" (got "${options.basePath}")...`)
 
 try {
   configRoutes(options)
