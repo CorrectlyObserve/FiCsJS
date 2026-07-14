@@ -277,7 +277,6 @@ export declare namespace Rpc {
       createContext?: (req: Request) => C | Promise<C>
       onError?: (error: unknown, info: { path: string; req: Request }) => void
       onMetric?: (event: E) => void
-      basePath?: string
       maxBodyBytes?: number
     }
   }
