@@ -3,8 +3,9 @@ import { streamSSE } from 'hono/streaming'
 import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import { createQueryCache } from 'ficsjs'
-import { registerPages, type Routing } from 'ficsjs/router'
-import { routes, redirects } from './src/routes.gen'
+import { createRpcHandler, registerPages, type FiCsHost } from 'ficsjs/router/server-only'
+import { routes, redirects, notFound } from './src/routes.gen'
+import { rpcRouter } from './src/rpc.server.gen'
 import { Message, SSEMessage } from './src/types'
 import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
 
@@ -13,7 +14,7 @@ const app = new Hono()
 app.get('/dist/*', serveStatic({ root: './' }))
 
 registerPages(app, routes, {
-  render: ({ meta: { title = '', description = '' }, content, path }: Routing.Render): string => `
+  render: ({ meta: { title = '', description = '' }, content, path }: FiCsHost.Render): string => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -34,6 +35,7 @@ registerPages(app, routes, {
     </html>
   `,
   createContext: () => ({ queryCache: createQueryCache() }),
+  notFound,
   redirects,
   /** @remarks Converts ":name*" to Hono's catch-all params format ":name{.+}". */
   toHostRoutePath: path => path.replace(/:([^/*]+)\*/g, ':$1{.+}')
