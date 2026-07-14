@@ -116,16 +116,16 @@ export const generateImports = ({
   return joinLines(
     [
       dirs.length > 0 ? `import { ficsRouter } from ${routerImport()}` : '',
-      redirect ? `import ${prefixes.REDIRECT} from ${_toSpecifier(redirect)}` : '',
-      ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
+      ...uniques.map(src => `import * as ${layoutAlias.get(src)} from ${_toSpecifier(src)}`),
+      ...routes.map(({ specifier }, index) => `import * as route${index} from '${specifier}'`),
       ...dirs.flatMap(dir => [
         `import ${configAlias.get(dir)} from ${_toSpecifier(files.get(dir)!)}`,
         ...Array.from(statuses.get(dir)!.entries()).map(
           ([prop, src]) => `import * as ${aliases.get(dir)!.get(prop)} from ${_toSpecifier(src)}`
         )
       ]),
-      ...uniques.map(src => `import * as ${layoutAlias.get(src)} from ${_toSpecifier(src)}`),
-      ...routes.map(({ specifier }, index) => `import * as route${index} from '${specifier}'`)
+      ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
+      redirect ? `import ${prefixes.REDIRECT} from ${_toSpecifier(redirect)}` : ''
     ].filter(line => line !== '')
   )
 }
