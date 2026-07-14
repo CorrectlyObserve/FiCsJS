@@ -15,16 +15,22 @@ import { emitMetric } from './metric'
 import { errorRes, reject, response } from './response'
 
 export const createRpcHandler = <C = unknown>(
-  manifests: readonly { prefix: string; module: Record<string, unknown> }[],
-  { createContext, onError, onMetric, basePath, maxBodyBytes }: Rpc.Options.Handler<C>
+  {
+    basePath = RPC_BASE_PATH,
+    procedures
+  }: {
+    basePath?: string
+    procedures: readonly { prefix: string; module: Record<string, unknown> }[]
+  },
+  { createContext, onError, onMetric, maxBodyBytes }: Rpc.Options.Handler<C>
 ): ((req: Request) => Promise<Response>) => {
   numberError({ maxBodyBytes }, 'non-negative-int')
 
-  const _basePath: string = removeTrailingSlash(basePath ?? RPC_BASE_PATH),
+  const _basePath: string = removeTrailingSlash(basePath),
     staticMap: Map<string, Rpc.Procedure> = new Map(),
     dynamics: { pattern: string; regex: RegExp; procedure: Rpc.Procedure }[] = []
 
-  for (const { prefix, module } of manifests)
+  for (const { prefix, module } of procedures)
     for (const key of Object.keys(module)) {
       if (
         key === 'default' ||
