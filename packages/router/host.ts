@@ -6,9 +6,18 @@ export const registerPages = <C extends Record<string, unknown>>(
   app: {
     get: (path: string, handler: (ctx: Routing.Host) => unknown) => unknown
     use: (middleware: (ctx: Routing.Host, next: () => Promise<void>) => unknown) => unknown
+    /** @remarks Workaround for strict notFound types in host frameworks　*/
+    notFound: (handler: any) => unknown
   },
   routes: Routing.ServerRoute<C>[],
-  { render, createContext, toHostRoutePath, serverError, redirects }: Routing.Options.Register<C>
+  {
+    render,
+    createContext,
+    toHostRoutePath,
+    serverError,
+    notFound,
+    redirects
+  }: Routing.Options.Register<C>
 ): void => {
   if (typeof redirects === 'function')
     app.use(
@@ -52,6 +61,20 @@ export const registerPages = <C extends Record<string, unknown>>(
           statusCodes.INTERNAL_SERVER_ERROR
         )
       }
+    })
+  }
+
+  if (notFound) {
+    const { meta = {}, default: def }: Routing.ServerModule<C> = notFound
+
+    app.notFound(async (ctx: Routing.Host) => {
+      const _ctx: C & { req: unknown } = { ...(createContext?.(ctx) ?? ({} as C)), req: ctx.req },
+        path: string = (ctx.req as { path?: string }).path ?? ''
+
+      return ctx.html(
+        render({ meta, content: def ? await def(_ctx) : '', path }),
+        statusCodes.NOT_FOUND
+      )
     })
   }
 }
