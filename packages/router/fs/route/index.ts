@@ -1,6 +1,6 @@
 import type { Routing } from './../../types'
 import { COMMENT, routerImport } from './../constants'
-import { indent, joinLines, resolveOptions } from './../helpers'
+import { joinLines, resolveOptions } from './../helpers'
 import { buildEntries, buildLayoutCtx, buildSpaCtx, buildSpecialCtx } from './builder'
 import {
   generateEntries,
@@ -24,11 +24,9 @@ export const generateRoutes = (filePaths: string[], options?: Routing.Options.Ge
     `import { registerRoutes } from ${routerImport()}`,
     generateImports({ baseDir, ...all }),
     '',
+    joinLines(generateEntries(all)),
     generateSpaRouters(all),
     generateExports(routes, special),
-    `export const routes = [`,
-    `${indent()}${generateEntries(all)}`,
-    `]`,
     '',
     generateRegisterRoutes(special)
   ])
