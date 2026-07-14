@@ -160,7 +160,7 @@ const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {
     queryCache.bindTo({ key: USERS_KEY, data, dataKey: 'users', signal })
   },
-  mounted: async ({ data, queryCache, crud, signal }) => {
+  mounted: async ({ data, queryCache, signal }) => {
     if (data.users.length === 0) return
 
     const users = queryCache.get<User[]>(USERS_KEY) ?? data.users,
@@ -171,17 +171,15 @@ const hooks: FiCs.Hooks<Data, {}> = {
       key: USERS_KEY,
       newQuery: current => [...(current ?? []), expectedUser],
       mutator: async () => {
-        const createdUser = await crud<User>(BASE_URL, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(expectedUser)
-          }),
+        const createdUser = await api.create(
+            { name: expectedUser.name, email: expectedUser.email },
+            { signal }
+          ),
           currentUsers = (queryCache.get<User[]>(USERS_KEY) ?? []).filter(
             ({ id }) => id !== expectedUser.id
-          ),
-          userWithExpectedId = { ...expectedUser, ...createdUser, id: expectedUser.id }
+          )
 
-        return [...currentUsers, userWithExpectedId]
+        return [...currentUsers, createdUser]
       },
       signal
     })
