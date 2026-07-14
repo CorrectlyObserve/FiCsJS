@@ -165,7 +165,7 @@ export const generateSpaRouters = ({
 
         routeEntries.push(
           buildEntry({
-            length: 3,
+            length: 2,
             path: routes[i].path,
             config: buildPageConfig({
               base: `route${i}`,
@@ -179,9 +179,9 @@ export const generateSpaRouters = ({
 
       const lines: string[] = [
           `export const ${spaAlias.get(dir)} = ficsRouter(${configAlias.get(dir)}, {`,
-          `${indent(2)}routes: [`,
+          `${indent()}routes: [`,
           joinLines(routeEntries, { comma: true }),
-          `${indent(2)}]`
+          `${indent()}]`
         ],
         statusKeys: string[] = Array.from(statuses.get(dir)?.keys() || [])
 
