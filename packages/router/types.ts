@@ -231,6 +231,13 @@ export declare namespace Rpc {
     ? (input?: I, options?: Options.Call) => Promise<Awaited<O>>
     : never
 
+  /** @remarks R = Router, SR = Sub Router */
+  type Client<R> = (R extends (arg: infer A) => infer SR ? (arg: A) => Client<SR> : unknown) & {
+    [K in keyof R]: R[K] extends { handler: (input: any, ctx: any) => any }
+      ? Caller<R[K]>
+      : Client<R[K]>
+  }
+
   namespace Metric {
     type Event = Payload & typeof RPC_MODULE_TYPE
 
