@@ -144,6 +144,7 @@ export declare namespace Routing {
       toHostRoutePath: (path: string) => string
       createContext?: (ctx: Routing.Host) => C
       serverError?: Routing.ServerModule<C>
+      notFound?: Routing.ServerModule<C>
       redirects?: Routing.Redirects
     }
   }
