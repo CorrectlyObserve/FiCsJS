@@ -35,7 +35,7 @@ export const generateEntries = ({
   spaOwners,
   areSpaRoot,
   globalStatus
-}: Routing.Ctx.All): string => {
+}: Routing.Ctx.All): string[] => {
   const mainRoutes: string[] = [],
     catchAllRoutes: string[] = []
 
@@ -69,14 +69,18 @@ export const generateEntries = ({
     }
   }
 
-  return joinLines(
-    [
-      ...mainRoutes,
-      ...globalStatus.map(({ path, prop }) => buildEntry({ path, config: `__${prop}` })),
-      ...catchAllRoutes
-    ],
-    { comma: true }
-  )
+  return [
+    'export const routes = [',
+    joinLines(
+      [
+        ...mainRoutes,
+        ...globalStatus.map(({ path, prop }) => buildEntry({ path, config: `__${prop}` })),
+        ...catchAllRoutes
+      ],
+      { comma: true }
+    ),
+    `]`
+  ]
 }
 
 export const generateExports = (
