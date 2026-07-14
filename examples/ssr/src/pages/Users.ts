@@ -3,6 +3,7 @@ import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Draggable from '@/pages/Draggable'
 import UserContent from '@/pages/UserContent'
+import { api } from '@/rpc.client.gen'
 import type { Method, Updated, User } from '@/types'
 
 interface Data {
@@ -39,7 +40,7 @@ const props: FiCs.Props<Data, {}> = [
   },
   {
     descendants: ({ children: { draggable } }) => draggable,
-    values: ({ data, children: { userContent }, crud, queryCache }) => ({
+    values: ({ data, children: { userContent }, queryCache }) => ({
       array: data.users,
       slot: (user: User, index: number) => userContent.setIndividualProps(index, { user }),
       isSelected: (user: User) => data.userId === user.id,
@@ -96,7 +97,6 @@ const props: FiCs.Props<Data, {}> = [
 const html: FiCs.Html<Data, {}> = ({
   children: { button, draggable },
   data,
-  crud,
   queryCache,
   template,
   attributes: { statusLiveRegion }
