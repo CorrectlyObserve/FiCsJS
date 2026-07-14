@@ -42,7 +42,7 @@ registerPages(app, routes, {
 })
 
 const rpcHandler = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
-app.all('/_rpc/*', ({ req: { raw } }) => rpcHandler(raw))
+app.all(`${rpcRouter.basePath}/*`, ({ req: { raw } }) => rpcHandler(raw))
 
 const createServerMessage = (comment: string): string =>
   JSON.stringify({ userName: 'Server', comment })
