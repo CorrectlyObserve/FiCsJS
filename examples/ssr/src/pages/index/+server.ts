@@ -1,0 +1,20 @@
+import { mutationOnly } from 'ficsjs/router/server-only'
+import { defineProcedure, rpcError } from '@/server/rpc'
+import { addUser } from '@/server/users'
+import type { User } from '@/types'
+
+export const create = mutationOnly(
+  defineProcedure({
+    input: (raw): Omit<User, 'id'> => {
+      const { name, email } = (raw ?? {}) as { name?: unknown; email?: unknown }
+      if (typeof name !== 'string' || name.trim() === '')
+        throw rpcError({ code: 'BAD_REQUEST', message: 'A name is required.' })
+
+      if (typeof email !== 'string')
+        throw rpcError({ code: 'BAD_REQUEST', message: 'An email must be a string.' })
+
+      return { name, email }
+    },
+    handler: async (input): Promise<User> => addUser(input)
+  })
+)
