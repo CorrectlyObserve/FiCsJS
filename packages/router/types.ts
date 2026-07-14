@@ -226,6 +226,11 @@ export declare namespace Rpc {
 
   type Method = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
+  /** @remarks P = Procedure */
+  type Caller<P> = P extends { handler: (input: infer I, ctx: any) => infer O }
+    ? (input?: I, options?: Options.Call) => Promise<Awaited<O>>
+    : never
+
   namespace Metric {
     type Event = Payload & typeof RPC_MODULE_TYPE
 
