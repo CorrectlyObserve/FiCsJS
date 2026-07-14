@@ -24,7 +24,7 @@ const newNode = (): TypeNode => ({ children: new Map() }),
 export const generateRpcs = ({
   filePaths,
   options,
-  basePath
+  basePath = RPC_BASE_PATH
 }: {
   filePaths: string[]
   options?: Routing.Options.Generate
@@ -88,7 +88,7 @@ export const generateRpcs = ({
       `import { createRpcClient } from ${routerImport()}`,
       importModules('client'),
       '',
-      `export const api = createRpcClient<${renderType(root)}>('${basePath ?? RPC_BASE_PATH}')`,
+      `export const api = createRpcClient<${renderType(root)}>('${basePath}')`,
       ''
     ]),
     server = joinLines([
@@ -96,12 +96,15 @@ export const generateRpcs = ({
       `import ${routerImport('server-only')}`,
       importModules('server'),
       '',
-      'export const rpcRouter = [',
+      'export const rpcRouter = {',
+      `${indent()}basePath: '${basePath}',`,
+      `${indent()}procedures: [`,
       joinLines(
-        manifests.map(entry => `${indent()}${entry}`),
+        manifests.map(entry => `${indent(2)}${entry}`),
         { comma: true }
       ),
-      ']',
+      `${indent()}]`,
+      '}',
       ''
     ])
 
