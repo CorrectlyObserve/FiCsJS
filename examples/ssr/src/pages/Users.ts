@@ -60,7 +60,17 @@ const props: FiCs.Props<Data, {}> = [
             data.status = 'The new user could not be added.'
           })
       },
-      selectItem: (user: User) => (data.userId = data.userId === user.id ? NaN : user.id)
+      selectItem: (user: User) => {
+        const nextId: number = data.userId === user.id ? NaN : user.id
+        data.userId = nextId
+
+        if (Number.isInteger(nextId))
+          void api(nextId.toString())
+            .get(undefined, { method: 'GET' })
+            .then(({ name, email }) => {
+              data.status = `Loaded ${name} <${email}> via GET method.`
+            })
+      }
     })
   },
   {
