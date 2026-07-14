@@ -95,7 +95,7 @@ const html: FiCs.Html<Data, {}> = ({
                   key: USERS_KEY,
                   newQuery: current => filteredUsers(current ?? []),
                   mutator: async () => {
-                    await crud<User>(`${BASE_URL}/${userId}`, { method, headers })
+                    await api(userId.toString()).remove(undefined, { method: 'DELETE' })
                     return filteredUsers(queryCache.get<User[]>(USERS_KEY) ?? [])
                   }
                 })
