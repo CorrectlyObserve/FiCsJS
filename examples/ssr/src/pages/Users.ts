@@ -46,15 +46,13 @@ const props: FiCs.Props<Data, {}> = [
             key: USERS_KEY,
             newQuery: newArray,
             mutator: async () => {
-              const createdUser = await crud<User>(BASE_URL, {
-                  method: 'POST',
-                  headers,
-                  body: JSON.stringify(expectedUser)
-                }),
-                userWithExpectedId = { ...expectedUser, ...createdUser, id: expectedUser.id }
+              const createdUser = await api.create({
+                name: expectedUser.name,
+                email: expectedUser.email
+              })
 
               return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
-                user.id === expectedUser.id ? userWithExpectedId : user
+                user.id === expectedUser.id ? createdUser : user
               )
             }
           })
