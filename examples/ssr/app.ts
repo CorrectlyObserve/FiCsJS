@@ -7,7 +7,7 @@ import { createRpcHandler, registerPages, type FiCsHost } from 'ficsjs/router/se
 import { routes, redirects, notFound } from './src/routes.gen'
 import { rpcRouter } from './src/rpc.server.gen'
 import { Message, SSEMessage } from './src/types'
-import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
+import { API_PATHS, getTimestamp } from './src/utils'
 
 const app = new Hono()
 
@@ -209,7 +209,5 @@ app.get(API_PATHS.stream, c => {
     }
   })
 })
-
-app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
 
 export default { port: 5174, host: '0.0.0.0', fetch: app.fetch, websocket }
