@@ -41,6 +41,9 @@ registerPages(app, routes, {
   toHostRoutePath: path => path.replace(/:([^/*]+)\*/g, ':$1{.+}')
 })
 
+const rpcHandler = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
+app.all('/_rpc/*', ({ req: { raw } }) => rpcHandler(raw))
+
 const createServerMessage = (comment: string): string =>
   JSON.stringify({ userName: 'Server', comment })
 
