@@ -1,7 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
-import { BASE_URL, getExpectedUser, USERS_KEY } from '@/data/users'
 import Draggable from '@/pages/Draggable'
 import UserContent from '@/pages/UserContent'
 import type { Method, Updated, User } from '@/types'
@@ -16,7 +15,22 @@ interface Data {
   isHighlighted: (highlightedZone: HTMLElement | null, zoneIndex: number) => boolean
 }
 
-const headers: HeadersInit = { 'Content-type': 'application/json; charset=UTF-8' }
+const getExpectedUser = (users: readonly User[], userId: User['id']): User => {
+  let targetUser: User | undefined,
+    maxId = 0
+
+  for (const user of users) {
+    const { id } = user
+
+    if (id === userId) targetUser = user
+    if (id > maxId) maxId = id
+  }
+
+  if (!targetUser) throw new Error(`The user with ID ${userId} does not exist.`)
+  return { ...targetUser, id: maxId + 1 }
+}
+
+export const USERS_KEY = ['users'] as const
 
 const props: FiCs.Props<Data, {}> = [
   {
