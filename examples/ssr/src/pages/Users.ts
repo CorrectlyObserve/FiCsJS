@@ -1,8 +1,8 @@
 import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
-import Draggable from '@/pages/Draggable'
-import UserContent from '@/pages/UserContent'
+import Draggable from '@/pages/index/Draggable'
+import UserContent from '@/pages/index/UserContent'
 import { api } from '@/rpc.client.gen'
 import type { Method, Updated, User } from '@/types'
 
