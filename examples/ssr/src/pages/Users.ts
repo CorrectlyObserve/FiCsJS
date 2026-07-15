@@ -35,7 +35,7 @@ export const USERS_KEY = ['users'] as const
 
 const props: FiCs.Props<Data, {}> = [
   {
-    descendants: ({ children: { draggable } }) => draggable.getChildren().menu,
+    descendants: ({ children: { draggable, button } }) => [draggable.getChildren().menu, button],
     values: ({ data: { userId } }) => ({ isDisabled: !Number.isInteger(userId) })
   },
   {
