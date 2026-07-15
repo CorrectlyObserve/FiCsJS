@@ -136,29 +136,29 @@ const html: FiCs.Html<Data, {}> = ({
                     return
                   }
 
-                  await queryCache.optimisticUpdate<User[]>({
-                    key: USERS_KEY,
-                    newQuery: current =>
-                      (current ?? []).map(user => (user.id === userId ? { ...user, name } : user)),
-                    mutator: async () => {
-                      const createdUser = await crud<User>(`${BASE_URL}/${userId}`, {
-                        method,
-                        headers,
-                        body: JSON.stringify(
-                          method === 'PUT' ? { ...currentUser, name } : { id: userId, name }
+                  try {
+                    await queryCache.optimisticUpdate<User[]>({
+                      key: USERS_KEY,
+                      newQuery: current =>
+                        (current ?? []).map(user =>
+                          user.id === userId ? { ...user, name } : user
+                        ),
+                      mutator: async () => {
+                        const updatedUser = await api(userId.toString()).update(
+                          method === 'PUT' ? { name, email: currentUser.email } : { name },
+                          { method }
                         )
-                      })
 
-                      return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user => {
-                        if (user.id === userId)
-                          return method === 'PUT' ? createdUser : { ...user, ...createdUser }
+                        return (queryCache.get<User[]>(USERS_KEY) ?? []).map(user =>
+                          user.id === userId ? updatedUser : user
+                        )
+                      }
+                    })
 
-                        return user
-                      })
-                    }
-                  })
-
-                  data.status = `The user with ID ${userId} was updated.`
+                    data.status = `The user with ID ${userId} was updated.`
+                  } catch (error) {
+                    data.status = error instanceof Error ? error.message : 'The update failed.'
+                  }
                 }
               }
 
