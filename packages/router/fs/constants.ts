@@ -20,6 +20,7 @@ export const fileNames = {
   REDIRECT: '+redirect',
   RPC: '+rpc',
   SPA: '+spa',
+  SPA_CONFIG: '+spa.config',
   statuses: {
     UNAUTHORIZED: '+401',
     FORBIDDEN: '+403',
