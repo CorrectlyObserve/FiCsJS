@@ -14,6 +14,7 @@ export const EXTENSIONS = ['.js', '.ts'] as const
 
 export const fileNames = {
   LAYOUT: '+layout',
+  MIDDLEWARE: '+middleware',
   PAGE: '+page',
   REDIRECT: '+redirect',
   RPC: '+rpc',
