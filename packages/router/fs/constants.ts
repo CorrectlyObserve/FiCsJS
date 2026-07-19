@@ -16,6 +16,7 @@ export const fileNames = {
   LAYOUT: '+layout',
   MIDDLEWARE: '+middleware',
   PAGE: '+page',
+  PAGE_SERVER: '+page.server',
   REDIRECT: '+redirect',
   RPC: '+rpc',
   SPA: '+spa',
