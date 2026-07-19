@@ -25,10 +25,10 @@ export const fileNames = {
   SPA: '+spa',
   SPA_CONFIG: '+spa.config',
   statuses: {
-    UNAUTHORIZED: '+401',
     FORBIDDEN: '+403',
+    INTERNAL_SERVER_ERROR: '+500',
     NOT_FOUND: '+404',
-    INTERNAL_SERVER_ERROR: '+500'
+    UNAUTHORIZED: '+401'
   }
 } as const
 
