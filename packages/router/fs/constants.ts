@@ -20,7 +20,12 @@ export const fileNames = {
   REDIRECT: '+redirect',
   RPC: '+rpc',
   SPA: '+spa',
-  statuses: { NOT_FOUND: '+404', INTERNAL_SERVER_ERROR: '+500' }
+  statuses: {
+    UNAUTHORIZED: '+401',
+    FORBIDDEN: '+403',
+    NOT_FOUND: '+404',
+    INTERNAL_SERVER_ERROR: '+500'
+  }
 } as const
 
 export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
