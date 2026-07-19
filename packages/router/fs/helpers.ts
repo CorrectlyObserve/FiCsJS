@@ -3,7 +3,7 @@ import type { Routing } from '../types'
 import { BASE_DIR, config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
-const { LAYOUT, PAGE, SERVER, SPA } = fileNames
+const { LAYOUT, MIDDLEWARE, PAGE, RPC, SPA_CONFIG } = fileNames
 
 export const buildRoute = (pathSegments: string[]): string => {
   return pathSegments
@@ -32,23 +32,22 @@ export const getExt = (file: string): string => {
   return dot <= 0 ? '' : file.slice(dot)
 }
 
-export function getFiles(ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA>): Map<string, string>
-
+export function getFiles(ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA_CONFIG>): Map<string, string>
+export function getFiles(ctx: Routing.FilesQuery<typeof MIDDLEWARE>): Map<string, string>
 export function getFiles(
-  ctx: Routing.FilesQuery<typeof SERVER> & { baseDir: string }
-): Routing.ServerEntries
+  ctx: Routing.FilesQuery<typeof RPC> & { baseDir: string }
+): Routing.RpcEntries
 
 export function getFiles({
   filePaths,
   extensions,
   expectedType,
   baseDir
-}: Routing.FilesQuery<typeof LAYOUT | typeof SPA | typeof SERVER> & { baseDir?: string }):
-  | Map<string, string>
-  | Routing.ServerEntries {
+}: Routing.FilesQuery<typeof LAYOUT | typeof MIDDLEWARE | typeof RPC | typeof SPA_CONFIG> & {
+  baseDir?: string
+}): Map<string, string> | Routing.RpcEntries {
   const files: Map<string, string> = new Map(),
-    entries: Routing.ServerEntries = [],
-    isServerFile: boolean = expectedType === SERVER
+    entries: Routing.RpcEntries = []
 
   for (const path of filePaths) {
     const segments: string[] = cleanPath(path).split('/'),
@@ -58,7 +57,7 @@ export function getFiles({
 
     const dirs: string[] = segments.slice(0, -1)
 
-    if (isServerFile && baseDir)
+    if (expectedType === RPC && baseDir)
       entries.push({
         dirs: dirs.filter(seg => seg !== 'index'),
         specifier: toSpecifier(path, baseDir)
@@ -67,7 +66,7 @@ export function getFiles({
   }
 
   /** @remarks Ensures deterministic build output across different OS file systems. */
-  if (isServerFile)
+  if (expectedType === RPC)
     return entries.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
 
   return files
