@@ -32,7 +32,10 @@ export const getExt = (file: string): string => {
   return dot <= 0 ? '' : file.slice(dot)
 }
 
-export function getFiles(ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA_CONFIG>): Map<string, string>
+export function getFiles(
+  ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA_CONFIG>
+): Map<string, string>
+
 export function getFiles(ctx: Routing.FilesQuery<typeof MIDDLEWARE>): Map<string, string>
 export function getFiles(
   ctx: Routing.FilesQuery<typeof RPC> & { baseDir: string }
