@@ -202,6 +202,11 @@ export declare namespace Routing {
     layout?: Module
   }
 
+  interface ServerStatus<C = Record<string, unknown>> {
+    module: ServerModule<C>
+    entry: string
+  }
+
   interface Spec {
     routes: Route<Module>[]
     redirects?: Redirects
