@@ -196,9 +196,8 @@ export declare namespace Routing {
     meta?: Record<string, string>
   }
 
-  interface ServerRoute<C = Record<string, unknown>> {
+  interface ServerRoute<C = Record<string, unknown>> extends ServerStatus<C> {
     path: string
-    page: ServerModule<C>
     layout?: Module
   }
 
