@@ -1,8 +1,8 @@
-import { normalizePath } from './../../../core/helpers'
-import { isDynamicPath } from './../../helpers'
-import type { Routing } from './../../types'
-import { fileNames } from './../constants'
-import { buildRoute, cleanPath, isValidFileType } from './../helpers'
+import { normalizePath } from '../../../core/helpers'
+import { isDynamicPath } from '../../helpers'
+import type { Routing } from '../../types'
+import { fileNames } from '../constants'
+import { buildRoute, cleanPath, isValidFileType } from '../helpers'
 
 const rankOf = (route: string): number => (route.includes('*') ? 2 : isDynamicPath(route) ? 1 : 0)
 
