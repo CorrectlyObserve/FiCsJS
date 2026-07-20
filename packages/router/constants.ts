@@ -12,5 +12,6 @@ export const statusCodes = {
   NOT_FOUND: 404,
   OK: 200,
   PAYLOAD_TOO_LARGE: 413,
-  REDIRECT: 302
+  REDIRECT: 302,
+  UNAUTHORIZED: 401
 } as const
