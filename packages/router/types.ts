@@ -291,7 +291,7 @@ export declare namespace Rpc {
   }
 
   namespace Options {
-    interface Call extends Omit<Client, 'onMetric'> {
+    interface Call extends Omit<Client, 'onMetric' | 'onDeny'> {
       method?: Method
       signal?: AbortSignal
     }
