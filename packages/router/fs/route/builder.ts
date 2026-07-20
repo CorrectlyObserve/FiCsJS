@@ -24,7 +24,20 @@ export const buildEntries = ({
         `The duplicated route "${path}" is defined in both "${existing}" and "${filePath}"...`
       )
     seen.set(path, filePath)
-    routes.push({ path, specifier: toSpecifier(filePath, baseDir), src: filePath })
+
+    const serverSrc: string | null = findFileSrc({
+      filePaths,
+      extensions,
+      target: fileNames.PAGE_SERVER,
+      dir: getDirName(filePath)
+    })
+
+    routes.push({
+      path,
+      specifier: toSpecifier(filePath, baseDir),
+      src: filePath,
+      serverSpecifier: serverSrc === null ? null : toSpecifier(serverSrc, baseDir)
+    })
   }
 
   return routes.sort(compareRoutes)
