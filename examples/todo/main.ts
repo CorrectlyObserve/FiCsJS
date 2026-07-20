@@ -1,8 +1,8 @@
 import { configGlobalCss, configI18n, i18n } from 'ficsjs'
 import Header from '@/components/Header'
-import Router from '@/components/Router'
 import Footer from '@/components/Footer'
 import globalCss from '@/globalCss'
+import { Router } from '@/routes.gen'
 import { $lang } from '@/stores'
 import type { Lang } from '@/utils/lang'
 
