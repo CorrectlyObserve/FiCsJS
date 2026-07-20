@@ -1,5 +1,5 @@
-import { RPC_MODULE_TYPE } from './../constants'
-import type { Rpc } from './../types'
+import { RPC_MODULE_TYPE } from '../constants'
+import type { Rpc } from '../types'
 
 export const emitMetric = (
   onMetric: ((event: Rpc.Metric.Event) => void) | undefined,
