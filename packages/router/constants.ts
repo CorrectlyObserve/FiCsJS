@@ -5,6 +5,7 @@ export const RPC_MODULE_TYPE = { module: 'rpc' } as const
 
 export const statusCodes = {
   BAD_REQUEST: 400,
+  FORBIDDEN: 403,
   INTERNAL_SERVER_ERROR: 500,
   METHOD_NOT_ALLOWED: 405,
   NO_CONTENT: 204,
