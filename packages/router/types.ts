@@ -138,7 +138,7 @@ export declare namespace Routing {
     interface Generate {
       baseDir?: string
       pageFile?: string
-      extensions?: Routing.Extensions
+      extensions?: Extensions
     }
 
     interface Register<C = Record<string, unknown>> {
