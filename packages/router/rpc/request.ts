@@ -6,9 +6,9 @@ import {
   numberError,
   removeTrailingSlash,
   shouldRetry
-} from './../../core/helpers'
-import { statusCodes } from './../constants'
-import type { Rpc } from './../types'
+} from '../../core/helpers'
+import { statusCodes } from '../constants'
+import type { Rpc } from '../types'
 import { APPLICATION_JSON, CONTENT_TYPE, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { isBodiless } from './helpers'
