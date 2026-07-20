@@ -58,6 +58,7 @@ export type Returned<D extends object, P extends object> = Descendant | Html.San
 export type RouterData<D extends object> = D & {
   pathname: string
   queries: Record<string, string>
+  isNotFound: boolean
 }
 
 export declare namespace Routing {
