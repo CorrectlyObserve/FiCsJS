@@ -32,11 +32,13 @@ const setRouterData = <D extends object>({
   redirectMap,
   redirectFn
 }: Routing.Redirect & { data: RouterData<D> }): void => {
-  const queries: Record<string, string> = getQueries()
-
   data.pathname = resolveRedirect({ pathname, redirectMap, redirectFn })
+
+  const queries: Record<string, string> = getQueries()
   data.queries = queries
   params.set('queries', queries)
+
+  data.isNotFound = false
 }
 
 export const ficsRouter = <D extends object>(
@@ -75,7 +77,7 @@ export const ficsRouter = <D extends object>(
     name: 'router',
     isExceptional: true,
     children,
-    data: () => ({ ...data?.(), pathname, queries: {} }) as RouterData<D>,
+    data: () => ({ ...data?.(), pathname, queries: {}, isNotFound: false }) as RouterData<D>,
     props,
     className,
     attributes,
@@ -157,9 +159,8 @@ export const ficsRouter = <D extends object>(
             }
 
           if (_notFound) {
-            ;(data as RouterData<D>).pathname = '/404'
+            ;(data as RouterData<D>).isNotFound = true
             params.set('dynamicPaths', {})
-            goto('/404', { isWithoutHistory: true })
             return render(_notFound)
           }
 
