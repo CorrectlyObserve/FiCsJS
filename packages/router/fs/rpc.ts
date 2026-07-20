@@ -4,6 +4,31 @@ import { COMMENT, fileNames, routerImport, segments } from './constants'
 import { buildRoute, getFiles, indent, joinLines, resolveOptions } from './helpers'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
+  getMiddlewares = ({
+    dirs,
+    filePaths,
+    extensions
+  }: {
+    dirs: string[]
+    filePaths: string[]
+    extensions: Routing.Extensions
+  }): string[] => {
+    const middlewares: Map<string, string> = getFiles({
+        filePaths,
+        extensions,
+        expectedType: fileNames.MIDDLEWARE
+      }),
+      chain: string[] = []
+
+    for (let i = dirs.length; i >= 0; i--) {
+      const dir: string = dirs.slice(0, i).join('/'),
+        middleware: string | undefined = middlewares.get(dir)
+
+      if (middleware) chain.push(middleware)
+    }
+
+    return chain.reverse()
+  },
   renderType = ({ alias, children, dynamic }: TypeNode): string => {
     const operands: string[] = []
 
