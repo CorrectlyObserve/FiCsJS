@@ -234,6 +234,7 @@ export declare namespace Rpc {
     code: string
     message: string
     expose?: boolean
+    redirect?: string
   }
 
   interface Generated {
