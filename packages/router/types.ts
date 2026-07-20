@@ -305,7 +305,7 @@ export declare namespace Rpc {
     }
 
     interface Handler<C = unknown, E = Metric.Event> {
-      createContext?: (req: Request) => C | Promise<C>
+      createContext?: (req: Request) => Awaitable<C>
       onError?: (error: unknown, info: { path: string; req: Request }) => void
       onMetric?: (event: E) => void
       maxBodyBytes?: number
