@@ -72,7 +72,7 @@ export declare namespace Routing {
     dir?: string
     output?: string
     pageFile?: string
-    extensions?: Routing.Extensions
+    extensions?: Extensions
     /** @remarks The URL prefix of the RPC client. Defaults to '/_rpc'. */
     basePath?: string
   }
