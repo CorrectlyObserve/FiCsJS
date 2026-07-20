@@ -108,8 +108,8 @@ export declare namespace Routing {
   }
 
   interface Deny {
-    readonly code: number
-    readonly redirect?: string
+    code: number
+    redirect?: string
   }
 
   type Extensions = Readonly<string[]>
