@@ -165,6 +165,7 @@ export declare namespace Routing {
     meta: Record<string, string>
     content: string
     path: string
+    script: string
   }
 
   interface Resolved<D extends object = Record<string, unknown>> {
