@@ -37,10 +37,10 @@ export const registerPages = <C extends Record<string, unknown>>(
     for (const [from, to] of Object.entries(redirects))
       app.get(from, ({ redirect }: Routing.Host) => redirect(to, statusCodes.REDIRECT))
 
-  for (const { path, page, layout } of routes) {
+  for (const { path, module, entry, layout } of routes) {
     const { meta = {}, default: def }: Routing.ServerModule<C> = applyLayout({
       layout: layout as Routing.ServerModule<C>,
-      page
+      page: module
     })
 
     app.get(toHostRoutePath(path), async (ctx: Routing.Host) => {
