@@ -14,7 +14,7 @@ const app = new Hono()
 app.get('/dist/*', serveStatic({ root: './' }))
 
 registerPages(app, routes, {
-  render: ({ meta: { title = '', description = '' }, content, path }: FiCsHost.Render): string => `
+  render: ({ meta: { title = '', description = '' }, content, script }: FiCsHost.Render): string => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -30,7 +30,7 @@ registerPages(app, routes, {
         </header>
         <main class="pb-8">${content}</main>
         <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="/dist/${path.split('/').filter(Boolean)[0] ?? 'index'}.js"></script>
+        <script type="module" src="${script}"></script>
       </body>
     </html>
   `,
