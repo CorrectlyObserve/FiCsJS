@@ -1,4 +1,4 @@
-import { ficsRouter, goto, type FiCsRouter } from 'ficsjs/router'
+import type { FiCsRouter } from 'ficsjs/router'
 import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import TaskDetail from '@/components/TaskDetails'
@@ -66,28 +66,48 @@ const hooks: FiCsRouter.Hooks<Data> = {
   updated: {
     pathname: async ({ data }) => {
       const _pathname = data.pathname.replace(/^\//, '')
-      if (_pathname === '') return
+      if (_pathname === '') {
+        data.isNotFound = false
+        return
+      }
 
       const id = parseInt(_pathname)
-      if (!Number.isInteger(id)) return (data.pathname = '/404')
+      if (!Number.isInteger(id)) {
+        data.isNotFound = true
+        return
+      }
 
       const task: TaskType | undefined = getTask(await getAllTasks(), id)
-      if (!task) return goto('/404', { isWithoutHistory: true })
+      if (!task) {
+        data.isNotFound = true
+        return
+      }
 
+      data.isNotFound = false
       data.draft = task
     },
     queries: async ({ data }) => {
       const { taskId } = data.queries
-      if (!taskId) return
+      if (!taskId) {
+        data.isNotFound = false
+        return
+      }
 
       const id = parseInt(taskId)
-      if (!Number.isInteger(id)) return goto('/404', { isWithoutHistory: true })
+      if (!Number.isInteger(id)) {
+        data.isNotFound = true
+        return
+      }
 
       data.queries = { ...data.queries, taskId: id.toString() }
 
       const task: TaskType | undefined = getTask(await getAllTasks(), id)
-      if (!task) return goto('/404', { isWithoutHistory: true })
+      if (!task) {
+        data.isNotFound = true
+        return
+      }
 
+      data.isNotFound = false
       data.draft = task
     },
     tasks: ({ data }) => {
@@ -102,10 +122,12 @@ const hooks: FiCsRouter.Hooks<Data> = {
   }
 }
 
-export default ficsRouter<Data>({
+const spa: FiCsRouter.Spa<Data> = {
   children: [Tasks, TaskDetail, NotFound],
   data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
   props,
   css,
   hooks
-})
+}
+
+export default spa
