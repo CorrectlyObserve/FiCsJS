@@ -56,10 +56,10 @@ export const generateRpcs = ({
   basePath?: string
 }): Rpc.Generated | null => {
   const { baseDir, extensions } = resolveOptions(options),
-    rpcs: Routing.ServerEntries = getFiles({
+    rpcs: Routing.RpcEntries = getFiles({
       filePaths,
       extensions,
-      expectedType: fileNames.SERVER,
+      expectedType: fileNames.RPC,
       baseDir
     })
 
