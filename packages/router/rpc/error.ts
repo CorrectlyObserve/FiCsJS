@@ -1,5 +1,5 @@
-import { statusCodes } from './../constants'
-import { Rpc } from './../types'
+import { statusCodes } from '../constants'
+import { Rpc } from '../types'
 
 export class RpcError extends Error {
   readonly code: string
