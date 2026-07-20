@@ -1,5 +1,5 @@
-import { typedEntries } from './../../core/helpers'
-import type { Rpc } from './../types'
+import { typedEntries } from '../../core/helpers'
+import type { Rpc } from '../types'
 import { assertSafeSegment, request, resolveSegments } from './request'
 
 export const createRpcClient = <R>(
