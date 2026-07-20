@@ -143,7 +143,12 @@ export const buildSpecialCtx = ({
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
       if (src !== null)
-        entries.push({ prop: convertStr(key, 'camel'), path: prependSlash(target.slice(1)), src })
+        entries.push({
+          prop: convertStr(key, 'camel'),
+          path: prependSlash(target.slice(1)),
+          src,
+          serverSrc: findFileSrc({ filePaths, extensions, target: `${target}.server` })
+        })
 
       return entries
     },
