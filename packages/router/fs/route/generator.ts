@@ -1,7 +1,8 @@
-import { convertStr } from './../../../core/helpers'
-import type { Routing } from './../../types'
-import { fileNames, prefixes, routerImport } from './../constants'
-import { buildRoute, getDirName, indent, joinLines, toSpecifier } from './../helpers'
+import { convertStr } from '../../../core/helpers'
+import type { Routing } from '../../types'
+import { fileNames, prefixes, routerImport } from '../constants'
+import { getDirName, indent, joinLines, toSpecifier } from '../helpers'
+import { toEntry } from './path'
 
 const buildEntry = ({
     length,
