@@ -1,4 +1,4 @@
-import type { Rpc } from './../types'
+import type { Rpc } from '../types'
 import { RpcError } from './error'
 import { isBodiless } from './helpers'
 
