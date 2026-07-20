@@ -65,7 +65,7 @@ export declare namespace Routing {
   interface BuilderQuery {
     routes: RouteEntry[]
     filePaths: string[]
-    extensions: Routing.Extensions
+    extensions: Extensions
   }
 
   interface Config {
