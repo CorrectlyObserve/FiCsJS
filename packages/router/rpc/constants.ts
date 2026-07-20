@@ -1,5 +1,5 @@
-import { statusCodes } from './../constants'
-import { Rpc } from './../types'
+import { statusCodes } from '../constants'
+import { Rpc } from '../types'
 
 export const APPLICATION_JSON = 'application/json' as const
 export const CONTENT_TYPE = 'content-type' as const
