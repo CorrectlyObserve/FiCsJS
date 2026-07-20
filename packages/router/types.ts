@@ -119,6 +119,7 @@ export declare namespace Routing {
     prop: string
     path: string
     src: string
+    serverSrc: string | null
   }[]
 
   interface Host {
