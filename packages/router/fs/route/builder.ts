@@ -72,7 +72,7 @@ export const buildSpaCtx = ({
   filePaths,
   extensions
 }: Routing.BuilderQuery): Routing.Ctx.Spa => {
-  const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
+  const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA_CONFIG }),
     dirs: string[] = Array.from(files.keys()).sort(),
     spaAlias: Map<string, string> = new Map<string, string>(),
     configAlias: Map<string, string> = new Map<string, string>()
