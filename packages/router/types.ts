@@ -142,7 +142,7 @@ export declare namespace Routing {
     }
 
     interface Register<C = Record<string, unknown>> {
-      render: (ctx: Routing.Render) => string
+      render: (ctx: Render) => string
       toHostRoutePath: (path: string) => string
       createContext?: (ctx: Routing.Host) => C
       serverError?: Routing.ServerModule<C>
