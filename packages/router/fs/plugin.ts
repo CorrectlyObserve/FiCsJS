@@ -1,4 +1,4 @@
-import type { Routing, VitePlugin } from './../types'
+import type { Routing, VitePlugin } from '../types'
 import { configRoutes } from './config'
 import { MODULE_EXT_REGEX } from './constants'
 import { toAbsolute, toRelative } from './helpers'
