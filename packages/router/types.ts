@@ -107,6 +107,11 @@ export declare namespace Routing {
     }
   }
 
+  interface Deny {
+    readonly code: number
+    readonly redirect?: string
+  }
+
   type Extensions = Readonly<string[]>
 
   interface FilesQuery<T> {
