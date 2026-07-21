@@ -1,12 +1,14 @@
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '../core/helpers'
+
 export const FICS_NAVIGATE = 'fics:navigate' as const
 
 export const RPC_BASE_PATH = '/_rpc' as const
 export const RPC_MODULE_TYPE = { module: 'rpc' } as const
 
 export const statusCodes = {
-  BAD_REQUEST: 400,
+  BAD_REQUEST,
   FORBIDDEN: 403,
-  INTERNAL_SERVER_ERROR: 500,
+  INTERNAL_SERVER_ERROR,
   METHOD_NOT_ALLOWED: 405,
   NO_CONTENT: 204,
   NOT_FOUND: 404,
