@@ -37,7 +37,7 @@ for (let i = 0; i < args.length; ) {
     hasEqual: boolean = equal >= 0,
     flag: string = hasEqual ? raw.slice(0, equal) : raw
 
-  if (flag !== '--dir' && flag !== '--output' && flag !== '--basePath')
+  if (['--dir', '--output', '--basePath'].every(f => f !== flag))
     die(`The argument "${raw}" is not recognized — try --help...`)
 
   let inline: string | undefined = hasEqual ? raw.slice(equal + 1) : undefined
