@@ -108,7 +108,7 @@ export declare namespace Routing {
     }
   }
 
-  interface Deny {
+  interface Denial {
     code: string
     status?: number
     redirect?: string
