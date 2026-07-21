@@ -168,7 +168,7 @@ export const createRpcHandler = <C = unknown>(
         method: method as Rpc.Method
       })
     } catch (error) {
-      return errorRes<C>({
+      return errorResponse<C>({
         error,
         onMetric,
         onError,
