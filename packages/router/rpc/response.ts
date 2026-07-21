@@ -1,5 +1,5 @@
-import { statusCodes } from './../constants'
-import type { Rpc } from './../types'
+import { statusCodes } from '../constants'
+import type { Rpc } from '../types'
 import {
   APPLICATION_JSON,
   CONTENT_TYPE,
