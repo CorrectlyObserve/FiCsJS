@@ -35,6 +35,7 @@ export const request = async ({
   intervalMs,
   maxRetries = MAX_RETRIES,
   onMetric,
+  onDeny,
   signal
 }: {
   basePath: string
@@ -125,7 +126,12 @@ export const request = async ({
       willRetry
     })
 
-    if (!willRetry) throw await toRpcError(error)
+    if (!willRetry) {
+      const rpcError: RpcError = await toRpcError(error)
+
+      if (rpcError.code === 'DENIED') onDeny?.({ code: rpcError.code, redirect: rpcError.redirect })
+      throw rpcError
+    }
 
     try {
       await delay(getDelayMs({ error, attempt, intervalMs }), signal)
