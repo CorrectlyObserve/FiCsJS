@@ -75,6 +75,7 @@ export declare namespace Routing {
     extensions?: Extensions
     /** @remarks The URL prefix of the RPC client. Defaults to '/_rpc'. */
     basePath?: string
+    entries?: boolean
   }
 
   namespace Ctx {
