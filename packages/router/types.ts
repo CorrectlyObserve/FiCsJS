@@ -12,7 +12,7 @@ import type {
   Props,
   SingleOrArray
 } from '../core/types'
-import { RPC_MODULE_TYPE } from './constants'
+import { RPC_MODULE_TYPE, statusCodes } from './constants'
 
 export type Content<D extends object, P extends object, T = {}> = (
   syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P> & T
@@ -224,6 +224,12 @@ export declare namespace Routing {
     redirects?: Redirects
     statusModules?: Record<string, Module>
   }
+
+  type StatusCode = (typeof statusCodes)[
+    | 'FORBIDDEN'
+    | 'INTERNAL_SERVER_ERROR'
+    | 'NOT_FOUND'
+    | 'UNAUTHORIZED']
 }
 
 export declare namespace Rpc {
