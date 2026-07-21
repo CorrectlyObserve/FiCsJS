@@ -19,9 +19,9 @@ export const deny = ({ redirect }: { redirect?: string }): Routing.Denial => {
 export const resolveMiddlewares = async <C>(
   mws: readonly Routing.Middleware<C>[],
   ctx: Routing.MiddlewareCtx<C>
-): Promise<Routing.Deny | undefined> => {
+): Promise<Routing.Denial | undefined> => {
   for (const mw of mws) {
-    const result: void | Routing.Deny = await mw(ctx)
+    const result: void | Routing.Denial = await mw(ctx)
     if (result !== undefined) return result
   }
 
