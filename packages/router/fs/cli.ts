@@ -17,6 +17,7 @@ const args: string[] = process.argv.slice(2),
     `${indent()}--dir <path>       Pages directory to scan (default: ${config.DIR})`,
     `${indent()}--output <path>    File to write the generated module to (default: ${config.OUTPUT})`,
     `${indent()}--basePath <path>  RPC URL prefix baked into the client & handler (default: ${RPC_BASE_PATH})`,
+    `${indent()}--entries          Emit client entry stubs to build without Vite`,
     `${indent()}-h, --help         Show this help and exit`
   ]),
   die = (message: string): never => {
@@ -51,7 +52,7 @@ for (let i = 0; i < args.length; ) {
 
   if (inline === '') die(`The flag "${flag}" requires a value (empty)...`)
 
-  options[flag.slice('--'.length) as keyof typeof options] = inline
+  options[flag.slice('--'.length) as Exclude<keyof typeof options, 'entries'>] = inline
   i++
 }
 
