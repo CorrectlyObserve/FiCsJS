@@ -142,11 +142,6 @@ export declare namespace Routing {
   }
 
   namespace Options {
-    interface Deny {
-      code?: number
-      redirect?: string
-    }
-
     interface Generate {
       baseDir?: string
       pageFile?: string
