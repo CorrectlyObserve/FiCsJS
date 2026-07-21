@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { RPC_BASE_PATH } from '../constants'
+import type { Routing } from '../types'
 import { configRoutes } from './config'
 import { config, exitCodes } from './constants'
 import { indent, joinLines } from './helpers'
@@ -22,7 +23,7 @@ const args: string[] = process.argv.slice(2),
     process.stderr.write(`fics-routes: ${message}\n`)
     process.exit(exitCodes.FAILURE)
   },
-  options: { dir?: string; output?: string; basePath?: string } = {}
+  options: Omit<Routing.Config, 'pageFile' | 'extensions'> & { entries?: boolean } = {}
 
 for (let i = 0; i < args.length; ) {
   const raw: string = args[i]
