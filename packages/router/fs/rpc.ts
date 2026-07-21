@@ -2,7 +2,7 @@ import { joinArray } from '../../core/helpers/others'
 import { RPC_BASE_PATH } from '../constants'
 import type { Routing, Rpc, TypeNode } from '../types'
 import { COMMENT, fileNames, routerImport, segments } from './constants'
-import { buildRoute, getFiles, indent, joinLines, resolveOptions } from './helpers'
+import { buildRoute, getFiles, indent, joinLines, resolveOptions, toSpecifier } from './helpers'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
   getMiddlewares = ({
