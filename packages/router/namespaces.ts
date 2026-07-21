@@ -22,6 +22,8 @@ import type {
 export declare namespace FiCsHost {
   type Ctx = Routing.Host
 
+  type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
+
   type Module<C = Record<string, unknown>> = Routing.ServerModule<C>
 
   type Options<C = Record<string, unknown>> = Routing.Options.Register<C>
