@@ -12,7 +12,7 @@ import {
 } from './constants'
 import { getByteLength, isBodiless } from './helpers'
 import { emitMetric } from './metric'
-import { errorRes, reject, response } from './response'
+import { denialResponse, errorRes, reject, response } from './response'
 
 export const createRpcHandler = <C = unknown>(
   {
