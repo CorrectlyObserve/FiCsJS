@@ -1,16 +1,19 @@
 import { numberError } from '../core/helpers'
+import { statusCodes } from './constants'
 import type { Routing } from './types'
 
-export const deny = ({ code, redirect }: Routing.Options.Deny = {}): Routing.Deny => {
-  const _code: number = code ?? (redirect ? 401 : 403),
-    codeName: string = 'middleware denial code'
+const { BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, UNAUTHORIZED } = statusCodes
 
-  numberError({ [codeName]: _code }, 'int')
+export const deny = ({ redirect }: { redirect?: string }): Routing.Deny => {
+  const status: number = redirect ? UNAUTHORIZED : FORBIDDEN,
+    code: string = 'middleware denial code'
 
-  if (_code < 400 || _code >= 500)
-    throw new Error(`The ${codeName} ${_code} must be an HTTP 4xx status...`)
+  numberError({ [code]: status }, 'int')
 
-  return { code: _code, ...(redirect ? { redirect } : {}) }
+  if (status < BAD_REQUEST || status >= INTERNAL_SERVER_ERROR)
+    throw new Error(`The ${code} ${status} must be an HTTP 4xx status...`)
+
+  return { code: 'DENIED', status, ...(redirect ? { redirect } : {}) }
 }
 
 export const resolveMiddlewares = async <C>(
