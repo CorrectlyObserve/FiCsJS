@@ -11,7 +11,28 @@ import { getByteLength, isHeadMethod } from './helpers'
 import { emitMetric } from './metric'
 import { RpcError } from './error'
 
-export const errorRes = <C = unknown>({
+export const denialResponse = ({
+  status,
+  method,
+  redirect
+}: {
+  status: number
+  method: Rpc.Method
+  redirect?: string
+}): Response => {
+  const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON }),
+    /** @remarks The key `error` is for the toRpcError function. */
+    serialized: string = JSON.stringify({
+      error: { status, ...(redirect ? { redirect } : {}) }
+    }),
+    _isHeadMethod: boolean = isHeadMethod(method)
+
+  if (_isHeadMethod) headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
+
+  return new Response(_isHeadMethod ? null : serialized, { status, headers })
+}
+
+export const errorResponse = <C = unknown>({
   error,
   onMetric,
   onError,
@@ -52,27 +73,6 @@ export const errorRes = <C = unknown>({
     code: 'BAD_REQUEST',
     error: 'The provided request input does not match the expected format...'
   })
-}
-
-export const denialResponse = ({
-  status,
-  method,
-  redirect
-}: {
-  status: number
-  method: Rpc.Method
-  redirect?: string
-}): Response => {
-  const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON }),
-    /** @remarks The key `error` is for the toRpcError function. */
-    serialized: string = JSON.stringify({
-      error: { status, ...(redirect ? { redirect } : {}) }
-    }),
-    _isHeadMethod: boolean = isHeadMethod(method)
-
-  if (_isHeadMethod) headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
-
-  return new Response(_isHeadMethod ? null : serialized, { status, headers })
 }
 
 export const reject = <C = unknown>({
