@@ -68,12 +68,25 @@ export const generateRpcs = ({
 
   const aliases: string[] = rpcs.map((_, index) => `rpc${index}`),
     root: TypeNode = newNode(),
-    manifests: string[] = []
+    manifests: string[] = [],
+    mwAliases: Map<string, string> = new Map()
 
   for (const [index, { dirs }] of rpcs.entries()) {
     const alias: string = aliases[index]
 
-    manifests.push(`{ prefix: ${JSON.stringify(buildRoute(dirs))}, module: ${alias} }`)
+    const mws: string[] = getMiddlewares({ dirs, filePaths, extensions })
+    for (const mw of mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
+
+    const values: string[] = [`prefix: ${JSON.stringify(buildRoute(dirs))}`, `module: ${alias}`]
+    if (mws.length > 0) {
+      const mwsStr: string = joinArray(
+        mws.map(mw => mwAliases.get(mw)!),
+        { space: true, comma: true }
+      )
+      values.push(`middlewares: [${mwsStr}]`)
+    }
+
+    manifests.push(`{ ${joinArray(values, { space: true, comma: true })} }`)
 
     let node: TypeNode = root
     for (const segment of dirs) {
