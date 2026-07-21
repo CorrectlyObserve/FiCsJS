@@ -24,7 +24,7 @@ const args: string[] = process.argv.slice(2),
     process.stderr.write(`fics-routes: ${message}\n`)
     process.exit(exitCodes.FAILURE)
   },
-  options: Omit<Routing.Config, 'pageFile' | 'extensions'> & { entries?: boolean } = {}
+  options: Omit<Routing.Config, 'pageFile' | 'extensions'> = {}
 
 for (let i = 0; i < args.length; ) {
   const raw: string = args[i]
