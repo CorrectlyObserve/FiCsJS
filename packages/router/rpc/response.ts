@@ -54,7 +54,7 @@ export const errorRes = <C = unknown>({
   })
 }
 
-export const denialRes = ({
+export const denialResponse = ({
   status,
   method,
   redirect
