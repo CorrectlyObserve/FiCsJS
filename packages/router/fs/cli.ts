@@ -37,6 +37,14 @@ for (let i = 0; i < args.length; ) {
     hasEqual: boolean = equal >= 0,
     flag: string = hasEqual ? raw.slice(0, equal) : raw
 
+  if (flag === '--entries') {
+    if (hasEqual) die(`The flag "${flag}" takes no value...`)
+
+    options.entries = true
+    i++
+    continue
+  }
+
   if (['--dir', '--output', '--basePath'].every(f => f !== flag))
     die(`The argument "${raw}" is not recognized — try --help...`)
 
