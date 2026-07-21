@@ -4,9 +4,9 @@ export const constants = {
   MAX_DELAY_MS: 30_000,
   MAX_RETRIES: 3,
   statusCode: {
-    CLIENT_ERROR: 400,
+    BAD_REQUEST: 400,
+    INTERNAL_SERVER_ERROR: 500,
     REQUEST_TIMEOUT: 408,
-    SERVER_ERROR: 500,
     TOO_MANY_REQUESTS: 429
   }
 } as const
