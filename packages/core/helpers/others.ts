@@ -17,8 +17,10 @@ export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): 
   return escaped.replace(/["']/g, char => ({ '"': '&quot;', "'": '&#39;' })[char] as string)
 }
 
-export const joinArray = <T>(arr: T[], { space = true }: { space?: boolean } = {}): string =>
-  arr.join(space ? ' ' : '').trim()
+export const joinArray = <T>(
+  arr: T[],
+  { space = true, comma = false }: { space?: boolean; comma?: boolean } = {}
+): string => arr.join(`${comma ? ',' : ''}${space ? ' ' : ''}`).trim()
 
 export const normalizePath = (path: string): string =>
   path === '/' ? '/' : removeTrailingSlash(path)
