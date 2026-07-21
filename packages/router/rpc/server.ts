@@ -134,7 +134,7 @@ export const createRpcHandler = <C = unknown>(
       try {
         raw = await procedure.input(raw)
       } catch (error) {
-        return errorRes<C>({
+        return errorResponse<C>({
           error,
           onMetric,
           onError,
