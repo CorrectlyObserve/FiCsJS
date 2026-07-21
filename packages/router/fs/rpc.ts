@@ -134,6 +134,9 @@ export const generateRpcs = ({
       COMMENT,
       `import ${routerImport('server-only')}`,
       importModules('server'),
+      ...Array.from(mwAliases.entries()).map(
+        ([src, alias]) => `import ${alias} from '${toSpecifier(src, baseDir)}'`
+      ),
       '',
       'export const rpcRouter = {',
       `${indent()}basePath: '${basePath}',`,
