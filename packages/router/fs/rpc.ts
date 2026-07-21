@@ -1,3 +1,4 @@
+import { joinArray } from '../../core/helpers/others'
 import { RPC_BASE_PATH } from '../constants'
 import type { Routing, Rpc, TypeNode } from '../types'
 import { COMMENT, fileNames, routerImport, segments } from './constants'
