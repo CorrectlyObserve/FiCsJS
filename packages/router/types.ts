@@ -299,7 +299,7 @@ export declare namespace Rpc {
       intervalMs?: number
       maxRetries?: number
       onMetric?: (event: E) => void
-      onDeny?: (deny: Routing.Deny) => void
+      onDeny?: (deny: Routing.Denial) => void
     }
 
     interface Handler<C = unknown, E = Metric.Event> {
