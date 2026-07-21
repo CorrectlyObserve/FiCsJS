@@ -89,6 +89,12 @@ export declare namespace Routing {
       layoutAlias: Map<string, string>
     }
 
+    interface Middleware {
+      middlewares: string[]
+      uniqueMiddlewares: string[]
+      middlewareAlias: Map<string, string>
+    }
+
     interface Spa {
       dirs: string[]
       files: Map<string, string>
