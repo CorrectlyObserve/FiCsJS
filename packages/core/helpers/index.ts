@@ -1,5 +1,9 @@
 import { constants } from './constants'
-export const { MAX_DELAY_MS, MAX_RETRIES } = constants
+export const {
+  MAX_DELAY_MS,
+  MAX_RETRIES,
+  statusCode: { BAD_REQUEST, INTERNAL_SERVER_ERROR }
+} = constants
 
 export { browserError, isBrowser } from './browser'
 export { deepEqual } from './deepEqual'
