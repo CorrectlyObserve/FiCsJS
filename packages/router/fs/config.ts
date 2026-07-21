@@ -16,7 +16,7 @@ const { RPC_CLIENT, RPC_SERVER } = config,
   }
 
 export const configRoutes = (config: Routing.Config = {}): boolean => {
-  const { dir, output, pageFile, extensions, basePath }: Routing.Config = config,
+  const { dir, output, pageFile, extensions, basePath, entries }: Routing.Config = config,
     { dir: d, output: o }: { dir: string; output: string } = toAbsolute({ dir, output })
 
   if (!existsSync(d)) throw new Error(`The directory "${d}" does not exist...`)
