@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { RPC_BASE_PATH } from './../constants'
+import { RPC_BASE_PATH } from '../constants'
 import { configRoutes } from './config'
 import { config, exitCodes } from './constants'
 import { indent, joinLines } from './helpers'
