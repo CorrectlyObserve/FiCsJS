@@ -6,7 +6,7 @@ const {
   INTERVAL_MS,
   JITTER_RATIO,
   MAX_DELAY_MS,
-  statusCode: { CLIENT_ERROR, REQUEST_TIMEOUT, SERVER_ERROR, TOO_MANY_REQUESTS }
+  statusCode: { BAD_REQUEST, INTERNAL_SERVER_ERROR, REQUEST_TIMEOUT, TOO_MANY_REQUESTS }
 } = constants
 
 /** @param ms Must be a non-negative integer. */
@@ -113,8 +113,8 @@ export const shouldRetry = ({
     const { status }: { status: number } = error
 
     if (status === REQUEST_TIMEOUT || status === TOO_MANY_REQUESTS) return true
-    if (status >= CLIENT_ERROR && status < SERVER_ERROR) return false
-    return status >= SERVER_ERROR
+    if (status >= BAD_REQUEST && status < INTERNAL_SERVER_ERROR) return false
+    return status >= INTERNAL_SERVER_ERROR
   }
 
   const isNetworkError: boolean = error instanceof TypeError
