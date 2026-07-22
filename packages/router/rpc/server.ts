@@ -32,8 +32,16 @@ export const createRpcHandler = <C = unknown>(
   numberError({ maxBodyBytes }, 'non-negative-int')
 
   const _basePath: string = removeTrailingSlash(basePath),
-    staticMap: Map<string, Rpc.Procedure> = new Map(),
-    dynamics: { pattern: string; regex: RegExp; procedure: Rpc.Procedure }[] = []
+    statics: Map<
+      string,
+      { procedure: Rpc.Procedure; middlewares: readonly Routing.Middleware<C>[] }
+    > = new Map(),
+    dynamics: {
+      pattern: string
+      regex: RegExp
+      procedure: Rpc.Procedure
+      middlewares: readonly Routing.Middleware<C>[]
+    }[] = []
 
   for (const { prefix, module, middlewares = [] } of procedures)
     for (const key of Object.keys(module)) {
