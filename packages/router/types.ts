@@ -244,6 +244,7 @@ export declare namespace Rpc {
   interface ErrorInit {
     code: string
     message: string
+    status?: number
     expose?: boolean
     redirect?: string
   }
