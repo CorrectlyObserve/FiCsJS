@@ -35,7 +35,7 @@ export const createRpcHandler = <C = unknown>(
     staticMap: Map<string, Rpc.Procedure> = new Map(),
     dynamics: { pattern: string; regex: RegExp; procedure: Rpc.Procedure }[] = []
 
-  for (const { prefix, module } of procedures)
+  for (const { prefix, module, middlewares = [] } of procedures)
     for (const key of Object.keys(module)) {
       if (
         key === 'default' ||
