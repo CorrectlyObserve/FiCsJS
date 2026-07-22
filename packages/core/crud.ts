@@ -1,4 +1,12 @@
-import { delay, getDelayMs, MAX_RETRIES, numberError, shouldRetry } from './helpers'
+import {
+  APPLICATION_JSON,
+  CONTENT_TYPE,
+  delay,
+  getDelayMs,
+  MAX_RETRIES,
+  numberError,
+  shouldRetry
+} from './helpers'
 import type { Crud, SetTimeout } from './types'
 
 /**
@@ -98,8 +106,8 @@ export const crud = async <T>({
     const NO_CONTENT = 204 as const
     if (res.status === NO_CONTENT) return
 
-    const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
-      isJson: boolean = contentType.startsWith('application/json'),
+    const contentType: string = res.headers.get(CONTENT_TYPE)?.toLowerCase() ?? '',
+      isJson: boolean = contentType.startsWith(APPLICATION_JSON),
       isEventStream: boolean = contentType.startsWith('text/event-stream'),
       readStream = async (): Promise<void> => {
         const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
