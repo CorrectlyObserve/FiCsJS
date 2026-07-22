@@ -82,7 +82,7 @@ export const buildSpaCtx = ({
     spaAlias.set(dir, name)
     configAlias.set(dir, `__${toLowerFirst(name)}Config`)
 
-    const error: string = `The nested SPA '${dir}/${fileNames.SPA}' is not supported...`
+    const error: string = `The nested SPA '${dir}/${fileNames.SPA_CONFIG}' is not supported...`
     let parent: string = dir
     while (parent.includes('/')) {
       parent = parent.slice(0, parent.lastIndexOf('/'))
