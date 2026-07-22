@@ -1,9 +1,10 @@
-import { constants } from './constants'
+import { APPLICATION_JSON, CONTENT_TYPE, constants } from './constants'
 export const {
   MAX_DELAY_MS,
   MAX_RETRIES,
   statusCode: { BAD_REQUEST, INTERNAL_SERVER_ERROR }
 } = constants
+export { APPLICATION_JSON, CONTENT_TYPE }
 
 export { browserError, isBrowser } from './browser'
 export { deepEqual } from './deepEqual'
