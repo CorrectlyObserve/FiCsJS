@@ -7,12 +7,19 @@ import { toEntry } from './path'
 const buildEntry = ({
     length,
     path,
-    config
+    config,
+    entry
   }: {
     length?: number
     path: string
     config: string
-  }): string => `${indent(length)}{ path: '${path}', page: ${config} }`,
+    entry?: string
+  }): string => {
+    const values: string[] = [`path: '${path}'`, `page: ${config}`]
+    if (entry !== undefined) values.push(`entry: '${entry}'`)
+
+    return `${indent(length)}{ ${joinArray(values, { space: true, comma: true })} }`
+  },
   buildPageConfig = ({
     base,
     layout,
