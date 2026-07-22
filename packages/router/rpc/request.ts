@@ -1,4 +1,6 @@
 import {
+  APPLICATION_JSON,
+  CONTENT_TYPE,
   delay,
   getDelayMs,
   isObject,
@@ -10,7 +12,7 @@ import {
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import type { Rpc } from '../types'
-import { APPLICATION_JSON, CONTENT_TYPE, RPC_INPUT_PARAM } from './constants'
+import { RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { isBodiless } from './helpers'
 import { emitMetric } from './metric'
