@@ -1,8 +1,4 @@
-import { convertStr, typedEntries } from './../../../core/helpers'
-import { prependSlash } from './../../helpers'
-import type { Routing } from './../../types'
-import { fileNames, prefixes } from './../constants'
-import { getDirName, getFiles, toPascal, toSpecifier } from './../helpers'
+import { convertStr, toLowerFirst, typedEntries } from '../../../core/helpers'
 import { findClosestDir, findFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
@@ -80,7 +76,7 @@ export const buildSpaCtx = ({
   for (const dir of dirs) {
     const name: string = toPascal(dir)
     spaAlias.set(dir, name)
-    configAlias.set(dir, `__${name}Config`)
+    configAlias.set(dir, `__${toLowerFirst(name)}Config`)
 
     const error: string = `The nested SPA '${dir}/${fileNames.SPA}' is not supported...`
     let parent: string = dir
