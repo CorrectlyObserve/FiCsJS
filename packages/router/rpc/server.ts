@@ -60,9 +60,10 @@ export const createRpcHandler = <C = unknown>(
         dynamics.push({
           pattern,
           regex: dynamicPathToRegex(pattern),
-          procedure: module[key]
+          procedure: module[key],
+          middlewares
         })
-      else staticMap.set(pattern, module[key])
+      else statics.set(pattern, { procedure: module[key], middlewares })
     }
 
   return async (req: Request): Promise<Response> => {
