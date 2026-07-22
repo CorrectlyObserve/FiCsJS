@@ -72,20 +72,20 @@ export const createRpcHandler = <C = unknown>(
 
     path = removeTrailingSlash(path.replace(/^\/+/, ''))
 
-    let procedure: Rpc.Procedure | undefined = staticMap.get(path),
+    let _static: Rpc.ResolvedProcedure<C> | undefined = statics.get(path),
       dynamicParams: Record<string, string> = {}
 
-    if (!procedure)
-      for (const { pattern, regex, procedure: p } of dynamics) {
+    if (!_static)
+      for (const { pattern, regex, procedure, middlewares } of dynamics) {
         const _path: string = prependSlash(path)
         if (regex.test(_path)) {
-          procedure = p
+          _static = { procedure, middlewares }
           dynamicParams = getDynamicPaths(pattern, _path)
           break
         }
       }
 
-    if (!procedure)
+    if (!_static)
       return reject<C>({
         onMetric,
         path,
