@@ -17,6 +17,7 @@ export {
   normalizeRootMargin,
   removeTrailingSlash,
   toArray,
+  toLowerFirst,
   typedEntries,
   uid
 } from './others'
