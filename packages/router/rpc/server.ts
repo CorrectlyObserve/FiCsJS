@@ -53,7 +53,7 @@ export const createRpcHandler = <C = unknown>(
         continue
 
       const pattern: string = prefix ? `${prefix}/${key}` : key
-      if (staticMap.has(pattern) || dynamics.some(({ pattern: p }) => p === pattern))
+      if (statics.has(pattern) || dynamics.some(({ pattern: p }) => p === pattern))
         throw new Error(`The RPC procedure path "${pattern}" already exists...`)
 
       if (isDynamicPath(pattern))
