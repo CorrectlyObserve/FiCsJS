@@ -1,12 +1,7 @@
+import { APPLICATION_JSON, CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import type { Rpc } from '../types'
-import {
-  APPLICATION_JSON,
-  CONTENT_TYPE,
-  CONTENT_LENGTH,
-  DEFAULT_ERRORS,
-  metricReasons
-} from './constants'
+import { CONTENT_LENGTH, DEFAULT_ERRORS, metricReasons } from './constants'
 import { getByteLength, isHeadMethod } from './helpers'
 import { emitMetric } from './metric'
 import { RpcError } from './error'
