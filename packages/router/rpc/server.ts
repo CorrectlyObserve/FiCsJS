@@ -21,7 +21,11 @@ export const createRpcHandler = <C = unknown>(
     procedures
   }: {
     basePath?: string
-    procedures: readonly { prefix: string; module: Record<string, unknown> }[]
+    procedures: readonly {
+      prefix: string
+      module: Record<string, unknown>
+      middlewares?: readonly Routing.Middleware<C>[]
+    }[]
   },
   { createContext, onError, onMetric, maxBodyBytes }: Rpc.Options.Handler<C>
 ): ((req: Request) => Promise<Response>) => {
