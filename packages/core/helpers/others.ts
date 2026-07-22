@@ -47,6 +47,8 @@ export const toArray = <T>(param: SingleOrArray<T>): T[] => {
   return isPlainObject(param) ? [{ ...param }] : [param]
 }
 
+export const toLowerFirst = (str: string): string => str.charAt(0).toLowerCase() + str.slice(1)
+
 export const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] =>
   Object.entries(obj) as [keyof T, T[keyof T]][]
 
