@@ -5,7 +5,8 @@ import {
   MAX_RETRIES,
   numberError,
   removeTrailingSlash,
-  shouldRetry
+  shouldRetry,
+  typedEntries
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import type { Rpc } from '../types'
@@ -13,6 +14,10 @@ import { APPLICATION_JSON, CONTENT_TYPE, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { isBodiless } from './helpers'
 import { emitMetric } from './metric'
+
+const codeByStatus: Record<number, keyof typeof statusCodes> = Object.fromEntries(
+  typedEntries(statusCodes).map(([name, status]) => [status, name])
+)
 
 export const assertSafeSegment = (segment: string): string => {
   if (segment === '' || segment === '.' || segment === '..' || segment.includes('/'))
@@ -155,23 +160,40 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
   if (error instanceof RpcError) return error
 
   if (error instanceof Response) {
-    let code: string = 'HTTP_ERROR',
-      message: string = `The RPC request failed with status ${error.status}...`
+    let message: string = `The RPC request failed with status ${error.status}...`,
+      redirect: string | undefined
 
     try {
-      const data: unknown = await error.clone().json()
-      if (isObject(data) && 'error' in data) {
-        const { error } = data as { error: Rpc.ErrorInit }
+      const clonedError: unknown = await error.clone().json()
+      if (isObject(clonedError) && 'error' in clonedError) {
+        const { error } = clonedError as { error: Rpc.ErrorInit }
+
         if (isObject(error)) {
-          if (typeof error.code === 'string') code = error.code
+          if (typeof error.redirect === 'string') redirect = error.redirect
+
+          const { status }: { status?: unknown } = error as { status?: unknown }
+          if (typeof status === 'number')
+            return new RpcError({
+              code: 'DENIED',
+              message: `The RPC request was denied with status ${status}...`,
+              redirect,
+              status
+            })
+
           if (typeof error.message === 'string') message = error.message
         }
       }
     } catch {
-      /** @remarks safely falls back to the generic HTTP_ERROR for non-JSON responses. */
+      /** @remarks Falls back to the status-based generic error for non-JSON responses. */
     }
 
-    return new RpcError({ code, message })
+    const code: string | undefined = codeByStatus[error.status]
+    return new RpcError({
+      code: code ?? 'INTERNAL_SERVER_ERROR',
+      message,
+      status: code ? error.status : statusCodes.INTERNAL_SERVER_ERROR,
+      redirect
+    })
   }
 
   const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
