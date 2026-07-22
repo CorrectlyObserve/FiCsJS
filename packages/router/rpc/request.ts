@@ -129,7 +129,7 @@ export const request = async ({
     if (!willRetry) {
       const rpcError: RpcError = await toRpcError(error)
 
-      if (rpcError.code === 'DENIED') onDeny?.({ code: rpcError.code, redirect: rpcError.redirect })
+      if (rpcError.code === 'DENIED') onDeny?.(rpcError)
       throw rpcError
     }
 
