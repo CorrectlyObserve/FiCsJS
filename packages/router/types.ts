@@ -330,6 +330,11 @@ export declare namespace Rpc {
     handler: (input: I, ctx: Ctx<C>) => Awaitable<O>
   }
 
+  interface ResolvedProcedure<C = unknown> {
+    procedure: Procedure<unknown, unknown, C>
+    middlewares: readonly Routing.Middleware<C>[]
+  }
+
   type Serializable<T> = T extends string | number | boolean | null | undefined
     ? T
     : T extends readonly (infer U)[]
