@@ -78,7 +78,7 @@ export const buildSpaCtx = ({
     configAlias: Map<string, string> = new Map<string, string>()
 
   for (const dir of dirs) {
-    const name: string = toPascal(dir)
+    const name: string = `${toPascal(dir)}Router`
     spaAlias.set(dir, name)
     configAlias.set(dir, `__${toLowerFirst(name)}Config`)
 
