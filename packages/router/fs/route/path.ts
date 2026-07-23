@@ -19,6 +19,13 @@ export const compareRoutes = (
   return targetPath < comparedPath ? -1 : targetPath > comparedPath ? 1 : 0
 }
 
+export const toEntry = (path: string): string => {
+  const sanitized: string = path.replace(/[:*?]/g, ''),
+    entry: string = sanitized.split('/').filter(Boolean).join('-')
+
+  return entry || 'index'
+}
+
 export const toRoute = (filePath: string, extensions: Routing.Extensions): string | null => {
   const segments: string[] = cleanPath(filePath).split('/')
 
