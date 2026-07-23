@@ -200,12 +200,12 @@ export const generateSpaRouters = ({
       if (statusKeys.length > 0) {
         lines[lines.length - 1] += ','
         lines.push(
-          `${indent(2)}statusModules: {`,
+          `${indent()}statusModules: {`,
           joinLines(
-            statusKeys.map(key => `${indent(3)}${key}: ${aliases.get(dir)?.get(key)}`),
+            statusKeys.map(key => `${indent(2)}${key}: ${aliases.get(dir)?.get(key)}`),
             { comma: true }
           ),
-          `${indent(2)}}`
+          `${indent()}}`
         )
       }
 
