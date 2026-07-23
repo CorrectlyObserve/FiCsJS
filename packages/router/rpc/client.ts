@@ -23,15 +23,16 @@ export const createRpcClient = <R>(
           if (lastArgs === null) return undefined
 
           const path: string = segments.join('/'),
-            [input, { headers: callHeaders, method = 'POST', signal, ...callArgs } = {}] =
-              lastArgs as [unknown, Rpc.Options.Call | undefined],
-            headers: Headers = new Headers(clientHeaders)
+            { headers: globalHeaders, ...globalArgs }: Rpc.Options.Client = globalOptions,
+            [input, { headers: calledHeaders, method = 'POST', signal, ...calledArgs } = {}] =
+              lastArgs as [unknown, Rpc.Options.Call | undefined]
 
-          if (callHeaders)
-            for (const [key, value] of new Headers(callHeaders)) headers.set(key, value)
+          const headers: Headers = new Headers(globalHeaders)
+          for (const init of [clientHeaders, calledHeaders])
+            if (init) for (const [key, value] of new Headers(init)) headers.set(key, value)
 
-          const args: Omit<Rpc.Options.Client, 'headers'> = { ...clientArgs }
-          for (const [key, value] of typedEntries(callArgs)) if (value) args[key] = value
+          const args: Omit<Rpc.Options.Client, 'headers'> = { ...globalArgs, ...clientArgs }
+          for (const [key, value] of typedEntries(calledArgs)) if (value) args[key] = value
 
           promise ??= request({
             basePath,
