@@ -5,4 +5,4 @@ export type { FiCsRpcClient as FiCsRpc, FiCsLink, FiCsRouter } from './namespace
 export { dynamicPaths, queries } from './params'
 export { registerRoutes } from './registry'
 export { ficsRouter } from './router'
-export { createRpcClient, RpcError } from './rpc'
+export { createRpcClient, configRpcClient, RpcError } from './rpc'
