@@ -1,7 +1,7 @@
-import type { Routing, Rpc } from './../types'
-import { config } from './constants'
+import type { Routing, Rpc } from '../types'
+import { COMMENT, config, ENTRIES_DIR, metaExports, routerImport } from './constants'
+import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
-import { toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRpcs } from './rpc'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
@@ -13,6 +13,21 @@ const { RPC_CLIENT, RPC_SERVER } = config,
 
     writeFileSync(path, content)
     return true
+  },
+  buildClientEntry = ({ specifier, src }: { specifier: string; src: string }): string => {
+    const arr: string[] = [COMMENT]
+
+    if (metaExports.INLINE.test(src) || metaExports.BLOCK.test(src))
+      arr.push(
+        `import { applyMeta } from ${routerImport()}`,
+        `import * as page from '${specifier}'`,
+        '',
+        'applyMeta((page as { meta?: Record<string, string> }).meta)',
+        ''
+      )
+    else arr.push(`import '${specifier}'`, '')
+
+    return joinLines(arr)
   }
 
 export const configRoutes = (config: Routing.Config = {}): boolean => {
