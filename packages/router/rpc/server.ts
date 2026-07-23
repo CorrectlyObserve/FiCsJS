@@ -93,6 +93,41 @@ export const createRpcHandler = <C = unknown>(
         error: `The requested procedure at "${path}" could not be found...`
       })
 
+    const startedAt: number = performance.now()
+    emitMetric(onMetric, { type: 'handle:start', path, method: method as Rpc.Method })
+
+    const { procedure, middlewares }: Rpc.ResolvedProcedure<C> = _static
+    let ctx: Rpc.Ctx<C> & { deny: typeof deny }
+
+    try {
+      ctx = {
+        ...(await createContext?.(req)),
+        req,
+        signal,
+        dynamicParams,
+        deny
+      } as typeof ctx
+
+      const denial: Routing.Denial | undefined = await resolveMiddlewares(middlewares, ctx)
+      if (denial)
+        return denialResponse({
+          status: denial.status ?? statusCodes.FORBIDDEN,
+          redirect: denial.redirect,
+          method: method as Rpc.Method
+        })
+    } catch (error) {
+      return errorResponse<C>({
+        error,
+        onMetric,
+        onError,
+        path,
+        method: method as Rpc.Method,
+        startedAt,
+        stage: 'handle',
+        req
+      })
+    }
+
     let raw: unknown
     try {
       if (isBodiless(method)) {
@@ -133,9 +168,6 @@ export const createRpcHandler = <C = unknown>(
       })
     }
 
-    const startedAt: number = performance.now()
-    emitMetric(onMetric, { type: 'handle:start', path, method: method as Rpc.Method })
-
     if (procedure.input)
       try {
         raw = await procedure.input(raw)
@@ -153,12 +185,7 @@ export const createRpcHandler = <C = unknown>(
       }
 
     try {
-      const body: unknown = await procedure.handler(raw, {
-        ...(await createContext?.(req)),
-        req,
-        signal,
-        dynamicParams
-      })
+      const body: unknown = await procedure.handler(raw, ctx)
 
       emitMetric(onMetric, {
         type: 'handle:success',
