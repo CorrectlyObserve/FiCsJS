@@ -68,10 +68,7 @@ export declare namespace Routing {
     extensions: Extensions
   }
 
-  type ClientEntries = {
-    name: string
-    src: string
-  }[]
+  type ClientEntries = { name: string; src: string }[]
 
   interface Config {
     dir?: string
