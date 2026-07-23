@@ -100,14 +100,7 @@ export const buildSpaCtx = ({
       return spaOwner !== null && spaOwner === getDirName(src)
     })
 
-  return {
-    dirs,
-    files,
-    spaAlias,
-    configAlias,
-    spaOwners,
-    areSpaRoot
-  }
+  return { dirs, files, spaAlias, configAlias, spaOwners, areSpaRoot }
 }
 
 export const buildSpecialCtx = ({
