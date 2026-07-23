@@ -2,6 +2,12 @@ import { typedEntries } from '../../core/helpers'
 import type { Rpc } from '../types'
 import { assertSafeSegment, request, resolveSegments } from './request'
 
+let globalOptions: Rpc.Options.Client = {}
+
+export const configRpcClient = (options: Rpc.Options.Client): void => {
+  globalOptions = options
+}
+
 export const createRpcClient = <R>(
   basePath: string,
   { headers: clientHeaders, ...clientArgs }: Rpc.Options.Client = {}
