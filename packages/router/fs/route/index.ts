@@ -1,16 +1,31 @@
-import type { Routing } from './../../types'
-import { COMMENT, routerImport } from './../constants'
-import { joinLines, resolveOptions } from './../helpers'
-import { buildEntries, buildLayoutCtx, buildSpaCtx, buildSpecialCtx } from './builder'
+import type { Routing } from '../../types'
+import { COMMENT } from '../constants'
+import { joinLines, resolveOptions } from '../helpers'
+import {
+  buildEntries,
+  buildLayoutCtx,
+  buildMiddlewareCtx,
+  buildSpaCtx,
+  buildSpecialCtx
+} from './builder'
+import { findClientEntries } from './finder'
 import {
   generateEntries,
   generateExports,
   generateImports,
-  generateRegisterRoutes,
+  generateMiddleware,
   generateSpaRouters
 } from './generator'
 
-export const generateRoutes = (filePaths: string[], options?: Routing.Options.Generate): string => {
+export const generateRoutes = (
+  filePaths: string[],
+  options?: Routing.Options.Generate
+): {
+  routeSrc: string
+  mwSrc: string
+  clientEntries: Routing.ClientEntries
+  missingSpaDirs: string[]
+} => {
   const { baseDir, extensions }: { baseDir: string; extensions: Routing.Extensions } =
       resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
@@ -26,15 +41,16 @@ export const generateRoutes = (filePaths: string[], options?: Routing.Options.Ge
     special: Routing.Ctx.Special = buildSpecialCtx({ dirs: spa.dirs, filePaths, extensions }),
     all: Routing.Ctx.All = { routes, ...layout, ...spa, ...mw, ...special }
 
-  return joinLines([
-    COMMENT,
-    `import { registerRoutes } from ${routerImport()}`,
-    generateImports({ baseDir, ...all }),
-    '',
-    joinLines(generateEntries(all)),
-    generateSpaRouters(all),
-    generateExports(routes, special),
-    '',
-    generateRegisterRoutes(special)
-  ])
+  return {
+    routeSrc: joinLines([
+      COMMENT,
+      generateImports({ baseDir, ...all }),
+      '',
+      joinLines(generateEntries(all)),
+      generateSpaRouters(all),
+      generateExports(all)
+    ]),
+    mwSrc: generateMiddleware({ baseDir, ...all }),
+    ...findClientEntries({ ...all, filePaths, extensions })
+  }
 }
