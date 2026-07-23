@@ -32,6 +32,11 @@ export const fileNames = {
   }
 } as const
 
+export const metaExports = {
+  INLINE: /\bexport\s+(?:const|let|var|function|async\s+function)\s+meta\b/,
+  BLOCK: /\bexport\s*\{[^}]*\bmeta\b/
+} as const
+
 export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
 
 export const prefixes = { LAYOUT: '__layout', REDIRECT: '__redirect', STATUS: '__status' } as const
