@@ -14,12 +14,7 @@ import {
 export const generateRoutes = (
   filePaths: string[],
   options?: Routing.Options.Generate
-): {
-  routeSrc: string
-  mwSrc: string
-  clientEntries: Routing.ClientEntries
-  missingSpaDirs: string[]
-} => {
+): ReturnType<typeof findClientEntries> & { routeSrc: string; mwSrc: string } => {
   const { baseDir, extensions }: { baseDir: string; extensions: Routing.Extensions } =
       resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
