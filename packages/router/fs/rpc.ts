@@ -1,8 +1,15 @@
-import { joinArray } from '../../core/helpers/others'
 import { RPC_BASE_PATH } from '../constants'
 import type { Routing, Rpc, TypeNode } from '../types'
 import { COMMENT, fileNames, routerImport, segments } from './constants'
-import { buildRoute, getFiles, indent, joinLines, resolveOptions, toSpecifier } from './helpers'
+import {
+  buildRoute,
+  getFiles,
+  indent,
+  joinAndWrap,
+  joinLines,
+  resolveOptions,
+  toSpecifier
+} from './helpers'
 import { getAllMiddlewares } from './middleware'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
@@ -15,7 +22,7 @@ const newNode = (): TypeNode => ({ children: new Map() }),
       const members: string[] = [...children.entries()].map(
         ([segment, child]) => `${JSON.stringify(segment)}: ${renderType(child)}`
       )
-      operands.push(`{ ${members.join('; ')} }`)
+      operands.push(joinAndWrap(members, { separator: ';' }))
     }
 
     if (dynamic) operands.push(`((${dynamic.name}: string) => ${renderType(dynamic.node)})`)
@@ -59,15 +66,15 @@ export const generateRpcs = ({
     for (const mw of _mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
 
     const values: string[] = [`prefix: ${JSON.stringify(buildRoute(dirs))}`, `module: ${alias}`]
-    if (_mws.length > 0) {
-      const mwsStr: string = joinArray(
-        _mws.map(mw => mwAliases.get(mw)!),
-        { space: true, comma: true }
+    if (_mws.length > 0)
+      values.push(
+        `middlewares: ${joinAndWrap(
+          _mws.map(mw => mwAliases.get(mw)!),
+          { wrapType: '[]' }
+        )}`
       )
-      values.push(`middlewares: [${mwsStr}]`)
-    }
 
-    manifests.push(`{ ${joinArray(values, { space: true, comma: true })} }`)
+    manifests.push(joinAndWrap(values))
 
     let node: TypeNode = root
     for (const segment of dirs) {
