@@ -44,7 +44,7 @@ export const buildEntries = ({
   return routes.sort(compareRoutes)
 }
 
-export const buildLayoutCtx = ({
+export const buildLayout = ({
   routes,
   filePaths,
   extensions
@@ -68,7 +68,7 @@ export const buildLayoutCtx = ({
   }
 }
 
-export const buildMiddlewareCtx = ({
+export const buildMiddleware = ({
   routes,
   filePaths,
   extensions,
@@ -117,7 +117,7 @@ export const buildMiddlewareCtx = ({
   }
 }
 
-export const buildSpaCtx = ({
+export const buildSpa = ({
   routes,
   filePaths,
   extensions
@@ -163,7 +163,7 @@ export const buildSpaCtx = ({
   return { dirs, files, spaAlias, configAlias, spaOwners, areSpaRoot }
 }
 
-export const buildSpecialCtx = ({
+export const buildSpecial = ({
   dirs,
   filePaths,
   extensions
