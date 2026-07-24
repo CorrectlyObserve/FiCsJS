@@ -62,18 +62,6 @@ export type RouterData<D extends object> = D & {
 }
 
 export declare namespace Routing {
-  type ClientEntries = { name: string; src: string }[]
-
-  interface Config {
-    dir?: string
-    output?: string
-    pageFile?: string
-    extensions?: Extensions
-    /** @remarks The URL prefix of the RPC client. Defaults to '/_rpc'. */
-    basePath?: string
-    entries?: boolean
-  }
-
   namespace Build {
     interface Ctx extends RouteManifest, Layout, Middleware, Spa, Special {}
 
@@ -111,6 +99,18 @@ export declare namespace Routing {
       statuses: Map<string, Map<string, string>>
       aliases: Map<string, Map<string, string>>
     }
+  }
+
+  type ClientEntries = { name: string; src: string }[]
+
+  interface Config {
+    dir?: string
+    output?: string
+    pageFile?: string
+    extensions?: Extensions
+    /** @remarks The URL prefix of the RPC client. Defaults to '/_rpc'. */
+    basePath?: string
+    entries?: boolean
   }
 
   interface Denial {
