@@ -1,5 +1,6 @@
 import { convertStr, toLowerFirst, typedEntries } from '../../../core/helpers'
 import { prependSlash } from '../../helpers'
+import { getAllMiddlewares } from '../middleware'
 import type { Routing } from '../../types'
 import { fileNames, prefixes } from '../constants'
 import { getDirName, getFiles, toPascal, toSpecifier } from '../helpers'
