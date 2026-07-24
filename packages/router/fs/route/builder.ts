@@ -99,14 +99,15 @@ export const buildSpaCtx = ({
 
   for (let i = 0; i < routes.length; i++) {
     const spaOwner: string | null = spaOwners[i],
+      isSpa: boolean = spaOwner !== null,
       { src, serverSpecifier }: Routing.RouteEntry = routes[i]
 
-    if (spaOwner !== null && serverSpecifier !== null)
+    if (isSpa && serverSpecifier !== null)
       throw new Error(
         `A "+page.server.ts" next to "${src}" cannot live inside the SPA "${spaOwner || '(root)'}"...`
       )
 
-    areSpaRoot.push(spaOwner !== null && spaOwner === getDirName(src))
+    areSpaRoot.push(isSpa && spaOwner === getDirName(src))
   }
 
   return { dirs, files, spaAlias, configAlias, spaOwners, areSpaRoot }
