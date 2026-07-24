@@ -3,7 +3,7 @@ import type { Routing } from '../../types'
 import { getDirName, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
 import { toEntry } from './path'
 
-const buildEntry = ({
+const emitEntry = ({
     length,
     path,
     config,
@@ -19,7 +19,7 @@ const buildEntry = ({
 
     return `${indent(length)}${joinAndWrap(values)}`
   },
-  buildPageConfig = ({
+  emitPageConfig = ({
     base,
     layout,
     layoutAlias,
