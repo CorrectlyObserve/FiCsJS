@@ -211,10 +211,9 @@ export declare namespace Routing {
     serverSpecifier: string | null
   }
 
-  type ServerEntries = {
-    dirs: string[]
-    specifier: string
-  }[]
+  interface RouteManifest {
+    routes: RouteEntry[]
+  }
 
   interface ServerModule<C = Record<string, unknown>> {
     default?: (ctx: C) => Awaitable<string>
