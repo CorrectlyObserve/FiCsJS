@@ -149,7 +149,9 @@ export const generateImports = ({
           return `import * as ${getOrThrow(alias, prop)} from ${_toSpecifier(src)}`
         })
       ]),
-      ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
+      ...globalStatus.flatMap(({ prop, serverSrc }) =>
+        serverSrc === null ? [] : [`import * as __${prop} from ${_toSpecifier(serverSrc)}`]
+      ),
       redirect ? `import ${prefixes.REDIRECT} from ${_toSpecifier(redirect)}` : ''
     ].filter(Boolean)
   )
