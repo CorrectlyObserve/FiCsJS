@@ -79,8 +79,8 @@ export declare namespace Routing {
     entries?: boolean
   }
 
-  namespace Ctx {
-    interface All extends RouteManifest, Layout, Middleware, Spa, Special {}
+  namespace Build {
+    interface Ctx extends RouteManifest, Layout, Middleware, Spa, Special {}
 
     interface Layout {
       layouts: (string | null)[]
