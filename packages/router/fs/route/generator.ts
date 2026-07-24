@@ -164,8 +164,9 @@ export const generateSpaRouters = ({
   configAlias,
   spaOwners,
   statuses,
-  aliases
-}: Routing.Ctx.All): string => {
+  aliases,
+  redirect
+}: Routing.Build.Ctx): string => {
   return joinLines(
     dirs.map(dir => {
       const routeEntries: string[] = []
@@ -211,6 +212,12 @@ export const generateSpaRouters = ({
           ),
           `${indent()}}`
         )
+      }
+
+      const isRootDir: boolean = dir === ''
+      if (isRootDir && redirect) {
+        lines[lines.length - 1] += ','
+        lines.push(`${indent()}redirects: ${prefixes.REDIRECT}`)
       }
 
       return joinLines([...lines, '})'])
