@@ -1,4 +1,4 @@
-import { removeTrailingSlash } from '../../core/helpers'
+import { joinArray, removeTrailingSlash } from '../../core/helpers'
 import type { Routing } from '../types'
 import { BASE_DIR, config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
