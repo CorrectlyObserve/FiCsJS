@@ -90,6 +90,14 @@ export const isValidFileType = ({
   return removeExt(file) === expectedType
 }
 
+export const joinAndWrap = (
+  arr: string[],
+  { wrapType = '{}', separator = ',' }: { wrapType?: '{}' | '[]'; separator?: string } = {}
+): string => {
+  const joined: string = joinArray(arr, { space: true, separator })
+  return wrapType === '{}' ? `{ ${joined} }` : `[${joined}]`
+}
+
 export const joinLines = (lines: string[], { comma }: { comma?: boolean } = {}): string =>
   lines.join(`${comma ? ',' : ''}\n`)
 
