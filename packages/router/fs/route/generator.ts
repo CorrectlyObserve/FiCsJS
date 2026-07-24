@@ -131,7 +131,8 @@ export const generateImports = ({
       ...dirs.flatMap(dir => [
         `import ${getOrThrow(configAlias, dir)} from ${_toSpecifier(getOrThrow(files, dir))}`,
         ...Array.from(getOrThrow(statuses, dir).entries()).map(
-          ([prop, src]) => `import * as ${getOrThrow(getOrThrow(aliases, dir), prop)} from ${_toSpecifier(src)}`
+          ([prop, src]) =>
+            `import * as ${getOrThrow(getOrThrow(aliases, dir), prop)} from ${_toSpecifier(src)}`
         )
       ]),
       ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
