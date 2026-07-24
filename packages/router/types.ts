@@ -212,6 +212,8 @@ export declare namespace Routing {
     routes: RouteEntry[]
   }
 
+  type RpcEntries = { dirs: string[]; specifier: string }[]
+
   interface ServerModule<C = Record<string, unknown>> {
     default?: (ctx: C) => Awaitable<string>
     meta?: Record<string, string>
