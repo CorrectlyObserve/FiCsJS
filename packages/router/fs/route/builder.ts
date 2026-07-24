@@ -11,7 +11,7 @@ export const buildEntries = ({
   filePaths,
   extensions,
   baseDir
-}: Omit<Routing.BuilderQuery, 'routes'> & { baseDir: string }): Routing.RouteEntry[] => {
+}: Omit<Routing.Build.Query, 'routes'> & { baseDir: string }): Routing.RouteEntry[] => {
   const routes: Routing.RouteEntry[] = [],
     seen: Map<string, string> = new Map()
 
@@ -48,16 +48,16 @@ export const buildLayoutCtx = ({
   routes,
   filePaths,
   extensions
-}: Routing.BuilderQuery): Routing.Ctx.Layout => {
+}: Routing.Build.Query): Routing.Build.Layout => {
   const layoutFiles: Map<string, string> = getFiles({
       filePaths,
       expectedType: fileNames.LAYOUT,
       extensions
     }),
-    layouts: Routing.Ctx.Layout['layouts'] = routes.map(
+    layouts: Routing.Build.Layout['layouts'] = routes.map(
       ({ src }) => findClosestDir(src, layoutFiles)?.value ?? null
     ),
-    uniques: Routing.Ctx.Layout['uniques'] = [
+    uniques: Routing.Build.Layout['uniques'] = [
       ...new Set(layouts.filter((layout): layout is string => layout !== null))
     ]
 
@@ -74,7 +74,7 @@ export const buildMiddlewareCtx = ({
   extensions,
   spaOwners,
   files
-}: Routing.BuilderQuery & Pick<Routing.Ctx.Spa, 'spaOwners' | 'files'>): Routing.Ctx.Middleware => {
+}: Routing.Build.Query & Pick<Routing.Build.Spa, 'spaOwners' | 'files'>): Routing.Build.Middleware => {
   const mws: Map<string, string> = getFiles({
       filePaths,
       extensions,
@@ -121,7 +121,7 @@ export const buildSpaCtx = ({
   routes,
   filePaths,
   extensions
-}: Routing.BuilderQuery): Routing.Ctx.Spa => {
+}: Routing.Build.Query): Routing.Build.Spa => {
   const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA_CONFIG }),
     dirs: string[] = Array.from(files.keys()).sort(),
     spaAlias: Map<string, string> = new Map<string, string>(),
@@ -167,7 +167,7 @@ export const buildSpecialCtx = ({
   dirs,
   filePaths,
   extensions
-}: Omit<Routing.BuilderQuery, 'routes'> & { dirs: string[] }): Routing.Ctx.Special => {
+}: Omit<Routing.Build.Query, 'routes'> & { dirs: string[] }): Routing.Build.Special => {
   const statusEntries = typedEntries(fileNames.statuses),
     statuses: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
     aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>()
