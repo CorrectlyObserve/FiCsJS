@@ -62,8 +62,7 @@ export type RouterData<D extends object> = D & {
 }
 
 export declare namespace Routing {
-  interface BuilderQuery {
-    routes: RouteEntry[]
+  interface BuilderQuery extends RouteManifest {
     filePaths: string[]
     extensions: Extensions
   }
