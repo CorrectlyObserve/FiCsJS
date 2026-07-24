@@ -178,8 +178,8 @@ export const generateSpaRouters = ({
           emitEntry({
             length: 2,
             path: routes[i].path,
-            config: buildPageConfig({
-              base: `route${i}`,
+            config: emitPageConfig({
+              base: `client${i}`,
               layout,
               layoutAlias,
               shouldApply: layout !== null && isUnderBoundary(layout)
