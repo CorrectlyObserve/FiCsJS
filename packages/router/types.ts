@@ -81,9 +81,7 @@ export declare namespace Routing {
   }
 
   namespace Ctx {
-    interface All extends Layout, Middleware, Spa, Special {
-      routes: RouteEntry[]
-    }
+    interface All extends RouteManifest, Layout, Middleware, Spa, Special {}
 
     interface Layout {
       layouts: (string | null)[]
