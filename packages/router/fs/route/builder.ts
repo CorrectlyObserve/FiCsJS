@@ -67,6 +67,55 @@ export const buildLayoutCtx = ({
   }
 }
 
+export const buildMiddlewareCtx = ({
+  routes,
+  filePaths,
+  extensions,
+  spaOwners,
+  files
+}: Routing.BuilderQuery & Pick<Routing.Ctx.Spa, 'spaOwners' | 'files'>): Routing.Ctx.Middleware => {
+  const mws: Map<string, string> = getFiles({
+      filePaths,
+      extensions,
+      expectedType: fileNames.MIDDLEWARE
+    }),
+    middlewares: string[][] = routes.map(({ src }, index) =>
+      getAllMiddlewares({
+        dirs: (spaOwners[index] ?? getDirName(src)).split('/').filter(Boolean),
+        mws
+      })
+    ),
+    uniqueMiddlewares: string[] = [...new Set(middlewares.flat())]
+
+  for (const [dir, src] of mws) {
+    const spaOwner: string | null = findClosestDir(src, files)?.key ?? null,
+      isMpa: boolean = spaOwner === null,
+      isSpaRoot: boolean = spaOwner === dir
+
+    /** @remarks These protect HTML loads, not just RPC calls. */
+    if (isMpa || isSpaRoot) continue
+
+    const hasRpc: boolean = filePaths.some(path => {
+      const cleaned: string = cleanPath(path),
+        file: string = cleaned.split('/').at(-1) ?? ''
+
+      return (
+        cleaned.startsWith(`${dir}/`) &&
+        isValidFileType({ file, expectedType: fileNames.RPC, extensions })
+      )
+    })
+
+    if (!hasRpc)
+      throw new Error(`The middleware "${src}" has no descendant RPC procedures in the "${dir}"...`)
+  }
+
+  return {
+    middlewares,
+    uniqueMiddlewares,
+    middlewareAlias: new Map(uniqueMiddlewares.map((src, index) => [src, `__middleware${index}`]))
+  }
+}
+
 export const buildSpaCtx = ({
   routes,
   filePaths,
