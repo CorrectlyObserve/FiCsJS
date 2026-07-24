@@ -1,13 +1,7 @@
 import type { Routing } from '../../types'
 import { COMMENT } from '../constants'
 import { joinLines, resolveOptions } from '../helpers'
-import {
-  buildEntries,
-  buildLayoutCtx,
-  buildMiddlewareCtx,
-  buildSpaCtx,
-  buildSpecialCtx
-} from './builder'
+import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
 import { findClientEntries } from './finder'
 import {
   generateEntries,
@@ -29,17 +23,17 @@ export const generateRoutes = (
   const { baseDir, extensions }: { baseDir: string; extensions: Routing.Extensions } =
       resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
-    layout: Routing.Ctx.Layout = buildLayoutCtx({ routes, filePaths, extensions }),
-    spa: Routing.Ctx.Spa = buildSpaCtx({ routes, filePaths, extensions }),
-    mw: Routing.Ctx.Middleware = buildMiddlewareCtx({
+    layout: Routing.Build.Layout = buildLayout({ routes, filePaths, extensions }),
+    spa: Routing.Build.Spa = buildSpa({ routes, filePaths, extensions }),
+    mw: Routing.Build.Middleware = buildMiddleware({
       routes,
       filePaths,
       extensions,
       spaOwners: spa.spaOwners,
       files: spa.files
     }),
-    special: Routing.Ctx.Special = buildSpecialCtx({ dirs: spa.dirs, filePaths, extensions }),
-    all: Routing.Ctx.All = { routes, ...layout, ...spa, ...mw, ...special }
+    special: Routing.Build.Special = buildSpecial({ dirs: spa.dirs, filePaths, extensions }),
+    all: Routing.Build.Ctx = { routes, ...layout, ...spa, ...mw, ...special }
 
   return {
     routeSrc: joinLines([
