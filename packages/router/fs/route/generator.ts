@@ -1,4 +1,4 @@
-import { convertStr } from '../../../core/helpers'
+import { convertStr, joinArray } from '../../../core/helpers'
 import type { Routing } from '../../types'
 import { getDirName, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
 import { toEntry } from './path'
@@ -31,7 +31,7 @@ const emitEntry = ({
     shouldApply?: boolean
   }): string => {
     if (layout === null || !shouldApply) return base
-    return `${base}, layout: ${layoutAlias.get(layout)}`
+    return joinArray([base, `layout: ${getOrThrow(layoutAlias, layout)}`])
   }
 
 export const generateEntries = ({
