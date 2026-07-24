@@ -143,18 +143,6 @@ export const generateImports = ({
   )
 }
 
-export const generateRegisterRoutes = ({ globalStatus, redirect }: Routing.Ctx.Special): string => {
-  const options: string[] = ['routes']
-
-  if (redirect) options.push(`redirects: ${prefixes.REDIRECT}`)
-  if (globalStatus.length > 0)
-    options.push(
-      `statusModules: { ${globalStatus.map(({ prop }) => `${prop}: __${prop}`).join(', ')} }`
-    )
-
-  return `registerRoutes({ ${options.join(', ')} })`
-}
-
 export const generateSpaRouters = ({
   routes,
   layouts,
