@@ -8,11 +8,11 @@ export const findClientEntries = ({
   filePaths,
   extensions,
   spaOwners,
-  areSpaRoot,
+  areSpaEntry,
   files,
   globalStatus
 }: Routing.Build.Query &
-  Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaRoot' | 'files'> &
+  Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaEntry' | 'files'> &
   Pick<Routing.Build.Special, 'globalStatus'>): {
   clientEntries: Routing.ClientEntries
   dirsWithoutSpaEntry: string[]
@@ -32,8 +32,8 @@ export const findClientEntries = ({
       spaOwner: string | null = spaOwners[i],
       isSpa: boolean = spaOwner !== null
 
-    /** @remarks Shares the root SPA entry with sub-pages. */
-    if (isSpa && !areSpaRoot[i]) continue
+    /** @remarks Child pages of an SPA reuse the main SPA entry. */
+    if (isSpa && !areSpaEntry[i]) continue
 
     const fileSrc: string | null = findFileSrc({
       filePaths,
