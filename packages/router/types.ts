@@ -90,7 +90,7 @@ export declare namespace Routing {
       /** @remarks Parallel array for routes */
       spaOwners: (string | null)[]
       /** @remarks Parallel array for routes */
-      areSpaRoot: boolean[]
+      areSpaEntry: boolean[]
     }
 
     interface Special {
