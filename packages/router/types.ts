@@ -208,6 +208,7 @@ export declare namespace Routing {
     path: string
     specifier: string
     src: string
+    serverSpecifier: string | null
   }
 
   type ServerEntries = {
