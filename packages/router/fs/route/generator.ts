@@ -27,7 +27,7 @@ const buildEntry = ({
   }: {
     base: string
     layout: string | null
-    layoutAlias: Routing.Ctx.Layout['layoutAlias']
+    layoutAlias: Routing.Build.Layout['layoutAlias']
     shouldApply?: boolean
   }): string => {
     if (layout === null || !shouldApply) return base
@@ -42,7 +42,7 @@ export const generateEntries = ({
   spaOwners,
   areSpaRoot,
   globalStatus
-}: Routing.Ctx.All): string[] => {
+}: Routing.Build.Ctx): string[] => {
   const mainRoutes: string[] = [],
     catchAllRoutes: string[] = []
 
@@ -122,7 +122,7 @@ export const generateImports = ({
   redirect,
   statuses,
   aliases
-}: { baseDir: string } & Routing.Ctx.All): string => {
+}: { baseDir: string } & Routing.Build.Ctx): string => {
   const _toSpecifier = (src: string): string => `'${toSpecifier(src, baseDir)}'`
   return joinLines(
     [
