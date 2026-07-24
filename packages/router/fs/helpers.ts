@@ -50,7 +50,7 @@ export function getFiles({
   baseDir?: string
 }): Map<string, string> | Routing.RpcEntries {
   const files: Map<string, string> = new Map(),
-    entries: Routing.RpcEntries = []
+    rpcs: Routing.RpcEntries = []
 
   for (const path of filePaths) {
     const segments: string[] = cleanPath(path).split('/'),
@@ -61,7 +61,7 @@ export function getFiles({
     const dirs: string[] = segments.slice(0, -1)
 
     if (expectedType === RPC && baseDir)
-      entries.push({
+      rpcs.push({
         dirs: dirs.filter(seg => seg !== 'index'),
         specifier: toSpecifier(path, baseDir)
       })
@@ -70,7 +70,7 @@ export function getFiles({
 
   /** @remarks Ensures deterministic build output across different OS file systems. */
   if (expectedType === RPC)
-    return entries.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
+    return rpcs.sort(({ specifier: a }, { specifier: b }) => (a < b ? -1 : a > b ? 1 : 0))
 
   return files
 }
