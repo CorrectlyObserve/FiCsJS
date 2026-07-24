@@ -62,11 +62,6 @@ export type RouterData<D extends object> = D & {
 }
 
 export declare namespace Routing {
-  interface BuilderQuery extends RouteManifest {
-    filePaths: string[]
-    extensions: Extensions
-  }
-
   type ClientEntries = { name: string; src: string }[]
 
   interface Config {
@@ -92,6 +87,11 @@ export declare namespace Routing {
       middlewares: string[]
       uniqueMiddlewares: string[]
       middlewareAlias: Map<string, string>
+    }
+
+    interface Query extends RouteManifest {
+      filePaths: string[]
+      extensions: Extensions
     }
 
     interface Spa {
