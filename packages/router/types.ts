@@ -143,6 +143,8 @@ export declare namespace Routing {
     req: unknown
   }
 
+  type Middleware<C = Record<string, unknown>> = (ctx: MiddlewareCtx<C>) => Awaitable<void | Denial>
+
   type MiddlewareCtx<C = Record<string, unknown>> = C & {
     req: unknown
     dynamicParams: Record<string, string>
