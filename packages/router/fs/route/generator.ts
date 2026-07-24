@@ -2,7 +2,7 @@ import { convertStr, joinArray } from '../../../core/helpers'
 import type { Routing } from '../../types'
 import { COMMENT, fileNames, prefixes, routerImport } from '../constants'
 import { getDirName, getOrThrow, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
-import { findTopSpaEntry } from './finder'
+import { findStatusEntry } from './finder'
 import { toEntry } from './path'
 
 const emitEntry = ({
@@ -115,7 +115,7 @@ export const generateExports = ({
       const { path, serverSrc }: { path: string; serverSrc: string | null } = status
       return `export const ${prop} = ${joinAndWrap([
         `module: ${serverSrc === null ? '{}' : `__${prop}`}`,
-        `entry: '${findTopSpaEntry({ routes, spaOwners, areSpaRoot }) ?? toEntry(path)}'`
+        `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path })}'`
       ])}`
     }),
     `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
