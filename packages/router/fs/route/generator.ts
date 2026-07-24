@@ -1,6 +1,6 @@
 import { convertStr, joinArray } from '../../../core/helpers'
 import type { Routing } from '../../types'
-import { getDirName, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
+import { COMMENT, fileNames, prefixes, routerImport } from '../constants'
 import { toEntry } from './path'
 
 const emitEntry = ({
