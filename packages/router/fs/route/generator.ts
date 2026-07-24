@@ -127,7 +127,9 @@ export const generateImports = ({
   return joinLines(
     [
       dirs.length > 0 ? `import { ficsRouter } from ${routerImport()}` : '',
-      ...uniques.map(src => `import * as ${getOrThrow(layoutAlias, src)} from ${_toSpecifier(src)}`),
+      ...uniques.map(
+        src => `import * as ${getOrThrow(layoutAlias, src)} from ${_toSpecifier(src)}`
+      ),
       ...dirs.flatMap(dir => [
         `import ${getOrThrow(configAlias, dir)} from ${_toSpecifier(getOrThrow(files, dir))}`,
         ...Array.from(getOrThrow(statuses, dir).entries()).map(([prop, src]) => {
