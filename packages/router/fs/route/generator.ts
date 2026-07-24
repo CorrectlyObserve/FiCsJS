@@ -42,49 +42,69 @@ export const generateEntries = ({
   layoutAlias,
   spaAlias,
   spaOwners,
-  areSpaRoot,
+  areSpaEntry,
   globalStatus
 }: Routing.Build.Ctx): string[] => {
-  const mainRoutes: string[] = [],
-    catchAllRoutes: string[] = []
+  const existingRoutes: string[] = [],
+    spaConfigs: Map<string, string> = new Map(),
+    spaEntries: Map<string, string> = new Map()
+
+  for (let i = 0; i < routes.length; i++) {
+    const spaOwner: string | null = spaOwners[i],
+      isMpa: boolean = spaOwner === null
+    if (isMpa || !areSpaEntry[i]) continue
+
+    spaConfigs.set(
+      spaOwner!,
+      emitPageConfig({
+        base: joinAndWrap([
+          `default: () => ${getOrThrow(spaAlias, spaOwner!)}.toString()`,
+          `meta: (client${i} as { meta?: Record<string, string> }).meta`
+        ]),
+        layout: layouts[i],
+        layoutAlias
+      })
+    )
+    spaEntries.set(spaOwner!, toEntry(routes[i].path))
+  }
 
   for (let i = 0; i < routes.length; i++) {
     const { path }: Routing.RouteEntry = routes[i],
       spaOwner: string | null = spaOwners[i],
-      layout: string | null = layouts[i]
+      isMpa: boolean = spaOwner === null
 
-    if (spaOwner === null) {
-      mainRoutes.push(
+    if (isMpa) {
+      const { serverSpecifier }: Routing.RouteEntry = routes[i]
+      existingRoutes.push(
         emitEntry({
           path,
-          config: buildPageConfig({ base: `route${i}`, layout, layoutAlias })
+          config: emitPageConfig({
+            base: serverSpecifier === null ? '{}' : `server${i}`,
+            layout: layouts[i],
+            layoutAlias
+          }),
+          entry: toEntry(path)
         })
       )
       continue
     }
 
-    if (areSpaRoot[i]) {
-      const ref: string = `(route${i} as { meta?: Record<string, string> })`,
-        config: string = buildPageConfig({
-          base: `{ default: () => ${spaAlias.get(spaOwner)}.toString(), meta: ${ref}.meta }`,
-          layout,
-          layoutAlias
-        })
-
-      mainRoutes.push(buildEntry({ path, config }))
-
-      const prefix: string = spaOwner ? `${buildRoute(spaOwner.split('/'))}/` : ''
-      catchAllRoutes.push(buildEntry({ path: `/${prefix}:rest*`, config }))
-    }
+    const config: string | undefined = spaConfigs.get(spaOwner!)
+    if (config) existingRoutes.push(emitEntry({ path, config, entry: spaEntries.get(spaOwner!) }))
   }
 
   return [
     'export const routes = [',
     joinLines(
       [
-        ...mainRoutes,
-        ...globalStatus.map(({ path, prop }) => buildEntry({ path, config: `__${prop}` })),
-        ...catchAllRoutes
+        ...existingRoutes,
+        ...globalStatus.map(({ path, prop, serverSrc }) =>
+          emitEntry({
+            path,
+            config: serverSrc === null ? '{}' : `__${prop}`,
+            entry: findStatusEntry({ routes, spaOwners, areSpaEntry, path })
+          })
+        )
       ],
       { comma: true }
     ),
