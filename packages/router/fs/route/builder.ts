@@ -93,8 +93,9 @@ export const buildSpaCtx = ({
   }
 
   const spaOwners: (string | null)[] = routes.map(
-    ({ src }) => findClosestDir(src, files)?.key ?? null
-  )
+      ({ src }) => findClosestDir(src, files)?.key ?? null
+    ),
+    areSpaRoot: boolean[] = []
 
   for (let i = 0; i < routes.length; i++) {
     const spaOwner: string | null = spaOwners[i],
@@ -104,12 +105,9 @@ export const buildSpaCtx = ({
       throw new Error(
         `A "+page.server.ts" next to "${src}" cannot live inside the SPA "${spaOwner || '(root)'}"...`
       )
-  }
 
-  const areSpaRoot: boolean[] = routes.map(({ src }, index) => {
-    const spaOwner: string | null = spaOwners[index]
-    return spaOwner !== null && spaOwner === getDirName(src)
-  })
+    areSpaRoot.push(spaOwner !== null && spaOwner === getDirName(src))
+  }
 
   return { dirs, files, spaAlias, configAlias, spaOwners, areSpaRoot }
 }
