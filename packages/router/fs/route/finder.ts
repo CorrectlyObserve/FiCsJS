@@ -49,7 +49,7 @@ export const findTopSpaEntry = ({
   routes,
   spaOwners,
   areSpaRoot
-}: Routing.RouteManifest & Pick<Routing.Ctx.Spa, 'spaOwners' | 'areSpaRoot'>): string | null => {
+}: Routing.RouteManifest & Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaRoot'>): string | null => {
   for (let i = 0; i < routes.length; i++) {
     const isTopSpa: boolean = spaOwners[i] === ''
     if (isTopSpa && areSpaRoot[i]) return toEntry(routes[i].path)
