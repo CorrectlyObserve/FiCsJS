@@ -53,7 +53,7 @@ export const generateEntries = ({
 
     if (spaOwner === null) {
       mainRoutes.push(
-        buildEntry({
+        emitEntry({
           path,
           config: buildPageConfig({ base: `route${i}`, layout, layoutAlias })
         })
@@ -175,7 +175,7 @@ export const generateSpaRouters = ({
           isUnderBoundary = (layout: string): boolean => getDirName(layout).startsWith(`${dir}/`)
 
         routeEntries.push(
-          buildEntry({
+          emitEntry({
             length: 2,
             path: routes[i].path,
             config: buildPageConfig({
