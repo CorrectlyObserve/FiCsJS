@@ -107,14 +107,17 @@ export const findFileSrc = ({
   return null
 }
 
-export const findTopSpaEntry = ({
+export const findStatusEntry = ({
   routes,
   spaOwners,
-  areSpaRoot
-}: Routing.RouteManifest & Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaRoot'>): string | null => {
+  areSpaEntry,
+  path
+}: Routing.RouteManifest &
+  Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaEntry'> & { path: string }): string => {
   for (let i = 0; i < routes.length; i++) {
-    const isTopSpa: boolean = spaOwners[i] === ''
-    if (isTopSpa && areSpaRoot[i]) return toEntry(routes[i].path)
+    const isIndexSpaEntry: boolean = spaOwners[i] === '' && areSpaEntry[i]
+    if (isIndexSpaEntry) return toEntry(routes[i].path)
   }
-  return null
+
+  return toEntry(path)
 }
