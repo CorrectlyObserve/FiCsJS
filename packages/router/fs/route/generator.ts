@@ -118,6 +118,7 @@ export const generateImports = ({
   dirs,
   files,
   configAlias,
+  spaOwners,
   globalStatus,
   redirect,
   statuses,
@@ -130,6 +131,17 @@ export const generateImports = ({
       ...uniques.map(
         src => `import * as ${getOrThrow(layoutAlias, src)} from ${_toSpecifier(src)}`
       ),
+      ...routes.flatMap(({ serverSpecifier, specifier }, index) => {
+        const imports: string[] = []
+
+        if (serverSpecifier !== null)
+          imports.push(`import * as server${index} from '${serverSpecifier}'`)
+
+        if (spaOwners[index] !== null)
+          imports.push(`import * as client${index} from '${specifier}'`)
+
+        return imports
+      }),
       ...dirs.flatMap(dir => [
         `import ${getOrThrow(configAlias, dir)} from ${_toSpecifier(getOrThrow(files, dir))}`,
         ...Array.from(getOrThrow(statuses, dir).entries()).map(([prop, src]) => {
