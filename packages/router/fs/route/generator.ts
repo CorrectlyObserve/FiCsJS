@@ -95,7 +95,7 @@ export const generateEntries = ({
 export const generateExports = ({
   routes,
   spaOwners,
-  areSpaRoot,
+  areSpaEntry,
   globalStatus,
   redirect
 }: Routing.Build.Ctx): string => {
