@@ -139,7 +139,7 @@ export const generateImports = ({
       ]),
       ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
       redirect ? `import ${prefixes.REDIRECT} from ${_toSpecifier(redirect)}` : ''
-    ].filter(line => line !== '')
+    ].filter(Boolean)
   )
 }
 
