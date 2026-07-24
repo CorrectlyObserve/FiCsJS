@@ -1,6 +1,7 @@
 import { convertStr, joinArray } from '../../../core/helpers'
 import type { Routing } from '../../types'
 import { COMMENT, fileNames, prefixes, routerImport } from '../constants'
+import { getDirName, getOrThrow, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
 import { findTopSpaEntry } from './finder'
 import { toEntry } from './path'
 
