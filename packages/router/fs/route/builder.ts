@@ -3,7 +3,7 @@ import { prependSlash } from '../../helpers'
 import { getAllMiddlewares } from '../middleware'
 import type { Routing } from '../../types'
 import { fileNames, prefixes } from '../constants'
-import { getDirName, getFiles, toPascal, toSpecifier } from '../helpers'
+import { cleanPath, getDirName, getFiles, isValidFileType, toPascal, toSpecifier } from '../helpers'
 import { findClosestDir, findFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
