@@ -212,3 +212,34 @@ export const generateSpaRouters = ({
     })
   )
 }
+
+export const generateMiddleware = ({
+  baseDir,
+  routes,
+  middlewares,
+  uniqueMiddlewares,
+  middlewareAlias
+}: { baseDir: string } & Routing.Build.Ctx): string => {
+  const toAlias = (src: string): string => getOrThrow(middlewareAlias, src)
+
+  return joinLines([
+    COMMENT,
+    `import ${routerImport('server-only')}`,
+    ...uniqueMiddlewares.map(src => `import ${toAlias(src)} from '${toSpecifier(src, baseDir)}'`),
+    '',
+    'export const middlewares = {',
+    joinLines(
+      routes
+        .map(({ path }, index) => {
+          const chain: string[] = middlewares[index]
+          return chain.length === 0
+            ? ''
+            : `${indent()}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })},`
+        })
+        .filter(Boolean),
+      { comma: true }
+    ),
+    '}',
+    ''
+  ])
+}
