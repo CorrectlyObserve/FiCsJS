@@ -75,6 +75,13 @@ export function getFiles({
   return files
 }
 
+export const getOrThrow = <V>(map: Map<string, V>, key: string): V => {
+  const value: V | undefined = map.get(key)
+  if (value === undefined) throw new Error(`The map has no entry with key "${key}"...`)
+
+  return value
+}
+
 export const indent = (length: number = 1): string => ' '.repeat(length * 2)
 
 export const isValidFileType = ({
