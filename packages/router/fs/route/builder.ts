@@ -74,7 +74,8 @@ export const buildMiddleware = ({
   extensions,
   spaOwners,
   files
-}: Routing.Build.Query & Pick<Routing.Build.Spa, 'spaOwners' | 'files'>): Routing.Build.Middleware => {
+}: Routing.Build.Query &
+  Pick<Routing.Build.Spa, 'spaOwners' | 'files'>): Routing.Build.Middleware => {
   const mws: Map<string, string> = getFiles({
       filePaths,
       extensions,
@@ -145,7 +146,7 @@ export const buildSpa = ({
   const spaOwners: (string | null)[] = routes.map(
       ({ src }) => findClosestDir(src, files)?.key ?? null
     ),
-    areSpaRoot: boolean[] = []
+    areSpaEntry: boolean[] = []
 
   for (let i = 0; i < routes.length; i++) {
     const spaOwner: string | null = spaOwners[i],
@@ -157,10 +158,10 @@ export const buildSpa = ({
         `A "+page.server.ts" next to "${src}" cannot live inside the SPA "${spaOwner || '(root)'}"...`
       )
 
-    areSpaRoot.push(isSpa && spaOwner === getDirName(src))
+    areSpaEntry.push(isSpa && spaOwner === getDirName(src))
   }
 
-  return { dirs, files, spaAlias, configAlias, spaOwners, areSpaRoot }
+  return { dirs, files, spaAlias, configAlias, spaOwners, areSpaEntry }
 }
 
 export const buildSpecial = ({
