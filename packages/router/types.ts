@@ -143,6 +143,13 @@ export declare namespace Routing {
     req: unknown
   }
 
+  type MiddlewareCtx<C = Record<string, unknown>> = C & {
+    req: unknown
+    dynamicParams: Record<string, string>
+    deny: ({ redirect }: { redirect?: string }) => Denial
+    signal?: AbortSignal
+  }
+
   interface Module {
     default?: unknown
     redirect?: string
