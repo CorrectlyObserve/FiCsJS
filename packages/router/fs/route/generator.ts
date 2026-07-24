@@ -1,7 +1,6 @@
-import { convertStr, joinArray } from '../../../core/helpers'
+import { convertStr } from '../../../core/helpers'
 import type { Routing } from '../../types'
-import { fileNames, prefixes, routerImport } from '../constants'
-import { getDirName, indent, joinLines, toSpecifier } from '../helpers'
+import { getDirName, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
 import { toEntry } from './path'
 
 const buildEntry = ({
@@ -18,7 +17,7 @@ const buildEntry = ({
     const values: string[] = [`path: '${path}'`, `page: ${config}`]
     if (entry !== undefined) values.push(`entry: '${entry}'`)
 
-    return `${indent(length)}{ ${joinArray(values, { space: true, comma: true })} }`
+    return `${indent(length)}${joinAndWrap(values)}`
   },
   buildPageConfig = ({
     base,
