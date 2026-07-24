@@ -92,20 +92,31 @@ export const generateEntries = ({
   ]
 }
 
-export const generateExports = (
-  routes: Routing.RouteEntry[],
-  { globalStatus, redirect }: Routing.Ctx.Special
-): string => {
+export const generateExports = ({
+  routes,
+  spaOwners,
+  areSpaRoot,
+  globalStatus,
+  redirect
+}: Routing.Build.Ctx): string => {
   const uniques: string[] = [
     ...new Set([...routes.map(({ path }) => path), ...globalStatus.map(({ path }) => path)])
   ]
 
   return joinLines([
     ...Object.keys(fileNames.statuses).map(key => {
-      const prop: string = convertStr(key, 'camel')
-      return `export const ${prop} = ${
-        globalStatus.some(({ prop: p }) => p === prop) ? `__${prop}` : 'undefined'
-      }`
+      const prop: string = convertStr(key, 'camel'),
+        status: Routing.GlobalStatuses[number] | undefined = globalStatus.find(
+          ({ prop: p }) => p === prop
+        )
+
+      if (!status) return `export const ${prop} = undefined`
+
+      const { path, serverSrc }: { path: string; serverSrc: string | null } = status
+      return `export const ${prop} = ${joinAndWrap([
+        `module: ${serverSrc === null ? '{}' : `__${prop}`}`,
+        `entry: '${findTopSpaEntry({ routes, spaOwners, areSpaRoot }) ?? toEntry(path)}'`
+      ])}`
     }),
     `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
     `export type FiCsRoutingPath = ${uniques.length === 0 ? 'never' : uniques.map(path => `'${path}'`).join(' | ')}`
