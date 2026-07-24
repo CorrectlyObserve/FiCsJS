@@ -3,33 +3,9 @@ import { RPC_BASE_PATH } from '../constants'
 import type { Routing, Rpc, TypeNode } from '../types'
 import { COMMENT, fileNames, routerImport, segments } from './constants'
 import { buildRoute, getFiles, indent, joinLines, resolveOptions, toSpecifier } from './helpers'
+import { getAllMiddlewares } from './middleware'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
-  getMiddlewares = ({
-    dirs,
-    filePaths,
-    extensions
-  }: {
-    dirs: string[]
-    filePaths: string[]
-    extensions: Routing.Extensions
-  }): string[] => {
-    const middlewares: Map<string, string> = getFiles({
-        filePaths,
-        extensions,
-        expectedType: fileNames.MIDDLEWARE
-      }),
-      chain: string[] = []
-
-    for (let i = dirs.length; i >= 0; i--) {
-      const dir: string = dirs.slice(0, i).join('/'),
-        middleware: string | undefined = middlewares.get(dir)
-
-      if (middleware) chain.push(middleware)
-    }
-
-    return chain.reverse()
-  },
   renderType = ({ alias, children, dynamic }: TypeNode): string => {
     const operands: string[] = []
 
@@ -67,20 +43,25 @@ export const generateRpcs = ({
   if (rpcs.length === 0) return null
 
   const aliases: string[] = rpcs.map((_, index) => `rpc${index}`),
+    mws: Map<string, string> = getFiles({
+      filePaths,
+      extensions,
+      expectedType: fileNames.MIDDLEWARE
+    }),
     root: TypeNode = newNode(),
     manifests: string[] = [],
     mwAliases: Map<string, string> = new Map()
 
   for (const [index, { dirs }] of rpcs.entries()) {
-    const alias: string = aliases[index]
+    const alias: string = aliases[index],
+      _mws: string[] = getAllMiddlewares({ dirs, mws, reverse: true })
 
-    const mws: string[] = getMiddlewares({ dirs, filePaths, extensions })
-    for (const mw of mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
+    for (const mw of _mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
 
     const values: string[] = [`prefix: ${JSON.stringify(buildRoute(dirs))}`, `module: ${alias}`]
-    if (mws.length > 0) {
+    if (_mws.length > 0) {
       const mwsStr: string = joinArray(
-        mws.map(mw => mwAliases.get(mw)!),
+        _mws.map(mw => mwAliases.get(mw)!),
         { space: true, comma: true }
       )
       values.push(`middlewares: [${mwsStr}]`)
