@@ -1,12 +1,13 @@
+import { joinArray } from '../../core/helpers'
 import type { Routing, Rpc } from '../types'
 import { COMMENT, config, ENTRIES_DIR, metaExports, routerImport } from './constants'
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
 import { generateRpcs } from './rpc'
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { dirname, extname, join, relative, resolve } from 'node:path'
 
-const { RPC_CLIENT, RPC_SERVER } = config,
+const { MIDDLEWARE, RPC_CLIENT, RPC_SERVER } = config,
   writeIfChanged = (path: string, content: string): boolean => {
     const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
     if (prevContent === content) return false
@@ -64,5 +65,34 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
     writeIfChanged(join(outputDir, RPC_SERVER), server)
   }
 
-  return writeIfChanged(o, generateRoutes(filePaths, options))
+  const { routeSrc, mwSrc, clientEntries, dirsWithoutSpaEntry }: ReturnType<typeof generateRoutes> =
+    generateRoutes(filePaths, options)
+
+  writeIfChanged(join(outputDir, MIDDLEWARE), mwSrc)
+
+  if (entries) {
+    if (dirsWithoutSpaEntry.length > 0)
+      throw new Error(
+        `There is no "+spa" entry in ${joinArray(dirsWithoutSpaEntry.map(dir => `"${dir || '/'}"`))}`
+      )
+
+    const entriesDir: string = resolve(ENTRIES_DIR)
+
+    rmSync(entriesDir, { force: true, recursive: true })
+    mkdirSync(entriesDir, { recursive: true })
+
+    for (const { name, src } of clientEntries) {
+      const fileName: string = `${name}${extname(src)}`
+
+      writeFileSync(
+        join(entriesDir, fileName),
+        buildClientEntry({
+          specifier: toRelative(join(entriesDir, fileName), join(d, src)),
+          src: readFileSync(join(d, src), 'utf8')
+        })
+      )
+    }
+  }
+
+  return writeIfChanged(o, routeSrc)
 }
