@@ -127,12 +127,11 @@ export const generateImports = ({
   return joinLines(
     [
       dirs.length > 0 ? `import { ficsRouter } from ${routerImport()}` : '',
-      ...uniques.map(src => `import * as ${layoutAlias.get(src)} from ${_toSpecifier(src)}`),
-      ...routes.map(({ specifier }, index) => `import * as route${index} from '${specifier}'`),
+      ...uniques.map(src => `import * as ${getOrThrow(layoutAlias, src)} from ${_toSpecifier(src)}`),
       ...dirs.flatMap(dir => [
-        `import ${configAlias.get(dir)} from ${_toSpecifier(files.get(dir)!)}`,
-        ...Array.from(statuses.get(dir)!.entries()).map(
-          ([prop, src]) => `import * as ${aliases.get(dir)!.get(prop)} from ${_toSpecifier(src)}`
+        `import ${getOrThrow(configAlias, dir)} from ${_toSpecifier(getOrThrow(files, dir))}`,
+        ...Array.from(getOrThrow(statuses, dir).entries()).map(
+          ([prop, src]) => `import * as ${getOrThrow(getOrThrow(aliases, dir), prop)} from ${_toSpecifier(src)}`
         )
       ]),
       ...globalStatus.map(({ prop, src }) => `import * as __${prop} from ${_toSpecifier(src)}`),
@@ -189,7 +188,7 @@ export const generateSpaRouters = ({
       }
 
       const lines: string[] = [
-          `export const ${spaAlias.get(dir)} = ficsRouter(${configAlias.get(dir)}, {`,
+          `export const ${getOrThrow(spaAlias, dir)} = ficsRouter(${getOrThrow(configAlias, dir)}, {`,
           `${indent()}routes: [`,
           joinLines(routeEntries, { comma: true }),
           `${indent()}]`
@@ -201,7 +200,7 @@ export const generateSpaRouters = ({
         lines.push(
           `${indent()}statusModules: {`,
           joinLines(
-            statusKeys.map(key => `${indent(2)}${key}: ${aliases.get(dir)?.get(key)}`),
+            statusKeys.map(key => `${indent(2)}${key}: ${getOrThrow(getOrThrow(aliases, dir), key)}`),
             { comma: true }
           ),
           `${indent()}}`
