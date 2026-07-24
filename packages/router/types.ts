@@ -72,7 +72,7 @@ export declare namespace Routing {
     }
 
     interface Middleware {
-      middlewares: string[]
+      middlewares: string[][]
       uniqueMiddlewares: string[]
       middlewareAlias: Map<string, string>
     }
