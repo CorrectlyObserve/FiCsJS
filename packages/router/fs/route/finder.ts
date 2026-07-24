@@ -69,7 +69,9 @@ export const findClosestDir = (
 
   while (true) {
     if (map.has(dir)) return { key: dir, value: map.get(dir)! }
-    if (dir === '') return null
+
+    const isRootDir: boolean = dir === ''
+    if (isRootDir) return null
 
     const index: number = dir.lastIndexOf('/')
     dir = index === -1 ? '' : dir.slice(0, index)
