@@ -201,7 +201,10 @@ export const generateSpaRouters = ({
         lines.push(
           `${indent()}statusModules: {`,
           joinLines(
-            statusKeys.map(key => `${indent(2)}${key}: ${getOrThrow(getOrThrow(aliases, dir), key)}`),
+            statusKeys.map(key => {
+              const alias: Map<string, string> = getOrThrow(aliases, dir)
+              return `${indent(2)}${key}: ${getOrThrow(alias, key)}`
+            }),
             { comma: true }
           ),
           `${indent()}}`
