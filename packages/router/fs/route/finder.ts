@@ -1,5 +1,65 @@
 import type { Routing } from '../../types'
+import { fileNames } from '../constants'
 import { cleanPath, getDirName, getExt, removeExt } from '../helpers'
+import { toEntry } from './path'
+
+export const findClientEntries = ({
+  routes,
+  filePaths,
+  extensions,
+  spaOwners,
+  areSpaRoot,
+  files,
+  globalStatus
+}: Routing.Build.Query &
+  Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaRoot' | 'files'> &
+  Pick<Routing.Build.Special, 'globalStatus'>): {
+  clientEntries: Routing.ClientEntries
+  dirsWithoutSpaEntry: string[]
+} => {
+  const clientEntries: Routing.ClientEntries = [],
+    seen: Set<string> = new Set(),
+    dirsWithoutSpaEntry: Set<string> = new Set(),
+    push = (name: string, src: string | null): void => {
+      if (src === null || seen.has(name)) return
+
+      seen.add(name)
+      clientEntries.push({ name, src })
+    }
+
+  for (let i = 0; i < routes.length; i++) {
+    const { path, src }: Routing.RouteEntry = routes[i],
+      spaOwner: string | null = spaOwners[i],
+      isSpa: boolean = spaOwner !== null
+
+    /** @remarks Shares the root SPA entry with sub-pages. */
+    if (isSpa && !areSpaRoot[i]) continue
+
+    const fileSrc: string | null = findFileSrc({
+      filePaths,
+      extensions,
+      target: fileNames[isSpa ? 'SPA' : 'PAGE'],
+      dir: spaOwner ?? getDirName(src)
+    })
+
+    if (!isSpa) {
+      push(toEntry(path), fileSrc)
+      continue
+    }
+
+    const hasSpaEntry: boolean = fileSrc !== null
+    if (!hasSpaEntry) dirsWithoutSpaEntry.add(spaOwner!)
+
+    push(toEntry(path), fileSrc)
+  }
+
+  for (const { path, src } of globalStatus) {
+    const isStatusFileOutsideSpa: boolean = findClosestDir(src, files) === null
+    if (isStatusFileOutsideSpa) push(toEntry(path), src)
+  }
+
+  return { clientEntries, dirsWithoutSpaEntry: [...dirsWithoutSpaEntry] }
+}
 
 export const findClosestDir = (
   src: string,
