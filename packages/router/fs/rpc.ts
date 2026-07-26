@@ -63,10 +63,10 @@ export const generateRpcs = ({
     const alias: string = aliases[index],
       mws: string[] = getAllMiddlewares(dirs, middlewareFiles)
 
-    for (const mw of _mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
+    for (const mw of mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
 
     const values: string[] = [`prefix: ${JSON.stringify(buildRoute(dirs))}`, `module: ${alias}`]
-    if (_mws.length > 0)
+    if (mws.length > 0)
       values.push(
         `middlewares: ${joinAndWrap(
           _mws.map(mw => mwAliases.get(mw)!),
