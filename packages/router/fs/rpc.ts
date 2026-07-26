@@ -50,7 +50,7 @@ export const generateRpcs = ({
   if (rpcs.length === 0) return null
 
   const aliases: string[] = rpcs.map((_, index) => `rpc${index}`),
-    mws: Map<string, string> = getFiles({
+    middlewareFiles: Map<string, string> = getFiles({
       filePaths,
       extensions,
       expectedType: fileNames.MIDDLEWARE
