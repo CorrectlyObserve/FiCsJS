@@ -1,6 +1,6 @@
 import type { Rpc } from '../types'
 import { RpcError } from './error'
-import { isBodiless } from './helpers'
+import { isBodiless } from '../helpers'
 
 export const initRpc = <C = unknown>() => ({
   defineProcedure: <I, O>(procedure: Rpc.Procedure<I, O, C>): Rpc.ValidatedProcedure<I, O, C> =>
