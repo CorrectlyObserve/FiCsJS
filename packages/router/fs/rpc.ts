@@ -4,6 +4,7 @@ import { COMMENT, fileNames, routerImport, segments } from './constants'
 import {
   buildRoute,
   getFiles,
+  getOrThrow,
   indent,
   joinAndWrap,
   joinLines,
@@ -69,7 +70,7 @@ export const generateRpcs = ({
     if (mws.length > 0)
       values.push(
         `middlewares: ${joinAndWrap(
-          _mws.map(mw => mwAliases.get(mw)!),
+          mws.map(mw => getOrThrow(mwAliases, mw)),
           { wrapType: '[]' }
         )}`
       )
