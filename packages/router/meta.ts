@@ -36,5 +36,5 @@ export const renderMeta = (meta: Record<string, string>): string => {
     }
   }
 
-  return joinArray(tags, { space: false })
+  return joinArray(tags, { space: false, separator: '' })
 }
