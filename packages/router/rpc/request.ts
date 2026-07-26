@@ -11,10 +11,10 @@ import {
   typedEntries
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
+import { isBodiless } from '../helpers'
 import type { Rpc } from '../types'
 import { RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
-import { isBodiless } from './helpers'
 import { emitMetric } from './metric'
 
 const codeByStatus: Record<number, keyof typeof statusCodes> = Object.fromEntries(
