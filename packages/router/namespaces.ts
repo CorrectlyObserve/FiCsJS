@@ -19,24 +19,6 @@ import type {
   Rpc
 } from './types'
 
-export declare namespace FiCsHost {
-  type Ctx = Routing.Host
-
-  type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
-
-  type Module<C = Record<string, unknown>> = Routing.ServerModule<C>
-
-  type Options<C = Record<string, unknown>> = Routing.Options.Register<C>
-
-  type RedirectFn = Routing.RedirectFn
-
-  type Redirects = Routing.Redirects
-
-  type Render = Routing.Render
-
-  type Route<C = Record<string, unknown>> = Routing.ServerRoute<C>
-}
-
 export declare namespace FiCsLink {
   type Actions<P> = Action.Handlers<{}, P> | undefined
 
@@ -53,6 +35,22 @@ export declare namespace FiCsLink {
   type Href<P> = (({ props }: { props: P }) => string) | string
 
   type Props<P> = SingleOrArray<_Props<{}, P>> | undefined
+}
+
+export declare namespace FiCsPage {
+  type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
+
+  type Module<C = Record<string, unknown>> = Routing.ServerModule<C>
+
+  type Options<C = Record<string, unknown>> = Routing.Options.Pages<C>
+
+  type RedirectFn = Routing.RedirectFn
+
+  type Redirects = Routing.Redirects
+
+  type Render = Routing.Render
+
+  type Route<C = Record<string, unknown>> = Routing.ServerRoute<C>
 }
 
 export declare namespace FiCsRouter {
