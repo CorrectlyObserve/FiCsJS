@@ -281,7 +281,7 @@ export const generateMiddleware = ({
           const chain: string[] = middlewares[index]
           return chain.length === 0
             ? ''
-            : `${indent()}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })},`
+            : `${indent()}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })}`
         })
         .filter(Boolean),
       { comma: true }
