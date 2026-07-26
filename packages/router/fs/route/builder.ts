@@ -82,10 +82,10 @@ export const buildMiddleware = ({
       expectedType: fileNames.MIDDLEWARE
     }),
     middlewares: string[][] = routes.map(({ src }, index) =>
-      getAllMiddlewares({
-        dirs: (spaOwners[index] ?? getDirName(src)).split('/').filter(Boolean),
-        mws
-      })
+      getAllMiddlewares(
+        (spaOwners[index] ?? getDirName(src)).split('/').filter(Boolean),
+        middlewareFiles
+      )
     ),
     uniqueMiddlewares: string[] = [...new Set(middlewares.flat())]
 
