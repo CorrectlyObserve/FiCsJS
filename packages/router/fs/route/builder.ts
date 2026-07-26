@@ -76,7 +76,7 @@ export const buildMiddleware = ({
   files
 }: Routing.Build.Query &
   Pick<Routing.Build.Spa, 'spaOwners' | 'files'>): Routing.Build.Middleware => {
-  const mws: Map<string, string> = getFiles({
+  const middlewareFiles: Map<string, string> = getFiles({
       filePaths,
       extensions,
       expectedType: fileNames.MIDDLEWARE
@@ -89,7 +89,7 @@ export const buildMiddleware = ({
     ),
     uniqueMiddlewares: string[] = [...new Set(middlewares.flat())]
 
-  for (const [dir, src] of mws) {
+  for (const [dir, src] of middlewareFiles) {
     const spaOwner: string | null = findClosestDir(src, files)?.key ?? null,
       isMpa: boolean = spaOwner === null,
       isSpaRoot: boolean = spaOwner === dir
