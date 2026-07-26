@@ -61,7 +61,7 @@ export const generateRpcs = ({
 
   for (const [index, { dirs }] of rpcs.entries()) {
     const alias: string = aliases[index],
-      _mws: string[] = getAllMiddlewares({ dirs, mws, reverse: true })
+      mws: string[] = getAllMiddlewares(dirs, middlewareFiles)
 
     for (const mw of _mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
 
