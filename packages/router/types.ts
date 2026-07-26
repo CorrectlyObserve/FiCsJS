@@ -172,7 +172,7 @@ export declare namespace Routing {
     }
   }
 
-  interface Redirect {
+  interface RedirectCtx {
     pathname: string
     redirectMap: ReadonlyMap<string, string>
     redirectFn?: RedirectFn
