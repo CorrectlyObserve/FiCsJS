@@ -143,9 +143,9 @@ export declare namespace Routing {
   type Middleware<C = Record<string, unknown>> = (ctx: MiddlewareCtx<C>) => Awaitable<void | Denial>
 
   type MiddlewareCtx<C = Record<string, unknown>> = C & {
-    req: unknown
+    req: Request
     dynamicParams: Record<string, string>
-    deny: ({ redirect }: { redirect?: string }) => Denial
+    deny: (ctx?: Partial<Denial>) => Denial
     signal?: AbortSignal
   }
 
