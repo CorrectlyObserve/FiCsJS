@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import type { SetTimeout } from '../../core/types'
 import { RPC_BASE_PATH } from '../constants'
 import type { Routing } from '../types'
 import { configRoutes } from './config'
