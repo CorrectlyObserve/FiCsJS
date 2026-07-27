@@ -3,6 +3,7 @@ import {
   CONTENT_TYPE,
   delay,
   getDelayMs,
+  isClientTermination,
   isObject,
   MAX_RETRIES,
   numberError,
