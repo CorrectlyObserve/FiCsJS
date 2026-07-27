@@ -109,8 +109,7 @@ export const shouldRetry = ({
   numberError({ attempt }, 'positive-int')
   numberError({ maxRetries }, 'non-negative-int')
 
-  const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
-  if (isIntentional || signal?.aborted || attempt > maxRetries) return false
+  if (isClientTermination(error) || signal?.aborted || attempt > maxRetries) return false
 
   if (error instanceof Response) {
     const { status }: { status: number } = error
