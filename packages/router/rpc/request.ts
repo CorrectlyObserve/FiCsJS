@@ -89,7 +89,7 @@ export const request = async ({
           controller.abort(
             new DOMException(
               `The RPC "${path}" timed out after ${timeoutMs}ms in the ${method} method...`,
-              'AbortError'
+              'TimeoutError'
             )
           ),
         timeoutMs
