@@ -4,16 +4,15 @@ import type { Routing } from './types'
 
 const { BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, UNAUTHORIZED } = statusCodes
 
-export const deny = ({ redirect }: { redirect?: string }): Routing.Denial => {
-  const status: number = redirect ? UNAUTHORIZED : FORBIDDEN,
-    code: string = 'middleware denial code'
+export const deny = ({ code, redirect }: Partial<Routing.Denial> = {}): Routing.Denial => {
+  const _code: number = code ?? (redirect ? UNAUTHORIZED : FORBIDDEN)
 
   numberError({ [code]: status }, 'int')
 
   if (status < BAD_REQUEST || status >= INTERNAL_SERVER_ERROR)
     throw new Error(`The ${code} ${status} must be an HTTP 4xx status...`)
 
-  return { code: 'DENIED', status, ...(redirect ? { redirect } : {}) }
+  return { code: _code, ...(redirect ? { redirect } : {}) }
 }
 
 export const resolveMiddlewares = async <C>(
