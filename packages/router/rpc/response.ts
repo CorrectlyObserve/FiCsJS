@@ -1,31 +1,25 @@
 import { APPLICATION_JSON, CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { isHeadMethod } from '../helpers'
-import type { Rpc } from '../types'
+import type { Routing, Rpc } from '../types'
 import { CONTENT_LENGTH, DEFAULT_ERRORS, metricReasons } from './constants'
 import { getByteLength } from './helpers'
 import { emitMetric } from './metric'
 import { RpcError } from './error'
 
 export const denialResponse = ({
-  status,
+  code,
   method,
   redirect
-}: {
-  status: number
-  method: Rpc.Method
-  redirect?: string
-}): Response => {
+}: Routing.Denial & { method: Rpc.Method }): Response => {
   const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON }),
     /** @remarks The key `error` is for the toRpcError function. */
-    serialized: string = JSON.stringify({
-      error: { status, ...(redirect ? { redirect } : {}) }
-    }),
+    serialized: string = JSON.stringify({ error: { code, ...(redirect ? { redirect } : {}) } }),
     _isHeadMethod: boolean = isHeadMethod(method)
 
   if (_isHeadMethod) headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
 
-  return new Response(_isHeadMethod ? null : serialized, { status, headers })
+  return new Response(_isHeadMethod ? null : serialized, { status: code, headers })
 }
 
 export const errorResponse = <C = unknown>({
