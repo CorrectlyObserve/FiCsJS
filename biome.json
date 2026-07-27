@@ -26,6 +26,6 @@
     "enabled": false
   },
   "files": {
-    "includes": ["**", "!**/*.md", "!**/*.css", "!bun.lock"]
+    "includes": ["**", "!**/*.md", "!**/*.css"]
   }
 }
