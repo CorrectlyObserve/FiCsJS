@@ -11,6 +11,7 @@ import {
   shouldRetry,
   typedEntries
 } from '../../core/helpers'
+import type { SetTimeout } from '../../core/types'
 import { statusCodes } from '../constants'
 import { isBodiless } from '../helpers'
 import type { Rpc } from '../types'
@@ -81,7 +82,7 @@ export const request = async ({
         cleanups.push(() => signal!.removeEventListener('abort', onAbort))
       }
 
-    let timer: ReturnType<typeof setTimeout> | undefined
+    let timer: SetTimeout | undefined
     if (timeoutMs && timeoutMs > 0)
       timer = setTimeout(
         () =>
