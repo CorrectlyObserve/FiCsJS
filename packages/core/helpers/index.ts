@@ -2,7 +2,7 @@ import { APPLICATION_JSON, CONTENT_TYPE, constants } from './constants'
 export const {
   MAX_DELAY_MS,
   MAX_RETRIES,
-  statusCode: { BAD_REQUEST, INTERNAL_SERVER_ERROR }
+  statusCode: { BAD_REQUEST, INTERNAL_SERVER_ERROR, REQUEST_TIMEOUT, TOO_MANY_REQUESTS }
 } = constants
 export { APPLICATION_JSON, CONTENT_TYPE }
 
