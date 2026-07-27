@@ -67,6 +67,9 @@ export const getDelayMs = ({
   return Math.floor(fractionalMs)
 }
 
+export const isClientTermination = (error: unknown): boolean =>
+  error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError')
+
 const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
 
