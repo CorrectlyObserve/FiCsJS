@@ -64,7 +64,7 @@ export const crud = async <T>({
             controller.abort(
               new DOMException(
                 `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`,
-                'AbortError'
+                'TimeoutError'
               )
             ),
           timeoutMs
