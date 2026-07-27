@@ -1,4 +1,9 @@
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '../core/helpers'
+import {
+  BAD_REQUEST,
+  INTERNAL_SERVER_ERROR,
+  REQUEST_TIMEOUT,
+  TOO_MANY_REQUESTS
+} from '../core/helpers'
 
 export const FICS_NAVIGATE = 'fics:navigate' as const
 
@@ -15,5 +20,7 @@ export const statusCodes = {
   OK: 200,
   PAYLOAD_TOO_LARGE: 413,
   REDIRECT: 302,
+  REQUEST_TIMEOUT,
+  TOO_MANY_REQUESTS,
   UNAUTHORIZED: 401
 } as const
