@@ -140,7 +140,7 @@ export const optimisticUpdate = () => {
                       controller.abort(
                         new DOMException(
                           `Optimistic update timed out in the ${name}...`,
-                          'AbortError'
+                          'TimeoutError'
                         )
                       ),
                     timeoutMs
