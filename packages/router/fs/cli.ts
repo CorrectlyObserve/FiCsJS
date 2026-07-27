@@ -3,8 +3,9 @@ import type { SetTimeout } from '../../core/types'
 import { RPC_BASE_PATH } from '../constants'
 import type { Routing } from '../types'
 import { configRoutes } from './config'
-import { config, exitCodes } from './constants'
-import { indent, joinLines } from './helpers'
+import { config, DEBOUNCE_DELAY_MS, exitCodes } from './constants'
+import { indent, joinLines, toAbsolute } from './helpers'
+import { watch as watchDir } from 'node:fs'
 
 /** @remarks Removes the runtime and script paths. */
 const args: string[] = process.argv.slice(2),
@@ -19,6 +20,7 @@ const args: string[] = process.argv.slice(2),
     `${indent()}--output <path>    File to write the generated module to (default: ${config.OUTPUT})`,
     `${indent()}--basePath <path>  RPC URL prefix baked into the client & handler (default: ${RPC_BASE_PATH})`,
     `${indent()}--entries          Emit client entry stubs to build without Vite`,
+    `${indent()}--watch            Regenerate on any change under the pages directory`,
     `${indent()}-h, --help         Show this help and exit`
   ]),
   die = (message: string): never => {
@@ -26,6 +28,8 @@ const args: string[] = process.argv.slice(2),
     process.exit(exitCodes.FAILURE)
   },
   options: Omit<Routing.Config, 'pageFile' | 'extensions'> = {}
+
+let watch: boolean = false
 
 for (let i = 0; i < args.length; ) {
   const raw: string = args[i]
@@ -38,10 +42,12 @@ for (let i = 0; i < args.length; ) {
     hasEqual: boolean = equal >= 0,
     flag: string = hasEqual ? raw.slice(0, equal) : raw
 
-  if (flag === '--entries') {
+  if (flag === '--entries' || flag === '--watch') {
     if (hasEqual) die(`The flag "${flag}" takes no value...`)
 
-    options.entries = true
+    if (flag === '--entries') options.entries = true
+    else watch = true
+
     i++
     continue
   }
@@ -72,4 +78,22 @@ try {
   configRoutes(options)
 } catch (error) {
   die((error as Error).message)
+}
+
+if (watch) {
+  const { dir }: { dir: string } = toAbsolute({ dir: options.dir })
+  process.stdout.write(`fics-routes: watching "${dir}" for changes\n`)
+
+  /** @remarks needs Node >= 22 for the recursive option. */
+  let timer: SetTimeout | undefined
+  watchDir(dir, { recursive: true }, (): void => {
+    clearTimeout(timer)
+    timer = setTimeout((): void => {
+      try {
+        configRoutes(options)
+      } catch (error) {
+        process.stderr.write(`fics-routes: ${(error as Error).message}\n`)
+      }
+    }, DEBOUNCE_DELAY_MS)
+  })
 }
