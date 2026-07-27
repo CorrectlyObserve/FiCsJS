@@ -198,9 +198,9 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
     })
   }
 
-  const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
+  const name: string | undefined = isClientTermination(error) ? (error as DOMException).name : undefined
   return new RpcError({
-    code: isIntentional ? 'ABORTED' : 'NETWORK',
+    code: name === 'AbortError' ? 'ABORTED' : name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
     message: error instanceof Error ? error.message : String(error),
     expose: false
   })
