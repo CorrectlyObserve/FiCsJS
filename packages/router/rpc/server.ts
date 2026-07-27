@@ -5,7 +5,7 @@ import {
   numberError,
   removeTrailingSlash
 } from '../../core/helpers'
-import { RPC_BASE_PATH, statusCodes } from '../constants'
+import { RPC_BASE_PATH } from '../constants'
 import { dynamicPathToRegex, getDynamicPaths } from '../dynamicPaths'
 import { hasMethod, isBodiless, isDynamicPath, prependSlash } from '../helpers'
 import { deny, resolveMiddlewares } from '../middleware'
@@ -111,7 +111,7 @@ export const createRpcHandler = <C = unknown>(
       const denial: Routing.Denial | undefined = await resolveMiddlewares(middlewares, ctx)
       if (denial)
         return denialResponse({
-          status: denial.status ?? statusCodes.FORBIDDEN,
+          code: denial.code,
           redirect: denial.redirect,
           method: method as Rpc.Method
         })
