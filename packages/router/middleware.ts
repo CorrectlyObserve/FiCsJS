@@ -7,10 +7,10 @@ const { BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, UNAUTHORIZED } = statusCo
 export const deny = ({ code, redirect }: Partial<Routing.Denial> = {}): Routing.Denial => {
   const _code: number = code ?? (redirect ? UNAUTHORIZED : FORBIDDEN)
 
-  numberError({ [code]: status }, 'int')
+  numberError({ 'middleware denial code': _code }, 'int')
 
-  if (status < BAD_REQUEST || status >= INTERNAL_SERVER_ERROR)
-    throw new Error(`The ${code} ${status} must be an HTTP 4xx status...`)
+  if (_code < BAD_REQUEST || _code >= INTERNAL_SERVER_ERROR)
+    throw new Error(`The middleware denial code ${_code} must be an HTTP 4xx status code...`)
 
   return { code: _code, ...(redirect ? { redirect } : {}) }
 }
