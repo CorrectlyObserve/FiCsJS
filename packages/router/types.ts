@@ -114,8 +114,7 @@ export declare namespace Routing {
   }
 
   interface Denial {
-    code: string
-    status?: number
+    code: number
     redirect?: string
   }
 
@@ -252,9 +251,8 @@ export declare namespace Rpc {
   } & C
 
   interface ErrorInit {
-    code: string
+    code: string | number
     message: string
-    status?: number
     expose?: boolean
     redirect?: string
   }
