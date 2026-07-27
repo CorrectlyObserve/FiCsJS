@@ -9,6 +9,8 @@ export const config = {
   RPC_SERVER: 'rpc.server.gen.ts'
 } as const
 
+export const DEBOUNCE_DELAY_MS = 50 as const
+
 export const ENTRIES_DIR = '.fics/routing-entries' as const
 
 export const exitCodes = { SUCCESS: 0, FAILURE: 1 } as const
