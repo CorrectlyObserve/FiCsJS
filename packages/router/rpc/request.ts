@@ -195,7 +195,6 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
     return new RpcError({
       code: code ?? 'INTERNAL_SERVER_ERROR',
       message,
-      status: code ? error.status : statusCodes.INTERNAL_SERVER_ERROR,
       redirect
     })
   }
