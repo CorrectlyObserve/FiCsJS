@@ -4,6 +4,7 @@ import {
   delay,
   getDelayMs,
   MAX_RETRIES,
+  NO_CONTENT,
   numberError,
   shouldRetry
 } from './helpers'
@@ -103,7 +104,6 @@ export const crud = async <T>({
       }
     })()
 
-    const NO_CONTENT = 204 as const
     if (res.status === NO_CONTENT) return
 
     const contentType: string = res.headers.get(CONTENT_TYPE)?.toLowerCase() ?? '',
