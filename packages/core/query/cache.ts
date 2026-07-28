@@ -7,6 +7,7 @@ import {
   MAX_RETRIES,
   NOOP,
   numberError,
+  onAbort,
   shouldRetry,
   typedEntries,
   watch
@@ -472,14 +473,7 @@ export class QueryCache {
       ) as D[keyof D]
     })
 
-    if (!signal) return
-
-    if (signal.aborted) {
-      unsubscribe()
-      return
-    }
-
-    signal.addEventListener('abort', unsubscribe, { once: true })
+    if (signal) onAbort(signal, unsubscribe)
   }
 
   async optimisticUpdate<T = unknown>({
