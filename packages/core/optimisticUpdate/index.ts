@@ -1,5 +1,13 @@
-import { delay, getDelayMs, MAX_RETRIES, numberError, shouldRetry } from '../helpers'
-import type { Optimistic, SetTimeout } from '../types'
+import {
+  delay,
+  forwardAbort,
+  getDelayMs,
+  MAX_RETRIES,
+  numberError,
+  scheduleAbort,
+  shouldRetry
+} from '../helpers'
+import type { Optimistic } from '../types'
 import { createBackup, getDataKeys, hasDataKeys } from './helpers'
 
 /**
@@ -67,19 +75,8 @@ export const optimisticUpdate = () => {
       try {
         const controller: AbortController = new AbortController()
 
-        const registerAbort = (source: AbortSignal): (() => void) => {
-          if (source.aborted) {
-            controller.abort(source.reason)
-            return () => {}
-          }
-          const listener = (): void => controller.abort(source.reason)
-
-          source.addEventListener('abort', listener, { once: true })
-          return () => source.removeEventListener('abort', listener)
-        }
-
-        const signals: (() => void)[] = [registerAbort(signal)]
-        if (externalSignal) signals.push(registerAbort(externalSignal))
+        const signals: (() => void)[] = [forwardAbort(controller, signal)]
+        if (externalSignal) signals.push(forwardAbort(controller, externalSignal))
 
         try {
           if (controller.signal.aborted)
@@ -133,23 +130,16 @@ export const optimisticUpdate = () => {
               let error: unknown
 
               try {
-                let timer: SetTimeout | undefined
-                if (timeoutMs && timeoutMs > 0)
-                  timer = setTimeout(
-                    () =>
-                      controller.abort(
-                        new DOMException(
-                          `Optimistic update timed out in the ${name}...`,
-                          'TimeoutError'
-                        )
-                      ),
-                    timeoutMs
-                  )
+                const clearTimer: () => void = scheduleAbort({
+                  controller,
+                  timeoutMs,
+                  message: `Optimistic update timed out in the ${name}...`
+                })
 
                 try {
                   return await mutate({ signal: controller.signal, attempt })
                 } finally {
-                  if (timer) clearTimeout(timer)
+                  clearTimer()
                 }
               } catch (_error) {
                 error = _error
