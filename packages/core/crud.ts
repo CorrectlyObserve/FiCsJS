@@ -2,13 +2,15 @@ import {
   APPLICATION_JSON,
   CONTENT_TYPE,
   delay,
+  forwardAbort,
   getDelayMs,
   MAX_RETRIES,
   NO_CONTENT,
   numberError,
+  scheduleAbort,
   shouldRetry
 } from './helpers'
-import type { Crud, SetTimeout } from './types'
+import type { Crud } from './types'
 
 /**
  * @param options.timeoutMs Must be a non-negative integer if it is a number.
@@ -49,27 +51,13 @@ export const crud = async <T>({
       const controller: AbortController = new AbortController(),
         cleanups: (() => void)[] = []
 
-      if (signal)
-        if (signal.aborted) controller.abort(signal.reason)
-        else {
-          const onAbort = (): void => controller.abort(signal.reason)
+      if (signal) cleanups.push(forwardAbort(controller, signal))
 
-          signal.addEventListener('abort', onAbort, { once: true })
-          cleanups.push(() => signal.removeEventListener('abort', onAbort))
-        }
-
-      let timer: SetTimeout | undefined
-      if (timeoutMs && timeoutMs > 0)
-        timer = setTimeout(
-          () =>
-            controller.abort(
-              new DOMException(
-                `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`,
-                'TimeoutError'
-              )
-            ),
-          timeoutMs
-        )
+      const clearTimer: () => void = scheduleAbort({
+        controller,
+        timeoutMs,
+        message: `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`
+      })
 
       try {
         const res: Response = await fetch(endpoint, { ...args, signal: controller.signal })
@@ -78,7 +66,7 @@ export const crud = async <T>({
 
         return res
       } finally {
-        if (timer) clearTimeout(timer)
+        clearTimer()
         for (const cleanup of cleanups) cleanup()
       }
     }
