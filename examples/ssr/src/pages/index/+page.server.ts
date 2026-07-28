@@ -16,7 +16,6 @@ export default async ({ queryCache }: { queryCache: QueryCache }): Promise<strin
 
   return `
     ${Link.toString({ data: { href: '/scroll', text: 'Go to the scroll page' } })}
-    ${Link.toString({ data: { href: '/admin', text: 'Go to the admin area (sign in required)' } })}
     ${Users.toString({ data: { users } })}
     ${ChatButton.toString()}
   `
