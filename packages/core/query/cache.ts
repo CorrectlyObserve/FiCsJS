@@ -5,6 +5,7 @@ import {
   isObject,
   MAX_DELAY_MS,
   MAX_RETRIES,
+  NOOP,
   numberError,
   shouldRetry,
   typedEntries,
@@ -453,7 +454,7 @@ export class QueryCache {
       key: Query.Key,
       listener: (state: Query.State<T>) => void
     ): (() => void) => {
-      if (this.#isDestroyed) return () => {}
+      if (this.#isDestroyed) return NOOP
 
       const entry: Query.Entry = this.#getEntry(key),
         _listener: Query.Listener = (_: string, state: Query.State<unknown>) =>
@@ -500,10 +501,7 @@ export class QueryCache {
       this.#emitMetric({ type: 'optimistic:enqueue', key })
 
       try {
-        await watch(
-          lastOptimisticTask.catch(() => {}),
-          signal
-        )
+        await watch(lastOptimisticTask.catch(NOOP), signal)
       } catch (error) {
         resolve()
         if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined
