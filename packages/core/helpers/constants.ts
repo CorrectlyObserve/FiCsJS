@@ -13,3 +13,5 @@ export const constants = {
     TOO_MANY_REQUESTS: 429
   }
 } as const
+
+export const NOOP: () => void = () => {}
