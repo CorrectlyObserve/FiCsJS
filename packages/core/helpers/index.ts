@@ -6,6 +6,7 @@ export const {
 } = constants
 export { APPLICATION_JSON, CONTENT_TYPE, NOOP }
 
+export { forwardAbort, isClientTermination, onAbort, scheduleAbort } from './abort'
 export { browserError, isBrowser } from './browser'
 export { deepEqual } from './deepEqual'
 export { numberError } from './numberError'
@@ -21,5 +22,5 @@ export {
   typedEntries,
   uid
 } from './others'
-export { delay, getDelayMs, isClientTermination, shouldRetry, watch } from './retry'
+export { delay, getDelayMs, shouldRetry, watch } from './retry'
 export { isBlankString, isEmptyObject, isObject, isPlainObject } from './typeCheck'
