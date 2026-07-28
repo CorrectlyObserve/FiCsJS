@@ -1,4 +1,5 @@
 import type { SetTimeout } from '../types'
+import { isClientTermination } from './abort'
 import { constants } from './constants'
 import { numberError } from './numberError'
 
@@ -33,6 +34,7 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
     signal?.addEventListener('abort', onAbort, { once: true })
   })
 }
+
 /**
  * @param attempt Must be a positive integer.
  * @param intervalMs Must be a non-negative integer if it is a number.
@@ -66,9 +68,6 @@ export const getDelayMs = ({
 
   return Math.floor(fractionalMs)
 }
-
-export const isClientTermination = (error: unknown): boolean =>
-  error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError')
 
 const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
