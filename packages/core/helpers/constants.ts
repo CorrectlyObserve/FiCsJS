@@ -9,6 +9,7 @@ export const constants = {
   statusCode: {
     BAD_REQUEST: 400,
     INTERNAL_SERVER_ERROR: 500,
+    NO_CONTENT: 204,
     REQUEST_TIMEOUT: 408,
     TOO_MANY_REQUESTS: 429
   }
