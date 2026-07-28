@@ -5,13 +5,14 @@ import {
   getDelayMs,
   isClientTermination,
   isObject,
+  forwardAbort,
   MAX_RETRIES,
   numberError,
   removeTrailingSlash,
+  scheduleAbort,
   shouldRetry,
   typedEntries
 } from '../../core/helpers'
-import type { SetTimeout } from '../../core/types'
 import { statusCodes } from '../constants'
 import { isBodiless } from '../helpers'
 import type { Rpc } from '../types'
@@ -74,26 +75,13 @@ export const request = async ({
       controller: AbortController = new AbortController(),
       cleanups: (() => void)[] = []
 
-    if (signal)
-      if (signal.aborted) controller.abort(signal.reason)
-      else {
-        const onAbort = (): void => controller.abort(signal!.reason)
-        signal.addEventListener('abort', onAbort, { once: true })
-        cleanups.push(() => signal!.removeEventListener('abort', onAbort))
-      }
+    if (signal) cleanups.push(forwardAbort(controller, signal))
 
-    let timer: SetTimeout | undefined
-    if (timeoutMs && timeoutMs > 0)
-      timer = setTimeout(
-        () =>
-          controller.abort(
-            new DOMException(
-              `The RPC "${path}" timed out after ${timeoutMs}ms in the ${method} method...`,
-              'TimeoutError'
-            )
-          ),
-        timeoutMs
-      )
+    const clearTimer: () => void = scheduleAbort({
+      controller,
+      timeoutMs,
+      message: `The RPC "${path}" timed out after ${timeoutMs}ms in the ${method} method...`
+    })
 
     emitMetric(onMetric, { type: 'request:start', path, method, attempt })
 
@@ -119,7 +107,7 @@ export const request = async ({
     } catch (_error) {
       error = _error
     } finally {
-      if (timer) clearTimeout(timer)
+      clearTimer()
       for (const cleanup of cleanups) cleanup()
     }
 
@@ -199,7 +187,9 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
     })
   }
 
-  const name: string | undefined = isClientTermination(error) ? (error as DOMException).name : undefined
+  const name: string | undefined = isClientTermination(error)
+    ? (error as DOMException).name
+    : undefined
   return new RpcError({
     code: name === 'AbortError' ? 'ABORTED' : name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
     message: error instanceof Error ? error.message : String(error),
