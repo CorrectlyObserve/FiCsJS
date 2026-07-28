@@ -1,5 +1,5 @@
 import { FiCsElement } from '../core/class'
-import { normalizePath } from '../core/helpers'
+import { normalizePath, NOOP } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
 import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, dynamicRegex, getDynamicPaths } from './dynamicPaths'
@@ -71,7 +71,7 @@ export const ficsRouter = <D extends object>(
       .filter(({ redirect }) => typeof redirect === 'string')
       .map(({ path, redirect }) => [normalizePath(path), redirect!])
   )
-  let removeEventListeners: () => void = () => {}
+  let removeEventListeners: () => void = NOOP
 
   return new FiCsElement<RouterData<D>, {}>({
     name: 'router',
