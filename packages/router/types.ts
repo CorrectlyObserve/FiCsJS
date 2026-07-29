@@ -251,8 +251,9 @@ export declare namespace Rpc {
   } & C
 
   interface ErrorInit {
-    code: string | number
+    code: string
     message: string
+    denied?: boolean
     expose?: boolean
     redirect?: string
   }
