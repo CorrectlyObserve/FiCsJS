@@ -7,13 +7,14 @@ import { config, DEBOUNCE_DELAY_MS, exitCodes } from './constants'
 import { indent, joinLines, toAbsolute } from './helpers'
 import { watch as watchDir } from 'node:fs'
 
-/** @remarks Removes the runtime and script paths. */
-const args: string[] = process.argv.slice(2),
+const { TOOL_NAME } = config,
+  /** @remarks Removes the runtime and script paths. */
+  args: string[] = process.argv.slice(2),
   help: string = joinLines([
-    'fics-routes — generate routes.gen.ts from a file-based pages directory',
+    `${TOOL_NAME} — generate the client/server barrels from a file-based pages directory`,
     '',
     'Usage:',
-    `${indent()}fics-routes [options]`,
+    `${indent()}${TOOL_NAME} [options]`,
     '',
     'Options:',
     `${indent()}--dir <path>       Pages directory to scan (default: ${config.DIR})`,
@@ -24,7 +25,7 @@ const args: string[] = process.argv.slice(2),
     `${indent()}-h, --help         Show this help and exit`
   ]),
   die = (message: string): never => {
-    process.stderr.write(`fics-routes: ${message}\n`)
+    process.stderr.write(`${TOOL_NAME}: ${message}\n`)
     process.exit(exitCodes.FAILURE)
   },
   options: Omit<Routing.Config, 'pageFile' | 'extensions'> = {}
@@ -82,7 +83,7 @@ try {
 
 if (watch) {
   const { dir }: { dir: string } = toAbsolute({ dir: options.dir })
-  process.stdout.write(`fics-routes: watching "${dir}" for changes\n`)
+  process.stdout.write(`${TOOL_NAME}: watching "${dir}" for changes\n`)
 
   /** @remarks needs Node >= 22 for the recursive option. */
   let timer: SetTimeout | undefined
@@ -92,7 +93,7 @@ if (watch) {
       try {
         configRoutes(options)
       } catch (error) {
-        process.stderr.write(`fics-routes: ${(error as Error).message}\n`)
+        process.stderr.write(`${TOOL_NAME}: ${(error as Error).message}\n`)
       }
     }, DEBOUNCE_DELAY_MS)
   })
