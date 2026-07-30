@@ -121,8 +121,8 @@ export const shouldRetry = ({
     return status >= INTERNAL_SERVER_ERROR
   }
 
-  const isNetworkError: boolean = error instanceof TypeError
-  return isNetworkError
+  /** @remarks Only idempotent requests should be retried on network error, as it can't be proven pre-send. */
+  return !!isIdempotent && error instanceof TypeError
 }
 
 export const watch = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> =>
