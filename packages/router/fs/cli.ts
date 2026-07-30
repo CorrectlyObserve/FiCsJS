@@ -7,7 +7,7 @@ import { config, DEBOUNCE_DELAY_MS, exitCodes } from './constants'
 import { indent, joinLines, toAbsolute } from './helpers'
 import { watch as watchDir } from 'node:fs'
 
-const { TOOL_NAME } = config,
+const { OUTPUT, SCANNED_DIR, TOOL_NAME } = config,
   /** @remarks Removes the runtime and script paths. */
   args: string[] = process.argv.slice(2),
   help: string = joinLines([
@@ -17,8 +17,8 @@ const { TOOL_NAME } = config,
     `${indent()}${TOOL_NAME} [options]`,
     '',
     'Options:',
-    `${indent()}--dir <path>       Pages directory to scan (default: ${config.DIR})`,
-    `${indent()}--output <path>    File to write the generated module to (default: ${config.OUTPUT})`,
+    `${indent()}--dir <path>       Pages directory to scan (default: ${SCANNED_DIR})`,
+    `${indent()}--output <path>    Directory to write the generated barrels to (default: ${OUTPUT})`,
     `${indent()}--basePath <path>  RPC URL prefix baked into the client & handler (default: ${RPC_BASE_PATH})`,
     `${indent()}--entries          Emit client entry stubs to build without Vite`,
     `${indent()}--watch            Regenerate on any change under the pages directory`,
