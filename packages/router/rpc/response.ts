@@ -2,7 +2,13 @@ import { APPLICATION_JSON, CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { isHeadMethod } from '../helpers'
 import type { Routing, Rpc } from '../types'
-import { CONTENT_LENGTH, DEFAULT_ERRORS, metricReasons } from './constants'
+import {
+  CONTENT_LENGTH,
+  DEFAULT_ERRORS,
+  DENIED_HEADER,
+  metricReasons,
+  REDIRECT_HEADER
+} from './constants'
 import { getByteLength } from './helpers'
 import { emitMetric } from './metric'
 import { RpcError } from './error'
@@ -12,9 +18,13 @@ export const denialResponse = ({
   method,
   redirect
 }: Routing.Denial & { method: Rpc.Method }): Response => {
-  const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON }),
-    /** @remarks The key `error` is for the toRpcError function. */
-    serialized: string = JSON.stringify({ error: { code, ...(redirect ? { redirect } : {}) } }),
+  const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON, [DENIED_HEADER]: '1' })
+  if (redirect) headers.set(REDIRECT_HEADER, redirect)
+
+  /** @remarks The key `error` is for the toRpcError function. */
+  const serialized: string = JSON.stringify({
+      error: { denied: true, ...(redirect ? { redirect } : {}) }
+    }),
     _isHeadMethod: boolean = isHeadMethod(method)
 
   if (_isHeadMethod) headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
