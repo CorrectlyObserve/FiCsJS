@@ -1,6 +1,6 @@
 import { joinArray, removeTrailingSlash } from '../../core/helpers'
 import type { Routing } from '../types'
-import { BASE_DIR, config, EXTENSIONS, fileNames, segments } from './constants'
+import { config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, MIDDLEWARE, PAGE, RPC, SPA_CONFIG } = fileNames
@@ -116,7 +116,7 @@ export const removeExt = (file: string): string => {
 export const resolveOptions = (
   options?: Routing.Options.Generate
 ): Required<Pick<Routing.Options.Generate, 'baseDir' | 'extensions'>> => ({
-  baseDir: options?.baseDir ?? BASE_DIR,
+  baseDir: options?.baseDir ?? config.IMPORT_BASE,
   extensions: options?.extensions ?? EXTENSIONS
 })
 
@@ -130,7 +130,7 @@ export const toAbsolute = <T extends Record<string, string | undefined>>(
 
     switch (key) {
       case 'dir':
-        result[key] = resolve(value || config.DIR)
+        result[key] = resolve(value || config.SCANNED_DIR)
         break
 
       case 'output':
