@@ -4,6 +4,7 @@ import {
   delay,
   forwardAbort,
   getDelayMs,
+  isIdempotentMethod,
   MAX_RETRIES,
   NO_CONTENT,
   numberError,
