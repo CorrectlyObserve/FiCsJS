@@ -59,6 +59,7 @@ export declare namespace Crud {
     timeoutMs?: number
     intervalMs?: number
     maxRetries?: number
+    idempotent?: boolean
     signal?: AbortSignal
   }
 
