@@ -30,6 +30,7 @@ export const crud = async <T>({
       timeoutMs,
       intervalMs,
       maxRetries = MAX_RETRIES,
+      idempotent,
       signal,
       ...args
     }: Crud.Options = options ?? {},
@@ -77,7 +78,15 @@ export const crud = async <T>({
         } catch (error) {
           attempt++
 
-          if (!shouldRetry({ error, attempt, maxRetries, signal }))
+          if (
+            !shouldRetry({
+              error,
+              attempt,
+              maxRetries,
+              isIdempotent: isIdempotentMethod(method) || idempotent === true,
+              signal
+            })
+          )
             throw new Error(`The ${method} request to "${endpoint}" failed in the ${name}...`, {
               cause: error
             })
