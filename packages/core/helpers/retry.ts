@@ -101,11 +101,13 @@ export const shouldRetry = ({
   error,
   attempt,
   maxRetries,
+  isIdempotent,
   signal
 }: {
   error: unknown
   attempt: number
   maxRetries: number
+  isIdempotent?: boolean
   signal?: AbortSignal
 }): boolean => {
   numberError({ attempt }, 'positive-int')
@@ -116,7 +118,12 @@ export const shouldRetry = ({
   if (error instanceof Response) {
     const { status }: { status: number } = error
 
-    if (status === REQUEST_TIMEOUT || status === TOO_MANY_REQUESTS) return true
+    if (status === TOO_MANY_REQUESTS) return true
+
+    /** @remarks Only retries 408/5xx for idempotent requests, as execution status is ambiguous. */
+    if (!isIdempotent) return false
+
+    if (status === REQUEST_TIMEOUT) return true
     if (status >= BAD_REQUEST && status < INTERNAL_SERVER_ERROR) return false
     return status >= INTERNAL_SERVER_ERROR
   }
