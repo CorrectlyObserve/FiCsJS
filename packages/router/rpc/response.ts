@@ -60,11 +60,10 @@ export const errorResponse = <C = unknown>({
     stage
   })
 
+  /** @remarks Always a status error, as denials are handled in middleware. */
   if (error instanceof RpcError) {
-    const { code, message, expose, redirect }: RpcError = error
-    return typeof code === 'number'
-      ? denialResponse({ code, method, redirect })
-      : response({ code, error: expose ? message : true })
+    const { code, message, expose }: RpcError = error
+    return response({ code, error: expose ? message : true })
   }
 
   onError?.(error, { path, req })
