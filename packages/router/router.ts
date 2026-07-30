@@ -96,8 +96,9 @@ export const ficsRouter = <D extends object>(
 
           const render = ({
             content,
-            redirect
-          }: PageContent<D>): Html.Sanitized<RouterData<D>, {}> => {
+            redirect,
+            visited
+          }: PageContent<D> & { visited?: Set<string> }): Html.Sanitized<RouterData<D>, {}> => {
             if (redirect) {
               const redirectedPath: string = normalizePath(
                   new URL(redirect, window.location.origin).pathname
@@ -105,6 +106,12 @@ export const ficsRouter = <D extends object>(
                 staticPage: Page<D> | undefined = staticPages.find(
                   ({ path }) => normalizePath(path) === redirectedPath
                 )
+
+              visited ??= new Set()
+              if (visited.has(redirectedPath))
+                throw new Error(`A redirect loop was detected at the path "${redirectedPath}"...`)
+
+              visited.add(redirectedPath)
 
               if (pathname !== redirectedPath) {
                 ;(data as RouterData<D>).pathname = redirectedPath
@@ -115,13 +122,13 @@ export const ficsRouter = <D extends object>(
                 params.set('dynamicPaths', {})
 
                 const { content, redirect }: Page<D> = staticPage
-                return render({ content, redirect })
+                return render({ content, redirect, visited })
               }
 
               for (const { path, ..._args } of dynamicPages)
                 if (dynamicPathToRegex(path).test(redirectedPath)) {
                   params.set('dynamicPaths', getDynamicPaths(path))
-                  return render({ ..._args })
+                  return render({ ..._args, visited })
                 }
 
               throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
