@@ -5,6 +5,7 @@ import {
   forwardAbort,
   getDelayMs,
   isClientTermination,
+  isIdempotentMethod,
   isObject,
   MAX_RETRIES,
   numberError,
@@ -44,6 +45,7 @@ export const request = async ({
   timeoutMs,
   intervalMs,
   maxRetries = MAX_RETRIES,
+  idempotent,
   onMetric,
   onDeny,
   signal
@@ -111,7 +113,13 @@ export const request = async ({
       for (const cleanup of cleanups) cleanup()
     }
 
-    const willRetry: boolean = shouldRetry({ error, attempt, maxRetries, signal })
+    const willRetry: boolean = shouldRetry({
+      error,
+      attempt,
+      maxRetries,
+      isIdempotent: isIdempotentMethod(method) || idempotent === true,
+      signal
+    })
 
     emitMetric(onMetric, {
       type: 'request:error',
