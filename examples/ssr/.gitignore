@@ -1,6 +1,2 @@
-.tailwindcss.txt
 .fics/
-src/routes.gen.ts
-src/rpc.client.gen.ts
-src/rpc.server.gen.ts
-src/middleware.gen.ts
+.tailwindcss.txt
