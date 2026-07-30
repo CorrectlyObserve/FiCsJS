@@ -32,7 +32,10 @@ export const createRpcClient = <R>(
             if (init) for (const [key, value] of new Headers(init)) headers.set(key, value)
 
           const args: Omit<Rpc.Options.Client, 'headers'> = { ...globalArgs, ...clientArgs }
-          for (const [key, value] of typedEntries(calledArgs)) if (value) args[key] = value
+
+          /** @remarks All keys are safe since the cast bypasses TS union write errors. */
+          for (const [key, value] of typedEntries(calledArgs))
+            if (value) (args as Record<string, unknown>)[key] = value
 
           promise ??= request({
             basePath,
