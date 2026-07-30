@@ -114,7 +114,9 @@ export const buildMiddleware = ({
   return {
     middlewares,
     uniqueMiddlewares,
-    middlewareAlias: new Map(uniqueMiddlewares.map((src, index) => [src, `__middleware${index}`]))
+    middlewareAlias: new Map(
+      uniqueMiddlewares.map((src, index) => [src, `${prefixes.MIDDLEWARE}${index}`])
+    )
   }
 }
 
