@@ -35,7 +35,7 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
   })
 
   return {
-    name: 'fics-routing',
+    name: _config.TOOL_NAME,
     enforce: 'pre',
     config(): { resolve: { alias: Record<string, string> } } {
       return { resolve: { alias: { [_config.ALIAS]: dirname(output) } } }
