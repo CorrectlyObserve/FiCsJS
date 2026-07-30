@@ -22,5 +22,5 @@ export {
   typedEntries,
   uid
 } from './others'
-export { delay, getDelayMs, shouldRetry, watch } from './retry'
+export { delay, getDelayMs, isIdempotentMethod, shouldRetry, watch } from './retry'
 export { isBlankString, isEmptyObject, isObject, isPlainObject } from './typeCheck'
