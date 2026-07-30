@@ -13,7 +13,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
   },
-  "include": ["src", "vite.config.ts", "main.ts"]
+  "include": ["src", "vite.config.ts", "main.ts", ".fics/routing/*.ts"]
 }
