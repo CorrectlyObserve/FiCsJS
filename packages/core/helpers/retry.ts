@@ -69,6 +69,9 @@ export const getDelayMs = ({
   return Math.floor(fractionalMs)
 }
 
+export const isIdempotentMethod = (method: string): boolean =>
+  new Set(['GET', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']).has(method.trim().toUpperCase())
+
 const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
 
