@@ -322,6 +322,7 @@ export declare namespace Rpc {
       timeoutMs?: number
       intervalMs?: number
       maxRetries?: number
+      idempotent?: boolean
       onMetric?: (event: E) => void
       onDeny?: (deny: Routing.Denial) => void
     }
