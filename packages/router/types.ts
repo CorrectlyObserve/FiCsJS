@@ -372,6 +372,7 @@ export interface TypeNode {
 export interface VitePlugin {
   name: string
   enforce: 'pre'
+  config: () => { resolve: { alias: Record<string, string> } }
   buildStart: () => void
   configureServer: (server: { watcher: { add: (path: string) => void } }) => void
   handleHotUpdate: ({ file }: { file: string }) => void
