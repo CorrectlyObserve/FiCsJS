@@ -17,6 +17,8 @@ export const metricReasons = {
   PAYLOAD_TOO_LARGE: 'payload-too-large'
 } as const satisfies Record<string, Extract<Rpc.Metric.Payload, { type: 'reject' }>['reason']>
 
+export const REDIRECT_HEADER = 'fics-redirect' as const
+
 export const RESERVED_KEYS: ReadonlySet<string> = new Set(['__proto__', 'prototype', 'constructor'])
 
 export const RPC_INPUT_PARAM = 'input' as const
