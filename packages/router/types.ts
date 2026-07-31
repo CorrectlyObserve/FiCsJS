@@ -114,7 +114,7 @@ export declare namespace Routing {
   }
 
   interface Denial {
-    code: number
+    code: StatusCode
     redirect?: string
   }
 
