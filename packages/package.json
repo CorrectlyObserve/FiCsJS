@@ -19,7 +19,7 @@
     "README.md"
   ],
   "bin": {
-    "fics-routes": "./dist/router/fs/cli.js"
+    "fics-routing": "./dist/router/fs/cli.js"
   },
   "exports": {
     ".": {
