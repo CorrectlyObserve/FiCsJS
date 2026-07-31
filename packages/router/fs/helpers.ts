@@ -113,12 +113,12 @@ export const removeExt = (file: string): string => {
   return ext === '' ? file : file.slice(0, file.length - ext.length)
 }
 
-export const resolveOptions = (
-  options?: Routing.Options.Generate
-): Required<Pick<Routing.Options.Generate, 'baseDir' | 'extensions'>> => ({
-  baseDir: options?.baseDir ?? config.IMPORT_BASE,
-  extensions: options?.extensions ?? EXTENSIONS
-})
+export const resolveOptions = ({
+  baseDir = config.IMPORT_BASE,
+  extensions = EXTENSIONS
+}: Routing.Options.Generate['options'] = {}): Required<
+  Pick<NonNullable<Routing.Options.Generate['options']>, 'baseDir' | 'extensions'>
+> => ({ baseDir, extensions })
 
 export const toAbsolute = <T extends Record<string, string | undefined>>(
   paths: T
