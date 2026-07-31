@@ -40,7 +40,6 @@ export const getDynamicPaths = (pattern: string, pathname?: string): Record<stri
     ),
     paths: Record<string, string> = {},
     names: string[] = []
-  let match: RegExpExecArray | null
 
   dynamicRegex.lastIndex = 0
   while ((match = dynamicRegex.exec(pattern))) names.push(match[1])
