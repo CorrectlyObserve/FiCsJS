@@ -183,10 +183,11 @@ export declare namespace Routing {
     script: string
   }
 
-  interface Resolved<D extends object = Record<string, unknown>> {
-    pages: Page<D>[]
-    statusModules: Record<string, PageContent<D> | undefined>
-    redirectFn?: RedirectFn
+  interface ResolvedRoute<C = Record<string, unknown>> {
+    path: string
+    module: Routing.ServerModule<C>
+    entry: string
+    middlewares: readonly Routing.Middleware<C>[]
   }
 
   interface Route<T extends Module> {
