@@ -11,10 +11,14 @@ import {
   generateSpaRouters
 } from './generator'
 
-export const generateRoutes = (
-  filePaths: string[],
-  options?: Routing.Options.Generate
-): ReturnType<typeof findClientEntries> & { routeSrc: string; mwSrc: string } => {
+export const generateRoutes = ({
+  filePaths,
+  options,
+  basePath
+}: Routing.Options.Generate): ReturnType<typeof findClientEntries> & {
+  clientSrc: string
+  serverSrc: string | null
+} => {
   const { baseDir, extensions }: { baseDir: string; extensions: Routing.Extensions } =
       resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
