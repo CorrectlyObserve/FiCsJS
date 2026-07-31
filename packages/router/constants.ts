@@ -6,6 +6,7 @@ import {
   TOO_MANY_REQUESTS
 } from '../core/helpers'
 
+export const FICS_META = 'fics:meta' as const
 export const FICS_NAVIGATE = 'fics:navigate' as const
 
 export const RPC_BASE_PATH = '/_rpc' as const
