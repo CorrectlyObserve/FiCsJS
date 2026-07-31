@@ -1,11 +1,10 @@
-import { browserError } from '../core/helpers'
+import { browserError, escapeRegExp } from '../core/helpers'
 import { prependSlash } from './helpers'
 
 export const dynamicPathToRegex = (pattern: string): RegExp => {
   pattern = prependSlash(pattern)
 
-  const escapeRegex = (param: string): string => param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    required = '/([^/]+?)' as const,
+  const required = '/([^/]+?)' as const,
     caughtAll = '/(.*?)' as const
 
   let match: RegExpExecArray | null,
@@ -19,7 +18,7 @@ export const dynamicPathToRegex = (pattern: string): RegExp => {
       flag: string | undefined = match[2],
       segment: string = flag === '*' ? caughtAll : flag === '?' ? `(?:${required})?` : required
 
-    source += `${escapeRegex(staticPart)}${segment}`
+    source += `${escapeRegExp(staticPart)}${segment}`
 
     lastIndex = match.index + match[0].length
   }
