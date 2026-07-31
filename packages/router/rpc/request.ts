@@ -191,10 +191,12 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
       /** @remarks Falls back to the status-based generic error for non-JSON responses. */
     }
 
-    const code: string | undefined = codeByStatus[error.status]
     return new RpcError({
-      code: code ?? 'INTERNAL_SERVER_ERROR',
-      message,
+      code,
+      message:
+        (!denied && message) ||
+        `The RPC request ${denied ? 'was denied' : 'failed'} with status ${error.status}...`,
+      denied,
       redirect
     })
   }
