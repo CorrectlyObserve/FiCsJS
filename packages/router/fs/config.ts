@@ -4,7 +4,7 @@ import { COMMENT, config as configConstants, metaExports, routerImport } from '.
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, extname, join, relative, resolve } from 'node:path'
+import { extname, join, relative } from 'node:path'
 
 const writeIfChanged = (path: string, content: string): boolean => {
     const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
