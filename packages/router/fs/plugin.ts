@@ -1,6 +1,6 @@
 import type { Routing, VitePlugin } from '../types'
 import { configRoutes } from './config'
-import { config as _config, MODULE_EXT_REGEX } from './constants'
+import { config as configConstants, MODULE_EXT_REGEX } from './constants'
 import { toAbsolute, toRelative } from './helpers'
 import { dirname, join } from 'node:path'
 
@@ -35,10 +35,10 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
   })
 
   return {
-    name: _config.TOOL_NAME,
+    name: configConstants.TOOL_NAME,
     enforce: 'pre',
     config(): { resolve: { alias: Record<string, string> } } {
-      return { resolve: { alias: { [_config.ALIAS]: dirname(output) } } }
+      return { resolve: { alias: { [configConstants.ALIAS]: dirname(output) } } }
     },
     buildStart(): void {
       configRoutes(config)
@@ -50,7 +50,7 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
       if (file.startsWith(dir)) configRoutes(config)
     },
     transform(code: string, id: string): { code: string; map: null } | null {
-      return injectRoutes({ id, code, output: join(output, _config.CLIENT) })
+      return injectRoutes({ id, code, output: join(output, configConstants.CLIENT) })
     }
   } as const
 }
