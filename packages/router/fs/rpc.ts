@@ -8,8 +8,7 @@ import {
   indent,
   joinAndWrap,
   joinLines,
-  resolveOptions,
-  toSpecifier
+  resolveOptions
 } from './helpers'
 import { getAllMiddlewares } from './middleware'
 
