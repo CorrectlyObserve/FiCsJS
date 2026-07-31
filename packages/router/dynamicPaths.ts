@@ -41,8 +41,7 @@ export const getDynamicPaths = (pattern: string, pathname?: string): Record<stri
     paths: Record<string, string> = {},
     names: string[] = []
 
-  dynamicRegex.lastIndex = 0
-  while ((match = dynamicRegex.exec(pattern))) names.push(match[1])
+  for (const match of pattern.matchAll(dynamicRegex)) names.push(match[1])
 
   if (regexes && regexes.length > 0)
     for (const [index, value] of regexes.slice(1).entries()) {
