@@ -2,7 +2,7 @@ import { applyLayout } from './layout'
 import { resolveModule } from './routeModule'
 import type { Page, PageContent, Routing } from './types'
 
-const registry: Routing.Resolved = { pages: [], statusModules: {}, redirectFn: undefined }
+const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} }
 
 export const registerRoutes = (spec: Routing.Spec): void => {
   const { pages, statusModules, redirectFn }: Routing.ResolvedSpec = resolveSpec(spec)
