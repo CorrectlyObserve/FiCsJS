@@ -17,6 +17,8 @@ export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): 
   return escaped.replace(/["']/g, char => ({ '"': '&quot;', "'": '&#39;' })[char] as string)
 }
 
+export const escapeRegExp = (str: string): string => str.replace(SPECIAL_CHAR, '\\$&')
+
 export const joinArray = <T>(
   arr: T[],
   { space = true, separator = ',' }: { space?: boolean; separator?: string } = {}
