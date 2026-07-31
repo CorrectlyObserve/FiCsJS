@@ -1,6 +1,6 @@
 import { RPC_BASE_PATH } from '../constants'
 import type { Routing, Rpc, TypeNode } from '../types'
-import { COMMENT, fileNames, routerImport, segments } from './constants'
+import { fileNames, prefixes, segments } from './constants'
 import {
   buildRoute,
   getFiles,
@@ -64,7 +64,9 @@ export const generateRpcs = ({
     const alias: string = aliases[index],
       mws: string[] = getAllMiddlewares(dirs, middlewareFiles)
 
-    for (const mw of mws) if (!mwAliases.has(mw)) mwAliases.set(mw, `middleware${mwAliases.size}`)
+    for (const mw of mws)
+      if (!middlewareAlias.has(mw))
+        middlewareAlias.set(mw, `${prefixes.MIDDLEWARE}${middlewareAlias.size}`)
 
     const values: string[] = [`prefix: ${JSON.stringify(buildRoute(dirs))}`, `module: ${alias}`]
     if (mws.length > 0)
