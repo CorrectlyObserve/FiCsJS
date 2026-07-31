@@ -1,4 +1,5 @@
 import type { SingleOrArray } from '../types'
+import { SPECIAL_CHAR } from './constants'
 import { numberError } from './numberError'
 import { isPlainObject } from './typeCheck'
 
