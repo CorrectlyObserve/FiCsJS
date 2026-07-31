@@ -1,4 +1,36 @@
 import { escape, isBrowser, joinArray, typedEntries } from '../core/helpers'
+import { FICS_META } from './constants'
+
+export const applyMeta = (meta?: Record<string, string>): void => {
+  if (!isBrowser()) return
+
+  const applied: Set<Element> = new Set()
+
+  if (meta)
+    for (const [key, value] of typedEntries(meta)) {
+      if (key === 'title') {
+        document.title = value
+        continue
+      }
+
+      const { tagName, nameAttr, valAttr } = getMetaConfig(key),
+        selector: string = `${tagName}[${nameAttr}="${key.replace(/["\\]/g, '\\$&')}"]`
+
+      let tag: Element | null = document.head.querySelector(selector)
+      if (!tag) {
+        tag = document.createElement(tagName)
+        tag.setAttribute(nameAttr, key)
+        document.head.append(tag)
+      }
+
+      tag.setAttribute(valAttr, value)
+      tag.setAttribute(FICS_META, '')
+      applied.add(tag)
+    }
+
+  for (const tag of document.head.querySelectorAll(`[${FICS_META}]`))
+    if (!applied.has(tag)) tag.remove()
+}
 
 export const getMetaConfig = (
   key: string
