@@ -7,13 +7,10 @@ export const dynamicPathToRegex = (pattern: string): RegExp => {
   const required = '/([^/]+?)' as const,
     caughtAll = '/(.*?)' as const
 
-  let match: RegExpExecArray | null,
-    source: string = '',
+  let source: string = '',
     lastIndex: number = 0
 
-  dynamicRegex.lastIndex = 0
-
-  while ((match = dynamicRegex.exec(pattern))) {
+  for (const match of pattern.matchAll(dynamicRegex)) {
     const staticPart: string = pattern.slice(lastIndex, match.index),
       flag: string | undefined = match[2],
       segment: string = flag === '*' ? caughtAll : flag === '?' ? `(?:${required})?` : required
