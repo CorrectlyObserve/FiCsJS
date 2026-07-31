@@ -16,3 +16,5 @@ export const constants = {
 } as const
 
 export const NOOP: () => void = () => {}
+
+export const SPECIAL_CHAR: RegExp = /[.*+?^${}()|[\]\\]/g
