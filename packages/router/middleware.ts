@@ -5,7 +5,7 @@ import type { Routing } from './types'
 const { BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, UNAUTHORIZED } = statusCodes
 
 export const deny = ({ code, redirect }: Partial<Routing.Denial> = {}): Routing.Denial => {
-  const _code: number = code ?? (redirect ? UNAUTHORIZED : FORBIDDEN)
+  const _code: Routing.StatusCode = code ?? (redirect ? UNAUTHORIZED : FORBIDDEN)
 
   numberError({ 'middleware denial code': _code }, 'int')
 
