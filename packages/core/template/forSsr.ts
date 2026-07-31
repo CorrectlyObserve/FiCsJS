@@ -1,5 +1,5 @@
 import { constants } from '../constants'
-import { isBlankString } from '../helpers'
+import { escapeRegExp, isBlankString } from '../helpers'
 import type { Template } from '../types'
 import { constants as templateConstants } from './constants'
 
