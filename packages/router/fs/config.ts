@@ -1,14 +1,12 @@
 import { joinArray } from '../../core/helpers'
-import type { Routing, Rpc } from '../types'
-import { COMMENT, config, ENTRIES_DIR, metaExports, routerImport } from './constants'
+import { COMMENT, config as configConstants, metaExports, routerImport } from './constants'
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
 import { generateRpcs } from './rpc'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 
-const { MIDDLEWARE, RPC_CLIENT, RPC_SERVER } = config,
-  writeIfChanged = (path: string, content: string): boolean => {
+const writeIfChanged = (path: string, content: string): boolean => {
     const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
     if (prevContent === content) return false
 
