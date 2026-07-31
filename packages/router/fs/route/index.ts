@@ -1,6 +1,6 @@
 import type { Routing } from '../../types'
-import { COMMENT } from '../constants'
-import { joinLines, resolveOptions } from '../helpers'
+import { resolveOptions } from '../helpers'
+import { generateRpcs } from '../rpc'
 import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
 import { findClientEntries } from './finder'
 import {
