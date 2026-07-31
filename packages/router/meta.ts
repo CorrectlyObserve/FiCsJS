@@ -1,18 +1,14 @@
 import { escape, isBrowser, joinArray, typedEntries } from '../core/helpers'
 
-export const applyMeta = (meta?: Record<string, string>): void => {
-  if (!isBrowser() || !meta) return
+export const getMetaConfig = (
+  key: string
+): { tagName: string; nameAttr: string; valAttr: string } => {
+  if (key === 'canonical') return { tagName: 'link', nameAttr: 'rel', valAttr: 'href' }
 
-  if (typeof meta.title === 'string') document.title = meta.title
-
-  if (typeof meta.description === 'string') {
-    let tag: Element | null = document.head.querySelector('meta[name="description"]')
-    if (!tag) {
-      tag = document.createElement('meta')
-      tag.setAttribute('name', 'description')
-      document.head.append(tag)
-    }
-    tag.setAttribute('content', meta.description)
+  return {
+    tagName: 'meta',
+    nameAttr: key.startsWith('og:') ? 'property' : 'name',
+    valAttr: 'content'
   }
 }
 
