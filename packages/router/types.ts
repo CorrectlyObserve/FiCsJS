@@ -156,18 +156,13 @@ export declare namespace Routing {
 
   namespace Options {
     interface Generate {
-      baseDir?: string
-      pageFile?: string
-      extensions?: Extensions
-    }
-
-    interface Register<C = Record<string, unknown>> {
-      render: (ctx: Render) => string
-      toHostRoutePath: (path: string) => string
-      createContext?: (ctx: Routing.Host) => C
-      serverError?: Routing.ServerModule<C>
-      notFound?: Routing.ServerModule<C>
-      redirects?: Routing.Redirects
+      filePaths: string[]
+      options?: {
+        baseDir?: string
+        pageFile?: string
+        extensions?: Extensions
+      }
+      basePath?: string
     }
   }
 
