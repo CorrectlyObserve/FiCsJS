@@ -133,12 +133,6 @@ export declare namespace Routing {
     serverSrc: string | null
   }[]
 
-  interface Host {
-    html: (content: string, status?: number) => unknown
-    redirect: (url: string, status?: number) => unknown
-    req: unknown
-  }
-
   type Middleware<C = Record<string, unknown>> = (ctx: MiddlewareCtx<C>) => Awaitable<void | Denial>
 
   type MiddlewareCtx<C = Record<string, unknown>> = C & {
@@ -163,6 +157,12 @@ export declare namespace Routing {
         extensions?: Extensions
       }
       basePath?: string
+    }
+
+    interface PageHost<C = Record<string, unknown>> {
+      render: (ctx: Render) => string
+      createContext?: (req: Request) => Awaitable<C>
+      scriptBase?: string
     }
   }
 
