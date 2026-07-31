@@ -16,20 +16,13 @@ export const renderMeta = (meta: Record<string, string>): string => {
   const tags: string[] = []
 
   for (const [key, value] of typedEntries(meta)) {
-    switch (key) {
-      case 'title':
-        tags.push(`<title>${escape(value, 'text-content')}</title>`)
-        break
-
-      case 'canonical':
-        tags.push(`<link rel="canonical" href="${escape(value)}">`)
-        break
-
-      default:
-        tags.push(
-          `<meta ${key.startsWith('og:') ? 'property' : 'name'}="${escape(key)}" content="${escape(value)}">`
-        )
+    if (key === 'title') {
+      tags.push(`<title>${escape(value, 'text-content')}</title>`)
+      continue
     }
+
+    const { tagName, nameAttr, valAttr } = getMetaConfig(key)
+    tags.push(`<${tagName} ${nameAttr}="${escape(key)}" ${valAttr}="${escape(value)}">`)
   }
 
   return joinArray(tags, { space: false, separator: '' })
