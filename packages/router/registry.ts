@@ -11,7 +11,13 @@ export const registerRoutes = (spec: Routing.Spec): void => {
   registry.redirectFn = redirectFn
 }
 
-export const resolveRouting = (spec?: Routing.Spec): Readonly<Routing.Resolved> => {
+export const resetRoutes = (): void => {
+  registry.pages = []
+  registry.statusModules = {}
+  registry.redirectFn = undefined
+}
+
+export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
   if (!spec) return registry
 
   const { routes, redirects, statusModules }: Routing.Spec = spec,
@@ -31,10 +37,4 @@ export const resolveRouting = (spec?: Routing.Spec): Readonly<Routing.Resolved> 
     for (const [key, module] of Object.entries(statusModules)) modules[key] = resolveModule(module)
 
   return { pages, statusModules: modules, redirectFn }
-}
-
-export const resetRoutes = (): void => {
-  registry.pages = []
-  registry.statusModules = {}
-  registry.redirectFn = undefined
 }
