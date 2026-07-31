@@ -22,7 +22,7 @@ export const dynamicPathToRegex = (pattern: string): RegExp => {
 
     lastIndex = match.index + match[0].length
   }
-  source += escapeRegex(pattern.slice(lastIndex))
+  source += escapeRegExp(pattern.slice(lastIndex))
 
   return new RegExp(`^${source}/?$`)
 }
