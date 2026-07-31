@@ -6,8 +6,9 @@
   ],
   "dependencies": {
     "ficsjs": "workspace:*",
-    "fics-todo": "workspace:*",
-    "fics-ssr": "workspace:*"
+    "fics-auth": "workspace:*",
+    "fics-ssr": "workspace:*",
+    "fics-todo": "workspace:*"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.5",
