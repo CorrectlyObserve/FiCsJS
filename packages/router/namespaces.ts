@@ -42,7 +42,7 @@ export declare namespace FiCsPage {
 
   type Module<C = Record<string, unknown>> = Routing.ServerModule<C>
 
-  type Options<C = Record<string, unknown>> = Routing.Options.Pages<C>
+  type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
 
   type RedirectFn = Routing.RedirectFn
 
