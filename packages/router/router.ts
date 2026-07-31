@@ -7,7 +7,7 @@ import { goto } from './goto'
 import { isDynamicPath } from './helpers'
 import { applyMeta } from './meta'
 import { getQueries, params } from './params'
-import { resolveRouting } from './registry'
+import { resolveSpec } from './registry'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData, Routing } from './types'
 
 const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Routing.RedirectCtx): string => {
@@ -61,7 +61,7 @@ export const ficsRouter = <D extends object>(
       pages,
       statusModules: { notFound },
       redirectFn
-    }: Readonly<Routing.Resolved> = resolveRouting(spec),
+    }: Readonly<Routing.ResolvedSpec> = resolveSpec(spec),
     _pages = pages as Page<D>[],
     _notFound = notFound as PageContent<D> | undefined
 
