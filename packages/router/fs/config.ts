@@ -3,7 +3,6 @@ import type { Routing } from '../types'
 import { COMMENT, config as configConstants, metaExports, routerImport } from './constants'
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
-import { generateRpcs } from './rpc'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 
