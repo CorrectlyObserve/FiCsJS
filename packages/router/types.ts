@@ -190,6 +190,12 @@ export declare namespace Routing {
     middlewares: readonly Routing.Middleware<C>[]
   }
 
+  interface ResolvedSpec<D extends object = Record<string, unknown>> {
+    pages: Page<D>[]
+    statusModules: Record<string, PageContent<D> | undefined>
+    redirectFn?: RedirectFn
+  }
+
   interface Route<T extends Module> {
     path: string
     page: T
