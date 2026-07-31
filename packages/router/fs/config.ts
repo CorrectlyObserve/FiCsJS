@@ -1,4 +1,5 @@
 import { joinArray } from '../../core/helpers'
+import type { Routing } from '../types'
 import { COMMENT, config as configConstants, metaExports, routerImport } from './constants'
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
