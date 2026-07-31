@@ -13,6 +13,7 @@ export { numberError } from './numberError'
 export {
   convertStr,
   escape,
+  escapeRegExp,
   joinArray,
   normalizePath,
   normalizeRootMargin,
