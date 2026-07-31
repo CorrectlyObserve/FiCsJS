@@ -87,12 +87,8 @@ export const ficsRouter = <D extends object>(
           const staticPages: Page<D>[] = [],
             dynamicPages: Page<D>[] = []
 
-          for (const { path, ..._args } of _pages) {
-            dynamicRegex.lastIndex = 0
-
-            const _pages: Page<D>[] = dynamicRegex.test(path) ? dynamicPages : staticPages
-            _pages.push({ path, ..._args })
-          }
+          for (const { path, ..._args } of _pages)
+            (isDynamicPath(path) ? dynamicPages : staticPages).push({ path, ..._args })
 
           const render = ({
             content,
