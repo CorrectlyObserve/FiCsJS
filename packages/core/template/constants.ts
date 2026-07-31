@@ -16,7 +16,6 @@ export const constants = {
 
     INVALID_ATTR_FRAGMENT: /["'<>\/=`]/,
     INVALID_UNQUOTED_ATTR_VALUE: /["'<>`]/,
-    SPECIAL_CHAR: /[.*+?^${}()|[\]\\]/g,
     STYLE: /\sstyle\s*=\s*(["'])([\s\S]*?)\1/i,
     TAG_END: /(\s*\/?>)$/
   }
