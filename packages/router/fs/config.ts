@@ -29,7 +29,7 @@ const writeIfChanged = (path: string, content: string): boolean => {
     return joinLines(arr)
   }
 
-export const configRoutes = (config: Routing.Config = {}): boolean => {
+export const configRoutes = (config: Routing.Config = {}): void => {
   const { dir, output, pageFile, extensions, basePath, entries }: Routing.Config = config,
     { dir: d, output: o }: { dir: string; output: string } = toAbsolute({ dir, output })
 
@@ -91,6 +91,4 @@ export const configRoutes = (config: Routing.Config = {}): boolean => {
       )
     }
   }
-
-  return writeIfChanged(o, routeSrc)
 }
