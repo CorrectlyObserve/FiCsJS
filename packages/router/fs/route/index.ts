@@ -31,7 +31,7 @@ export const generateRoutes = ({
       files: spa.files
     }),
     special: Routing.Build.Special = buildSpecial({ dirs: spa.dirs, filePaths, extensions }),
-    all: Routing.Build.Ctx = { routes, ...layout, ...spa, ...mw, ...special }
+    ctx: Routing.Build.Ctx = { routes, ...layout, ...spa, ...mw, ...special }
 
   return {
     routeSrc: joinLines([
