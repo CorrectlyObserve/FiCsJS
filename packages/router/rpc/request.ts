@@ -171,7 +171,7 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
     try {
       const clonedError: unknown = await error.clone().json()
       if (isObject(clonedError) && 'error' in clonedError) {
-        const { error } = clonedError as { error: Rpc.ErrorInit }
+        const { error: errorInit } = clonedError as { error: Partial<Rpc.ErrorInit> }
 
         if (isObject(error)) {
           if (typeof error.redirect === 'string') redirect = error.redirect
