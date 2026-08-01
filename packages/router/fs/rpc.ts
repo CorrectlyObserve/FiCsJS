@@ -33,12 +33,9 @@ const newNode = (): TypeNode => ({ children: new Map() }),
 export const generateRpcs = ({
   filePaths,
   options,
-  basePath = RPC_BASE_PATH
-}: {
-  filePaths: string[]
-  options?: Routing.Options.Generate
-  basePath?: string
-}): Rpc.Generated | null => {
+  basePath = RPC_BASE_PATH,
+  middlewareAlias
+}: Routing.Options.Generate & { middlewareAlias: Map<string, string> }): Rpc.Generated | null => {
   const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
     rpcs: Routing.RpcEntries = getFiles({
       filePaths,
@@ -56,8 +53,7 @@ export const generateRpcs = ({
       expectedType: fileNames.MIDDLEWARE
     }),
     root: TypeNode = newNode(),
-    manifests: string[] = [],
-    mwAliases: Map<string, string> = new Map()
+    manifests: string[] = []
 
   for (const [index, { dirs }] of rpcs.entries()) {
     const alias: string = aliases[index],
@@ -71,7 +67,7 @@ export const generateRpcs = ({
     if (mws.length > 0)
       values.push(
         `middlewares: ${joinAndWrap(
-          mws.map(mw => getOrThrow(mwAliases, mw)),
+          mws.map(mw => getOrThrow(middlewareAlias, mw)),
           { wrapType: '[]' }
         )}`
       )
