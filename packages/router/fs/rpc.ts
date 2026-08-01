@@ -39,7 +39,7 @@ export const generateRpcs = ({
   options?: Routing.Options.Generate
   basePath?: string
 }): Rpc.Generated | null => {
-  const { baseDir, extensions } = resolveOptions(options),
+  const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
     rpcs: Routing.RpcEntries = getFiles({
       filePaths,
       extensions,
