@@ -164,8 +164,9 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
   if (error instanceof RpcError) return error
 
   if (error instanceof Response) {
-    let message: string = `The RPC request failed with status ${error.status}...`,
-      redirect: string | undefined
+    let message: string | undefined,
+      denied: boolean = error.headers.get(DENIED_HEADER) === '1',
+      redirect: string | undefined = error.headers.get(REDIRECT_HEADER) ?? undefined
 
     try {
       const clonedError: unknown = await error.clone().json()
