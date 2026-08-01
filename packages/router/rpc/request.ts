@@ -16,8 +16,8 @@ import {
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { isBodiless } from '../helpers'
-import type { Rpc } from '../types'
-import { RPC_INPUT_PARAM } from './constants'
+import type { Routing, Rpc } from '../types'
+import { DENIED_HEADER, REDIRECT_HEADER, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { emitMetric } from './metric'
 
@@ -173,19 +173,12 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
       if (isObject(clonedError) && 'error' in clonedError) {
         const { error: errorInit } = clonedError as { error: Partial<Rpc.ErrorInit> }
 
-        if (isObject(error)) {
-          if (typeof error.redirect === 'string') redirect = error.redirect
+        if (isObject(errorInit)) {
+          if (errorInit.denied === true) denied = true
 
-          const { status }: { status?: unknown } = error as { status?: unknown }
-          if (typeof status === 'number')
-            return new RpcError({
-              code: 'DENIED',
-              message: `The RPC request was denied with status ${status}...`,
-              redirect,
-              status
-            })
-
-          if (typeof error.message === 'string') message = error.message
+          if (redirect === undefined && typeof errorInit.redirect === 'string')
+            redirect = errorInit.redirect
+          if (typeof errorInit.message === 'string') message = errorInit.message
         }
       }
     } catch {
