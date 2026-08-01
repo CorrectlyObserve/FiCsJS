@@ -47,26 +47,24 @@ export const configRoutes = (config: Routing.Config = {}): void => {
 
   scan(d)
 
-  const options: Routing.Options.Generate = {
-      baseDir: toRelative(o, d),
-      pageFile,
-      extensions
-    },
-    outputDir: string = dirname(o),
-    { client, server }: Rpc.Generated = generateRpcs({ filePaths, options, basePath }) ?? {
-      client: '',
-      server: ''
-    }
+  const clientPath: string = join(o, configConstants.CLIENT),
+    serverPath: string = join(o, configConstants.SERVER),
+    {
+      clientSrc,
+      serverSrc,
+      clientEntries,
+      dirsWithoutSpaEntry
+    }: ReturnType<typeof generateRoutes> = generateRoutes({
+      filePaths,
+      options: { baseDir: toRelative(clientPath, d), pageFile, extensions },
+      basePath
+    })
 
-  if (client && server) {
-    writeIfChanged(join(outputDir, RPC_CLIENT), client)
-    writeIfChanged(join(outputDir, RPC_SERVER), server)
-  }
+  mkdirSync(o, { recursive: true })
+  writeIfChanged(clientPath, clientSrc)
 
-  const { routeSrc, mwSrc, clientEntries, dirsWithoutSpaEntry }: ReturnType<typeof generateRoutes> =
-    generateRoutes(filePaths, options)
-
-  writeIfChanged(join(outputDir, MIDDLEWARE), mwSrc)
+  if (serverSrc !== null) writeIfChanged(serverPath, serverSrc)
+  else if (existsSync(serverPath)) rmSync(serverPath)
 
   if (entries) {
     if (dirsWithoutSpaEntry.length > 0)
