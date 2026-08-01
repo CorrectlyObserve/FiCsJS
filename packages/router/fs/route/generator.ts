@@ -36,7 +36,7 @@ const emitEntry = ({
     return joinArray([base, `layout: ${getOrThrow(layoutAlias, layout)}`])
   }
 
-const generateEntries = ({
+export const generateEntries = ({
   routes,
   layouts,
   layoutAlias,
