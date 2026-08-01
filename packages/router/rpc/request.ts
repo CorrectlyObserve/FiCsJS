@@ -192,7 +192,7 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
     }
 
     return new RpcError({
-      code,
+      code: codeByStatus[error.status] ?? 'INTERNAL_SERVER_ERROR',
       message:
         (!denied && message) ||
         `The RPC request ${denied ? 'was denied' : 'failed'} with status ${error.status}...`,
