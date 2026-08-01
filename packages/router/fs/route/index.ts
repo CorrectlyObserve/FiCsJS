@@ -31,7 +31,15 @@ export const generateRoutes = ({
       files: spa.files
     }),
     special: Routing.Build.Special = buildSpecial({ dirs: spa.dirs, filePaths, extensions }),
-    ctx: Routing.Build.Ctx = { routes, ...layout, ...spa, ...mw, ...special }
+    ctx: Routing.Build.Ctx = { routes, ...layout, ...spa, ...mw, ...special },
+    rpc: Rpc.Generated | null = generateRpcs({
+      filePaths,
+      options,
+      basePath,
+      middlewareAlias: ctx.middlewareAlias
+    }),
+    hasMpaRoute: boolean = ctx.spaOwners.some(owner => owner === null),
+    hasMiddleware: boolean = ctx.uniqueMiddlewares.length > 0
 
   return {
     routeSrc: joinLines([
