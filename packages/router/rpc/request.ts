@@ -188,7 +188,7 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
         }
       }
     } catch {
-      /** @remarks Falls back to the status-based generic error for non-JSON responses. */
+      /** @remarks Headers of non-JSON or HEAD responses already include denials and redirects. */
     }
 
     return new RpcError({
