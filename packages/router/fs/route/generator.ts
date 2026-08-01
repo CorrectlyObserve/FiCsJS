@@ -112,7 +112,7 @@ export const generateEntries = ({
   ]
 }
 
-const generateSpaRouters = ({
+export const generateSpaRouters = ({
   routes,
   layouts,
   layoutAlias,
