@@ -19,8 +19,7 @@ export const generateRoutes = ({
   clientSrc: string
   serverSrc: string | null
 } => {
-  const { baseDir, extensions }: { baseDir: string; extensions: Routing.Extensions } =
-      resolveOptions(options),
+  const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
     layout: Routing.Build.Layout = buildLayout({ routes, filePaths, extensions }),
     spa: Routing.Build.Spa = buildSpa({ routes, filePaths, extensions }),
