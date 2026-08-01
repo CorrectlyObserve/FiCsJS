@@ -72,8 +72,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
         `There is no "+spa" entry in ${joinArray(dirsWithoutSpaEntry.map(dir => `"${dir || '/'}"`))}`
       )
 
-    const entriesDir: string = resolve(ENTRIES_DIR)
-
+    const entriesDir: string = join(o, configConstants.ENTRIES)
     rmSync(entriesDir, { force: true, recursive: true })
     mkdirSync(entriesDir, { recursive: true })
 
