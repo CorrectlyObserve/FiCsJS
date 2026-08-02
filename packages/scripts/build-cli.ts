@@ -62,7 +62,7 @@ try {
   symlinkSync(BIN_TARGET, BIN_LINK)
 } catch (error) {
   if (isWindows) {
-    /** @remarks Windows fallback when symlinks aren't permitted */
+    /** @remarks Windows fallback when symlinks aren't permitted. */
     copyFileSync(`${BIN_DIR}/${BIN_TARGET}`, BIN_LINK)
 
     console.warn('The file was copied to .bin because the symlink permission was denied...')
