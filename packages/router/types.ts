@@ -261,8 +261,8 @@ export declare namespace Rpc {
   }
 
   interface Generated {
-    client: { imports: string[]; body: string }
-    server: { imports: string[]; body: string }
+    client: { imports: string[]; code: string }
+    server: { imports: string[]; code: string }
   }
 
   type Method = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
