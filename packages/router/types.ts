@@ -67,7 +67,7 @@ export declare namespace Routing {
 
     interface Layout {
       layouts: (string | null)[]
-      uniques: string[]
+      uniqueLayouts: string[]
       layoutAlias: Map<string, string>
     }
 
