@@ -57,14 +57,16 @@ export const buildLayout = ({
     layouts: Routing.Build.Layout['layouts'] = routes.map(
       ({ src }) => findClosestDir(src, layoutFiles)?.value ?? null
     ),
-    uniques: Routing.Build.Layout['uniques'] = [
+    uniqueLayouts: Routing.Build.Layout['uniqueLayouts'] = [
       ...new Set(layouts.filter((layout): layout is string => layout !== null))
     ]
 
   return {
     layouts,
-    uniques,
-    layoutAlias: new Map(uniques.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`]))
+    uniqueLayouts,
+    layoutAlias: new Map(
+      uniqueLayouts.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`])
+    )
   }
 }
 
