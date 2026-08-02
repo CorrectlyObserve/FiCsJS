@@ -136,7 +136,7 @@ export const request = async ({
 
       if (error instanceof Response && rpcError.denied && onDeny)
         onDeny({
-          code: error.status as Routing.StatusCode,
+          code: error.status as Routing.StatusPageCode,
           ...(rpcError.redirect ? { redirect: rpcError.redirect } : {})
         })
       throw rpcError
