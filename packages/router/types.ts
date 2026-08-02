@@ -244,7 +244,9 @@ export declare namespace Routing {
     statusModules?: Record<string, Module>
   }
 
-  type StatusCode = (typeof statusCodes)[
+  type StatusCode = (typeof statusCodes)[keyof typeof statusCodes]
+
+  type StatusPageCode = (typeof statusCodes)[
     | 'FORBIDDEN'
     | 'INTERNAL_SERVER_ERROR'
     | 'NOT_FOUND'
