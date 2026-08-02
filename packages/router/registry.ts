@@ -1,3 +1,4 @@
+import { typedEntries } from '../core/helpers'
 import { applyLayout } from './layout'
 import { resolveModule } from './routeModule'
 import type { Page, PageContent, Routing } from './types'
@@ -30,11 +31,11 @@ export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec>
 
   if (typeof redirects === 'function') redirectFn = redirects
   else if (redirects)
-    for (const [path, redirect] of Object.entries(redirects)) pages.push({ path, redirect })
+    for (const [path, redirect] of typedEntries(redirects)) pages.push({ path, redirect })
 
   const modules: Record<string, PageContent | undefined> = {}
   if (statusModules)
-    for (const [key, module] of Object.entries(statusModules)) modules[key] = resolveModule(module)
+    for (const [key, module] of typedEntries(statusModules)) modules[key] = resolveModule(module)
 
   return { pages, statusModules: modules, redirectFn }
 }
