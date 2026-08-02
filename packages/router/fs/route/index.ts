@@ -1,15 +1,9 @@
 import type { Routing } from '../../types'
 import { resolveOptions } from '../helpers'
-import { generateRpcs } from '../rpc'
+import { assembleClient, assembleServer } from './assembler'
 import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
 import { findClientEntries } from './finder'
-import {
-  generateEntries,
-  generateExports,
-  generateImports,
-  generateMiddleware,
-  generateSpaRouters
-} from './generator'
+import { generateRpcs } from './rpcGenerator'
 
 export const generateRoutes = ({
   filePaths,
