@@ -1,6 +1,6 @@
-import { RPC_BASE_PATH } from '../constants'
-import type { Routing, Rpc, TypeNode } from '../types'
-import { fileNames, prefixes, segments } from './constants'
+import { RPC_BASE_PATH } from '../../constants'
+import type { Routing, Rpc, TypeNode } from '../../types'
+import { fileNames, prefixes, segments } from '../constants'
 import {
   buildRoute,
   getFiles,
@@ -9,8 +9,8 @@ import {
   joinAndWrap,
   joinLines,
   resolveOptions
-} from './helpers'
-import { getAllMiddlewares } from './middleware'
+} from '../helpers'
+import { getAllMiddlewares } from '../middleware'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
   renderType = ({ alias, children, dynamic }: TypeNode): string => {
@@ -33,13 +33,10 @@ const newNode = (): TypeNode => ({ children: new Map() }),
 export const generateRpcs = ({
   filePaths,
   options,
-  basePath = RPC_BASE_PATH
-}: {
-  filePaths: string[]
-  options?: Routing.Options.Generate
-  basePath?: string
-}): Rpc.Generated | null => {
-  const { baseDir, extensions } = resolveOptions(options),
+  basePath = RPC_BASE_PATH,
+  middlewareAlias
+}: Routing.Options.Generate & { middlewareAlias: Map<string, string> }): Rpc.Generated | null => {
+  const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
     rpcs: Routing.RpcEntries = getFiles({
       filePaths,
       extensions,
@@ -50,18 +47,17 @@ export const generateRpcs = ({
   if (rpcs.length === 0) return null
 
   const aliases: string[] = rpcs.map((_, index) => `rpc${index}`),
-    middlewareFiles: Map<string, string> = getFiles({
+    files: Map<string, string> = getFiles({
       filePaths,
       extensions,
       expectedType: fileNames.MIDDLEWARE
     }),
     root: TypeNode = newNode(),
-    manifests: string[] = [],
-    mwAliases: Map<string, string> = new Map()
+    manifests: string[] = []
 
   for (const [index, { dirs }] of rpcs.entries()) {
     const alias: string = aliases[index],
-      mws: string[] = getAllMiddlewares(dirs, middlewareFiles)
+      mws: string[] = getAllMiddlewares(dirs, files)
 
     for (const mw of mws)
       if (!middlewareAlias.has(mw))
@@ -71,7 +67,7 @@ export const generateRpcs = ({
     if (mws.length > 0)
       values.push(
         `middlewares: ${joinAndWrap(
-          mws.map(mw => getOrThrow(mwAliases, mw)),
+          mws.map(mw => getOrThrow(middlewareAlias, mw)),
           { wrapType: '[]' }
         )}`
       )
@@ -105,40 +101,30 @@ export const generateRpcs = ({
     node.alias = alias
   }
 
-  const importModules = (type: 'client' | 'server'): string =>
-      joinLines(
-        rpcs.map(
-          ({ specifier }, index) =>
-            `import ${type === 'client' ? 'type ' : ''}* as ${aliases[index]} from '${specifier}'`
-        )
-      ),
-    client = joinLines([
-      COMMENT,
-      `import { createRpcClient } from ${routerImport()}`,
-      importModules('client'),
-      '',
-      `export const api = createRpcClient<${renderType(root)}>('${basePath}')`,
-      ''
-    ]),
-    server = joinLines([
-      COMMENT,
-      `import ${routerImport('server-only')}`,
-      importModules('server'),
-      ...Array.from(mwAliases.entries()).map(
-        ([src, alias]) => `import ${alias} from '${toSpecifier(src, baseDir)}'`
-      ),
-      '',
-      'export const rpcRouter = {',
-      `${indent()}basePath: '${basePath}',`,
-      `${indent()}procedures: [`,
-      joinLines(
-        manifests.map(entry => `${indent(2)}${entry}`),
-        { comma: true }
-      ),
-      `${indent()}]`,
-      '}',
-      ''
-    ])
+  const importModules = (type: 'client' | 'server'): string[] =>
+    rpcs.map(
+      ({ specifier }, index) =>
+        `import ${type === 'client' ? 'type ' : ''}* as ${aliases[index]} from '${specifier}'`
+    )
 
-  return { client, server }
+  return {
+    client: {
+      imports: importModules('client'),
+      body: `export const api = createRpcClient<${renderType(root)}>('${basePath}')`
+    },
+    server: {
+      imports: importModules('server'),
+      body: joinLines([
+        'export const rpcRouter = {',
+        `${indent()}basePath: '${basePath}',`,
+        `${indent()}procedures: [`,
+        joinLines(
+          manifests.map(entry => `${indent(2)}${entry}`),
+          { comma: true }
+        ),
+        `${indent()}]`,
+        '}'
+      ])
+    }
+  }
 }
