@@ -3,11 +3,8 @@ import { streamSSE } from 'hono/streaming'
 import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
 import type { ServerWebSocket } from 'bun'
 import { createQueryCache } from 'ficsjs'
-import { createRpcHandler, registerPages, type FiCsHost } from 'ficsjs/router/server-only'
-import { routes, redirects, notFound } from './src/routes.gen'
-import { rpcRouter } from './src/rpc.server.gen'
-import { Message, SSEMessage } from './src/types'
-import { API_PATHS, getTimestamp } from './src/utils'
+import { createPageHandler, createRpcHandler, type FiCsPage } from 'ficsjs/router/server-only'
+import { pages, rpcRouter } from '@fics/routing/server'
 
 const app = new Hono()
 
