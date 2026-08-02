@@ -194,7 +194,7 @@ export const buildSpecial = ({
     aliases.set(dir, alias)
   }
 
-  const globalStatus: Routing.GlobalStatuses = statusEntries.reduce<Routing.GlobalStatuses>(
+  const globalStatuses: Routing.GlobalStatuses = statusEntries.reduce<Routing.GlobalStatuses>(
     (entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
@@ -212,7 +212,7 @@ export const buildSpecial = ({
   )
 
   return {
-    globalStatus,
+    globalStatuses,
     redirect: findFileSrc({ filePaths, extensions, target: fileNames.REDIRECT }),
     statuses,
     aliases
