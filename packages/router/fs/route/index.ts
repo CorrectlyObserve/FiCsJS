@@ -1,4 +1,4 @@
-import type { Routing } from '../../types'
+import type { Routing, Rpc } from '../../types'
 import { resolveOptions } from '../helpers'
 import { assembleClient, assembleServer } from './assembler'
 import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
