@@ -1,7 +1,7 @@
-import { escapeRegExp, joinArray } from '../../../core/helpers'
-import type { Routing, Rpc } from '../../types'
-import { COMMENT, prefixes, routerImport } from '../constants'
-import { getDirName, getOrThrow, indent, joinAndWrap, joinLines, toSpecifier } from '../helpers'
+import { joinArray } from '../../../core/helpers'
+import type { Routing } from '../../types'
+import { prefixes } from '../constants'
+import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
 import { findStatusEntry } from './finder'
 import { toEntry } from './path'
 
@@ -112,6 +112,49 @@ export const generateEntries = ({
   ]
 }
 
+export const generatePages = ({
+  routes,
+  middlewares,
+  middlewareAlias,
+  spaOwners,
+  areSpaEntry,
+  globalStatuses,
+  redirect
+}: Routing.Build.Ctx): string => {
+  const toAlias = (src: string): string => getOrThrow(middlewareAlias, src),
+    mwEntries: string[] = routes.map(({ path }, index) => {
+      const chain: string[] = middlewares[index]
+      return chain.length === 0
+        ? ''
+        : `${indent(2)}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })}`
+    }),
+    statusPages: string[] = globalStatuses.map(
+      ({ path, prop, serverSrc }) =>
+        `${path.slice(1)}: ${joinAndWrap([
+          `module: ${serverSrc === null ? '{}' : `__${prop}`}`,
+          `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path })}'`
+        ])}`
+    )
+
+  return joinLines([
+    'export const pages = {',
+    joinLines(
+      [
+        `${indent()}routes`,
+        `${indent()}middlewares: ${
+          mwEntries.some(Boolean)
+            ? joinLines(['{', joinLines(mwEntries, { comma: true, filter: true }), `${indent()}}`])
+            : '{}'
+        }`,
+        `${indent()}statusPages: ${statusPages.length > 0 ? joinAndWrap(statusPages) : '{}'}`,
+        redirect ? `${indent()}redirects` : ''
+      ],
+      { comma: true, filter: true }
+    ),
+    '}'
+  ])
+}
+
 export const generateSpaRouters = ({
   routes,
   layouts,
@@ -180,35 +223,4 @@ export const generateSpaRouters = ({
       return joinLines([...lines, '})'])
     })
   )
-}
-
-export const generateMiddleware = ({
-  baseDir,
-  routes,
-  middlewares,
-  uniqueMiddlewares,
-  middlewareAlias
-}: { baseDir: string } & Routing.Build.Ctx): string => {
-  const toAlias = (src: string): string => getOrThrow(middlewareAlias, src)
-
-  return joinLines([
-    COMMENT,
-    `import ${routerImport('server-only')}`,
-    ...uniqueMiddlewares.map(src => `import ${toAlias(src)} from '${toSpecifier(src, baseDir)}'`),
-    '',
-    'export const middlewares = {',
-    joinLines(
-      routes
-        .map(({ path }, index) => {
-          const chain: string[] = middlewares[index]
-          return chain.length === 0
-            ? ''
-            : `${indent()}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })}`
-        })
-        .filter(Boolean),
-      { comma: true }
-    ),
-    '}',
-    ''
-  ])
 }
