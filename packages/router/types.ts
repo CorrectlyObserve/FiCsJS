@@ -94,7 +94,7 @@ export declare namespace Routing {
     }
 
     interface Special {
-      globalStatus: GlobalStatuses
+      globalStatuses: GlobalStatuses
       redirect: string | null
       statuses: Map<string, Map<string, string>>
       aliases: Map<string, Map<string, string>>
