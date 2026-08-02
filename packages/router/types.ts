@@ -149,6 +149,12 @@ export declare namespace Routing {
   }
 
   namespace Options {
+    interface Assemble {
+      ctx: Build.Ctx
+      baseDir: string
+      rpc: Rpc.Generated | null
+    }
+
     interface Generate {
       filePaths: string[]
       options?: {
