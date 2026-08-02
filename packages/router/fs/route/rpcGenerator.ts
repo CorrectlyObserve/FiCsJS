@@ -110,11 +110,11 @@ export const generateRpcs = ({
   return {
     client: {
       imports: importModules('client'),
-      body: `export const api = createRpcClient<${renderType(root)}>('${basePath}')`
+      code: `export const api = createRpcClient<${renderType(root)}>('${basePath}')`
     },
     server: {
       imports: importModules('server'),
-      body: joinLines([
+      code: joinLines([
         'export const rpcRouter = {',
         `${indent()}basePath: '${basePath}',`,
         `${indent()}procedures: [`,
