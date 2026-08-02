@@ -105,8 +105,13 @@ export const joinAndWrap = (
   return wrapType === '{}' ? `{ ${joined} }` : `[${joined}]`
 }
 
-export const joinLines = (lines: string[], { comma }: { comma?: boolean } = {}): string =>
-  lines.join(`${comma ? ',' : ''}\n`)
+export const joinLines = (
+  lines: string[],
+  { comma, filter }: { comma?: boolean; filter?: boolean } = {}
+): string => {
+  if (filter) lines = lines.filter(Boolean)
+  return lines.join(`${comma ? ',' : ''}\n`)
+}
 
 export const removeExt = (file: string): string => {
   const ext: string = getExt(file)
