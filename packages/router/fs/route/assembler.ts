@@ -1,4 +1,8 @@
 import { escapeRegExp } from '../../../core/helpers'
+import type { Routing, Rpc } from '../../types'
+import { COMMENT, prefixes, routerImport } from '../constants'
+import { getOrThrow, joinAndWrap, joinLines, toSpecifier } from '../helpers'
+import { generateSpaRouters } from './generator'
 
 const uses = (code: string, id: string): boolean =>
     new RegExp(`\\b${escapeRegExp(id)}\\b`).test(code),
@@ -71,3 +75,36 @@ const uses = (code: string, id: string): boolean =>
 
     return candidates.filter(({ id }) => uses(code, id)).map(({ import: imp }) => imp)
   }
+
+export const assembleClient = (
+  ctx: Routing.Build.Ctx,
+  baseDir: string,
+  rpc: Rpc.Generated | null
+): string => {
+  const { routes, globalStatuses, redirect }: Routing.Build.Ctx = ctx,
+    uniquePaths: string[] = Array.from(
+      new Set([...routes, ...globalStatuses].map(({ path }) => path))
+    ),
+    code: string = joinLines(
+      [
+        generateSpaRouters(ctx),
+        rpc?.client.code ?? '',
+        `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
+        `export type FiCsRoutingPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
+      ],
+      { filter: true }
+    )
+
+  let imports: string[] = emitModuleImports({ ...ctx, baseDir, code })
+
+  const routerNames: string[] = []
+  if (uses(code, 'ficsRouter')) routerNames.push('ficsRouter')
+  if (uses(code, 'createRpcClient')) routerNames.push('createRpcClient')
+
+  if (routerNames.length > 0)
+    imports = [`import ${joinAndWrap(routerNames)} from ${routerImport()}`, ...imports]
+
+  if (rpc && (rpc.client.imports ?? []).length > 0) imports.push(...rpc.client.imports)
+
+  return joinLines([COMMENT, joinLines(imports), '', code, ''])
+}
