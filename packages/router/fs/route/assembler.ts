@@ -76,11 +76,7 @@ const uses = (code: string, id: string): boolean =>
     return candidates.filter(({ id }) => uses(code, id)).map(({ import: imp }) => imp)
   }
 
-export const assembleClient = (
-  ctx: Routing.Build.Ctx,
-  baseDir: string,
-  rpc: Rpc.Generated | null
-): string => {
+export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble): string => {
   const { routes, globalStatuses, redirect }: Routing.Build.Ctx = ctx,
     uniquePaths: string[] = Array.from(
       new Set([...routes, ...globalStatuses].map(({ path }) => path))
