@@ -10,10 +10,10 @@ export const findClientEntries = ({
   spaOwners,
   areSpaEntry,
   files,
-  globalStatus
+  globalStatuses
 }: Routing.Build.Query &
   Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaEntry' | 'files'> &
-  Pick<Routing.Build.Special, 'globalStatus'>): {
+  Pick<Routing.Build.Special, 'globalStatuses'>): {
   clientEntries: Routing.ClientEntries
   dirsWithoutSpaEntry: string[]
 } => {
@@ -53,7 +53,7 @@ export const findClientEntries = ({
     push(toEntry(path), fileSrc)
   }
 
-  for (const { path, src } of globalStatus) {
+  for (const { path, src } of globalStatuses) {
     const isStatusFileOutsideSpa: boolean = findClosestDir(src, files) === null
     if (isStatusFileOutsideSpa) push(toEntry(path), src)
   }
