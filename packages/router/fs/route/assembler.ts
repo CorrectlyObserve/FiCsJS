@@ -2,7 +2,7 @@ import { escapeRegExp } from '../../../core/helpers'
 import type { Routing, Rpc } from '../../types'
 import { COMMENT, prefixes, routerImport } from '../constants'
 import { getOrThrow, joinAndWrap, joinLines, toSpecifier } from '../helpers'
-import { generateSpaRouters } from './generator'
+import { generateEntries, generatePages, generateSpaRouters } from './generator'
 
 const uses = (code: string, id: string): boolean =>
     new RegExp(`\\b${escapeRegExp(id)}\\b`).test(code),
@@ -103,4 +103,35 @@ export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
   if (rpc && (rpc.client.imports ?? []).length > 0) imports.push(...rpc.client.imports)
 
   return joinLines([COMMENT, joinLines(imports), '', code, ''])
+}
+
+export const assembleServer = ({ ctx, baseDir, rpc }: Routing.Options.Assemble): string => {
+  const code: string = joinLines(
+      [joinLines(generateEntries(ctx)), generatePages(ctx), rpc?.server.code ?? ''],
+      { filter: true }
+    ),
+    imports: string[] = []
+
+  for (const [src, id] of ctx.middlewareAlias)
+    if (uses(code, id)) imports.push(`import ${id} from '${toSpecifier(src, baseDir)}'`)
+
+  imports.push(...emitModuleImports({ ...ctx, baseDir, code }))
+  if (rpc && rpc.server.imports.length > 0) imports.push(...rpc.server.imports)
+
+  const usedClientExports: string[] = []
+
+  for (const name of [...ctx.spaAlias.values(), 'redirects'])
+    if (uses(code, name)) usedClientExports.push(name)
+
+  if (usedClientExports.length > 0)
+    imports.push(`import ${joinAndWrap(usedClientExports)} from './client'`)
+
+  return joinLines([
+    COMMENT,
+    `import ${routerImport('server-only')}`,
+    joinLines(imports, { filter: true }),
+    '',
+    code,
+    ''
+  ])
 }
