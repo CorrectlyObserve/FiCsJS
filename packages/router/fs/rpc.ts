@@ -101,40 +101,30 @@ export const generateRpcs = ({
     node.alias = alias
   }
 
-  const importModules = (type: 'client' | 'server'): string =>
-      joinLines(
-        rpcs.map(
-          ({ specifier }, index) =>
-            `import ${type === 'client' ? 'type ' : ''}* as ${aliases[index]} from '${specifier}'`
-        )
-      ),
-    client = joinLines([
-      COMMENT,
-      `import { createRpcClient } from ${routerImport()}`,
-      importModules('client'),
-      '',
-      `export const api = createRpcClient<${renderType(root)}>('${basePath}')`,
-      ''
-    ]),
-    server = joinLines([
-      COMMENT,
-      `import ${routerImport('server-only')}`,
-      importModules('server'),
-      ...Array.from(mwAliases.entries()).map(
-        ([src, alias]) => `import ${alias} from '${toSpecifier(src, baseDir)}'`
-      ),
-      '',
-      'export const rpcRouter = {',
-      `${indent()}basePath: '${basePath}',`,
-      `${indent()}procedures: [`,
-      joinLines(
-        manifests.map(entry => `${indent(2)}${entry}`),
-        { comma: true }
-      ),
-      `${indent()}]`,
-      '}',
-      ''
-    ])
+  const importModules = (type: 'client' | 'server'): string[] =>
+    rpcs.map(
+      ({ specifier }, index) =>
+        `import ${type === 'client' ? 'type ' : ''}* as ${aliases[index]} from '${specifier}'`
+    )
 
-  return { client, server }
+  return {
+    client: {
+      imports: importModules('client'),
+      body: `export const api = createRpcClient<${renderType(root)}>('${basePath}')`
+    },
+    server: {
+      imports: importModules('server'),
+      body: joinLines([
+        'export const rpcRouter = {',
+        `${indent()}basePath: '${basePath}',`,
+        `${indent()}procedures: [`,
+        joinLines(
+          manifests.map(entry => `${indent(2)}${entry}`),
+          { comma: true }
+        ),
+        `${indent()}]`,
+        '}'
+      ])
+    }
+  }
 }
