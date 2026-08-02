@@ -1,6 +1,6 @@
 import type { Routing, Rpc } from '../../types'
 import { resolveOptions } from '../helpers'
-import { assembleClient, assembleServer } from './assembler'
+import { assembleClient } from './assembler'
 import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
 import { findClientEntries } from './finder'
 import { generateRpcs } from './rpcGenerator'
@@ -36,7 +36,7 @@ export const generateRoutes = ({
     hasMiddleware: boolean = ctx.uniqueMiddlewares.length > 0
 
   return {
-    clientSrc: assembleClient(ctx, baseDir, rpc),
+    clientSrc: assembleClient({ ctx, baseDir, rpc }),
     serverSrc:
       hasMpaRoute || hasMiddleware || rpc !== null ? assembleServer(ctx, baseDir, rpc) : null,
     ...findClientEntries({ ...ctx, filePaths, extensions })
