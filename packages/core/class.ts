@@ -3,7 +3,7 @@ import {
   attrs,
   BOOLEAN_ATTRS,
   CLONED_SELVES_LENGTH,
-  hostSelector,
+  hostSelector as h,
   symbols,
   VAR_TAG_NAME
 } from './constants'
@@ -1160,8 +1160,8 @@ export class FiCsElement<D extends object, P extends object> {
         /** @remarks Excludes `:host-context()` */
         if (/^\s*:host(?!-)/.test(selector))
           return selector
-            .replace(new RegExp(`${hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
-            .replace(new RegExp(`${hostSelector.STRICT}`, 'g'), ssrHost)
+            .replace(new RegExp(`${h.GROUP}`, 'g'), `${ssrHost}$1`)
+            .replace(new RegExp(`${h.STRICT}`, 'g'), ssrHost)
 
         return `:where(${ssrHost}) ${selector}`
       },
@@ -1215,7 +1215,7 @@ export class FiCsElement<D extends object, P extends object> {
     if (css.length === 0) return
 
     this.#styleSheet ??= new CSSStyleSheet()
-    const cssText: string = this.#cssToString([`${hostSelector.ITSELF}{display:block}`, ...css])
+    const cssText: string = this.#cssToString([`${h.ITSELF}{display:block}`, ...css])
 
     if (this.#lastCssText !== cssText) {
       this.#styleSheet.replaceSync(cssText)
@@ -1233,14 +1233,14 @@ export class FiCsElement<D extends object, P extends object> {
   #getElements(component: HTMLElement, selector: string): Element[] {
     let trimmedSelector: string = selector.trim()
 
-    if (trimmedSelector === hostSelector.ITSELF) return [component]
+    if (trimmedSelector === h.ITSELF) return [component]
 
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component),
-      isDirectChild: boolean = trimmedSelector.startsWith(`${hostSelector.ITSELF} >`)
+      isDirectChild: boolean = trimmedSelector.startsWith(`${h.ITSELF} >`)
 
     if (isDirectChild) {
       const directChildSelector: string = trimmedSelector
-        .slice(hostSelector.ITSELF.length)
+        .slice(h.ITSELF.length)
         .replace(/^\s*>\s*/, '')
         .trim()
 
@@ -1253,8 +1253,8 @@ export class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (trimmedSelector.startsWith(`${hostSelector.ITSELF} `))
-      trimmedSelector = trimmedSelector.slice(hostSelector.ITSELF.length).trimStart()
+    if (trimmedSelector.startsWith(`${h.ITSELF} `))
+      trimmedSelector = trimmedSelector.slice(h.ITSELF.length).trimStart()
 
     try {
       return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
