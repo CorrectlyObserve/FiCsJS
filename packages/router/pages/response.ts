@@ -42,3 +42,19 @@ export const respondPage = async <C extends Record<string, unknown>>({
     status
   })
 }
+
+export const respondStatus = async <C extends Record<string, unknown>>({
+  statusPages,
+  status,
+  ...args
+}: Routing.Options.PageHost<C> & {
+  statusPages: Routing.StatusPages<C>
+  status: Routing.StatusPageCode
+  ctx: Routing.MiddlewareCtx<C>
+  path: string
+}): Promise<Response> => {
+  const statusPage: Routing.ServerStatus<C> | undefined = statusPages[status]
+  return statusPage
+    ? respondPage({ statusPage, status, ...args })
+    : respond({ html: `<h1>${status}</h1>`, status })
+}
