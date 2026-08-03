@@ -196,6 +196,12 @@ export declare namespace Routing {
     script: string
   }
 
+  interface ResolvedPages<C = Record<string, unknown>> {
+    statics: Map<string, ResolvedRoute<C>>
+    dynamics: ({ regex: RegExp } & ResolvedRoute<C>)[]
+    redirects: RedirectFn | Map<string, string> | undefined
+  }
+
   interface ResolvedRoute<C = Record<string, unknown>> extends ServerStatus<C> {
     path: string
     middlewares: readonly Middleware<C>[]
