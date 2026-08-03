@@ -1,4 +1,4 @@
-import { constants } from '../constants'
+import { attrs, VAR_TAG_NAME } from '../constants'
 import { escapeRegExp, isBlankString } from '../helpers'
 import type { Template } from '../types'
 import { constants as templateConstants } from './constants'
@@ -20,35 +20,16 @@ const {
   }
 
 const resolveDescendants = ({ html, resolveInstanceId }: Template.ForSsr): string => {
-  const varBegin: string = `<${constants.VAR_TAG_NAME} ${constants.attrs.FICS_ID}="`,
-    varBeginIndex: number = html.indexOf(varBegin)
-
-  if (varBeginIndex < 0) return html
-
-  const varEnd: string = `"></${constants.VAR_TAG_NAME}>`,
-    varEndIndex: number = html.indexOf(varEnd, varBeginIndex + varBegin.length)
-
-  if (varEndIndex < 0) return html
-
-  const prev: string = html.slice(0, varBeginIndex),
-    instanceId: string = resolveInstanceId(
-      html.slice(varBeginIndex + varBegin.length, varEndIndex)
-    ),
-    next: string = resolveDescendants({
-      html: html.slice(varEndIndex + varEnd.length),
-      resolveInstanceId
-    })
-
-  return `${prev}${instanceId}${next}`
+  const varBegin: string = `<${VAR_TAG_NAME} ${attrs.FICS_ID}="`,
+    varEnd: string = `"></${VAR_TAG_NAME}>`
 }
 
 export const applyShowAttr = ({ html, resolveInstanceId }: Template.ForSsr): string => {
-  const showAttr: RegExp = regExp.ATTR(constants.attrs.SHOW.replace(regExp.SPECIAL_CHAR, '\\$&'))
-  let showAttrIndex: number = html.indexOf(constants.attrs.SHOW)
+  let showAttrIndex: number = html.indexOf(attrs.SHOW)
 
   while (showAttrIndex > -1) {
-    const openIndex: number = html.lastIndexOf(LEFT_ANGLE_BRACKET, showAttrIndex),
-      closeIndex: number = html.indexOf(RIGHT_ANGLE_BRACKET, showAttrIndex)
+    const openIndex: number = html.lastIndexOf(char.LEFT_ANGLE_BRACKET, showAttrIndex),
+      closeIndex: number = html.indexOf(char.RIGHT_ANGLE_BRACKET, showAttrIndex)
 
     if (openIndex < 0 || closeIndex < 0 || html[openIndex + 1] === '/') break
 
