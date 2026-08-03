@@ -63,14 +63,14 @@ export const errorResponse = <C = unknown>({
   /** @remarks Always a status error, as denials are handled in middleware. */
   if (error instanceof RpcError) {
     const { code, message, expose }: RpcError = error
-    return response({ code, error: expose ? message : true })
+    return respond({ code, error: expose ? message : true })
   }
 
   onError?.(error, { path, req })
 
-  if (stage === 'handle') return response({ code: 'INTERNAL_SERVER_ERROR', error: true })
+  if (stage === 'handle') return respond({ code: 'INTERNAL_SERVER_ERROR', error: true })
 
-  return response({
+  return respond({
     code: 'BAD_REQUEST',
     error: 'The provided request input does not match the expected format...'
   })
