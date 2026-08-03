@@ -251,6 +251,8 @@ export declare namespace Routing {
     | 'INTERNAL_SERVER_ERROR'
     | 'NOT_FOUND'
     | 'UNAUTHORIZED']
+
+  type StatusPages<C = Record<string, unknown>> = Partial<Record<StatusPageCode, ServerStatus<C>>>
 }
 
 export declare namespace Rpc {
