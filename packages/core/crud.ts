@@ -140,7 +140,7 @@ export const crud = async <T>({
     return (await res.json()) as T
   }
 
-  if (!key) return await handleRes()
+  if (!key) return await execute()
 
   if (activeApis.get(key))
     console.warn(`The internal API status key "${key}" is already in progress...`)
@@ -149,7 +149,7 @@ export const crud = async <T>({
   enqueue(() => reRender(true), 're-render')
 
   try {
-    return await handleRes()
+    return await execute()
   } finally {
     activeApis.set(key, false)
     enqueue(() => reRender(true), 're-render')
