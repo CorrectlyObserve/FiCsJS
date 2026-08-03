@@ -148,3 +148,47 @@ export const respondDenial = ({
 
   return new Response(_isHeadMethod ? null : serialized, { status: code, headers })
 }
+
+export const respondError = <C = unknown>({
+  error,
+  onMetric,
+  onError,
+  path,
+  method,
+  startedAt,
+  stage,
+  req
+}: {
+  error: unknown
+  onMetric: Rpc.Options.Handler<C>['onMetric']
+  onError?: Rpc.Options.Handler<C>['onError']
+  path: string
+  method: Rpc.Method
+  startedAt: number
+  stage: 'validate' | 'handle'
+  req: Request
+}): Response => {
+  emitMetric(onMetric, {
+    type: 'handle:error',
+    path,
+    method,
+    durationMs: performance.now() - startedAt,
+    error,
+    stage
+  })
+
+  /** @remarks Always a status error, as denials are handled in middleware. */
+  if (error instanceof RpcError) {
+    const { code, message, expose }: RpcError = error
+    return respond({ code, error: expose ? message : true })
+  }
+
+  onError?.(error, { path, req })
+
+  if (stage === 'handle') return respond({ code: 'INTERNAL_SERVER_ERROR', error: true })
+
+  return respond({
+    code: 'BAD_REQUEST',
+    error: 'The provided request input does not match the expected format...'
+  })
+}
