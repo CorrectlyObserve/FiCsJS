@@ -27,7 +27,7 @@ import {
 import { i18n } from './i18n'
 import { optimisticUpdate } from './optimisticUpdate'
 import { enqueue } from './queue'
-import { constants as scrollConstants } from './scroll/constants'
+import { CACHE_LENGTH } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import { runInfiniteVirtualScroll } from './scroll/runtime'
 import { scrollTemplate } from './scroll/template'
@@ -309,8 +309,7 @@ export class FiCsElement<D extends object, P extends object> {
             const options = value as (ctx: DataProps.Payload<D, P, true>) => Scroll.Options,
               { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
                 this.#getDataProps(true)
-              ),
-              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConstants
+              )
 
             numberError({ unit }, 'positive-int')
             numberError({ itemMinSize }, 'positive')
