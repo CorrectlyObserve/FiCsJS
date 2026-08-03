@@ -12,8 +12,12 @@ const app = new Hono()
 
 app.get('/dist/*', serveStatic({ root: './' }))
 
-registerPages(app, routes, {
-  render: ({ meta: { title = '', description = '' }, content, script }: FiCsHost.Render): string => `
+const pageHandler = createPageHandler(pages, {
+  render: ({
+    meta: { title = '', description = '' },
+    content,
+    script
+  }: FiCsPage.Render): string => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -33,11 +37,7 @@ registerPages(app, routes, {
       </body>
     </html>
   `,
-  createContext: () => ({ queryCache: createQueryCache() }),
-  notFound,
-  redirects,
-  /** @remarks Converts ":name*" to Hono's catch-all params format ":name{.+}". */
-  toHostRoutePath: path => path.replace(/:([^/*]+)\*/g, ':$1{.+}')
+  createContext: () => ({ queryCache: createQueryCache() })
 })
 
 const rpcHandler = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
