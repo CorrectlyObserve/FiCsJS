@@ -1,4 +1,4 @@
-import { constants } from '../../constants'
+import { symbols } from '../../constants'
 import { escape, isBlankString } from '../../helpers'
 import type { Template } from '../../types'
 import { error } from './error'
@@ -38,10 +38,10 @@ export const sanitize = <T>({
     processValue = (variable: unknown, context: Template.Context): void => {
       if (variable === null || variable === undefined) return
 
-      if (hasSymbol(variable, SANITIZED)) {
+      if (hasSymbol(variable, symbols.SANITIZED)) {
         if (context !== 'text') throw error(name, context)
 
-        const sanitized: Template.Variable<T> = variable[SANITIZED] as Template.Variable<T>
+        const sanitized: Template.Variable<T> = variable[symbols.SANITIZED] as Template.Variable<T>
 
         if (Array.isArray(sanitized) && sanitized.length > 0) converted.push(...sanitized)
         else if (typeof sanitized === 'string' && sanitized !== '') converted.push(sanitized)
@@ -49,10 +49,10 @@ export const sanitize = <T>({
         return
       }
 
-      if (hasSymbol(variable, UNSAFE_HTML)) {
+      if (hasSymbol(variable, symbols.UNSAFE_HTML)) {
         if (context !== 'text') throw error(name, context)
 
-        const unsafeHtml: string = variable[UNSAFE_HTML] as string
+        const unsafeHtml: string = variable[symbols.UNSAFE_HTML] as string
         if (unsafeHtml !== '') converted.push(unsafeHtml)
 
         return
