@@ -36,7 +36,7 @@ export const assertSafeSegment = (segment: string): string => {
  * @param options.timeoutMs Must be a non-negative integer if it is a number.
  * @param options.intervalMs Must be a non-negative integer if it is a number.
  */
-export const request = async ({
+export const sendRequest = async ({
   basePath,
   path,
   input,
