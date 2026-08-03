@@ -31,6 +31,13 @@ export const assertSafeSegment = (segment: string): string => {
   return segment
 }
 
+export const resolveSegments = (segments: string[], lastArgs: unknown[] | null): string[] => {
+  if (lastArgs === null) return segments
+
+  const [arg, ..._options]: unknown[] = lastArgs
+  return [...segments, assertSafeSegment(String(arg))]
+}
+
 /**
  * @param options.maxRetries Must be a non-negative integer if it is a number.
  * @param options.timeoutMs Must be a non-negative integer if it is a number.
@@ -151,13 +158,6 @@ export const sendRequest = async ({
 
     attempt++
   }
-}
-
-export const resolveSegments = (segments: string[], lastArgs: unknown[] | null): string[] => {
-  if (lastArgs === null) return segments
-
-  const [arg, ..._options]: unknown[] = lastArgs
-  return [...segments, assertSafeSegment(String(arg))]
 }
 
 const toRpcError = async (error: unknown): Promise<RpcError> => {
