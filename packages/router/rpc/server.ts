@@ -13,7 +13,7 @@ import type { Routing, Rpc } from '../types'
 import { CONTENT_LENGTH, RESERVED_KEYS, RPC_INPUT_PARAM } from './constants'
 import { getByteLength } from './helpers'
 import { emitMetric } from './metric'
-import { denialResponse, errorResponse, reject, response } from './response'
+import { respondError, reject, respond, respondDenial } from './response'
 
 export const createRpcHandler = <C = unknown>(
   {
@@ -110,7 +110,7 @@ export const createRpcHandler = <C = unknown>(
 
       const denial: Routing.Denial | undefined = await resolveMiddlewares(middlewares, ctx)
       if (denial)
-        return denialResponse({
+        return respondDenial({
           code: denial.code,
           redirect: denial.redirect,
           method: method as Rpc.Method
