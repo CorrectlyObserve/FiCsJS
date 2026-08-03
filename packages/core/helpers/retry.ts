@@ -1,14 +1,7 @@
 import type { SetTimeout } from '../types'
 import { isClientTermination } from './abort'
-import { constants } from './constants'
+import { INTERVAL_MS, JITTER_RATIO, MAX_DELAY_MS, statusCodes as c } from './constants'
 import { numberError } from './numberError'
-
-const {
-  INTERVAL_MS,
-  JITTER_RATIO,
-  MAX_DELAY_MS,
-  statusCode: { BAD_REQUEST, INTERNAL_SERVER_ERROR, REQUEST_TIMEOUT, TOO_MANY_REQUESTS }
-} = constants
 
 /** @param ms Must be a non-negative integer. */
 export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
@@ -118,14 +111,14 @@ export const shouldRetry = ({
   if (error instanceof Response) {
     const { status }: { status: number } = error
 
-    if (status === TOO_MANY_REQUESTS) return true
+    if (status === c.TOO_MANY_REQUESTS) return true
 
     /** @remarks Only retries 408/5xx for idempotent requests, as execution status is ambiguous. */
     if (!isIdempotent) return false
 
-    if (status === REQUEST_TIMEOUT) return true
-    if (status >= BAD_REQUEST && status < INTERNAL_SERVER_ERROR) return false
-    return status >= INTERNAL_SERVER_ERROR
+    if (status === c.REQUEST_TIMEOUT) return true
+    if (status >= c.BAD_REQUEST && status < c.INTERNAL_SERVER_ERROR) return false
+    return status >= c.INTERNAL_SERVER_ERROR
   }
 
   /** @remarks Only idempotent requests should be retried on network error, as it can't be proven pre-send. */
