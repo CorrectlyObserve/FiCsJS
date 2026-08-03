@@ -1,8 +1,7 @@
 import { numberError, normalizeRootMargin } from '../../helpers'
 import type { Scroll } from '../../types'
 import { resetCache } from '../cache'
-import { constants } from '../constants'
-import { clearTimers, getProperty, isValidNumber } from '../helpers'
+import { FRAME_INTERVAL_MS, THRESHOLD_RATIO } from '../constants'
 import { getRootElement, getSentinel, restoreAxisOffset, updateFirstVisible } from './dom'
 import { fetchWithinThreshold, readPageParam, rebaseUrlSync, updatePageParam } from './sideEffects'
 import { syncResize } from './syncResize'
@@ -38,7 +37,7 @@ export const runInfiniteVirtualScroll = <D extends object, P extends object>({
         itemMinSize,
         bufferLength = 0,
         throttleMs = 0,
-        thresholdRatio = constants.THRESHOLD_RATIO,
+        thresholdRatio = THRESHOLD_RATIO,
         ...args
       } = scrollOptions.options(getDataProps(true))
 
