@@ -14,22 +14,19 @@ export function respond(arg: { html: string; status: Routing.StatusCode } | stri
   })
 }
 
-export const respondStatus = async <C extends Record<string, unknown>>({
-  statusPages,
+export const respondPage = async <C extends Record<string, unknown>>({
+  statusPage,
   status,
   render,
   scriptBase = SCRIPT_BASE,
   ctx,
   path
 }: Routing.Options.PageHost<C> & {
-  statusPages: Routing.StatusPages<C>
-  status: Routing.StatusPageCode
+  statusPage: Routing.ServerStatus<C>
+  status: Routing.StatusPageCode | (typeof statusCodes)['OK']
   ctx: Routing.MiddlewareCtx<C>
   path: string
 }): Promise<Response> => {
-  const statusPage: Routing.ServerStatus<C> | undefined = statusPages[status]
-  if (!statusPage) return respond({ html: `<h1>${status}</h1>`, status })
-
   const {
     module: { meta = {}, default: def },
     entry
