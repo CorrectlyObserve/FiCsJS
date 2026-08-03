@@ -1,4 +1,12 @@
-import { constants } from './constants'
+import {
+  a11y,
+  attrs,
+  BOOLEAN_ATTRS,
+  CLONED_SELVES_LENGTH,
+  hostSelector,
+  symbols,
+  VAR_TAG_NAME
+} from './constants'
 import { crud } from './crud'
 import {
   browserError,
@@ -135,8 +143,7 @@ export class FiCsElement<D extends object, P extends object> {
     if (!isExceptional && { var: true, router: true, link: true }[name])
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
-    this.#instanceId =
-      instanceId ?? `${constants.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
+    this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
     if (!generator) {
@@ -568,7 +575,7 @@ export class FiCsElement<D extends object, P extends object> {
             )
 
           child.#clonedSelves.set(instanceId, cloned)
-          if (child.#clonedSelves.size > constants.CLONED_SELVES_LENGTH) {
+          if (child.#clonedSelves.size > CLONED_SELVES_LENGTH) {
             const oldestKey: string | undefined = child.#clonedSelves.keys().next().value
             if (oldestKey) child.#clonedSelves.delete(oldestKey)
           }
@@ -666,7 +673,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #isBooleanAttr(attr: string): boolean {
-    return constants.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
+    return BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
   }
 
   #isBooleanAttrEnabled(attr: string, value: string): boolean {
@@ -723,62 +730,55 @@ export class FiCsElement<D extends object, P extends object> {
   get #template(): string {
     this.#addSetIndividualProps()
 
-    const {
-        a11y: { STATUS_LIVE_REGION },
-        attrs: { FICS_ID, SHOW },
-        symbols: { SANITIZED, UNSAFE_HTML },
-        VAR_TAG_NAME
-      } = constants,
-      template: Html.Template<D, P> = (
+    const template: Html.Template<D, P> = (
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
       ): Html.Sanitized<D, P> => ({
-        [SANITIZED]: sanitize<Exclude<Html.Content<D, P>, string>>({
+        [symbols.SANITIZED]: sanitize<Exclude<Html.Content<D, P>, string>>({
           strings,
           variables,
           name: this.#name,
           isFiCsElement: (variable: unknown): variable is Exclude<Html.Content<D, P>, string> =>
             variable instanceof FiCsElement
         }) as Html.Content<D, P>[]
-      })
-
-    const contents: Html.Content<D, P>[] = this.#html({
-      ...this.#getDataProps(true),
-      children: this.#children,
-      template: (
-        strings: TemplateStringsArray,
-        ...variables: (Html.Content<D, P> | unknown)[]
-      ): Html.Sanitized<D, P> => template(strings, ...variables),
-      unsafeHtml: (str: string): Record<symbol, string> => ({ [UNSAFE_HTML]: str }),
-      show: (condition: boolean): string => (condition ? '' : SHOW),
-      activeApis: Object.fromEntries(this.#activeApis),
-      attributes: {
-        boolean: (condition: boolean | undefined): 'true' | 'false' =>
-          condition ? 'true' : 'false',
-        statusLiveRegion: STATUS_LIVE_REGION
-      },
-      isBrowser: this.#isBrowser,
-      isDeferred: this.#isDeferred,
-      scroll: <T>(
-        array: ReadonlyArray<T> | null | undefined,
-        callback: (item: T, index: number) => Html.Sanitized<D, P>
-      ): Html.Sanitized<D, P> =>
-        scrollTemplate({
-          instanceId: this.#instanceId,
-          getDataProps: this.#getDataProps.bind(this),
-          template,
-          scrollOptions: this.#options.scroll,
-          array,
-          callback
-        })
-    })[SANITIZED]
+      }),
+      contents: Html.Content<D, P>[] = this.#html({
+        ...this.#getDataProps(true),
+        children: this.#children,
+        template: (
+          strings: TemplateStringsArray,
+          ...variables: (Html.Content<D, P> | unknown)[]
+        ): Html.Sanitized<D, P> => template(strings, ...variables),
+        unsafeHtml: (str: string): Record<symbol, string> => ({ [symbols.UNSAFE_HTML]: str }),
+        show: (condition: boolean): string => (condition ? '' : attrs.SHOW),
+        activeApis: Object.fromEntries(this.#activeApis),
+        attributes: {
+          boolean: (condition: boolean | undefined): 'true' | 'false' =>
+            condition ? 'true' : 'false',
+          statusLiveRegion: a11y.STATUS_LIVE_REGION
+        },
+        isBrowser: this.#isBrowser,
+        isDeferred: this.#isDeferred,
+        scroll: <T>(
+          array: ReadonlyArray<T> | null | undefined,
+          callback: (item: T, index: number) => Html.Sanitized<D, P>
+        ): Html.Sanitized<D, P> =>
+          scrollTemplate({
+            instanceId: this.#instanceId,
+            getDataProps: this.#getDataProps.bind(this),
+            template,
+            scrollOptions: this.#options.scroll,
+            array,
+            callback
+          })
+      })[symbols.SANITIZED]
 
     return contents.reduce<string>((prev, curr) => {
       if (isObject(curr) && curr instanceof FiCsElement) {
         const instanceId: string = curr.#instanceId
 
         this.#childrenStore[instanceId] ??= curr
-        curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
+        curr = `<${VAR_TAG_NAME} ${attrs.FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
       return `${prev}${curr}`
@@ -800,11 +800,7 @@ export class FiCsElement<D extends object, P extends object> {
       isHTMLElement = (childNode: ChildNode | ParentNode): childNode is HTMLElement =>
         childNode instanceof HTMLElement,
       isTextarea = (childNode: ChildNode | ParentNode): childNode is HTMLTextAreaElement =>
-        isHTMLElement(childNode) && childNode.localName === 'textarea',
-      {
-        attrs: { FICS_ID, SHOW },
-        VAR_TAG_NAME
-      } = constants
+        isHTMLElement(childNode) && childNode.localName === 'textarea'
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -824,7 +820,7 @@ export class FiCsElement<D extends object, P extends object> {
 
         if (isElement(childNode)) {
           if (childNode.localName === VAR_TAG_NAME) {
-            const instanceId: string | null = childNode.getAttribute(FICS_ID)
+            const instanceId: string | null = childNode.getAttribute(attrs.FICS_ID)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -848,9 +844,9 @@ export class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(SHOW)) {
+          if (childNode.hasAttribute(attrs.SHOW)) {
             ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(SHOW)
+            childNode.removeAttribute(attrs.SHOW)
           }
         }
 
@@ -913,7 +909,7 @@ export class FiCsElement<D extends object, P extends object> {
                   : that.#isBooleanAttrEnabled(name, oldAttr?.value ?? '')
 
               if (wasEnabled !== isEnabled || isDiffAttr) {
-                if (name !== FICS_ID && hasProp)
+                if (name !== attrs.FICS_ID && hasProp)
                   Reflect.set(oldChildNode, prop, isBoolean ? isEnabled : value)
 
                 if (!isBoolean) oldChildNode.setAttribute(name, value)
@@ -948,7 +944,7 @@ export class FiCsElement<D extends object, P extends object> {
             return
           }
 
-          if (!!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))) return
+          if (!!Reflect.get(oldChildNode, convertStr(attrs.FICS_ID, 'camel'))) return
 
           updateChildNodes(
             oldChildNode,
@@ -1083,7 +1079,7 @@ export class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))
+                  !!Reflect.get(oldChildNode, convertStr(attrs.FICS_ID, 'camel'))
                 )
                   continue
 
@@ -1164,8 +1160,8 @@ export class FiCsElement<D extends object, P extends object> {
         /** @remarks Excludes `:host-context()` */
         if (/^\s*:host(?!-)/.test(selector))
           return selector
-            .replace(new RegExp(`${constants.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
-            .replace(new RegExp(`${constants.hostSelector.STRICT}`, 'g'), ssrHost)
+            .replace(new RegExp(`${hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
+            .replace(new RegExp(`${hostSelector.STRICT}`, 'g'), ssrHost)
 
         return `:where(${ssrHost}) ${selector}`
       },
@@ -1219,10 +1215,7 @@ export class FiCsElement<D extends object, P extends object> {
     if (css.length === 0) return
 
     this.#styleSheet ??= new CSSStyleSheet()
-    const cssText: string = this.#cssToString([
-      `${constants.hostSelector.ITSELF}{display:block}`,
-      ...css
-    ])
+    const cssText: string = this.#cssToString([`${hostSelector.ITSELF}{display:block}`, ...css])
 
     if (this.#lastCssText !== cssText) {
       this.#styleSheet.replaceSync(cssText)
@@ -1239,18 +1232,15 @@ export class FiCsElement<D extends object, P extends object> {
 
   #getElements(component: HTMLElement, selector: string): Element[] {
     let trimmedSelector: string = selector.trim()
-    const {
-      hostSelector: { ITSELF }
-    } = constants
 
-    if (trimmedSelector === ITSELF) return [component]
+    if (trimmedSelector === hostSelector.ITSELF) return [component]
 
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component),
-      isDirectChild: boolean = trimmedSelector.startsWith(`${ITSELF} >`)
+      isDirectChild: boolean = trimmedSelector.startsWith(`${hostSelector.ITSELF} >`)
 
     if (isDirectChild) {
       const directChildSelector: string = trimmedSelector
-        .slice(ITSELF.length)
+        .slice(hostSelector.ITSELF.length)
         .replace(/^\s*>\s*/, '')
         .trim()
 
@@ -1263,8 +1253,8 @@ export class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (trimmedSelector.startsWith(`${ITSELF} `))
-      trimmedSelector = trimmedSelector.slice(ITSELF.length).trimStart()
+    if (trimmedSelector.startsWith(`${hostSelector.ITSELF} `))
+      trimmedSelector = trimmedSelector.slice(hostSelector.ITSELF.length).trimStart()
 
     try {
       return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
@@ -1566,7 +1556,7 @@ export class FiCsElement<D extends object, P extends object> {
               })
 
           that.#removeChildNodes(this)
-          Reflect.set(this, convertStr(constants.attrs.FICS_ID, 'camel'), that.#instanceId)
+          Reflect.set(this, convertStr(attrs.FICS_ID, 'camel'), that.#instanceId)
 
           that.#cache.component = this
           this.#activateRuntime()
@@ -1611,7 +1601,7 @@ export class FiCsElement<D extends object, P extends object> {
 
           if (that.#scrollObservers) {
             for (const observer of ['intersection', 'mutation', 'resize'] as const)
-              that.#scrollObservers[observer].disconnect()
+              that.#scrollObservers[observer]?.disconnect()
 
             that.#scrollObservers = undefined
           }
