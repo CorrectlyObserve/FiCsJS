@@ -106,8 +106,6 @@ export const crud = async <T>({
     if (res.status === NO_CONTENT) return
 
     const contentType: string = res.headers.get(CONTENT_TYPE)?.toLowerCase() ?? '',
-      isJson: boolean = contentType.startsWith(APPLICATION_JSON),
-      isEventStream: boolean = contentType.startsWith('text/event-stream'),
       readStream = async (): Promise<void> => {
         const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
         if (!reader) throw new Error('The Streams option is not available in this environment...')
@@ -135,7 +133,7 @@ export const crud = async <T>({
       return await readStream()
     }
 
-    if (!isJson)
+    if (!contentType.startsWith(APPLICATION_JSON))
       throw new Error(
         `The response is required to have a ${CONTENT_TYPE} of ${APPLICATION_JSON}...`
       )
