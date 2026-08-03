@@ -2,6 +2,7 @@ import {
   APPLICATION_JSON,
   CONTENT_TYPE,
   delay,
+  EVENT_STREAM,
   forwardAbort,
   getDelayMs,
   isIdempotentMethod,
@@ -128,8 +129,8 @@ export const crud = async <T>({
       }
 
     if (onChunk) {
-      if (!isEventStream)
-        throw new Error('The Stream API can only be used for text/event-stream responses...')
+      if (!contentType.startsWith(EVENT_STREAM))
+        throw new Error(`The Stream API can only be used for ${EVENT_STREAM} responses...`)
 
       return await readStream()
     }
