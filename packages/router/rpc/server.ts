@@ -63,7 +63,7 @@ export const createRpcHandler = <C = unknown>(
       /** @remarks Means the OPTIONS request a browser auto-sends before a cross-origin call to check it is allowed. It runs no procedure. */
       isCorsPreflight: boolean = method === 'OPTIONS'
 
-    if (isCorsPreflight) return response({ code: 'NO_CONTENT' })
+    if (isCorsPreflight) return respond({ code: 'NO_CONTENT' })
 
     let { pathname: path, searchParams }: URL = new URL(url)
 
@@ -194,7 +194,7 @@ export const createRpcHandler = <C = unknown>(
         durationMs: performance.now() - startedAt
       })
 
-      return response({
+      return respond({
         body,
         code: body === undefined ? 'NO_CONTENT' : 'OK',
         cacheHeaders: isBodiless(method) ? { 'cache-control': 'private, no-store' } : undefined,
