@@ -5,7 +5,7 @@ import {
   numberError,
   removeTrailingSlash
 } from '../../core/helpers'
-import { RPC_BASE_PATH } from '../constants'
+import { RPC_BASE } from '../constants'
 import { dynamicPathToRegex, getDynamicPaths } from '../dynamicPaths'
 import { hasMethod, isBodiless, isDynamicPath, prependSlash } from '../helpers'
 import { deny, resolveMiddlewares } from '../middleware'
@@ -17,7 +17,7 @@ import { reject, respond, respondDenial, respondError } from './response'
 
 export const createRpcHandler = <C = unknown>(
   {
-    basePath = RPC_BASE_PATH,
+    basePath = RPC_BASE,
     procedures
   }: {
     basePath?: string
