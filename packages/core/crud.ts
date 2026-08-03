@@ -46,7 +46,7 @@ export const crud = async <T>({
 
   if (method === 'HEAD') throw new Error('The HEAD method is not supported in the crud function...')
 
-  const handleRes = async (): Promise<T | void> => {
+  const execute = async (): Promise<T | void> => {
     let attempt: number = 0
 
     const fetchOnce = async (): Promise<Response> => {
