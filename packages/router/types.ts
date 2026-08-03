@@ -170,6 +170,13 @@ export declare namespace Routing {
       createContext?: (req: Request) => Awaitable<C>
       scriptBase?: string
     }
+
+    interface PageManifest<C = Record<string, unknown>> {
+      routes: ServerRoute<C>[]
+      middlewares?: Readonly<Record<string, readonly Middleware<C>[]>>
+      statusPages?: StatusPages<C>
+      redirects?: Redirects
+    }
   }
 
   interface RedirectCtx {
