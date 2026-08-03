@@ -135,7 +135,9 @@ export const crud = async <T>({
     }
 
     if (!isJson)
-      throw new Error('The response is required to have a content-type of application/json...')
+      throw new Error(
+        `The response is required to have a ${CONTENT_TYPE} of ${APPLICATION_JSON}...`
+      )
 
     return (await res.json()) as T
   }
