@@ -76,10 +76,10 @@ export const createRpcHandler = <C = unknown>(
       dynamicParams: Record<string, string> = {}
 
     if (!_static)
-      for (const { pattern, regex, procedure, middlewares } of dynamics) {
+      for (const { pattern, regex, ...args } of dynamics) {
         const _path: string = prependSlash(path)
         if (regex.test(_path)) {
-          _static = { procedure, middlewares }
+          _static = args
           dynamicParams = getDynamicPaths(pattern, _path)
           break
         }
