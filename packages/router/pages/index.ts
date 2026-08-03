@@ -1,23 +1,22 @@
 import { SCRIPT_BASE } from '../constants'
 import { isHeadMethod } from '../helpers'
 import type { Routing } from '../types'
-import { dispatch } from './dispatch'
+import { dispatch, resolvePages } from './dispatch'
 
-export const createPageHandler =
-  <C extends Record<string, unknown>>(
-    { routes, middlewares = {}, statusPages = {}, redirects }: Routing.Options.PageManifest<C>,
-    { render, createContext, scriptBase = SCRIPT_BASE }: Routing.Options.PageHost<C>
-  ): ((req: Request) => Promise<Response>) =>
-  async (req: Request): Promise<Response> => {
+export const createPageHandler = <C extends Record<string, unknown>>(
+  { routes, middlewares = {}, statusPages = {}, redirects }: Routing.Options.PageManifest<C>,
+  { render, createContext, scriptBase = SCRIPT_BASE }: Routing.Options.PageHost<C>
+): ((req: Request) => Promise<Response>) => {
+  const pages: Routing.ResolvedPages<C> = resolvePages({ routes, middlewares, redirects })
+
+  return async (req: Request): Promise<Response> => {
     const res: Response = await dispatch({
       req,
-      routes,
-      middlewares,
       statusPages,
-      redirects,
       render,
       createContext,
-      scriptBase
+      scriptBase,
+      ...pages
     })
 
     if (isHeadMethod(req.method))
@@ -25,3 +24,4 @@ export const createPageHandler =
 
     return res
   }
+}
