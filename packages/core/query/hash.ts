@@ -1,22 +1,18 @@
-import { constants } from './constants'
-
-const {
-  hash: { CIRCULAR, DATE, FALSE, MAP, NULL, SET, TRUE, UNDEFINED }
-} = constants
+import { hash as h } from './constants'
 
 /** @warning DO NOT pass this function directly to `Array.prototype.map` like `array.map(hash)`. */
 export const hash = (key: unknown, seen: WeakSet<WeakKey> = new WeakSet()): string => {
   if (typeof key === 'symbol' || typeof key === 'function')
     throw new Error('Symbols and Functions cannot be used as query keys...')
 
-  if (key === undefined) return UNDEFINED
-  if (key === null) return NULL
-  if (typeof key === 'boolean') return key ? TRUE : FALSE
+  if (key === undefined) return h.UNDEFINED
+  if (key === null) return h.NULL
+  if (typeof key === 'boolean') return key ? h.TRUE : h.FALSE
   if (typeof key === 'number') return `${key}`
   if (typeof key === 'bigint') return `${key}n`
   if (typeof key === 'string') return `"${key}"`
 
-  if (seen.has(key as object)) return CIRCULAR
+  if (seen.has(key as object)) return h.CIRCULAR
   seen.add(key as object)
 
   if (key instanceof Date) return `${DATE}${key.getTime()}`
