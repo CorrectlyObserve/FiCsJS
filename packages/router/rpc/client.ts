@@ -1,6 +1,6 @@
 import { typedEntries } from '../../core/helpers'
 import type { Rpc } from '../types'
-import { assertSafeSegment, request, resolveSegments } from './request'
+import { assertSafeSegment, resolveSegments, sendRequest } from './request'
 
 let globalOptions: Rpc.Options.Client = {}
 
@@ -37,7 +37,7 @@ export const createRpcClient = <R>(
           for (const [key, value] of typedEntries(calledArgs))
             if (value) (args as Record<string, unknown>)[key] = value
 
-          promise ??= request({
+          promise ??= sendRequest({
             basePath,
             path,
             input,
