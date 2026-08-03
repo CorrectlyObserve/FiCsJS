@@ -1,6 +1,6 @@
 import type { Scroll } from '../../types'
 import { evictCache, rebuildFenwickTrees } from '../cache'
-import { constants } from '../constants'
+import { FRAME_INTERVAL_MS } from '../constants'
 import { fenwickTree, getProperty, isValidNumber } from '../helpers'
 import { getItemsInScrollArea, updateFirstVisible } from './dom'
 import { updateAveSize, updateRange } from './virtualizer'
@@ -160,7 +160,7 @@ export const syncResize = <D extends object, P>({
         bufferLength,
         reRender
       })
-    }, constants.FRAME_INTERVAL_MS)
+    }, FRAME_INTERVAL_MS)
   }
 
   if (hasSizeChanged) setResizeTimer()
