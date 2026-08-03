@@ -13,69 +13,6 @@ import { getByteLength } from './helpers'
 import { emitMetric } from './metric'
 import { RpcError } from './error'
 
-export const denialResponse = ({
-  code,
-  method,
-  redirect
-}: Routing.Denial & { method: Rpc.Method }): Response => {
-  const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON, [DENIED_HEADER]: '1' })
-  if (redirect) headers.set(REDIRECT_HEADER, redirect)
-
-  /** @remarks The key `error` is for the toRpcError function. */
-  const serialized: string = JSON.stringify({
-      error: { denied: true, ...(redirect ? { redirect } : {}) }
-    }),
-    _isHeadMethod: boolean = isHeadMethod(method)
-
-  if (_isHeadMethod) headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
-
-  return new Response(_isHeadMethod ? null : serialized, { status: code, headers })
-}
-
-export const errorResponse = <C = unknown>({
-  error,
-  onMetric,
-  onError,
-  path,
-  method,
-  startedAt,
-  stage,
-  req
-}: {
-  error: unknown
-  onMetric: Rpc.Options.Handler<C>['onMetric']
-  onError?: Rpc.Options.Handler<C>['onError']
-  path: string
-  method: Rpc.Method
-  startedAt: number
-  stage: 'validate' | 'handle'
-  req: Request
-}): Response => {
-  emitMetric(onMetric, {
-    type: 'handle:error',
-    path,
-    method,
-    durationMs: performance.now() - startedAt,
-    error,
-    stage
-  })
-
-  /** @remarks Always a status error, as denials are handled in middleware. */
-  if (error instanceof RpcError) {
-    const { code, message, expose }: RpcError = error
-    return respond({ code, error: expose ? message : true })
-  }
-
-  onError?.(error, { path, req })
-
-  if (stage === 'handle') return respond({ code: 'INTERNAL_SERVER_ERROR', error: true })
-
-  return respond({
-    code: 'BAD_REQUEST',
-    error: 'The provided request input does not match the expected format...'
-  })
-}
-
 export const reject = <C = unknown>({
   onMetric,
   path,
