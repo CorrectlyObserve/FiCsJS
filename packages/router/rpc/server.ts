@@ -13,7 +13,7 @@ import type { Routing, Rpc } from '../types'
 import { CONTENT_LENGTH, RESERVED_KEYS, RPC_INPUT_PARAM } from './constants'
 import { getByteLength } from './helpers'
 import { emitMetric } from './metric'
-import { respondError, reject, respond, respondDenial } from './response'
+import { reject, respond, respondDenial, respondError } from './response'
 
 export const createRpcHandler = <C = unknown>(
   {
@@ -116,7 +116,7 @@ export const createRpcHandler = <C = unknown>(
           method: method as Rpc.Method
         })
     } catch (error) {
-      return errorResponse<C>({
+      return respondError<C>({
         error,
         onMetric,
         onError,
@@ -172,7 +172,7 @@ export const createRpcHandler = <C = unknown>(
       try {
         raw = await procedure.input(raw)
       } catch (error) {
-        return errorResponse<C>({
+        return respondError<C>({
           error,
           onMetric,
           onError,
@@ -201,7 +201,7 @@ export const createRpcHandler = <C = unknown>(
         method: method as Rpc.Method
       })
     } catch (error) {
-      return errorResponse<C>({
+      return respondError<C>({
         error,
         onMetric,
         onError,
