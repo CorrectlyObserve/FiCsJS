@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import type { SetTimeout } from '../../core/types'
-import { RPC_BASE_PATH } from '../constants'
+import { RPC_BASE } from '../constants'
 import type { Routing } from '../types'
 import { configRoutes } from './config'
 import { config, DEBOUNCE_DELAY_MS, exitCodes } from './constants'
@@ -19,7 +19,7 @@ const { OUTPUT, SCANNED_DIR, TOOL_NAME } = config,
     'Options:',
     `${indent()}--dir <path>       Pages directory to scan (default: ${SCANNED_DIR})`,
     `${indent()}--output <path>    Directory to write the generated barrels to (default: ${OUTPUT})`,
-    `${indent()}--basePath <path>  RPC URL prefix baked into the client & handler (default: ${RPC_BASE_PATH})`,
+    `${indent()}--basePath <path>  RPC URL prefix baked into the client & handler (default: ${RPC_BASE})`,
     `${indent()}--entries          Emit client entry stubs to build without Vite`,
     `${indent()}--watch            Regenerate on any change under the pages directory`,
     `${indent()}-h, --help         Show this help and exit`
