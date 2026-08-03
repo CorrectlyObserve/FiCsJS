@@ -1,7 +1,7 @@
 import { attrs, VAR_TAG_NAME } from '../constants'
 import { escapeRegExp, isBlankString } from '../helpers'
 import type { Template } from '../types'
-import { constants as templateConstants } from './constants'
+import { char, DISPLAY_NONE, regExp } from './constants'
 
 const {
     char: { LEFT_ANGLE_BRACKET, RIGHT_ANGLE_BRACKET },
