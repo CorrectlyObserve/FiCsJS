@@ -13,7 +13,7 @@ import {
   watch
 } from '../helpers'
 import type { Query } from '../types'
-import { constants } from './constants'
+import { GC_LIMIT_MS, STALE_MS } from './constants'
 import { hash } from './hash'
 
 export class QueryCache {
@@ -27,8 +27,8 @@ export class QueryCache {
 
   constructor(config?: Partial<Query.Config.Global>) {
     this.#config = {
-      staleMs: constants.STALE_MS,
-      gcLimitMs: constants.GC_LIMIT_MS,
+      staleMs: STALE_MS,
+      gcLimitMs: GC_LIMIT_MS,
       maxDelayMs: MAX_DELAY_MS,
       maxRetries: MAX_RETRIES,
       refetchIntervalMs: 0,
