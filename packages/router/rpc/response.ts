@@ -129,3 +129,22 @@ export const respond = ({
     headers
   })
 }
+
+export const respondDenial = ({
+  code,
+  method,
+  redirect
+}: Routing.Denial & { method: Rpc.Method }): Response => {
+  const headers: Headers = new Headers({ [CONTENT_TYPE]: APPLICATION_JSON, [DENIED_HEADER]: '1' })
+  if (redirect) headers.set(REDIRECT_HEADER, redirect)
+
+  /** @remarks The key `error` is for the toRpcError function. */
+  const serialized: string = JSON.stringify({
+      error: { denied: true, ...(redirect ? { redirect } : {}) }
+    }),
+    _isHeadMethod: boolean = isHeadMethod(method)
+
+  if (_isHeadMethod) headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
+
+  return new Response(_isHeadMethod ? null : serialized, { status: code, headers })
+}
