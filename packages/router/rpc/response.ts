@@ -25,7 +25,7 @@ export const reject = <C = unknown>({
   error: string | true
 }): Response => {
   emitMetric(onMetric, { type: 'reject', path, reason: metricReasons[code] })
-  return response({ code, error })
+  return respond({ code, error })
 }
 
 export const respond = ({
