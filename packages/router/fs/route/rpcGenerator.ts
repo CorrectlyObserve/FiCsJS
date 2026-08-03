@@ -1,4 +1,4 @@
-import { RPC_BASE_PATH } from '../../constants'
+import { RPC_BASE } from '../../constants'
 import type { Routing, Rpc, TypeNode } from '../../types'
 import { fileNames, prefixes, segments } from '../constants'
 import {
@@ -33,7 +33,7 @@ const newNode = (): TypeNode => ({ children: new Map() }),
 export const generateRpcs = ({
   filePaths,
   options,
-  basePath = RPC_BASE_PATH,
+  basePath = RPC_BASE,
   middlewareAlias
 }: Routing.Options.Generate & { middlewareAlias: Map<string, string> }): Rpc.Generated | null => {
   const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
