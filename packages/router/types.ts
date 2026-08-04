@@ -234,7 +234,6 @@ export declare namespace Routing {
 
   interface Spec {
     routes: Route<Module>[]
-    redirects?: Redirects
     statusModules?: Record<string, Module>
   }
 
