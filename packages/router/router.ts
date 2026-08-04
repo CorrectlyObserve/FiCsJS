@@ -63,19 +63,20 @@ export const ficsRouter = <D extends object>(
     }: FiCsRouter<D> = config,
     {
       pages,
-      statusModules: { notFound },
-      redirectFn
+      statusModules: { notFound }
     }: Readonly<Routing.ResolvedSpec> = resolveSpec(spec),
     _pages = pages,
     _notFound = notFound
 
   if (_pages.length === 0) throw new Error('Please configure routes...')
 
-  const redirectMap: ReadonlyMap<string, string> = new Map(
-    _pages
-      .filter(({ redirect }) => typeof redirect === 'string')
-      .map(({ path, redirect }) => [normalizePath(path), redirect!])
-  )
+  const staticRedirects: [string, string][] = _pages
+    .filter(({ redirect }) => typeof redirect === 'string')
+    .map(({ path, redirect }) => [normalizePath(path), redirect as string])
+
+  const redirects: ReadonlyMap<string, string> | undefined =
+    staticRedirects.length > 0 ? new Map(staticRedirects) : undefined
+
   let removeEventListeners: () => void = NOOP
 
   return new FiCsElement<RouterData<D>, {}>({
@@ -183,7 +184,7 @@ export const ficsRouter = <D extends object>(
         hooks?.created?.({ data, ...args })
 
         const onPopState: () => void = (): void =>
-          setRouterData({ data, pathname: window.location.pathname, redirectMap, redirectFn })
+          setRouterData({ data, pathname: window.location.pathname, redirects })
 
         window.addEventListener('popstate', onPopState)
 
@@ -193,7 +194,7 @@ export const ficsRouter = <D extends object>(
             }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
             { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
-          setRouterData({ data, pathname, redirectMap, redirectFn })
+          setRouterData({ data, pathname, redirects })
         }
 
         window.addEventListener(FICS_NAVIGATE, onCustomEvent)
@@ -203,7 +204,7 @@ export const ficsRouter = <D extends object>(
           window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
         }
 
-        setRouterData({ data, pathname: window.location.pathname, redirectMap, redirectFn })
+        setRouterData({ data, pathname: window.location.pathname, redirects })
       },
       mounted: hooks?.mounted,
       updated: hooks?.updated,
