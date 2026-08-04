@@ -31,11 +31,13 @@ const resolveRedirect = ({
 
 const setRouterData = <D extends object>({
   data,
-  pathname,
-  redirectMap,
-  redirectFn
-}: Routing.RedirectCtx & { data: RouterData<D> }): void => {
-  data.pathname = resolveRedirect({ pathname, redirectMap, redirectFn })
+  ...args
+}: {
+  data: RouterData<D>
+  pathname: string
+  redirects?: ReadonlyMap<string, string>
+}): void => {
+  data.pathname = resolveRedirect(args)
 
   const queries: Record<string, string> = getQueries()
   data.queries = queries
