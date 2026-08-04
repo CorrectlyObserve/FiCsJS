@@ -10,39 +10,10 @@ import { API_PATHS, getTimestamp } from '@/utils'
 
 const app = new Hono()
 
+// ── Static assets ──
 app.get('/dist/*', serveStatic({ root: './' }))
 
-const pageHandler = createPageHandler(pages, {
-  render: ({
-    meta: { title = '', description = '' },
-    content,
-    script
-  }: FiCsPage.Render): string => `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title}</title>
-        <meta name="description" content="${description}" />
-        <link rel="stylesheet" type="text/css" href="/dist/global.css" />
-      </head>
-      <body class="bg-dark px-4">
-        <header class="flex justify-center flex-row py-2">
-          <h1 class="text-xl text-center font-semibold">${title}</h1>
-        </header>
-        <main class="pb-8">${content}</main>
-        <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="${script}"></script>
-      </body>
-    </html>
-  `,
-  createContext: () => ({ queryCache: createQueryCache() })
-})
-
-const rpcHandler = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
-app.all(`${rpcRouter.basePath}/*`, ({ req: { raw } }) => rpcHandler(raw))
-
+// ── Realtime demo: WebSocket / SSE / streaming ──
 const createServerMessage = (comment: string): string =>
   JSON.stringify({ userName: 'Server', comment })
 
