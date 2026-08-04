@@ -6,10 +6,9 @@ import type { Page, PageContent, Routing } from './types'
 const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} }
 
 export const registerRoutes = (spec: Routing.Spec): void => {
-  const { pages, statusModules, redirectFn }: Routing.ResolvedSpec = resolveSpec(spec)
+  const { pages, statusModules }: Routing.ResolvedSpec = resolveSpec(spec)
   registry.pages = pages
   registry.statusModules = statusModules
-  registry.redirectFn = redirectFn
 }
 
 export const resetRoutes = (): void => {
