@@ -423,6 +423,7 @@ export declare namespace Query {
     /** @remarks Returns the final authoritative value from the server on success. */
     mutator: () => Promise<T>
     maxRetries?: number
+    idempotent?: boolean
     signal?: AbortSignal
   }
 
