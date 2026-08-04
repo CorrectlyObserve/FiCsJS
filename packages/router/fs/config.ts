@@ -67,10 +67,14 @@ export const configRoutes = (config: Routing.Config = {}): void => {
   else if (existsSync(serverPath)) rmSync(serverPath)
 
   if (entries) {
-    if (dirsWithoutSpaEntry.length > 0)
-      throw new Error(
-        `There is no "+spa" entry in ${joinArray(dirsWithoutSpaEntry.map(dir => `"${dir || '/'}"`))}`
+    if (dirsWithoutSpaEntry.length > 0) {
+      const entries: string = joinArray(
+        dirsWithoutSpaEntry.map(dir => `"${dir || '/'}"`),
+        { separator: ',' }
       )
+
+      throw new Error(`There is no "+spa" entry in ${entries}...`)
+    }
 
     const entriesDir: string = join(o, configConstants.ENTRIES)
     rmSync(entriesDir, { force: true, recursive: true })
