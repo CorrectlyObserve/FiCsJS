@@ -10,14 +10,16 @@ import { getQueries, params } from './params'
 import { resolveSpec } from './registry'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData, Routing } from './types'
 
-const resolveRedirect = ({ pathname, redirectMap, redirectFn }: Routing.RedirectCtx): string => {
-  const normalized: string = normalizePath(pathname)
-  let redirect: string | undefined = redirectMap.get(normalized)
+const resolveRedirect = ({
+  pathname,
+  redirects
+}: {
+  pathname: string
+  redirects?: ReadonlyMap<string, string>
+}): string => {
+  const normalized: string = normalizePath(pathname),
+    redirect: string | undefined = redirects?.get(normalized)
 
-  if (redirect === undefined && redirectFn) {
-    const result: string | null = redirectFn(normalized)
-    if (typeof result === 'string') redirect = result
-  }
   if (redirect === undefined) return normalized
 
   const { origin, pathname: p }: { origin: string; pathname: string } = window.location,
