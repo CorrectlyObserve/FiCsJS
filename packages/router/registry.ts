@@ -19,21 +19,15 @@ export const resetRoutes = (): void => {
 export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
   if (!spec) return registry
 
-  const { routes, redirects, statusModules }: Routing.Spec = spec,
-    pages: Page[] = []
+  const { routes, statusModules }: Routing.Spec = spec,
+    pages: Page[] = [],
+    modules: Record<string, PageContent | undefined> = {}
 
   for (const { path, page, layout } of routes)
     pages.push(resolveModule(applyLayout({ layout, page }), path))
 
-  let redirectFn: Routing.RedirectFn | undefined
-
-  if (typeof redirects === 'function') redirectFn = redirects
-  else if (redirects)
-    for (const [path, redirect] of typedEntries(redirects)) pages.push({ path, redirect })
-
-  const modules: Record<string, PageContent | undefined> = {}
   if (statusModules)
     for (const [key, module] of typedEntries(statusModules)) modules[key] = resolveModule(module)
 
-  return { pages, statusModules: modules, redirectFn }
+  return { pages, statusModules: modules }
 }
