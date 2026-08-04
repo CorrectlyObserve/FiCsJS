@@ -179,19 +179,12 @@ export declare namespace Routing {
       routes: { path: string; page: ServerModule<C>; entry: string; layout?: Module }[]
       middlewares?: Readonly<Record<string, readonly Middleware<C>[]>>
       statusPages?: StatusPages<C>
-      redirects?: Redirects
+      /** @remarks Server-only. Rewrites arbitrary inbound URLs that the client SPA never sees before routing. */
+      redirects?: ((pathname: string) => string | null) | Record<string, string>
     }
   }
 
-  interface RedirectCtx {
-    pathname: string
-    redirectMap: ReadonlyMap<string, string>
-    redirectFn?: RedirectFn
-  }
-
-  type RedirectFn = (pathname: string) => string | null
-
-  type Redirects = Record<string, string> | RedirectFn
+  type Redirects = ((pathname: string) => string | null) | Map<string, string>
 
   interface Render {
     meta: Record<string, string>
