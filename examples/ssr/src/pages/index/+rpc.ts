@@ -5,8 +5,9 @@ import type { User } from '@/types'
 
 export const create = mutationOnly(
   defineProcedure({
-    input: (raw): Omit<User, 'id'> => {
-      const { name, email } = (raw ?? {}) as { name?: unknown; email?: unknown }
+    input: (raw = {}): Omit<User, 'id'> => {
+      const { name, email } = raw as { name?: unknown; email?: unknown }
+
       if (typeof name !== 'string' || name.trim() === '')
         throw rpcError({ code: 'BAD_REQUEST', message: 'A name is required.' })
 
