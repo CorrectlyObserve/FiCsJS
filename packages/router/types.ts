@@ -165,6 +165,10 @@ export declare namespace Routing {
       basePath?: string
     }
 
+    interface InternalPageHost<C = Record<string, unknown>> extends PageHost<C> {
+      scriptBase: string
+    }
+
     interface PageHost<C = Record<string, unknown>> {
       render: (ctx: Render) => string
       createContext?: (req: Request) => Awaitable<C>
