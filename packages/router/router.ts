@@ -66,8 +66,8 @@ export const ficsRouter = <D extends object>(
       statusModules: { notFound },
       redirectFn
     }: Readonly<Routing.ResolvedSpec> = resolveSpec(spec),
-    _pages = pages as Page<D>[],
-    _notFound = notFound as PageContent<D> | undefined
+    _pages = pages,
+    _notFound = notFound
 
   if (_pages.length === 0) throw new Error('Please configure routes...')
 
@@ -93,7 +93,7 @@ export const ficsRouter = <D extends object>(
             dynamicPages: Page<D>[] = []
 
           for (const { path, ..._args } of _pages)
-            (isDynamicPath(path) ? dynamicPages : staticPages).push({ path, ..._args })
+            (isDynamicPath(path) ? dynamicPages : staticPages).push({ path, ..._args } as Page<D>)
 
           const render = ({
             content,
@@ -169,7 +169,7 @@ export const ficsRouter = <D extends object>(
           if (_notFound) {
             ;(data as RouterData<D>).isNotFound = true
             params.set('dynamicPaths', {})
-            return render(_notFound)
+            return render(_notFound as PageContent<D>)
           }
 
           throw new Error(`The "${pathname}" does not exist on pages...`)
