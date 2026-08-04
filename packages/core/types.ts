@@ -1,5 +1,5 @@
 import { FiCsElement } from './class'
-import { constants } from './constants'
+import { a11y } from './constants'
 import type { QueryCache } from './query'
 
 export declare namespace Action {
@@ -180,7 +180,7 @@ export declare namespace Html {
     activeApis: Record<string, boolean>
     attributes: {
       boolean: (condition: boolean | undefined) => 'true' | 'false'
-      statusLiveRegion: typeof constants.a11y.STATUS_LIVE_REGION
+      statusLiveRegion: typeof a11y.STATUS_LIVE_REGION
     }
   }
 
