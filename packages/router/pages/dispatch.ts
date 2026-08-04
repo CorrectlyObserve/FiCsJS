@@ -15,11 +15,13 @@ export const dispatch = async <C extends Record<string, unknown>>({
   render,
   createContext,
   scriptBase
-}: Routing.ResolvedPages<C> &
-  Routing.Options.InternalPageHost<C> & {
-    req: Request
-    statusPages?: Routing.StatusPages<C>
-  }): Promise<Response> => {
+}: Routing.Options.InternalPageHost<C> & {
+  req: Request
+  statics: Map<string, Routing.ResolvedRoute<C>>
+  dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[]
+  redirects?: Routing.Redirects
+  statusPages?: Routing.StatusPages<C>
+}): Promise<Response> => {
   const { pathname }: URL = new URL(req.url),
     path: string = removeTrailingSlash(pathname) || '/'
 
