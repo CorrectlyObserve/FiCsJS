@@ -176,7 +176,7 @@ export declare namespace Routing {
     }
 
     interface PageManifest<C = Record<string, unknown>> {
-      routes: ServerRoute<C>[]
+      routes: { path: string; page: ServerModule<C>; entry: string; layout?: Module }[]
       middlewares?: Readonly<Record<string, readonly Middleware<C>[]>>
       statusPages?: StatusPages<C>
       redirects?: Redirects
