@@ -5,7 +5,8 @@
     "build:packages": "cd ../../packages && rm -rf dist && bun run build && cd ../examples/todo",
     "dev": "bun run build:packages && bunx --bun vite",
     "build": "bun run build:packages && bunx --bun vite build",
-    "preview": "bunx --bun vite preview"
+    "preview": "bunx --bun vite preview",
+    "serve": "bun run build && bunx --bun vite preview --host"
   },
   "dependencies": {
     "ficsjs": "*",
