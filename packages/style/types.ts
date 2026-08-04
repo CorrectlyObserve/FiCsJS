@@ -67,6 +67,8 @@ export type Rect =
   | '100%'
   | '100vw'
   | '100vh'
+  | '100dvw'
+  | '100dvh'
   | 'max-content'
   | 'min-content'
   | 'fit-content'
