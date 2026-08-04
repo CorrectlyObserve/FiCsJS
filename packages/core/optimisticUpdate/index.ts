@@ -29,6 +29,7 @@ export const optimisticUpdate = () => {
       timeoutMs,
       intervalMs,
       maxRetries = MAX_RETRIES,
+      idempotent,
       externalSignal
     }
   }: Optimistic.Ctx<D, T>): Promise<T> => {
@@ -147,7 +148,15 @@ export const optimisticUpdate = () => {
 
               attempt++
 
-              if (!shouldRetry({ error, attempt, maxRetries, signal: controller.signal })) {
+              if (
+                !shouldRetry({
+                  error,
+                  attempt,
+                  maxRetries,
+                  isIdempotent: idempotent === true,
+                  signal: controller.signal
+                })
+              ) {
                 rollback()
                 throw error
               }
