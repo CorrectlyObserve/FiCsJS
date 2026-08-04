@@ -201,7 +201,6 @@ export declare namespace Routing {
   interface ResolvedSpec<D extends object = Record<string, unknown>> {
     pages: Page<D>[]
     statusModules: Record<string, PageContent<D> | undefined>
-    redirectFn?: RedirectFn
   }
 
   interface Route<T extends Module> {
