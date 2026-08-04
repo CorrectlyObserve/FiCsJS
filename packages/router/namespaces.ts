@@ -40,17 +40,9 @@ export declare namespace FiCsLink {
 export declare namespace FiCsPage {
   type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
 
-  type Module<C = Record<string, unknown>> = Routing.ServerModule<C>
-
   type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
 
-  type RedirectFn = Routing.RedirectFn
-
-  type Redirects = Routing.Redirects
-
   type Render = Routing.Render
-
-  type Route<C = Record<string, unknown>> = Routing.ServerRoute<C>
 }
 
 export declare namespace FiCsRouter {
@@ -86,8 +78,6 @@ export declare namespace FiCsRpcClient {
 
   type ErrorInit = Rpc.ErrorInit
 
-  type Method = Rpc.Method
-
   type MetricEvent = Extract<Rpc.Metric.Event, { type: `request:${string}` }>
 }
 
@@ -96,11 +86,7 @@ export declare namespace FiCsRpcServer {
 
   type ErrorInit = Rpc.ErrorInit
 
-  type Method = Rpc.Method
-
   type MetricEvent = Exclude<Rpc.Metric.Event, { type: `request:${string}` }>
 
   type Options<C = unknown> = Rpc.Options.Handler<C, MetricEvent>
-
-  type Procedure<I = unknown, O = unknown, C = unknown> = Rpc.Procedure<I, O, C>
 }
