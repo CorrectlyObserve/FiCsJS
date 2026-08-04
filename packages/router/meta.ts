@@ -28,7 +28,7 @@ export const applyMeta = (meta?: Record<string, string>): void => {
       applied.add(tag)
     }
 
-  for (const tag of document.head.querySelectorAll(`[${FICS_META}]`))
+  for (const tag of document.head.querySelectorAll(`[${CSS.escape(FICS_META)}]`))
     if (!applied.has(tag)) tag.remove()
 }
 
