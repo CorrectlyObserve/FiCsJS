@@ -14,7 +14,6 @@ export const registerRoutes = (spec: Routing.Spec): void => {
 export const resetRoutes = (): void => {
   registry.pages = []
   registry.statusModules = {}
-  registry.redirectFn = undefined
 }
 
 export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
