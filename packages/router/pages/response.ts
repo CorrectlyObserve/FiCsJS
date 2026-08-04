@@ -1,5 +1,5 @@
-import { CONTENT_TYPE, removeTrailingSlash } from '../../core/helpers'
-import { SCRIPT_BASE, statusCodes } from '../constants'
+import { CONTENT_TYPE } from '../../core/helpers'
+import { statusCodes } from '../constants'
 import type { Routing } from '../types'
 
 export function respond({ html, status }: { html: string; status: Routing.StatusCode }): Response
@@ -18,10 +18,10 @@ export const respondPage = async <C extends Record<string, unknown>>({
   statusPage,
   status,
   render,
-  scriptBase = SCRIPT_BASE,
+  scriptBase,
   ctx,
   path
-}: Routing.Options.PageHost<C> & {
+}: Routing.Options.InternalPageHost<C> & {
   statusPage: Routing.ServerStatus<C>
   status: Routing.StatusPageCode | (typeof statusCodes)['OK']
   ctx: Routing.MiddlewareCtx<C>
@@ -37,7 +37,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
       meta,
       content: def ? await def(ctx) : '',
       path,
-      script: `${removeTrailingSlash(scriptBase)}/${entry}.js`
+      script: `${scriptBase}/${entry}.js`
     }),
     status
   })
@@ -47,7 +47,7 @@ export const respondStatus = async <C extends Record<string, unknown>>({
   statusPages,
   status,
   ...args
-}: Routing.Options.PageHost<C> & {
+}: Routing.Options.InternalPageHost<C> & {
   statusPages: Routing.StatusPages<C>
   status: Routing.StatusPageCode
   ctx: Routing.MiddlewareCtx<C>
