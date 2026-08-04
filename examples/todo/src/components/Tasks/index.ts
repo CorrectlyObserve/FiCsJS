@@ -174,7 +174,7 @@ const css: FiCs.Css<Data, Props> = {
       },
       [`@media (max-width: ${SM})`]: {
         marginBlockEnd: size(4),
-        div: { marginBlockEnd: size(2) }
+        div: { marginBlockEnd: size(2), '&:first-child': { marginInlineEnd: size(-4) } }
       }
     },
     '&.task': {
