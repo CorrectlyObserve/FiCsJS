@@ -238,6 +238,7 @@ export declare namespace Optimistic {
     timeoutMs?: number
     intervalMs?: number
     maxRetries?: number
+    idempotent?: boolean
     externalSignal?: AbortSignal
   }
 
