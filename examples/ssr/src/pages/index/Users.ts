@@ -116,6 +116,7 @@ const html: FiCs.Html<Data, {}> = ({
                 await queryCache.optimisticUpdate<User[]>({
                   key: USERS_KEY,
                   newQuery: current => filteredUsers(current ?? []),
+                  idempotent: true,
                   mutator: async () => {
                     await api(userId.toString()).remove(undefined, { method: 'DELETE' })
                     return filteredUsers(queryCache.get<User[]>(USERS_KEY) ?? [])
