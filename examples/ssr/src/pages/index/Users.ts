@@ -144,6 +144,7 @@ const html: FiCs.Html<Data, {}> = ({
                         (current ?? []).map(user =>
                           user.id === userId ? { ...user, name } : user
                         ),
+                      idempotent: method === 'PUT',
                       mutator: async () => {
                         const updatedUser = await api(userId.toString()).update(
                           method === 'PUT' ? { name, email: currentUser.email } : { name },
