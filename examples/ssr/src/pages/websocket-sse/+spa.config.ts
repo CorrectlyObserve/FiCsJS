@@ -22,7 +22,7 @@ const css: FiCsRouter.Css<Data> = `
   :host > div {
     max-width: var(--chat-width);
 
-    p:last-child { margin-bottom: 0; }
+    p:last-child { margin-block-end: 0; }
   }
 `
 
