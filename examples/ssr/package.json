@@ -9,6 +9,7 @@
     "clean:djs": "rm -f dist/*.d.js",
     "dev": "bun run build:packages && fics-routing --entries && bun run build:css && bun run dev:scripts && bun run clean:djs && bun run --hot app.ts",
     "build:scripts": "bun build .fics/routing/entries/*.ts --outdir dist --splitting --minify --entry-naming [name].[ext] --chunk-naming [hash].[ext]",
+    "build": "bun run build:packages && fics-routing --entries && bun run build:css && bun run build:scripts && bun run clean:djs",
     "start": "bun run --minify app.ts"
   },
   "dependencies": {
