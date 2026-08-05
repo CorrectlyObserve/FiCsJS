@@ -60,7 +60,7 @@ const css: FiCs.Css<Data, {}> = `
       line-height: 2;
     }
 
-    div p:last-child { margin-bottom: 0; }
+    div p:last-child { margin-block-end: 0; }
 
     span { background: ${dark()}; }
   }
