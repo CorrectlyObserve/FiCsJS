@@ -20,6 +20,7 @@ export const EXTENSIONS = ['.js', '.ts'] as const
 
 export const fileNames = {
   LAYOUT: '+layout',
+  LAYOUT_SERVER: '+layout.server',
   MIDDLEWARE: '+middleware',
   PAGE: '+page',
   PAGE_SERVER: '+page.server',
