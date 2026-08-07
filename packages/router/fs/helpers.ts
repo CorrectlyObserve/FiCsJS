@@ -89,7 +89,7 @@ export const isValidFileType = ({
   extensions
 }: {
   file: string
-  expectedType: typeof LAYOUT | typeof MIDDLEWARE | typeof PAGE | typeof RPC | typeof SPA_CONFIG
+  expectedType: FrequentFileName | typeof PAGE | typeof RPC
   extensions: Routing.Extensions
 }): boolean => {
   if (!extensions.includes(getExt(file))) return false
