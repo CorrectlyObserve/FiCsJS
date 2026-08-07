@@ -1,6 +1,6 @@
 import { escapeRegExp } from '../../../core/helpers'
-import type { Routing, Rpc } from '../../types'
-import { COMMENT, prefixes, routerImport } from '../constants'
+import type { Routing } from '../../types'
+import { COMMENT, prefixes, ROUTER, routerImport } from '../constants'
 import { getOrThrow, joinAndWrap, joinLines, toSpecifier } from '../helpers'
 import { generateEntries, generatePages, generateSpaRouters } from './generator'
 
@@ -94,7 +94,7 @@ export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
   let imports: string[] = emitModuleImports({ ...ctx, baseDir, code })
 
   const routerNames: string[] = []
-  if (uses(code, 'ficsRouter')) routerNames.push('ficsRouter')
+  if (uses(code, ROUTER)) routerNames.push(ROUTER)
   if (uses(code, 'createRpcClient')) routerNames.push('createRpcClient')
 
   if (routerNames.length > 0)
