@@ -50,6 +50,8 @@ export const prefixes = {
   STATUS: '__status'
 } as const
 
+export const ROUTER = 'ficsRouter' as const
+
 export const routerImport = (path: string = '') =>
   `'ficsjs/router${path ? `/${path}` : ''}'` as const
 
