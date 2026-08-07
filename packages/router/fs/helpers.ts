@@ -3,7 +3,7 @@ import type { Routing } from '../types'
 import { config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
-const { LAYOUT, MIDDLEWARE, PAGE, RPC, SPA_CONFIG } = fileNames
+const { LAYOUT, LAYOUT_SERVER, MIDDLEWARE, PAGE, RPC, SPA_CONFIG } = fileNames
 
 export const buildRoute = (pathSegments: string[]): string => {
   return pathSegments
