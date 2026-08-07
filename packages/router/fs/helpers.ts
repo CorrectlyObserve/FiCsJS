@@ -34,13 +34,10 @@ export const getExt = (file: string): string => {
   return dot <= 0 ? '' : file.slice(dot)
 }
 
-export function getFiles(
-  ctx: Routing.FilesQuery<typeof LAYOUT | typeof SPA_CONFIG>
-): Map<string, string>
+export function getFiles(ctx: Routing.Options.Files<FrequentFileName>): Map<string, string>
 
-export function getFiles(ctx: Routing.FilesQuery<typeof MIDDLEWARE>): Map<string, string>
 export function getFiles(
-  ctx: Routing.FilesQuery<typeof RPC> & { baseDir: string }
+  ctx: Routing.Options.Files<typeof RPC> & { baseDir: string }
 ): Routing.RpcEntries
 
 export function getFiles({
@@ -48,7 +45,7 @@ export function getFiles({
   extensions,
   expectedType,
   baseDir
-}: Routing.FilesQuery<typeof LAYOUT | typeof MIDDLEWARE | typeof RPC | typeof SPA_CONFIG> & {
+}: Routing.Options.Files<FrequentFileName | typeof RPC> & {
   baseDir?: string
 }): Map<string, string> | Routing.RpcEntries {
   const files: Map<string, string> = new Map(),
