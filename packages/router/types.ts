@@ -120,12 +120,6 @@ export declare namespace Routing {
 
   type Extensions = Readonly<string[]>
 
-  interface FilesQuery<T> {
-    filePaths: string[]
-    extensions: Extensions
-    expectedType: T
-  }
-
   type GlobalStatuses = {
     prop: string
     path: string
@@ -153,6 +147,12 @@ export declare namespace Routing {
       ctx: Build.Ctx
       baseDir: string
       rpc: Rpc.Generated | null
+    }
+
+    interface Files<T> {
+      filePaths: string[]
+      extensions: Extensions
+      expectedType: T
     }
 
     interface Generate {
