@@ -5,6 +5,8 @@ import { dirname, relative, resolve } from 'node:path'
 
 const { LAYOUT, LAYOUT_SERVER, MIDDLEWARE, PAGE, RPC, SPA_CONFIG } = fileNames
 
+type FrequentFileName = typeof LAYOUT | typeof LAYOUT_SERVER | typeof MIDDLEWARE | typeof SPA_CONFIG
+
 export const buildRoute = (pathSegments: string[]): string => {
   return pathSegments
     .map((segment: string) => {
