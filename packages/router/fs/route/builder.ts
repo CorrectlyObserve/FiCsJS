@@ -62,8 +62,7 @@ export const buildLayout = ({
     ]
 
   return {
-    layouts,
-    uniqueLayouts,
+    ...layouts,
     layoutAlias: new Map(
       uniqueLayouts.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`])
     )
