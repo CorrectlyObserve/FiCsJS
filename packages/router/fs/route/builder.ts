@@ -49,22 +49,31 @@ export const buildLayout = ({
   filePaths,
   extensions
 }: Routing.Build.Query): Routing.Build.Layout => {
-  const layoutFiles: Map<string, string> = getFiles({
-      filePaths,
-      expectedType: fileNames.LAYOUT,
-      extensions
-    }),
-    layouts: Routing.Build.Layout['layouts'] = routes.map(
-      ({ src }) => findClosestDir(src, layoutFiles)?.value ?? null
-    ),
-    uniqueLayouts: Routing.Build.Layout['uniqueLayouts'] = [
-      ...new Set(layouts.filter((layout): layout is string => layout !== null))
-    ]
+  const files: Record<'client' | 'server', Map<string, string>> = {
+      client: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT }),
+      server: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT_SERVER })
+    },
+    layouts: Omit<Routing.Build.Layout, 'layoutAlias'> = {
+      clientLayouts: [],
+      serverLayouts: [],
+      uniqueLayouts: []
+    },
+    uniqueSet: Set<string> = new Set()
+
+  for (const { src } of routes)
+    for (const type of ['client', 'server'] as const) {
+      const dir: string | null = findClosestDir(src, files[type])?.value ?? null
+
+      layouts[`${type}Layouts`].push(dir)
+      if (dir) uniqueSet.add(dir)
+    }
+
+  layouts.uniqueLayouts = Array.from(uniqueSet)
 
   return {
     ...layouts,
     layoutAlias: new Map(
-      uniqueLayouts.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`])
+      layouts.uniqueLayouts.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`])
     )
   }
 }
