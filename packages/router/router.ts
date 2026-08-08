@@ -70,9 +70,13 @@ export const ficsRouter = <D extends object>(
 
   if (_pages.length === 0) throw new Error('Please configure routes...')
 
-  const staticRedirects: [string, string][] = _pages
-    .filter(({ redirect }) => typeof redirect === 'string')
-    .map(({ path, redirect }) => [normalizePath(path), redirect as string])
+  const redirectsMap: Map<string, string> = new Map<string, string>()
+
+  if (spec?.redirects)
+    for (const [from, to] of typedEntries(spec.redirects)) redirectsMap.set(normalizePath(from), to)
+
+  for (const { path, redirect } of _pages)
+    if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
 
   const redirects: ReadonlyMap<string, string> | undefined =
     staticRedirects.length > 0 ? new Map(staticRedirects) : undefined
