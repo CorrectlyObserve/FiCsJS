@@ -236,6 +236,7 @@ export declare namespace Routing {
   interface Spec {
     routes: Route<Module>[]
     statusModules?: Record<string, Module>
+    redirects?: Record<string, string>
   }
 
   type StatusCode = (typeof statusCodes)[keyof typeof statusCodes]
