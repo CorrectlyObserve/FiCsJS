@@ -66,7 +66,8 @@ export declare namespace Routing {
     interface Ctx extends RouteManifest, Layout, Middleware, Spa, Special {}
 
     interface Layout {
-      layouts: (string | null)[]
+      clientLayouts: (string | null)[]
+      serverLayouts: (string | null)[]
       uniqueLayouts: string[]
       layoutAlias: Map<string, string>
     }
