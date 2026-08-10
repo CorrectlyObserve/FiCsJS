@@ -34,6 +34,12 @@ const emitEntry = ({
   }): string => {
     if (layout === null || !shouldApply) return base
     return joinArray([base, `layout: ${getOrThrow(layoutAlias, layout)}`])
+  },
+  isSpaScoped = (layout: string | null, dir: string): boolean => {
+    if (layout === null) return false
+
+    const layoutDir: string = getDirName(layout)
+    return dir === '' || layoutDir === dir || layoutDir.startsWith(`${dir}/`)
   }
 
 export const generateEntries = ({
