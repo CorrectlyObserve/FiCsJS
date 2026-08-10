@@ -189,7 +189,7 @@ export const generateSpaRouters = ({
               base: `client${i}`,
               layout,
               layoutAlias,
-              shouldApply: layout !== null && isUnderBoundary(layout)
+              shouldApply: isSpaScoped(layout, dir)
             })
           })
         )
