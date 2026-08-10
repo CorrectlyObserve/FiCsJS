@@ -163,7 +163,7 @@ export const generatePages = ({
 
 export const generateSpaRouters = ({
   routes,
-  layouts,
+  clientLayouts,
   layoutAlias,
   dirs,
   spaAlias,
@@ -180,9 +180,7 @@ export const generateSpaRouters = ({
       for (let i = 0; i < routes.length; i++) {
         if (spaOwners[i] !== dir) continue
 
-        const layout: string | null = layouts[i],
-          isUnderBoundary = (layout: string): boolean => getDirName(layout).startsWith(`${dir}/`)
-
+        const layout: string | null = clientLayouts[i]
         routeEntries.push(
           emitEntry({
             length: 2,
