@@ -1,6 +1,6 @@
-import { removeTrailingSlash, typedEntries } from '../../core/helpers'
+import { normalizePath, removeTrailingSlash, typedEntries } from '../../core/helpers'
 import { dynamicPathToRegex } from '../dynamicPaths'
-import { isDynamicPath, isHeadMethod } from '../helpers'
+import { flattenRedirects, isDynamicPath, isHeadMethod } from '../helpers'
 import { applyLayout } from '../layout'
 import type { Routing } from '../types'
 import { dispatch } from './dispatch'
@@ -29,8 +29,13 @@ export const createPageHandler = <C extends Record<string, unknown>>(
     _redirects =
       typeof redirects === 'function'
         ? redirects
-        : new Map(
-            typedEntries(redirects).map(([from, to]) => [removeTrailingSlash(from) || '/', to])
+        : flattenRedirects(
+            new Map(
+              typedEntries(redirects).map(([from, to]): [string, string] => [
+                normalizePath(from),
+                to
+              ])
+            )
           )
 
   const sb: string = removeTrailingSlash(scriptBase ?? '/dist')
