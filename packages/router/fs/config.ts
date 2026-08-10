@@ -1,6 +1,7 @@
 import { joinArray } from '../../core/helpers'
 import type { Routing } from '../types'
 import { COMMENT, config as configConstants, metaExports, routerImport } from './constants'
+import { writeIfChanged } from './file'
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -60,7 +61,6 @@ export const configRoutes = (config: Routing.Config = {}): void => {
       basePath
     })
 
-  mkdirSync(o, { recursive: true })
   writeIfChanged(clientPath, clientSrc)
 
   if (serverSrc !== null) writeIfChanged(serverPath, serverSrc)
