@@ -4,7 +4,7 @@ import type { DeepReadonly, Html } from '../core/types'
 import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
-import { isDynamicPath } from './helpers'
+import { flattenRedirects, isDynamicPath } from './helpers'
 import { applyMeta } from './meta'
 import { getQueries, params } from './params'
 import { resolveSpec } from './registry'
@@ -79,7 +79,7 @@ export const ficsRouter = <D extends object>(
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
 
   const redirects: ReadonlyMap<string, string> | undefined =
-    staticRedirects.length > 0 ? new Map(staticRedirects) : undefined
+    redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
 
   let removeEventListeners: () => void = NOOP
 
