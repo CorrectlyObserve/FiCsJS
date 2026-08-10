@@ -8,7 +8,7 @@ const i18nClosure = (() => {
 
   return {
     configI18n: (directory: string): void => {
-      const normalized: string = normalizePath(directory)
+      const normalized: string = isBlankString(directory) ? '' : normalizePath(directory)
 
       if (_directory && _directory !== normalized) {
         translationsCache.clear()
