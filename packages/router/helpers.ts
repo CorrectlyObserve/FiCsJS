@@ -1,5 +1,28 @@
-import { isObject } from '../core/helpers'
+import { isObject, normalizePath } from '../core/helpers'
 import { Rpc } from './types'
+
+export const flattenRedirects = (map: ReadonlyMap<string, string>): Map<string, string> => {
+  const toPurePath = (target: string): string => normalizePath(target.split(/[?#]/)[0]),
+    flattened: Map<string, string> = new Map()
+
+  for (const [key, value] of map) {
+    const visited: Set<string> = new Set([key])
+    let target: string = value,
+      next: string = toPurePath(target)
+
+    while (map.has(next)) {
+      if (visited.has(next)) throw new Error(`A redirect loop was detected at "${next}"...`)
+
+      visited.add(next)
+      target = map.get(next)!
+      next = toPurePath(target)
+    }
+
+    flattened.set(key, target)
+  }
+
+  return flattened
+}
 
 export const hasMethod = <T>(value: unknown, key: string): value is T =>
   isObject(value) && typeof (value as { [key]?: unknown })[key] === 'function'
