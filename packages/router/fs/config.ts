@@ -7,28 +7,21 @@ import { generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
 
-const writeIfChanged = (path: string, content: string): boolean => {
-    const prevContent: string | null = existsSync(path) ? readFileSync(path, 'utf8') : null
-    if (prevContent === content) return false
+const buildClientEntry = ({ specifier, src }: { specifier: string; src: string }): string => {
+  const arr: string[] = [COMMENT]
 
-    writeFileSync(path, content)
-    return true
-  },
-  buildClientEntry = ({ specifier, src }: { specifier: string; src: string }): string => {
-    const arr: string[] = [COMMENT]
+  if (metaExports.INLINE.test(src) || metaExports.BLOCK.test(src))
+    arr.push(
+      `import { applyMeta } from ${routerImport()}`,
+      `import * as page from '${specifier}'`,
+      '',
+      'applyMeta((page as { meta?: Record<string, string> }).meta)',
+      ''
+    )
+  else arr.push(`import '${specifier}'`, '')
 
-    if (metaExports.INLINE.test(src) || metaExports.BLOCK.test(src))
-      arr.push(
-        `import { applyMeta } from ${routerImport()}`,
-        `import * as page from '${specifier}'`,
-        '',
-        'applyMeta((page as { meta?: Record<string, string> }).meta)',
-        ''
-      )
-    else arr.push(`import '${specifier}'`, '')
-
-    return joinLines(arr)
-  }
+  return joinLines(arr)
+}
 
 export const configRoutes = (config: Routing.Config = {}): void => {
   const { dir, output, pageFile, extensions, basePath, entries }: Routing.Config = config,
