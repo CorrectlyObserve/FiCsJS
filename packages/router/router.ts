@@ -1,5 +1,5 @@
 import { FiCsElement } from '../core/class'
-import { normalizePath, NOOP } from '../core/helpers'
+import { normalizePath, NOOP, toArray, typedEntries } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
 import { FICS_NAVIGATE } from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
