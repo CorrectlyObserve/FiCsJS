@@ -71,7 +71,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
         ? respond(denial.redirect)
         : await respondStatus({ statusPages, status: denial.code, ctx, ...args })
 
-    // await (not bare return) so a throw inside page render is caught below and routed to 500.
+    /** @remarks ⚠️ Ensures rendering errors are caught by the catch block below to show a 500 page. */
     return await respondPage({ statusPage: resolvedRoute, status: statusCodes.OK, ctx, ...args })
   } catch (error) {
     console.error(
