@@ -1,6 +1,7 @@
 import {
   APPLICATION_JSON,
   CONTENT_TYPE,
+  isBlankString,
   isObject,
   numberError,
   removeTrailingSlash
@@ -67,7 +68,7 @@ export const createRpcHandler = <C = unknown>(
 
     let { pathname: path, searchParams }: URL = new URL(url)
 
-    if (_basePath.length > 0 && (path === _basePath || path.startsWith(`${_basePath}/`)))
+    if (!isBlankString(_basePath) && (path === _basePath || path.startsWith(`${_basePath}/`)))
       path = path.slice(_basePath.length)
 
     path = removeTrailingSlash(path.replace(/^\/+/, ''))
