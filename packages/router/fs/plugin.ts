@@ -50,7 +50,16 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
       if (file.startsWith(dir)) configRoutes(config)
     },
     transform(code: string, id: string): { code: string; map: null } | null {
-      return injectRoutes({ id, code, output: join(output, configConstants.CLIENT) })
+      const cleanedId = id.split('?')[0]
+
+      if (!MODULE_EXT_REGEX.test(cleanedId) || cleanedId.includes('/node_modules/')) return null
+      if (toAbsolute({ cleanedId }).cleanedId === clientPath) return null
+      if (!new RegExp(`\\b${ROUTER}\\s*(?:<[^>]+>)?\\s*\\(`).test(code)) return null
+
+      const relativeId: string = toRelative(cleanedId, clientPath).replace(MODULE_EXT_REGEX, '')
+      if (code.includes(`'${relativeId}'`) || code.includes(`"${relativeId}"`)) return null
+
+      return { code: joinLines([`import '${relativeId}';`, code]), map: null }
     }
   } as const
 }
