@@ -80,8 +80,7 @@ export const generateEntries = ({
    * Resolves all SPA configs first before emitting routes to prevent references to uninitialized entry configs.
    */
   for (let i = 0; i < routes.length; i++) {
-    const spaOwner: string | null = spaOwners[i],
-      isMpa: boolean = spaOwner === null
+    const { path, spaOwner, isMpa, layout }: ReturnType<typeof rowAt> = rowAt(i)
     if (isMpa || !areSpaEntry[i]) continue
 
     spaConfigs.set(
@@ -91,26 +90,23 @@ export const generateEntries = ({
           `default: () => ${getOrThrow(spaAlias, spaOwner!)}.toString()`,
           `meta: (client${i} as { meta?: Record<string, string> }).meta`
         ]),
-        layout: layouts[i],
+        layout,
         layoutAlias
       })
     )
-    spaEntries.set(spaOwner!, toEntry(routes[i].path))
+    spaEntries.set(spaOwner!, toEntry(path))
   }
 
   for (let i = 0; i < routes.length; i++) {
-    const { path }: Routing.RouteEntry = routes[i],
-      spaOwner: string | null = spaOwners[i],
-      isMpa: boolean = spaOwner === null
+    const { path, serverSpecifier, spaOwner, isMpa, layout }: ReturnType<typeof rowAt> = rowAt(i)
 
     if (isMpa) {
-      const { serverSpecifier }: Routing.RouteEntry = routes[i]
       existingRoutes.push(
         emitEntry({
           path,
           config: emitPageConfig({
             base: serverSpecifier === null ? '{}' : `server${i}`,
-            layout: layouts[i],
+            layout,
             layoutAlias
           }),
           entry: toEntry(path)
