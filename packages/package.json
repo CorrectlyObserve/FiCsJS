@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@types/node": "25.9.2",
-    "terser": "^5.39.0"
+    "terser": "5.49.1"
   },
   "engines": {
     "node": ">=22.0.0"

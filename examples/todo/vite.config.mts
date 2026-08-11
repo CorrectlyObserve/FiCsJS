@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import { viteRoutesPlugin } from 'ficsjs/router/plugin'
+import { plugin } from 'ficsjs/router/plugin'
 
 export default defineConfig({
   plugins: [viteRoutesPlugin()],
