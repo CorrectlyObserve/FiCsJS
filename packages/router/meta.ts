@@ -1,4 +1,4 @@
-import { escape, isBrowser, joinArray, typedEntries } from '../core/helpers'
+import { escape, isBrowser, typedEntries } from '../core/helpers'
 import { FICS_META } from './constants'
 
 export const applyMeta = (meta?: Record<string, string>): void => {
@@ -57,5 +57,5 @@ export const renderMeta = (meta: Record<string, string>): string => {
     tags.push(`<${tagName} ${nameAttr}="${escape(key)}" ${valAttr}="${escape(value)}">`)
   }
 
-  return joinArray(tags, { space: false, separator: '' })
+  return tags.join('')
 }
