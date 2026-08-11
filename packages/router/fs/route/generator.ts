@@ -33,7 +33,7 @@ const emitEntry = ({
     shouldApply?: boolean
   }): string => {
     if (layout === null || !shouldApply) return base
-    return joinArray([base, `layout: ${getOrThrow(layoutAlias, layout)}`])
+    return joinArray([base, `layout: ${getOrThrow(layoutAlias, layout)}`], { separator: ',' })
   },
   isSpaScoped = (layout: string | null, dir: string): boolean => {
     if (layout === null) return false
