@@ -176,7 +176,11 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
         if (isObject(errorInit)) {
           if (errorInit.denied === true) denied = true
 
-          if (redirect === undefined && typeof errorInit.redirect === 'string')
+          if (
+            redirect === undefined &&
+            typeof errorInit.redirect === 'string' &&
+            !isBlankString(errorInit.redirect)
+          )
             redirect = errorInit.redirect
           if (typeof errorInit.message === 'string') message = errorInit.message
         }
