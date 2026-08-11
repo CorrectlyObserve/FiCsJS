@@ -53,7 +53,27 @@ export const generateEntries = ({
 }: Routing.Build.Ctx): string[] => {
   const existingRoutes: string[] = [],
     spaConfigs: Map<string, string> = new Map(),
-    spaEntries: Map<string, string> = new Map()
+    spaEntries: Map<string, string> = new Map(),
+    rowAt = (
+      index: number
+    ): {
+      path: string
+      serverSpecifier: Routing.RouteEntry['serverSpecifier']
+      spaOwner: string | null
+      isMpa: boolean
+      layout: Routing.Build.Layout['serverLayouts'][number]
+    } => {
+      const { path, serverSpecifier }: Routing.RouteEntry = routes[index],
+        spaOwner: string | null = spaOwners[index]
+
+      return {
+        path,
+        serverSpecifier,
+        spaOwner,
+        isMpa: spaOwner === null,
+        layout: serverLayouts[index]
+      }
+    }
 
   /**
    * @remarks
