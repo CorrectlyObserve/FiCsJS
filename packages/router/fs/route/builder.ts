@@ -167,7 +167,7 @@ export const buildSpa = ({
 
     if (isSpa && serverSpecifier !== null)
       throw new Error(
-        `A "+page.server.ts" next to "${src}" cannot live inside the SPA "${spaOwner || '(root)'}"...`
+        `A "${fileNames.PAGE_SERVER}.ts" next to "${src}" cannot live inside the SPA "${prependSlash(spaOwner ?? '')}"...`
       )
 
     areSpaEntry.push(isSpa && spaOwner === getDirName(src))
