@@ -22,8 +22,7 @@ export const createRpcClient = <R>(
         if (prop === 'then' || prop === 'catch' || prop === 'finally') {
           if (lastArgs === null) return undefined
 
-          const path: string = segments.join('/'),
-            { headers: globalHeaders, ...globalArgs }: Rpc.Options.Client = globalOptions,
+          const { headers: globalHeaders, ...globalArgs }: Rpc.Options.Client = globalOptions,
             [input, { headers: calledHeaders, method = 'POST', signal, ...calledArgs } = {}] =
               lastArgs as [unknown, Rpc.Options.Call | undefined]
 
@@ -39,7 +38,7 @@ export const createRpcClient = <R>(
 
           promise ??= sendRequest({
             basePath,
-            path,
+            path: segments.map(encodeURIComponent).join('/'),
             input,
             headers,
             ...args,
