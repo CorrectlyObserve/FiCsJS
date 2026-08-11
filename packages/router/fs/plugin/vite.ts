@@ -5,7 +5,7 @@ import { configRoutes } from '../config'
 import { config as configConstants, MODULE_EXT_REGEX, ROUTER_CALL_REGEX } from '../constants'
 import { readIfExists } from '../file'
 import { joinLines, toAbsolute, toRelative } from '../helpers'
-import { generateEntryHtml } from '../html'
+import { generateEntryHtml } from './entryHtml'
 import { existsSync, renameSync, rmdirSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 
@@ -28,7 +28,7 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
       resolve: { alias: Record<string, string> }
       build?: { rollupOptions: { input: string } }
     } {
-      entry = generateEntryHtml({ root, dir: output })
+      entry = generateEntryHtml({ root, output })
       return {
         resolve: { alias: { [configConstants.ALIAS]: ficsDir } },
         ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
@@ -37,7 +37,7 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
     configResolved(resolved: { root: string; build: { outDir: string } }): void {
       root = resolved.root
       outDir = resolved.build.outDir
-      entry = generateEntryHtml({ root, dir: output })
+      entry = generateEntryHtml({ root, output })
     },
     configureServer(server: Vite.DevServer): void {
       if (config.watch ?? true) server.watcher.add(dir)
@@ -96,7 +96,7 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
     },
     handleHotUpdate({ file }: { file: string }): void {
       if (file.startsWith(dir)) configRoutes(config)
-      if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, dir: output })
+      if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, output })
     }
   } as const
 }
