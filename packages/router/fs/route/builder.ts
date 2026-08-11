@@ -118,7 +118,9 @@ export const buildMiddleware = ({
     })
 
     if (!hasRpc)
-      throw new Error(`The middleware "${src}" has no descendant RPC procedures in the "${dir}"...`)
+      throw new Error(
+        `The middleware "${src}" has no descendant RPC procedures in "${prependSlash(dir)}"...`
+      )
   }
 
   return {
