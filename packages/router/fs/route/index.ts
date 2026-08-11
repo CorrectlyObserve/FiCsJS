@@ -10,8 +10,8 @@ export const generateRoutes = ({
   options,
   basePath
 }: Routing.Options.Generate): ReturnType<typeof findClientEntries> & {
-  clientSrc: string
-  serverSrc: string | null
+  clientCode: string
+  serverCode: string | null
 } => {
   const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
@@ -36,8 +36,8 @@ export const generateRoutes = ({
     hasMiddleware: boolean = ctx.uniqueMiddlewares.length > 0
 
   return {
-    clientSrc: assembleClient({ ctx, baseDir, rpc }),
-    serverSrc:
+    clientCode: assembleClient({ ctx, baseDir, rpc }),
+    serverCode:
       hasMpaRoute || hasMiddleware || rpc !== null ? assembleServer({ ctx, baseDir, rpc }) : null,
     ...findClientEntries({ ...ctx, filePaths, extensions })
   }
