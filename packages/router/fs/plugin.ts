@@ -37,8 +37,15 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
   return {
     name: configConstants.TOOL_NAME,
     enforce: 'pre',
-    config(): { resolve: { alias: Record<string, string> } } {
-      return { resolve: { alias: { [configConstants.ALIAS]: dirname(output) } } }
+    config(): {
+      resolve: { alias: Record<string, string> }
+      build?: { rollupOptions: { input: string } }
+    } {
+      entry = generateEntryHtml({ root, dir: output })
+      return {
+        resolve: { alias: { [configConstants.ALIAS]: ficsDir } },
+        ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
+      }
     },
     buildStart(): void {
       configRoutes(config)
