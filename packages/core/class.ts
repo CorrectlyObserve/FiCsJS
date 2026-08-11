@@ -17,7 +17,6 @@ import {
   isBrowser,
   isEmptyObject,
   isObject,
-  joinArray,
   normalizeRootMargin,
   numberError,
   toArray,
@@ -1188,8 +1187,7 @@ export class FiCsElement<D extends object, P extends object> {
       if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
 
       const topLevelCss: string[] = [],
-        joinCss = (cssTexts: string[]): string =>
-          joinArray([prev, ...cssTexts, ...topLevelCss], { space: false })
+        joinCss = (cssTexts: string[]): string => [prev, ...cssTexts, ...topLevelCss].join('')
 
       if (typeof curr === 'function')
         return joinCss([
@@ -1716,11 +1714,13 @@ export class FiCsElement<D extends object, P extends object> {
             if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
             else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
 
-        const slotAttrs: string = joinArray([
+        const slotAttrs: string = [
             `id="${that.#name}"`,
             `slot="${that.#instanceId}"`,
             `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
-          ]),
+          ]
+            .filter(Boolean)
+            .join(' '),
           html: string = applyShowAttr({
             html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
             resolveInstanceId: (instanceId: string): string => {
@@ -1734,7 +1734,7 @@ export class FiCsElement<D extends object, P extends object> {
             _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
 
         return `
-          <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
+          <${[that.#name, ...attrs].join(' ')}>
             <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
             <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
           </${that.#name}>
