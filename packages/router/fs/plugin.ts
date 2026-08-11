@@ -52,6 +52,30 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
       outDir = resolved.build.outDir
       entry = generateEntryHtml({ root, dir: output })
     },
+    configureServer(server: Vite.DevServer): void {
+      if (config.watch ?? true) server.watcher.add(dir)
+      if (entry === null) return
+
+      server.middlewares.use(async (req, res, next) => {
+        const url: string = req.url ?? '/',
+          cleanedUrl: string = url.split('?')[0]
+
+        /** @remarks The handleHotUpdate function may set entry to null. */
+        if ((cleanedUrl !== '/' && cleanedUrl !== '/index.html') || entry === null) return next()
+
+        const template: string | null = readIfExists(entry)
+        if (template === null) return next()
+
+        try {
+          const html: string = await server.transformIndexHtml(url, template, req.originalUrl)
+          res.statusCode = statusCodes.OK
+          res.setHeader(CONTENT_TYPE, 'text/html')
+          res.end(html)
+        } catch (error) {
+          next(error)
+        }
+      })
+    },
     buildStart(): void {
       configRoutes(config)
     },
