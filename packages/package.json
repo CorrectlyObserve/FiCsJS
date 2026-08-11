@@ -39,8 +39,8 @@
       "types": "./dist/router/index.d.ts"
     },
     "./router/plugin": {
-      "import": "./dist/router/fs/index.js",
-      "types": "./dist/router/fs/index.d.ts"
+      "import": "./dist/router/fs/plugin/index.js",
+      "types": "./dist/router/fs/plugin/index.d.ts"
     },
     "./router/server-only": {
       "import": "./dist/router/serverOnly.js",
