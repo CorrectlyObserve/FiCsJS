@@ -30,16 +30,16 @@ export const normalizePath = (path: string): string => removeTrailingSlash(path)
 export const normalizeRootMargin = (rootMargin?: string | number): string => {
   if (typeof rootMargin === 'number') {
     numberError({ rootMargin }, 'int')
-    return joinArray(new Array(4).fill(`${rootMargin}px`))
+    return new Array(4).fill(`${rootMargin}px`).join(' ')
   }
 
   const split: string[] = (rootMargin ?? '').trim().split(/\s+/)
-  if (split.length > 4 || !split[0]) return joinArray(new Array(4).fill('0px'))
+  if (split.length > 4 || !split[0]) return new Array(4).fill('0px').join(' ')
 
   const [top, right, bottom, left]: (string | undefined)[] = split
 
-  if (left) return joinArray(split)
-  return joinArray(right || bottom ? [top, right!, bottom ?? top, right!] : new Array(4).fill(top))
+  if (left) return split.join(' ')
+  return (right || bottom ? [top, right!, bottom ?? top, right!] : new Array(4).fill(top)).join(' ')
 }
 
 export const removeTrailingSlash = (path: string): string => path.replace(/\/+$/, '')
