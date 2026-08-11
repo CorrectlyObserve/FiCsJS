@@ -44,8 +44,8 @@ export const configRoutes = (config: Routing.Config = {}): void => {
   const clientPath: string = join(o, configConstants.CLIENT),
     serverPath: string = join(o, configConstants.SERVER),
     {
-      clientSrc,
-      serverSrc,
+      clientCode,
+      serverCode,
       clientEntries,
       dirsWithoutSpaEntry
     }: ReturnType<typeof generateRoutes> = generateRoutes({
@@ -54,9 +54,9 @@ export const configRoutes = (config: Routing.Config = {}): void => {
       basePath
     })
 
-  writeIfChanged(clientPath, clientSrc)
+  writeIfChanged({ path: clientPath, content: clientCode })
 
-  if (serverSrc !== null) writeIfChanged(serverPath, serverSrc)
+  if (serverCode !== null) writeIfChanged({ path: serverPath, content: serverCode })
   else if (existsSync(serverPath)) rmSync(serverPath)
 
   if (entries) {
