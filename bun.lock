@@ -5,7 +5,7 @@
     "": {
       "name": "fics.js",
       "dependencies": {
-        "fics-auth": "workspace:*",
+        "fics-middleware": "workspace:*",
         "fics-ssr": "workspace:*",
         "fics-todo": "workspace:*",
         "ficsjs": "workspace:*"
@@ -15,8 +15,8 @@
         "typescript": "7.0.2"
       }
     },
-    "examples/auth": {
-      "name": "fics-auth",
+    "examples/middleware": {
+      "name": "fics-middleware",
       "version": "0.1.0",
       "dependencies": {
         "ficsjs": "*"
@@ -61,7 +61,7 @@
       },
       "devDependencies": {
         "@types/node": "25.9.2",
-        "terser": "^5.39.0"
+        "terser": "5.49.1"
       }
     }
   },
@@ -699,10 +699,10 @@
     ],
 
     "acorn": [
-      "acorn@8.14.1",
+      "acorn@8.18.0",
       "",
       { "bin": { "acorn": "bin/acorn" } },
-      "sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg=="
+      "sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ=="
     ],
 
     "ansi-regex": [
@@ -1038,7 +1038,7 @@
       "sha512-PMXmW2y1hDDfTSRc9gaXIuCCRpuoz3Kaz8cUelp3smouvfT632ozg2vrT6lJsHKKOF59YLbOGfAWGUcKEfRMQw=="
     ],
 
-    "fics-auth": ["fics-auth@workspace:examples/auth"],
+    "fics-middleware": ["fics-middleware@workspace:examples/middleware"],
 
     "fics-ssr": ["fics-ssr@workspace:examples/ssr"],
 
@@ -1826,18 +1826,18 @@
     ],
 
     "terser": [
-      "terser@5.39.0",
+      "terser@5.49.1",
       "",
       {
         "dependencies": {
           "@jridgewell/source-map": "^0.3.3",
-          "acorn": "^8.8.2",
+          "acorn": "^8.15.0",
           "commander": "^2.20.0",
           "source-map-support": "~0.5.20"
         },
         "bin": { "terser": "bin/terser" }
       },
-      "sha512-LBAhFyLho16harJoWMg/nZsQYgTrg5jXOn2nCYjRUcZZEdE3qa2zb8QEDRUGVZBW4rlazf2fxkg8tztybTaqWw=="
+      "sha512-7A2xlQ5EnGT8KPA92dUh6RbRYTVw8hEaEN9L1K68l4UOXFuV511NnAqObGoRqGOQofQcMypisu1s3xawCEHrvA=="
     ],
 
     "thenby": [

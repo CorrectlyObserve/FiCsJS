@@ -6,7 +6,7 @@
   ],
   "dependencies": {
     "ficsjs": "workspace:*",
-    "fics-auth": "workspace:*",
+    "fics-middleware": "workspace:*",
     "fics-ssr": "workspace:*",
     "fics-todo": "workspace:*"
   },
