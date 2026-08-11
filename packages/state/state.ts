@@ -90,8 +90,7 @@ export class State<S> {
               if (version !== this.#options.version)
                 throw new Error(`${sbj} has a version mismatch...`)
 
-              if (validate?.(data) === false)
-                throw new Error(`${sbj} failed validation...`)
+              if (validate?.(data) === false) throw new Error(`${sbj} failed validation...`)
 
               this.#state = data
             } catch (error) {
