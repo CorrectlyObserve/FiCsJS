@@ -50,6 +50,22 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
       if (file.startsWith(dir)) configRoutes(config)
       if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, dir: output })
     },
+    writeBundle(): void {
+      if (!entry) return
+
+      const outAbs: string = resolve(root, outDir),
+        built: string = join(outAbs, relative(root, entry))
+
+      if (existsSync(built)) {
+        renameSync(built, join(outAbs, 'index.html'))
+
+        try {
+          rmdirSync(dirname(built))
+        } catch {
+          /** @remarks Please leave it as the .fics dir is not empty. */
+        }
+      }
+    },
     transform(code: string, id: string): { code: string; map: null } | null {
       const cleanedId = id.split('?')[0]
 
