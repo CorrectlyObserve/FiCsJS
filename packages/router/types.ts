@@ -376,19 +376,44 @@ export interface TypeNode {
   dynamic?: { name: string; node: TypeNode }
 }
 
-export interface VitePlugin {
-  name: string
-  enforce: 'pre'
-  config: () => { resolve: { alias: Record<string, string> } }
-  buildStart: () => void
-  configureServer: (server: { watcher: { add: (path: string) => void } }) => void
-  handleHotUpdate: ({ file }: { file: string }) => void
-  transform: (
-    code: string,
-    id: string
-  ) => {
-    code: string
-    /** @remarks No source map — the transformation only prepends one line. */
-    map: null
-  } | null
+export declare namespace Vite {
+  interface DevServer {
+    watcher: { add: (path: string) => void }
+    middlewares: {
+      use: (
+        handler: (
+          req: { url?: string; originalUrl?: string },
+          res: {
+            statusCode: Routing.StatusCode
+            setHeader: (key: string, value: string) => void
+            end: (body: string) => void
+          },
+          next: (err?: unknown) => void
+        ) => void
+      ) => void
+    }
+    transformIndexHtml: (url: string, html: string, originalUrl?: string) => Promise<string>
+  }
+
+  interface Plugin {
+    name: string
+    enforce: 'pre'
+    config: () => {
+      resolve: { alias: Record<string, string> }
+      build?: { rollupOptions: { input: string } }
+    }
+    configResolved: (config: { root: string; build: { outDir: string } }) => void
+    configureServer: (server: DevServer) => void
+    buildStart: () => void
+    transform: (
+      code: string,
+      id: string
+    ) => {
+      code: string
+      /** @remarks No source map — the transformation only prepends one line. */
+      map: null
+    } | null
+    writeBundle: () => void
+    handleHotUpdate: ({ file }: { file: string }) => void
+  }
 }
