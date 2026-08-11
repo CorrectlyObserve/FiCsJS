@@ -1,4 +1,4 @@
-import { removeTrailingSlash } from '../../core/helpers'
+import { normalizePath } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { getDynamicPaths } from '../dynamicPaths'
 import { isBodiless, prependSlash } from '../helpers'
