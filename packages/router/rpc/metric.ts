@@ -11,7 +11,7 @@ export const emitMetric = (
     onMetric({ ...RPC_MODULE_TYPE, ...payload })
   } catch (error) {
     console.error(
-      `The onMetric callback in RPC failed during the '${payload.type}' event...`,
+      `The onMetric callback in RPC failed during the "${payload.type}" event...`,
       error
     )
   }
