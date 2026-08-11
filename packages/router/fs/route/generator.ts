@@ -1,4 +1,3 @@
-import { joinArray } from '../../../core/helpers'
 import type { Routing } from '../../types'
 import { prefixes } from '../constants'
 import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
@@ -33,7 +32,7 @@ const emitEntry = ({
     shouldApply?: boolean
   }): string => {
     if (layout === null || !shouldApply) return base
-    return joinArray([base, `layout: ${getOrThrow(layoutAlias, layout)}`], { separator: ',' })
+    return [base, `layout: ${getOrThrow(layoutAlias, layout)}`].join(', ')
   },
   isSpaScoped = (layout: string | null, dir: string): boolean => {
     if (layout === null) return false
