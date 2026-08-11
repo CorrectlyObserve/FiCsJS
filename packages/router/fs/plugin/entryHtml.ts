@@ -1,4 +1,3 @@
-import { joinArray } from '../../../core/helpers'
 import { config } from '../constants'
 import { readIfExists, writeIfChanged } from '../file'
 import { indent, joinLines, removeExt } from '../helpers'
@@ -57,10 +56,7 @@ export const generateEntryHtml = ({
   if (appHtml === null && existsSync(join(root, 'index.html'))) return null
 
   const entry: string = join(dirname(output), 'index.html'),
-    importPath: string = joinArray([config.ALIAS, basename(output), removeExt(config.CLIENT)], {
-      space: false,
-      separator: '/'
-    })
+    importPath: string = [config.ALIAS, basename(output), removeExt(config.CLIENT)].join('/')
 
   writeIfChanged({
     path: entry,
