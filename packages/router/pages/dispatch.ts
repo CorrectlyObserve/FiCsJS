@@ -55,7 +55,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
 
   const args: { render: Routing.Options.PageHost<C>['render']; scriptBase: string; path: string } =
     { render, scriptBase, path }
-    
+
   try {
     const ctx: Routing.MiddlewareCtx<C> = createCtx((await createContext?.(req)) ?? {})
 
