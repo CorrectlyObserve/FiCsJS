@@ -48,6 +48,7 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
     },
     handleHotUpdate({ file }: { file: string }): void {
       if (file.startsWith(dir)) configRoutes(config)
+      if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, dir: output })
     },
     transform(code: string, id: string): { code: string; map: null } | null {
       const cleanedId = id.split('?')[0]
