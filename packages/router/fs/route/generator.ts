@@ -44,7 +44,7 @@ const emitEntry = ({
 
 export const generateEntries = ({
   routes,
-  layouts,
+  serverLayouts,
   layoutAlias,
   spaAlias,
   spaOwners,
