@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { isBlankString } from '../../core/helpers'
 import type { SetTimeout } from '../../core/types'
 import { RPC_BASE } from '../constants'
 import type { Routing } from '../types'
@@ -66,7 +67,7 @@ for (let i = 0; i < args.length; ) {
     inline = next
   }
 
-  if (inline === '') die(`The flag "${flag}" requires a value (empty)...`)
+  if (isBlankString(inline)) die(`The flag "${flag}" requires a value (empty)...`)
 
   options[flag.slice('--'.length) as Exclude<keyof typeof options, 'entries'>] = inline
   i++
