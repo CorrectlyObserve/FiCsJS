@@ -24,7 +24,6 @@ export {
   convertStr,
   escape,
   escapeRegExp,
-  joinArray,
   normalizePath,
   normalizeRootMargin,
   removeTrailingSlash,
