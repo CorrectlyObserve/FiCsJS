@@ -80,7 +80,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
         join(entriesDir, fileName),
         buildClientEntry({
           specifier: toRelative(join(entriesDir, fileName), join(d, src)),
-          src: readFileSync(join(d, src), 'utf8')
+          code: readFileSync(join(d, src), 'utf8')
         })
       )
     }
