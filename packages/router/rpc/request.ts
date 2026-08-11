@@ -4,6 +4,7 @@ import {
   delay,
   forwardAbort,
   getDelayMs,
+  isBlankString,
   isClientTermination,
   isIdempotentMethod,
   isObject,
@@ -26,8 +27,11 @@ const codeByStatus: Record<number, keyof typeof statusCodes> = Object.fromEntrie
 )
 
 export const assertSafeSegment = (segment: string): string => {
-  if (segment === '' || segment === '.' || segment === '..' || segment.includes('/'))
+  const trimmed: string = segment.trim()
+
+  if (isBlankString(segment) || segment.includes('/') || trimmed === '.' || trimmed === '..')
     throw new Error(`The RPC segment "${segment}" is invalid...`)
+
   return segment
 }
 
