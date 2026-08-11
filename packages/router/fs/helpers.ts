@@ -1,4 +1,4 @@
-import { joinArray, removeTrailingSlash } from '../../core/helpers'
+import { removeTrailingSlash } from '../../core/helpers'
 import type { Routing } from '../types'
 import { config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
@@ -100,7 +100,7 @@ export const joinAndWrap = (
   arr: string[],
   { wrapType = '{}', separator = ',' }: { wrapType?: '{}' | '[]'; separator?: string } = {}
 ): string => {
-  const joined: string = joinArray(arr, { space: true, separator })
+  const joined: string = arr.join(`${separator} `)
   return wrapType === '{}' ? `{ ${joined} }` : `[${joined}]`
 }
 
