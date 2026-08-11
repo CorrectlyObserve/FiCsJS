@@ -20,11 +20,6 @@ export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): 
 
 export const escapeRegExp = (str: string): string => str.replace(SPECIAL_CHAR, '\\$&')
 
-export const joinArray = <T>(
-  arr: T[],
-  { space = true, separator = '' }: { space?: boolean; separator?: string } = {}
-): string => arr.join(`${separator}${space ? ' ' : ''}`).trim()
-
 export const normalizePath = (path: string): string => removeTrailingSlash(path) || '/'
 
 export const normalizeRootMargin = (rootMargin?: string | number): string => {
