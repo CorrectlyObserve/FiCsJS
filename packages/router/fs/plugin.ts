@@ -47,6 +47,11 @@ export const viteRoutesPlugin = (config: Routing.Config & { watch?: boolean } = 
         ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
       }
     },
+    configResolved(resolved: { root: string; build: { outDir: string } }): void {
+      root = resolved.root
+      outDir = resolved.build.outDir
+      entry = generateEntryHtml({ root, dir: output })
+    },
     buildStart(): void {
       configRoutes(config)
     },
