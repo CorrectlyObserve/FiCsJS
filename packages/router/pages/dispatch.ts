@@ -23,7 +23,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
   statusPages?: Routing.StatusPages<C>
 }): Promise<Response> => {
   const { pathname }: URL = new URL(req.url),
-    path: string = removeTrailingSlash(pathname) || '/'
+    path: string = normalizePath(pathname)
 
   if (typeof redirects === 'function') {
     const to: string | null = redirects(pathname)
