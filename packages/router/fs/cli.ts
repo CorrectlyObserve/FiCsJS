@@ -86,7 +86,7 @@ if (watch) {
   const { dir }: { dir: string } = toAbsolute({ dir: options.dir })
   process.stdout.write(`${TOOL_NAME}: watching "${dir}" for changes\n`)
 
-  /** @remarks needs Node >= 22 for the recursive option. */
+  /** @remarks Needs Node >= 22 for the recursive option. */
   let timer: SetTimeout | undefined
   watchDir(dir, { recursive: true }, (): void => {
     clearTimeout(timer)
