@@ -7,10 +7,10 @@ import { generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
 
-const buildClientEntry = ({ specifier, src }: { specifier: string; src: string }): string => {
+const buildClientEntry = ({ specifier, code }: { specifier: string; code: string }): string => {
   const arr: string[] = [COMMENT]
 
-  if (metaExports.INLINE.test(src) || metaExports.BLOCK.test(src))
+  if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
     arr.push(
       `import { applyMeta } from ${routerImport()}`,
       `import * as page from '${specifier}'`,
