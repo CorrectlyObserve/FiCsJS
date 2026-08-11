@@ -55,6 +55,10 @@ export const generateEntries = ({
     spaConfigs: Map<string, string> = new Map(),
     spaEntries: Map<string, string> = new Map()
 
+  /**
+   * @remarks
+   * Resolves all SPA configs first before emitting routes to prevent references to uninitialized entry configs.
+   */
   for (let i = 0; i < routes.length; i++) {
     const spaOwner: string | null = spaOwners[i],
       isMpa: boolean = spaOwner === null
