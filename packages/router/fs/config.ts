@@ -1,6 +1,12 @@
 import { prependSlash } from '../helpers'
 import type { Routing } from '../types'
-import { COMMENT, config as configConstants, metaExports, routerImport } from './constants'
+import {
+  COMMENT,
+  config as configConstants,
+  fileNames,
+  metaExports,
+  routerImport
+} from './constants'
 import { writeIfChanged } from './file'
 import { joinLines, toAbsolute, toPosix, toRelative } from './helpers'
 import { generateRoutes } from './route'
@@ -62,7 +68,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
   if (entries) {
     if (dirsWithoutSpaEntry.length > 0)
       throw new Error(
-        `There is no "+spa" entry in ${dirsWithoutSpaEntry.map(dir => `"${prependSlash(dir)}"`).join(', ')}...`
+        `There is no "${fileNames.SPA}" entry in ${dirsWithoutSpaEntry.map(dir => `"${prependSlash(dir)}"`).join(', ')}...`
       )
 
     const entriesDir: string = join(o, configConstants.ENTRIES)
