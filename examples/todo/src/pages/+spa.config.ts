@@ -62,10 +62,7 @@ const css: FiCsRouter.Css<Data> = {
 }
 
 const hooks: FiCsRouter.Hooks<Data> = {
-  created: ({ data }) => {
-    data.lang = $lang.get()
-    $lang.subscribe('page', (lang: Lang) => (data.lang = lang))
-  },
+  created: ({ data }) => $lang.subscribe('page', (lang: Lang) => (data.lang = lang)),
   mounted: async ({ data }) => (data.tasks = await getAllTasks()),
   updated: {
     pathname: async ({ data }) => {
@@ -128,7 +125,7 @@ const hooks: FiCsRouter.Hooks<Data> = {
 
 const spa: FiCsRouter.Spa<Data> = {
   children: [Tasks, TaskDetail, NotFound],
-  data: () => ({ lang: 'en', tasks: [], taskId: NaN, draft: undefined }),
+  data: () => ({ lang: $lang.get(), tasks: [], taskId: NaN, draft: undefined }),
   props,
   css,
   hooks
