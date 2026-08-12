@@ -15,5 +15,5 @@
     "noImplicitReturns": true,
     "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
   },
-  "include": ["src", "vite.config.ts", "main.ts", ".fics/routing/*.ts"]
+  "include": ["src", "vite.config.mts", ".fics/routing/*.ts"]
 }
