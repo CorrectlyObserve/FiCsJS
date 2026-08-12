@@ -1,4 +1,4 @@
-import { CONTENT_TYPE } from '../../../core/helpers'
+import { CONTENT_TYPE, NOOP } from '../../../core/helpers'
 import { statusCodes } from '../../constants'
 import type { Routing, Vite } from '../../types'
 import { configRoutes } from '../config'
@@ -39,29 +39,33 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
       outDir = resolved.build.outDir
       entry = generateEntryHtml({ root, output })
     },
-    configureServer(server: Vite.DevServer): void {
+    configureServer(server: Vite.DevServer): () => void {
       if (config.watch ?? true) server.watcher.add(dir)
-      if (entry === null) return
+      if (entry === null) return NOOP
 
-      server.middlewares.use(async (req, res, next) => {
-        const url: string = req.url ?? '/',
-          cleanedUrl: string = url.split('?')[0]
+      // Returned so Vite installs this after its own middlewares: htmlFallbackMiddleware has
+      // by then rewritten deep links ("/42") to "/index.html", and indexHtmlMiddleware — which
+      // would 404 looking for <root>/index.html — has not run yet.
+      return () =>
+        server.middlewares.use(async (req, res, next) => {
+          const url: string = req.url ?? '/',
+            cleanedUrl: string = url.split('?')[0]
 
-        /** @remarks The handleHotUpdate function may set entry to null. */
-        if ((cleanedUrl !== '/' && cleanedUrl !== '/index.html') || entry === null) return next()
+          /** @remarks The handleHotUpdate function may set entry to null. */
+          if ((cleanedUrl !== '/' && cleanedUrl !== '/index.html') || entry === null) return next()
 
-        const template: string | null = readIfExists(entry)
-        if (template === null) return next()
+          const template: string | null = readIfExists(entry)
+          if (template === null) return next()
 
-        try {
-          const html: string = await server.transformIndexHtml(url, template, req.originalUrl)
-          res.statusCode = statusCodes.OK
-          res.setHeader(CONTENT_TYPE, 'text/html')
-          res.end(html)
-        } catch (error) {
-          next(error)
-        }
-      })
+          try {
+            const html: string = await server.transformIndexHtml(url, template, req.originalUrl)
+            res.statusCode = statusCodes.OK
+            res.setHeader(CONTENT_TYPE, 'text/html')
+            res.end(html)
+          } catch (error) {
+            next(error)
+          }
+        })
     },
     buildStart(): void {
       configRoutes(config)
