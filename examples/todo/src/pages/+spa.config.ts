@@ -62,6 +62,7 @@ const css: FiCsRouter.Css<Data> = {
 }
 
 const hooks: FiCsRouter.Hooks<Data> = {
+  created: ({ data }) => $lang.subscribe('page', (lang: Lang) => (data.lang = lang)),
   mounted: async ({ data }) => (data.tasks = await getAllTasks()),
   updated: {
     pathname: async ({ data }) => {
