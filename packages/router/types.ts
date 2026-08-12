@@ -404,7 +404,7 @@ export declare namespace Vite {
       build?: { rollupOptions: { input: string } }
     }
     configResolved: (config: { root: string; build: { outDir: string } }) => void
-    configureServer: (server: DevServer) => void
+    configureServer: (server: DevServer) => () => void
     buildStart: () => void
     transform: (
       code: string,
