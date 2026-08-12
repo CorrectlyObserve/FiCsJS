@@ -1,1 +1,0 @@
-export { viteRoutesPlugin } from './plugin'
