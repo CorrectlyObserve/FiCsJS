@@ -21,4 +21,4 @@ const html: FiCs.Html<Data, {}> = ({ data: { href, text }, template }) => {
 }
 const css: FiCs.Css<Data, {}> = `a:hover { background: ${white(0.1)}; }`
 
-export default fics({ name: 'back-link', data: () => ({ href: '', text: '' }), html, css })
+export default fics({ name: 'link', data: () => ({ href: '', text: '' }), html, css })
