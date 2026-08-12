@@ -8,7 +8,7 @@ export const meta = {
 }
 
 export default (): string => `
-  ${Link.toString({ data: { href: '/', text: 'Back to the top page' } })}
+  ${Link.toString()}
   ${Photos.toString()}
   ${ChatButton.toString()}
 `
