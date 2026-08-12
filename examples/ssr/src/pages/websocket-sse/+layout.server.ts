@@ -3,7 +3,7 @@ import Link from '@/components/Link'
 import Tab from '@/pages/websocket-sse/Tab'
 
 const layout: FiCsRouter.SsrLayout<{}> = ({ slot }) => `
-  ${Link.toString({ data: { href: '/', text: 'Back to the top page' } })}
+  ${Link.toString()}
   ${Tab.toString()}
   ${slot}
 `
