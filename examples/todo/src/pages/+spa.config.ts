@@ -3,7 +3,7 @@ import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
 import Tasks from '@/components/Tasks'
 import TaskDetail from '@/components/TaskDetails'
 import NotFound from '@/components/NotFound'
-import { getAllTasks, getTask } from '@/stores'
+import { $lang, getAllTasks, getTask } from '@/stores'
 import type { Task as TaskType } from '@/types'
 import type { Lang } from '@/utils/lang'
 import { breakpoints } from '@/utils/others'
@@ -62,7 +62,10 @@ const css: FiCsRouter.Css<Data> = {
 }
 
 const hooks: FiCsRouter.Hooks<Data> = {
-  created: ({ data }) => $lang.subscribe('page', (lang: Lang) => (data.lang = lang)),
+  created: ({ data }) => {
+    data.lang = $lang.get()
+    $lang.subscribe('page', (lang: Lang) => (data.lang = lang))
+  },
   mounted: async ({ data }) => (data.tasks = await getAllTasks()),
   updated: {
     pathname: async ({ data }) => {
