@@ -84,7 +84,7 @@ export const ficsRouter = <D extends object>(
   let removeEventListeners: () => void = NOOP
 
   return new FiCsElement<RouterData<D>, {}>({
-    name: 'router',
+    name: '_router',
     isExceptional: true,
     children,
     data: () => ({ ...data?.(), pathname, queries: {}, isNotFound: false }) as RouterData<D>,
