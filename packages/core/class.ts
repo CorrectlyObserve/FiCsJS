@@ -139,7 +139,7 @@ export class FiCsElement<D extends object, P extends object> {
 
     this.#nameKey = convertStr(name, 'camel')
 
-    if (!isExceptional && { var: true, router: true, link: true }[name])
+    if (!isExceptional && { _var: true, _router: true, _link: true }[name]) 
       throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
 
     this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
