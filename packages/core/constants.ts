@@ -49,4 +49,4 @@ export const symbols = {
   UNSAFE_HTML: Symbol('fics-unsafe-html')
 } as const
 
-export const VAR_TAG_NAME = 'f-var' as const
+export const VAR_TAG_NAME = 'f-_var' as const
