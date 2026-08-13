@@ -37,14 +37,6 @@ export declare namespace FiCsLink {
   type Props<P> = SingleOrArray<_Props<{}, P>> | undefined
 }
 
-export declare namespace FiCsPage {
-  type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
-
-  type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
-
-  type Render = Routing.Render
-}
-
 export declare namespace FiCsRouter {
   type Attributes<D extends object> = Attrs<RouterData<D>, {}> | undefined
 
@@ -81,12 +73,10 @@ export declare namespace FiCsRpcClient {
   type MetricEvent = Extract<Rpc.Metric.Event, { type: `request:${string}` }>
 }
 
-export declare namespace FiCsRpcServer {
-  type Ctx<C = unknown> = Rpc.Ctx<C>
+export declare namespace FiCsServerRouter {
+  type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
 
-  type ErrorInit = Rpc.ErrorInit
+  type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
 
-  type MetricEvent = Exclude<Rpc.Metric.Event, { type: `request:${string}` }>
-
-  type Options<C = unknown> = Rpc.Options.Handler<C, MetricEvent>
+  type Render = Routing.Render
 }
