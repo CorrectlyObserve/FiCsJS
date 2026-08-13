@@ -112,7 +112,6 @@ export class FiCsElement<D extends object, P extends object> {
 
   constructor({
     name,
-    isExceptional,
     instanceId,
     children,
     data,
