@@ -129,7 +129,7 @@ export class FiCsElement<D extends object, P extends object> {
     actions,
     options
   }: FiCs<D, P>) {
-    this.#nameKey = { camel: convertStr(name, 'camel'), kebab: name }
+    this.#nameKey = { camel: convertStr(name.replace(/^_/, ''), 'camel'), kebab: name }
     this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
