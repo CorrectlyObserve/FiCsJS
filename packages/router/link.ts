@@ -15,7 +15,6 @@ export const ficsLink = <P extends object>({
 }: FiCsLink<P>): FiCsElement<{}, P> =>
   new FiCsElement<{}, P>({
     name: '_link',
-    isExceptional: true,
     children,
     props,
     className,
