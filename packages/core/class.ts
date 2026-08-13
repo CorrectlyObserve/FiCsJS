@@ -520,7 +520,7 @@ export class FiCsElement<D extends object, P extends object> {
           enqueue: this.#enqueue.bind(this),
           reRender: this.#reRender.bind(this),
           signal: this.#abortController.signal,
-          guardKey: (k: keyof D) => this.#guardRouterKey(k)
+          guardKey: (key: keyof D) => this.#guardImmutableData(key)
         },
         config
       })
@@ -1763,7 +1763,7 @@ export class FiCsElement<D extends object, P extends object> {
 
   setData<K extends keyof D>(key: K, value: D[K]): void {
     this.#assertDescribed('setData')
-    this.#guardRouterKey(key)
+    this.#guardImmutableData(key)
     this.#data[key as keyof D] = value as D[keyof D]
   }
 
