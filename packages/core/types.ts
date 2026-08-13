@@ -136,6 +136,7 @@ export interface FiCs<D extends object, P extends object> {
   instanceId?: string
   children?: Descendant[]
   data?: () => Partial<D>
+  immutableDataKeys?: (keyof D)[]
   deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
   i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   props?: SingleOrArray<Props<D, P>>
