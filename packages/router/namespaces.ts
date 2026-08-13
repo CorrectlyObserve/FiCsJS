@@ -80,3 +80,13 @@ export declare namespace FiCsServerRouter {
 
   type Render = Routing.Render
 }
+
+export declare namespace FiCsServerRpc {
+  type Ctx<C = unknown> = Rpc.Ctx<C>
+
+  type ErrorInit = Rpc.ErrorInit
+
+  type MetricEvent = Exclude<Rpc.Metric.Event, { type: `request:${string}` }>
+
+  type Options<C = unknown> = Rpc.Options.Handler<C, MetricEvent>
+}
