@@ -1682,9 +1682,9 @@ export class FiCsElement<D extends object, P extends object> {
       )
   }
 
-  #guardRouterKey(key: keyof D): void {
-    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-      throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
+  #guardImmutableData(key: keyof D): void {
+    if (this.#immutableDataKeys.has(key))
+      throw new Error(`The "${String(key)}" is read-only in ${this.#name}...`)
   }
 
   getChildren(): Children {
