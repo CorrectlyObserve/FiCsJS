@@ -129,7 +129,7 @@ export class FiCsElement<D extends object, P extends object> {
     actions,
     options
   }: FiCs<D, P>) {
-    this.#nameKey = { camel: convertStr(name.replace(/^_/, ''), 'camel'), kebab: name }
+    this.#nameKey = name
     this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
@@ -143,8 +143,8 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (children)
       for (const child of children)
-        this.#children[child.#nameKey.camel] =
-          child.#nameKey.kebab === child.#name.slice(2) ? child.#clone() : child
+        this.#children[convertStr(child.#nameKey.replace(/^_/, ''), 'camel')] =
+          child.#nameKey === child.#name.slice(2) ? child.#clone() : child
 
     this.#isBrowser = isBrowser()
 
@@ -363,7 +363,7 @@ export class FiCsElement<D extends object, P extends object> {
   #clone(instanceId?: string): FiCsElement<D, P> {
     const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
       cloned: FiCsElement<D, P> = new FiCsElement({
-        name: this.#nameKey.kebab,
+        name: this.#nameKey,
         instanceId: instanceId ?? this.#instanceId,
         data: () => this.#data as Partial<D>,
         immutableDataKeys: [...this.#immutableDataKeys],
