@@ -85,7 +85,6 @@ export const ficsRouter = <D extends object>(
 
   return new FiCsElement<RouterData<D>, {}>({
     name: '_router',
-    isExceptional: true,
     children,
     data: () => ({ ...data?.(), pathname, queries: {}, isNotFound: false }) as RouterData<D>,
     props,
