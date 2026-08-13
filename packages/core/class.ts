@@ -129,20 +129,7 @@ export class FiCsElement<D extends object, P extends object> {
     actions,
     options
   }: FiCs<D, P>) {
-    name = name.trim()
-    if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
-
-    name = convertStr(name, 'kebab')
-    if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(name))
-      throw new Error(
-        'The FiCsElement name must contain only lowercase letters, numbers, and single hyphens...'
-      )
-
-    this.#nameKey = convertStr(name, 'camel')
-
-    if (!isExceptional && { _var: true, _router: true, _link: true }[name]) 
-      throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
-
+    this.#nameKey = { camel: convertStr(name, 'camel'), kebab: name }
     this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
     let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
@@ -156,8 +143,8 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (children)
       for (const child of children)
-        this.#children[child.#nameKey] =
-          convertStr(child.#nameKey, 'kebab') === child.#name.slice(2) ? child.#clone() : child
+        this.#children[child.#nameKey.camel] =
+          child.#nameKey.kebab === child.#name.slice(2) ? child.#clone() : child
 
     this.#isBrowser = isBrowser()
 
@@ -376,8 +363,7 @@ export class FiCsElement<D extends object, P extends object> {
   #clone(instanceId?: string): FiCsElement<D, P> {
     const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
       cloned: FiCsElement<D, P> = new FiCsElement({
-        name: this.#nameKey,
-        isExceptional: true,
+        name: this.#nameKey.kebab,
         instanceId: instanceId ?? this.#instanceId,
         data: () => this.#data as Partial<D>,
         immutableDataKeys: [...this.#immutableDataKeys],
