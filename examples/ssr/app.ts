@@ -186,7 +186,7 @@ const pageHandler = createPageHandler(pages, {
     meta: { title = '', description = '' },
     content,
     script
-  }: FiCsPage.Render): string => `
+  }: FiCsRouter.Render): string => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
