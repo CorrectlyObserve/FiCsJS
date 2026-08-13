@@ -1,7 +1,7 @@
 import { FiCsElement } from '../core/class'
 import { normalizePath, NOOP, toArray, typedEntries } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
-import { FICS_NAVIGATE } from './constants'
+import { FICS_NAVIGATE, ROUTER_COMPONENT_NAME } from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { flattenRedirects, isDynamicPath } from './helpers'
@@ -84,7 +84,7 @@ export const ficsRouter = <D extends object>(
   let removeEventListeners: () => void = NOOP
 
   return new FiCsElement<RouterData<D>, {}>({
-    name: '_router',
+    name: ROUTER_COMPONENT_NAME,
     children,
     data: () => ({ ...data?.(), pathname, queries: {}, isNotFound: false }) as RouterData<D>,
     immutableDataKeys: ['pathname', 'queries'],
