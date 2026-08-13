@@ -66,7 +66,7 @@ export class FiCsElement<D extends object, P extends object> {
   static #nameGenerators: Map<string, Generator<number>> = new Map()
   static #activeEffect: { instance: Descendant; run: () => void } | null = null
   static globalCss: Css.Global[] = []
-  readonly #nameKey: { camel: string; kebab: string }
+  readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
   readonly #children: Children = {}
