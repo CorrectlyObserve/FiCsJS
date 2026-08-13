@@ -14,25 +14,26 @@ export const $tasks = createPersistentState<Task[]>({ stateId: 'tasks', state: [
 
 let setQueue: Promise<Task[]> = Promise.resolve([])
 const enqueue = (task: () => Promise<Task[]>): Promise<Task[]> => {
-    setQueue = setQueue.then(task, error => {
-      throw error
-    })
-    return setQueue
-  },
-  mutateTasks = async (mutate: (tasks: Task[], timestamp: number) => void): Promise<Task[]> => {
-    const tasks: Task[] = [...(await getAllTasks())]
+  setQueue = setQueue.then(task, error => {
+    throw error
+  })
+  return setQueue
+}
 
-    mutate(tasks, getTimestamp())
-    await $tasks.set(tasks)
-    return tasks
-  },
-  mutateTask = (id: number, mutate: (task: Task, timestamp: number) => void): Promise<Task[]> =>
-    mutateTasks((tasks, timestamp) => {
-      const task: Task | undefined = getTask(tasks, id)
+const mutateTasks = async (mutate: (tasks: Task[], timestamp: number) => void): Promise<Task[]> => {
+  const tasks: Task[] = [...(await getAllTasks())]
 
-      if (!task) throw new Error(`The task with ID ${id} was not found...`)
-      mutate(task, timestamp)
-    })
+  mutate(tasks, getTimestamp())
+  await $tasks.set(tasks)
+  return tasks
+}
+const mutateTask = (id: number, mutate: (task: Task, timestamp: number) => void): Promise<Task[]> =>
+  mutateTasks((tasks, timestamp) => {
+    const task: Task | undefined = getTask(tasks, id)
+
+    if (!task) throw new Error(`The task with ID ${id} was not found...`)
+    mutate(task, timestamp)
+  })
 
 export const getAllTasks = async (): Promise<Task[]> => await $tasks.get()
 
