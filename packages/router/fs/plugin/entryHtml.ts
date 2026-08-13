@@ -1,3 +1,4 @@
+import { ROUTER_COMPONENT_NAME } from '../../constants'
 import { config } from '../constants'
 import { readIfExists, writeIfChanged } from '../file'
 import { indent, joinLines, removeExt } from '../helpers'
@@ -5,7 +6,7 @@ import { existsSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
 const rootLines = (importPath: string): string[] => [
-    '<f-router></f-router>',
+    `<f-${ROUTER_COMPONENT_NAME}></f-${ROUTER_COMPONENT_NAME}>`,
     '<script type="module">',
     `${indent()}import { Router } from '${importPath}'`,
     `${indent()}Router.describe()`,
