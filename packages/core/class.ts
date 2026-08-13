@@ -132,14 +132,14 @@ export class FiCsElement<D extends object, P extends object> {
     this.#nameKey = name
     this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
-    let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
+    let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(this.#nameKey)
     if (!generator) {
       generator = uid()
-      FiCsElement.#nameGenerators.set(name, generator)
+      FiCsElement.#nameGenerators.set(this.#nameKey, generator)
     }
 
     const count: number = generator.next().value
-    this.#name = `f-${name}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
+    this.#name = `f-${this.#nameKey}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
 
     if (children)
       for (const child of children)
