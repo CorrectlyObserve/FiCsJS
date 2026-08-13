@@ -6,8 +6,6 @@
     "lib": ["ESNext", "DOM"],
     "moduleResolution": "bundler",
     "outDir": "./dist",
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
     "skipLibCheck": true,
     "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
   },
