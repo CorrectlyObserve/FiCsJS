@@ -61,7 +61,7 @@ export declare namespace FiCsRouter {
   type SsrLayout<T extends object> = (ctx: { slot: string } & T) => Awaitable<string>
 }
 
-export declare namespace FiCsRpcClient {
+export declare namespace FiCsRpc {
   type CallOptions = Rpc.Options.Call
 
   type Client<R> = Rpc.Client<R>
