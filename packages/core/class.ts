@@ -73,6 +73,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #isBrowser: boolean
   readonly #rawData: D = {} as D
   readonly #data: D = {} as D
+  readonly #immutableDataKeys: Set<keyof D> = new Set()
   readonly #subscribers: {
     data: Map<keyof D, Set<() => void>>
     props: Map<keyof P, Set<() => void>>
@@ -115,6 +116,7 @@ export class FiCsElement<D extends object, P extends object> {
     instanceId,
     children,
     data,
+    immutableDataKeys,
     deferredData,
     i18nData,
     props,
@@ -234,6 +236,8 @@ export class FiCsElement<D extends object, P extends object> {
           return true
         }
       })
+
+      this.#immutableDataKeys = new Set(immutableDataKeys)
     }
 
     if (props) {
@@ -376,6 +380,7 @@ export class FiCsElement<D extends object, P extends object> {
         isExceptional: true,
         instanceId: instanceId ?? this.#instanceId,
         data: () => this.#data as Partial<D>,
+        immutableDataKeys: [...this.#immutableDataKeys],
         children: Object.values(this.#children),
         deferredData: this.#deferredData,
         i18nData: this.#i18nData,
