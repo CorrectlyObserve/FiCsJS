@@ -1,4 +1,5 @@
 import { FiCsElement } from './class'
+import { convertStr, isBlankString } from './helpers'
 import type { FiCs } from './types'
 
 export const fics = <D extends object, P extends object>({
@@ -15,8 +16,17 @@ export const fics = <D extends object, P extends object>({
   hooks,
   actions,
   options
-}: Omit<FiCs<D, P>, 'isExceptional' | 'instanceId' | 'clonedCss'>): FiCsElement<D, P> =>
-  new FiCsElement<D, P>({
+}: Omit<FiCs<D, P>, 'instanceId' | 'immutableDataKeys' | 'clonedCss'>): FiCsElement<D, P> => {
+  name = convertStr(name.trim(), 'kebab')
+
+  if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
+
+  if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(name))
+    throw new Error(
+      'The FiCsElement name must contain only lowercase letters, numbers, and single hyphens...'
+    )
+
+  return new FiCsElement<D, P>({
     name,
     children,
     data,
@@ -31,3 +41,4 @@ export const fics = <D extends object, P extends object>({
     actions,
     options
   })
+}
