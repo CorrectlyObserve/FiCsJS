@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "types": ["bun"],
+    "skipLibCheck": true,
+    "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
+  },
+  "include": ["app.ts", "src/**/*", ".fics/routing/*.ts"]
+}
