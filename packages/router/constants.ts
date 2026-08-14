@@ -13,6 +13,8 @@ export const RPC_BASE = '/_rpc' as const
 
 export const RPC_MODULE_TYPE = { module: 'rpc' } as const
 
+export const STATUS_PAGE_META = { robots: 'noindex' } as const
+
 export const statusCodes = {
   BAD_REQUEST,
   FORBIDDEN: 403,
