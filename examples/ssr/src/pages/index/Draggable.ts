@@ -3,6 +3,12 @@ import { oklch } from 'ficsjs/style'
 import Menu from '@/pages/index/Menu'
 import { white } from '@/utils'
 
+export interface Updated<T> {
+  fromIndex: number
+  toIndex: number
+  item: T
+}
+
 interface Data {
   droppedZone: HTMLElement | null
   isHighlighted: (droppedZone: HTMLElement | null, zoneIndex: string | number) => boolean
