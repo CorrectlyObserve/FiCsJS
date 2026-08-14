@@ -2,8 +2,12 @@ import { fics, type FiCs } from 'ficsjs'
 import { calc, cssVar, flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $userName } from '@/stores'
-import type { Message } from '@/types'
 import { white } from '@/utils'
+
+export interface Message {
+  userName: string
+  comment: string
+}
 
 interface Data {
   comment: string
