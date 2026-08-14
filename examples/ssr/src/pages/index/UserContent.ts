@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
-import type { User } from '@/types'
+import type { User } from '@/server/users'
 
 interface Props {
   user: User
