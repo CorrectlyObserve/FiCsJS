@@ -8,7 +8,7 @@ import type { User } from '@/server/users'
 
 interface Data {
   status: string
-  methods: Method[]
+  methods: ('PUT' | 'PATCH' | 'DELETE')[]
   users: User[]
   userId: number
   draggingIndex: number
@@ -210,12 +210,12 @@ const hooks: FiCs.Hooks<Data, {}> = {
   }
 }
 
-export default fics({
+export default fics<Data, {}>({
   name: 'users',
   children: [Button(), Draggable<User>(), UserContent],
   data: () => ({
     status: '',
-    methods: ['PUT', 'PATCH', 'DELETE'] as Method[],
+    methods: ['PUT', 'PATCH', 'DELETE'],
     users: [],
     userId: NaN,
     draggingIndex: NaN,
