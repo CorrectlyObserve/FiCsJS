@@ -1,13 +1,12 @@
 import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { Direction } from '@/types'
 import { ArrowDownFromLine, ArrowUpFromLine, CopyPlus } from 'lucide-static'
 
 interface Data {
   isCopy: boolean
   buttons: (isCopy: boolean) => {
-    id: 'action' | Direction
+    id: 'action' | 'up' | 'down'
     svg: string
     ariaLabel: string
     isPressed?: boolean
@@ -18,7 +17,7 @@ interface Props {
   isDisabled: boolean
   isAtFirst: boolean
   isAtLast: boolean
-  moveItem: (direction: Direction, isCopy: boolean) => void | Promise<void>
+  moveItem: (direction: 'up' | 'down', isCopy: boolean) => void | Promise<void>
 }
 
 const html: FiCs.Html<Data, Props> = ({
