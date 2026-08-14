@@ -1,7 +1,6 @@
 import { mutationOnly } from 'ficsjs/router/server-only'
 import { defineProcedure, rpcError } from '@/server/rpc'
-import { findUser, removeUser, updateUser } from '@/server/users'
-import type { User } from '@/types'
+import { findUser, removeUser, updateUser, type User } from '@/server/users'
 
 const parseId = (raw: string): number => {
   const id: number = Number(raw)
