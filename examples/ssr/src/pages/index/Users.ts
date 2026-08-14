@@ -2,7 +2,7 @@ import { fics, type FiCs } from 'ficsjs'
 import { flexCenter } from 'ficsjs/style'
 import { api } from '@fics/routing/client'
 import Button from '@/components/Button'
-import Draggable from '@/pages/index/Draggable'
+import Draggable, { type Updated } from '@/pages/index/Draggable'
 import UserContent from '@/pages/index/UserContent'
 import type { User } from '@/server/users'
 
