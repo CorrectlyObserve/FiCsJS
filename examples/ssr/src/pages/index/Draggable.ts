@@ -1,7 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { oklch } from 'ficsjs/style'
 import Menu from '@/pages/index/Menu'
-import { Direction, Updated } from '@/types'
 import { white } from '@/utils'
 
 interface Data {
@@ -79,7 +78,7 @@ export default <T>() => {
       return {
         isAtFirst: selectedIndex === 0,
         isAtLast: selectedIndex === array.length - 1,
-        moveItem: (direction: Direction, isCopy: boolean) => {
+        moveItem: (direction: 'up' | 'down', isCopy: boolean) => {
           const fromIndex = getSelectedIndex()
           if (fromIndex < 0) return
 
