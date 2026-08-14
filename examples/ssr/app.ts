@@ -8,6 +8,11 @@ import { pages, rpcRouter } from '@fics/routing/server'
 import type { Message, SSEMessage } from '@/types'
 import { API_PATHS, getTimestamp } from '@/utils'
 
+interface SSEMessage {
+  event: 'log'
+  data: string
+}
+
 const app = new Hono()
 
 // ── Static assets ──
