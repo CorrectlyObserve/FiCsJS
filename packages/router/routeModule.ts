@@ -16,6 +16,7 @@ export function resolveModule(module: Routing.Module, path?: string): Page | Pag
     pageContent.content = (typeof def === 'function' ? def : () => def) as PageContent['content']
   }
 
-  if (path === undefined) return pageContent
-  return { path, ...pageContent, ...(pageContent.redirect ? {} : meta ? { meta } : {}) }
+  if (!pageContent.redirect && meta) pageContent.meta = meta
+
+  return path === undefined ? pageContent : { path, ...pageContent }
 }
