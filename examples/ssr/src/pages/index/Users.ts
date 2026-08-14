@@ -4,7 +4,7 @@ import { api } from '@fics/routing/client'
 import Button from '@/components/Button'
 import Draggable from '@/pages/index/Draggable'
 import UserContent from '@/pages/index/UserContent'
-import type { Method, Updated, User } from '@/types'
+import type { User } from '@/server/users'
 
 interface Data {
   status: string
