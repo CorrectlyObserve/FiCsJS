@@ -1,4 +1,8 @@
-import type { User } from '@/types'
+export interface User {
+  id: number
+  name: string
+  email: string
+}
 
 const defaultUsers: User[] = [
   { id: 1, name: 'Alice', email: 'alice@example.com' },
