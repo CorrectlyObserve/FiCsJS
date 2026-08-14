@@ -5,7 +5,7 @@ import type { ServerWebSocket } from 'bun'
 import { createQueryCache } from 'ficsjs'
 import { createPageHandler, createRpcHandler, type FiCsRouter } from 'ficsjs/router/server-only'
 import { pages, rpcRouter } from '@fics/routing/server'
-import type { Message, SSEMessage } from '@/types'
+import type { Message } from '@/pages/websocket-sse/Chat'
 import { API_PATHS, getTimestamp } from '@/utils'
 
 interface SSEMessage {
