@@ -1,3 +1,4 @@
+import { escape } from '../../../core/helpers'
 import { ROUTER_COMPONENT_NAME } from '../../constants'
 import { config } from '../constants'
 import { readIfExists, writeIfChanged } from '../file'
@@ -15,14 +16,14 @@ const rootLines = (importPath: string): string[] => [
   renderRoot = (importPath: string, indentation: string): string =>
     joinLines(rootLines(importPath).map(line => `${indentation}${line}`))
 
-const defaultTemplate = (importPath: string): string =>
+const defaultTemplate = ({ title, importPath }: { title: string; importPath: string }): string =>
     joinLines([
       '<!doctype html>',
       '<html>',
       `${indent()}<head>`,
       `${indent(2)}<meta charset="UTF-8" />`,
       `${indent(2)}<meta name="viewport" content="width=device-width, initial-scale=1.0" />`,
-      `${indent(2)}<title></title>`,
+      `${indent(2)}<title>${escape(title, 'text-content')}</title>`,
       `${indent()}</head>`,
       `${indent()}<body>`,
       renderRoot(importPath, indent(2)),
