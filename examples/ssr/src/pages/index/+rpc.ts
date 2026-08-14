@@ -1,7 +1,6 @@
 import { mutationOnly } from 'ficsjs/router/server-only'
 import { defineProcedure, rpcError } from '@/server/rpc'
-import { addUser } from '@/server/users'
-import type { User } from '@/types'
+import { addUser, type User } from '@/server/users'
 
 export const create = mutationOnly(
   defineProcedure({
