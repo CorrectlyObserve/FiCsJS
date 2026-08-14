@@ -10,6 +10,7 @@ export const FICS_META = 'fics:meta' as const
 export const FICS_NAVIGATE = 'fics:navigate' as const
 export const ROUTER_COMPONENT_NAME = '_router' as const
 export const RPC_BASE = '/_rpc' as const
+
 export const RPC_MODULE_TYPE = { module: 'rpc' } as const
 
 export const statusCodes = {
