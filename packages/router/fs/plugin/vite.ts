@@ -9,11 +9,14 @@ import { generateEntryHtml } from './entryHtml'
 import { existsSync, renameSync, rmdirSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 
-export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): Vite.Plugin => {
+export const vitePlugin = (
+  config: Routing.Config & { watch?: boolean; title?: string } = {}
+): Vite.Plugin => {
   const { dir, output }: { dir: string; output: string } = toAbsolute({
       dir: config.dir,
       output: config.output
     }),
+    { title }: { title?: string } = config,
     ficsDir: string = dirname(output),
     clientPath: string = join(output, configConstants.CLIENT)
 
@@ -28,7 +31,7 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
       resolve: { alias: Record<string, string> }
       build?: { rollupOptions: { input: string } }
     } {
-      entry = generateEntryHtml({ root, output })
+      entry = generateEntryHtml({ root, output, title })
       return {
         resolve: { alias: { [configConstants.ALIAS]: ficsDir } },
         ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
@@ -37,7 +40,7 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
     configResolved(resolved: { root: string; build: { outDir: string } }): void {
       root = resolved.root
       outDir = resolved.build.outDir
-      entry = generateEntryHtml({ root, output })
+      entry = generateEntryHtml({ root, output, title })
     },
     configureServer(server: Vite.DevServer): () => void {
       if (config.watch ?? true) server.watcher.add(dir)
@@ -100,7 +103,7 @@ export const vitePlugin = (config: Routing.Config & { watch?: boolean } = {}): V
     },
     handleHotUpdate({ file }: { file: string }): void {
       if (file.startsWith(dir)) configRoutes(config)
-      if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, output })
+      if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, output, title })
     }
   } as const
 }
