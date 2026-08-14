@@ -2,8 +2,7 @@ import { type QueryCache } from 'ficsjs'
 import ChatButton from '@/components/ChatButton'
 import Link from '@/components/Link'
 import Users, { USERS_KEY } from '@/pages/index/Users'
-import { getUsers } from '@/server/users'
-import type { User } from '@/types'
+import { getUsers, type User } from '@/server/users'
 
 export const meta = {
   title: 'FiCsJS with Hono',
