@@ -48,10 +48,12 @@ const defaultTemplate = ({ title, importPath }: { title: string; importPath: str
 
 export const generateEntryHtml = ({
   root,
-  output
+  output,
+  title = ''
 }: {
   root: string
   output: string
+  title?: string
 }): string | null => {
   const appHtml: string | null = readIfExists(join(root, 'app.html'))
 
@@ -63,7 +65,9 @@ export const generateEntryHtml = ({
   writeIfChanged({
     path: entry,
     content:
-      appHtml === null ? defaultTemplate(importPath) : injectHtml({ html: appHtml, importPath })
+      appHtml === null
+        ? defaultTemplate({ title, importPath })
+        : injectHtml({ html: appHtml, importPath })
   })
 
   return entry
