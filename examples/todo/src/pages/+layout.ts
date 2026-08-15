@@ -20,7 +20,7 @@ const syncLang = async (lang: Lang): Promise<void> => {
     // A later call can finish before an earlier one, as i18n caches each language.
     if ($lang.get() !== lang) return
 
-    applyMeta(meta)
+    applyMeta(meta, { merge: true })
   } catch (error) {
     // A failure here is not fatal, as the page renders without head translations.
     console.warn(error)
