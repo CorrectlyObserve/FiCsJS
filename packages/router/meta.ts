@@ -60,7 +60,7 @@ export const renderMeta = (meta: Record<string, string>): string => {
       continue
     }
 
-    const { tagName, nameAttr, valAttr } = getMetaConfig(key)
+    const { tagName, nameAttr, valAttr }: ReturnType<typeof getMetaConfig> = getMetaConfig(key)
     tags.push(`<${tagName} ${nameAttr}="${escape(key)}" ${valAttr}="${escape(value)}">`)
   }
 
