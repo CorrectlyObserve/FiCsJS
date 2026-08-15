@@ -51,6 +51,21 @@ export const applyMeta = (
   }
 }
 
+export const injectMeta = ({ html, metaTags }: { html: string; metaTags: string }): string => {
+  if (metaTags === '' || html.includes(metaTags)) return html
+
+  const closing: RegExpMatchArray | null = html.match(/<\/head\s*>/i),
+    createMeta = (end: number): string => `${html.slice(0, end)}${metaTags}${html.slice(end)}`
+
+  if (closing?.index !== undefined) return createMeta(closing.index)
+
+  const opening: RegExpMatchArray | null = html.match(/<head(?:\s[^>]*)?>/i)
+  if (opening?.index === undefined) return html
+
+  return createMeta(opening.index + opening[0].length)
+}
+
+
 export const renderMeta = (meta: Record<string, string>): string => {
   const tags: string[] = []
 
