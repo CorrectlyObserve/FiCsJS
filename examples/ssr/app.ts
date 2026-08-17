@@ -187,23 +187,17 @@ app.get(API_PATHS.stream, c => {
 
 // ── FiCsJS: SSR pages + RPC ──
 const pageHandler = createPageHandler(pages, {
-  render: ({
-    meta: { title = '', description = '' },
-    content,
-    script
-  }: FiCsRouter.Render): string => `
+  render: ({ meta, content, script }: FiCsRouter.Render): string => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title}</title>
-        <meta name="description" content="${description}" />
         <link rel="stylesheet" type="text/css" href="/dist/global.css" />
       </head>
       <body class="bg-dark px-4">
         <header class="flex justify-center flex-row py-2">
-          <h1 class="text-xl text-center font-semibold">${title}</h1>
+          <h1 class="text-xl text-center font-semibold">${meta.title ?? ''}</h1>
         </header>
         <main class="pb-8">${content}</main>
         <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
