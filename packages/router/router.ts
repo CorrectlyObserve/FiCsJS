@@ -1,7 +1,7 @@
 import { FiCsElement } from '../core/class'
 import { normalizePath, NOOP, toArray, typedEntries } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
-import { FICS_NAVIGATE, ROUTER_COMPONENT_NAME } from './constants'
+import { FICS_NAVIGATE, ROUTER_COMPONENT_NAME, STATUS_PAGE_META } from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { flattenRedirects, isDynamicPath } from './helpers'
@@ -174,6 +174,7 @@ export const ficsRouter = <D extends object>(
           if (_notFound) {
             ;(data as RouterData<D>).isNotFound = true
             params.set('dynamicPaths', {})
+            applyMeta({ ...defaultMeta, ...STATUS_PAGE_META, ..._notFound.meta })
             return render(_notFound as PageContent<D>)
           }
 
