@@ -1,7 +1,7 @@
 import { normalizePath } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { getDynamicPaths } from '../dynamicPaths'
-import { isBodiless, prependSlash } from '../helpers'
+import { findRedirect, isBodiless, prependSlash } from '../helpers'
 import { deny, resolveMiddlewares } from '../middleware'
 import type { Routing } from '../types'
 import { respond, respondPage, respondStatus } from './response'
@@ -11,6 +11,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
   statics,
   dynamics,
   redirects,
+  prefixes = [],
   statusPages = {},
   render,
   createContext,
@@ -21,6 +22,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
   statics: Map<string, Routing.ResolvedRoute<C>>
   dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[]
   redirects?: Routing.Redirects
+  prefixes?: readonly (readonly [prefix: string, to: string])[]
   statusPages?: Routing.StatusPages<C>
 }): Promise<Response> => {
   const { pathname }: URL = new URL(req.url),
@@ -49,6 +51,12 @@ export const dispatch = async <C extends Record<string, unknown>>({
         dynamicParams = getDynamicPaths(resolvedRoute.path, _path)
         break
       }
+
+    /** @remarks Final fallback to prevent POST requests from wrongly redirecting. */
+    if (!resolvedRoute) {
+      const redirectTarget: string | null = findRedirect(path, prefixes)
+      if (redirectTarget !== null) return respond(redirectTarget)
+    }
   }
 
   const createCtx = <T>(ctx: T): Routing.MiddlewareCtx<C> =>
