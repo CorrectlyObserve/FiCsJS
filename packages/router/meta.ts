@@ -65,7 +65,6 @@ export const injectMeta = ({ html, metaTags }: { html: string; metaTags: string 
   return createMeta(opening.index + opening[0].length)
 }
 
-
 export const renderMeta = (meta: Record<string, string>): string => {
   const tags: string[] = []
 
