@@ -3,9 +3,9 @@ import { Rpc } from './types'
 
 export const findRedirect = (
   path: string,
-  redirects: readonly (readonly [prefix: string, to: string])[]
+  prefixes: readonly (readonly [prefix: string, to: string])[]
 ): string | null => {
-  for (const [prefix, to] of redirects) if (path.startsWith(prefix)) return to
+  for (const [prefix, to] of prefixes) if (path.startsWith(prefix)) return to
   return null
 }
 
