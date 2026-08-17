@@ -1,5 +1,6 @@
 import { CONTENT_TYPE } from '../../core/helpers'
 import { STATUS_PAGE_META, statusCodes } from '../constants'
+import { injectMeta, renderMeta } from '../meta'
 import type { Routing } from '../types'
 
 export function respond({ html, status }: { html: string; status: Routing.StatusCode }): Response
@@ -42,9 +43,9 @@ export const respondPage = async <C extends Record<string, unknown>>({
       content: def ? await def(ctx) : '',
       path,
       script: `${scriptBase}/${entry}.js`
-    }),
-    status
-  })
+    })
+
+  return respond({ html: injectMeta({ html, metaTags: renderMeta(resolvedMeta) }), status })
 }
 
 export const respondStatus = async <C extends Record<string, unknown>>({
