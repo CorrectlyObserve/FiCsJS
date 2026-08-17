@@ -1,6 +1,6 @@
-import { normalizePath, removeTrailingSlash, typedEntries } from '../../core/helpers'
+import { removeTrailingSlash } from '../../core/helpers'
 import { dynamicPathToRegex } from '../dynamicPaths'
-import { flattenRedirects, isDynamicPath, isHeadMethod } from '../helpers'
+import { flattenRedirects, isDynamicPath, isHeadMethod, parseRedirects } from '../helpers'
 import { applyLayout } from '../layout'
 import type { Routing } from '../types'
 import { dispatch } from './dispatch'
@@ -24,27 +24,26 @@ export const createPageHandler = <C extends Record<string, unknown>>(
     else statics.set(path, resolved)
   }
 
-  let _redirects: Routing.Redirects | undefined
-  if (redirects)
-    _redirects =
-      typeof redirects === 'function'
-        ? redirects
-        : flattenRedirects(
-            new Map(
-              typedEntries(redirects).map(([from, to]): [string, string] => [
-                normalizePath(from),
-                to
-              ])
-            )
-          )
+  let _redirects: Routing.Redirects | undefined,
+    _prefixes: readonly (readonly [prefix: string, to: string])[] = []
 
-  const sb: string = removeTrailingSlash(scriptBase ?? '/dist')
+  if (redirects)
+    if (typeof redirects === 'function') _redirects = redirects
+    else {
+      const { exact, prefixes }: { exact: Map<string, string>; prefixes: [string, string][] } =
+        parseRedirects(redirects)
+
+      _redirects = flattenRedirects(exact)
+      _prefixes = prefixes
+    }
+
   return async (req: Request): Promise<Response> => {
     const res: Response = await dispatch({
       req,
       statics,
       dynamics,
       redirects: _redirects,
+      prefixes: _prefixes,
       statusPages,
       render,
       createContext,
