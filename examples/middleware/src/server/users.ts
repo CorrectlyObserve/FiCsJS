@@ -15,12 +15,7 @@ let users: User[] = [
 
 export const getUsers = (): readonly User[] => users
 
-export const findUser = (identifier: number | string): User | undefined =>
-  users.find(({ id, name }) =>
-    typeof identifier === 'number'
-      ? id === identifier
-      : name.toLowerCase() === identifier.toLowerCase()
-  )
+export const findUser = (userId: number): User | undefined => users.find(({ id }) => id === userId)
 
 export const addUser = (userData: Omit<User, 'id'>): User => {
   const user: User = { id: users.reduce((max, { id }) => Math.max(max, id), 0) + 1, ...userData }
