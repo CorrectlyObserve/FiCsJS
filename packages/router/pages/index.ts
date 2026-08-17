@@ -7,7 +7,7 @@ import { dispatch } from './dispatch'
 
 export const createPageHandler = <C extends Record<string, unknown>>(
   { routes, middlewares = {}, statusPages = {}, redirects }: Routing.Options.PageManifest<C>,
-  { render, createContext, scriptBase }: Routing.Options.PageHost<C>
+  { render, createContext, scriptBase, meta }: Routing.Options.PageHost<C>
 ): ((req: Request) => Promise<Response>) => {
   const statics: Map<string, Routing.ResolvedRoute<C>> = new Map(),
     dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[] = []
@@ -48,7 +48,8 @@ export const createPageHandler = <C extends Record<string, unknown>>(
       statusPages,
       render,
       createContext,
-      scriptBase: sb
+      scriptBase: removeTrailingSlash(scriptBase ?? '/dist'),
+      meta
     })
 
     if (isHeadMethod(req.method))
