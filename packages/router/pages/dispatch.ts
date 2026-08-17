@@ -14,7 +14,8 @@ export const dispatch = async <C extends Record<string, unknown>>({
   statusPages = {},
   render,
   createContext,
-  scriptBase
+  scriptBase,
+  meta
 }: Routing.Options.InternalPageHost<C> & {
   req: Request
   statics: Map<string, Routing.ResolvedRoute<C>>
@@ -53,8 +54,9 @@ export const dispatch = async <C extends Record<string, unknown>>({
   const createCtx = <T>(ctx: T): Routing.MiddlewareCtx<C> =>
     ({ ...(ctx ?? {}), req, dynamicParams, deny, signal: req.signal }) as Routing.MiddlewareCtx<C>
 
-  const args: { render: Routing.Options.PageHost<C>['render']; scriptBase: string; path: string } =
-    { render, scriptBase, path }
+  const args: Pick<Routing.Options.InternalPageHost<C>, 'render' | 'scriptBase' | 'meta'> & {
+    path: string
+  } = { render, scriptBase, meta, path }
 
   try {
     const ctx: Routing.MiddlewareCtx<C> = createCtx((await createContext?.(req)) ?? {})
