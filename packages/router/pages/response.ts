@@ -1,5 +1,5 @@
 import { CONTENT_TYPE } from '../../core/helpers'
-import { statusCodes } from '../constants'
+import { STATUS_PAGE_META, statusCodes } from '../constants'
 import type { Routing } from '../types'
 
 export function respond({ html, status }: { html: string; status: Routing.StatusCode }): Response
@@ -19,6 +19,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
   status,
   render,
   scriptBase,
+  meta: defaultMeta,
   ctx,
   path
 }: Routing.Options.InternalPageHost<C> & {
@@ -28,13 +29,16 @@ export const respondPage = async <C extends Record<string, unknown>>({
   path: string
 }): Promise<Response> => {
   const {
-    module: { meta = {}, default: def },
-    entry
-  }: Routing.ServerStatus<C> = statusPage
-
-  return respond({
-    html: render({
-      meta,
+      module: { meta = {}, default: def },
+      entry
+    }: Routing.ServerStatus<C> = statusPage,
+    resolvedMeta: Record<string, string> = {
+      ...defaultMeta,
+      ...(status === statusCodes.OK ? {} : STATUS_PAGE_META),
+      ...meta
+    },
+    html: string = render({
+      meta: resolvedMeta,
       content: def ? await def(ctx) : '',
       path,
       script: `${scriptBase}/${entry}.js`
