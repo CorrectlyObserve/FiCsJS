@@ -174,6 +174,7 @@ export declare namespace Routing {
       render: (ctx: Render) => string
       createContext?: (req: Request) => Awaitable<C>
       scriptBase?: string
+      meta?: Record<string, string>
     }
 
     interface PageManifest<C = Record<string, unknown>> {
