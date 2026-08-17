@@ -1,6 +1,14 @@
 import { isObject, normalizePath } from '../core/helpers'
 import { Rpc } from './types'
 
+export const findRedirect = (
+  path: string,
+  redirects: readonly (readonly [prefix: string, to: string])[]
+): string | null => {
+  for (const [prefix, to] of redirects) if (path.startsWith(prefix)) return to
+  return null
+}
+
 export const flattenRedirects = (map: ReadonlyMap<string, string>): Map<string, string> => {
   const toPurePath = (target: string): string => normalizePath(target.split(/[?#]/)[0]),
     flattened: Map<string, string> = new Map()
