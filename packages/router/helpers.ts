@@ -1,4 +1,4 @@
-import { isObject, normalizePath } from '../core/helpers'
+import { isObject, normalizePath, typedEntries } from '../core/helpers'
 import { Rpc } from './types'
 
 export const findRedirect = (
@@ -41,5 +41,19 @@ export const isBodiless = (method: Rpc.Method | string): method is 'GET' | 'HEAD
 export const isDynamicPath = (path: string): boolean => path.includes(':')
 
 export const isHeadMethod = (method: Rpc.Method | string): method is 'HEAD' => method === 'HEAD'
+
+export const parseRedirects = (
+  redirects: Record<string, string>
+): { exact: Map<string, string>; prefixes: [string, string][] } => {
+  const exact: Map<string, string> = new Map(),
+    prefixes: [string, string][] = []
+
+  for (const [from, to] of typedEntries(redirects)) {
+    const key: string = normalizePath(from)
+    key.endsWith('*') ? prefixes.push([key.slice(0, -1), to]) : exact.set(key, to)
+  }
+
+  return { exact, prefixes }
+}
 
 export const prependSlash = (path: string): string => (path.startsWith('/') ? path : `/${path}`)
