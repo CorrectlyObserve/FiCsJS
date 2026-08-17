@@ -1,10 +1,10 @@
 import { FiCsElement } from '../core/class'
-import { normalizePath, NOOP, toArray, typedEntries } from '../core/helpers'
+import { NOOP, normalizePath, toArray } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
 import { FICS_NAVIGATE, ROUTER_COMPONENT_NAME, STATUS_PAGE_META } from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
-import { flattenRedirects, isDynamicPath } from './helpers'
+import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
 import { applyMeta } from './meta'
 import { getQueries, params } from './params'
 import { resolveSpec } from './registry'
@@ -54,6 +54,7 @@ export const ficsRouter = <D extends object>(
       children,
       data,
       pathname = '/',
+      meta: defaultMeta,
       props,
       className,
       attributes,
@@ -70,10 +71,12 @@ export const ficsRouter = <D extends object>(
 
   if (_pages.length === 0) throw new Error('Please configure routes...')
 
-  const redirectsMap: Map<string, string> = new Map<string, string>()
-
-  if (spec?.redirects)
-    for (const [from, to] of typedEntries(spec.redirects)) redirectsMap.set(normalizePath(from), to)
+  const {
+    exact: redirectsMap,
+    prefixes
+  }: { exact: Map<string, string>; prefixes: [string, string][] } = parseRedirects(
+    spec?.redirects ?? {}
+  )
 
   for (const { path, redirect } of _pages)
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
@@ -170,6 +173,9 @@ export const ficsRouter = <D extends object>(
               applyMeta({ ...defaultMeta, ...meta })
               return render({ content, redirect })
             }
+
+          const redirectTarget: string | null = findRedirect(pathname, prefixes)
+          if (redirectTarget !== null) return render({ redirect: redirectTarget })
 
           if (_notFound) {
             ;(data as RouterData<D>).isNotFound = true
