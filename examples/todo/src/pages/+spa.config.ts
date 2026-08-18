@@ -126,7 +126,7 @@ const hooks: FiCsRouter.Hooks<Data> = {
 
 const spa: FiCsRouter.Spa<Data> = {
   children: [Tasks, TaskDetail, NotFound],
-  data: () => ({ lang: $lang.get(), tasks: [], taskId: NaN, draft: undefined }),
+  data: () => ({ lang: $lang.get(), tasks: [], draft: undefined }),
   props,
   css,
   hooks
