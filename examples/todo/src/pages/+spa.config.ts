@@ -91,52 +91,8 @@ const hooks: FiCsRouter.Hooks<Data> = {
   created: ({ data }) => $lang.subscribe('page', (lang: Lang) => (data.lang = lang)),
   mounted: async ({ data }) => (data.tasks = await getAllTasks()),
   updated: {
-    pathname: async ({ data }) => {
-      const _pathname = data.pathname.replace(/^\//, '')
-      if (_pathname === '') {
-        data.isNotFound = false
-        return
-      }
-
-      const id = parseInt(_pathname)
-      if (!Number.isInteger(id)) {
-        data.isNotFound = true
-        return
-      }
-
-      const task: TaskType | undefined = getTask(await getAllTasks(), id)
-      if (!task) {
-        data.isNotFound = true
-        return
-      }
-
-      data.isNotFound = false
-      data.draft = task
-    },
-    queries: async ({ data }) => {
-      const { taskId } = data.queries
-      if (!taskId) {
-        data.isNotFound = false
-        return
-      }
-
-      const id = parseInt(taskId)
-      if (!Number.isInteger(id)) {
-        data.isNotFound = true
-        return
-      }
-
-      data.queries = { ...data.queries, taskId: id.toString() }
-
-      const task: TaskType | undefined = getTask(await getAllTasks(), id)
-      if (!task) {
-        data.isNotFound = true
-        return
-      }
-
-      data.isNotFound = false
-      data.draft = task
-    },
+    pathname: ({ data }) => void syncDraft(data),
+    queries: ({ data }) => void syncDraft(data),
     tasks: ({ data }) => {
       const { tasks, draft } = data
       if (!draft) return
