@@ -57,8 +57,8 @@ export type ParamType = 'dynamicPaths' | 'queries'
 export type Returned<D extends object, P extends object> = Descendant | Html.Sanitized<D, P>
 
 export type RouterData<D extends object> = D & {
-  pathname: string
-  queries: Record<string, string>
+  pathname: Readonly<string>
+  queries: Readonly<Record<string, string>>
   isNotFound: boolean
 }
 
