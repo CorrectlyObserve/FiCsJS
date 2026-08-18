@@ -70,9 +70,9 @@ const props: FiCsRouter.Props<Data> = [
 ]
 
 const css: FiCsRouter.Css<Data> = {
-  ':host': {
+  main: {
     ...flexCenter('x'),
-    position: 'absolute',
+    flexGrow: 1,
     containerType: 'inline-size',
     gap: size(8),
     width: '100%',
