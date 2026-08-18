@@ -51,13 +51,14 @@ const css: FiCsRouter.Css<Data> = {
     containerType: 'inline-size',
     gap: size(8),
     width: '100%',
-    minHeight: cssVar('min-height'),
+    paddingBlock: size(8),
     [`@container (width >= ${breakpoints.LG})`]: {
       '.tasks + .task-details': {
         paddingInlineStart: size(8),
         boxShadow: `${size(-2)} 0px ${size(2)} ${size(-2)} ${oklch(cssVar('black'), { darker: 0.3 })}`
       }
-    }
+    },
+    [`@media (max-width: ${breakpoints.SM})`]: { paddingBlock: size(4) }
   }
 }
 
