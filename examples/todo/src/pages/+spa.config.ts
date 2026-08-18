@@ -52,7 +52,7 @@ const props: FiCsRouter.Props<Data> = [
     descendants: ({ children: { tasks } }) => tasks,
     values: ({ data }) => ({
       tasks: data.tasks,
-      taskId: data.taskId,
+      taskId: toTaskId(data) ?? NaN,
       setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
     })
   },
