@@ -13,8 +13,18 @@ import { generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
 
-const buildClientEntry = ({ specifier, code }: { specifier: string; code: string }): string => {
+const buildClientEntry = ({
+  layoutSpecifier,
+  specifier,
+  code
+}: {
+  layoutSpecifier: string | null
+  specifier: string
+  code: string
+}): string => {
   const arr: string[] = [COMMENT]
+
+  if (layoutSpecifier) arr.push(`import '${layoutSpecifier}'`)
 
   if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
     arr.push(
