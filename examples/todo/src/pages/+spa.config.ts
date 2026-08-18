@@ -14,6 +14,32 @@ export interface Data {
   draft?: TaskType
 }
 
+const toTaskId = ({
+  pathname,
+  queries
+}: Pick<FiCsRouter.DefaultData, 'pathname' | 'queries'>): number | null => {
+  const segment: string = pathname.replace(/^\//, ''),
+    raw: string = segment === '' ? (queries.taskId ?? '') : segment
+
+  if (raw === '') return null
+  return /^\d+$/.test(raw) ? Number(raw) : NaN
+}
+const syncDraft = async (
+  data: FiCsRouter.DefaultData & { draft?: Readonly<TaskType> }
+): Promise<void> => {
+  const id: number | null = toTaskId(data)
+
+  if (id === null) {
+    data.isNotFound = false
+    data.draft = undefined
+    return
+  }
+
+  const task: TaskType | undefined = getTask(await getAllTasks(), id)
+  data.isNotFound = task === undefined
+  data.draft = task
+}
+
 const props: FiCsRouter.Props<Data> = [
   {
     descendants: ({ children: { tasks, taskDetails, notFound } }) => {
