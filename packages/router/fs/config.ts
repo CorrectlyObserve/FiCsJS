@@ -85,13 +85,21 @@ export const configRoutes = (config: Routing.Config = {}): void => {
     rmSync(entriesDir, { force: true, recursive: true })
     mkdirSync(entriesDir, { recursive: true })
 
+    const clientLayoutFiles: Map<string, string> = getFiles({
+      filePaths,
+      expectedType: fileNames.LAYOUT,
+      extensions: extensions ?? EXTENSIONS
+    })
+
     for (const { name, src } of clientEntries) {
-      const fileName: string = `${name}${extname(src)}`
+      const entryPath: string = join(entriesDir, `${name}${extname(src)}`),
+        layoutSrc: string | null = findClosestDir(src, clientLayoutFiles)?.value ?? null
 
       writeFileSync(
-        join(entriesDir, fileName),
+        entryPath,
         buildClientEntry({
-          specifier: toRelative(join(entriesDir, fileName), join(d, src)),
+          layoutSpecifier: layoutSrc ? toRelative(entryPath, join(d, layoutSrc)) : null,
+          specifier: toRelative(entryPath, join(d, src)),
           code: readFileSync(join(d, src), 'utf8')
         })
       )
