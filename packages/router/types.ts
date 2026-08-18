@@ -33,6 +33,7 @@ export interface FiCsRouter<D extends object> {
   children?: Descendant[]
   data?: () => D
   pathname?: string
+  meta?: Record<string, string>
   props?: SingleOrArray<Props<RouterData<D>, {}>>
   className?: ClassName<RouterData<D>, {}>
   attributes?: Attrs<RouterData<D>, {}>
