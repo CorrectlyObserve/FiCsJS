@@ -11,7 +11,6 @@ import { breakpoints } from '@/utils/others'
 export interface Data {
   lang: Lang
   tasks: TaskType[]
-  taskId: number
   draft?: TaskType
 }
 
