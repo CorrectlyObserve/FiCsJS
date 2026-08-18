@@ -5,8 +5,7 @@
   --gradation: linear-gradient(30deg, var(--red) 30%, oklch(0.7596 0.094 354.9));
   --transition: 0.2s ease-out;
   --button-height: calc(1rem * 3 + var(--outline) * 2);
-  --padding-block: 1.5rem;
-  --header-height: calc(var(--button-height) + var(--padding-block));
+  --header-height: calc(var(--button-height) + 1.5rem);
 }
 
 body {
