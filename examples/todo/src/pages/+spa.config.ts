@@ -120,7 +120,8 @@ const hooks: FiCsRouter.Hooks<Data> = {
 
       if (updatedDraft && updatedDraft.updatedAt !== updatedAt) data.draft = updatedDraft
     }
-  }
+  },
+  destroyed: () => $lang.unsubscribe('page')
 }
 
 const spa: FiCsRouter.Spa<Data> = {
