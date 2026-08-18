@@ -46,6 +46,8 @@ export declare namespace FiCsRouter {
 
   type Css<D extends object> = Css.Ctx<RouterData<D>, {}> | undefined
 
+  type DefaultData = RouterData<{}>
+
   type Hooks<D extends object> = Hook.Lifecycle<RouterData<D>, {}> | undefined
 
   type Layout<D extends object> = _Content<RouterData<D>, {}, { slot: Returned<D, {}> }>
