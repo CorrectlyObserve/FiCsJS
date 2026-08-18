@@ -13,7 +13,7 @@ const html: FiCs.Html<Data, {}> = ({
 }) => template`
   <div class="text-base text-white text-center">
     <p class="pt-4 mb-4">${description}</p>
-    ${message === '' ? template`<p class="mb-6 break-words">aaa</p>` : template`<p class="mb-6 break-words">${message}</p>`}
+    ${message === '' ? '' : template`<p class="mb-6 break-words">${message}</p>`}
     ${link}
   </div>
 `
