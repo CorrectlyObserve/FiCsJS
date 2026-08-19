@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, cssVar, flexCenter } from 'ficsjs/style'
+import { cssVar, flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $userName } from '@/stores'
 import { white } from '@/utils'
@@ -17,15 +17,6 @@ interface Props {
   messages: Message[]
   sendMessage: (message: Message) => void
 }
-
-const LINK_HEIGHT = '3.75rem' as const, // (3rem (height) + 12px (margin bottom)) / 16
-  TAB_HEIGHT = '4.625rem' as const, // (50px (height) + 24px (margin bottom)) / 16
-  H2_HEIGHT = '37.33px' as const,
-  H2_MARGIN_BOTTOM = '1.5rem' as const,
-  FIXED_AREA_HEIGHT = '7.5rem' as const, // 1.5rem * 3 (textarea) + 0.75rem * 2 (padding) + 1.5rem (margin top)
-  MAIN_MARGIN_BOTTOM = '2rem' as const,
-  BODY_HEIGHT =
-    `calc(${LINK_HEIGHT} + ${TAB_HEIGHT} + ${H2_HEIGHT} + ${H2_MARGIN_BOTTOM} + ${FIXED_AREA_HEIGHT} + ${MAIN_MARGIN_BOTTOM})` as const
 
 const props: FiCs.Props<Data, Props> = {
   descendants: ({ children: { button } }) => button,
@@ -69,7 +60,7 @@ const html: FiCs.Html<Data, Props> = ({
         `
       )}
     </div>
-    <div class="absolute right-0 gap-4 w-full bg-dark px-4 mt-6">
+    <div class="input-field gap-4 w-full bg-dark px-4 mt-6">
       <label class="sr-only" for="message">Message</label>
       <div class="w-full max-w-xl gap-4">
         <textarea
@@ -87,20 +78,24 @@ const html: FiCs.Html<Data, Props> = ({
 }
 
 const css: FiCs.Css<Data, Props> = {
+  ':host': {
+    ...flexCenter('y', 'column'),
+    flexGrow: 1,
+    minHeight: 0
+  },
   div: {
-    '&.block': {
-      maxHeight: calc(
-        `100dvh - ${cssVar('header-height')} - ${BODY_HEIGHT} - ${cssVar('footer-height')}`
-      ),
+    '&[role="log"]': {
+      flexGrow: 1,
+      width: '100%',
       maxWidth: cssVar('chat-width'),
+      minHeight: 0,
       'div[key]': {
         '&:last-child': { marginBlockEnd: '0' },
         div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
       }
     },
-    '&.absolute': {
+    '&.input-field': {
       ...flexCenter('y', 'column'),
-      bottom: calc(`${cssVar('footer-height')} + ${MAIN_MARGIN_BOTTOM}`),
       div: {
         ...flexCenter('y'),
         textarea: {
