@@ -9,6 +9,8 @@ import { $isHorizontal } from '@/stores'
 import { dark } from '@/utils'
 import { CircleX } from 'lucide-static'
 
+type Axis = 'horizontal' | 'vertical'
+
 interface Photo {
   id: string
   author: string
