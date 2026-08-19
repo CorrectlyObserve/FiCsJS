@@ -4,9 +4,7 @@ import { addUser, type User } from '@/server/users'
 
 export const create = mutationOnly(
   defineProcedure({
-    input: (raw = {}): Omit<User, 'id'> => {
-      const { name, email } = raw as { name?: unknown; email?: unknown }
-
+    input: ({ name, email } = {}): Omit<User, 'id'> => {
       if (typeof name !== 'string' || name.trim() === '')
         throw rpcError({ code: 'BAD_REQUEST', message: 'A name is required.' })
 
