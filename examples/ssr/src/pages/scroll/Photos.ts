@@ -322,11 +322,12 @@ const options: FiCs.Options<Data, {}> = {
   })
 }
 
-export default fics({
+export default fics<Data, {}>({
   name: 'photos',
   children: [Icon(), AxisButton, Skeleton],
   data: () => ({
     isHorizontal: $isHorizontal.get(),
+    toAxis: (isHorizontal: boolean) => (isHorizontal ? 'horizontal' : 'vertical'),
     page: 0,
     photos: [] as Photo[],
     photoId: '',
