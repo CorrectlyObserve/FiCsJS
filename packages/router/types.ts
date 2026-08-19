@@ -345,7 +345,7 @@ export declare namespace Rpc {
   }
 
   interface Procedure<I = unknown, O = unknown, C = unknown> {
-    input?: (raw: unknown) => Awaitable<I>
+    input?: (raw?: Record<string, unknown>) => Awaitable<I>
     handler: (input: I, ctx: Ctx<C>) => Awaitable<O>
   }
 
