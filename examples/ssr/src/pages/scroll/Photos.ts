@@ -19,6 +19,7 @@ interface Photo {
 
 interface Data {
   isHorizontal: boolean
+  toAxis: (isHorizontal: boolean) => Axis
   page: number
   photos: Photo[]
   photoId: string
