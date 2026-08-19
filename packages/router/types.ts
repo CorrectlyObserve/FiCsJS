@@ -12,7 +12,7 @@ import type {
   Props,
   SingleOrArray
 } from '../core/types'
-import { RPC_MODULE_TYPE, statusCodes } from './constants'
+import { denialCodes, RPC_MODULE_TYPE, statusCodes } from './constants'
 
 export type Content<D extends object, P extends object, T = {}> = (
   syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P> & T
@@ -119,6 +119,8 @@ export declare namespace Routing {
     code: StatusPageCode
     redirect?: string
   }
+
+  type DenialCode = (typeof denialCodes)[keyof typeof denialCodes]
 
   type Extensions = Readonly<string[]>
 
