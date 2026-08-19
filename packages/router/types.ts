@@ -259,8 +259,8 @@ export declare namespace Rpc {
     dynamicParams: Record<string, string>
   } & C
 
-  interface ErrorInit {
-    code: string
+  interface ErrorInit<T extends StatusCodes | TransportCodes = StatusCodes> {
+    code: T
     message: string
     denied?: boolean
     expose?: boolean
