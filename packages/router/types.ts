@@ -374,7 +374,7 @@ export declare namespace Rpc {
       }
 }
 
-export type StatusCodes = keyof typeof statusCodes
+type StatusMap = typeof statusCodes
 
 export type TransportCodes = 'ABORTED' | 'NETWORK' | 'TIMEOUT'
 
