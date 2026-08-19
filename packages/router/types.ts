@@ -241,7 +241,7 @@ export declare namespace Routing {
     redirects?: Record<string, string>
   }
 
-  type StatusCode = (typeof statusCodes)[keyof typeof statusCodes]
+  type StatusCode = (typeof statusCodes)[StatusCodes]
 
   type StatusPageCode = (typeof statusCodes)[
     | 'FORBIDDEN'
