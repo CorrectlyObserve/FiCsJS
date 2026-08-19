@@ -21,9 +21,8 @@ export const get = defineProcedure({
 
 export const update = mutationOnly(
   defineProcedure({
-    input: (raw = {}): Partial<Omit<User, 'id'>> => {
-      const { name, email } = raw as { name?: unknown; email?: unknown },
-        patch: Partial<Omit<User, 'id'>> = {}
+    input: ({ name, email } = {}): Partial<Omit<User, 'id'>> => {
+      const patch: Partial<Omit<User, 'id'>> = {}
 
       if (typeof name === 'string') patch.name = name
       if (typeof email === 'string') patch.email = email
