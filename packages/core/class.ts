@@ -69,7 +69,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
-  readonly #children: Children = {}
+  readonly #children: Children
   readonly #isBrowser: boolean
   readonly #rawData: D = {} as D
   readonly #data: D = {} as D
@@ -140,6 +140,15 @@ export class FiCsElement<D extends object, P extends object> {
 
     const count: number = generator.next().value
     this.#name = `f-${this.#nameKey}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
+
+    this.#children = new Proxy({} as Children, {
+      get: (target: Children, key: string | symbol): unknown => {
+        if (typeof key === 'string' && !(key in target))
+          throw new Error(`The child component "${key}" is not registered in ${this.#name}...`)
+
+        return Reflect.get(target, key)
+      }
+    })
 
     if (children)
       for (const child of children)
