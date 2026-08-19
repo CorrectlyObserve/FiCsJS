@@ -1,16 +1,12 @@
-import { numberError } from '../core/helpers'
-import { statusCodes } from './constants'
+import { denialCodes } from './constants'
 import type { Routing } from './types'
 
-const { BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, UNAUTHORIZED } = statusCodes
-
 export const deny = ({ code, redirect }: Partial<Routing.Denial> = {}): Routing.Denial => {
-  const _code: Routing.StatusPageCode = code ?? (redirect ? UNAUTHORIZED : FORBIDDEN)
+  const codes: Routing.DenialCode[] = Object.values(denialCodes),
+    _code: Routing.DenialCode = code ?? denialCodes[redirect ? 'UNAUTHORIZED' : 'FORBIDDEN']
 
-  numberError({ 'middleware denial code': _code }, 'int')
-
-  if (_code < BAD_REQUEST || _code >= INTERNAL_SERVER_ERROR)
-    throw new Error(`The middleware denial code ${_code} must be an HTTP 4xx status code...`)
+  if (!codes.includes(_code))
+    throw new Error(`The middleware denial code ${_code} must be one of ${codes.join(', ')}...`)
 
   return { code: _code, ...(redirect ? { redirect } : {}) }
 }
