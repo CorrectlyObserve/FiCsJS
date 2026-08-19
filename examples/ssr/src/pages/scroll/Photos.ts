@@ -79,7 +79,7 @@ const className: FiCs.ClassName<Data, {}> = ({ data: { isHorizontal } }) =>
 
 const html: FiCs.Html<Data, {}> = ({
   children: { icon, axisButton, skeleton },
-  data: { isHorizontal, photos, photoId, author },
+  data: { isHorizontal, toAxis, photos, photoId, author },
   template,
   show,
   activeApis: { isLoading },
@@ -92,9 +92,7 @@ const html: FiCs.Html<Data, {}> = ({
 
   return template`
     ${axisButton}
-    <p class="sr-only" ${statusLiveRegion}>
-      The current scroll axis is ${isHorizontal ? 'horizontal' : 'vertical'}.
-    </p>
+    <p class="sr-only" ${statusLiveRegion}>The current scroll axis is ${toAxis(isHorizontal)}.</p>
     <div class="flex-x">
       ${scroll(
         photos,
@@ -283,7 +281,7 @@ const options: FiCs.Options<Data, {}> = {
   scroll: ({ data, crud, queryCache }) => ({
     unit: UNIT_LENGTH,
     itemMinSize: PHOTO_SIZE,
-    axis: data.isHorizontal ? 'horizontal' : 'vertical',
+    axis: data.toAxis(data.isHorizontal),
     trigger: data.photos.length > 0,
     parameter: 'page',
     rootMargin: PHOTO_SIZE,
