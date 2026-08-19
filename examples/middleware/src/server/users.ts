@@ -17,7 +17,9 @@ export const getUsers = (): readonly User[] => users
 
 export const findUser = (userId: number): User | undefined => users.find(({ id }) => id === userId)
 
-export const addUser = (userData: Omit<User, 'id'>): User => {
+export const addUser = (userData: Omit<User, 'id'>): User | null => {
+  if (users.some(({ email }) => email === userData.email)) return null
+
   const user: User = { id: users.reduce((max, { id }) => Math.max(max, id), 0) + 1, ...userData }
 
   users = [...users, user]
