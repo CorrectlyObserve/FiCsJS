@@ -22,16 +22,14 @@ export const RPC_MODULE_TYPE = { module: 'rpc' } as const
 export const STATUS_PAGE_META = { robots: 'noindex' } as const
 
 export const statusCodes = {
+  ...denialCodes,
   BAD_REQUEST,
-  FORBIDDEN: 403,
   INTERNAL_SERVER_ERROR,
   METHOD_NOT_ALLOWED: 405,
   NO_CONTENT,
-  NOT_FOUND: 404,
   OK: 200,
   PAYLOAD_TOO_LARGE: 413,
   REDIRECT: 302,
   REQUEST_TIMEOUT,
-  TOO_MANY_REQUESTS,
-  UNAUTHORIZED: 401
+  TOO_MANY_REQUESTS
 } as const
