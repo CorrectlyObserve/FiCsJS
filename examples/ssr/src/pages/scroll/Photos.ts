@@ -9,8 +9,6 @@ import { $isHorizontal } from '@/stores'
 import { dark } from '@/utils'
 import { CircleX } from 'lucide-static'
 
-type Axis = 'horizontal' | 'vertical'
-
 interface Photo {
   id: string
   author: string
@@ -19,7 +17,7 @@ interface Photo {
 
 interface Data {
   isHorizontal: boolean
-  toAxis: (isHorizontal: boolean) => Axis
+  toAxis: (isHorizontal: boolean) => 'horizontal' | 'vertical'
   page: number
   photos: Photo[]
   photoId: string
