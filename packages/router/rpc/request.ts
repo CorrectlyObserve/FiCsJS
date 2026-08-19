@@ -17,12 +17,12 @@ import {
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { isBodiless } from '../helpers'
-import type { Routing, Rpc } from '../types'
+import type { Routing, Rpc, StatusCodes, TransportCodes } from '../types'
 import { DENIED_HEADER, REDIRECT_HEADER, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { emitMetric } from './metric'
 
-const codeByStatus: Record<number, keyof typeof statusCodes> = Object.fromEntries(
+const codeByStatus: Record<number, StatusCodes> = Object.fromEntries(
   typedEntries(statusCodes).map(([name, status]) => [status, name])
 )
 
@@ -164,7 +164,7 @@ export const sendRequest = async ({
   }
 }
 
-const toRpcError = async (error: unknown): Promise<RpcError> => {
+const toRpcError = async (error: unknown): Promise<RpcError<StatusCodes | TransportCodes>> => {
   if (error instanceof RpcError) return error
 
   if (error instanceof Response) {
@@ -206,7 +206,8 @@ const toRpcError = async (error: unknown): Promise<RpcError> => {
   const name: string | undefined = isClientTermination(error)
     ? (error as DOMException).name
     : undefined
-  return new RpcError({
+
+  return new RpcError<TransportCodes>({
     code: name === 'AbortError' ? 'ABORTED' : name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
     message: error instanceof Error ? error.message : String(error),
     expose: false
