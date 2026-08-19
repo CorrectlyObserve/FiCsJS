@@ -374,6 +374,8 @@ export declare namespace Rpc {
 
 export type StatusCodes = keyof typeof statusCodes
 
+export type TransportCodes = 'ABORTED' | 'NETWORK' | 'TIMEOUT'
+
 export interface TypeNode {
   children: Map<string, TypeNode>
   alias?: string
