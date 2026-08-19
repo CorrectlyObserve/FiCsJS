@@ -143,7 +143,7 @@ export const sendRequest = async ({
     })
 
     if (!willRetry) {
-      const rpcError: RpcError = await toRpcError(error)
+      const rpcError: RpcError<StatusCodes | TransportCodes> = await toRpcError(error)
 
       if (error instanceof Response && rpcError.denied && onDeny)
         onDeny({
