@@ -5,6 +5,7 @@ import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import AxisButton from '@/pages/scroll/AxisButton'
 import Skeleton from '@/pages/scroll/Skeleton'
+import { $isHorizontal } from '@/stores'
 import { dark } from '@/utils'
 import { CircleX } from 'lucide-static'
 
@@ -64,7 +65,10 @@ const props: FiCs.Props<Data, {}> = [
     descendants: ({ children: { axisButton } }) => axisButton,
     values: ({ data }) => ({
       isHorizontal: data.isHorizontal,
-      click: () => (data.isHorizontal = !data.isHorizontal)
+      click: () => {
+        data.isHorizontal = !data.isHorizontal
+        $isHorizontal.set(data.isHorizontal)
+      }
     })
   }
 ]
@@ -319,7 +323,7 @@ export default fics({
   name: 'photos',
   children: [Icon(), AxisButton, Skeleton],
   data: () => ({
-    isHorizontal: false,
+    isHorizontal: $isHorizontal.get(),
     page: 0,
     photos: [] as Photo[],
     photoId: '',
