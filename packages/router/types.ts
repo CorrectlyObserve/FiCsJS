@@ -282,7 +282,7 @@ export declare namespace Rpc {
     dynamicParams: Record<string, string>
   } & C
 
-  interface ErrorInit<T extends StatusCodes | TransportCodes = StatusCodes> {
+  interface ErrorInit<T extends Routing.Status.Name | TransportCode = Routing.Status.Name> {
     code: T
     message: string
     denied?: boolean
