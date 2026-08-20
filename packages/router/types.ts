@@ -377,8 +377,6 @@ export declare namespace Rpc {
     middlewares: readonly Routing.Middleware<C>[]
   }
 
-  type TransportCode = 'ABORTED' | 'NETWORK' | 'TIMEOUT'
-
   type Serializable<T> = T extends string | number | boolean | null | undefined
     ? T
     : T extends readonly (infer U)[]
@@ -388,6 +386,8 @@ export declare namespace Rpc {
         : T extends object
           ? { [K in keyof T]: Serializable<T[K]> }
           : never
+
+  type TransportCode = 'ABORTED' | 'NETWORK' | 'TIMEOUT'
 
   type ValidatedProcedure<I, O, C> = [O] extends [Serializable<O> | void]
     ? Procedure<I, O, C>
