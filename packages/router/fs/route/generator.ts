@@ -48,7 +48,7 @@ export const generateEntries = ({
   spaAlias,
   spaOwners,
   areSpaEntry,
-  globalStatuses
+  rootStatusFiles
 }: Routing.Build.Ctx): string[] => {
   const existingRoutes: string[] = [],
     spaConfigs: Map<string, string> = new Map(),
@@ -123,7 +123,7 @@ export const generateEntries = ({
     joinLines(
       [
         ...existingRoutes,
-        ...globalStatuses.map(({ path, prop, serverSrc }) =>
+        ...rootStatusFiles.map(({ path, prop, serverSrc }) =>
           emitEntry({
             path,
             config: serverSrc === null ? '{}' : `__${prop}`,
