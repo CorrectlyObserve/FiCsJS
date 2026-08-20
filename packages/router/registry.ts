@@ -56,16 +56,11 @@ export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec>
 
   if (statusModules)
     for (const [key, module] of typedEntries(statusModules))
-      modules[key] = resolveModule(module, { key, isOptional: inherited.has(key) })
+      modules[key] = resolveStatus(module, key)
 
   return {
     pages,
     statusModules: modules,
-    statusFallback: statusFallback
-      ? resolveModule(statusFallback, {
-          key: STATUS_FALLBACK,
-          isOptional: inherited.has(STATUS_FALLBACK)
-        })
-      : undefined
+    statusFallback: statusFallback ? resolveStatus(statusFallback, STATUS_FALLBACK) : undefined
   }
 }
