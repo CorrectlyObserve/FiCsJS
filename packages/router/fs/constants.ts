@@ -19,6 +19,7 @@ export const exitCodes = { SUCCESS: 0, FAILURE: 1 } as const
 export const EXTENSIONS = ['.js', '.ts'] as const
 
 export const fileNames = {
+  ERROR: '+error',
   LAYOUT: '+layout',
   LAYOUT_SERVER: '+layout.server',
   MIDDLEWARE: '+middleware',
@@ -29,6 +30,7 @@ export const fileNames = {
   SPA: '+spa',
   SPA_CONFIG: '+spa.config',
   statuses: {
+    CONFLICT: '+409',
     FORBIDDEN: '+403',
     INTERNAL_SERVER_ERROR: '+500',
     NOT_FOUND: '+404',
