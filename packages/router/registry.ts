@@ -27,7 +27,8 @@ export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec>
     pages.push(resolveModule(applyLayout({ layout, page }), path))
 
   if (statusModules)
-    for (const [key, module] of typedEntries(statusModules)) modules[key] = resolveModule(module)
+    for (const [key, module] of typedEntries(statusModules))
+      modules[key] = resolveModule(module, { key, isOptional: inherited.has(key) })
 
   return { pages, statusModules: modules }
 }
