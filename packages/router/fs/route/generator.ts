@@ -236,11 +236,11 @@ export const generateSpaRouters = ({
 
       const dirInheritedKeys: string[] = [...(inheritedStatusKeys.get(dir) ?? [])]
       if (dirInheritedKeys.length > 0) {
-        const inheritedStatusKeys: string = joinAndWrap(
+        const keysLine: string = joinAndWrap(
           dirInheritedKeys.map(key => `'${key}'`),
           { wrapType: '[]' }
         )
-        append(`${indent()}inheritedStatusKeys: ${inheritedStatusKeys}`)
+        append(`${indent()}inheritedStatusKeys: ${keysLine}`)
       }
 
       const isRootDir: boolean = dir === ''
