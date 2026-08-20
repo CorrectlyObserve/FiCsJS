@@ -166,6 +166,7 @@ export const ficsRouter = <D extends object>(
             return statusModule ? render(statusModule) : template`<h1>${status}</h1>`
           }
 
+          if (data.status !== statusCodes.OK) return renderStatus(data.status)
 
           const staticPage: Page<D> | undefined = staticPages.find(
             ({ path }) => pathname === normalizePath(path)
@@ -190,14 +191,7 @@ export const ficsRouter = <D extends object>(
           const redirectTarget: string | null = findRedirect(pathname, prefixes)
           if (redirectTarget !== null) return render({ redirect: redirectTarget })
 
-          if (_notFound) {
-            ;(data as RouterData<D>).isNotFound = true
-            params.set('dynamicPaths', {})
-            applyMeta({ ...defaultMeta, ...STATUS_PAGE_META, ..._notFound.meta })
-            return render(_notFound as PageContent<D>)
-          }
-
-          throw new Error(`The "${pathname}" does not exist on pages...`)
+          return renderStatus(statusCodes.NOT_FOUND)
         }
 
       return setContent()
