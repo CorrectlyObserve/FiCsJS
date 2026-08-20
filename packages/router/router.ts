@@ -169,14 +169,15 @@ export const ficsRouter = <D extends object>(
             params.set('dynamicPaths', {})
 
             const { meta, content, redirect }: Page<D> = staticPage
-            applyMeta({ ...defaultMeta, ...meta })
+            applyMeta({ ...defaultMeta, ...resolveMeta({ meta, status: statusCodes.OK }) })
             return render({ content, redirect })
           }
 
           for (const { path, meta, content, redirect } of dynamicPages)
             if (dynamicPathToRegex(path).test(pathname)) {
               params.set('dynamicPaths', getDynamicPaths(path))
-              applyMeta({ ...defaultMeta, ...meta })
+              applyMeta({ ...defaultMeta, ...resolveMeta({ meta, status: statusCodes.OK }) })
+
               return render({ content, redirect })
             }
 
