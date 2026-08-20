@@ -206,8 +206,9 @@ export const buildSpecial = ({
     aliases.set(dir, alias)
   }
 
-  const globalStatuses: Routing.GlobalStatuses = statusEntries.reduce<Routing.GlobalStatuses>(
-    (entries, [key, target]) => {
+  const globalStatuses: Routing.Status.Globals = typedEntries(
+      fileNames.statuses
+    ).reduce<Routing.Status.Globals>((entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
       if (src !== null)
