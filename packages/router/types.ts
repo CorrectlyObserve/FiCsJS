@@ -120,8 +120,6 @@ export declare namespace Routing {
     redirect?: string
   }
 
-  type DenialCode = (typeof denialCodes)[keyof typeof denialCodes]
-
   type Extensions = Readonly<string[]>
 
   type GlobalStatuses = {
@@ -243,15 +241,38 @@ export declare namespace Routing {
     redirects?: Record<string, string>
   }
 
-  type StatusCode = (typeof statusCodes)[StatusCodes]
+  namespace Status {
+    type Code = Table[Name]
 
-  type StatusPageCode = (typeof statusCodes)[
-    | 'FORBIDDEN'
-    | 'INTERNAL_SERVER_ERROR'
-    | 'NOT_FOUND'
-    | 'UNAUTHORIZED']
+    type DenialCode = (typeof denialCodes)[keyof typeof denialCodes]
 
-  type StatusPages<C = Record<string, unknown>> = Partial<Record<StatusPageCode, ServerStatus<C>>>
+    interface Event {
+      code: PageCode
+      isHandled: boolean
+    }
+
+    type Globals = {
+      prop: string
+      path: string
+      src: string
+      serverSrc: string | null
+    }[]
+
+    type Name = keyof Table
+
+    interface Page<C = Record<string, unknown>> {
+      module: ServerModule<C>
+      entry: string
+    }
+
+    type PageCode = Table[keyof typeof denialCodes | 'INTERNAL_SERVER_ERROR']
+
+    type Pages<C = Record<string, unknown>> = Partial<Record<PageCode, Page<C>>>
+
+    type Resolved = PageCode | Table['OK']
+
+    type Table = typeof statusCodes
+  }
 }
 
 export declare namespace Rpc {
@@ -373,12 +394,6 @@ export declare namespace Rpc {
         readonly returned: O
       }
 }
-
-export type StatusCodes = keyof StatusMap
-
-type StatusMap = typeof statusCodes
-
-export type TransportCodes = 'ABORTED' | 'NETWORK' | 'TIMEOUT'
 
 export interface TypeNode {
   children: Map<string, TypeNode>
