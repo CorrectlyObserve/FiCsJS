@@ -17,6 +17,7 @@ const uses = (code: string, id: string): boolean =>
     statuses,
     aliases,
     globalStatuses,
+    statusFallback,
     redirect,
     baseDir,
     code
@@ -66,6 +67,12 @@ const uses = (code: string, id: string): boolean =>
           id: `__${prop}`,
           import: `import * as __${prop} from ${spec(serverSrc)}`
         })
+
+    if (statusFallback?.serverSrc)
+      candidates.push({
+        id: prefixes.ERROR,
+        import: `import * as ${prefixes.ERROR} from ${spec(statusFallback.serverSrc)}`
+      })
 
     if (redirect)
       candidates.push({
