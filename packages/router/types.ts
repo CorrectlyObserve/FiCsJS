@@ -237,7 +237,7 @@ export declare namespace Routing {
     routes: Route<Module>[]
     statusModules?: Record<string, Module>
     statusFallback?: Module
-    inheritedStatuses?: string[]
+    inheritedStatusKeys?: string[]
     redirects?: Record<string, string>
   }
 
