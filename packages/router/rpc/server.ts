@@ -2,7 +2,7 @@ import {
   APPLICATION_JSON,
   CONTENT_TYPE,
   isBlankString,
-  isObject,
+  isPlainObject,
   numberError,
   removeTrailingSlash
 } from '../../core/helpers'
@@ -129,11 +129,19 @@ export const createRpcHandler = <C = unknown>(
       })
     }
 
-    let raw: unknown
+    let raw: Record<string, unknown> | undefined
     try {
       if (isBodiless(method)) {
         const query: string | null = searchParams.get(RPC_INPUT_PARAM)
-        if (query !== null) raw = JSON.parse(query)
+
+        if (query !== null) {
+          const parsed: unknown = JSON.parse(query)
+
+          if (!isPlainObject(parsed))
+            return reject<C>({ onMetric, path, code: 'BAD_REQUEST', error: true })
+
+          raw = parsed
+        }
       } else {
         const contentLength: string | null = headers.get(CONTENT_LENGTH)
 
@@ -156,8 +164,12 @@ export const createRpcHandler = <C = unknown>(
           if (maxBodyBytes && getByteLength(text) > maxBodyBytes)
             return reject<C>({ onMetric, path, code: 'PAYLOAD_TOO_LARGE', error: true })
 
-          raw = JSON.parse(text)
-          if (!isObject(raw)) return reject<C>({ onMetric, path, code: 'BAD_REQUEST', error: true })
+          const parsed: unknown = JSON.parse(text)
+
+          if (!isPlainObject(parsed))
+            return reject<C>({ onMetric, path, code: 'BAD_REQUEST', error: true })
+
+          raw = parsed
         }
       }
     } catch {
@@ -169,9 +181,11 @@ export const createRpcHandler = <C = unknown>(
       })
     }
 
+    let input: unknown = raw
+
     if (procedure.input)
       try {
-        raw = await procedure.input(raw)
+        input = await procedure.input(raw)
       } catch (error) {
         return respondError<C>({
           error,
@@ -186,7 +200,7 @@ export const createRpcHandler = <C = unknown>(
       }
 
     try {
-      const body: unknown = await procedure.handler(raw, ctx)
+      const body: unknown = await procedure.handler(input, ctx)
 
       emitMetric(onMetric, {
         type: 'handle:success',
