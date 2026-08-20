@@ -149,6 +149,24 @@ export const ficsRouter = <D extends object>(
             throw new Error('Either "content" or "redirect" must be specified...')
           }
 
+          const renderStatus = (
+            status: Routing.Status.Resolved
+          ): Html.Sanitized<RouterData<D>, {}> => {
+            ;(data as RouterData<D>).status = status
+            params.set('dynamicPaths', {})
+
+            const statusModule: PageContent<D> | undefined = (
+              status === statusCodes.OK
+                ? undefined
+                : (resolved.statusModules[status] ?? resolved.statusFallback)
+            ) as PageContent<D> | undefined
+
+            applyMeta(resolveMeta({ defaultMeta, meta: statusModule?.meta, status }))
+
+            return statusModule ? render(statusModule) : template`<h1>${status}</h1>`
+          }
+
+
           const staticPage: Page<D> | undefined = staticPages.find(
             ({ path }) => pathname === normalizePath(path)
           )
