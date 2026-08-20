@@ -46,6 +46,7 @@ export const metaExports = {
 export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
 
 export const prefixes = {
+  ERROR: '__error',
   LAYOUT: '__layout',
   MIDDLEWARE: '__middleware',
   REDIRECT: '__redirect',
