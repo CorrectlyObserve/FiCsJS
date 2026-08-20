@@ -251,13 +251,6 @@ export declare namespace Routing {
       isHandled: boolean
     }
 
-    type Globals = {
-      prop: string
-      path: string
-      src: string
-      serverSrc: string | null
-    }[]
-
     interface Manifest<C = Record<string, unknown>> {
       statusPages: Pages<C>
       statusFallback?: Page<C>
@@ -275,6 +268,13 @@ export declare namespace Routing {
     type Pages<C = Record<string, unknown>> = Partial<Record<PageCode, Page<C>>>
 
     type Resolved = PageCode | Table['OK']
+
+    type RootFiles = {
+      prop: string
+      path: string
+      src: string
+      serverSrc: string | null
+    }[]
 
     type Table = typeof statusCodes
   }
