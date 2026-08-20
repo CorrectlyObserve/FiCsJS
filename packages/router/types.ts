@@ -204,6 +204,7 @@ export declare namespace Routing {
   interface ResolvedSpec<D extends object = Record<string, unknown>> {
     pages: Page<D>[]
     statusModules: Record<string, PageContent<D> | undefined>
+    statusFallback?: PageContent<D>
   }
 
   interface Route<T extends Module> {
