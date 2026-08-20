@@ -14,6 +14,7 @@ export const denialCodes = {
 } as const
 
 export const FICS_NAVIGATE = 'fics:navigate' as const
+export const FICS_STATUS = 'fics:status' as const
 export const ROUTER_COMPONENT_NAME = '_router' as const
 export const RPC_BASE = '/_rpc' as const
 
