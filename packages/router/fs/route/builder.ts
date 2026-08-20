@@ -183,7 +183,12 @@ export const buildSpecial = ({
   filePaths,
   extensions
 }: Omit<Routing.Build.Query, 'routes'> & { dirs: string[] }): Routing.Build.Special => {
-  const statusEntries = typedEntries(fileNames.statuses),
+  const entries: readonly (readonly [string, string])[] = [
+      ...typedEntries(fileNames.statuses).map(
+        ([name, file]) => [String(statusCodes[name]), file] as const
+      ),
+      [STATUS_FALLBACK, fileNames.ERROR] as const
+    ],
     statuses: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
     aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>()
   let counter: number = 0
