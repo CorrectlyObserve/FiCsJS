@@ -49,7 +49,7 @@ const setRouterData = <D extends object>({
   data.queries = queries
   params.set('queries', queries)
 
-  data.isNotFound = false
+  data.status = statusCodes.OK
 }
 
 export const ficsRouter = <D extends object>(
