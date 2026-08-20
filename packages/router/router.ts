@@ -73,10 +73,7 @@ export const ficsRouter = <D extends object>(
   if (resolved.pages.length === 0)
     throw new Error('Please pass a spec or call registerRoutes first as the router has no pages...')
 
-  const {
-    exact: redirectsMap,
-    prefixes
-  }: { exact: Map<string, string>; prefixes: [string, string][] } = parseRedirects(
+  const { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
     spec?.redirects ?? {}
   )
 
