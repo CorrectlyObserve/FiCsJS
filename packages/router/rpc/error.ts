@@ -1,7 +1,9 @@
-import type { Rpc, StatusCodes, TransportCodes } from '../types'
+import type { Routing, Rpc } from '../types'
 
-export class RpcError<T extends StatusCodes | TransportCodes = StatusCodes> extends Error {
-  readonly code: StatusCodes | TransportCodes
+export class RpcError<
+  T extends Routing.Status.Name | Rpc.TransportCode = Routing.Status.Name
+> extends Error {
+  readonly code: Routing.Status.Name | Rpc.TransportCode
   readonly denied: boolean
   readonly expose: boolean
   readonly redirect?: string
