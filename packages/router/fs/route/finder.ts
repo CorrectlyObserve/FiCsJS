@@ -121,3 +121,6 @@ export const findStatusEntry = ({
 
   return toEntry(path)
 }
+
+export const findServerFileSrc = (args: Parameters<typeof findFileSrc>[0]): string | null =>
+  findFileSrc({ ...args, target: `${args.target}.server` })
