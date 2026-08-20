@@ -53,11 +53,8 @@ export const respondStatus = async <C extends Record<string, unknown>>({
   status,
   statusFallback,
   ...args
-}: Omit<Parameters<typeof respondPage<C>>[0], 'page' | 'status'> & {
-  statusPages: Routing.Status.Pages<C>
-  status: Routing.Status.PageCode
-  statusFallback?: Routing.Status.Page<C>
-}): Promise<Response> => {
+}: Omit<Parameters<typeof respondPage<C>>[0], 'page' | 'status'> &
+  Routing.Status.Manifest<C> & { status: Routing.Status.PageCode }): Promise<Response> => {
   const page: Routing.Status.Page<C> | undefined = statusPages[status] ?? statusFallback
   return page
     ? respondPage({ page, status, ...args })
