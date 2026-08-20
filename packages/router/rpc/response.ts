@@ -109,7 +109,11 @@ export const respondError = <C = unknown>({
   /** @remarks Always a status error, as denials are handled in middleware. */
   if (error instanceof RpcError) {
     const { code, message, expose }: RpcError = error
-    return respond({ code, error: expose ? message : true })
+
+    return respond({
+      code: code in statusCodes ? (code as Routing.Status.Name) : 'INTERNAL_SERVER_ERROR',
+      error: expose ? message : true
+    })
   }
 
   onError?.(error, { path, req })
