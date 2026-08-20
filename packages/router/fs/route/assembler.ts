@@ -94,9 +94,9 @@ const uses = (code: string, id: string): boolean =>
   }
 
 export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble): string => {
-  const { routes, globalStatuses, redirect }: Routing.Build.Ctx = ctx,
+  const { routes, rootStatusFiles, redirect }: Routing.Build.Ctx = ctx,
     uniquePaths: string[] = Array.from(
-      new Set([...routes, ...globalStatuses].map(({ path }) => path))
+      new Set([...routes, ...rootStatusFiles].map(({ path }) => path))
     ),
     code: string = joinLines(
       [
