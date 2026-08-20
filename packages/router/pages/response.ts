@@ -40,7 +40,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
     },
     html: string = render({
       meta: resolvedMeta,
-      content: def ? await def(ctx) : '',
+      content: def ? await def({ ...ctx, status }) : '',
       path,
       script: `${scriptBase}/${entry}.js`
     })
