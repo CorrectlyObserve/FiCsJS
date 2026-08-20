@@ -177,11 +177,9 @@ export declare namespace Routing {
       meta?: Record<string, string>
     }
 
-    interface PageManifest<C = Record<string, unknown>> {
+    interface PageManifest<C = Record<string, unknown>> extends Status.Manifest<C> {
       routes: { path: string; page: ServerModule<C>; entry: string; layout?: Module }[]
       middlewares?: Readonly<Record<string, readonly Middleware<C>[]>>
-      statusPages?: Status.Pages<C>
-      statusFallback?: Status.Page<C>
       /** @remarks Server-only. Rewrites arbitrary inbound URLs that the client SPA never sees before routing. */
       redirects?: ((pathname: string) => string | null) | Record<string, string>
     }
