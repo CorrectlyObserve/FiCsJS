@@ -14,9 +14,9 @@ const uses = (code: string, id: string): boolean =>
     files,
     configAlias,
     spaOwners,
-    statuses,
+    statusFiles,
     aliases,
-    globalStatuses,
+    rootStatusFiles,
     statusFallback,
     redirect,
     baseDir,
@@ -55,13 +55,13 @@ const uses = (code: string, id: string): boolean =>
         import: `import ${configId} from ${spec(getOrThrow(files, dir))}`
       })
 
-      for (const [key, src] of getOrThrow(statuses, dir)) {
+      for (const [key, src] of getOrThrow(statusFiles, dir)) {
         const id: string = getOrThrow(getOrThrow(aliases, dir), key)
         candidates.push({ id, import: `import * as ${id} from ${spec(src)}` })
       }
     }
 
-    for (const { prop, serverSrc } of globalStatuses)
+    for (const { prop, serverSrc } of rootStatusFiles)
       if (serverSrc !== null)
         candidates.push({
           id: `__${prop}`,
