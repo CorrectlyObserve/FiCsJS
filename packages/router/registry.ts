@@ -26,7 +26,7 @@ export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec>
     modules: Record<string, PageContent | undefined> = {}
 
   for (const { path, page, layout } of routes)
-    pages.push(resolveModule(applyLayout({ layout, page }), path))
+    pages.push(resolveModule(applyLayout({ layout, page }), { path }))
 
   if (statusModules)
     for (const [key, module] of typedEntries(statusModules))
