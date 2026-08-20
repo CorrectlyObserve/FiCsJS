@@ -17,13 +17,13 @@ import {
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { isBodiless } from '../helpers'
-import type { Routing, Rpc, StatusCodes, TransportCodes } from '../types'
+import type { Routing, Rpc } from '../types'
 import { DENIED_HEADER, REDIRECT_HEADER, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { emitMetric } from './metric'
 import { showStatus } from '../status'
 
-const codeByStatus: Record<number, StatusCodes> = Object.fromEntries(
+const codeByStatus: Record<number, Routing.Status.Name> = Object.fromEntries(
   typedEntries(statusCodes).map(([name, status]) => [status, name])
 )
 
