@@ -59,7 +59,7 @@ export type Returned<D extends object, P extends object> = Descendant | Html.San
 export type RouterData<D extends object> = D & {
   pathname: Readonly<string>
   queries: Readonly<Record<string, string>>
-  isNotFound: boolean
+  status: Routing.Status.Resolved
 }
 
 export declare namespace Routing {
