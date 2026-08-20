@@ -13,18 +13,19 @@ export const dispatch = async <C extends Record<string, unknown>>({
   redirects,
   prefixes = [],
   statusPages = {},
+  statusFallback,
   render,
   createContext,
   scriptBase,
   meta
-}: Routing.Options.InternalPageHost<C> & {
-  req: Request
-  statics: Map<string, Routing.ResolvedRoute<C>>
-  dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[]
-  redirects?: Routing.Redirects
-  prefixes?: readonly (readonly [prefix: string, to: string])[]
-  statusPages?: Routing.StatusPages<C>
-}): Promise<Response> => {
+}: Routing.Options.InternalPageHost<C> &
+  Routing.Status.Manifest<C> & {
+    req: Request
+    statics: Map<string, Routing.ResolvedRoute<C>>
+    dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[]
+    redirects?: Routing.Redirects
+    prefixes?: readonly (readonly [prefix: string, to: string])[]
+  }): Promise<Response> => {
   const { pathname }: URL = new URL(req.url),
     path: string = normalizePath(pathname)
 
