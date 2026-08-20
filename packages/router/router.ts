@@ -95,7 +95,7 @@ export const ficsRouter = <D extends object>(
   return new FiCsElement<RouterData<D>, {}>({
     name: ROUTER_COMPONENT_NAME,
     children,
-    data: () => ({ ...data?.(), pathname, queries: {}, isNotFound: false }) as RouterData<D>,
+    data: () => ({ ...data?.(), pathname, queries: {}, status: statusCodes.OK }) as RouterData<D>,
     immutableDataKeys: ['pathname', 'queries'],
     props,
     className,
