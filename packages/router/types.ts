@@ -377,6 +377,8 @@ export declare namespace Rpc {
     middlewares: readonly Routing.Middleware<C>[]
   }
 
+  type TransportCode = 'ABORTED' | 'NETWORK' | 'TIMEOUT'
+
   type Serializable<T> = T extends string | number | boolean | null | undefined
     ? T
     : T extends readonly (infer U)[]
