@@ -1,10 +1,18 @@
 import { typedEntries } from '../core/helpers'
 import { STATUS_FALLBACK } from './constants'
 import { applyLayout } from './layout'
-import { resolveModule } from './routeModule'
 import type { Page, PageContent, Routing } from './types'
 
-const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} }
+const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} },
+  resolveModule = ({ default: def, redirect, meta }: Routing.Module): PageContent | undefined => {
+    if (typeof redirect === 'string') return { redirect }
+    if (def === undefined) return undefined
+
+    return {
+      content: (typeof def === 'function' ? def : () => def) as PageContent['content'],
+      meta
+    }
+  }
 
 export const registerRoutes = (spec: Routing.Spec): void => {
   const { pages, statusModules, statusFallback }: Routing.ResolvedSpec = resolveSpec(spec)
