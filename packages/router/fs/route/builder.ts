@@ -204,8 +204,11 @@ export const buildSpecial = ({
           ownStatusFile ?? (dir === '' ? null : findFileSrc({ filePaths, extensions, target }))
 
       if (src !== null) {
-        status.set(prop, src)
-        alias.set(prop, `${prefixes.STATUS}${counter++}`)
+        if (!aliasBySrc.has(src)) aliasBySrc.set(src, `${prefixes.STATUS}${aliasBySrc.size}`)
+
+        dirStatusFiles.set(key, src)
+        alias.set(key, aliasBySrc.get(src)!)
+        if (ownStatusFile === null) dirInheritedKeys.add(key)
       }
     }
 
