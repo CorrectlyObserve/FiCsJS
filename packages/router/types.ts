@@ -100,6 +100,8 @@ export declare namespace Routing {
       redirect: string | null
       statuses: Map<string, Map<string, string>>
       aliases: Map<string, Map<string, string>>
+      inherited: Map<string, Set<string>>
+      statusFallback: { src: string; serverSrc: string | null } | null
     }
   }
 
