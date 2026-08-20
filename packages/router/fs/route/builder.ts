@@ -192,8 +192,9 @@ export const buildSpecial = ({
     ],
     inheritedStatusKeys: Map<string, Set<string>> = new Map<string, Set<string>>(),
     statusFiles: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
-    aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>()
-  let counter: number = 0
+    aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
+    /** @remarks Prevents same root file imports with different keys from multiple SPAs. */
+    aliasBySrc: Map<string, string> = new Map<string, string>()
 
   for (const dir of dirs) {
     const dirStatusFiles: Map<string, string> = new Map<string, string>(),
