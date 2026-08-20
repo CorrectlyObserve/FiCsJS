@@ -1,18 +1,6 @@
 import { browserError } from '../core/helpers'
-import { FICS_STATUS, statusCodes } from './constants'
-import type { PageContent, Routing } from './types'
-
-export const findStatusModule = <D extends object>({
-  status,
-  statusModules,
-  statusFallback
-}: { status: Routing.Status.Resolved } & Pick<
-  Routing.ResolvedSpec,
-  'statusModules' | 'statusFallback'
->): PageContent<D> | undefined =>
-  status === statusCodes.OK
-    ? undefined
-    : ((statusModules[status] ?? statusFallback) as PageContent<D> | undefined)
+import { FICS_STATUS } from './constants'
+import type { Routing } from './types'
 
 export const showStatus = (code: Routing.Status.PageCode): void => {
   browserError()
