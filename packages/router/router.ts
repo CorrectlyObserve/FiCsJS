@@ -68,12 +68,7 @@ export const ficsRouter = <D extends object>(
       hooks,
       options
     }: FiCsRouter<D> = config,
-    {
-      pages,
-      statusModules: { notFound }
-    }: Readonly<Routing.ResolvedSpec> = resolveSpec(spec),
-    _pages = pages,
-    _notFound = notFound
+    resolved: Readonly<Routing.ResolvedSpec> = resolveSpec(spec)
 
   if (_pages.length === 0) throw new Error('Please configure routes...')
 
