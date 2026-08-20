@@ -80,7 +80,17 @@ const uses = (code: string, id: string): boolean =>
         import: `import ${prefixes.REDIRECT} from ${spec(redirect)}`
       })
 
-    return candidates.filter(({ id }) => uses(code, id)).map(({ import: imp }) => imp)
+    const seen: Set<string> = new Set(),
+      imports: string[] = []
+
+    for (const { id, import: imported } of candidates) {
+      if (!uses(code, id) || seen.has(id)) continue
+
+      seen.add(id)
+      imports.push(imported)
+    }
+
+    return imports
   }
 
 export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble): string => {
