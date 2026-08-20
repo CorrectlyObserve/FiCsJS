@@ -1,9 +1,8 @@
-import { statusCodes } from '../constants'
-import { Rpc } from '../types'
+import type { Routing, Rpc } from '../types'
 
 export const CONTENT_LENGTH = 'content-length' as const
 
-export const DEFAULT_ERRORS: Partial<Record<keyof typeof statusCodes, string>> = {
+export const DEFAULT_ERRORS: Partial<Record<Routing.Status.Name, string>> = {
   BAD_REQUEST: 'The request is invalid or malformed...',
   PAYLOAD_TOO_LARGE: 'The request body is too large...',
   INTERNAL_SERVER_ERROR: 'The server encountered an unexpected error...'
