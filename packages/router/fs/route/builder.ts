@@ -225,6 +225,14 @@ export const buildSpecial = ({
 
   return {
     globalStatuses,
+    inherited,
+    statusFallback: fallbackSrc
+      ? {
+          src: fallbackSrc,
+          serverSrc: findServerFileSrc({ filePaths, extensions, target: fileNames.ERROR })
+        }
+      : null,
+
     redirect: findFileSrc({ filePaths, extensions, target: fileNames.REDIRECT }),
     statuses,
     aliases
