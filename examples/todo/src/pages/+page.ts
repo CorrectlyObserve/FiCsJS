@@ -3,14 +3,12 @@ import type { Data } from '@/pages/+spa.config'
 import { measureOffsetWidth } from '@/utils/others'
 
 const page: FiCsRouter.Page<Data> = ({
-  children: { tasks, taskDetails, notFound },
+  children: { tasks, taskDetails },
   data: {
-    isNotFound,
     queries: { taskId }
   },
   template
 }) => {
-  if (isNotFound) return notFound
   if (taskId) return measureOffsetWidth() ? template`${tasks}${taskDetails}` : taskDetails
   return tasks
 }
