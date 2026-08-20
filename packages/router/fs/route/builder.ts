@@ -189,7 +189,8 @@ export const buildSpecial = ({
       ),
       [STATUS_FALLBACK, fileNames.ERROR] as const
     ],
-    statuses: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
+    inheritedStatusKeys: Map<string, Set<string>> = new Map<string, Set<string>>(),
+    statusFiles: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
     aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>()
   let counter: number = 0
 
@@ -212,9 +213,9 @@ export const buildSpecial = ({
       }
     }
 
+    inheritedStatusKeys.set(dir, dirInheritedKeys)
     statusFiles.set(dir, dirStatusFiles)
     aliases.set(dir, alias)
-    inheritedStatusKeys.set(dir, dirInheritedKeys)
   }
 
   const rootStatusFiles: Routing.Status.RootFiles = typedEntries(
