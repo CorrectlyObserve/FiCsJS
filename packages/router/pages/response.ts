@@ -3,9 +3,9 @@ import { STATUS_PAGE_META, statusCodes } from '../constants'
 import { injectMeta, renderMeta } from '../meta'
 import type { Routing } from '../types'
 
-export function respond({ html, status }: { html: string; status: Routing.StatusCode }): Response
+export function respond({ html, status }: { html: string; status: Routing.Status.Code }): Response
 export function respond(location: string): Response
-export function respond(arg: { html: string; status: Routing.StatusCode } | string): Response {
+export function respond(arg: { html: string; status: Routing.Status.Code } | string): Response {
   if (typeof arg === 'string')
     return new Response(null, { status: statusCodes.REDIRECT, headers: { location: arg } })
 
