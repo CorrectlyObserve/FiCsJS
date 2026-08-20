@@ -1,13 +1,7 @@
 import { FiCsElement } from '../core/class'
 import { NOOP, normalizePath, toArray } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
-import {
-  FICS_NAVIGATE,
-  FICS_STATUS,
-  ROUTER_COMPONENT_NAME,
-  STATUS_PAGE_META,
-  statusCodes
-} from './constants'
+import { FICS_NAVIGATE, FICS_STATUS, ROUTER_COMPONENT_NAME, statusCodes } from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
@@ -162,7 +156,7 @@ export const ficsRouter = <D extends object>(
             params.set('dynamicPaths', {})
 
             const { meta, content, redirect }: Page<D> = staticPage
-            applyMeta({ ...defaultMeta, ...resolveMeta({ meta, status: statusCodes.OK }) })
+            applyMeta(resolveMeta({ defaultMeta, meta, status: statusCodes.OK }))
 
             return render({ content, redirect })
           }
@@ -170,7 +164,7 @@ export const ficsRouter = <D extends object>(
           for (const { path, meta, content, redirect } of dynamicPages)
             if (dynamicPathToRegex(path).test(pathname)) {
               params.set('dynamicPaths', getDynamicPaths(path))
-              applyMeta({ ...defaultMeta, ...resolveMeta({ meta, status: statusCodes.OK }) })
+              applyMeta(resolveMeta({ defaultMeta, meta, status: statusCodes.OK }))
 
               return render({ content, redirect })
             }
