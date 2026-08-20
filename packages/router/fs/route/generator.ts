@@ -143,7 +143,7 @@ export const generatePages = ({
   middlewareAlias,
   spaOwners,
   areSpaEntry,
-  globalStatuses,
+  rootStatusFiles,
   statusFallback,
   redirect
 }: Routing.Build.Ctx): string => {
@@ -154,7 +154,7 @@ export const generatePages = ({
         ? ''
         : `${indent(2)}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })}`
     }),
-    statusPages: string[] = globalStatuses.map(
+    statusPages: string[] = rootStatusFiles.map(
       ({ path, prop, serverSrc }) =>
         `${path.slice(1)}: ${joinAndWrap([
           `module: ${serverSrc === null ? '{}' : `__${prop}`}`,
