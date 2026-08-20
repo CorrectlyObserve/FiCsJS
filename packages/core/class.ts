@@ -53,7 +53,6 @@ import type {
   Props,
   Scroll,
   SetTimeout,
-  SingleOrArray,
   SSE,
   Task,
   Telemetry,
@@ -1529,7 +1528,7 @@ export class FiCsElement<D extends object, P extends object> {
                 for (const [key, value] of typedEntries(
                   await that.#i18nData({
                     ...that.#getDataProps(),
-                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
+                    i18n: async <T>({ lang, key }: Parameters<I18n['i18n']>[0]) =>
                       i18n<T>({ lang, key })
                   })
                 ))
@@ -1628,8 +1627,7 @@ export class FiCsElement<D extends object, P extends object> {
         for (const [key, value] of typedEntries(
           await this.#i18nData({
             ...this.#getDataProps(),
-            i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-              i18n<T>({ lang, key })
+            i18n: async <T>({ lang, key }: Parameters<I18n['i18n']>[0]) => i18n<T>({ lang, key })
           })
         )) {
           const _key: keyof D = key as keyof D
