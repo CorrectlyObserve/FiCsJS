@@ -49,7 +49,7 @@ export interface Page<D extends object = Record<string, unknown>> extends PageCo
 export interface PageContent<D extends object = Record<string, unknown>> {
   content?: Content<RouterData<D>, {}>
   redirect?: string
-  meta?: Record<string, string>
+  meta?: Routing.Meta
 }
 
 export type ParamType = 'dynamicPaths' | 'queries'
@@ -138,7 +138,7 @@ export declare namespace Routing {
   interface Module {
     default?: unknown
     redirect?: string
-    meta?: Record<string, string>
+    meta?: Meta
   }
 
   namespace Options {
@@ -223,13 +223,7 @@ export declare namespace Routing {
   type RpcEntries = { dirs: string[]; specifier: string }[]
 
   interface ServerModule<C = Record<string, unknown>> {
-    default?: (ctx: MiddlewareCtx<C> & { error?: unknown }) => Awaitable<string>
-    meta?: Record<string, string>
-  }
-
-  interface ServerStatus<C = Record<string, unknown>> {
-    module: ServerModule<C>
-    entry: string
+    meta?: Meta
   }
 
   interface Spec {
