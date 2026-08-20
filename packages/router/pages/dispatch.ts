@@ -87,7 +87,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
         : await respondStatus({ status: denial.code, ctx, ...args })
 
     /** @remarks ⚠️ Ensures rendering errors are caught by the catch block below to show a 500 page. */
-    return await respondPage({ statusPage: resolvedRoute, status: statusCodes.OK, ctx, ...args })
+    return await respondPage({ page: resolvedRoute, status: statusCodes.OK, ctx, ...args })
   } catch (error) {
     console.error(
       `The dispatch function failed to process the request for the path "${path}"...`,
