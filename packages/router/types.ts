@@ -260,6 +260,11 @@ export declare namespace Routing {
       serverSrc: string | null
     }[]
 
+    interface Manifest<C = Record<string, unknown>> {
+      statusPages: Pages<C>
+      statusFallback?: Page<C>
+    }
+
     type Name = keyof Table
 
     interface Page<C = Record<string, unknown>> {
