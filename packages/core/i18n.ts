@@ -1,5 +1,5 @@
 import { isBlankString, isBrowser, normalizePath, toArray } from '../core/helpers'
-import type { SingleOrArray, Translations } from '../core/types'
+import type { I18n, Translations } from '../core/types'
 
 const i18nClosure = (() => {
   let _directory: string = ''
@@ -16,7 +16,7 @@ const i18nClosure = (() => {
       }
       _directory = normalized
     },
-    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }): Promise<T> => {
+    i18n: async <T>({ lang, key }: Parameters<I18n['i18n']>[0]): Promise<T> => {
       if (isBlankString(_directory))
         throw new Error(
           'The i18n function cannot be called before calling the configI18n function...'
