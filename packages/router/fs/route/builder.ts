@@ -183,7 +183,7 @@ export const buildSpecial = ({
   filePaths,
   extensions
 }: Omit<Routing.Build.Query, 'routes'> & { dirs: string[] }): Routing.Build.Special => {
-  const entries: readonly (readonly [string, string])[] = [
+  const statusEntries: readonly (readonly [string, string])[] = [
       ...typedEntries(fileNames.statuses).map(
         ([name, file]) => [String(statusCodes[name]), file] as const
       ),
