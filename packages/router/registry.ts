@@ -30,7 +30,7 @@ export const resetRoutes = (): void => {
 export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
   if (!spec) return registry
 
-  const { routes, statusModules, statusFallback, inheritedStatuses }: Routing.Spec = spec,
+  const { routes, statusModules, statusFallback, inheritedStatusKeys = [] }: Routing.Spec = spec,
     pages: Page[] = [],
     modules: Routing.ResolvedSpec['statusModules'] = {},
     inherited: ReadonlySet<string> = new Set(inheritedStatuses ?? [])
