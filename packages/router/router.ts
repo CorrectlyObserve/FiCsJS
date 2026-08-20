@@ -70,7 +70,8 @@ export const ficsRouter = <D extends object>(
     }: FiCsRouter<D> = config,
     resolved: Readonly<Routing.ResolvedSpec> = resolveSpec(spec)
 
-  if (_pages.length === 0) throw new Error('Please configure routes...')
+  if (resolved.pages.length === 0)
+    throw new Error('Please pass a spec or call registerRoutes first as the router has no pages...')
 
   const {
     exact: redirectsMap,
