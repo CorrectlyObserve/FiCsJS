@@ -195,7 +195,8 @@ export const buildSpecial = ({
 
   for (const dir of dirs) {
     const status: Map<string, string> = new Map<string, string>(),
-      alias: Map<string, string> = new Map<string, string>()
+      alias: Map<string, string> = new Map<string, string>(),
+      inheritedValue: Set<string> = new Set<string>()
 
     for (const [key, target] of statusEntries) {
       const prop: string = convertStr(key, 'camel'),
@@ -209,6 +210,7 @@ export const buildSpecial = ({
 
     statuses.set(dir, status)
     aliases.set(dir, alias)
+    inherited.set(dir, inheritedValue)
   }
 
   const globalStatuses: Routing.Status.Globals = typedEntries(
