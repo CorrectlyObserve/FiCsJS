@@ -66,5 +66,3 @@ export const segments = {
   CATCH_ALL: /^\[\.\.\.([^[\].]+)\]$/,
   DYNAMIC: /^\[([^[\].]+)\]$/
 } as const
-
-export const STATUS_FALLBACK = 'fallback' as const
