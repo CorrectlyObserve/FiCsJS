@@ -144,6 +144,7 @@ export const generatePages = ({
   spaOwners,
   areSpaEntry,
   globalStatuses,
+  error,
   redirect
 }: Routing.Build.Ctx): string => {
   const toAlias = (src: string): string => getOrThrow(middlewareAlias, src),
@@ -159,7 +160,13 @@ export const generatePages = ({
           `module: ${serverSrc === null ? '{}' : `__${prop}`}`,
           `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path })}'`
         ])}`
-    )
+    ),
+    statusFallback: string | null =
+      error &&
+      joinAndWrap([
+        `module: ${error.serverSrc === null ? '{}' : prefixes.ERROR}`,
+        `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path: ERROR_PATH })}'`
+      ])
 
   return joinLines([
     'export const pages = {',
@@ -172,6 +179,7 @@ export const generatePages = ({
             : '{}'
         }`,
         `${indent()}statusPages: ${statusPages.length > 0 ? joinAndWrap(statusPages) : '{}'}`,
+        statusFallback ? `${indent()}statusFallback: ${statusFallback}` : '',
         redirect ? `${indent()}redirects` : ''
       ],
       { comma: true, filter: true }
