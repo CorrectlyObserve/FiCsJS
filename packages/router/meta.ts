@@ -87,5 +87,5 @@ export const resolveMeta = ({
   status
 }: {
   meta?: Routing.Meta
-  status: Routing.PageStatus
+  status: Routing.Status.Resolved
 }): Record<string, string> => (typeof meta === 'function' ? meta({ status }) : meta)
