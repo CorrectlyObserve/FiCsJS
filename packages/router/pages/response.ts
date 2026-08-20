@@ -51,15 +51,15 @@ export const respondPage = async <C extends Record<string, unknown>>({
 export const respondStatus = async <C extends Record<string, unknown>>({
   statusPages,
   status,
+  statusFallback,
   ...args
-}: Routing.Options.InternalPageHost<C> & {
-  statusPages: Routing.StatusPages<C>
-  status: Routing.StatusPageCode
-  ctx: Routing.MiddlewareCtx<C>
-  path: string
+}: Omit<Parameters<typeof respondPage<C>>[0], 'page' | 'status'> & {
+  statusPages: Routing.Status.Pages<C>
+  status: Routing.Status.PageCode
+  statusFallback?: Routing.Status.Page<C>
 }): Promise<Response> => {
-  const statusPage: Routing.ServerStatus<C> | undefined = statusPages[status]
-  return statusPage
-    ? respondPage({ statusPage, status, ...args })
+  const page: Routing.Status.Page<C> | undefined = statusPages[status] ?? statusFallback
+  return page
+    ? respondPage({ page, status, ...args })
     : respond({ html: `<h1>${status}</h1>`, status })
 }
