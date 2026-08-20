@@ -122,12 +122,9 @@ export declare namespace Routing {
 
   type Extensions = Readonly<string[]>
 
-  type GlobalStatuses = {
-    prop: string
-    path: string
-    src: string
-    serverSrc: string | null
-  }[]
+  type Meta =
+    | Record<string, string>
+    | ((ctx: { status: Status.Resolved }) => Record<string, string>)
 
   type Middleware<C = Record<string, unknown>> = (ctx: MiddlewareCtx<C>) => Awaitable<void | Denial>
 
