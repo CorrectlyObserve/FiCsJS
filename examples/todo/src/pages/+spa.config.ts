@@ -30,13 +30,13 @@ const syncDraft = async (
   const id: number | null = toTaskId(data)
 
   if (id === null) {
-    data.isNotFound = false
+    data.status = 200
     data.draft = undefined
     return
   }
 
   const task: TaskType | undefined = getTask(await getAllTasks(), id)
-  data.isNotFound = task === undefined
+  data.status = task === undefined ? 404 : 200
   data.draft = task
 }
 
