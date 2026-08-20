@@ -176,6 +176,12 @@ export const buildSpa = ({
     areSpaEntry.push(isSpa && spaOwner === getDirName(src))
   }
 
+  for (const dir of dirs)
+    if (!spaOwners.includes(dir))
+      throw new Error(
+        `Please add at least a "${fileNames.PAGE}" file as the SPA "${prependSlash(dir)}" currently has no page...`
+      )
+
   return { dirs, files, spaAlias, configAlias, spaOwners, areSpaEntry }
 }
 
