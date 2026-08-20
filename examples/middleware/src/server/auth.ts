@@ -36,8 +36,15 @@ const readSession = ({ req }: { req: Request }): Promise<Session> => {
   return session
 }
 
-export const requireUser = async (ctx: { req: Request }): Promise<User | null> =>
-  (await readSession(ctx)).account
+export const requireUser = async (ctx: { req: Request }): Promise<User> => {
+  const { account }: Session = await readSession(ctx)
+  if (!account)
+    throw new Error(
+      'Please ensure a signedIn guard is applied first as the current session is unauthenticated...'
+    )
+
+  return account
+}
 
 export const signedIn = async (ctx: FiCsRouter.MiddlewareCtx) => {
   const { account, isStale }: Session = await readSession(ctx)
