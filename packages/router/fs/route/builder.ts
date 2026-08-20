@@ -214,9 +214,9 @@ export const buildSpecial = ({
     inherited.set(dir, inheritedValue)
   }
 
-  const globalStatuses: Routing.Status.Globals = typedEntries(
+  const rootStatusFiles: Routing.Status.RootFiles = typedEntries(
       fileNames.statuses
-    ).reduce<Routing.Status.Globals>((entries, [key, target]) => {
+    ).reduce<Routing.Status.RootFiles>((entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
       if (src !== null)
@@ -232,8 +232,8 @@ export const buildSpecial = ({
     fallbackSrc: string | null = findFileSrc({ filePaths, extensions, target: fileNames.ERROR })
 
   return {
-    globalStatuses,
-    inherited,
+    rootStatusFiles,
+    inheritedStatusKeys,
     statusFallback: fallbackSrc
       ? {
           src: fallbackSrc,
@@ -242,7 +242,7 @@ export const buildSpecial = ({
       : null,
 
     redirect: findFileSrc({ filePaths, extensions, target: fileNames.REDIRECT }),
-    statuses,
+    statusFiles,
     aliases
   }
 }
