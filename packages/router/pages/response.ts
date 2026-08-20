@@ -16,7 +16,7 @@ export function respond(arg: { html: string; status: Routing.Status.Code } | str
 }
 
 export const respondPage = async <C extends Record<string, unknown>>({
-  statusPage,
+  page,
   status,
   render,
   scriptBase,
@@ -24,15 +24,15 @@ export const respondPage = async <C extends Record<string, unknown>>({
   ctx,
   path
 }: Routing.Options.InternalPageHost<C> & {
-  statusPage: Routing.ServerStatus<C>
-  status: Routing.StatusPageCode | (typeof statusCodes)['OK']
+  page: { module: Routing.ServerModule<C>; entry: string }
+  status: Routing.Status.Resolved
   ctx: Routing.MiddlewareCtx<C>
   path: string
 }): Promise<Response> => {
   const {
       module: { meta = {}, default: def },
       entry
-    }: Routing.ServerStatus<C> = statusPage,
+    } = page,
     resolvedMeta: Record<string, string> = {
       ...defaultMeta,
       ...(status === statusCodes.OK ? {} : STATUS_PAGE_META),
