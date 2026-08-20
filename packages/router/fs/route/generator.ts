@@ -196,8 +196,9 @@ export const generateSpaRouters = ({
   spaAlias,
   configAlias,
   spaOwners,
-  statuses,
+  statusFiles,
   aliases,
+  inheritedStatusKeys,
   redirect
 }: Routing.Build.Ctx): string => {
   return joinLines(
