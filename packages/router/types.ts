@@ -223,6 +223,9 @@ export declare namespace Routing {
   type RpcEntries = { dirs: string[]; specifier: string }[]
 
   interface ServerModule<C = Record<string, unknown>> {
+    default?: (
+      ctx: MiddlewareCtx<C> & { error?: unknown; status: Status.Resolved }
+    ) => Awaitable<string>
     meta?: Meta
   }
 
