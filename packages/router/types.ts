@@ -193,7 +193,9 @@ export declare namespace Routing {
     script: string
   }
 
-  interface ResolvedRoute<C = Record<string, unknown>> extends ServerStatus<C> {
+  interface ResolvedRoute<C = Record<string, unknown>> {
+    module: ServerModule<C>
+    entry: string
     path: string
     middlewares: readonly Middleware<C>[]
   }
