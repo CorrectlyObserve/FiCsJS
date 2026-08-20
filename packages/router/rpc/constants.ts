@@ -4,6 +4,7 @@ export const CONTENT_LENGTH = 'content-length' as const
 
 export const DEFAULT_ERRORS: Partial<Record<Routing.Status.Name, string>> = {
   BAD_REQUEST: 'The request is invalid or malformed...',
+  CONFLICT: 'The request conflicts with the current state...',
   PAYLOAD_TOO_LARGE: 'The request body is too large...',
   INTERNAL_SERVER_ERROR: 'The server encountered an unexpected error...'
 } as const
