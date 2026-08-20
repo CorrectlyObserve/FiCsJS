@@ -170,6 +170,7 @@ export const ficsRouter = <D extends object>(
 
             const { meta, content, redirect }: Page<D> = staticPage
             applyMeta({ ...defaultMeta, ...resolveMeta({ meta, status: statusCodes.OK }) })
+
             return render({ content, redirect })
           }
 
