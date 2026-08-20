@@ -30,9 +30,7 @@ export const createPageHandler = <C extends Record<string, unknown>>(
   if (redirects)
     if (typeof redirects === 'function') _redirects = redirects
     else {
-      const { exact, prefixes }: { exact: Map<string, string>; prefixes: [string, string][] } =
-        parseRedirects(redirects)
-
+      const { exact, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(redirects)
       _redirects = flattenRedirects(exact)
       _prefixes = prefixes
     }
