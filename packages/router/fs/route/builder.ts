@@ -4,7 +4,7 @@ import { getAllMiddlewares } from '../middleware'
 import type { Routing } from '../../types'
 import { fileNames, prefixes } from '../constants'
 import { cleanPath, getDirName, getFiles, isValidFileType, toPascal, toSpecifier } from '../helpers'
-import { findClosestDir, findFileSrc } from './finder'
+import { findClosestDir, findFileSrc, findServerFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
 export const buildEntries = ({
@@ -210,13 +210,13 @@ export const buildSpecial = ({
     (entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
-      if (src !== null)
-        entries.push({
-          prop: convertStr(key, 'camel'),
-          path: prependSlash(target.slice(1)),
-          src,
-          serverSrc: findFileSrc({ filePaths, extensions, target: `${target}.server` })
-        })
+    if (src !== null)
+      entries.push({
+        prop: convertStr(key, 'camel'),
+        path: prependSlash(target.slice(1)),
+        src,
+        serverSrc: findServerFileSrc({ filePaths, extensions, target })
+      })
 
       return entries
     },
