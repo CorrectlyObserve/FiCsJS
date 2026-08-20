@@ -1,5 +1,5 @@
 import type { Routing } from '../../types'
-import { ERROR_PATH, fileNames, prefixes } from '../constants'
+import { ERROR_PATH, prefixes } from '../constants'
 import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
 import { findStatusEntry } from './finder'
 import { toEntry } from './path'
