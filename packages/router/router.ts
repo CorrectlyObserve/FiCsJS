@@ -1,7 +1,13 @@
 import { FiCsElement } from '../core/class'
 import { NOOP, normalizePath, toArray } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
-import { FICS_NAVIGATE, ROUTER_COMPONENT_NAME, STATUS_PAGE_META } from './constants'
+import {
+  FICS_NAVIGATE,
+  FICS_STATUS,
+  ROUTER_COMPONENT_NAME,
+  STATUS_PAGE_META,
+  statusCodes
+} from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
@@ -210,9 +216,22 @@ export const ficsRouter = <D extends object>(
 
         window.addEventListener(FICS_NAVIGATE, onCustomEvent)
 
+        const onStatus: (event: Event) => void = (event: Event): void => {
+          const { detail }: { detail: Routing.Status.Event } =
+            event as CustomEvent<Routing.Status.Event>
+
+          if (detail.isHandled) return
+
+          detail.isHandled = true
+          ;(data as RouterData<D>).status = detail.code
+        }
+
+        window.addEventListener(FICS_STATUS, onStatus)
+
         removeEventListeners = (): void => {
           window.removeEventListener('popstate', onPopState)
           window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
+          window.removeEventListener(FICS_STATUS, onStatus)
         }
 
         setRouterData({ data, pathname: window.location.pathname, redirects })
