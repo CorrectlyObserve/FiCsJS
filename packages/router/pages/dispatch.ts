@@ -63,15 +63,19 @@ export const dispatch = async <C extends Record<string, unknown>>({
   const createCtx = <T>(ctx: T): Routing.MiddlewareCtx<C> =>
     ({ ...(ctx ?? {}), req, dynamicParams, deny, signal: req.signal }) as Routing.MiddlewareCtx<C>
 
-  const args: Pick<Routing.Options.InternalPageHost<C>, 'render' | 'scriptBase' | 'meta'> & {
-    path: string
-  } = { render, scriptBase, meta, path }
+  const args: Omit<Parameters<typeof respondStatus<C>>[0], 'status' | 'ctx'> = {
+    render,
+    scriptBase,
+    meta,
+    path,
+    statusPages,
+    statusFallback
+  }
 
   try {
     const ctx: Routing.MiddlewareCtx<C> = createCtx((await createContext?.(req)) ?? {})
 
-    if (!resolvedRoute)
-      return await respondStatus({ statusPages, status: statusCodes.NOT_FOUND, ctx, ...args })
+    if (!resolvedRoute) return await respondStatus({ status: statusCodes.NOT_FOUND, ctx, ...args })
 
     const denial: Routing.Denial | undefined = await resolveMiddlewares(
       resolvedRoute.middlewares,
@@ -80,7 +84,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
     if (denial)
       return denial.redirect
         ? respond(denial.redirect)
-        : await respondStatus({ statusPages, status: denial.code, ctx, ...args })
+        : await respondStatus({ status: denial.code, ctx, ...args })
 
     /** @remarks ⚠️ Ensures rendering errors are caught by the catch block below to show a 500 page. */
     return await respondPage({ statusPage: resolvedRoute, status: statusCodes.OK, ctx, ...args })
@@ -90,9 +94,8 @@ export const dispatch = async <C extends Record<string, unknown>>({
       error
     )
 
-    if (statusCodes.INTERNAL_SERVER_ERROR in statusPages)
+    if (statusCodes.INTERNAL_SERVER_ERROR in statusPages || statusFallback)
       return respondStatus({
-        statusPages,
         status: statusCodes.INTERNAL_SERVER_ERROR,
         ctx: createCtx({ error }),
         ...args
