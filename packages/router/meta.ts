@@ -1,4 +1,5 @@
 import { escape, isBrowser, typedEntries } from '../core/helpers'
+import type { Routing } from './types'
 
 const defaultMeta: Map<string, string> = new Map(),
   activeMetaKeys: Set<string> = new Set(),
@@ -80,3 +81,11 @@ export const renderMeta = (meta: Record<string, string>): string => {
 
   return tags.join('')
 }
+
+export const resolveMeta = ({
+  meta = {},
+  status
+}: {
+  meta?: Routing.Meta
+  status: Routing.PageStatus
+}): Record<string, string> => (typeof meta === 'function' ? meta({ status }) : meta)
