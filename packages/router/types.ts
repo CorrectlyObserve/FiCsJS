@@ -96,7 +96,7 @@ export declare namespace Routing {
     }
 
     interface Special {
-      globalStatuses: GlobalStatuses
+      globalStatuses: Status.Globals
       redirect: string | null
       statuses: Map<string, Map<string, string>>
       aliases: Map<string, Map<string, string>>
