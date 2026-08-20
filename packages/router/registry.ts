@@ -21,9 +21,10 @@ export const resetRoutes = (): void => {
 export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
   if (!spec) return registry
 
-  const { routes, statusModules }: Routing.Spec = spec,
+  const { routes, statusModules, statusFallback, inheritedStatuses }: Routing.Spec = spec,
     pages: Page[] = [],
-    modules: Record<string, PageContent | undefined> = {}
+    modules: Routing.ResolvedSpec['statusModules'] = {},
+    inherited: ReadonlySet<string> = new Set(inheritedStatuses ?? [])
 
   for (const { path, page, layout } of routes)
     pages.push(resolveModule(applyLayout({ layout, page }), { path }))
@@ -32,5 +33,14 @@ export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec>
     for (const [key, module] of typedEntries(statusModules))
       modules[key] = resolveModule(module, { key, isOptional: inherited.has(key) })
 
-  return { pages, statusModules: modules }
+  return {
+    pages,
+    statusModules: modules,
+    statusFallback: statusFallback
+      ? resolveModule(statusFallback, {
+          key: STATUS_FALLBACK,
+          isOptional: inherited.has(STATUS_FALLBACK)
+        })
+      : undefined
+  }
 }
