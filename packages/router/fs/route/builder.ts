@@ -210,18 +210,17 @@ export const buildSpecial = ({
     (entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
 
-    if (src !== null)
-      entries.push({
-        prop: convertStr(key, 'camel'),
-        path: prependSlash(target.slice(1)),
-        src,
-        serverSrc: findServerFileSrc({ filePaths, extensions, target })
-      })
+      if (src !== null)
+        entries.push({
+          prop: convertStr(key, 'camel'),
+          path: prependSlash(target.slice(1)),
+          src,
+          serverSrc: findServerFileSrc({ filePaths, extensions, target })
+        })
 
       return entries
-    },
-    []
-  )
+    }, []),
+    fallbackSrc: string | null = findFileSrc({ filePaths, extensions, target: fileNames.ERROR })
 
   return {
     globalStatuses,
