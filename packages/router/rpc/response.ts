@@ -35,17 +35,12 @@ export const respond = ({
   cacheHeaders,
   method
 }: {
-  code: string
+  code: Routing.Status.Name
   cacheHeaders?: HeadersInit
   method?: Rpc.Method | string
 } & ({ body?: unknown; error?: never } | { body?: never; error: string | true })): Response => {
-  code = code.toUpperCase()
-  if (!(code in statusCodes))
-    throw new Error(`The status code ${code} is not a valid HTTP status code...`)
-
-  const statusCode = code as keyof typeof statusCodes,
-    payload: unknown = error
-      ? { error: { code, message: error === true ? DEFAULT_ERRORS[statusCode] : error } }
+  const payload: unknown = error
+      ? { error: { code, message: error === true ? DEFAULT_ERRORS[code] : error } }
       : body,
     headers: Headers = new Headers(cacheHeaders),
     _isHeadMethod: boolean = isHeadMethod(method ?? 'GET')
@@ -61,10 +56,7 @@ export const respond = ({
       headers.set(CONTENT_LENGTH, getByteLength(serialized).toString())
   }
 
-  return new Response(_isHeadMethod ? null : serialized, {
-    status: statusCodes[statusCode],
-    headers
-  })
+  return new Response(_isHeadMethod ? null : serialized, { status: statusCodes[code], headers })
 }
 
 export const respondDenial = ({
