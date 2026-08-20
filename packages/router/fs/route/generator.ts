@@ -229,22 +229,10 @@ export const generateSpaRouters = ({
           joinLines(routeEntries, { comma: true }),
           `${indent()}]`
         ],
-        statusKeys: string[] = Array.from(statuses.get(dir)?.keys() || [])
-
-      if (statusKeys.length > 0) {
-        lines[lines.length - 1] += ','
-        lines.push(
-          `${indent()}statusModules: {`,
-          joinLines(
-            statusKeys.map(key => {
-              const alias: Map<string, string> = getOrThrow(aliases, dir)
-              return `${indent(2)}${key}: ${getOrThrow(alias, key)}`
-            }),
-            { comma: true }
-          ),
-          `${indent()}}`
-        )
-      }
+        append = (line: string): void => {
+          lines[lines.length - 1] += ','
+          lines.push(line)
+        }
 
       const isRootDir: boolean = dir === ''
       if (isRootDir && redirect) {
