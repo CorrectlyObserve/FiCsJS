@@ -1,5 +1,5 @@
 import type { Routing } from '../../types'
-import { fileNames } from '../constants'
+import { ERROR_PATH, fileNames } from '../constants'
 import { cleanPath, getDirName, getExt, removeExt } from '../helpers'
 import { toEntry } from './path'
 
@@ -10,10 +10,11 @@ export const findClientEntries = ({
   spaOwners,
   areSpaEntry,
   files,
-  globalStatuses
+  globalStatuses,
+  statusFallback
 }: Routing.Build.Query &
   Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaEntry' | 'files'> &
-  Pick<Routing.Build.Special, 'globalStatuses'>): {
+  Pick<Routing.Build.Special, 'globalStatuses' | 'statusFallback'>): {
   clientEntries: Routing.ClientEntries
   dirsWithoutSpaEntry: string[]
 } => {
@@ -53,10 +54,12 @@ export const findClientEntries = ({
     push(toEntry(path), fileSrc)
   }
 
-  for (const { path, src } of globalStatuses) {
-    const isStatusFileOutsideSpa: boolean = findClosestDir(src, files) === null
-    if (isStatusFileOutsideSpa) push(toEntry(path), src)
-  }
+  const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
+
+  for (const { path, src } of globalStatuses) if (isOutsideSpa(src)) push(toEntry(path), src)
+
+  if (statusFallback && isOutsideSpa(statusFallback.src))
+    push(toEntry(ERROR_PATH), statusFallback.src)
 
   return { clientEntries, dirsWithoutSpaEntry: [...dirsWithoutSpaEntry] }
 }
