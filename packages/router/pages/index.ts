@@ -43,6 +43,7 @@ export const createPageHandler = <C extends Record<string, unknown>>(
       redirects: _redirects,
       prefixes: _prefixes,
       statusPages,
+      statusFallback,
       render,
       createContext,
       scriptBase: removeTrailingSlash(scriptBase ?? '/dist'),
