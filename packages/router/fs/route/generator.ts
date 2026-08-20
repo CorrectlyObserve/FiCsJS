@@ -1,3 +1,4 @@
+import { STATUS_FALLBACK } from '../../constants'
 import type { Routing } from '../../types'
 import { ERROR_PATH, prefixes } from '../constants'
 import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
@@ -196,7 +197,6 @@ export const generateSpaRouters = ({
   spaAlias,
   configAlias,
   spaOwners,
-  statusFiles,
   aliases,
   inheritedStatusKeys,
   redirect
@@ -229,10 +229,23 @@ export const generateSpaRouters = ({
           joinLines(routeEntries, { comma: true }),
           `${indent()}]`
         ],
+        statusModules: string[] = [],
         append = (line: string): void => {
           lines[lines.length - 1] += ','
           lines.push(line)
         }
+      let fallbackLine: string | undefined
+
+      for (const [key, alias] of getOrThrow(aliases, dir))
+        if (key === STATUS_FALLBACK) fallbackLine = `${indent()}statusFallback: ${alias}`
+        else statusModules.push(`${indent(2)}${key}: ${alias}`)
+
+      if (statusModules.length > 0) {
+        const modulesLine: string = joinLines(statusModules, { comma: true })
+        append(joinLines([`${indent()}statusModules: {`, modulesLine, `${indent()}}`]))
+      }
+
+      if (fallbackLine) append(fallbackLine)
 
       const dirInheritedKeys: string[] = [...(inheritedStatusKeys.get(dir) ?? [])]
       if (dirInheritedKeys.length > 0) {
