@@ -235,10 +235,7 @@ export const generateSpaRouters = ({
         }
 
       const isRootDir: boolean = dir === ''
-      if (isRootDir && redirect) {
-        lines[lines.length - 1] += ','
-        lines.push(`${indent()}redirects: ${prefixes.REDIRECT}`)
-      }
+      if (isRootDir && redirect) append(`${indent()}redirects: ${prefixes.REDIRECT}`)
 
       return joinLines([...lines, '})'])
     })
