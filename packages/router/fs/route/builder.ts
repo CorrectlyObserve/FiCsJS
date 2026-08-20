@@ -194,9 +194,9 @@ export const buildSpecial = ({
   let counter: number = 0
 
   for (const dir of dirs) {
-    const status: Map<string, string> = new Map<string, string>(),
+    const dirStatusFiles: Map<string, string> = new Map<string, string>(),
       alias: Map<string, string> = new Map<string, string>(),
-      inheritedValue: Set<string> = new Set<string>()
+      dirInheritedKeys: Set<string> = new Set<string>()
 
     for (const [key, target] of statusEntries) {
       const ownStatusFile: string | null = findFileSrc({ filePaths, extensions, target, dir }),
@@ -209,9 +209,9 @@ export const buildSpecial = ({
       }
     }
 
-    statuses.set(dir, status)
+    statusFiles.set(dir, dirStatusFiles)
     aliases.set(dir, alias)
-    inherited.set(dir, inheritedValue)
+    inheritedStatusKeys.set(dir, dirInheritedKeys)
   }
 
   const rootStatusFiles: Routing.Status.RootFiles = typedEntries(
