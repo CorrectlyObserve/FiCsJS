@@ -6,7 +6,13 @@ import type { Routing } from '../types'
 import { dispatch } from './dispatch'
 
 export const createPageHandler = <C extends Record<string, unknown>>(
-  { routes, middlewares = {}, statusPages = {}, redirects }: Routing.Options.PageManifest<C>,
+  {
+    routes,
+    middlewares = {},
+    statusPages = {},
+    statusFallback,
+    redirects
+  }: Routing.Options.PageManifest<C>,
   { render, createContext, scriptBase, meta }: Routing.Options.PageHost<C>
 ): ((req: Request) => Promise<Response>) => {
   const statics: Map<string, Routing.ResolvedRoute<C>> = new Map(),
