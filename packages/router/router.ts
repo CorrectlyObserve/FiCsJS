@@ -84,7 +84,7 @@ export const ficsRouter = <D extends object>(
     spec?.redirects ?? {}
   )
 
-  for (const { path, redirect } of _pages)
+  for (const { path, redirect } of resolved.pages)
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
 
   const redirects: ReadonlyMap<string, string> | undefined =
@@ -106,7 +106,7 @@ export const ficsRouter = <D extends object>(
           const staticPages: Page<D>[] = [],
             dynamicPages: Page<D>[] = []
 
-          for (const { path, ..._args } of _pages)
+          for (const { path, ..._args } of resolved.pages)
             (isDynamicPath(path) ? dynamicPages : staticPages).push({ path, ..._args } as Page<D>)
 
           const render = ({
