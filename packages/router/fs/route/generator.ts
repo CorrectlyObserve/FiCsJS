@@ -1,5 +1,5 @@
 import type { Routing } from '../../types'
-import { prefixes } from '../constants'
+import { ERROR_PATH, fileNames, prefixes } from '../constants'
 import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
 import { findStatusEntry } from './finder'
 import { toEntry } from './path'
@@ -144,7 +144,7 @@ export const generatePages = ({
   spaOwners,
   areSpaEntry,
   globalStatuses,
-  error,
+  statusFallback,
   redirect
 }: Routing.Build.Ctx): string => {
   const toAlias = (src: string): string => getOrThrow(middlewareAlias, src),
@@ -161,10 +161,10 @@ export const generatePages = ({
           `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path })}'`
         ])}`
     ),
-    statusFallback: string | null =
-      error &&
+    fallback: string | null =
+      statusFallback &&
       joinAndWrap([
-        `module: ${error.serverSrc === null ? '{}' : prefixes.ERROR}`,
+        `module: ${statusFallback.serverSrc === null ? '{}' : prefixes.ERROR}`,
         `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path: ERROR_PATH })}'`
       ])
 
@@ -179,7 +179,7 @@ export const generatePages = ({
             : '{}'
         }`,
         `${indent()}statusPages: ${statusPages.length > 0 ? joinAndWrap(statusPages) : '{}'}`,
-        statusFallback ? `${indent()}statusFallback: ${statusFallback}` : '',
+        fallback ? `${indent()}statusFallback: ${fallback}` : '',
         redirect ? `${indent()}redirects` : ''
       ],
       { comma: true, filter: true }
