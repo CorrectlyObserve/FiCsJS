@@ -40,7 +40,7 @@ export const requireUser = async (ctx: { req: Request }): Promise<User> => {
   const { account }: Session = await readSession(ctx)
   if (!account)
     throw new Error(
-      'Please ensure a signedIn guard is applied first as the current session is unauthenticated...'
+      'Please ensure a signedIn guard is applied first as the current session is unauthenticated.'
     )
 
   return account
