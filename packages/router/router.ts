@@ -11,7 +11,7 @@ import {
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
-import { applyMeta } from './meta'
+import { applyMeta, resolveMeta } from './meta'
 import { getQueries, params } from './params'
 import { resolveSpec } from './registry'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData, Routing } from './types'
