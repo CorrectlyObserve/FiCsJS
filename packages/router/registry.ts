@@ -6,14 +6,16 @@ import type { Page, PageContent, Routing } from './types'
 const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} }
 
 export const registerRoutes = (spec: Routing.Spec): void => {
-  const { pages, statusModules }: Routing.ResolvedSpec = resolveSpec(spec)
+  const { pages, statusModules, statusFallback }: Routing.ResolvedSpec = resolveSpec(spec)
   registry.pages = pages
   registry.statusModules = statusModules
+  registry.statusFallback = statusFallback
 }
 
 export const resetRoutes = (): void => {
   registry.pages = []
   registry.statusModules = {}
+  registry.statusFallback = undefined
 }
 
 export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
