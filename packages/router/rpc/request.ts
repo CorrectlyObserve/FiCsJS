@@ -169,7 +169,9 @@ export const sendRequest = async ({
   }
 }
 
-const toRpcError = async (error: unknown): Promise<RpcError<StatusCodes | TransportCodes>> => {
+const toRpcError = async (
+  error: unknown
+): Promise<RpcError<Routing.Status.Name | Rpc.TransportCode>> => {
   if (error instanceof RpcError) return error
 
   if (error instanceof Response) {
@@ -212,7 +214,7 @@ const toRpcError = async (error: unknown): Promise<RpcError<StatusCodes | Transp
     ? (error as DOMException).name
     : undefined
 
-  return new RpcError<TransportCodes>({
+  return new RpcError<Rpc.TransportCode>({
     code: name === 'AbortError' ? 'ABORTED' : name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
     message: error instanceof Error ? error.message : String(error),
     expose: false
