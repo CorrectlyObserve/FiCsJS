@@ -21,6 +21,7 @@ import type { Routing, Rpc, StatusCodes, TransportCodes } from '../types'
 import { DENIED_HEADER, REDIRECT_HEADER, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
 import { emitMetric } from './metric'
+import { showStatus } from '../status'
 
 const codeByStatus: Record<number, StatusCodes> = Object.fromEntries(
   typedEntries(statusCodes).map(([name, status]) => [status, name])
@@ -143,13 +144,17 @@ export const sendRequest = async ({
     })
 
     if (!willRetry) {
-      const rpcError: RpcError<StatusCodes | TransportCodes> = await toRpcError(error)
+      const rpcError: RpcError<Routing.Status.Name | Rpc.TransportCode> = await toRpcError(error)
 
-      if (error instanceof Response && rpcError.denied && onDeny)
-        onDeny({
-          code: error.status as Routing.StatusPageCode,
+      if (error instanceof Response && rpcError.denied) {
+        const denial: Routing.Denial = {
+          code: error.status as Routing.Status.DenialCode,
           ...(rpcError.redirect ? { redirect: rpcError.redirect } : {})
-        })
+        }
+
+        onDeny ? onDeny(denial) : showStatus(denial.code)
+      }
+
       throw rpcError
     }
 
