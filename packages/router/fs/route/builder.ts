@@ -199,8 +199,9 @@ export const buildSpecial = ({
       inheritedValue: Set<string> = new Set<string>()
 
     for (const [key, target] of statusEntries) {
-      const prop: string = convertStr(key, 'camel'),
-        src: string | null = findFileSrc({ filePaths, extensions, target, dir })
+      const ownStatusFile: string | null = findFileSrc({ filePaths, extensions, target, dir }),
+        src: string | null =
+          ownStatusFile ?? (dir === '' ? null : findFileSrc({ filePaths, extensions, target }))
 
       if (src !== null) {
         status.set(prop, src)
