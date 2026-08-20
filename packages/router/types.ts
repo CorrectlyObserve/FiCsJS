@@ -96,11 +96,11 @@ export declare namespace Routing {
     }
 
     interface Special {
-      globalStatuses: Status.Globals
-      inherited: Map<string, Set<string>>
+      rootStatusFiles: Status.RootFiles
+      inheritedStatusKeys: Map<string, Set<string>>
       statusFallback: { src: string; serverSrc: string | null } | null
       redirect: string | null
-      statuses: Map<string, Map<string, string>>
+      statusFiles: Map<string, Map<string, string>>
       aliases: Map<string, Map<string, string>>
     }
   }
