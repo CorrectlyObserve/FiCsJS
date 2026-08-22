@@ -96,6 +96,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #isFormAssociated: boolean = false
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #activeApis: Map<string, boolean> = new Map()
   readonly #optimisticUpdateFn: ReturnType<typeof optimisticUpdate>
