@@ -2,7 +2,7 @@ import type { Form } from '../types'
 import { focusFirstInvalidControl } from './validation'
 
 export const submitForm =
-  (event: Event): Form.Submit =>
+  (event: Event): Form.Submit.Fn =>
   <T extends Form.Values>({ shouldReportValidity = true }: Form.Submit.Options = {}): T | null => {
     event.preventDefault()
 
