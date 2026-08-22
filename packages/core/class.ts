@@ -1379,6 +1379,7 @@ export class FiCsElement<D extends object, P extends object> {
           value:
             element instanceof HTMLInputElement ||
             element instanceof HTMLTextAreaElement ||
+            element instanceof HTMLSelectElement ||
             element instanceof HTMLOptionElement ||
             element instanceof HTMLProgressElement ||
             element instanceof HTMLMeterElement
