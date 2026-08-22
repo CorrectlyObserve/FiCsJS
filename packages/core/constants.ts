@@ -1,4 +1,8 @@
-export const attrs = { FICS_ID: 'fics-id', SHOW: 'fics-show-syntax' } as const
+export const attrs = {
+  FICS_ID: 'fics-id',
+  FORM_ANCHOR: 'fics-form-anchor',
+  SHOW: 'fics-show-syntax'
+} as const
 
 export const a11y = {
   STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"'
