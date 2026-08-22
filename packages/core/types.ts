@@ -281,6 +281,7 @@ export declare namespace Options {
     rootMargin?: string
     websocket?: WebSocket.Options<D, P>
     sse?: SSE.Options<D, P>
+    form?: Form.Options<D, P>
     scroll?: Scroll.Resolved<D, P>
   }
 }
