@@ -769,6 +769,7 @@ export class FiCsElement<D extends object, P extends object> {
         attributes: {
           boolean: (condition: boolean | undefined): 'true' | 'false' =>
             condition ? 'true' : 'false',
+          formAnchor: attrs.FORM_ANCHOR,
           statusLiveRegion: a11y.STATUS_LIVE_REGION
         },
         isBrowser: this.#isBrowser,
