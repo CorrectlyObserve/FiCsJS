@@ -276,8 +276,16 @@ export class FiCsElement<D extends object, P extends object> {
     })
 
     if (options) {
-      const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
-        options
+      const {
+        ssr,
+        telemetry,
+        lazyLoad,
+        rootMargin,
+        websocket,
+        sse,
+        scroll,
+        form
+      }: Options.Ctx<D, P> = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
 
@@ -296,7 +304,7 @@ export class FiCsElement<D extends object, P extends object> {
 
       if (form && !isEmptyObject(form)) this.#isFormAssociated = true
 
-      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
+      for (const [key, value] of typedEntries({ websocket, sse, scroll, form } as const)) {
         if (!value || isEmptyObject(value) || !this.#isBrowser) continue
 
         switch (key) {
@@ -355,6 +363,10 @@ export class FiCsElement<D extends object, P extends object> {
               timers: {},
               urlSync: {}
             }
+            break
+
+          case 'form':
+            this.#options[key] = { ...value } as Form.Options<D, P>
             break
         }
       }
