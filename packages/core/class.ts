@@ -1354,8 +1354,8 @@ export class FiCsElement<D extends object, P extends object> {
 
         method({
           ...this.#getDataProps(true),
-          event,
           ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
+          event,
           attributes: attrs,
           value:
             element instanceof HTMLInputElement ||
