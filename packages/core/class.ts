@@ -17,6 +17,7 @@ import {
   isBrowser,
   isEmptyObject,
   isObject,
+  NOOP,
   normalizeRootMargin,
   numberError,
   toArray,
