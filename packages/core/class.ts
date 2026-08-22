@@ -283,8 +283,8 @@ export class FiCsElement<D extends object, P extends object> {
         rootMargin,
         websocket,
         sse,
-        scroll,
-        form
+        form,
+        scroll
       }: Options.Ctx<D, P> = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
@@ -314,6 +314,10 @@ export class FiCsElement<D extends object, P extends object> {
 
           case 'sse':
             this.#options[key] = { ...value } as SSE.Options<D, P>
+            break
+
+          case 'form':
+            this.#options[key] = { ...value } as Form.Options<D, P>
             break
 
           case 'scroll':
