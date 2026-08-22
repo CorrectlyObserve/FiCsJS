@@ -8,6 +8,7 @@ import {
   VAR_TAG_NAME
 } from './constants'
 import { crud } from './crud'
+import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls } from './form'
 import {
   browserError,
   convertStr,
