@@ -294,6 +294,8 @@ export class FiCsElement<D extends object, P extends object> {
         this.#options.rootMargin = normalizeRootMargin(rootMargin)
       }
 
+      if (form && !isEmptyObject(form)) this.#isFormAssociated = true
+
       for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
         if (!value || isEmptyObject(value) || !this.#isBrowser) continue
 
