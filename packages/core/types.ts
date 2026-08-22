@@ -180,6 +180,7 @@ export declare namespace Html {
     activeApis: Record<string, boolean>
     attributes: {
       boolean: (condition: boolean | undefined) => 'true' | 'false'
+      formAnchor: typeof attrs.FORM_ANCHOR
       statusLiveRegion: typeof a11y.STATUS_LIVE_REGION
     }
   }
