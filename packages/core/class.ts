@@ -775,6 +775,7 @@ export class FiCsElement<D extends object, P extends object> {
         },
         isBrowser: this.#isBrowser,
         isDeferred: this.#isDeferred,
+        form: this.#formAssociation,
         scroll: <T>(
           array: ReadonlyArray<T> | null | undefined,
           callback: (item: T, index: number) => Html.Sanitized<D, P>
