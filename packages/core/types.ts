@@ -229,6 +229,7 @@ export declare namespace Hook {
     debounce: RateLimitFn
     throttle: RateLimitFn
     signal: AbortSignal
+    form: Form.Association
   }
 
   type Key<D extends object, P> = keyof Lifecycle<D, P>
