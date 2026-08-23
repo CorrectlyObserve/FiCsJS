@@ -1376,6 +1376,11 @@ export class FiCsElement<D extends object, P extends object> {
           ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
           event,
           attributes: attrs,
+          requestSubmit: this.#isFormAssociated
+            ? (...args: Parameters<Form.RequestSubmit>): void =>
+                this.#internals?.form?.requestSubmit(...args)
+            : NOOP,
+          submitForm: this.#isFormAssociated ? submitForm(event) : NOOP,
           value:
             element instanceof HTMLInputElement ||
             element instanceof HTMLTextAreaElement ||
