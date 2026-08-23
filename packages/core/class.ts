@@ -1643,8 +1643,13 @@ export class FiCsElement<D extends object, P extends object> {
         adoptedCallback(): void {
           that.#callback('adopted', this.#shadowRoot)
         }
+
+        formResetCallback(): void {
+          that.#options.form?.reset?.(that.#getDataProps(true))
+          that.#syncForm()
+          that.#enqueue(that.#reRender.bind(that), 're-render')
+        }
       }
-    )
   }
 
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
