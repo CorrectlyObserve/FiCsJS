@@ -1444,7 +1444,8 @@ export class FiCsElement<D extends object, P extends object> {
         ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
         debounce: this.#debounce.bind(this),
         throttle: this.#throttle.bind(this),
-        signal: this.#abortController.signal
+        signal: this.#abortController.signal,
+        form: this.#formAssociation
       },
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
