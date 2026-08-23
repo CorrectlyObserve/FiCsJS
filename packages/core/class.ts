@@ -1318,6 +1318,11 @@ export class FiCsElement<D extends object, P extends object> {
     return searchShadowRootRecursively(shadowRoot ?? this.#getShadowRoot(this.#cache.component!))
   }
 
+  get #internals(): ElementInternals | undefined {
+    const { component }: { component?: HTMLElement } = this.#cache
+    return component ? formInternals.get(component) : undefined
+  }
+
   #debounce<T extends (...args: Parameters<T>) => void>(
     func: T,
     ms: number
