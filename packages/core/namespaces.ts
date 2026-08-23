@@ -5,6 +5,7 @@ import type {
   Css,
   DataProps,
   Descendant,
+  Form,
   Hook,
   Html,
   I18n,
@@ -25,6 +26,8 @@ export declare namespace FiCs {
   type Css<D extends object, P> = Css.Ctx<D, P> | undefined
 
   type DeferredContext<D extends object, P> = DataProps.Payload<D, P, true>
+
+  type FormAssociation = Form.Association
 
   type Html<D extends object, P extends object> = Html.Core<D, P>
 
