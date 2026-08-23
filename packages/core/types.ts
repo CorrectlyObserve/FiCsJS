@@ -16,9 +16,11 @@ export declare namespace Action {
 
   type Method<D extends object, P> = (
     ctx: DataProps.Payload<D, P, true> & {
-      event: Event
       ref: (selector: string) => Element | null
+      event: Event
       attributes: Record<string, string>
+      requestSubmit: Form.RequestSubmit
+      submitForm: Form.Submit.Fn
       value?: string
     }
   ) => void
