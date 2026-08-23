@@ -368,10 +368,6 @@ export class FiCsElement<D extends object, P extends object> {
               urlSync: {}
             }
             break
-
-          case 'form':
-            this.#options[key] = { ...value } as Form.Options<D, P>
-            break
         }
       }
     }
