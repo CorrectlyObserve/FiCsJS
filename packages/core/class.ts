@@ -1493,6 +1493,7 @@ export class FiCsElement<D extends object, P extends object> {
     const that: FiCsElement<D, P> = this,
       { lazyLoad, rootMargin }: Options.Resolved<D, P> = that.#options,
       FiCsCustomElement = class extends HTMLElement {
+        static formAssociated: boolean = that.#isFormAssociated
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
         #websocket?: WebSocketNS.Runtime
