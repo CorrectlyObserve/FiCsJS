@@ -152,6 +152,36 @@ export interface FiCs<D extends object, P extends object> {
   options?: Options.Ctx<D, P>
 }
 
+export declare namespace Form {
+  interface Association {
+    element: HTMLFormElement | null
+    isDisabled: boolean
+    isUserInvalid: boolean
+  }
+
+  type Methods = Pick<ElementInternals, 'checkValidity' | 'reportValidity'>
+
+  interface Options<D extends object, P> {
+    value: (ctx: DataProps.Payload<D, P, true>) => Parameters<ElementInternals['setFormValue']>[0]
+    validate?: (ctx: DataProps.Payload<D, P, true>) => string | null
+    reset?: (ctx: DataProps.Payload<D, P, true>) => void
+  }
+
+  type RequestSubmit = HTMLFormElement['requestSubmit']
+
+  namespace Submit {
+    type Fn = <T extends Values>(options?: Options) => T | null | void
+
+    interface Options {
+      shouldReportValidity?: boolean
+    }
+  }
+
+  type Surface = Pick<ElementInternals, 'form' | 'validity' | 'validationMessage' | 'willValidate'>
+
+  type Values = Record<string, SingleOrArray<string | File>>
+}
+
 export declare namespace Html {
   type Content<D extends object, P extends object> =
     | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
