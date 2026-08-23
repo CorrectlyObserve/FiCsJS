@@ -216,7 +216,8 @@ export class FiCsElement<D extends object, P extends object> {
                 ref: (selector: string) => this.#queryDeeply(selector),
                 debounce: this.#debounce.bind(this),
                 throttle: this.#throttle.bind(this),
-                signal: this.#abortController.signal
+                signal: this.#abortController.signal,
+                form: this.#formAssociation
               })
               this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
             } catch (error) {
