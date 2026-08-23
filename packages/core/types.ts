@@ -192,6 +192,7 @@ export declare namespace Html {
       Syntaxes<D, P> & {
         isBrowser: boolean
         isDeferred: boolean
+        form: Form.Association
         scroll: <T>(
           array: ReadonlyArray<T> | null | undefined,
           callback: (item: T, index: number) => Sanitized<D, P>
