@@ -1665,17 +1665,16 @@ export class FiCsElement<D extends object, P extends object> {
           if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
         }
 
+      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+
       if (!isOnlyHtml) {
         this.#setClassNames(component)
         this.#setAttrs(component)
+        this.#buildCss(shadowRoot)
       }
-
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
       this.#buildHtml(shadowRoot)
       this.#infiniteVirtualScroll(shadowRoot)
-
-      if (!isOnlyHtml) this.#buildCss(shadowRoot)
 
       const addAllElements = (elements: Element[] | Set<Element>): void => {
         for (const element of elements) {
