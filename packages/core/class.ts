@@ -1756,7 +1756,9 @@ export class FiCsElement<D extends object, P extends object> {
 
         return `
           <${[that.#name, ...attrs].join(' ')}>
-            <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
+            <template shadowrootmode="open"${that.#isFormAssociated ? ' shadowrootdelegatesfocus' : ''}>
+              <slot name="${that.#instanceId}"></slot>
+            </template>
             <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
           </${that.#name}>
         `
