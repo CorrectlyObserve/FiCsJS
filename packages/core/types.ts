@@ -1,5 +1,5 @@
 import { FiCsElement } from './class'
-import { a11y } from './constants'
+import { a11y, attrs } from './constants'
 import type { QueryCache } from './query'
 
 export declare namespace Action {
