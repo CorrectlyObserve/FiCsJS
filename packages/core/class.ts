@@ -1540,6 +1540,20 @@ export class FiCsElement<D extends object, P extends object> {
             mode: 'open',
             delegatesFocus: that.#isFormAssociated
           })
+
+          if (that.#isFormAssociated) {
+            formInternals.set(this, this.attachInternals())
+
+            const markTouched = (): void => {
+              if (touchedControls.has(this)) return
+
+              touchedControls.add(this)
+              that.#enqueue(that.#reRender.bind(that), 're-render')
+            }
+
+            this.#shadowRoot.addEventListener('focusout', markTouched)
+            this.addEventListener('invalid', markTouched)
+          }
         }
 
         #activateRuntime(): void {
