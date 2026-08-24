@@ -1697,6 +1697,9 @@ export class FiCsElement<D extends object, P extends object> {
           if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
         }
 
+      /** @remarks Syncs the final state to the form, allowing custom validation to append data before rendering. */
+      this.#syncForm()
+
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
 
       if (!isOnlyHtml) {
