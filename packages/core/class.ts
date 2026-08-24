@@ -1666,6 +1666,11 @@ export class FiCsElement<D extends object, P extends object> {
           that.#syncForm()
           that.#enqueue(that.#reRender.bind(that), 're-render')
         }
+
+        formDisabledCallback(): void {
+          /** @remarks Triggers a re-render to propagate the native disabled state into the Shadow DOM. */
+          that.#enqueue(that.#reRender.bind(that), 're-render')
+        }
       }
   }
 
