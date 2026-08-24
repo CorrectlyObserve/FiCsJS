@@ -1672,6 +1672,11 @@ export class FiCsElement<D extends object, P extends object> {
           that.#enqueue(that.#reRender.bind(that), 're-render')
         }
       }
+
+    /** @remarks Injects standard form APIs into the prototype for form-associated components. */
+    if (that.#isFormAssociated) defineFormSurface(FiCsCustomElement.prototype)
+
+    window.customElements.define(that.#name, FiCsCustomElement)
   }
 
   async #reRender(isOnlyHtml?: boolean): Promise<void> {
