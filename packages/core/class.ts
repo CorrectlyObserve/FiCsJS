@@ -1492,6 +1492,21 @@ export class FiCsElement<D extends object, P extends object> {
     } else executeHook(() => this.#hooks[key]!(ctx))
   }
 
+  #syncForm(): void {
+    const { component }: { component?: HTMLElement } = this.#cache,
+      { form }: Options.Resolved<D, P> = this.#options
+
+    if (!component || !form || !this.#internals) return
+
+    syncForm({
+      element: component,
+      anchor: this.#queryDeeply(`[${attrs.FORM_ANCHOR}]`),
+      options: form,
+      dataProps: this.#getDataProps(true),
+      internals: this.#internals
+    })
+  }
+
   #define(): void {
     browserError()
 
