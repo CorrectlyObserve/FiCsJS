@@ -1441,6 +1441,18 @@ export class FiCsElement<D extends object, P extends object> {
     })
   }
 
+  get #formAssociation(): Form.Association {
+    const { component }: { component?: HTMLElement } = this.#cache
+
+    return {
+      element: this.#internals?.form ?? null,
+      /** @remarks Evaluates :disabled to catch states inherited from parent fieldsets. */
+      isDisabled: component?.matches(':disabled') ?? false,
+      isUserInvalid:
+        !!component && touchedControls.has(component) && this.#internals?.validity.valid === false
+    }
+  }
+
   #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
