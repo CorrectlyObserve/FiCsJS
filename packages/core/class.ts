@@ -1534,7 +1534,12 @@ export class FiCsElement<D extends object, P extends object> {
 
         constructor() {
           super()
-          this.#shadowRoot = this.attachShadow({ mode: 'open' })
+
+          /** @remarks Allows external labels to focus the control inside the Shadow DOM. */
+          this.#shadowRoot = this.attachShadow({
+            mode: 'open',
+            delegatesFocus: that.#isFormAssociated
+          })
         }
 
         #activateRuntime(): void {
