@@ -8,6 +8,7 @@ import {
   VAR_TAG_NAME
 } from './constants'
 import { crud } from './crud'
+import { cssToString } from './css'
 import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls } from './form'
 import {
   browserError,
@@ -1157,18 +1158,9 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
-    if (css.length === 0) return ''
-
-    const normalizeProperty = (key: string | number): string => {
-        if (typeof key === 'number') return key.toString()
-        /** @remarks CSS custom properties */
-        if (key.startsWith('--')) return key
-
-        key = convertStr(key, 'kebab')
-        if (key.startsWith('webkit')) key = `-${key}`
-        return key
-      },
-      normalizeHost = (selector: string | number): string => {
+    return cssToString(css, {
+      getDataProps: () => this.#getDataProps(),
+      normalizeHost: (selector: string | number): string => {
         if (typeof selector === 'number') return selector.toString()
         if (!isSsr) return selector
 
@@ -1181,49 +1173,8 @@ export class FiCsElement<D extends object, P extends object> {
             .replace(new RegExp(`${h.STRICT}`, 'g'), ssrHost)
 
         return `:where(${ssrHost}) ${selector}`
-      },
-      convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
-        typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
-          (prev, [key, value]) => {
-            if (typeof key === 'number') numberError({ key }, 'finite')
-
-            if (value === undefined || isBlankString(value) || isEmptyObject(value)) return prev
-
-            if (typeof key === 'string' && key.startsWith('@keyframes')) {
-              topLevelCss.push(`${key}{${convertCss(value as Css.Value<D, P>, topLevelCss)}}`)
-              return prev
-            }
-
-            if (typeof value === 'string' || typeof value === 'number')
-              return `${prev}${normalizeProperty(key)}:${value};`
-
-            return `${prev}${normalizeHost(key)}{${convertCss(value as Css.Declarations, topLevelCss)}}`
-          },
-          ''
-        )
-
-    return css.reduce<string>((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
-
-      const topLevelCss: string[] = [],
-        joinCss = (cssTexts: string[]): string => [prev, ...cssTexts, ...topLevelCss].join('')
-
-      if (typeof curr === 'function')
-        return joinCss([
-          normalizeHost(
-            curr({
-              ...this.#getDataProps(),
-              cssToString: (declarations: Css.Declarations) => convertCss(declarations, topLevelCss)
-            })
-          )
-        ])
-
-      return joinCss(
-        typedEntries(curr).map(
-          ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
-        )
-      )
-    }, '')
+      }
+    })
   }
 
   #buildCss(shadowRoot: ShadowRoot): void {
