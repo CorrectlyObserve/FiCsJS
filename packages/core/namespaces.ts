@@ -29,6 +29,8 @@ export declare namespace FiCs {
 
   type FormAssociation = Form.Association
 
+  type GlobalCss = SingleOrArray<Css.Global>
+
   type Html<D extends object, P extends object> = Html.Core<D, P>
 
   type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
