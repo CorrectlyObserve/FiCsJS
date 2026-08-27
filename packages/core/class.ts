@@ -143,7 +143,7 @@ export class FiCsElement<D extends object, P extends object> {
     }
 
     const count: number = generator.next().value
-    this.#name = `f-${this.#nameKey}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
+    this.#name = `f-${this.#nameKey}${count > 1 ? `-${count}` : ''}`
 
     this.#children = new Proxy({} as Children, {
       get: (target: Children, key: string | symbol): unknown => {
