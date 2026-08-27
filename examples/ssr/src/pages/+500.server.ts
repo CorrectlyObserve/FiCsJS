@@ -1,7 +1,7 @@
 import StatusError from '@/pages/StatusError'
 
 export const meta = {
-  title: '500 Internal Server Error',
+  title: '500 - Internal Server Error',
   description: 'Something went wrong on the server.'
 }
 
