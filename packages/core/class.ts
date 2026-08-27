@@ -1795,7 +1795,9 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   describe(parent?: HTMLElement): void {
-    if (this.#isBrowser) lockQueryCache()
+    if (!this.#isBrowser) return
+
+    lockQueryCache()
     this.#initProps()
     this.#hasDescribed = true
     this.#callback('created')
