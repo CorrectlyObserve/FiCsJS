@@ -53,7 +53,7 @@ export declare namespace Color {
 export type Direction = 'row' | 'column'
 
 export interface Flex {
-  display: 'flex'
+  display: 'flex' | 'inline-flex'
   'flex-direction': Direction
 }
 
