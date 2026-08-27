@@ -9,6 +9,7 @@ export function positionCenter(
   axis: 'xy',
   position?: Position
 ): Readonly<Center & typeof horizontal & typeof vertical>
+export function positionCenter(axis: Axis, position?: Position): Readonly<Center>
 export function positionCenter(axis: Axis, position: Position = 'absolute'): Readonly<Center> {
   switch (axis) {
     case 'x':
