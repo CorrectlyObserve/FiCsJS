@@ -13,12 +13,12 @@ export function positionCenter(axis: Axis, position?: Position): Readonly<Center
 export function positionCenter(axis: Axis, position: Position = 'absolute'): Readonly<Center> {
   switch (axis) {
     case 'x':
-      return { position, ...horizontal, transform: 'translateX(-50%)' }
+      return { position, ...horizontal, transform: 'translateX(-50%)' } as const
 
     case 'y':
-      return { position, ...vertical, transform: 'translateY(-50%)' }
+      return { position, ...vertical, transform: 'translateY(-50%)' } as const
 
     case 'xy':
-      return { position, ...horizontal, ...vertical, transform: 'translate(-50%, -50%)' }
+      return { position, ...horizontal, ...vertical, transform: 'translate(-50%, -50%)' } as const
   }
 }
