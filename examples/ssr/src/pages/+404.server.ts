@@ -1,7 +1,7 @@
 import StatusError from '@/pages/StatusError'
 
 export const meta = {
-  title: '404 - Not Found',
+  title: '404 \u2014 Not Found',
   description: 'The page you requested could not be found.'
 }
 
