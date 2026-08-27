@@ -13,7 +13,7 @@ export function flexCenter(
 
 export function flexCenter(axis: Axis, options?: FlexOptions): Readonly<Flex> {
   return {
-    display: 'flex',
+    display: `${options?.inline ? 'inline-' : ''}flex`,
     'flex-direction': options?.direction ?? 'row',
     ...(axis.includes('x') ? justifyCenter : {}),
     ...(axis.includes('y') ? alignCenter : {})
