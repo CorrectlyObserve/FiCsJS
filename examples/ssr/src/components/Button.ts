@@ -11,13 +11,11 @@ interface Props {
 const html: FiCs.Html<{}, Props> = ({
   props: { isDisabled, isCurrent, buttonText },
   template,
-  attributes: { boolean },
   isBrowser
 }) => template`
   <button
     class="clickable w-24 text-white border border-white p-3 rounded-lg"
     ${!isBrowser || isDisabled ? 'disabled' : ''}
-    aria-disabled="${boolean(!isBrowser || isDisabled)}"
     ${isCurrent ? 'aria-current="page"' : ''}
     type="button"
   >${buttonText}</button>
