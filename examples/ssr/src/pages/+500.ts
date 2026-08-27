@@ -1,3 +1,3 @@
-import Error from '@/pages/StatusError'
+import StatusError from '@/pages/StatusError'
 
-Error.describe()
+StatusError.describe()
