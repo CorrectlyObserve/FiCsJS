@@ -47,7 +47,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = ({ props: { isError, error }, cssToString }) => `
   div {
-    ${cssToString(flexCenter('x', 'column'))}
+    ${cssToString(flexCenter('x', { direction: 'column' }))}
 
     label { padding-block-end: ${size(2)}; }
 
