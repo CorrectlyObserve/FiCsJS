@@ -57,6 +57,8 @@ export interface Flex {
   'flex-direction': Direction
 }
 
+export type FlexOptions = { direction?: Direction; inline?: boolean }
+
 export type Operator = '+' | '-' | '*' | '/'
 
 export type Position = 'absolute' | 'fixed'
