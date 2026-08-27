@@ -17,5 +17,5 @@ export function flexCenter(axis: Axis, options?: FlexOptions): Readonly<Flex> {
     'flex-direction': options?.direction ?? 'row',
     ...(axis.includes('x') ? justifyCenter : {}),
     ...(axis.includes('y') ? alignCenter : {})
-  }
+  } as const
 }
