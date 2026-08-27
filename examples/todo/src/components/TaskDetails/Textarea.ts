@@ -25,7 +25,7 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
   div {
-    ${cssToString(flexCenter('x', 'column'))}
+    ${cssToString(flexCenter('x', { direction: 'column' }))}
 
     label { padding-block-end: ${size(2)}; }
 
