@@ -25,7 +25,7 @@ export const meta = ({ status }: { status: keyof typeof texts }) => ({
 export default ({ status, error }: { status: keyof typeof texts; error?: unknown }): string =>
   StatusError.toString({
     data: {
-      description: description(status),
+      description: getStatusText(status).description,
       message: error instanceof Error ? error.message : String(error ?? 'Unknown server error'),
       href: status === 401 ? '/login' : '/users',
       text: status === 401 ? 'Log in as someone else \u2192' : '\u2190 Back to the user list'
