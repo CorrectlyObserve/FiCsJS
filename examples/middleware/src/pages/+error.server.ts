@@ -17,9 +17,9 @@ const texts: Partial<Record<FiCsRouter.Status, { title: string; description: str
 const getStatusText = (status: FiCsRouter.Status): { title: string; description: string } =>
   texts[status] ?? { title: 'Error', description: 'The request could not be completed.' }
 
-export const meta = ({ status }: { status: keyof typeof texts }) => ({
-  title: `${status} — ${status in texts ? texts[status].title : 'Error'}`,
-  description: description(status)
+export const meta = ({ status }: { status: FiCsRouter.Status }) => ({
+  title: `${status} \u2014 ${getStatusText(status).title}`,
+  description: getStatusText(status).description
 })
 
 export default ({ status, error }: { status: FiCsRouter.Status; error?: unknown }): string =>
