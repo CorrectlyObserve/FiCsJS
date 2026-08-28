@@ -1,8 +1,10 @@
 import { createPageHandler, createRpcHandler, type FiCsRouter } from 'ficsjs/router/server-only'
 import { pages, rpcRouter } from '@fics/routing/server'
-import { SESSION_COOKIE } from './src/server/auth'
-import { getUsers, type User } from './src/server/users'
-import globalCss from './src/globalCss'
+import { SESSION_COOKIE } from '@/server/auth'
+import { isRole } from '@/domain/role'
+import type { User } from '@/domain/user'
+import { getUsers } from '@/server/users'
+import globalCss from '@/globalCss'
 
 const PORT: number = 5175 as const
 const MISSING_USER_ID = 0 as const
