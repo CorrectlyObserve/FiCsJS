@@ -30,7 +30,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color }, cssToString }) => `
     padding: ${size(2)};
 
     &:hover { background: ${white(0.1)}; }
-    &:focus, &:focus-visible { outline-color: ${color ?? white()}; }
+    &:focus-visible { outline-color: ${color ?? white()}; }
 
     svg {
       ${cssToString(rect(8))}
