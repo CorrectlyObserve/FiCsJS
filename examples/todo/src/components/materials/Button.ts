@@ -18,10 +18,9 @@ const html: FiCs.Html<{}, Props> = ({
   attributes: { boolean }
 }) => template`
   <button
-    ${isDisabled ? 'disabled' : ''}
-    aria-disabled="${boolean(isDisabled)}"
-    ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
-    ${controls ? `aria-expanded="${boolean(isPressed)}" aria-controls="${controls}"` : ''}
+    ${isDisabled && 'disabled'}
+    ${isPressed !== undefined && `aria-pressed="${boolean(isPressed)}"`}
+    ${controls && `aria-expanded="${boolean(isPressed)}" aria-controls="${controls}"`}
     type="button"
     data-type="${controls ? 'toggle' : type}"
   >${buttonText}</button>
