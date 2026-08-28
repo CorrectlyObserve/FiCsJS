@@ -48,10 +48,9 @@ const sessionRoutes = new Map<string, (req: Request) => Response | Promise<Respo
     async (req: Request): Promise<Response> => {
       const form: FormData = await req.formData().catch(() => new FormData())
       const role: string = String(form.get('role') ?? '')
-      let account: User | undefined
-
-      if (role === 'admin' || role === 'member')
-        account = getUsers().find(user => user.role === role)
+      const account: User | undefined = isRole(role)
+        ? getUsers().find(({ role: r }) => r === role)
+        : undefined
 
       return account ? redirect('/', sessionCookie(account.id)) : redirect('/login')
     }
