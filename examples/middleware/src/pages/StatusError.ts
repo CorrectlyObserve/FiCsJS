@@ -36,7 +36,7 @@ export default fics<Data, {}>({
   name: 'error',
   children: [Link()],
   props,
-  data: () => ({ description: '', message: '', href: '/', text: '← Back to the top page' }),
+  data: () => ({ description: '', message: '', href: '/', text: '\u2190 Back to the top page' }),
   html,
   css
 })
