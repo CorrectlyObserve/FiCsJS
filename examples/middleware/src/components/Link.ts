@@ -1,5 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
-import { flexCenter, size } from 'ficsjs/style'
+import { flexCenter, oklch, size } from 'ficsjs/style'
+import { black } from '@/utils/color'
 
 interface Props {
   href: string
@@ -21,6 +22,7 @@ const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
     text-underline-offset: ${size(1)};
     line-height: inherit;
     &:visited { color: inherit; }
+    &:hover { background: ${oklch(black, { darker: 0.05 })}; cursor: pointer; }
     &:hover, &:focus-visible { color: #8ac6ff; }
   }
 `
