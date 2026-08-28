@@ -83,6 +83,8 @@ export declare namespace FiCsServerRouter {
   type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
 
   type Render = Routing.Render
+
+  type Status = Routing.Status.Resolved
 }
 
 export declare namespace FiCsServerRpc {
