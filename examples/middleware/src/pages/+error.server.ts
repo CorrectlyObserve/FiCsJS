@@ -1,6 +1,7 @@
+import type { FiCsRouter } from 'ficsjs/router/server-only'
 import StatusError from '@/pages/StatusError'
 
-const texts = {
+const texts: Partial<Record<FiCsRouter.Status, { title: string; description: string }>> = {
   401: {
     title: 'Unauthorized',
     description: 'Your session is invalid or the account no longer exists.'
@@ -11,7 +12,7 @@ const texts = {
   },
   409: { title: 'Conflict', description: 'The request conflicts with an existing record.' },
   500: { title: 'Internal Server Error', description: 'Something went wrong on the server.' }
-} as const
+}
 
 const description = (status: keyof typeof texts): string =>
   status in texts ? texts[status].description : 'The request could not be completed.'
