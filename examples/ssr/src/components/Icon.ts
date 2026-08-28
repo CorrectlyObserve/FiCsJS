@@ -24,10 +24,9 @@ const html: FiCs.Html<{}, Props> = ({
   return template`
     <button
       class="clickable flex ${textColor} ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
-      ${_isDisabled ? 'disabled' : ''}
-      aria-disabled="${boolean(_isDisabled)}"
+      ${_isDisabled && 'disabled'}
       aria-label="${ariaLabel}"
-      ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
+      ${isPressed !== undefined && `aria-pressed="${boolean(isPressed)}"`}
       type="button"
     >${unsafeHtml(svg)}</button>
   `
