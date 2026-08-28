@@ -16,7 +16,7 @@ export default {
     borderRadius: size(2),
     '&:not([disabled])': {
       '&:hover': { background: white(0.1), cursor: 'pointer' },
-      '&:focus, &:focus-visible': { outline }
+      '&:focus-visible': { outline }
     }
   },
   h2: {
@@ -36,7 +36,7 @@ export default {
     transition: cssVar('transition'),
     borderRadius: size(2),
     '&:hover': { background: white(0.1), cursor: 'pointer' },
-    '&:focus, &:focus-visible': { color: 'inherit', outline, outlineOffset: 0 },
+    '&:focus-visible': { color: 'inherit', outline, outlineOffset: 0 },
     '&:active': { scale: 0.98 }
   },
   'span[role="button"]': { padding: size(4) }
