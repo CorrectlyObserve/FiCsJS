@@ -1,5 +1,6 @@
 import type { FiCsRouter } from 'ficsjs/router/server-only'
-import { findUser, type User } from '@/server/users'
+import type { User } from '@/domain/user'
+import { findUser } from '@/server/users'
 
 export interface Session {
   account: User | null
