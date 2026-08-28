@@ -1,11 +1,4 @@
-export type Role = 'admin' | 'member'
-
-export interface User {
-  id: number
-  name: string
-  email: string
-  role: Role
-}
+import type { User } from '@/domain/user'
 
 let users: User[] = [
   { id: 1, name: 'Alice', email: 'alice@example.com', role: 'admin' },
