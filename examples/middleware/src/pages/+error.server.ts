@@ -22,7 +22,7 @@ export const meta = ({ status }: { status: keyof typeof texts }) => ({
   description: description(status)
 })
 
-export default ({ status, error }: { status: keyof typeof texts; error?: unknown }): string =>
+export default ({ status, error }: { status: FiCsRouter.Status; error?: unknown }): string =>
   StatusError.toString({
     data: {
       description: getStatusText(status).description,
