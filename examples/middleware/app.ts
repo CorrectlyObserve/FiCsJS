@@ -32,7 +32,7 @@ const rpc = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
 const redirect = (location: string, cookie?: string): Response =>
   new Response(null, {
     status: 302,
-    headers: { location, ...(cookie ? { 'set-cookie': cookie } : {}) }
+    headers: { location, 'cache-control': 'no-store', ...(cookie ? { 'set-cookie': cookie } : {}) }
   })
 
 const sessionCookie = (userId?: number): string => {
@@ -81,7 +81,10 @@ Bun.serve({
 
     if (pathname.startsWith(rpcRouter.basePath)) return rpc(req)
 
-    return page(req)
+    const res: Response = await page(req)
+    res.headers.set('cache-control', 'no-store')
+
+    return res
   }
 })
 
