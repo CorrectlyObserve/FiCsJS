@@ -21,7 +21,7 @@ const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
     text-underline-offset: ${size(1)};
     line-height: inherit;
     &:visited { color: inherit; }
-    &:hover, &:focus, &:focus-visible { color: #8ac6ff; }
+    &:hover, &:focus-visible { color: #8ac6ff; }
   }
 `
 
