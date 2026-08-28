@@ -14,8 +14,8 @@ const texts: Partial<Record<FiCsRouter.Status, { title: string; description: str
   500: { title: 'Internal Server Error', description: 'Something went wrong on the server.' }
 }
 
-const description = (status: keyof typeof texts): string =>
-  status in texts ? texts[status].description : 'The request could not be completed.'
+const getStatusText = (status: FiCsRouter.Status): { title: string; description: string } =>
+  texts[status] ?? { title: 'Error', description: 'The request could not be completed.' }
 
 export const meta = ({ status }: { status: keyof typeof texts }) => ({
   title: `${status} — ${status in texts ? texts[status].title : 'Error'}`,
