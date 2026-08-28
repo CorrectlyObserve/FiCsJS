@@ -1761,7 +1761,7 @@ export class FiCsElement<D extends object, P extends object> {
         const slotAttrs: string = [
             `id="${that.#name}"`,
             `slot="${that.#instanceId}"`,
-            `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
+            data && `data-${that.#name}="${escape(JSON.stringify(data))}"`
           ]
             .filter(Boolean)
             .join(' '),
