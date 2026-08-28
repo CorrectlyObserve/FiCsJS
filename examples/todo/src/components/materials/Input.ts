@@ -28,17 +28,16 @@ const html: FiCs.Html<Data, Props> = ({
   const hasError = !!(isError && error)
   return template`
     <div>
-      ${!isAriaLabel ? template`<label for="${id}">${label}</label>` : ''}
-      <p id="${id}-error" ${show(hasError)} role="alert" aria-live="polite">${error ?? ''}</p>
+      ${!isAriaLabel && template`<label for="${id}">${label}</label>`}
       <p id="${id}-info">${description}</p>
       <input
         id="${id}"
         value="${value}"
         placeholder="${placeholder}"
-        ${isAriaLabel ? `aria-label="${label}"` : ''}
-        aria-describedby="${[`${id}-info`, hasError ? `${id}-error` : ''].filter(Boolean).join(' ')}"
+        ${isAriaLabel && `aria-label="${label}"`}
+        aria-describedby="${[`${id}-info`, hasError && `${id}-error`].filter(Boolean).join(' ')}"
         aria-invalid="${boolean(hasError)}"
-        ${hasError ? `aria-errormessage="${id}-error"` : ''}
+        ${hasError && `aria-errormessage="${id}-error"`}
         type="text"
       />
     </div>
