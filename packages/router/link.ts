@@ -9,6 +9,7 @@ export const ficsLink = <P extends object>({
   props,
   className,
   attributes,
+  anchorAttributes,
   content,
   css,
   actions
