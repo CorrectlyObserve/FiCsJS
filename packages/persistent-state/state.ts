@@ -228,7 +228,7 @@ export class PersistentState<S> {
             req.onsuccess = () => resolve(req.result)
             req.onerror = () => reject(req.error)
             req.onblocked = () =>
-              console.warn('Please close other tabs to complete the IndexedDB upgrade...')
+              console.warn('Close other tabs to complete the IndexedDB upgrade...')
           })
 
           db.onversionchange = () => {
