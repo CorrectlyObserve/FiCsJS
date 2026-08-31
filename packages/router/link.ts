@@ -1,5 +1,5 @@
 import { FiCsElement } from '../core/class'
-import { isBlankString } from '../core/helpers'
+import { escape, isBlankString, typedEntries } from '../core/helpers'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
 
@@ -20,13 +20,34 @@ export const ficsLink = <P extends object>({
     props,
     className,
     attributes,
-    html: ({ props, template, ...args }) => {
+    html: ({ data, props, template, ...args }) => {
       const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
       if (isBlankString(_href)) throw new Error('The "href" must be a non-empty string...')
 
-      const _content: Returned<{}, P> = content({ props, template, ...args })
+      let anchorAttrs: string = ''
+
+      if (anchorAttributes !== undefined) {
+        const entries = typedEntries(
+            typeof anchorAttributes === 'function'
+              ? anchorAttributes({ data, props })
+              : anchorAttributes
+          ),
+          attrs: string[] = []
+
+        for (const [key, value] of entries) {
+          if (key === 'href')
+            throw new Error(
+              'Pass the "href" option as a top-level option, not inside "anchorAttributes"...'
+            )
+          attrs.push(`${key}="${escape(String(value))}"`)
+        }
+
+        anchorAttrs = attrs.join(' ')
+      }
+
+      const _content: Returned<{}, P> = content({ data, props, template, ...args })
       return template`
-        <a href="${_href}">
+        <a ${[`href="${_href}"`, anchorAttrs].filter(Boolean).join(' ')}>
           ${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}
         </a>
       `
