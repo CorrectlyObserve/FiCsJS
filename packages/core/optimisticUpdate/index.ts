@@ -104,7 +104,7 @@ export const optimisticUpdate = () => {
             for (const touchedKey of touchedKeys)
               if (!declaredDataKeys.has(touchedKey))
                 console.warn(
-                  `The undeclared key '${String(touchedKey)}' was modified. Please add it to 'dataKeys' for concurrent safety...`
+                  `Add the modified undeclared key "${String(touchedKey)}" to 'dataKeys' for concurrent safety...`
                 )
           }
 
