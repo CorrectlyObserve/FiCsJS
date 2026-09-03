@@ -115,13 +115,13 @@ const html: FiCs.Html<Data, {}> = ({
           </div>
         `
       )}
-      ${isLoading ? skeletons : ''}
+      ${isLoading && skeletons}
     </div>
     <dialog
       id="photo-dialog"
       class="w-3xs rounded-lg border border-white z-1"
       aria-labelledby="dialog-title"
-      ${photoId !== '' ? 'open' : ''}
+      ${photoId !== '' && 'open'}
       ${show(photoId !== '')}
     >
       ${icon}
