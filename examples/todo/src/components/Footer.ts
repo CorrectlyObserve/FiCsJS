@@ -4,11 +4,11 @@ import { size, textSize } from 'ficsjs/style'
 const html: FiCs.Html<{}, {}> = ({ template }) =>
   template`<footer><p>&copy; 2024 Masami Ogasawara</p></footer>`
 
-const css: FiCs.Css<{}, {}> = ({ cssToString }) => `
+const css: FiCs.Css<{}, {}> = `
   footer {
     padding-block-end: ${size(4)};
 
-    p {${cssToString(textSize('sm'))}}
+    p {${textSize('sm')}}
   }
 `
 
