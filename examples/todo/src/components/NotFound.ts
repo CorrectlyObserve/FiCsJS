@@ -61,9 +61,9 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = ({ cssToString }) => `
+const css: FiCs.Css<Data, Props> = `
   p {
-    &[role="status"] {${cssToString(forScreenReaders)}}
+    &[role="status"] {${forScreenReaders}}
 
     &[aria-hidden="true"] {
       margin-block-end: ${size(8)};
