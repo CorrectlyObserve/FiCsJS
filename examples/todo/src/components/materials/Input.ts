@@ -52,7 +52,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error }, cssToString }) 
 
     p {
       &:first-of-type {
-        ${cssToString(textSize('sm'))}
+        ${textSize('sm')}
         color: ${cssVar('red')};
         margin-block-end: ${size(2)};
         text-align: left;
