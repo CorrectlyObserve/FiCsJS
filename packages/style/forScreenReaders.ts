@@ -1,4 +1,6 @@
-export const forScreenReaders = {
+import { cssDeclarations } from '../core/helpers'
+
+export const forScreenReaders = cssDeclarations({
   position: 'absolute',
   width: '1px',
   height: '1px',
@@ -9,4 +11,4 @@ export const forScreenReaders = {
   'clip-path': 'inset(50%)',
   'white-space': 'nowrap',
   border: 0
-} as const
+} as const)
