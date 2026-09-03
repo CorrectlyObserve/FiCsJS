@@ -48,3 +48,6 @@ const normalizeProperty = (key: string | number): string => {
   if (key.startsWith('webkit')) key = `-${key}`
   return key
 }
+
+export const declarations = <T extends Css.Declarations>(style: T): T =>
+  Object.defineProperty(style, 'toString', { value: (): string => convertCss(style) })
