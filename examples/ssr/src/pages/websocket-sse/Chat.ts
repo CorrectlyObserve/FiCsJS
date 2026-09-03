@@ -79,7 +79,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = {
   ':host': {
-    ...flexCenter('y', 'column'),
+    ...flexCenter('y', { direction: 'column' }),
     flexGrow: 1,
     minHeight: 0
   },
@@ -95,7 +95,7 @@ const css: FiCs.Css<Data, Props> = {
       }
     },
     '&.input-field': {
-      ...flexCenter('y', 'column'),
+      ...flexCenter('y', { direction: 'column' }),
       div: {
         ...flexCenter('y'),
         textarea: {
