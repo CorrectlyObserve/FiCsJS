@@ -32,7 +32,7 @@ const css: FiCs.Css<Data, Props> = `
     margin-inline: auto;
 
     svg {
-      ${cssToString({ ...rect(16), ...spin() })}
+      ${rect(16)}${spin()}
       display: flex;
       stroke: ${white()};
     }
