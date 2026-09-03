@@ -28,9 +28,7 @@ const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
     ${cssToString(flexCenter('x', { direction: 'column' }))}
 
     label { padding-block-end: ${size(2)}; }
-
-    p {${cssToString(forScreenReaders)}}
-
+    p {${forScreenReaders}}
     textarea {
       height: ${calc(`${size(3)} + ${size(6 * 6)} + ${size(3)}`)};
       resize: none;
