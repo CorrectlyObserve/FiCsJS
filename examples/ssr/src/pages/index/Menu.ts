@@ -57,8 +57,7 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = ({ cssToString }) =>
-  `:host {${cssToString(flexCenter('y', { direction: 'column' }))}}`
+const css: FiCs.Css<Data, Props> = `:host {${flexCenter('y', { direction: 'column' })}}`
 
 export default fics<Data, Props>({
   name: 'menu',
