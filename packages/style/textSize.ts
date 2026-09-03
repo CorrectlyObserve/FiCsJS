@@ -1,3 +1,4 @@
+import { cssDeclarations } from '../core/helpers'
 import type { TextSize } from './types'
 
 export const textSize = (size: TextSize, isLineHeightNone?: boolean) => {
@@ -45,5 +46,8 @@ export const textSize = (size: TextSize, isLineHeightNone?: boolean) => {
       break
   }
 
-  return { 'font-size': fontSize, 'line-height': isLineHeightNone ? 1 : lineHeight } as const
+  return cssDeclarations({
+    'font-size': fontSize,
+    'line-height': isLineHeightNone ? 1 : lineHeight
+  } as const)
 }
