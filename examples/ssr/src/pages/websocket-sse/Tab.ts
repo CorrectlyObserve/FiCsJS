@@ -27,8 +27,7 @@ const html: FiCs.Html<Data, {}> = ({ children: { button }, data, template }) => 
   </div>
 `
 
-const css: FiCs.Css<Data, {}> = ({ cssToString }) =>
-  `:host div.container {${cssToString(flexCenter('x'))}}`
+const css: FiCs.Css<Data, {}> = `:host div.container {${flexCenter('x')}}`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   mounted: ({ data }) => (data.current = window.location.pathname)
