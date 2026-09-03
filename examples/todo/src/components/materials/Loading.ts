@@ -24,8 +24,8 @@ const html: FiCs.Html<Data, Props> = ({
   <div aria-hidden="true">${unsafeHtml(Loader)}</div>
 `
 
-const css: FiCs.Css<Data, Props> = ({ cssToString }) => `
-  p {${cssToString(forScreenReaders)}}
+const css: FiCs.Css<Data, Props> = `
+  p {${forScreenReaders}}
 
   div {
     padding: ${size(2)};
