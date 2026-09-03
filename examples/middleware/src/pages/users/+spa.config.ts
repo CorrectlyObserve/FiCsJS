@@ -1,0 +1,76 @@
+import type { FiCsRouter } from 'ficsjs/router'
+import { api } from '@fics/routing/client'
+import { USERS_PATH } from '@/domain/path'
+import type { User } from '@/domain/user'
+import UserDetail from '@/pages/users/UserDetail'
+import UserList from '@/pages/users/UserList'
+import AddUser from '@/pages/users/new/AddUser'
+
+export interface Data {
+  currentPath: string
+  users: readonly User[]
+  selected: User | null
+  isAdmin: boolean
+  notice: string
+}
+
+const props: FiCsRouter.Props<Data> = [
+  {
+    descendants: ({ children: { userList, userDetail } }) => [userList, userDetail],
+    values: ({ data: { isAdmin, notice } }) => ({ isAdmin, notice })
+  },
+  {
+    descendants: ({ children: { userList } }) => userList,
+    values: ({ data: { users } }) => ({ users })
+  },
+  {
+    descendants: ({ children: { userDetail } }) => userDetail,
+    values: ({ data: { selected } }) => ({ user: selected })
+  }
+]
+
+const load = async (data: Data): Promise<void> => {
+  const segment = data.currentPath.split('/')[2] ?? ''
+
+  data.selected = null
+  data.notice = ''
+
+  if (segment === '') {
+    try {
+      const { users, isAdmin }: { users: readonly User[]; isAdmin: boolean } =
+        await api.users.list()
+
+      data.users = users
+      data.isAdmin = isAdmin
+    } catch {
+      data.notice = 'The user list could not be loaded.'
+    }
+  } else if (segment !== 'new') {
+    const id: number = Number(segment)
+
+    try {
+      if (!Number.isInteger(id) || id <= 0) throw new RangeError(segment)
+
+      const { user, isAdmin }: { user: User; isAdmin: boolean } = await api.users.get({ id })
+      data.selected = user
+      data.isAdmin = isAdmin
+    } catch {
+      data.notice = 'That user could not be loaded.'
+    }
+  }
+}
+
+const hooks: FiCsRouter.Hooks<Data> = {
+  created: ({ data }) => load(data),
+  updated: { currentPath: ({ data }) => load(data) }
+}
+
+const spa: FiCsRouter.Spa<Data> = {
+  pathname: USERS_PATH,
+  children: [UserList, UserDetail, AddUser],
+  data: () => ({ currentPath: USERS_PATH, users: [], selected: null, isAdmin: false, notice: '' }),
+  props,
+  hooks
+}
+
+export default spa
