@@ -149,7 +149,7 @@ const css: FiCs.Css<Data, {}> = {
       img: {
         position: 'absolute',
         top: 0,
-        '&:focus, &:focus-visible': {
+        '&:focus-visible': {
           zIndex: 1,
           '&[data-index="0"]': {
             [`margin${isHorizontal ? 'Inline' : 'Block'}Start`]: cssVar('outline')
