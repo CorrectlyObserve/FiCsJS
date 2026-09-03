@@ -29,9 +29,9 @@ const html: FiCs.Html<{}, Props> = ({ props: { user, userId }, template }) => {
   `
 }
 
-const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
+const css: FiCs.Css<{}, Props> = `
   :host {
-    ${cssToString(flexCenter('y'))}
+    ${flexCenter('y')}
 
     p > span { grid-area: 1/1; }
   }
