@@ -173,12 +173,7 @@ const html: FiCs.Html<Data, {}> = ({
     `
 }
 
-const css: FiCs.Css<Data, {}> = ({ cssToString }) => `
-  div {
-    &.buttons {${cssToString(flexCenter('x'))}}
-    &.w-fit {${cssToString(flexCenter('y'))}}
-  }
-`
+const css: FiCs.Css<Data, {}> = `div { &.buttons {${flexCenter('x')}}; &.w-fit {${flexCenter('y')}} }`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {
