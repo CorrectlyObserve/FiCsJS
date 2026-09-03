@@ -23,7 +23,7 @@ const html: FiCs.Html<{}, Props> = ({
   >${unsafeHtml(svg)}</button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { color }, cssToString }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
   button[type="button"] {
     background: none;
     color: ${color ?? white()};
@@ -33,7 +33,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color }, cssToString }) => `
     &:focus-visible { outline-color: ${color ?? white()}; }
 
     svg {
-      ${cssToString(rect(8))}
+      ${rect(8)}
       display: flex;
       stroke: currentColor;
     }
