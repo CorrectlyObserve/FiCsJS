@@ -23,9 +23,9 @@ const html: FiCs.Html<{}, Props> = ({
     </div>
   `
 
-const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
+const css: FiCs.Css<{}, Props> = `
   div {
-    ${cssToString(flexCenter('x', { direction: 'column' }))}
+    ${flexCenter('x', { direction: 'column' })}
 
     label { padding-block-end: ${size(2)}; }
     p {${forScreenReaders}}
