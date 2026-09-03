@@ -1,4 +1,4 @@
-import { browserError, numberError } from '../core/helpers'
+import { browserError, cssDeclarations, numberError } from '../core/helpers'
 import type { Operator } from './types'
 
 export function calc(expression: string): Readonly<string>
@@ -13,11 +13,11 @@ export const cssVar = (variable: string): Readonly<string> => {
   return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})` as const
 }
 
-export const hideScrollbar = {
+export const hideScrollbar = cssDeclarations({
   '::-webkit-scrollbar': { display: 'none' },
   'scrollbar-width': 'none',
   '-ms-overflow-style': 'none'
-} as const
+} as const)
 
 /** @param rem Must be a non-negative number if it is a number. */
 export const remToPx = (rem: number | string): Readonly<number> => {
