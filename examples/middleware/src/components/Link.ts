@@ -14,9 +14,9 @@ const html: FiCs.Html<{}, Props> = ({ props: { href, text }, template }) => {
   return template`<p align="center"><a href="${href}">${text}</a></p>`
 }
 
-const css: FiCs.Css<{}, Props> = ({ cssToString }) => `
+const css: FiCs.Css<{}, Props> = `
   a {
-    ${cssToString(flexCenter('y', { inline: true }))}
+    ${flexCenter('y', { inline: true })}
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: ${size(1)};
