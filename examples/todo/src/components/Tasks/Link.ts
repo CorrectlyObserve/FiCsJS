@@ -20,7 +20,7 @@ const href: FiCsLink.Href<Props> = ({ props: { id, isQuery } }) =>
 const content: FiCsLink.Content<Props> = ({ props: { title, completedAt }, template }) =>
   template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`
 
-const css: FiCsLink.Css<Props> = ({ cssToString }) => `
+const css: FiCsLink.Css<Props> = `
   :host {
     width: ${calc(`100% - ${size(12)}`)};
 
@@ -30,7 +30,7 @@ const css: FiCsLink.Css<Props> = ({ cssToString }) => `
       padding: ${size(4)};
 
       span {
-        ${cssToString(truncate())}
+        ${truncate()}
         width: 100%;
         line-height: inherit;
 
