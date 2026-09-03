@@ -58,7 +58,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error }, cssToString }) 
         text-align: left;
       }
 
-      &:last-of-type {${cssToString(forScreenReaders)}}
+      &:last-of-type {${forScreenReaders}}
     }
 
     ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
