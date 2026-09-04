@@ -1,4 +1,5 @@
 import type { User } from '@/domain/user'
+import { rpcError } from '@/server/rpc'
 
 let users: User[] = [
   { id: 1, name: 'Alice', email: 'alice@example.com', role: 'admin' },
@@ -9,6 +10,10 @@ let users: User[] = [
 export const getUsers = (): readonly User[] => users
 
 export const findUser = (userId: number): User | undefined => users.find(({ id }) => id === userId)
+
+export const nonExistentUserError = (userId: number) => {
+  return rpcError({ code: 'NOT_FOUND', message: `The user with ID ${userId} does not exist.` })
+}
 
 export const addUser = (userData: Omit<User, 'id'>): User | null => {
   if (users.some(({ email }) => email === userData.email)) return null
