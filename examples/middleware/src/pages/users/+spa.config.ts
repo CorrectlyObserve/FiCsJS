@@ -7,7 +7,6 @@ import UserList from '@/pages/users/UserList'
 import AddUser from '@/pages/users/new/AddUser'
 
 export interface Data {
-  currentPath: string
   users: readonly User[]
   selected: User | null
   isAdmin: boolean
