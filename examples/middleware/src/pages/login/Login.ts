@@ -2,7 +2,7 @@ import { fics, type FiCs } from 'ficsjs'
 import { size } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Select from '@/components/Select'
-import { loginPath, readRedirect } from '@/domain/redirect'
+import { readRedirect, viaLogin } from '@/domain/redirect'
 import { isRole, ROLES, type Role } from '@/domain/role'
 
 interface Data {
@@ -37,7 +37,7 @@ const html: FiCs.Html<Data, {}> = ({
   template,
   isBrowser
 }) => template`
-  <form method="post" action="${loginPath(isBrowser ? readRedirect(window.location.href) : null)}">
+  <form method="post" action="${viaLogin(isBrowser ? readRedirect(window.location.href) : null)}">
     ${select}${button}
   </form>
 `
