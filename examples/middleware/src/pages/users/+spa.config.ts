@@ -28,12 +28,11 @@ const props: FiCsRouter.Props<Data> = [
   }
 ]
 
-const load = async (data: Data): Promise<void> => {
-  const segment = data.currentPath.split('/')[2] ?? ''
-
+const load = async (data: Data & { pathname: string }): Promise<void> => {
   data.selected = null
   data.notice = ''
 
+  const segment = data.pathname.split('/')[2] ?? ''
   if (segment === '') {
     try {
       const { users, isAdmin }: { users: readonly User[]; isAdmin: boolean } =
@@ -67,7 +66,7 @@ const hooks: FiCsRouter.Hooks<Data> = {
 const spa: FiCsRouter.Spa<Data> = {
   pathname: USERS_PATH,
   children: [UserList, UserDetail, AddUser],
-  data: () => ({ currentPath: USERS_PATH, users: [], selected: null, isAdmin: false, notice: '' }),
+  data: () => ({ users: [], selected: null, isAdmin: false, notice: '' }),
   props,
   hooks
 }
