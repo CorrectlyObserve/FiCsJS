@@ -1,5 +1,7 @@
 import { createPageHandler, createRpcHandler, type FiCsRouter } from 'ficsjs/router/server-only'
 import { pages, rpcRouter } from '@fics/routing/server'
+import { BREAK_SESSION_PATH, HOME_PATH, LOGIN_PATH, LOGOUT_PATH } from '@/domain/path'
+import { readRedirect, viaLogin } from '@/domain/redirect'
 import { SESSION_COOKIE } from '@/server/auth'
 import { isRole } from '@/domain/role'
 import type { User } from '@/domain/user'
@@ -52,7 +54,10 @@ const sessionRoutes = new Map<string, (req: Request) => Response | Promise<Respo
         ? getUsers().find(({ role: r }) => r === role)
         : undefined
 
-      return account ? redirect('/', sessionCookie(account.id)) : redirect('/login')
+      const next: string | null = readRedirect(req.url)
+      return account
+        ? redirect(next ?? HOME_PATH, sessionCookie(account.id))
+        : redirect(viaLogin(next))
     }
   ],
   [LOGOUT_PATH, (): Response => redirect(viaLogin(null), sessionCookie())],
