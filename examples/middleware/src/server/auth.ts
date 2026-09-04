@@ -1,4 +1,6 @@
 import type { FiCsRouter } from 'ficsjs/router/server-only'
+import { HOME_PATH } from '@/domain/path'
+import { readRedirect } from '@/domain/redirect'
 import type { User } from '@/domain/user'
 import { findUser } from '@/server/users'
 
@@ -47,9 +49,9 @@ export const requireUser = async (ctx: { req: Request }): Promise<User> => {
   return account
 }
 
-export const signedIn = async (ctx: FiCsRouter.MiddlewareCtx) => {
-  const { account, isStale }: Session = await readSession(ctx)
-  if (account) return
+export const guestOnly = async (ctx: FiCsRouter.MiddlewareCtx) => {
+  const { account }: Session = await readSession(ctx)
+  if (!account) return
 
-  return ctx.deny(isStale ? { code: 401 } : { redirect: '/login' })
+  return ctx.deny({ redirect: readRedirect(ctx.req.url) ?? HOME_PATH })
 }
