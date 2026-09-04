@@ -1,6 +1,6 @@
 import type { FiCsRouter } from 'ficsjs/router/server-only'
 import { HOME_PATH } from '@/domain/path'
-import { readRedirect } from '@/domain/redirect'
+import { readRedirect, toSafePath, viaLogin } from '@/domain/redirect'
 import type { User } from '@/domain/user'
 import { findUser } from '@/server/users'
 
@@ -56,7 +56,7 @@ export const signedIn = async (ctx: FiCsRouter.MiddlewareCtx) => {
 
   const { pathname, search }: URL = new URL(ctx.req.url)
   return ctx.deny({
-    redirect: loginPath(
+    redirect: viaLogin(
       ctx.req.headers.get('sec-fetch-dest') === 'document'
         ? toSafePath(`${pathname}${search}`)
         : null
