@@ -1,4 +1,5 @@
 import type { FiCsRouter } from 'ficsjs/router/server-only'
+import { LOGIN_PATH, USERS_PATH } from '@/domain/path'
 import StatusError from '@/pages/StatusError'
 
 const texts: Partial<Record<FiCsRouter.Status, { title: string; description: string }>> = {
@@ -27,7 +28,7 @@ export default ({ status, error }: { status: FiCsRouter.Status; error?: unknown 
     data: {
       description: getStatusText(status).description,
       message: error instanceof Error ? error.message : String(error ?? 'Unknown server error'),
-      href: status === 401 ? '/login' : '/users',
+      href: status === 401 ? LOGIN_PATH : USERS_PATH,
       text: status === 401 ? 'Log in as someone else \u2192' : '\u2190 Back to the user list'
     }
   })
