@@ -2,6 +2,7 @@ import { fics, type FiCs } from 'ficsjs'
 import { size } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Select from '@/components/Select'
+import { loginPath, readRedirect } from '@/domain/redirect'
 import { isRole, ROLES, type Role } from '@/domain/role'
 
 interface Data {
@@ -31,8 +32,14 @@ const props: FiCs.Props<Data, {}> = [
   }
 ]
 
-const html: FiCs.Html<Data, {}> = ({ children: { select, button }, template }) => template`
-  <form method="post" action="/login">${select}${button}</form>
+const html: FiCs.Html<Data, {}> = ({
+  children: { select, button },
+  template,
+  isBrowser
+}) => template`
+  <form method="post" action="${loginPath(isBrowser ? readRedirect(window.location.href) : null)}">
+    ${select}${button}
+  </form>
 `
 const css: FiCs.Css<Data, {}> = `form { display: grid; justify-items: center; gap: ${size(4)}; }`
 
