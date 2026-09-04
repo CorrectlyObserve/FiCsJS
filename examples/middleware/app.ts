@@ -55,8 +55,8 @@ const sessionRoutes = new Map<string, (req: Request) => Response | Promise<Respo
       return account ? redirect('/', sessionCookie(account.id)) : redirect('/login')
     }
   ],
-  ['/logout', (): Response => redirect('/login', sessionCookie())],
-  ['/break-session', (): Response => redirect('/', sessionCookie(MISSING_USER_ID))]
+  [LOGOUT_PATH, (): Response => redirect(loginPath(null), sessionCookie())],
+  [BREAK_SESSION_PATH, (): Response => redirect(HOME_PATH, sessionCookie(MISSING_USER_ID))]
 ])
 
 Bun.serve({
