@@ -44,7 +44,7 @@ const sessionCookie = (userId?: number): string => {
 
 const sessionRoutes = new Map<string, (req: Request) => Response | Promise<Response>>([
   [
-    '/login',
+    LOGIN_PATH,
     async (req: Request): Promise<Response> => {
       const form: FormData = await req.formData().catch(() => new FormData())
       const role: string = String(form.get('role') ?? '')
