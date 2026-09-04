@@ -49,6 +49,21 @@ export const requireUser = async (ctx: { req: Request }): Promise<User> => {
   return account
 }
 
+export const signedIn = async (ctx: FiCsRouter.MiddlewareCtx) => {
+  const { account, isStale }: Session = await readSession(ctx)
+  if (account) return
+  if (isStale) return ctx.deny({ code: 401 })
+
+  const { pathname, search }: URL = new URL(ctx.req.url)
+  return ctx.deny({
+    redirect: loginPath(
+      ctx.req.headers.get('sec-fetch-dest') === 'document'
+        ? toSafePath(`${pathname}${search}`)
+        : null
+    )
+  })
+}
+
 export const guestOnly = async (ctx: FiCsRouter.MiddlewareCtx) => {
   const { account }: Session = await readSession(ctx)
   if (!account) return
