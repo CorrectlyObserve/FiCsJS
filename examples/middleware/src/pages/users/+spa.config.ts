@@ -59,8 +59,10 @@ const load = async (data: Data & { pathname: string }): Promise<void> => {
 }
 
 const hooks: FiCsRouter.Hooks<Data> = {
-  created: ({ data }) => load(data),
-  updated: { currentPath: ({ data }) => load(data) }
+  created: ({ data }) => {
+    if ((window.location.pathname.replace(/\/+$/, '') || '/') === data.pathname) load(data)
+  },
+  updated: { pathname: ({ data }) => load(data) }
 }
 
 const spa: FiCsRouter.Spa<Data> = {
