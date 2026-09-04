@@ -55,7 +55,7 @@ const sessionRoutes = new Map<string, (req: Request) => Response | Promise<Respo
       return account ? redirect('/', sessionCookie(account.id)) : redirect('/login')
     }
   ],
-  [LOGOUT_PATH, (): Response => redirect(loginPath(null), sessionCookie())],
+  [LOGOUT_PATH, (): Response => redirect(viaLogin(null), sessionCookie())],
   [BREAK_SESSION_PATH, (): Response => redirect(HOME_PATH, sessionCookie(MISSING_USER_ID))]
 ])
 
