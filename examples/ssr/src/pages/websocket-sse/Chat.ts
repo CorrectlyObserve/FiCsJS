@@ -100,7 +100,7 @@ const css: FiCs.Css<Data, Props> = {
         ...flexCenter('y'),
         textarea: {
           '&:hover': { background: white(0.1) },
-          '&:focus': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
+          '&:focus-visible': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
         }
       }
     }
