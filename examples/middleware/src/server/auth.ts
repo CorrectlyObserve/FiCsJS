@@ -39,6 +39,11 @@ const readSession = ({ req }: { req: Request }): Promise<Session> => {
   return session
 }
 
+export const adminOnly = async (ctx: FiCsRouter.MiddlewareCtx) => {
+  const { role }: User = await requireUser(ctx)
+  if (role !== 'admin') return ctx.deny()
+}
+
 export const requireUser = async (ctx: { req: Request }): Promise<User> => {
   const { account }: Session = await readSession(ctx)
   if (!account)
