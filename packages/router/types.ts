@@ -19,6 +19,7 @@ export type Content<D extends object, P extends object, T = {}> = (
 ) => Returned<D, P>
 
 export interface FiCsLink<P extends object> {
+  name?: string
   children?: Descendant[]
   props?: SingleOrArray<Props<{}, P>>
   className?: ClassName<{}, P>
