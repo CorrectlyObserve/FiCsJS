@@ -16,10 +16,13 @@ import type {
   Returned,
   RouterData,
   Routing,
-  Rpc
+  Rpc,
+  WithoutHref
 } from './types'
 
 export declare namespace FiCsLink {
+  type AnchorAttributes<P> = WithoutHref<Attrs<{}, P>> | undefined
+
   type Actions<P> = Action.Handlers<{}, P> | undefined
 
   type Attributes<P> = Attrs<{}, P> | undefined
