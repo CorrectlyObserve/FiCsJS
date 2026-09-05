@@ -1,9 +1,11 @@
 import { FiCsElement } from '../core/class'
 import { escape, isBlankString, typedEntries } from '../core/helpers'
+import { LINK_COMPONENT_NAME } from './constants'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
 
 export const ficsLink = <P extends object>({
+  name = LINK_COMPONENT_NAME,
   children,
   href,
   props,
@@ -15,7 +17,7 @@ export const ficsLink = <P extends object>({
   actions
 }: FiCsLink<P>): FiCsElement<{}, P> =>
   new FiCsElement<{}, P>({
-    name: '_link',
+    name,
     children,
     props,
     className,
