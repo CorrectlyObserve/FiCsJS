@@ -17,4 +17,4 @@ const css: FiCsLink.Css<Props> = `
   }
 `
 
-export default () => ficsLink<Props>({ href, content, css })
+export default () => ficsLink<Props>({ name: 'spa-link', href, content, css })
