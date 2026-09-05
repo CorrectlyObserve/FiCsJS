@@ -54,16 +54,18 @@ export const ficsLink = <P extends object>({
     },
     css: [
       `
-        :host {
-          display: block;
-          width: 100%;
-
-          a {
+        @layer fics {
+          :host {
             display: block;
-            text-decoration: none;
-            line-height: inherit;
+            width: 100%;
 
-            &:visited { color: inherit; }
+            a {
+              display: block;
+              text-decoration: none;
+              line-height: inherit;
+
+              &:visited { color: inherit; }
+            }
           }
         }
       `,
