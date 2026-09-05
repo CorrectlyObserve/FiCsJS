@@ -56,23 +56,6 @@ const css: FiCs.Css<Data, {}> = `
     display: grid;
     justify-items: center;
     gap: ${size(4)};
-
-    ul {
-      list-style: none;
-      padding-inline-start: 0;
-
-      li {
-        ${textSize('base')}
-        position: relative;
-        padding-inline-start: ${size(3)}; 
-
-        &::before {
-          content: "•";
-          position: absolute;
-          left: 0;
-        }
-      }
-    }
     
     hr { width: 100%; border-width: 0.5px; margin-block: ${size(4)}; }
   
