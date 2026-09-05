@@ -24,7 +24,7 @@ export interface FiCsLink<P extends object> {
   props?: SingleOrArray<Props<{}, P>>
   className?: ClassName<{}, P>
   attributes?: Attrs<{}, P>
-  anchorAttributes?: Attrs<{}, P>
+  anchorAttributes?: WithoutHref<Attrs<{}, P>>
   href: (({ props }: { props: Readonly<P> }) => string) | string
   content: Content<{}, P>
   css?: Css.Ctx<{}, P>
