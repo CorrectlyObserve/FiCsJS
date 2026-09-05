@@ -410,6 +410,10 @@ export interface TypeNode {
   dynamic?: { name: string; node: TypeNode }
 }
 
+export type WithoutHref<T> = T extends (ctx: infer C) => infer R
+  ? (ctx: C) => WithoutHref<R>
+  : T & { href?: 'Pass the "href" option as a top-level option, not inside "anchorAttributes"...' }
+
 export declare namespace Vite {
   interface DevServer {
     watcher: { add: (path: string) => void }
