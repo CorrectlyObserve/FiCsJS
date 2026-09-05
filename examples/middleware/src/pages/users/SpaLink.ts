@@ -1,5 +1,5 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
-import { size, textSize } from 'ficsjs/style'
+import { textSize } from 'ficsjs/style'
 
 interface Props {
   href: string
