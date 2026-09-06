@@ -33,7 +33,12 @@ export interface FiCsLink<P extends object> {
 
 export interface FiCsRouter<D extends object> {
   children?: Descendant[]
-  data?: () => D
+  data?: () => D &
+    ([OverlappedKeys<D>] extends [never]
+      ? unknown
+      : {
+          [K in OverlappedKeys<D>]: `Please rename data key "${K & string}" as it is reserved by the router...`
+        })
   pathname?: string
   meta?: Record<string, string>
   props?: SingleOrArray<Props<RouterData<D>, {}>>
