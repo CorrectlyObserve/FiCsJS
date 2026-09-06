@@ -44,6 +44,8 @@ export interface FiCsRouter<D extends object> {
   options?: Options.Ctx<RouterData<D>, {}>
 }
 
+type OverlappedKeys<D> = Extract<keyof D, keyof typeof RESERVED_ROUTER_DATA_KEYS>
+
 export interface Page<D extends object = Record<string, unknown>> extends PageContent<D> {
   path: string
 }
