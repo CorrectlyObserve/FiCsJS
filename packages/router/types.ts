@@ -12,7 +12,7 @@ import type {
   Props,
   SingleOrArray
 } from '../core/types'
-import { denialCodes, RPC_MODULE_TYPE, statusCodes } from './constants'
+import { denialCodes, RESERVED_ROUTER_DATA_KEYS, RPC_MODULE_TYPE, statusCodes } from './constants'
 
 export type Content<D extends object, P extends object, T = {}> = (
   syntaxes: Omit<DataProps.Payload<D, P>, 'props'> & Html.Syntaxes<D, P> & T
