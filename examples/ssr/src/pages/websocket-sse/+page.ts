@@ -1,5 +1,5 @@
 import type { FiCsRouter } from 'ficsjs/router'
-import type { Data } from '@/pages/websocket-sse/+spa.config'
+import type { Data } from '@/pages/websocket-sse/+spa'
 
 export const meta = {
   title: 'WebSocket and SSE',
