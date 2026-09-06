@@ -1,7 +1,13 @@
 import { FiCsElement } from '../core/class'
 import { NOOP, normalizePath, toArray } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
-import { FICS_NAVIGATE, FICS_STATUS, ROUTER_COMPONENT_NAME, statusCodes } from './constants'
+import {
+  FICS_NAVIGATE,
+  FICS_STATUS,
+  RESERVED_ROUTER_DATA_KEYS,
+  ROUTER_COMPONENT_NAME,
+  statusCodes
+} from './constants'
 import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
 import { goto } from './goto'
 import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
@@ -77,12 +83,30 @@ export const ficsRouter = <D extends object>(
   const redirects: ReadonlyMap<string, string> | undefined =
     redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
 
-  let removeEventListeners: () => void = NOOP
+  let removeEventListeners: () => void = NOOP,
+    hasWarned: boolean = false
 
   return new FiCsElement<RouterData<D>, {}>({
     name: ROUTER_COMPONENT_NAME,
     children,
-    data: () => ({ ...data?.(), pathname, queries: {}, status: statusCodes.OK }) as RouterData<D>,
+    data: () => {
+      const _data: D | object = data?.() ?? {}
+
+      if (!hasWarned) {
+        hasWarned = true
+
+        const reservedKeys: string[] = RESERVED_ROUTER_DATA_KEYS.filter(key => key in _data),
+          { length } = reservedKeys
+
+        if (length > 0) {
+          console.warn(
+            `Please rename data key${length > 1 ? 's' : ''} "${reservedKeys.join('", "')}" as ${length > 1 ? 'they are' : 'it is'} reserved by the router...`
+          )
+        }
+      }
+
+      return { ..._data, pathname, queries: {}, status: statusCodes.OK } as RouterData<D>
+    },
     immutableDataKeys: ['pathname', 'queries'],
     props,
     className,
