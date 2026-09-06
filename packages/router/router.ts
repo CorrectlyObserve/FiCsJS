@@ -43,13 +43,13 @@ const setRouterData = <D extends object>({
   pathname: string
   redirects?: ReadonlyMap<string, string>
 }): void => {
+  data.status = statusCodes.OK
+
   data.pathname = resolveRedirect(args)
 
   const queries: Record<string, string> = getQueries()
   data.queries = queries
   params.set('queries', queries)
-
-  data.status = statusCodes.OK
 }
 
 export const ficsRouter = <D extends object>(
