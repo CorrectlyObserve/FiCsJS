@@ -1,5 +1,5 @@
 import type { FiCsRouter } from 'ficsjs/router'
-import type { Data } from '@/pages/users/+spa.config'
+import type { Data } from '@/pages/users/+spa'
 
 export const meta = { title: 'User', description: 'View a single user.' }
 
