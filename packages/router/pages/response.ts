@@ -1,3 +1,4 @@
+import { getGlobalCss } from '../../core/globalCss'
 import { CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
@@ -38,7 +39,8 @@ export const respondPage = async <C extends Record<string, unknown>>({
       meta: resolvedMeta,
       content: def ? await def({ ...ctx, status }) : '',
       path,
-      script: `${scriptBase}/${entry}.js`
+      script: `${scriptBase}/${entry}.js`,
+      styles: getGlobalCss()
     })
 
   return respond({ html: injectMeta({ html, metaTags: renderMeta(resolvedMeta) }), status })
