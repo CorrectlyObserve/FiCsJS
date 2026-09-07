@@ -78,12 +78,6 @@ export declare namespace Css {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = string | Record<string, Declarations>
-
-  type Rules<D extends object, P> = Record<string, Value<D, P>>
-
-  type Sheet<D extends object, P> = StringOrFn<D, P> | Rules<D, P> | Global
-
   type StringOrFn<D extends object, P> = string | ((ctx: DataProps.Payload<D, P>) => string)
 }
 
