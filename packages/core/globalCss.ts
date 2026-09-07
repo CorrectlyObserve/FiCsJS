@@ -1,9 +1,9 @@
 import { FiCsElement } from './class'
 import { cssToString } from './css'
 import { toArray } from './helpers'
-import type { Css, SingleOrArray } from './types'
+import type { SingleOrArray } from './types'
 
-export const configGlobalCss = (css: SingleOrArray<Css.Global>): string => {
+export const configGlobalCss = (css: SingleOrArray<string>): string => {
   FiCsElement.globalCss = toArray(css)
   return cssToString(FiCsElement.globalCss)
 }
