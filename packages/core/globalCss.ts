@@ -5,7 +5,7 @@ import type { SingleOrArray } from './types'
 
 export const configGlobalCss = (css: SingleOrArray<string>): string => {
   FiCsElement.globalCss = toArray(css)
-  return cssToString(FiCsElement.globalCss)
+  return getGlobalCss()
 }
 
 export const getGlobalCss = (): string => cssToString(FiCsElement.globalCss)
