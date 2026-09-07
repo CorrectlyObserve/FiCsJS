@@ -29,7 +29,7 @@ export declare namespace FiCs {
 
   type FormAssociation = Form.Association
 
-  type GlobalCss = SingleOrArray<Css.Global>
+  type GlobalCss = SingleOrArray<string>
 
   type Html<D extends object, P extends object> = Html.Core<D, P>
 
