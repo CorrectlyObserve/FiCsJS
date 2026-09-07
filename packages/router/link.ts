@@ -56,7 +56,7 @@ export const ficsLink = <P extends object>({
     },
     css: [
       `
-        @layer fics {
+        @layer default {
           :host {
             display: block;
             width: 100%;
