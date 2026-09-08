@@ -1,5 +1,4 @@
 import { fics, type FiCs } from 'ficsjs'
-import { flexCenter } from 'ficsjs/style'
 import type { User } from '@/server/users'
 
 interface Props {
@@ -18,10 +17,13 @@ const html: FiCs.Html<{}, Props> = ({ props: { user, userId }, template }) => {
 
         return template`
           <p class="grid text-base ${isSelected ? 'text-pink' : 'text-white'}" key="${id}-${key}">
-            <span class="invisible select-none pointer-events-none font-semibold" aria-hidden="true">
+            <span
+              class="[grid-area:1/1] invisible select-none pointer-events-none font-semibold"
+              aria-hidden="true"
+            >${line}</span>
+            <span class="[grid-area:1/1] ${isSelected ? 'font-semibold' : 'font-normal'}">
               ${line}
             </span>
-            <span class="${isSelected ? 'font-semibold' : 'font-normal'}">${line}</span>
           </p>
         `
       })}
@@ -29,12 +31,4 @@ const html: FiCs.Html<{}, Props> = ({ props: { user, userId }, template }) => {
   `
 }
 
-const css: FiCs.Css<{}, Props> = `
-  :host {
-    ${flexCenter('y')}
-
-    p > span { grid-area: 1/1; }
-  }
-`
-
-export default fics<{}, Props>({ name: 'user-content', html, css })
+export default fics<{}, Props>({ name: 'user-content', className: 'flex items-center', html })
