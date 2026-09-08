@@ -220,7 +220,7 @@ export const ficsRouter = <D extends object>(
 
       return setContent()
     },
-    css: [{ ':host': { display: 'contents' } }, ...toArray(css ?? [])],
+    css: [':host { display: contents; }', ...toArray(css ?? [])],
     hooks: {
       created: ({ data, ...args }) => {
         hooks?.created?.({ data, ...args })
