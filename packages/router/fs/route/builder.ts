@@ -144,9 +144,7 @@ export const buildSpa = ({
     configAlias: Map<string, string> = new Map<string, string>()
 
   for (const dir of dirs) {
-    const name: string = `${toPascal(dir)}Router`
-    spaAlias.set(dir, name)
-    configAlias.set(dir, `__${toLowerFirst(name)}Config`)
+    spaAlias.set(dir, `${toPascal(dir)}Router`)
 
     const error: string = `The nested SPA "${dir}/${fileNames.SPA_CONFIG}" is not supported...`
     let parent: string = dir
