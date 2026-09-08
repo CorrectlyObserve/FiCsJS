@@ -139,6 +139,7 @@ export const buildSpa = ({
   extensions
 }: Routing.Build.Query): Routing.Build.Spa => {
   const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
+    serverFiles = getFiles({ filePaths, extensions, expectedType: fileNames.SPA_SERVER }),
     dirs: string[] = Array.from(files.keys()).sort(),
     spaAlias: Map<string, string> = new Map<string, string>(),
     configAlias: Map<string, string> = new Map<string, string>()
@@ -180,7 +181,7 @@ export const buildSpa = ({
         `Add at least a "${fileNames.PAGE}" file as the SPA "${prependSlash(dir)}" currently has no page...`
       )
 
-  return { dirs, files, spaAlias, configAlias, spaOwners, areSpaEntry }
+  return { dirs, files, serverFiles, spaAlias, spaOwners, areSpaEntry }
 }
 
 export const buildSpecial = ({
