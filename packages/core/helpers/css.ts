@@ -27,18 +27,18 @@ const convertCss = ({
       return `${prev}${key.toString()}{${cssText}}`
     }
 
-    return `${prev}${normalizeProperty(key)}:${value};`
+    let strKey: string
+
+    if (typeof key === 'number') strKey = key.toString()
+    /** @remarks CSS custom properties */ else if (key.startsWith('--')) strKey = key
+    else {
+      key = convertStr(key, 'kebab')
+      if (key.startsWith('webkit')) key = `-${key}`
+      strKey = key
+    }
+
+    return `${prev}${strKey}:${value};`
   }, '')
-
-const normalizeProperty = (key: string | number): string => {
-  if (typeof key === 'number') return key.toString()
-  /** @remarks CSS custom properties */
-  if (key.startsWith('--')) return key
-
-  key = convertStr(key, 'kebab')
-  if (key.startsWith('webkit')) key = `-${key}`
-  return key
-}
 
 export const cssDeclarations = <T extends Css.Declarations>(css: T): T =>
   Object.defineProperty(css, 'toString', { value: (): string => convertCss({ css }) })
