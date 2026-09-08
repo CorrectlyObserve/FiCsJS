@@ -16,16 +16,14 @@ export const findClientEntries = ({
   Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaEntry' | 'files'> &
   Pick<Routing.Build.Special, 'rootStatusFiles' | 'statusFallback'>): {
   clientEntries: Routing.ClientEntries
-  dirsWithoutSpaEntry: string[]
 } => {
   const clientEntries: Routing.ClientEntries = [],
     seen: Set<string> = new Set(),
-    dirsWithoutSpaEntry: Set<string> = new Set(),
-    push = (name: string, src: string | null): void => {
+    push = (name: string, src: string | null, spaRouter?: string): void => {
       if (src === null || seen.has(name)) return
 
       seen.add(name)
-      clientEntries.push({ name, src })
+      clientEntries.push({ name, src, ...(spaRouter && { spaRouter }) })
     }
 
   for (let i = 0; i < routes.length; i++) {
@@ -61,7 +59,7 @@ export const findClientEntries = ({
   if (statusFallback && isOutsideSpa(statusFallback.src))
     push(toEntry(ERROR_PATH), statusFallback.src)
 
-  return { clientEntries, dirsWithoutSpaEntry: [...dirsWithoutSpaEntry] }
+  return { clientEntries }
 }
 
 export const findClosestDir = (
