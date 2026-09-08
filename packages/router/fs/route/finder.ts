@@ -47,10 +47,10 @@ export const findClientEntries = ({
       continue
     }
 
-    const hasSpaEntry: boolean = fileSrc !== null
-    if (!hasSpaEntry) dirsWithoutSpaEntry.add(spaOwner!)
-
-    push(toEntry(path), fileSrc)
+    push(
+      toEntry(path),
+      findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
+    )
   }
 
   const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
