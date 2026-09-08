@@ -4,15 +4,18 @@ import { statusCodes } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
 import type { Routing } from '../types'
 
-export function respond({ html, status }: { html: string; status: Routing.Status.Code }): Response
-export function respond(location: string): Response
-export function respond(arg: { html: string; status: Routing.Status.Code } | string): Response {
+export function respond(
+  arg: { html: string; status: Routing.Status.Code; noStore?: boolean } | string
+): Response {
   if (typeof arg === 'string')
     return new Response(null, { status: statusCodes.REDIRECT, headers: { location: arg } })
 
   return new Response(arg.html, {
     status: arg.status,
-    headers: { [CONTENT_TYPE]: 'text/html; charset=utf-8' }
+    headers: {
+      [CONTENT_TYPE]: 'text/html; charset=utf-8',
+      ...(arg.noStore ? { 'cache-control': 'no-store' } : {})
+    }
   })
 }
 
