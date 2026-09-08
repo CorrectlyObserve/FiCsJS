@@ -145,9 +145,7 @@ export const assembleServer = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
 
   return joinLines([
     COMMENT,
-    uses(code, RENDER_SPA)
-      ? `import { ${RENDER_SPA} } from ${routerImport('server-only')}`
-      : `import ${routerImport('server-only')}`,
+    `import ${uses(code, RENDER_SPA) ? `{ ${RENDER_SPA} } from ` : ''}${routerImport('server-only')}`,
     joinLines(imports, { filter: true }),
     '',
     code,
