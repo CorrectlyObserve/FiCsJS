@@ -161,34 +161,46 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = {
-  div: {
-    '&.menu': {
-      marginBlockEnd: size(8),
-      div: {
-        ...flexCenter('xy'),
-        marginBlockEnd: size(4),
-        '&:last-child': { marginBlockEnd: 0 },
-        '.input': { marginInlineEnd: cssVar('outline') },
-        span: { paddingInline: cssVar('outline') }
-      },
-      [`@media (max-width: ${SM})`]: {
-        marginBlockEnd: size(4),
-        div: { marginBlockEnd: size(2), '&:first-child': { marginInlineEnd: size(-4) } }
+const css: FiCs.Css<Data, Props> = `
+  div {
+    &.menu {
+      margin-block-end: ${size(8)};
+
+      div {
+        ${flexCenter('xy')}
+        max-width: 100%;
+        margin-block-end: ${size(4)};
+
+        &:last-child { margin-block-end: 0; }
+        .input { min-width: 0; flex-shrink: 1; margin-inline-end: ${cssVar('outline')}; }
+        span { padding-inline: ${cssVar('outline')}; }
       }
-    },
-    '&.task': {
-      ...flexCenter('y'),
-      width: SM,
-      maxWidth: size(120 - 16),
-      marginInline: 'auto',
-      marginBlockEnd: size(2),
-      '&:last-child': { marginBlockEnd: 0 },
-      [`@media (max-width: ${SM})`]: { width: calc(`100% - ${size(12)}`) },
-      div: { ...flexCenter('y'), width: calc(`100% - ${size(12)}`) }
+
+      @media (max-width: ${SM}) {
+        margin-block-end: ${size(4)};
+
+        div {
+          margin-block-end: ${size(2)};
+          &:first-child { margin-inline-end: ${size(-4)}; }
+        }
+      }
+    }
+
+    &.task {
+      ${flexCenter('y')}
+      width: ${SM};
+      max-width: ${size(120 - 16)};
+      margin-inline: auto;
+      margin-block-end: ${size(2)};
+
+      &:last-child { margin-block-end: 0; }
+
+      @media (max-width: ${SM}) { width: ${calc(`100% - ${size(12)}`)}; }
+
+      div { ${flexCenter('y')} width: ${calc(`100% - ${size(12)}`)}; }
     }
   }
-}
+`
 
 export default fics<Data, Props>({
   name: 'tasks',
