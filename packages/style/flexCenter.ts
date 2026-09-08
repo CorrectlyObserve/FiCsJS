@@ -16,7 +16,7 @@ export function flexCenter(axis: Axis, options?: FlexOptions): Readonly<Flex> {
   return cssDeclarations({
     display: `${options?.inline ? 'inline-' : ''}flex`,
     'flex-direction': options?.direction ?? 'row',
-    ...(axis.includes('x') ? justifyCenter : {}),
-    ...(axis.includes('y') ? alignCenter : {})
+    ...(axis.includes('x') && justifyCenter),
+    ...(axis.includes('y') && alignCenter)
   } as const)
 }
