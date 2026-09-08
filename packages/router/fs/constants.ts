@@ -17,6 +17,8 @@ export const ERROR_PATH = '/error' as const
 
 export const exitCodes = { SUCCESS: 0, FAILURE: 1 } as const
 
+export const exportedNames = { router: 'ficsRouter', spaPage: 'createSpaPage' } as const
+
 export const EXTENSIONS = ['.js', '.ts'] as const
 
 export const fileNames = {
