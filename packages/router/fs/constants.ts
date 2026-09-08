@@ -57,7 +57,9 @@ export const prefixes = {
 } as const
 
 /** @remarks Matches a `ficsRouter(...)` / `ficsRouter<T>(...)` call. */
-export const ROUTER_CALL_REGEX: RegExp = new RegExp(`\\b${ROUTER}\\s*(?:<[^>]+>)?\\s*\\(`)
+export const ROUTER_CALL_REGEX: RegExp = new RegExp(
+  `\\b${exportedNames.router}\\s*(?:<[^>]+>)?\\s*\\(`
+)
 
 export const routerImport = (path: string = '') =>
   `'ficsjs/router${path ? `/${path}` : ''}'` as const
