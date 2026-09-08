@@ -97,7 +97,6 @@ export declare namespace Routing {
       dirs: string[]
       files: Map<string, string>
       spaAlias: Map<string, string>
-      configAlias: Map<string, string>
       /** @remarks Parallel array for routes */
       spaOwners: (string | null)[]
       /** @remarks Parallel array for routes */
