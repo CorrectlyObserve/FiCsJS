@@ -34,7 +34,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
   path: string
 }): Promise<Response> => {
   const {
-      module: { meta = {}, default: def },
+      module: { meta = {}, default: def, noStore },
       entry
     } = page,
     resolvedMeta: Record<string, string> = resolveMeta({ defaultMeta, meta, status }),
