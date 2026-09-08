@@ -56,10 +56,6 @@ export const prefixes = {
   STATUS: '__status'
 } as const
 
-export const RENDER_SPA = 'renderSpa' as const
-
-export const ROUTER = 'ficsRouter' as const
-
 /** @remarks Matches a `ficsRouter(...)` / `ficsRouter<T>(...)` call. */
 export const ROUTER_CALL_REGEX: RegExp = new RegExp(`\\b${ROUTER}\\s*(?:<[^>]+>)?\\s*\\(`)
 
