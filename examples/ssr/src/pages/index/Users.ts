@@ -1,5 +1,4 @@
 import { fics, type FiCs } from 'ficsjs'
-import { flexCenter } from 'ficsjs/style'
 import { api } from '@fics/routing/client'
 import Button from '@/components/Button'
 import Draggable, { type Updated } from '@/pages/index/Draggable'
@@ -105,7 +104,7 @@ const html: FiCs.Html<Data, {}> = ({
 
   return template`
       <p class="sr-only" ${statusLiveRegion}>${status}</p>
-      <div class="buttons mb-6 gap-4">
+      <div class="flex justify-center mb-6 gap-4">
         ${methods.map((method, index) =>
           button.setIndividualProps(index, {
             buttonText: method,
@@ -169,11 +168,9 @@ const html: FiCs.Html<Data, {}> = ({
           })
         )}
       </div>
-      <div class="w-fit mx-auto">${draggable}</div>
+      <div class="w-fit flex items-center mx-auto">${draggable}</div>
     `
 }
-
-const css: FiCs.Css<Data, {}> = `div { &.buttons {${flexCenter('x')}}; &.w-fit {${flexCenter('y')}} }`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {
@@ -220,6 +217,5 @@ export default fics<Data, {}>({
   }),
   props,
   html,
-  css,
   hooks
 })
