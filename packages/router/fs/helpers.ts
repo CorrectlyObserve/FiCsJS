@@ -3,9 +3,14 @@ import type { Routing } from '../types'
 import { config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
-const { LAYOUT, LAYOUT_SERVER, MIDDLEWARE, PAGE, RPC, SPA_CONFIG } = fileNames
+const { LAYOUT, LAYOUT_SERVER, MIDDLEWARE, PAGE, RPC, SPA, SPA_SERVER } = fileNames
 
-type FrequentFileName = typeof LAYOUT | typeof LAYOUT_SERVER | typeof MIDDLEWARE | typeof SPA_CONFIG
+type FrequentFileName =
+  | typeof LAYOUT
+  | typeof LAYOUT_SERVER
+  | typeof MIDDLEWARE
+  | typeof SPA
+  | typeof SPA_SERVER
 
 export const buildRoute = (pathSegments: string[]): string => {
   return pathSegments
