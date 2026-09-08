@@ -143,9 +143,11 @@ export const assembleServer = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
   if (usedClientExports.length > 0)
     imports.push(`import ${joinAndWrap(usedClientExports)} from './client'`)
 
+  const { spaPage } = exportedNames
+
   return joinLines([
     COMMENT,
-    `import ${uses(code, RENDER_SPA) ? `{ ${RENDER_SPA} } from ` : ''}${routerImport('server-only')}`,
+    `import ${uses(code, spaPage) ? `{ ${spaPage} } from ` : ''}${routerImport('server-only')}`,
     joinLines(imports, { filter: true }),
     '',
     code,
