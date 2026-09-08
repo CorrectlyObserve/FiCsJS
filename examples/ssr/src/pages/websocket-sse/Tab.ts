@@ -1,6 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { CHAT_PAGE } from '@/utils'
 
@@ -10,7 +9,7 @@ interface Data {
 }
 
 const html: FiCs.Html<Data, {}> = ({ children: { button }, data, template }) => template`
-  <div class="container mb-6 mx-auto gap-4">
+  <div class="flex justify-center mb-6 mx-auto gap-4">
     ${data.tabs.map(
       ({ href, text }, index) => template`
         ${button.setIndividualProps(index, {
@@ -26,8 +25,6 @@ const html: FiCs.Html<Data, {}> = ({ children: { button }, data, template }) => 
     )}
   </div>
 `
-
-const css: FiCs.Css<Data, {}> = `:host div.container {${flexCenter('x')}}`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   mounted: ({ data }) => (data.current = window.location.pathname)
@@ -45,6 +42,5 @@ export default fics({
     current: ''
   }),
   html,
-  css,
   hooks
 })
