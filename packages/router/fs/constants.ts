@@ -29,7 +29,7 @@ export const fileNames = {
   REDIRECT: '+redirect',
   RPC: '+rpc',
   SPA: '+spa',
-  SPA_CONFIG: '+spa.config',
+  SPA_SERVER: '+spa.server',
   statuses: {
     CONFLICT: '+409',
     FORBIDDEN: '+403',
