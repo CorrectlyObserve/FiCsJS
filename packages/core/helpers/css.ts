@@ -40,5 +40,5 @@ const normalizeProperty = (key: string | number): string => {
   return key
 }
 
-export const cssDeclarations = <T extends Css.Declarations>(style: T): T =>
-  Object.defineProperty(style, 'toString', { value: (): string => convertCss(style) })
+export const cssDeclarations = <T extends Css.Declarations>(css: T): T =>
+  Object.defineProperty(css, 'toString', { value: (): string => convertCss({ css }) })
