@@ -96,6 +96,7 @@ export declare namespace Routing {
     interface Spa {
       dirs: string[]
       files: Map<string, string>
+      serverFiles: Map<string, string>
       spaAlias: Map<string, string>
       /** @remarks Parallel array for routes */
       spaOwners: (string | null)[]
