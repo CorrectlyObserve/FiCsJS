@@ -138,7 +138,7 @@ export const buildSpa = ({
   filePaths,
   extensions
 }: Routing.Build.Query): Routing.Build.Spa => {
-  const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA_CONFIG }),
+  const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
     dirs: string[] = Array.from(files.keys()).sort(),
     spaAlias: Map<string, string> = new Map<string, string>(),
     configAlias: Map<string, string> = new Map<string, string>()
@@ -146,7 +146,7 @@ export const buildSpa = ({
   for (const dir of dirs) {
     spaAlias.set(dir, `${toPascal(dir)}Router`)
 
-    const error: string = `The nested SPA "${dir}/${fileNames.SPA_CONFIG}" is not supported...`
+    const error: string = `The nested SPA "${dir}/${fileNames.SPA}" is not supported...`
     let parent: string = dir
     while (parent.includes('/')) {
       parent = parent.slice(0, parent.lastIndexOf('/'))
