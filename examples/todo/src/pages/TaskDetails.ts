@@ -159,29 +159,43 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = {
-  'div.container': {
-    width: SM,
-    maxWidth: size(120 - 16),
-    marginInline: 'auto',
-    [`@media (max-width: ${SM})`]: { width: '100%' },
-    fieldset: {
-      display: 'flex',
-      flexDirection: 'column',
-      marginBlockEnd: size(4),
-      border: 0,
-      legend: { paddingBlockEnd: size(2) },
-      button: { paddingInline: size(4), '&:hover': { background: white(0.1) } },
-      div: { ...flexCenter('y'), button: { paddingInline: cssVar('outline') } }
-    },
-    p: {
-      marginBlockEnd: size(2),
-      textAlign: 'left',
-      '&:last-of-type': { marginBlockEnd: size(8) }
-    },
-    '> div': { display: 'flex', flexDirection: 'column', gap: size(2) }
+const css: FiCs.Css<Data, Props> = `
+  div.container {
+    width: ${SM};
+    max-width: ${size(120 - 16)};
+    margin-inline: auto;
+
+    @media (max-width: ${SM}) { width: 100%; }
+
+    fieldset {
+      display: flex;
+      flex-direction: column;
+      margin-block-end: ${size(4)};
+      border: 0;
+
+      legend { padding-block-end: ${size(2)}; }
+
+      button {
+        padding-inline: ${size(4)};
+        &:hover { background: ${white(0.1)}; }
+      }
+
+      div {
+        ${flexCenter('y')}
+        button { padding-inline: ${cssVar('outline')}; }
+      }
+    }
+
+    p {
+      margin-block-end: ${size(2)};
+      text-align: left;
+
+      &:last-of-type { margin-block-end: ${size(8)}; }
+    }
+
+    > div { display: flex; flex-direction: column; gap: ${size(2)}; }
   }
-}
+`
 
 export default fics<Data, Props>({
   name: 'task-details',
