@@ -241,6 +241,7 @@ export declare namespace Routing {
       ctx: MiddlewareCtx<C> & { error?: unknown; status: Status.Resolved }
     ) => Awaitable<string>
     meta?: Meta
+    noStore?: boolean
   }
 
   interface Spec {
