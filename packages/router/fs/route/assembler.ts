@@ -111,7 +111,7 @@ export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
   let imports: string[] = emitModuleImports({ ...ctx, baseDir, code })
 
   const routerNames: string[] = []
-  if (uses(code, ROUTER)) routerNames.push(ROUTER)
+  if (uses(code, exportedNames.router)) routerNames.push(exportedNames.router)
   if (uses(code, 'createRpcClient')) routerNames.push('createRpcClient')
 
   if (routerNames.length > 0)
