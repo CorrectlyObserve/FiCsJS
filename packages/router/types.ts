@@ -201,6 +201,7 @@ export declare namespace Routing {
     content: string
     path: string
     script: string
+    styles: string
   }
 
   interface ResolvedRoute<C = Record<string, unknown>> {
