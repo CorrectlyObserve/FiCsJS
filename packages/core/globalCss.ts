@@ -8,4 +8,4 @@ export const configGlobalCss = (css: SingleOrArray<string>): string => {
   return getGlobalCss()
 }
 
-export const getGlobalCss = (): string => cssToString(FiCsElement.globalCss)
+export const getGlobalCss = (): string => cssToString([FiCsElement.globalCss])
