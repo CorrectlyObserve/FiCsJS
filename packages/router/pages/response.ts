@@ -46,7 +46,11 @@ export const respondPage = async <C extends Record<string, unknown>>({
       styles: getGlobalCss()
     })
 
-  return respond({ html: injectMeta({ html, metaTags: renderMeta(resolvedMeta) }), status })
+  return respond({
+    html: injectMeta({ html, metaTags: renderMeta(resolvedMeta) }),
+    status,
+    noStore
+  })
 }
 
 export const respondStatus = async <C extends Record<string, unknown>>({
