@@ -1,5 +1,4 @@
 import { fics, type FiCs } from 'ficsjs'
-import { flexCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { ArrowDownFromLine, ArrowUpFromLine, CopyPlus } from 'lucide-static'
 
@@ -57,8 +56,6 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = `:host {${flexCenter('y', { direction: 'column' })}}`
-
 export default fics<Data, Props>({
   name: 'menu',
   children: [Icon()],
@@ -83,7 +80,6 @@ export default fics<Data, Props>({
       }
     ]
   }),
-  className: 'fixed bottom-8 left-4 z-1',
-  html,
-  css
+  className: 'fixed bottom-8 left-4 flex flex-col items-center z-1',
+  html
 })
