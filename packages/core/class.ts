@@ -93,7 +93,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html.Core<D, P>
-  readonly #css: Css.Sheet<D, P>[] = []
+  readonly #css: Css.StringOrFn<D, P>[] = []
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -1159,7 +1159,7 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
+  #cssToString(css: Css.StringOrFn<D, P>[], isSsr?: boolean): string {
     return cssToString(css, {
       getDataProps: () => this.#getDataProps(),
       normalizeHost: (selector: string | number): string => {
