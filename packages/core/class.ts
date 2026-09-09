@@ -13,6 +13,7 @@ import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls
 import {
   browserError,
   convertStr,
+  CSS_LAYER,
   deepEqual,
   escape,
   isBlankString,
@@ -1184,11 +1185,7 @@ export class FiCsElement<D extends object, P extends object> {
     if (css.length === 0) return
 
     this.#styleSheet ??= new CSSStyleSheet()
-    const cssText: string = this.#cssToString([
-      `@layer default;`,
-      `${h.ITSELF}{display:block}`,
-      ...css
-    ])
+    const cssText: string = this.#cssToString([`${CSS_LAYER}{${h.ITSELF}{display:block}}`, ...css])
 
     if (this.#lastCssText !== cssText) {
       this.#styleSheet.replaceSync(cssText)
