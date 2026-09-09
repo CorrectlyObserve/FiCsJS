@@ -1,5 +1,5 @@
 import { FiCsElement } from '../core/class'
-import { NOOP, normalizePath, toArray } from '../core/helpers'
+import { CSS_LAYER, NOOP, normalizePath, toArray } from '../core/helpers'
 import type { DeepReadonly, Html } from '../core/types'
 import {
   FICS_NAVIGATE,
@@ -220,7 +220,7 @@ export const ficsRouter = <D extends object>(
 
       return setContent()
     },
-    css: [':host { display: contents; }', ...toArray(css ?? [])],
+    css: [`${CSS_LAYER}{:host{display:contents;}}`, ...toArray(css ?? [])],
     hooks: {
       created: ({ data, ...args }) => {
         hooks?.created?.({ data, ...args })
