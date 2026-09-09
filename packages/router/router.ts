@@ -53,7 +53,7 @@ const setRouterData = <D extends object>({
 }
 
 export const ficsRouter = <D extends object>(
-  config: FiCsRouter<D>,
+  spa: FiCsRouter<D>,
   spec?: Routing.Spec
 ): FiCsElement<RouterData<D>, {}> => {
   const {
@@ -67,7 +67,7 @@ export const ficsRouter = <D extends object>(
       css,
       hooks,
       options
-    }: FiCsRouter<D> = config,
+    }: FiCsRouter<D> = spa,
     resolved: Readonly<Routing.ResolvedSpec> = resolveSpec(spec)
 
   if (resolved.pages.length === 0)
