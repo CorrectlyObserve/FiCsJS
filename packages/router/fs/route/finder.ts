@@ -57,7 +57,8 @@ export const findClientEntries = ({
 
   const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
 
-  for (const { path, src } of rootStatusFiles) if (isOutsideSpa(src)) push({ name: toEntry(path), src })
+  for (const { path, src } of rootStatusFiles)
+    if (isOutsideSpa(src)) push({ name: toEntry(path), src })
 
   if (statusFallback && isOutsideSpa(statusFallback.src))
     push({ name: toEntry(ERROR_PATH), src: statusFallback.src })
