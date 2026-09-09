@@ -114,7 +114,7 @@ export declare namespace Routing {
     }
   }
 
-  type ClientEntries = { name: string; src: string; spaRouter?: string }[]
+  type ClientEntries = { name: string; src: string; spaRouterName?: string }[]
 
   interface Config {
     dir?: string
