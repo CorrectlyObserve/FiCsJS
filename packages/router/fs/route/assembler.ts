@@ -1,7 +1,7 @@
 import { escapeRegExp } from '../../../core/helpers'
 import type { Routing } from '../../types'
-import { COMMENT, exportedNames, prefixes, routerImport } from '../constants'
-import { getOrThrow, joinAndWrap, joinLines, toSpecifier } from '../helpers'
+import { COMMENT, exportedNames, prefixes } from '../constants'
+import { getOrThrow, joinAndWrap, joinLines, routerImport, toSpecifier } from '../helpers'
 import { generateEntries, generatePages, generateSpaRouters } from './generator'
 import { toSpaAlias } from './path'
 
