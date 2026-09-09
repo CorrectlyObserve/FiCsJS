@@ -10,6 +10,7 @@ export const {
 export {
   APPLICATION_JSON,
   CONTENT_TYPE,
+  CSS_LAYER,
   EVENT_STREAM,
   MAX_DELAY_MS,
   MAX_RETRIES,
