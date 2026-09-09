@@ -6,7 +6,7 @@ import { findClosestDir, generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
 
-const buildClientEntry = ({
+const emitClientEntry = ({
   layoutSpecifier,
   specifier,
   code
