@@ -151,9 +151,9 @@ export const ficsRouter = <D extends object>(
                 return render({ content, redirect, visited })
               }
 
-              for (const { path, ..._args } of dynamicPages)
-                if (dynamicPathToRegex(path).test(redirectedPath)) {
-                  params.set('dynamicPaths', getDynamicPaths(path))
+              for (const { path: pattern, ..._args } of dynamicPages)
+                if (dynamicPathToRegex(pattern).test(redirectedPath)) {
+                  params.set('dynamicPaths', getDynamicPaths(pattern, redirectedPath))
                   return render({ ..._args, visited })
                 }
 
@@ -204,9 +204,9 @@ export const ficsRouter = <D extends object>(
             return render({ content, redirect })
           }
 
-          for (const { path, meta, content, redirect } of dynamicPages)
-            if (dynamicPathToRegex(path).test(pathname)) {
-              params.set('dynamicPaths', getDynamicPaths(path))
+          for (const { path: pattern, meta, content, redirect } of dynamicPages)
+            if (dynamicPathToRegex(pattern).test(pathname)) {
+              params.set('dynamicPaths', getDynamicPaths(pattern, pathname))
               applyMeta(resolveMeta({ defaultMeta, meta, status: statusCodes.OK }))
 
               return render({ content, redirect })
