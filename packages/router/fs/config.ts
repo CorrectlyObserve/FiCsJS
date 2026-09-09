@@ -8,11 +8,11 @@ import { extname, join, relative } from 'node:path'
 
 const emitClientEntry = ({
   layoutSpecifier,
-  specifier,
+  pageSpecifier,
   code
 }: {
   layoutSpecifier: string | null
-  specifier: string
+  pageSpecifier: string
   code: string
 }): string => {
   const arr: string[] = [COMMENT]
