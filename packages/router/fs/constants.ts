@@ -61,9 +61,6 @@ export const ROUTER_CALL_REGEX: RegExp = new RegExp(
   `\\b${exportedNames.router}\\s*(?:<[^>]+>)?\\s*\\(`
 )
 
-export const routerImport = (path: string = '') =>
-  `'ficsjs/router${path ? `/${path}` : ''}'` as const
-
 export const segments = {
   CATCH_ALL: /^\[\.\.\.([^[\].]+)\]$/,
   DYNAMIC: /^\[([^[\].]+)\]$/

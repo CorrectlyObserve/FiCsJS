@@ -129,6 +129,9 @@ export const resolveOptions = ({
   Pick<NonNullable<Routing.Options.Generate['options']>, 'baseDir' | 'extensions'>
 > => ({ baseDir, extensions })
 
+export const routerImport = (path: string = '') =>
+  `'ficsjs/router${path ? `/${path}` : ''}'` as const
+
 export const toAbsolute = <T extends Record<string, string | undefined>>(
   paths: T
 ): { [K in keyof T]: string } => {
