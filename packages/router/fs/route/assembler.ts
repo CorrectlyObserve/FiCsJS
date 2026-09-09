@@ -1,8 +1,9 @@
 import { escapeRegExp } from '../../../core/helpers'
 import type { Routing } from '../../types'
-import { COMMENT, prefixes, ROUTER, routerImport, RENDER_SPA } from '../constants'
+import { COMMENT, exportedNames, prefixes, routerImport } from '../constants'
 import { getOrThrow, joinAndWrap, joinLines, toSpecifier } from '../helpers'
 import { generateEntries, generatePages, generateSpaRouters } from './generator'
+import { toSpaAlias } from './path'
 
 const uses = (code: string, id: string): boolean =>
     new RegExp(`\\b${escapeRegExp(id)}\\b`).test(code),
@@ -12,7 +13,7 @@ const uses = (code: string, id: string): boolean =>
     layoutAlias,
     dirs,
     files,
-    configAlias,
+    serverFiles,
     spaOwners,
     statusFiles,
     aliases,
@@ -49,11 +50,17 @@ const uses = (code: string, id: string): boolean =>
     }
 
     for (const dir of dirs) {
-      const configId: string = getOrThrow(configAlias, dir)
-      candidates.push({
-        id: configId,
-        import: `import ${configId} from ${spec(getOrThrow(files, dir))}`
-      })
+      const spaId: string = toSpaAlias(dir, 'Spa')
+      candidates.push({ id: spaId, import: `import ${spaId} from ${spec(getOrThrow(files, dir))}` })
+
+      const serverSrc: string | undefined = serverFiles.get(dir)
+      if (serverSrc !== undefined) {
+        const spaServerId: string = toSpaAlias(dir, 'SpaServer')
+        candidates.push({
+          id: spaServerId,
+          import: `import ${spaServerId} from ${spec(serverSrc)}`
+        })
+      }
 
       for (const [key, src] of getOrThrow(statusFiles, dir)) {
         const id: string = getOrThrow(getOrThrow(aliases, dir), key)
