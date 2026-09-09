@@ -80,7 +80,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
 
       writeFileSync(
         entryPath,
-        buildClientEntry({
+        emitClientEntry({
           layoutSpecifier: layoutSrc ? toRelative(entryPath, join(d, layoutSrc)) : null,
           specifier: toRelative(entryPath, join(d, src)),
           code: readFileSync(join(d, src), 'utf8')
