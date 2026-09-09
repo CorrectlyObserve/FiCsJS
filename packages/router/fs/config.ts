@@ -91,7 +91,10 @@ export const configRoutes = (config: Routing.Config = {}): void => {
         entryPath,
         emitClientEntry({
           layoutSpecifier: layoutSrc ? toRelative(entryPath, join(d, layoutSrc)) : null,
-          specifier: toRelative(entryPath, join(d, src)),
+          pageSpecifier: toRelative(entryPath, join(d, src)),
+          spaRouter: spaRouterName
+            ? { name: spaRouterName, specifier: toRelative(entryPath, clientPath) }
+            : null,
           code: readFileSync(join(d, src), 'utf8')
         })
       )
