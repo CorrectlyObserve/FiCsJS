@@ -1,5 +1,5 @@
 import { FiCsElement } from '../core/class'
-import { escape, isBlankString, typedEntries } from '../core/helpers'
+import { CSS_LAYER, escape, isBlankString, typedEntries } from '../core/helpers'
 import { LINK_COMPONENT_NAME } from './constants'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
@@ -56,7 +56,7 @@ export const ficsLink = <P extends object>({
     },
     css: [
       `
-        @layer default {
+        ${CSS_LAYER} {
           :host {
             display: block;
             width: 100%;
