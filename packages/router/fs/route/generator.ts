@@ -195,7 +195,6 @@ export const generateSpaRouters = ({
   layoutAlias,
   dirs,
   spaAlias,
-  configAlias,
   spaOwners,
   aliases,
   inheritedStatusKeys,
@@ -223,8 +222,9 @@ export const generateSpaRouters = ({
         )
       }
 
-      const lines: string[] = [
-          `export const ${getOrThrow(spaAlias, dir)} = ficsRouter(${getOrThrow(configAlias, dir)}, {`,
+      const spaRouterName: string = getOrThrow(spaAlias, dir),
+        lines: string[] = [
+          `export const ${spaRouterName} = ficsRouter(${toSpaAlias(dir, 'Spa')}, {`,
           `${indent()}routes: [`,
           joinLines(routeEntries, { comma: true }),
           `${indent()}]`
