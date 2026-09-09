@@ -39,7 +39,7 @@ export const findClientEntries = ({
     const { path, src }: Routing.RouteEntry = routes[i],
       spaOwner: string | null = spaOwners[i],
       isSpa: boolean = spaOwner !== null,
-      entry: string = toEntry(path)
+      name: string = toEntry(path)
 
     if (isSpa) {
       /** @remarks Child pages of an SPA reuse the main SPA entry. */
@@ -58,7 +58,7 @@ export const findClientEntries = ({
     }
 
     push({
-      name: entry,
+      name,
       src: findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
     })
   }
