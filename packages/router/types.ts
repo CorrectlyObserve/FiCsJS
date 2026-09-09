@@ -236,6 +236,10 @@ export declare namespace Routing {
 
   type RpcEntries = { dirs: string[]; specifier: string }[]
 
+  type SpaInitialData<D extends object, C = Record<string, unknown>> = (
+    ctx: MiddlewareCtx<C> & { status: Status.Resolved }
+  ) => Awaitable<Partial<D>>
+
   interface ServerModule<C = Record<string, unknown>> {
     default?: (
       ctx: MiddlewareCtx<C> & { error?: unknown; status: Status.Resolved }
