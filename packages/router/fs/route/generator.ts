@@ -153,7 +153,7 @@ export const generatePages = ({
       const chain: string[] = middlewares[index]
       return chain.length === 0
         ? ''
-        : `${indent(2)}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toAlias), { wrapType: '[]' })}`
+        : `${indent(2)}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toMwAlias), { wrapType: '[]' })}`
     }),
     statusPages: string[] = rootStatusFiles.map(
       ({ path, prop, serverSrc }) =>
