@@ -47,7 +47,7 @@ export const findClientEntries = ({
 
       /**
        * @remarks
-       * Passed ONLY to resolve the extension and the nearest `+layout` since the router is imported from `client.ts`.
+       * Passed ONLY to resolve the extension and the nearest `+layout` as the router is imported from `client.ts`.
        */
       push({ name, src: getOrThrow(files, spaOwner!), spaRouterName: spaAlias.get(spaOwner!) })
       continue
