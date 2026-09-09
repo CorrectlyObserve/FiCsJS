@@ -30,10 +30,12 @@ export const findClientEntries = ({
   for (let i = 0; i < routes.length; i++) {
     const { path, src }: Routing.RouteEntry = routes[i],
       spaOwner: string | null = spaOwners[i],
-      isSpa: boolean = spaOwner !== null
+      isSpa: boolean = spaOwner !== null,
+      entry: string = toEntry(path)
 
-    /** @remarks Child pages of an SPA reuse the main SPA entry. */
-    if (isSpa && !areSpaEntry[i]) continue
+    if (isSpa) {
+      /** @remarks Child pages of an SPA reuse the main SPA entry. */
+      if (!areSpaEntry[i]) continue
 
     const fileSrc: string | null = findFileSrc({
       filePaths,
@@ -48,7 +50,7 @@ export const findClientEntries = ({
     }
 
     push(
-      toEntry(path),
+      entry,
       findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
     )
   }
