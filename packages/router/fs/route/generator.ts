@@ -148,7 +148,7 @@ export const generatePages = ({
   statusFallback,
   redirect
 }: Routing.Build.Ctx): string => {
-  const toAlias = (src: string): string => getOrThrow(middlewareAlias, src),
+  const toMwAlias = (src: string): string => getOrThrow(middlewareAlias, src),
     mwEntries: string[] = routes.map(({ path }, index) => {
       const chain: string[] = middlewares[index]
       return chain.length === 0
