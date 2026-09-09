@@ -165,6 +165,9 @@ export const toPascal = (path: string): string =>
       ''
     )
 
+/** @remarks Means Portable Operating System Interface */
+export const toPosix = (path: string): string => path.replace(/\\/g, '/')
+
 export const toRelative = (from: string, to: string): string => {
   const _relative: string = toPosix(relative(dirname(from), to))
   return _relative.startsWith('.') ? _relative : `./${_relative}`
@@ -172,6 +175,3 @@ export const toRelative = (from: string, to: string): string => {
 
 export const toSpecifier = (path: string, baseDir: string): string =>
   `${removeTrailingSlash(baseDir)}/${removeExt(cleanPath(path))}`
-
-/** @remarks Means Portable Operating System Interface */
-export const toPosix = (path: string): string => path.replace(/\\/g, '/')
