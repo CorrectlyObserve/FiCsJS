@@ -1,9 +1,9 @@
 import { STATUS_FALLBACK } from '../../constants'
 import type { Routing } from '../../types'
-import { ERROR_PATH, prefixes } from '../constants'
+import { ERROR_PATH, exportedNames, prefixes } from '../constants'
 import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
 import { findStatusEntry } from './finder'
-import { toEntry } from './path'
+import { toEntry, toSpaAlias } from './path'
 
 const emitEntry = ({
     length,
@@ -46,6 +46,7 @@ export const generateEntries = ({
   routes,
   serverLayouts,
   layoutAlias,
+  serverFiles,
   spaAlias,
   spaOwners,
   areSpaEntry,
@@ -83,12 +84,16 @@ export const generateEntries = ({
     const { path, spaOwner, isMpa, layout }: ReturnType<typeof rowAt> = rowAt(i)
     if (isMpa || !areSpaEntry[i]) continue
 
+    const router: string = getOrThrow(spaAlias, spaOwner!),
+      hasServerFile: boolean = serverFiles.has(spaOwner!)
+
     spaConfigs.set(
       spaOwner!,
       emitPageConfig({
         base: joinAndWrap([
-          `default: () => ${getOrThrow(spaAlias, spaOwner!)}.toString()`,
-          `meta: (client${i} as { meta?: Record<string, string> }).meta`
+          `default: ${exportedNames.spaPage}(${router}${hasServerFile ? `, ${toSpaAlias(spaOwner!, 'SpaServer')}` : ''})`,
+          `meta: (client${i} as { meta?: Record<string, string> }).meta`,
+          ...(hasServerFile ? ['noStore: true'] : [])
         ]),
         layout,
         layoutAlias
