@@ -9,17 +9,26 @@ import { extname, join, relative } from 'node:path'
 const emitClientEntry = ({
   layoutSpecifier,
   pageSpecifier,
+  spaRouter,
   code
 }: {
   layoutSpecifier: string | null
   pageSpecifier: string
+  spaRouter: { name: string; specifier: string } | null
   code: string
 }): string => {
   const arr: string[] = [COMMENT]
 
   if (layoutSpecifier) arr.push(`import '${layoutSpecifier}'`)
 
-  if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
+  if (spaRouter)
+    arr.push(
+      `import { ${spaRouter.name} } from '${spaRouter.specifier}'`,
+      '',
+      `${spaRouter.name}.describe()`,
+      ''
+    )
+  else if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
     arr.push(
       `import { applyMeta } from ${routerImport()}`,
       `import * as page from '${pageSpecifier}'`,
