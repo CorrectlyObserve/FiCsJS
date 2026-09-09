@@ -49,18 +49,18 @@ export const findClientEntries = ({
       continue
     }
 
-    push(
-      entry,
-      findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
-    )
+    push({
+      name: entry,
+      src: findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
+    })
   }
 
   const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
 
-  for (const { path, src } of rootStatusFiles) if (isOutsideSpa(src)) push(toEntry(path), src)
+  for (const { path, src } of rootStatusFiles) if (isOutsideSpa(src)) push({ name: toEntry(path), src })
 
   if (statusFallback && isOutsideSpa(statusFallback.src))
-    push(toEntry(ERROR_PATH), statusFallback.src)
+    push({ name: toEntry(ERROR_PATH), src: statusFallback.src })
 
   return { clientEntries }
 }
