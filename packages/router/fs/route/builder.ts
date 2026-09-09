@@ -1,4 +1,4 @@
-import { convertStr, toLowerFirst, typedEntries } from '../../../core/helpers'
+import { convertStr, typedEntries } from '../../../core/helpers'
 import { STATUS_FALLBACK, statusCodes } from '../../constants'
 import { prependSlash } from '../../helpers'
 import type { Routing } from '../../types'
@@ -141,8 +141,13 @@ export const buildSpa = ({
   const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
     serverFiles = getFiles({ filePaths, extensions, expectedType: fileNames.SPA_SERVER }),
     dirs: string[] = Array.from(files.keys()).sort(),
-    spaAlias: Map<string, string> = new Map<string, string>(),
-    configAlias: Map<string, string> = new Map<string, string>()
+    spaAlias: Map<string, string> = new Map<string, string>()
+
+  for (const [dir, src] of serverFiles)
+    if (!files.has(dir))
+      throw new Error(
+        `The file "${src}" requires a "${fileNames.SPA}" alongside it in the "${dir}" directory to load its data...`
+      )
 
   for (const dir of dirs) {
     spaAlias.set(dir, `${toPascal(dir)}Router`)
