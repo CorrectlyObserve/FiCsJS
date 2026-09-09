@@ -22,12 +22,12 @@ const emitClientEntry = ({
   if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
     arr.push(
       `import { applyMeta } from ${routerImport()}`,
-      `import * as page from '${specifier}'`,
+      `import * as page from '${pageSpecifier}'`,
       '',
       'applyMeta((page as { meta?: Record<string, string> }).meta)',
       ''
     )
-  else arr.push(`import '${specifier}'`, '')
+  else arr.push(`import '${pageSpecifier}'`, '')
 
   return joinLines(arr)
 }
