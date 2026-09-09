@@ -32,7 +32,7 @@ export const createRpcClient = <R>(
 
           const args: Omit<Rpc.Options.Client, 'headers'> = { ...globalArgs, ...clientArgs }
 
-          /** @remarks All keys are safe since the cast bypasses TS union write errors. */
+          /** @remarks All keys are safe as the cast bypasses TS union write errors. */
           for (const [key, value] of typedEntries(calledArgs))
             if (value) (args as Record<string, unknown>)[key] = value
 
