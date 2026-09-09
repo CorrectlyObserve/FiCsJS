@@ -1,4 +1,3 @@
-import { prependSlash } from '../helpers'
 import type { Routing } from '../types'
 import { COMMENT, config as configConstants, EXTENSIONS, fileNames, metaExports } from './constants'
 import { writeIfChanged } from './file'
@@ -53,12 +52,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
 
   const clientPath: string = join(o, configConstants.CLIENT),
     serverPath: string = join(o, configConstants.SERVER),
-    {
-      clientCode,
-      serverCode,
-      clientEntries,
-      dirsWithoutSpaEntry
-    }: ReturnType<typeof generateRoutes> = generateRoutes({
+    { clientCode, serverCode, clientEntries }: ReturnType<typeof generateRoutes> = generateRoutes({
       filePaths,
       options: { baseDir: toRelative(clientPath, d), pageFile, extensions },
       basePath
@@ -70,11 +64,6 @@ export const configRoutes = (config: Routing.Config = {}): void => {
   else if (existsSync(serverPath)) rmSync(serverPath)
 
   if (entries) {
-    if (dirsWithoutSpaEntry.length > 0)
-      throw new Error(
-        `There is no "${fileNames.SPA}" entry in ${dirsWithoutSpaEntry.map(dir => `"${prependSlash(dir)}"`).join(', ')}...`
-      )
-
     const entriesDir: string = join(o, configConstants.ENTRIES)
     rmSync(entriesDir, { force: true, recursive: true })
     mkdirSync(entriesDir, { recursive: true })
