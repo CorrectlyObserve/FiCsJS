@@ -20,7 +20,7 @@ class Params {
   }
 
   set(type: ParamType, value: Record<string, string>): void {
-    /** @remarks Don't throw an error since SSR calls this. */
+    /** @remarks Don't throw an error as SSR calls this. */
     if (!this.#isBrowser) return
 
     type === 'dynamicPaths' ? (this.#dynamicPaths = { ...value }) : (this.#queries = { ...value })
