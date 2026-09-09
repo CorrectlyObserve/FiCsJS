@@ -87,6 +87,8 @@ export declare namespace FiCsServerRouter {
 
   type Render = Routing.Render
 
+  type SpaInitialData<D extends object, C = Record<string, unknown>> = Routing.SpaInitialData<D, C>
+
   type Status = Routing.Status.Resolved
 }
 
