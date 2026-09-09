@@ -1,6 +1,6 @@
 import type { Routing } from '../../types'
 import { ERROR_PATH, fileNames } from '../constants'
-import { cleanPath, getDirName, getExt, removeExt } from '../helpers'
+import { cleanPath, getDirName, getExt, getOrThrow, removeExt } from '../helpers'
 import { toEntry } from './path'
 
 export const findClientEntries = ({
@@ -45,15 +45,11 @@ export const findClientEntries = ({
       /** @remarks Child pages of an SPA reuse the main SPA entry. */
       if (!areSpaEntry[i]) continue
 
-    const fileSrc: string | null = findFileSrc({
-      filePaths,
-      extensions,
-      target: fileNames[isSpa ? 'SPA' : 'PAGE'],
-      dir: spaOwner ?? getDirName(src)
-    })
-
-    if (!isSpa) {
-      push(toEntry(path), fileSrc)
+      /**
+       * @remarks
+       * Passed ONLY to resolve the extension and the nearest `+layout` since the router is imported from `client.ts`.
+       */
+      push({ name, src: getOrThrow(files, spaOwner!), spaRouterName: spaAlias.get(spaOwner!) })
       continue
     }
 
