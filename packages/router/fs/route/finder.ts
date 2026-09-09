@@ -20,11 +20,19 @@ export const findClientEntries = ({
 } => {
   const clientEntries: Routing.ClientEntries = [],
     seen: Set<string> = new Set(),
-    push = ({ name, src, spaRouter }: { name: string, src: string | null, spaRouter?: string }): void => {
+    push = ({
+      name,
+      src,
+      spaRouterName
+    }: {
+      name: string
+      src: string | null
+      spaRouterName?: string
+    }): void => {
       if (src === null || seen.has(name)) return
 
       seen.add(name)
-      clientEntries.push({ name, src, ...(spaRouter && { spaRouter }) })
+      clientEntries.push({ name, src, ...(spaRouterName && { spaRouterName }) })
     }
 
   for (let i = 0; i < routes.length; i++) {
