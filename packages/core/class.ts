@@ -1776,16 +1776,16 @@ export class FiCsElement<D extends object, P extends object> {
 
               return render(that.#childrenStore[instanceId])
             }
-          }),
-          css = (_css: Css.Sheet<D, P>[]): string =>
-            _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
+          })
 
         return `
           <${[that.#name, ...attrs].join(' ')}>
             <template shadowrootmode="open"${that.#isFormAssociated ? ' shadowrootdelegatesfocus' : ''}>
               <slot name="${that.#instanceId}"></slot>
             </template>
-            <div ${slotAttrs}>${html}${css(that.#css)}</div>
+            <div ${slotAttrs}>
+              ${html}${that.#css.length > 0 ? `<style>${that.#cssToString(that.#css, true)}</style>` : ''}
+            </div>
           </${that.#name}>
         `
       } finally {
