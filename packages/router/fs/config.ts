@@ -74,7 +74,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
       extensions: extensions ?? EXTENSIONS
     })
 
-    for (const { name, src } of clientEntries) {
+    for (const { name, src, spaRouterName } of clientEntries) {
       const entryPath: string = join(entriesDir, `${name}${extname(src)}`),
         layoutSrc: string | null = findClosestDir(src, clientLayoutFiles)?.value ?? null
 
