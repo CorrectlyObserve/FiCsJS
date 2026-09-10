@@ -590,7 +590,10 @@ export class FiCsElement<D extends object, P extends object> {
         if (clonedSelf) return cloneProps(clonedSelf)
 
         const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
-          const cloned: Descendant = cloneProps(child.#clone(instanceId))
+          const name: string | undefined = FiCsElement.#clonedNames.get(instanceId),
+            cloned: Descendant = cloneProps(child.#clone({ instanceId, name }))
+
+          if (name === undefined) FiCsElement.#clonedNames.set(instanceId, cloned.#name)
 
           for (const [key, _child] of typedEntries(cloned.#children))
             cloned.#children[key] = cloneRecursively(
