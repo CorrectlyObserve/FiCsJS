@@ -1723,6 +1723,15 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #cloneDeeply(): FiCsElement<D, P> {
+    const cloned: FiCsElement<D, P> = this.#clone({ name: this.#name })
+
+    for (const [key, child] of typedEntries(this.#children))
+      cloned.#children[key] = child.#cloneDeeply()
+
+    return cloned
+  }
+
   #assertDescribed(methodName: string): void {
     if (!this.#hasDescribed)
       throw new Error(
