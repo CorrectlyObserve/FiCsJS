@@ -16,10 +16,10 @@ export const fics = <D extends object, P extends object>({
   hooks,
   actions,
   options
-}: Omit<FiCs<D, P>, 'clonedName' | 'instanceId' | 'immutableDataKeys' | 'clonedCss'>): FiCsElement<
-  D,
-  P
-> => {
+}: Omit<
+  FiCs<D, P>,
+  'instanceId' | 'clonedName' | 'isCloned' | 'immutableDataKeys' | 'clonedCss'
+>): FiCsElement<D, P> => {
   name = convertStr(name.trim(), 'kebab')
 
   if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
