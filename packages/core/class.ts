@@ -1807,8 +1807,10 @@ export class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (data) for (const [key, value] of typedEntries(data as D)) this.#rawData[key] = value
-    return render(this, data)
+    const rendered: FiCsElement<D, P> = this.#cloneDeeply()
+    if (data) for (const [key, value] of typedEntries(data as D)) rendered.#rawData[key] = value
+
+    return render(rendered, data)
   }
 
   describe(parent?: HTMLElement): void {
