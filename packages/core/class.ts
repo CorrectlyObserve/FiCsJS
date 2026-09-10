@@ -161,10 +161,36 @@ export class FiCsElement<D extends object, P extends object> {
       }
     })
 
-    if (children)
-      for (const child of children)
-        this.#children[convertStr(child.#nameKey.replace(/^_/, ''), 'camel')] =
-          child.#nameKey === child.#name.slice(2) ? child.#clone() : child
+    if (children) {
+      const registered: Map<string, string> = new Map()
+
+      for (const child of children) {
+        const key: string = convertStr(child.#nameKey.replace(/^_/, ''), 'camel')
+
+        if (isCloned) {
+          this.#children[key] = child
+          continue
+        }
+
+        const owner: string | undefined = FiCsElement.#childOwners.get(child)
+
+        if (owner === undefined) FiCsElement.#childOwners.set(child, this.#name)
+        else if (owner !== this.#name)
+          FiCsElement.#warnMisuse(
+            `${child.#name}>${owner}>${this.#name}`,
+            `Create a new instance of ${child.#name} as ${owner} and ${this.#name} cannot share it...`
+          )
+
+        const existing: string | undefined = registered.get(key)
+        if (existing !== undefined)
+          throw new Error(
+            `Rename ${existing} or ${child.#name} as both share the key "${key}" in ${this.#name}...`
+          )
+
+        registered.set(key, child.#name)
+        this.#children[key] = child.#name === `f-${child.#nameKey}` ? child.#clone() : child
+      }
+    }
 
     this.#isBrowser = isBrowser()
 
