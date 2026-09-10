@@ -118,6 +118,7 @@ export class FiCsElement<D extends object, P extends object> {
 
   constructor({
     name,
+    clonedName,
     instanceId,
     children,
     data,
@@ -137,14 +138,17 @@ export class FiCsElement<D extends object, P extends object> {
     this.#nameKey = name
     this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
-    let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(this.#nameKey)
-    if (!generator) {
-      generator = uid()
-      FiCsElement.#nameGenerators.set(this.#nameKey, generator)
-    }
+    if (clonedName) this.#name = clonedName
+    else {
+      let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(this.#nameKey)
+      if (!generator) {
+        generator = uid()
+        FiCsElement.#nameGenerators.set(this.#nameKey, generator)
+      }
 
-    const count: number = generator.next().value
-    this.#name = `f-${this.#nameKey}${count > 1 ? `-${count}` : ''}`
+      const count: number = generator.next().value
+      this.#name = `f-${this.#nameKey}${count > 1 ? `-${count}` : ''}`
+    }
 
     this.#children = new Proxy({} as Children, {
       get: (target: Children, key: string | symbol): unknown => {
