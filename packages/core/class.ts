@@ -1776,7 +1776,10 @@ export class FiCsElement<D extends object, P extends object> {
         that.#initProps()
 
         if (!that.#options.ssr) {
-          if (data) throw new Error(`The "data" never reaches ${that.#name} as it has "options.ssr: false"...`)
+          if (data)
+            throw new Error(
+              `The "data" never reaches ${that.#name} as it has "options.ssr: false"...`
+            )
           return `<${that.#name}></${that.#name}>`
         }
 
