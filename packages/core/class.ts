@@ -121,6 +121,7 @@ export class FiCsElement<D extends object, P extends object> {
   constructor({
     name,
     clonedName,
+    isCloned,
     instanceId,
     children,
     data,
