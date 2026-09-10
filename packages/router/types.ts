@@ -37,7 +37,7 @@ export interface FiCsRouter<D extends object> {
     ([OverlappedKeys<D>] extends [never]
       ? unknown
       : {
-          [K in OverlappedKeys<D>]: `Please rename data key "${K & string}" as it is reserved by the router...`
+          [K in OverlappedKeys<D>]: `Rename data key "${K & string}" as it is reserved by the router...`
         })
   pathname?: string
   meta?: Record<string, string>
