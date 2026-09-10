@@ -123,8 +123,9 @@ export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
-  clonedName?: string
   instanceId?: string
+  clonedName?: string
+  isCloned?: boolean
   children?: Descendant[]
   data?: () => Partial<D>
   deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
