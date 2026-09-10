@@ -1774,7 +1774,10 @@ export class FiCsElement<D extends object, P extends object> {
       try {
         that.#initProps()
 
-        if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
+        if (!that.#options.ssr) {
+          if (data) throw new Error(`The "data" never reaches ${that.#name} as it has "options.ssr: false"...`)
+          return `<${that.#name}></${that.#name}>`
+        }
 
         const attrs: string[] = []
         if (that.#classNames && !isBlankString(that.#computedClassName))
