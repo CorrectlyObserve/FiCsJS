@@ -1342,10 +1342,11 @@ export class FiCsElement<D extends object, P extends object> {
           attrs[name] = value
         }
 
-        const warnMissingForm =
-          (method: string): (() => void) =>
-          (): void =>
-            console.warn(`Add "options.form" to "${this.#name}" to use the "${method}" method...`)
+        const throwFormError =
+          (method: string): (() => never) =>
+          (): never => {
+            throw new Error(`Add "options.form" to ${this.#name} to use the "${method}" method...`)
+          }
 
         method({
           ...this.#getDataProps(true),
