@@ -70,7 +70,7 @@ export class FiCsElement<D extends object, P extends object> {
   static #activeEffect: { instance: Descendant; run: () => void } | null = null
   static #childOwners: WeakMap<Descendant, string> = new WeakMap()
   static #clonedNames: Map<string, string> = new Map()
-  static globalCss: string
+  static globalCss: string = ''
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
