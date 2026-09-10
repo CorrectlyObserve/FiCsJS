@@ -910,6 +910,17 @@ export class FiCsElement<D extends object, P extends object> {
           }
 
           if (childNode.hasAttribute(attrs.SHOW)) {
+            const ariaLive: string = childNode.getAttribute('aria-live') ?? '',
+              role: string = childNode.getAttribute('role') ?? '',
+              announcingAttr: string =
+                ariaLive === '' ? `role="${role}"` : `aria-live="${ariaLive}"`
+
+            if (ariaLive === '' ? a11y.ANNOUNCING_ROLES.has(role) : ariaLive !== 'off')
+              FiCsElement.#warnMisuse(
+                `${this.#name}>${announcingAttr}`,
+                `Do not hide the ${announcingAttr} element in ${this.#name} as a hidden one never announces...`
+              )
+
             ;(childNode as HTMLElement).style.display = 'none'
             childNode.removeAttribute(attrs.SHOW)
           }
