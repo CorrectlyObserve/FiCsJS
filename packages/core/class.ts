@@ -398,6 +398,7 @@ export class FiCsElement<D extends object, P extends object> {
       cloned: FiCsElement<D, P> = new FiCsElement({
         name: this.#nameKey,
         instanceId: instanceId ?? this.#instanceId,
+        clonedName: name,
         data: () => this.#data as Partial<D>,
         immutableDataKeys: [...this.#immutableDataKeys],
         children: Object.values(this.#children),
