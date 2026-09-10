@@ -5,6 +5,7 @@ export const attrs = {
 } as const
 
 export const a11y = {
+  ANNOUNCING_ROLES: new Set(['alert', 'log', 'status']),
   STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"'
 } as const
 
