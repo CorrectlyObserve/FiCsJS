@@ -392,12 +392,13 @@ export class FiCsElement<D extends object, P extends object> {
     this.#optimisticUpdateFn = optimisticUpdate()
   }
 
-  #clone(instanceId?: string): FiCsElement<D, P> {
+  #clone({ instanceId, name }: { instanceId?: string; name?: string } = {}): FiCsElement<D, P> {
     const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
       cloned: FiCsElement<D, P> = new FiCsElement({
         name: this.#nameKey,
         instanceId: instanceId ?? this.#instanceId,
         clonedName: name,
+        isCloned: true,
         data: () => this.#data as Partial<D>,
         immutableDataKeys: [...this.#immutableDataKeys],
         children: Object.values(this.#children),
