@@ -1236,7 +1236,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #buildCss(shadowRoot: ShadowRoot): void {
-    const css: Css.StringOrFn<D, P>[] = [FiCsElement.globalCss, ...this.#css].filter(Boolean)
+    const css: Css.StringOrFn<D, P>[] = [getGlobalCss({ isRaw: true }), ...this.#css].filter(Boolean)
     if (css.length === 0) return
 
     this.#styleSheet ??= new CSSStyleSheet()
