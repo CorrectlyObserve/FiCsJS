@@ -1240,7 +1240,10 @@ export class FiCsElement<D extends object, P extends object> {
     if (css.length === 0) return
 
     this.#styleSheet ??= new CSSStyleSheet()
-    const cssText: string = this.#cssToString([`${CSS_LAYER}{${h.ITSELF}{display:block}}`, ...css])
+    const cssText: string = this.#cssToString([
+      `${CSS_LAYER}{${HOST_SELECTOR}{display:block}}`,
+      ...css
+    ])
 
     if (this.#lastCssText !== cssText) {
       this.#styleSheet.replaceSync(cssText)
