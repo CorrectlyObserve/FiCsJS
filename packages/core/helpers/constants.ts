@@ -2,6 +2,7 @@ export const APPLICATION_JSON = 'application/json' as const
 export const CONTENT_TYPE = 'content-type' as const
 export const CSS_LAYER = '@layer fics' as const
 export const EVENT_STREAM = 'text/event-stream' as const
+export const HOST_SELECTOR = ':host' as const
 export const INTERVAL_MS = 1_000 as const
 export const JITTER_RATIO = 0.3 as const
 export const MAX_DELAY_MS = 30_000 as const
