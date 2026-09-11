@@ -1,4 +1,4 @@
-import { cssDeclarations } from '../core/helpers'
+import { cssObject } from '../core/helpers'
 import type { Direction, TransitionMode } from './types'
 
 const style = (
@@ -8,7 +8,7 @@ const style = (
   ) => {
     const { prop, shown, hidden } = options ?? {}
 
-    return cssDeclarations({
+    return cssObject({
       opacity: 1,
       transition: `${transition.trim()} allow-discrete`,
       ...(prop && { [prop]: shown }),
