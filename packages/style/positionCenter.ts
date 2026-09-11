@@ -1,4 +1,4 @@
-import { cssDeclarations } from '../core/helpers'
+import { cssObject } from '../core/helpers'
 import type { Axis, Center, Position } from './types'
 
 const horizontal = { left: '50%' } as const,
@@ -14,13 +14,13 @@ export function positionCenter(axis: Axis, position?: Position): Readonly<Center
 export function positionCenter(axis: Axis, position: Position = 'absolute'): Readonly<Center> {
   switch (axis) {
     case 'x':
-      return cssDeclarations({ position, ...horizontal, transform: 'translateX(-50%)' } as const)
+      return cssObject({ position, ...horizontal, transform: 'translateX(-50%)' } as const)
 
     case 'y':
-      return cssDeclarations({ position, ...vertical, transform: 'translateY(-50%)' } as const)
+      return cssObject({ position, ...vertical, transform: 'translateY(-50%)' } as const)
 
     case 'xy':
-      return cssDeclarations({
+      return cssObject({
         position,
         ...horizontal,
         ...vertical,
