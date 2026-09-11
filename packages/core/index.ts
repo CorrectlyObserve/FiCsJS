@@ -1,5 +1,5 @@
 export { fics } from './fics'
-export { configGlobalCss } from './globalCss'
+export { configGlobalCss } from './css'
 export { configI18n, i18n } from './i18n'
 export type { FiCs } from './namespaces'
 export { configQueryCache, createQueryCache, getQueryCache, type QueryCache } from './query'
