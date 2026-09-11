@@ -1,4 +1,4 @@
-import { cssDeclarations } from '../core/helpers'
+import { cssObject } from '../core/helpers'
 import type { Axis, Flex, FlexOptions } from './types'
 
 const justifyCenter = { 'justify-content': 'center' } as const,
@@ -13,7 +13,7 @@ export function flexCenter(
 ): Readonly<Flex & typeof justifyCenter & typeof alignCenter>
 
 export function flexCenter(axis: Axis, options?: FlexOptions): Readonly<Flex> {
-  return cssDeclarations({
+  return cssObject({
     display: `${options?.inline ? 'inline-' : ''}flex`,
     'flex-direction': options?.direction ?? 'row',
     ...(axis.includes('x') && justifyCenter),
