@@ -1401,8 +1401,8 @@ export class FiCsElement<D extends object, P extends object> {
           requestSubmit: this.#isFormAssociated
             ? (...args: Parameters<Form.RequestSubmit>): void =>
                 this.#internals?.form?.requestSubmit(...args)
-            : formError('requestSubmit')(),
-          submitForm: this.#isFormAssociated ? submitForm(event) : formError('submitForm')(),
+            : formError('requestSubmit'),
+          submitForm: this.#isFormAssociated ? submitForm(event) : formError('submitForm'),
           value:
             element instanceof HTMLInputElement ||
             element instanceof HTMLTextAreaElement ||
