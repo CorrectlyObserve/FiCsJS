@@ -4,13 +4,7 @@ import { numberError } from './numberError'
 import { convertStr, typedEntries } from './others'
 import { isBlankString, isEmptyObject } from './typeCheck'
 
-const convertCss = ({
-  css,
-  isInKeyframes
-}: {
-  css: Css.Declarations
-  isInKeyframes?: boolean
-}): string =>
+const convertCss = (css: Css.Declarations): string =>
   typedEntries(css).reduce((prev, [key, value]) => {
     if (typeof key === 'number') numberError({ key }, 'finite')
 
