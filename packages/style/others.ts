@@ -1,4 +1,4 @@
-import { browserError, cssDeclarations, numberError } from '../core/helpers'
+import { browserError, cssObject, numberError } from '../core/helpers'
 import type { Operator } from './types'
 
 export function calc(expression: string): Readonly<string>
@@ -13,7 +13,7 @@ export const cssVar = (variable: string): Readonly<string> => {
   return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})` as const
 }
 
-export const hideScrollbar = cssDeclarations({
+export const hideScrollbar = cssObject({
   '::-webkit-scrollbar': { display: 'none' },
   'scrollbar-width': 'none',
   '-ms-overflow-style': 'none'
