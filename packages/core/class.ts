@@ -1387,7 +1387,7 @@ export class FiCsElement<D extends object, P extends object> {
           attrs[name] = value
         }
 
-        const throwFormError =
+        const formError =
           (method: string): (() => never) =>
           (): never => {
             throw new Error(`Add "options.form" to ${this.#name} to use the "${method}" method...`)
@@ -1401,8 +1401,8 @@ export class FiCsElement<D extends object, P extends object> {
           requestSubmit: this.#isFormAssociated
             ? (...args: Parameters<Form.RequestSubmit>): void =>
                 this.#internals?.form?.requestSubmit(...args)
-            : throwFormError('requestSubmit')(),
-          submitForm: this.#isFormAssociated ? submitForm(event) : throwFormError('submitForm')(),
+            : formError('requestSubmit')(),
+          submitForm: this.#isFormAssociated ? submitForm(event) : formError('submitForm')(),
           value:
             element instanceof HTMLInputElement ||
             element instanceof HTMLTextAreaElement ||
