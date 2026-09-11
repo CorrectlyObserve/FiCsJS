@@ -1,5 +1,5 @@
 import { FiCsElement } from '../core/class'
-import { CSS_LAYER, escape, isBlankString, typedEntries } from '../core/helpers'
+import { CSS_LAYER, escape, HOST_SELECTOR, isBlankString, typedEntries } from '../core/helpers'
 import { LINK_COMPONENT_NAME } from './constants'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
@@ -57,7 +57,7 @@ export const ficsLink = <P extends object>({
     css: [
       `
         ${CSS_LAYER} {
-          :host {
+          ${HOST_SELECTOR} {
             display: block;
             width: 100%;
 
@@ -74,7 +74,7 @@ export const ficsLink = <P extends object>({
       ...(css ? (Array.isArray(css) ? css : [css]) : [])
     ],
     actions: {
-      ':host > a[href]': {
+      [`${HOST_SELECTOR} > a[href]`]: {
         click: [
           ({ event, attributes: { href } }) => {
             href = href.trim()
