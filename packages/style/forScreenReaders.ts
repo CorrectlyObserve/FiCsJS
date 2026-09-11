@@ -1,6 +1,6 @@
-import { cssDeclarations } from '../core/helpers'
+import { cssObject } from '../core/helpers'
 
-export const forScreenReaders = cssDeclarations({
+export const forScreenReaders = cssObject({
   position: 'absolute',
   width: '1px',
   height: '1px',
