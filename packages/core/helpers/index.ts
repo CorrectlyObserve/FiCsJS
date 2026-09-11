@@ -19,7 +19,7 @@ export {
 
 export { forwardAbort, isClientTermination, onAbort, scheduleAbort } from './abort'
 export { browserError, isBrowser } from './browser'
-export { cssDeclarations } from './css'
+export { cssObject } from './css'
 export { deepEqual } from './deepEqual'
 export { numberError } from './numberError'
 export {
