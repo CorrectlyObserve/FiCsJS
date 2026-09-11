@@ -1259,34 +1259,13 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    let trimmedSelector: string = selector.trim()
+    selector = selector.trim()
 
     if (selector === HOST_SELECTOR) return [component]
 
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(component),
-      isDirectChild: boolean = trimmedSelector.startsWith(`${h.ITSELF} >`)
-
-    if (isDirectChild) {
-      const directChildSelector: string = trimmedSelector
-        .slice(h.ITSELF.length)
-        .replace(/^\s*>\s*/, '')
-        .trim()
-
-      try {
-        return Array.from(shadowRoot.children).filter((element: Element): boolean =>
-          element.matches(directChildSelector)
-        )
-      } catch (error) {
-        throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
-      }
-    }
-
-    if (trimmedSelector.startsWith(`${h.ITSELF} `))
-      trimmedSelector = trimmedSelector.slice(h.ITSELF.length).trimStart()
-
     try {
-      return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
-    } catch (error) {
+      return Array.from(this.#getShadowRoot(component).querySelectorAll(selector))
+    } catch {
       throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
     }
   }
