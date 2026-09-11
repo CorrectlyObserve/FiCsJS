@@ -20,5 +20,5 @@ const convertCss = (css: Css.Declarations): string =>
     return `${prev}${strKey}:${value};`
   }, '')
 
-export const cssDeclarations = <T extends Css.Declarations>(css: T): T =>
+export const cssObject = <T extends Css.Declarations>(css: T): T =>
   Object.defineProperty(css, 'toString', { value: (): string => convertCss(css) })
