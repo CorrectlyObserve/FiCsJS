@@ -35,4 +35,4 @@ const convertCss = (css: Css.Declarations): string =>
   }, '')
 
 export const cssDeclarations = <T extends Css.Declarations>(css: T): T =>
-  Object.defineProperty(css, 'toString', { value: (): string => convertCss({ css }) })
+  Object.defineProperty(css, 'toString', { value: (): string => convertCss(css) })
