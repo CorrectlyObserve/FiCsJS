@@ -1,34 +1,20 @@
 import type { Css } from '../types'
-import { AT_KEYFRAMES } from './constants'
-import { numberError } from './numberError'
 import { convertStr, typedEntries } from './others'
 import { isBlankString, isEmptyObject } from './typeCheck'
 
 const convertCss = (css: Css.Declarations): string =>
   typedEntries(css).reduce((prev, [key, value]) => {
-    if (typeof key === 'number') numberError({ key }, 'finite')
-
     if (value === undefined || isBlankString(value) || isEmptyObject(value)) return prev
 
     const isNested: boolean = typeof value !== 'string' && typeof value !== 'number'
-    if (isNested) {
-      const cssText: string = convertCss({
-        css: value as Css.Declarations,
-        isInKeyframes:
-          isInKeyframes || (typeof key === 'string' && key.trimStart().startsWith(AT_KEYFRAMES))
-      })
+    if (isNested) return `${prev}${key.toString()}{${convertCss(value as Css.Declarations)}}`
 
-      return `${prev}${key.toString()}{${cssText}}`
-    }
+    let strKey: string = key.toString()
+    const isCssCustomProperty: boolean = strKey.startsWith('--')
 
-    let strKey: string
-
-    if (typeof key === 'number') strKey = key.toString()
-    /** @remarks CSS custom properties */ else if (key.startsWith('--')) strKey = key
-    else {
-      key = convertStr(key, 'kebab')
-      if (key.startsWith('webkit')) key = `-${key}`
-      strKey = key
+    if (!isCssCustomProperty) {
+      strKey = convertStr(strKey, 'kebab')
+      if (strKey.startsWith('webkit')) strKey = `-${strKey}`
     }
 
     return `${prev}${strKey}:${value};`
