@@ -21,7 +21,7 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
  * ```
  * 1. i      : 0000 1100
  * 2. ~i     : 1111 0011 (Inverted)
- * 3. -i     : 1111 0100 (Flips bits until the first original '1')
+ * 3. -i     : 1111 0100 (Flipped bits until the first original '1')
  * 4. i & -i : 0000 0100 (Result: 4 (binary: 100). Index 12 manages a range of 4: 9~12)
  * ```
  */
