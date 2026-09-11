@@ -1261,7 +1261,7 @@ export class FiCsElement<D extends object, P extends object> {
   #getElements(component: HTMLElement, selector: string): Element[] {
     let trimmedSelector: string = selector.trim()
 
-    if (trimmedSelector === h.ITSELF) return [component]
+    if (selector === HOST_SELECTOR) return [component]
 
     const shadowRoot: ShadowRoot = this.#getShadowRoot(component),
       isDirectChild: boolean = trimmedSelector.startsWith(`${h.ITSELF} >`)
