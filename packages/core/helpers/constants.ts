@@ -1,5 +1,4 @@
 export const APPLICATION_JSON = 'application/json' as const
-export const AT_KEYFRAMES = '@keyframes' as const
 export const CONTENT_TYPE = 'content-type' as const
 export const CSS_LAYER = '@layer fics' as const
 export const EVENT_STREAM = 'text/event-stream' as const
