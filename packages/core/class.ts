@@ -3,7 +3,6 @@ import {
   attrs,
   BOOLEAN_ATTRS,
   CLONED_SELVES_LENGTH,
-  hostSelector as h,
   symbols,
   VAR_TAG_NAME
 } from './constants'
@@ -16,6 +15,7 @@ import {
   CSS_LAYER,
   deepEqual,
   escape,
+  HOST_SELECTOR,
   isBlankString,
   isBrowser,
   isEmptyObject,
