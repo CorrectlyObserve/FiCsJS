@@ -1,9 +1,9 @@
-import { cssDeclarations, numberError } from '../core/helpers'
+import { cssObject, numberError } from '../core/helpers'
 import type { Rect } from './types'
 
 /** @param diameter Must be a positive integer. */
 export const circle = (diameter: number) =>
-  cssDeclarations({ ...rect(diameter, diameter), borderRadius: '50%', overflow: 'hidden' } as const)
+  cssObject({ ...rect(diameter, diameter), borderRadius: '50%', overflow: 'hidden' } as const)
 
 /**
  * @param width Must be a positive integer.
@@ -15,7 +15,7 @@ export const rect = (width: Rect, height: Rect = 'auto') => {
   if (isNumber(width)) numberError({ width }, 'positive-int')
   if (isNumber(height)) numberError({ height }, 'positive-int')
 
-  return cssDeclarations({
+  return cssObject({
     width: isNumber(width) ? `${width * 0.25}rem` : width,
     height: isNumber(height) ? `${height * 0.25}rem` : height
   } as const)
