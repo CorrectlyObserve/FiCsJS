@@ -1,4 +1,4 @@
-import { getGlobalCss } from '../../core/globalCss'
+import { getGlobalCss } from '../../core/css'
 import { CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
