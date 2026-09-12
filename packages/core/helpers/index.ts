@@ -1,12 +1,3 @@
-import { statusCodes } from './constants'
-export const {
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  NO_CONTENT,
-  REQUEST_TIMEOUT,
-  TOO_MANY_REQUESTS
-} = statusCodes
-
 export {
   APPLICATION_JSON,
   CONTENT_TYPE,
@@ -16,7 +7,8 @@ export {
   HOST_SELECTOR,
   MAX_DELAY_MS,
   MAX_RETRIES,
-  NOOP
+  NOOP,
+  statusCodes
 } from './constants'
 
 export { forwardAbort, isClientTermination, onAbort, scheduleAbort } from './abort'
