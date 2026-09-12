@@ -10,6 +10,7 @@ export const {
 export {
   APPLICATION_JSON,
   CONTENT_TYPE,
+  char,
   CSS_LAYER,
   EVENT_STREAM,
   HOST_SELECTOR,
