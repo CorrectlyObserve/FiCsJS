@@ -1,5 +1,7 @@
 import { HOST_SELECTOR } from '../helpers'
 
+export const BACKSLASH = '\\' as const
+
 export const GROUPING_AT_RULES = [
   '@container',
   '@layer',
