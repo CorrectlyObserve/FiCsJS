@@ -15,8 +15,8 @@ export const HOST_GROUP = `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)
 export const HOST_STRICT = `${HOST_SELECTOR}(?!-)` as const
 
 export const IGNORE_TOKENS = [
-  { start: '/*', end: '*/' },
-  { start: 'url(', end: ')' }
+  { open: '/*', close: '*/' },
+  { open: 'url(', close: ')' }
 ] as const
 
 export const TOP_LEVEL_AT_RULES = [
