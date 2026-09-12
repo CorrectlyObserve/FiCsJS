@@ -7,10 +7,10 @@ import {
   getDelayMs,
   isIdempotentMethod,
   MAX_RETRIES,
-  NO_CONTENT,
   numberError,
   scheduleAbort,
-  shouldRetry
+  shouldRetry,
+  statusCodes
 } from './helpers'
 import type { Crud } from './types'
 
@@ -103,7 +103,7 @@ export const crud = async <T>({
       }
     })()
 
-    if (res.status === NO_CONTENT) return
+    if (res.status === statusCodes.NO_CONTENT) return
 
     const contentType: string = res.headers.get(CONTENT_TYPE)?.toLowerCase() ?? '',
       readStream = async (): Promise<void> => {
