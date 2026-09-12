@@ -14,6 +14,11 @@ export const GROUPING_AT_RULES = [
 export const HOST_GROUP = `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)` as const
 export const HOST_STRICT = `${HOST_SELECTOR}(?!-)` as const
 
+export const INERT_TOKENS = [
+  { start: '/*', end: '*/' },
+  { start: 'url(', end: ')' }
+] as const
+
 export const TOP_LEVEL_AT_RULES = [
   '@counter-style',
   '@font-face',
