@@ -1,11 +1,12 @@
+import { char as c } from '../helpers'
+
 export const char = {
+  ...c,
   COMMENT_OPEN_TAG: '<!--',
   COMMENT_CLOSE_TAG: '-->',
-  DOUBLE_QUOTE: '"',
   EQUAL_SIGN: '=',
   LEFT_ANGLE_BRACKET: '<',
-  RIGHT_ANGLE_BRACKET: '>',
-  SINGLE_QUOTE: "'"
+  RIGHT_ANGLE_BRACKET: '>'
 } as const
 
 export const DISPLAY_NONE = 'display:none;' as const
