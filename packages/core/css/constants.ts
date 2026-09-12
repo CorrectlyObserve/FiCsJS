@@ -14,7 +14,7 @@ export const GROUPING_AT_RULES = [
 export const HOST_GROUP = `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)` as const
 export const HOST_STRICT = `${HOST_SELECTOR}(?!-)` as const
 
-export const INERT_TOKENS = [
+export const IGNORE_TOKENS = [
   { start: '/*', end: '*/' },
   { start: 'url(', end: ')' }
 ] as const
