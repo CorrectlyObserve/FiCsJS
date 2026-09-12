@@ -1,10 +1,4 @@
-import {
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  NO_CONTENT,
-  REQUEST_TIMEOUT,
-  TOO_MANY_REQUESTS
-} from '../core/helpers'
+import { statusCodes as codes } from '../core/helpers'
 
 export const denialCodes = {
   CONFLICT: 409,
@@ -29,14 +23,10 @@ export const STATUS_FALLBACK = 'fallback' as const
 export const STATUS_PAGE_META = { robots: 'noindex' } as const
 
 export const statusCodes = {
+  ...codes,
   ...denialCodes,
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
   METHOD_NOT_ALLOWED: 405,
-  NO_CONTENT,
   OK: 200,
   PAYLOAD_TOO_LARGE: 413,
-  REDIRECT: 302,
-  REQUEST_TIMEOUT,
-  TOO_MANY_REQUESTS
+  REDIRECT: 302
 } as const
