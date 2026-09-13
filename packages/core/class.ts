@@ -7,12 +7,11 @@ import {
   VAR_TAG_NAME
 } from './constants'
 import { crud } from './crud'
-import { cssToString } from './css'
+import { addHostToSelectors, getGlobalStyleSheet } from './css'
 import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls } from './form'
 import {
   browserError,
   convertStr,
-  CSS_LAYER,
   deepEqual,
   escape,
   HOST_SELECTOR,
@@ -1219,22 +1218,19 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #cssToString(css: Css.StringOrFn<D, P>[], isSsr?: boolean): string {
-    return cssToString(css, {
-      getDataProps: () => this.#getDataProps(),
-      normalizeHost: (selector: string | number): string => {
-        if (typeof selector === 'number') return selector.toString()
-        if (!isSsr) return selector
+    if (css.length === 0) return ''
 
-        const ssrHost: string = `div#${this.#name}`
-
-        /** @remarks Excludes `:host-context()` */
-        if (/^\s*:host(?!-)/.test(selector))
-          return selector
-            .replace(new RegExp(`${h.GROUP}`, 'g'), `${ssrHost}$1`)
-            .replace(new RegExp(`${h.STRICT}`, 'g'), ssrHost)
-
-        return `:where(${ssrHost}) ${selector}`
-      }
+    return addHostToSelectors({
+      css: css.reduce<string>(
+        (prev, curr) => `${prev}${typeof curr === 'function' ? curr(this.#getDataProps()) : curr}`,
+        ''
+      ),
+      ssrHost: isSsr ? `div#${this.#name}` : undefined,
+      warnMisuse: (text: string): void =>
+        FiCsElement.#warnMisuse(
+          `${this.#name}:${text}`,
+          `The declaration "${text}" in ${this.#name} is ignored as it lacks a selector...`
+        )
     })
   }
 
