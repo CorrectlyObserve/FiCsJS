@@ -1239,20 +1239,18 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #buildCss(shadowRoot: ShadowRoot): void {
-    const css: Css.StringOrFn<D, P>[] = [getGlobalCss({ isRaw: true }), ...this.#css].filter(Boolean)
-    if (css.length === 0) return
-
     this.#styleSheet ??= new CSSStyleSheet()
-    const cssText: string = this.#cssToString([
-      `${CSS_LAYER}{${HOST_SELECTOR}{display:block}}`,
-      ...css
-    ])
 
-    if (this.#lastCssText !== cssText) {
-      this.#styleSheet.replaceSync(cssText)
-      this.#lastCssText = cssText
+    if (!this.#isStaticCss || this.#lastCssText === undefined) {
+      const componentCss: string = this.#cssToString(this.#css)
+
+      if (this.#lastCssText !== componentCss) {
+        this.#styleSheet.replaceSync(componentCss)
+        this.#lastCssText = componentCss
+      }
     }
-    shadowRoot.adoptedStyleSheets = [this.#styleSheet]
+
+    shadowRoot.adoptedStyleSheets = [getGlobalStyleSheet(), this.#styleSheet]
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
