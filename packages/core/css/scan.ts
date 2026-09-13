@@ -51,7 +51,7 @@ export const findDelimiter = ({
     const char: string = css[cursor]
 
     if (char === '(') depth++
-    else if (char === ')') depth--
+    else if (char === ')') depth = Math.max(depth - 1, 0)
     else if (depth === 0 && delimiters.includes(char)) return cursor
 
     cursor++
