@@ -1,7 +1,9 @@
 import { char as c } from '../helpers'
-import { BACKSLASH, IGNORE_TOKENS } from './constants'
+import { BACKSLASH, BRACKET_PAIRS, IGNORE_TOKENS } from './constants'
 
-export const findCloseBrace = (css: string, openIndex: number): number => {
+export const findCloseBracket = (css: string, openIndex: number): number => {
+  const open: string = css[openIndex],
+    close: string = BRACKET_PAIRS[open as keyof typeof BRACKET_PAIRS]
   let cursor: number = openIndex + 1,
     depth: number = 1
 
@@ -13,8 +15,8 @@ export const findCloseBrace = (css: string, openIndex: number): number => {
       continue
     }
 
-    if (css[cursor] === '{') depth++
-    else if (css[cursor] === '}') {
+    if (css[cursor] === open) depth++
+    else if (css[cursor] === close) {
       depth--
       if (depth === 0) return cursor + 1
     }
