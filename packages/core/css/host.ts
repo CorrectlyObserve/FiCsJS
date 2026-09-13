@@ -45,11 +45,11 @@ export const addHostToSelectors = ({
       continue
     }
 
-    const selector: string = css.slice(index, delimitedIndex),
-      closeIndex: number = findCloseBrace(css, delimitedIndex),
-      style: string = css.slice(delimitedIndex + 1, closeIndex - 1),
-      trimmed: string = selector.trim(),
-      fullBlock: string = css.slice(index, closeIndex)
+    const header: string = css.slice(index, delimitedIndex),
+      closeIndex: number = findCloseBracket(css, delimitedIndex),
+      block: string = css.slice(delimitedIndex + 1, closeIndex - 1),
+      rule: string = css.slice(index, closeIndex),
+      trimmed: string = header.trim()
 
     if (
       ssrHost !== undefined &&
