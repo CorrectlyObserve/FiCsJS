@@ -71,7 +71,6 @@ export class FiCsElement<D extends object, P extends object> {
   static #childOwners: WeakMap<Descendant, string> = new WeakMap()
   static #warnedMisuses: Set<string> = new Set()
   static #clonedNames: Map<string, string> = new Map()
-  static globalCss: string = ''
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
