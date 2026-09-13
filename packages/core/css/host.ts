@@ -53,18 +53,18 @@ export const addHostToSelectors = ({
 
     if (
       ssrHost !== undefined &&
-      startsWithAtRule(trimmed) &&
-      GROUPING_AT_RULES.some(rule => trimmed.startsWith(rule))
+      trimmed.startsWith(AT_RULE) &&
+      GROUPING_AT_RULES.some(atRule => trimmed.startsWith(atRule))
     )
-      result += `${selector}{${addHostToSelectors({ css: style, warnMisuse, ssrHost })}}`
-    else if (ssrHost === undefined || startsWithAtRule(trimmed)) result += fullBlock
+      result += `${header}{${addHostToSelectors({ css: block, warnMisuse, ssrHost })}}`
+    else if (ssrHost === undefined || trimmed.startsWith(AT_RULE)) result += rule
     else {
-      const { length }: { length: number } = selector,
+      const { length }: { length: number } = header,
         selectors: string[] = []
       let cursor: number = 0
 
       while (cursor <= length) {
-        const commaIndex: number = findDelimiter({ css: selector, index: cursor, delimiters: ',' }),
+        const commaIndex: number = findDelimiter({ css: header, index: cursor, delimiters: ',' }),
           isLast: boolean = commaIndex === -1
         let subSelector: string = selector.slice(cursor, isLast ? length : commaIndex).trim()
 
