@@ -13,7 +13,6 @@ export const addHostToSelectors = ({
 }): string => {
   let result: string = '',
     index: number = 0
-  const startsWithAtRule = (css: string): boolean => css.startsWith(AT_RULE)
 
   while (index < css.length) {
     const validIndex: number = getNextValidIndex(css, index)
