@@ -66,7 +66,7 @@ export const addHostToSelectors = ({
       while (cursor <= length) {
         const commaIndex: number = findDelimiter({ css: header, index: cursor, delimiters: ',' }),
           isLast: boolean = commaIndex === -1
-        let subSelector: string = selector.slice(cursor, isLast ? length : commaIndex).trim()
+        let selector: string = header.slice(cursor, isLast ? length : commaIndex).trim()
 
         if (!isBlankString(subSelector))
           /** @remarks Excludes `:host-context()` */
