@@ -96,6 +96,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #attrs?: Attrs<D, P>
   readonly #html: Html.Core<D, P>
   readonly #css: Css.StringOrFn<D, P>[] = []
+  readonly #isStaticCss: boolean
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
   readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
@@ -413,6 +414,9 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
+    this.#isStaticCss = this.#css.every(
+      (value: Css.StringOrFn<D, P>): value is string => typeof value === 'string'
+    )
 
     if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
