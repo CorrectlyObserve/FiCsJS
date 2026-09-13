@@ -58,7 +58,6 @@ export const ficsLink = <P extends object>({
       `
         ${CSS_LAYER} {
           ${HOST_SELECTOR} {
-            display: block;
             width: 100%;
 
             a {
