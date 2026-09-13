@@ -1,12 +1,31 @@
-import { unnestAtRules } from './unnest'
+import { CSS_LAYER, HOST_SELECTOR } from '../helpers'
 
-let globalCss: string = ''
+const addedCss: Set<string> = new Set()
+let configuredCss: string = '',
+  styleSheet: CSSStyleSheet | undefined,
+  isStale: boolean = true
 
-export const configGlobalCss = (css: string): string => {
-  globalCss = css
-  return getGlobalCss()
+export const addGlobalCss = (css: string): void => {
+  if (addedCss.has(css)) return
+
+  addedCss.add(css)
+  isStale = true
 }
 
-/** @param isRaw - Set to true to defer hoisting */
-export const getGlobalCss = ({ isRaw }: { isRaw?: boolean } = {}): string =>
-  isRaw ? globalCss : unnestAtRules(globalCss)
+export const configGlobalCss = (css: string): void => {
+  configuredCss = css
+  isStale = true
+}
+
+export const getGlobalCss = (): string => `${[...addedCss].join('')}${configuredCss}`
+
+export const getGlobalStyleSheet = (): CSSStyleSheet => {
+  styleSheet ??= new CSSStyleSheet()
+
+  if (isStale) {
+    styleSheet.replaceSync(`${CSS_LAYER}{${HOST_SELECTOR}{display:block}}${getGlobalCss()}`)
+    isStale = false
+  }
+
+  return styleSheet
+}
