@@ -76,13 +76,13 @@ export const addHostToSelectors = ({
                 .replace(new RegExp(HOST_STRICT, 'g'), ssrHost)
             : `:where(${ssrHost}) ${subSelector}`
 
-        selectors.push(subSelector)
+        selectors.push(selector)
         if (isLast) break
 
         cursor = commaIndex + 1
       }
 
-      result += `${selectors.join(',')}{${style}}`
+      result += `${selectors.join(',')}{${block}}`
     }
 
     index = closeIndex
