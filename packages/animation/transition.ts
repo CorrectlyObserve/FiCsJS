@@ -6,18 +6,15 @@ const style = (
     mode: TransitionMode,
     options?: { prop: string; shown: string | number; hidden: string | number }
   ) => {
-    const { prop, shown, hidden } = options ?? {}
+    const base = { opacity: 1, transition: `${transition.trim()} allow-discrete` } as const
+    if (!options) return cssObject(base)
 
+    const hiddenStyle = { opacity: 0, [options.prop]: options.hidden } as const
     return cssObject({
-      opacity: 1,
-      transition: `${transition.trim()} allow-discrete`,
-      ...(prop && { [prop]: shown }),
-      ...(mode.startsWith('in') && prop
-        ? { '@starting-style': { opacity: 0, [prop]: hidden } as const }
-        : {}),
-      ...(mode.endsWith('out') && prop
-        ? { '&[style*="display: none"]': { opacity: 0, [prop]: hidden } as const }
-        : {})
+      ...base,
+      [options.prop]: options.shown,
+      ...(mode.startsWith('in') && { '@starting-style': hiddenStyle }),
+      ...(mode.endsWith('out') && { '&[style*="display: none"]': hiddenStyle })
     })
   },
   hiddenStyle = (distance: string) =>
