@@ -19,11 +19,3 @@ export const IGNORE_TOKENS = [
   { open: '/*', close: '*/' },
   { open: 'url(', close: ')' }
 ] as const
-
-export const TOP_LEVEL_AT_RULES = [
-  '@counter-style',
-  '@font-face',
-  '@keyframes',
-  '@page',
-  '@property'
-] as const
