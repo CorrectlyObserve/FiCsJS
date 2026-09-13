@@ -258,7 +258,7 @@ export class FiCsElement<D extends object, P extends object> {
               this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
               if (!this.#options.telemetry?.onError)
                 console.error(
-                  `The updated hook of "${String(dataKey)}" failed in the ${this.#name}...`,
+                  `The updated hook of "${String(dataKey)}" failed in ${this.#name}...`,
                   error
                 )
             }
@@ -1780,11 +1780,11 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   getChildren(): Children {
-    throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
+    throw new Error(`The getChildren method is not implemented in ${this.#name}...`)
   }
 
   setIndividualProps(_1: string | number, _2: P): FiCsElement<D, P> {
-    throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
+    throw new Error(`The setIndividualProps method is not implemented in ${this.#name}...`)
   }
 
   toString({ data, queryCache }: { data?: Partial<D>; queryCache?: QueryCache } = {}): string {
