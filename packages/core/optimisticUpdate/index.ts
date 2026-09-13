@@ -45,7 +45,7 @@ export const optimisticUpdate = () => {
     for (const targetKey of targetKeys)
       if (lockedKeys.has(targetKey))
         throw new Error(
-          `The target key "${targetKey}" is currently in use by optimistic update in the ${name}...`
+          `The target key "${targetKey}" is currently in use by optimistic update in ${name}...`
         )
 
     const awaitingTasks: Promise<void>[] = [],
@@ -67,7 +67,7 @@ export const optimisticUpdate = () => {
 
       if (signal.aborted)
         throw new DOMException(
-          `Optimistic update disconnected before applying in the ${name}...`,
+          `Optimistic update disconnected before applying in ${name}...`,
           'AbortError'
         )
 
@@ -82,7 +82,7 @@ export const optimisticUpdate = () => {
         try {
           if (controller.signal.aborted)
             throw new DOMException(
-              `Optimistic update aborted before applying in the ${name}...`,
+              `Optimistic update aborted before applying in ${name}...`,
               'AbortError'
             )
 
@@ -111,7 +111,7 @@ export const optimisticUpdate = () => {
           if (controller.signal.aborted) {
             rollback()
             throw new DOMException(
-              `Optimistic update aborted after applying in the ${name}...`,
+              `Optimistic update aborted after applying in ${name}...`,
               'AbortError'
             )
           }
@@ -134,7 +134,7 @@ export const optimisticUpdate = () => {
                 const clearTimer: () => void = scheduleAbort({
                   controller,
                   timeoutMs,
-                  message: `Optimistic update timed out in the ${name}...`
+                  message: `Optimistic update timed out in ${name}...`
                 })
 
                 try {
