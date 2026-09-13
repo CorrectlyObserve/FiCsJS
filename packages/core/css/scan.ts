@@ -1,5 +1,5 @@
 import { char as c } from '../helpers'
-import { BACKSLASH, GROUPING_AT_RULES, IGNORE_TOKENS, TOP_LEVEL_AT_RULES } from './constants'
+import { BACKSLASH, IGNORE_TOKENS } from './constants'
 
 export const findCloseBrace = (css: string, openIndex: number): number => {
   let cursor: number = openIndex + 1,
@@ -86,15 +86,3 @@ export const getNextValidIndex = (css: string, index: number): number => {
 
   return index
 }
-
-export const isAtRule = ({
-  css,
-  rules = GROUPING_AT_RULES,
-  method = 'startsWith',
-  index = 0
-}: {
-  css: string
-  rules?: typeof GROUPING_AT_RULES | typeof TOP_LEVEL_AT_RULES
-  method?: 'startsWith' | 'includes'
-  index?: number
-}): boolean => rules.some(rule => css[method](rule, index))
