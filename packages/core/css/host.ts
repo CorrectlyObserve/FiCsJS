@@ -61,14 +61,13 @@ export const addHostToSelectors = ({
       result += `${header}{${addHostToSelectors({ css: block, warnMisuse, ssrHost })}}`
     else if (ssrHost === undefined || trimmed.startsWith(AT_RULE)) result += rule
     else {
-      const { length }: { length: number } = header,
-        selectors: string[] = []
+      const selectors: string[] = []
       let cursor: number = 0
 
-      while (cursor <= length) {
+      while (cursor <= header.length) {
         const commaIndex: number = findDelimiter({ css: header, index: cursor, delimiters: ',' }),
           isLast: boolean = commaIndex === -1
-        let selector: string = header.slice(cursor, isLast ? length : commaIndex).trim()
+        let selector: string = header.slice(cursor, isLast ? header.length : commaIndex).trim()
 
         if (!isBlankString(subSelector))
           /** @remarks Excludes `:host-context()` */

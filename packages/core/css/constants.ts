@@ -1,5 +1,3 @@
-import { HOST_SELECTOR } from '../helpers'
-
 export const AT_RULE = '@' as const
 export const BACKSLASH = '\\' as const
 export const BRACKET_PAIRS = { '(': ')', '{': '}' } as const
@@ -13,8 +11,7 @@ export const GROUPING_AT_RULES = [
   '@supports'
 ] as const
 
-export const HOST_GROUP = `${HOST_SELECTOR}\\(([^()]*(?:\\([^()]*\\))*[^()]*)\\)` as const
-export const HOST_STRICT = `${HOST_SELECTOR}(?!-)` as const
+export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 
 export const IGNORE_TOKENS = [
   { open: '/*', close: '*/' },
