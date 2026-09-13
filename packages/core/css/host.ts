@@ -1,6 +1,9 @@
-import { isBlankString } from '../helpers'
-import { AT_RULE, GROUPING_AT_RULES, HOST_GROUP, HOST_STRICT } from './constants'
-import { findCloseBrace, findDelimiter, getNextValidIndex } from './scan'
+import { HOST_SELECTOR, isBlankString } from '../helpers'
+import { AT_RULE, GROUPING_AT_RULES } from './constants'
+import { findCloseBracket, findDelimiter, getNextValidIndex } from './scan'
+
+const isHostAt = (selector: string, index: number): boolean =>
+  selector.startsWith(HOST_SELECTOR, index) && selector[index + HOST_SELECTOR.length] !== '-'
 
 export const addHostToSelectors = ({
   css,
