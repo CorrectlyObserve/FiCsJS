@@ -1,5 +1,6 @@
 import { HOST_SELECTOR } from '../helpers'
 
+export const AT_RULE = '@' as const
 export const BACKSLASH = '\\' as const
 
 export const GROUPING_AT_RULES = [
