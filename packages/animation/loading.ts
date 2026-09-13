@@ -1,4 +1,5 @@
 import { cssObject, numberError } from '../core/helpers'
+import { PULSE_OPACITY } from './constants'
 
 /**
  * @param durationSec Must be greater than 0. Defaults to `2`.
@@ -10,7 +11,7 @@ export const pulse = (durationSec = 2, opacity = 0.4) => {
 
   return cssObject({
     animation: `pulse ${durationSec}s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
-    '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity } }
+    [PULSE_OPACITY]: opacity
   } as const)
 }
 
@@ -18,8 +19,5 @@ export const pulse = (durationSec = 2, opacity = 0.4) => {
 export const spin = (durationSec: number = 1.5) => {
   numberError({ durationSec }, 'positive')
 
-  return cssObject({
-    animation: `spin ${durationSec}s infinite linear`,
-    '@keyframes spin': { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } }
-  } as const)
+  return cssObject({ animation: `spin ${durationSec}s infinite linear` } as const)
 }
