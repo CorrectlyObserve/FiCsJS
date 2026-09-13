@@ -38,10 +38,9 @@ export const addHostToSelectors = ({
     }
 
     if (css[delimitedIndex] === ';') {
-      const style: string = css.slice(index, delimitedIndex + 1),
-        trimmed: string = style.trim()
+      const upToSemicolon: string = css.slice(index, delimitedIndex + 1)
+      upToSemicolon.startsWith(AT_RULE) ? (result += upToSemicolon) : warnMisuse(upToSemicolon)
 
-      startsWithAtRule(trimmed) ? (result += style) : warnMisuse(trimmed)
       index = delimitedIndex + 1
       continue
     }
