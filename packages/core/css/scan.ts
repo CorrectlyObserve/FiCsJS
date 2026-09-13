@@ -65,7 +65,7 @@ export const getNextValidIndex = (css: string, index: number): number => {
   if (char === BACKSLASH) return Math.min(index + ESCAPE_LENGTH, css.length)
 
   if (char === c.SINGLE_QUOTE || char === c.DOUBLE_QUOTE) {
-    const QUOTE_LENGTH: number = 1 as const
+    const QUOTE_LENGTH = 1 as const
     let cursor: number = index + QUOTE_LENGTH
 
     while (cursor < css.length) {
