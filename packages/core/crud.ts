@@ -59,7 +59,7 @@ export const crud = async <T>({
       const clearTimer: () => void = scheduleAbort({
         controller,
         timeoutMs,
-        message: `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`
+        message: `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in ${name}...`
       })
 
       try {
@@ -89,7 +89,7 @@ export const crud = async <T>({
               signal
             })
           )
-            throw new Error(`The ${method} request to "${endpoint}" failed in the ${name}...`, {
+            throw new Error(`The ${method} request to "${endpoint}" failed in ${name}...`, {
               cause: error
             })
 
