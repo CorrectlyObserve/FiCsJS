@@ -1,5 +1,6 @@
 import { FiCsElement } from './class'
 import { a11y, attrs } from './constants'
+import { char as c } from './helpers'
 import type { QueryCache } from './query'
 
 export declare namespace Action {
@@ -674,7 +675,7 @@ export declare namespace Template {
   }
 
   type Context = Quote | 'text' | 'tag'
-  type Quote = '"' | "'"
+  type Quote = typeof c.SINGLE_QUOTE | typeof c.DOUBLE_QUOTE
   type Variable<T> = (T | string)[] | string
 }
 
