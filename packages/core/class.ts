@@ -1707,7 +1707,7 @@ export class FiCsElement<D extends object, P extends object> {
     window.customElements.define(that.#name, FiCsCustomElement)
   }
 
-  async #reRender(isOnlyHtml?: boolean): Promise<void> {
+  async #reRender(): Promise<void> {
     this.#isInRerendering = true
 
     try {
@@ -1727,16 +1727,12 @@ export class FiCsElement<D extends object, P extends object> {
 
       /** @remarks Syncs the final state to the form, allowing custom validation to append data before rendering. */
       this.#syncForm()
+      this.#setClassNames(component)
+      this.#setAttrs(component)
 
       const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
-
-      if (!isOnlyHtml) {
-        this.#setClassNames(component)
-        this.#setAttrs(component)
-        this.#buildCss(shadowRoot)
-      }
-
       this.#buildHtml(shadowRoot)
+      this.#buildCss(shadowRoot)
       this.#infiniteVirtualScroll(shadowRoot)
 
       const addAllElements = (elements: Element[] | Set<Element>): void => {
