@@ -208,7 +208,7 @@ const css: FiCs.Css<Data, Props> = `
 
 export default fics<Data, Props>({
   name: 'tasks',
-  children: [Loading(), Icon(), Input(), Button(), Link],
+  children: [Loading(), Icon(), Input(), Button(), Link()],
   data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
   i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
