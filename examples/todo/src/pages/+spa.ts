@@ -1,6 +1,6 @@
 import type { FiCsRouter } from 'ficsjs/router'
 import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
-import Tasks from '@/components/Tasks'
+import Tasks from '@/pages/Tasks'
 import TaskDetail from '@/pages/TaskDetails'
 import NotFound from '@/pages/NotFound'
 import { $lang, getAllTasks, getTask } from '@/stores'
