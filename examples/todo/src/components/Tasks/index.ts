@@ -124,38 +124,42 @@ const html: FiCs.Html<Data, Props> = ({
     </div>
     ${
       tasks.length > 0
-        ? tasks.map(
-            ({ id, title, completedAt }, index) => template`
-              <div class="task" key="${index}">
-                <div>
-                  ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
-                    svg: completedAt ? CircleCheckBig : Circle,
-                    ariaLabel: completedAt ? revert : complete,
-                    click: async () =>
-                      setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
-                  })}
-                  ${link.setIndividualProps(id, {
-                    id,
-                    title,
-                    completedAt,
-                    status: completedAt ? completed : uncompleted,
-                    isQuery
+        ? template`
+          <div role="list">
+            ${tasks.map(
+              ({ id, title, completedAt }, index) => template`
+                <div class="task" role="listitem" key="${index}">
+                  <div>
+                    ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
+                      svg: completedAt ? CircleCheckBig : Circle,
+                      ariaLabel: completedAt ? revert : complete,
+                      click: async () =>
+                        setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
+                    })}
+                    ${link.setIndividualProps(id, {
+                      id,
+                      title,
+                      completedAt,
+                      status: completedAt ? completed : uncompleted,
+                      isQuery
+                    })}
+                  </div>
+                  ${icon.setIndividualProps(`${id}-delete`, {
+                    svg: Trash2,
+                    ariaLabel: _delete,
+                    color: cssVar('red-text'),
+                    click: async () => {
+                      if (window.confirm(confirmation)) {
+                        setTasks(await deleteTask(id))
+                        if (taskId === id) goto('/')
+                      }
+                    }
                   })}
                 </div>
-                ${icon.setIndividualProps(`${id}-delete`, {
-                  svg: Trash2,
-                  ariaLabel: _delete,
-                  color: cssVar('red'),
-                  click: async () => {
-                    if (window.confirm(confirmation)) {
-                      setTasks(await deleteTask(id))
-                      if (taskId === id) goto('/')
-                    }
-                  }
-                })}
-              </div>
-            `
-          )
+              `
+            )}
+          </div>
+        `
         : template`<p>${unapplicable}</p>`
     }
   `
