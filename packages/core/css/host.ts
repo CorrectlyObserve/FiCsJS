@@ -104,13 +104,10 @@ export const addHostToSelectors = ({
           isLast: boolean = commaIndex === -1
         let selector: string = header.slice(cursor, isLast ? header.length : commaIndex).trim()
 
-        if (!isBlankString(subSelector))
-          /** @remarks Excludes `:host-context()` */
-          subSelector = new RegExp(`^${HOST_STRICT}`).test(subSelector)
-            ? subSelector
-                .replace(new RegExp(HOST_GROUP, 'g'), `${ssrHost}$1`)
-                .replace(new RegExp(HOST_STRICT, 'g'), ssrHost)
-            : `:where(${ssrHost}) ${subSelector}`
+        if (!isBlankString(selector))
+          selector = isHostAt(selector, 0)
+            ? replaceHost(selector, ssrHost)
+            : `:where(${ssrHost}) ${selector}`
 
         selectors.push(selector)
         if (isLast) break
