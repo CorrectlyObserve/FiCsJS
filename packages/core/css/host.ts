@@ -1,5 +1,5 @@
 import { HOST_SELECTOR, isBlankString } from '../helpers'
-import { AT_RULE, GROUPING_AT_RULES, HOST_CONTEXT_SELECTOR } from './constants'
+import { AT_RULE, COMMENT_TOKEN, GROUPING_AT_RULES, HOST_CONTEXT_SELECTOR } from './constants'
 import { findCloseBracket, findDelimiter, getNextValidIndex } from './scan'
 
 const isHostAt = (selector: string, index: number): boolean =>
@@ -53,9 +53,9 @@ export const addHostToSelectors = ({
     index: number = 0
 
   while (index < css.length) {
-    const validIndex: number = getNextValidIndex(css, index)
+    if (css.startsWith(COMMENT_TOKEN.open, index)) {
+      const validIndex: number = getNextValidIndex(css, index)
 
-    if (validIndex !== index) {
       result += css.slice(index, validIndex)
       index = validIndex
       continue
