@@ -10,10 +10,6 @@ interface Props {
   isQuery: boolean
 }
 
-const attributes: FiCsLink.Attributes<Props> = ({ props: { title, status } }) => ({
-  'aria-label': `${title} ${status}`
-})
-
 const href: FiCsLink.Href<Props> = ({ props: { id, isQuery } }) =>
   `/${isQuery ? '?taskId=' : ''}${id}`
 
@@ -40,4 +36,4 @@ const css: FiCsLink.Css<Props> = `
   }
 `
 
-export default ficsLink<Props>({ attributes, href, content, css })
+export default ficsLink<Props>({ href, content, css })
