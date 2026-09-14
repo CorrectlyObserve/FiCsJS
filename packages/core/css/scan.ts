@@ -24,6 +24,7 @@ export const findCloseBracket = (css: string, openIndex: number): number => {
     cursor++
   }
 
+  /** @remarks Assumes a closing bracket right after the last character if it is not found. */
   return css.length + 1
 }
 
