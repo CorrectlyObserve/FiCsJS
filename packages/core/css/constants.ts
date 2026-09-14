@@ -15,7 +15,4 @@ export const GROUPING_AT_RULES = [
 
 export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 
-export const IGNORE_TOKENS = [
-  { open: '/*', close: '*/' },
-  { open: 'url(', close: ')' }
-] as const
+export const IGNORE_TOKENS = [COMMENT_TOKEN, { open: 'url(', close: ')' }] as const
