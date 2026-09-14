@@ -28,7 +28,7 @@ const isHostAt = (selector: string, index: number): boolean =>
       if (selector[openIndex] === '(') {
         const closeIndex: number = findCloseBracket(selector, openIndex)
 
-        /** @remarks Excludes `(` and `)` to convert `:host(.class)` to `div#id.class`. */
+        /** @remarks Excludes `(` and `)` to convert `:host(.class)` to `[id="id"].class`. */
         result += `${ssrHost}${replaceHost(selector.slice(openIndex + 1, closeIndex - 1), ssrHost)}`
         cursor = closeIndex
       } else {
