@@ -1,4 +1,6 @@
 :root {
+  color-scheme: dark;
+
   --outline: 0.125rem;
   --black: oklch(0.2768 0 0);
   --red: oklch(0.512 0.1788 24.39);
