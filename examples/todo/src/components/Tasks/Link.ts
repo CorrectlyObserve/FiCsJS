@@ -1,5 +1,5 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
-import { calc, size, truncate } from 'ficsjs/style'
+import { calc, forScreenReaders, size, truncate } from 'ficsjs/style'
 import { white } from '@/utils/others'
 
 interface Props {
@@ -13,8 +13,11 @@ interface Props {
 const href: FiCsLink.Href<Props> = ({ props: { id, isQuery } }) =>
   `/${isQuery ? '?taskId=' : ''}${id}`
 
-const content: FiCsLink.Content<Props> = ({ props: { title, completedAt }, template }) =>
-  template`<span${completedAt ? ' class="done"' : ''}>${title}</span>`
+const content: FiCsLink.Content<Props> = ({ props: { title, completedAt, status }, template }) =>
+  template`
+    <span${!!completedAt && ' class="done"'}>${title}</span>
+    <span style="${String(forScreenReaders)}">${status}</span>
+  `
 
 const css: FiCsLink.Css<Props> = `
   :host {
