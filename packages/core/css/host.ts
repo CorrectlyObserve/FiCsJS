@@ -3,7 +3,42 @@ import { AT_RULE, GROUPING_AT_RULES, HOST_CONTEXT_SELECTOR } from './constants'
 import { findCloseBracket, findDelimiter, getNextValidIndex } from './scan'
 
 const isHostAt = (selector: string, index: number): boolean =>
-  selector.startsWith(HOST_SELECTOR, index) && !selector.startsWith(HOST_CONTEXT_SELECTOR, index)
+    selector.startsWith(HOST_SELECTOR, index) && !selector.startsWith(HOST_CONTEXT_SELECTOR, index),
+  replaceHost = (selector: string, ssrHost: string): string => {
+    let result: string = '',
+      cursor: number = 0
+
+    while (cursor < selector.length) {
+      const validIndex: number = getNextValidIndex(selector, cursor)
+
+      if (validIndex !== cursor) {
+        result += selector.slice(cursor, validIndex)
+        cursor = validIndex
+        continue
+      }
+
+      if (!isHostAt(selector, cursor)) {
+        result += selector[cursor]
+        cursor++
+        continue
+      }
+
+      const openIndex: number = cursor + HOST_SELECTOR.length
+
+      if (selector[openIndex] === '(') {
+        const closeIndex: number = findCloseBracket(selector, openIndex)
+
+        /** @remarks Excludes `(` and `)` to convert `:host(.class)` to `div#id.class`. */
+        result += `${ssrHost}${replaceHost(selector.slice(openIndex + 1, closeIndex - 1), ssrHost)}`
+        cursor = closeIndex
+      } else {
+        result += ssrHost
+        cursor = openIndex
+      }
+    }
+
+    return result
+  }
 
 export const addHostToSelectors = ({
   css,
