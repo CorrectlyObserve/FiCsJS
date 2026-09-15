@@ -95,7 +95,7 @@ const html: FiCs.Html<Data, Props> = ({
 
   return template`
     <h2>${heading}</h2>
-    <div class="container">
+    <div>
       <fieldset>
         <legend>${status}</legend>
         <div>
@@ -158,7 +158,7 @@ const html: FiCs.Html<Data, Props> = ({
 }
 
 const css: FiCs.Css<Data, Props> = `
-  div.container {
+  :host > div {
     width: ${columnWidth};
     max-width: calc(100cqi - ${size(8)});
     margin-inline: auto;
