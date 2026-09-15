@@ -2,7 +2,7 @@ import type { FiCs } from 'ficsjs'
 import { calc, cssVar, oklch, size, textSize } from 'ficsjs/style'
 import { breakpoints, columnWidth, white } from '@/utils/style'
 
-const outline = `${cssVar('outline')} solid #fff` as const
+const outline = `${cssVar('outline')} solid ${white()}` as const
 
 export const documentCss: string = `
   :root {
