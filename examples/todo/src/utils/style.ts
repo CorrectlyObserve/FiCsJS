@@ -2,7 +2,7 @@ import { oklch, remToPx, size } from 'ficsjs/style'
 
 export const breakpoints = { SM: size(120), LG: size(240) } as const
 
-export const getTimestamp = (): number => Date.now()
+export const columnWidth = size(120 - 16)
 
 export const measureOffsetWidth = (): boolean =>
   document.documentElement.offsetWidth >= remToPx(breakpoints.LG)
