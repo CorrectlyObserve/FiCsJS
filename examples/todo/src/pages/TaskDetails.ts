@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { dynamicPaths, goto } from 'ficsjs/router'
-import { cssVar, flexCenter, size } from 'ficsjs/style'
+import { flexCenter, size } from 'ficsjs/style'
 import Loading from '@/components/Loading'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -10,7 +10,7 @@ import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
 import type { Task } from '@/types'
 import convertTimestamp from '@/utils/convertTimestamp'
 import type { Lang } from '@/utils/lang'
-import { breakpoints, getTimestamp, white } from '@/utils/others'
+import { breakpoints, getTimestamp } from '@/utils/others'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
@@ -174,16 +174,7 @@ const css: FiCs.Css<Data, Props> = `
       border: 0;
 
       legend { padding-block-end: ${size(2)}; }
-
-      button {
-        padding-inline: ${size(4)};
-        &:hover { background: ${white(0.1)}; }
-      }
-
-      div {
-        ${flexCenter('y')}
-        button { padding-inline: ${cssVar('outline')}; }
-      }
+      div { ${flexCenter('y')} }
     }
 
     p {
