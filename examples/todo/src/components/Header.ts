@@ -48,49 +48,57 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
   `
 }
 
-const css: FiCs.Css<Data, {}> = {
-  ':host': {
-    position: 'sticky',
-    top: 0,
-    width: '100vw',
-    height: cssVar('header-height'),
-    background: cssVar('black'),
-    zIndex: 10,
-    header: {
-      ...flexCenter('xy'),
-      position: 'relative',
-      h1: {
-        ...flexCenter('y'),
-        ...textSize('2xl'),
-        height: cssVar('header-height'),
-        background: cssVar('gradation'),
-        backgroundClip: 'text',
-        webkitTextFillColor: 'transparent',
-        '@media (forced-colors: active)': {
-          background: 'none',
-          backgroundClip: 'border-box',
-          webkitTextFillColor: 'CanvasText',
-          color: 'CanvasText'
+const buttonHeight = calc(`${size(4)} * 3 + ${cssVar('outline')} * 2`)
+const headerHeight = calc(`${buttonHeight} + ${size(6)}`)
+const css: FiCs.Css<Data, {}> = `
+  :host {
+    position: sticky;
+    top: 0;
+    width: 100vw;
+    height: ${headerHeight};
+    background: ${cssVar('black')};
+    z-index: 10;
+
+    header {
+      ${flexCenter('xy')}
+      position: relative;
+
+      h1 {
+        ${flexCenter('y')}
+        ${textSize('2xl')}
+        height: ${headerHeight};
+        background: ${cssVar('gradation')};
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+
+        @media (forced-colors: active) {
+          background: none;
+          background-clip: border-box;
+          -webkit-text-fill-color: CanvasText;
+          color: CanvasText;
         }
-      },
-      'div.container': {
-        ...positionCenter('y'),
-        right: calc(`${size(8)} + ${cssVar('outline')}`),
-        [`@media (max-width: ${breakpoints.SM})`]: {
-          right: calc(`${size(3)} + ${cssVar('outline')}`)
-        },
-        '.langs': {
-          ...fade(cssVar('transition')),
-          position: 'absolute',
-          right: 0,
-          display: 'flex',
-          gap: calc(`${cssVar('outline')} * 2`),
-          marginBlockStart: calc(`${cssVar('outline')} * 2`)
+      }
+
+      div.container {
+        ${positionCenter('y')}
+        right: ${calc(`${size(8)} + ${cssVar('outline')}`)};
+
+        @media (max-width: ${breakpoints.SM}) {
+          right: ${calc(`${size(3)} + ${cssVar('outline')}`)};
+        }
+
+        .langs {
+          ${fade(cssVar('transition'))}
+          position: absolute;
+          right: 0;
+          display: flex;
+          gap: ${calc(`${cssVar('outline')} * 2`)};
+          margin-block-start: ${calc(`${cssVar('outline')} * 2`)};
         }
       }
     }
   }
-}
+`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data }) => (data.lang = document.documentElement.lang as Lang)
