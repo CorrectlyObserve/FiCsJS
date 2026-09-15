@@ -5,7 +5,7 @@ import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs
 import Button from '@/components/materials/Button'
 import { $lang } from '@/stores'
 import { Lang, LANG_LIST } from '@/utils/lang'
-import { breakpoints } from '@/utils/others'
+import { breakpoints } from '@/utils/style'
 
 interface Data {
   langs: readonly Lang[]
