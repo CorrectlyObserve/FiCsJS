@@ -147,7 +147,7 @@ const html: FiCs.Html<Data, Props> = ({
                   ${icon.setIndividualProps(`${id}-delete`, {
                     svg: Trash2,
                     ariaLabel: _delete,
-                    color: cssVar('red-text'),
+                    color: cssVar('red'),
                     click: async () => {
                       if (window.confirm(confirmation)) {
                         setTasks(await deleteTask(id))
