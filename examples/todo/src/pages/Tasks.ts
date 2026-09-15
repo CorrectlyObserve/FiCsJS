@@ -176,7 +176,7 @@ const css: FiCs.Css<Data, Props> = `
         margin-block-end: ${size(4)};
 
         &:last-child { margin-block-end: 0; }
-        .input { min-width: 0; flex-shrink: 1; margin-inline-end: ${cssVar('outline')}; }
+        .input { flex: 1; min-width: 0; margin-inline-end: ${cssVar('outline')}; }
         span { padding-inline: ${cssVar('outline')}; }
       }
 
