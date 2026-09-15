@@ -9,7 +9,7 @@ import Link from '@/components/Link'
 import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
 import type { Task } from '@/types'
 import type { Lang } from '@/utils/lang'
-import { breakpoints, measureOffsetWidth } from '@/utils/others'
+import { breakpoints, columnWidth, measureOffsetWidth } from '@/utils/style'
 import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
 
 interface Data {
@@ -164,6 +164,8 @@ const html: FiCs.Html<Data, Props> = ({
 }
 
 const css: FiCs.Css<Data, Props> = `
+  :host { width: ${columnWidth}; max-width: calc(100cqi - ${size(8)}); }
+
   div {
     &[key="menu"] {
       margin-block-end: ${size(8)};
@@ -191,7 +193,7 @@ const css: FiCs.Css<Data, Props> = `
     &.task {
       ${flexCenter('y')}
       width: ${breakpoints.SM};
-      max-width: ${size(120 - 16)};
+      max-width: ${columnWidth};
       margin-inline: auto;
       margin-block-end: ${size(2)};
 
