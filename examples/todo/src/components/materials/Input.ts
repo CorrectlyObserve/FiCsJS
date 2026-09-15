@@ -54,8 +54,9 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
       &:first-of-type {
         ${textSize('sm')}
         color: ${cssVar('red')};
-        margin-block-end: ${size(2)};
         text-align: left;
+
+        &:not(:empty) { margin-block-end: ${size(2)}; }
       }
 
       &:last-of-type {${forScreenReaders}}
