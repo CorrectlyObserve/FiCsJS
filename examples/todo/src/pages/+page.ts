@@ -1,6 +1,6 @@
 import type { FiCsRouter } from 'ficsjs/router'
 import type { Data } from '@/pages/+spa'
-import { measureOffsetWidth } from '@/utils/others'
+import { measureOffsetWidth } from '@/utils/style'
 
 const page: FiCsRouter.Page<Data> = ({
   children: { tasks, taskDetails },
