@@ -1,6 +1,6 @@
 import type { FiCs } from 'ficsjs'
 import { calc, cssVar, oklch, size, textSize } from 'ficsjs/style'
-import { breakpoints, white } from '@/utils/others'
+import { breakpoints, columnWidth, white } from '@/utils/style'
 
 const outline = `${cssVar('outline')} solid #fff` as const
 
@@ -57,7 +57,7 @@ export const globalCss: FiCs.GlobalCss = `
   input, textarea {
     &::placeholder { color: ${white(0.5)}; } 
 
-    max-width: ${size(120 - 16)};
+    max-width: ${columnWidth};
     padding-block: ${size(3)};
     padding-inline: ${size(4)};
     border: ${calc(`${size(1)} / 4`)} solid ${white()};
