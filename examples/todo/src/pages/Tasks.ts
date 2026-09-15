@@ -34,8 +34,6 @@ interface Props {
   setTasks: (tasks: Task[]) => void
 }
 
-const { SM } = breakpoints
-
 const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { input } }) => input,
@@ -180,7 +178,7 @@ const css: FiCs.Css<Data, Props> = `
         span { padding-inline: ${cssVar('outline')}; }
       }
 
-      @media (max-width: ${SM}) {
+      @media (max-width: ${breakpoints.SM}) {
         margin-block-end: ${size(4)};
 
         div {
@@ -192,14 +190,14 @@ const css: FiCs.Css<Data, Props> = `
 
     &.task {
       ${flexCenter('y')}
-      width: ${SM};
+      width: ${breakpoints.SM};
       max-width: ${size(120 - 16)};
       margin-inline: auto;
       margin-block-end: ${size(2)};
 
       &:last-child { margin-block-end: 0; }
 
-      @media (max-width: ${SM}) { width: ${calc(`100% - ${size(12)}`)}; }
+      @media (max-width: ${breakpoints.SM}) { width: ${calc(`100% - ${size(12)}`)}; }
 
       div { ${flexCenter('y')} width: ${calc(`100% - ${size(12)}`)}; }
     }
