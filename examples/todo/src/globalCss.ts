@@ -55,6 +55,8 @@ export const globalCss: FiCs.GlobalCss = `
   label:hover { cursor: pointer; }
 
   input, textarea {
+    &::placeholder { color: ${white(0.5)}; } 
+
     max-width: ${size(120 - 16)};
     padding-block: ${size(3)};
     padding-inline: ${size(4)};
