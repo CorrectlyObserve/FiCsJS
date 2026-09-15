@@ -2,7 +2,7 @@ import { fics, type FiCs } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
 import { forScreenReaders, rect, size } from 'ficsjs/style'
 import type { Lang } from '@/utils/lang'
-import { white } from '@/utils/others'
+import { white } from '@/utils/style'
 import { Loader } from 'lucide-static'
 
 interface Data {
