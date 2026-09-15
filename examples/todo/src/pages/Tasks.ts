@@ -98,7 +98,7 @@ const html: FiCs.Html<Data, Props> = ({
   const isQuery = measureOffsetWidth()
   return template`
     <h2>${heading}</h2>
-    <div class="menu">
+    <div key="menu">
       <div>
         ${input}
         ${icon.setIndividualProps('add', {
@@ -167,7 +167,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   div {
-    &.menu {
+    &[key="menu"] {
       margin-block-end: ${size(8)};
 
       div {
