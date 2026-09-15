@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { rect, size } from 'ficsjs/style'
-import { white } from '@/utils/others'
+import { white } from '@/utils/style'
 
 interface Props {
   svg: string
