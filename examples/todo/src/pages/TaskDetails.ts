@@ -10,6 +10,7 @@ import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
 import type { Task } from '@/types'
 import type { Lang } from '@/utils/lang'
 import { convertTimestamp, getTimestamp } from '@/utils/timestamp'
+import { columnWidth } from '@/utils/style'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
@@ -158,11 +159,9 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   div.container {
-    width: ${breakpoints.SM};
-    max-width: ${size(120 - 16)};
+    width: ${columnWidth};
+    max-width: calc(100cqi - ${size(8)});
     margin-inline: auto;
-
-    @media (max-width: ${breakpoints.SM}) { width: 100%; }
 
     fieldset {
       display: flex;
