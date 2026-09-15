@@ -6,7 +6,7 @@ import NotFound from '@/pages/NotFound'
 import { $lang, getAllTasks, getTask } from '@/stores'
 import type { Task as TaskType } from '@/types'
 import type { Lang } from '@/utils/lang'
-import { breakpoints } from '@/utils/others'
+import { breakpoints } from '@/utils/style'
 
 export interface Data {
   lang: Lang
