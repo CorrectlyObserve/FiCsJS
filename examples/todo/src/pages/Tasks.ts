@@ -164,44 +164,46 @@ const html: FiCs.Html<Data, Props> = ({
 }
 
 const css: FiCs.Css<Data, Props> = `
-  :host { width: ${columnWidth}; max-width: calc(100cqi - ${size(8)}); }
+  :host {
+    width: ${columnWidth};
+    max-width: calc(100cqi - ${size(8)});
 
-  div {
-    &[key="menu"] {
-      margin-block-end: ${size(8)};
-
-      div {
-        ${flexCenter('xy')}
-        max-width: 100%;
-        margin-block-end: ${size(4)};
-
-        &:last-child { margin-block-end: 0; }
-        .input { flex: 1; min-width: 0; margin-inline-end: ${cssVar('outline')}; }
-        span { padding-inline: ${cssVar('outline')}; }
-      }
-
-      @media (max-width: ${breakpoints.SM}) {
-        margin-block-end: ${size(4)};
+    div {
+      &[key="menu"] {
+        margin-block-end: ${size(8)};
 
         div {
-          margin-block-end: ${size(2)};
-          &:first-child { margin-inline-end: ${size(-4)}; }
+          ${flexCenter('xy')}
+          max-width: 100%;
+          margin-block-end: ${size(4)};
+
+          &:last-child { margin-block-end: 0; }
+          .input { flex: 1; min-width: 0; margin-inline-end: ${cssVar('outline')}; }
+          span { padding-inline: ${cssVar('outline')}; }
+        }
+
+        @media (max-width: ${breakpoints.SM}) {
+          margin-block-end: ${size(4)};
+
+          div {
+            margin-block-end: ${size(2)};
+            &:first-child { margin-inline-end: ${size(-4)}; }
+          }
         }
       }
-    }
 
-    &.task {
-      ${flexCenter('y')}
-      width: ${breakpoints.SM};
-      max-width: ${columnWidth};
-      margin-inline: auto;
-      margin-block-end: ${size(2)};
+      &.task {
+        ${flexCenter('y')}
+        max-width: ${columnWidth};
+        margin-inline: auto;
+        margin-block-end: ${size(2)};
 
-      &:last-child { margin-block-end: 0; }
+        &:last-child { margin-block-end: 0; }
 
-      @media (max-width: ${breakpoints.SM}) { width: ${calc(`100% - ${size(12)}`)}; }
+        @media (max-width: ${breakpoints.SM}) { width: ${calc(`100% - ${size(12)}`)}; }
 
-      div { ${flexCenter('y')} width: ${calc(`100% - ${size(12)}`)}; }
+        div { ${flexCenter('y')} width: ${calc(`100% - ${size(12)}`)}; }
+      }
     }
   }
 `
