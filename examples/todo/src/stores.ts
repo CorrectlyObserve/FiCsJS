@@ -2,7 +2,7 @@ import { createPersistentState } from 'ficsjs/persistent-state'
 import { createState } from 'ficsjs/state'
 import { Task } from '@/types'
 import { Lang, LANG_LIST } from '@/utils/lang'
-import { getTimestamp } from '@/utils/others'
+import { getTimestamp } from '@/utils/timestamp'
 
 export const $lang = createState<Lang>('en', {
   sessionStorage: {
