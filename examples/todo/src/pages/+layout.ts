@@ -2,11 +2,14 @@ import { configGlobalCss, configI18n, i18n } from 'ficsjs'
 import { applyMeta, type FiCsRouter } from 'ficsjs/router'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
-import globalCss from '@/globalCss'
+import { documentCss, globalCss } from '@/globalCss'
 import type { Data } from '@/pages/+spa'
 import { $lang } from '@/stores'
 import type { Lang } from '@/utils/lang'
-import '@/global.css'
+
+const documentStyleSheet: CSSStyleSheet = new CSSStyleSheet()
+documentStyleSheet.replaceSync(documentCss)
+document.adoptedStyleSheets = [documentStyleSheet]
 
 configGlobalCss(globalCss)
 configI18n('/i18n')
