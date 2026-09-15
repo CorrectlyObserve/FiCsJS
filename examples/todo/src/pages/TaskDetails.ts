@@ -36,8 +36,6 @@ interface Props {
   updateTasks: (tasks: Task[]) => void
 }
 
-const { SM } = breakpoints
-
 const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { icon } }) => icon,
@@ -161,11 +159,11 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   div.container {
-    width: ${SM};
+    width: ${breakpoints.SM};
     max-width: ${size(120 - 16)};
     margin-inline: auto;
 
-    @media (max-width: ${SM}) { width: 100%; }
+    @media (max-width: ${breakpoints.SM}) { width: 100%; }
 
     fieldset {
       display: flex;
