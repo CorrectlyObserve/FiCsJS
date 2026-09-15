@@ -4,7 +4,7 @@ import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/materials/Button'
 import Loading from '@/components/Loading'
 import type { Lang } from '@/utils/lang'
-import { breakpoints } from '@/utils/others'
+import { breakpoints } from '@/utils/style'
 
 interface Data {
   seconds: number
