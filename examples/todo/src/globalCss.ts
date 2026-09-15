@@ -1,9 +1,31 @@
 import type { FiCs } from 'ficsjs'
-import { calc, cssVar, size, textSize } from 'ficsjs/style'
+import { calc, cssVar, oklch, size, textSize } from 'ficsjs/style'
 import { breakpoints, white } from '@/utils/others'
 
-const outline = `${cssVar('outline')} solid ${white()}` as const
-const globalCss: FiCs.GlobalCss = `
+const outline = `${cssVar('outline')} solid #fff` as const
+
+export const documentCss: string = `
+  :root {
+    color-scheme: dark;
+
+    --black: ${oklch('#010107')};
+    --red: ${oklch('#d14344')};
+    --gradation: linear-gradient(30deg, var(--red) 30%, ${oklch('#cb0078')});
+
+    --outline: 0.125rem;
+    --transition: 0.2s ease-out;
+  }
+
+  body {
+    background: var(--black);
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+`
+
+export const globalCss: FiCs.GlobalCss = `
   * { padding: 0; margin: 0; box-sizing: border-box; }
 
   h2, p, button, label, legend, input, textarea, span { color: ${white()}; }
@@ -50,5 +72,3 @@ const globalCss: FiCs.GlobalCss = `
 
   span[role="button"] { padding: ${size(4)}; }
 `
-
-export default globalCss
