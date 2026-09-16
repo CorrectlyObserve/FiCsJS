@@ -3,7 +3,7 @@ import { goto } from 'ficsjs/router'
 import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Loading from '@/components/Loading'
-import type { Lang } from '@/utils/lang'
+import type { Lang } from '@/domain/lang'
 import { breakpoints } from '@/utils/style'
 
 interface Data {
