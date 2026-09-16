@@ -3,8 +3,7 @@ import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
-import { $lang } from '@/stores'
-import { Lang, LANG_LIST } from '@/utils/lang'
+import { $lang, Lang, LANG_LIST } from '@/domain/lang'
 import { breakpoints } from '@/utils/style'
 
 interface Data {
