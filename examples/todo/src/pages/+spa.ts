@@ -1,11 +1,6 @@
 import type { FiCsRouter } from 'ficsjs/router'
 import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
-import Tasks from '@/pages/Tasks'
-import TaskDetail from '@/pages/TaskDetails'
-import NotFound from '@/pages/NotFound'
-import { $lang, getAllTasks, getTask } from '@/stores'
-import type { Task as TaskType } from '@/types'
-import type { Lang } from '@/utils/lang'
+import { $lang, type Lang } from '@/domain/lang'
 import { breakpoints } from '@/utils/style'
 
 export interface Data {
