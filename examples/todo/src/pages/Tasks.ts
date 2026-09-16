@@ -1,16 +1,25 @@
 import { fics, type FiCs } from 'ficsjs'
 import { goto } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, size } from 'ficsjs/style'
+import { cssVar, flexCenter, size } from 'ficsjs/style'
 import Loading from '@/components/Loading'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
-import Button from '@/components/materials/Button'
-import Link from '@/components/Link'
-import { addTask, completeTask, deleteTask, revertTask } from '@/stores'
+import Button from '@/components/Button'
+import Draggable, { type Moved } from '@/components/Draggable'
+import type { ReorderLabels } from '@/components/DragMenu'
+import TaskRow from '@/components/TaskRow'
+import {
+  addTask,
+  completeTask,
+  deleteTask,
+  duplicateTask,
+  reorderTasks,
+  revertTask
+} from '@/stores'
 import type { Task } from '@/types'
 import type { Lang } from '@/utils/lang'
 import { breakpoints, columnWidth, measureOffsetWidth } from '@/utils/style'
-import { Circle, CircleCheckBig, Plus, Square, SquareCheck, Trash2 } from 'lucide-static'
+import { Plus, Square, SquareCheck } from 'lucide-static'
 
 interface Data {
   heading: string
@@ -25,6 +34,7 @@ interface Data {
   uncompleted: string
   confirmation: string
   unapplicable: string
+  reorder: ReorderLabels
 }
 
 interface Props {
@@ -33,6 +43,10 @@ interface Props {
   taskId: number
   setTasks: (tasks: Task[]) => void
 }
+
+/** @remarks Completed tasks can be hidden, so this is the list the page both shows and reorders. */
+const getShownTasks = (tasks: Task[], isShown: boolean): Task[] =>
+  isShown ? tasks : tasks.filter(({ completedAt }) => !completedAt)
 
 const props: FiCs.Props<Data, Props> = [
   {
@@ -65,35 +79,58 @@ const props: FiCs.Props<Data, Props> = [
       buttonText: data.isShown ? data.hide : data.show,
       click: () => (data.isShown = !data.isShown)
     })
+  },
+  {
+    descendants: ({ children: { draggable } }) => draggable,
+    values: ({ data, children: { taskRow }, props: { tasks, taskId, setTasks } }) => {
+      const {
+        texts: [complete, revert, remove],
+        completed,
+        uncompleted,
+        confirmation,
+        reorder,
+        isShown
+      } = data
+      const isQuery = measureOffsetWidth()
+
+      return {
+        array: getShownTasks(tasks, isShown),
+        labels: reorder,
+        slot: (task: Task, index: number) =>
+          taskRow.setIndividualProps(index, {
+            task,
+            texts: { complete, revert, remove },
+            statuses: { completed, uncompleted },
+            isQuery,
+            toggle: async () =>
+              setTasks(await (task.completedAt ? revertTask(task.id) : completeTask(task.id))),
+            remove: async () => {
+              if (!window.confirm(confirmation)) return
+
+              setTasks(await deleteTask(task.id))
+              if (taskId === task.id) goto('/')
+            }
+          }),
+        onMove: async ({ item, after }: Moved<Task>) =>
+          setTasks(await reorderTasks(item.id, after?.id)),
+        onCopy: async ({ item, after }: Moved<Task>) =>
+          setTasks(await duplicateTask(item.id, after?.id))
+      }
+    }
   }
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { loading, icon, input, button, link },
+  children: { loading, icon, input, button, draggable },
   data,
-  props: { tasks, taskId, setTasks },
+  props: { tasks, setTasks },
   template,
   isDeferred
 }) => {
   if (!isDeferred) return template`${loading}`
 
-  const {
-    heading,
-    value,
-    placeholder,
-    isShown,
-    show,
-    hide,
-    texts: [complete, revert, _delete],
-    completed,
-    uncompleted,
-    confirmation,
-    unapplicable
-  } = data
+  const { heading, value, placeholder, isShown, show, hide, unapplicable } = data
 
-  if (!isShown) tasks = tasks.filter(({ completedAt }) => !completedAt)
-
-  const isQuery = measureOffsetWidth()
   return template`
     <h2>${heading}</h2>
     <div key="menu">
@@ -121,43 +158,8 @@ const html: FiCs.Html<Data, Props> = ({
       </div>
     </div>
     ${
-      tasks.length > 0
-        ? template`
-          <div role="list">
-            ${tasks.map(
-              ({ id, title, completedAt }, index) => template`
-                <div class="task" role="listitem" key="${index}">
-                  <div>
-                    ${icon.setIndividualProps(`${id}-${completedAt ? 'check' : 'circle'}`, {
-                      svg: completedAt ? CircleCheckBig : Circle,
-                      ariaLabel: completedAt ? revert : complete,
-                      click: async () =>
-                        setTasks(await (completedAt ? revertTask(id) : completeTask(id)))
-                    })}
-                    ${link.setIndividualProps(id, {
-                      id,
-                      title,
-                      completedAt,
-                      status: completedAt ? completed : uncompleted,
-                      isQuery
-                    })}
-                  </div>
-                  ${icon.setIndividualProps(`${id}-delete`, {
-                    svg: Trash2,
-                    ariaLabel: _delete,
-                    color: cssVar('red'),
-                    click: async () => {
-                      if (window.confirm(confirmation)) {
-                        setTasks(await deleteTask(id))
-                        if (taskId === id) goto('/')
-                      }
-                    }
-                  })}
-                </div>
-              `
-            )}
-          </div>
-        `
+      getShownTasks(tasks, isShown).length > 0
+        ? template`${draggable}`
         : template`<p>${unapplicable}</p>`
     }
   `
@@ -168,41 +170,26 @@ const css: FiCs.Css<Data, Props> = `
     width: ${columnWidth};
     max-width: calc(100cqi - ${size(8)});
 
-    div {
-      &[key="menu"] {
-        margin-block-end: ${size(8)};
+    div[key="menu"] {
+      margin-block-end: ${size(8)};
 
-        div {
-          ${flexCenter('xy')}
-          max-width: 100%;
-          margin-block-end: ${size(4)};
-
-          &:last-child { margin-block-end: 0; }
-          .input { flex: 1; min-width: 0; margin-inline-end: ${cssVar('outline')}; }
-          span { padding-inline: ${cssVar('outline')}; }
-        }
-
-        @media (max-width: ${breakpoints.SM}) {
-          margin-block-end: ${size(4)};
-
-          div {
-            margin-block-end: ${size(2)};
-            &:first-child { margin-inline-end: ${size(-4)}; }
-          }
-        }
-      }
-
-      &.task {
-        ${flexCenter('y')}
-        max-width: ${columnWidth};
-        margin-inline: auto;
-        margin-block-end: ${size(2)};
+      div {
+        ${flexCenter('xy')}
+        max-width: 100%;
+        margin-block-end: ${size(4)};
 
         &:last-child { margin-block-end: 0; }
+        .input { flex: 1; min-width: 0; margin-inline-end: ${cssVar('outline')}; }
+        span { padding-inline: ${cssVar('outline')}; }
+      }
 
-        @media (max-width: ${breakpoints.SM}) { width: ${calc(`100% - ${size(12)}`)}; }
+      @media (max-width: ${breakpoints.SM}) {
+        margin-block-end: ${size(4)};
 
-        div { ${flexCenter('y')} width: ${calc(`100% - ${size(12)}`)}; }
+        div {
+          margin-block-end: ${size(2)};
+          &:first-child { margin-inline-end: ${size(-4)}; }
+        }
       }
     }
   }
@@ -210,8 +197,16 @@ const css: FiCs.Css<Data, Props> = `
 
 export default fics<Data, Props>({
   name: 'tasks',
-  children: [Loading(), Icon(), Input(), Button(), Link()],
-  data: () => ({ value: '', placeholder: '', isShown: false, tasks: [] }),
+  children: [Loading(), Icon(), Input(), Button(), Draggable<Task>(), TaskRow()],
+  /** @remarks The props below run before i18n resolves, so the texts they read start out empty. */
+  data: () => ({
+    value: '',
+    placeholder: '',
+    isShown: false,
+    tasks: [],
+    texts: [],
+    reorder: { handle: '', up: '', down: '', copy: '', moved: '', duplicated: '' }
+  }),
   i18nData: async ({ props: { lang }, i18n }) => ({
     ...(await i18n<Data>({ lang, key: 'tasks' })),
     texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
