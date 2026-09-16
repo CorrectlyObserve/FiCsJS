@@ -1,11 +1,10 @@
 import { configGlobalCss, configI18n, i18n } from 'ficsjs'
 import { applyMeta, type FiCsRouter } from 'ficsjs/router'
+import { $lang, type Lang } from '@/domain/lang'
+import { documentCss, globalCss } from '@/globalCss'
 import Footer from '@/pages/Footer'
 import Header from '@/pages/Header'
-import { documentCss, globalCss } from '@/globalCss'
 import type { Data } from '@/pages/+spa'
-import { $lang } from '@/stores'
-import type { Lang } from '@/utils/lang'
 
 const documentStyleSheet: CSSStyleSheet = new CSSStyleSheet()
 documentStyleSheet.replaceSync(documentCss)
