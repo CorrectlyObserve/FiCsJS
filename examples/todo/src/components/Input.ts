@@ -77,7 +77,7 @@ const actions: FiCs.Actions<Data, Props> = {
     },
     keydown: [
       ({ data: { isComposing }, props: { value, enterKey }, event }) => {
-        if ((value !== '' && (event as KeyboardEvent).key) === 'Enter' && !isComposing && enterKey)
+        if (value !== '' && (event as KeyboardEvent).key === 'Enter' && !isComposing && enterKey)
           enterKey()
       },
       { throttleMs: 500 }
