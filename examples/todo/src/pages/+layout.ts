@@ -1,7 +1,7 @@
 import { configGlobalCss, configI18n, i18n } from 'ficsjs'
 import { applyMeta, type FiCsRouter } from 'ficsjs/router'
 import Footer from '@/pages/Footer'
-import Header from '@/components/Header'
+import Header from '@/pages/Header'
 import { documentCss, globalCss } from '@/globalCss'
 import type { Data } from '@/pages/+spa'
 import { $lang } from '@/stores'
