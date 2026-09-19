@@ -129,8 +129,7 @@ export interface FiCs<D extends object, P extends object> {
   isCloned?: boolean
   children?: Descendant[]
   data?: () => Partial<D>
-  deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
-  i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
+  deferredData?: SingleOrArray<Deferred.Entry<D, P>>
   immutableDataKeys?: (keyof D)[]
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
