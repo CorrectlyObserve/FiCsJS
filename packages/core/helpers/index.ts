@@ -8,6 +8,7 @@ export {
   MAX_DELAY_MS,
   MAX_RETRIES,
   NOOP,
+  PROTO,
   statusCodes
 } from './constants'
 
