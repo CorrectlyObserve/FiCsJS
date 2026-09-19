@@ -36,4 +36,5 @@ export {
   uid
 } from './others'
 export { delay, getDelayMs, isIdempotentMethod, shouldRetry, watch } from './retry'
+export { setOwnKey } from './setOwnKey'
 export { isBlankString, isEmptyObject, isObject, isPlainObject } from './typeCheck'
