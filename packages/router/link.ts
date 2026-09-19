@@ -22,7 +22,7 @@ export const ficsLink = <P extends object>({
     props,
     className,
     attributes,
-    html: ({ data, props, template, ...args }) => {
+    html: ({ data, props, deferredStates, template, ...args }) => {
       const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
       if (isBlankString(_href)) throw new Error('The "href" must be a non-empty string...')
 
@@ -31,7 +31,7 @@ export const ficsLink = <P extends object>({
       if (anchorAttributes !== undefined) {
         const entries = typedEntries(
             typeof anchorAttributes === 'function'
-              ? anchorAttributes({ data, props })
+              ? anchorAttributes({ data, props, deferredStates })
               : anchorAttributes
           ),
           attrs: string[] = []
@@ -47,7 +47,7 @@ export const ficsLink = <P extends object>({
         anchorAttrs = attrs.join(' ')
       }
 
-      const _content: Returned<{}, P> = content({ data, props, template, ...args })
+      const _content: Returned<{}, P> = content({ data, props, deferredStates, template, ...args })
       return template`
         <a ${[`href="${_href}"`, anchorAttrs].filter(Boolean).join(' ')}>
           ${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}
