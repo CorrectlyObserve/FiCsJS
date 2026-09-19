@@ -182,7 +182,6 @@ export declare namespace Html {
     ctx: Omit<DataProps.Payload<D, P, true>, 'props'> &
       Syntaxes<D, P> & {
         isBrowser: boolean
-        isDeferred: boolean
         form: Form.Association
         scroll: <T>(
           array: ReadonlyArray<T> | null | undefined,
