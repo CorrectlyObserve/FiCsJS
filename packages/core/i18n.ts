@@ -1,4 +1,12 @@
-import { isBlankString, isBrowser, normalizePath, toArray } from '../core/helpers'
+import {
+  attachSignal,
+  isBlankString,
+  isBrowser,
+  normalizePath,
+  numberError,
+  scheduleAbort,
+  toArray
+} from '../core/helpers'
 import type { I18n, Translations } from '../core/types'
 
 const i18nClosure = (() => {
@@ -56,8 +64,7 @@ const i18nClosure = (() => {
           return translations
         }
 
-      const translations: Translations = await fetchTranslations(lang)
-
+      const translations: Translations = await attachSignal(fetchTranslations(lang), signal)
       if (keys.length === 0) return translations as T
 
       let _translations: Translations | undefined = translations
