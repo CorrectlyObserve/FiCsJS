@@ -44,7 +44,11 @@ export interface Page<D extends object = Record<string, unknown>> extends PageCo
 }
 
 export interface PageContent<D extends object = Record<string, unknown>> {
-  content?: Content<RouterData<D>, {}>
+  content?: Content<
+    RouterData<D>,
+    {},
+    Pick<Parameters<FiCs<RouterData<D>, {}>['html']>[0], 'deferredStates'>
+  >
   redirect?: string
   meta?: Routing.Meta
 }
