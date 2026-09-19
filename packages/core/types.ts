@@ -246,7 +246,15 @@ export declare namespace Hook {
 }
 
 export interface I18n {
-  i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
+  i18n: <T>({
+    lang,
+    key,
+    signal
+  }: {
+    lang: string
+    key: SingleOrArray<string>
+    signal?: AbortSignal
+  }) => Promise<T>
 }
 
 export declare namespace Optimistic {
