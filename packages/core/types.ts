@@ -222,6 +222,12 @@ export declare namespace Hook {
     form: Form.Association
   }
 
+  interface ChangedKeys<D extends object, P> {
+    data: (keyof D)[]
+    props: (keyof P)[]
+    deferredStates: (keyof Deferred.States)[]
+  }
+
   type Key<D extends object, P> = keyof Lifecycle<D, P>
 
   interface Lifecycle<D extends object, P> {
