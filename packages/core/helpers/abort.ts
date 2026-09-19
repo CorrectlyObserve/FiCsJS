@@ -2,6 +2,15 @@ import { numberError } from './numberError'
 import type { SetTimeout } from '../types'
 import { NOOP } from './constants'
 
+export const attachSignal = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> => {
+  if (!signal) return promise
+
+  return new Promise<T>((resolve, reject) => {
+    const detach: () => void = onAbort(signal, () => reject(signal.reason))
+    void promise.then(resolve, reject).finally(detach)
+  })
+}
+
 export const forwardAbort = (controller: AbortController, source: AbortSignal): (() => void) =>
   onAbort(source, () => controller.abort(source.reason))
 
