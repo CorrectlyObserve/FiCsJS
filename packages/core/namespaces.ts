@@ -3,7 +3,7 @@ import type {
   Attrs,
   ClassName as _ClassName,
   Css,
-  DataProps,
+  Deferred,
   Descendant,
   Form,
   Hook,
@@ -24,7 +24,9 @@ export declare namespace FiCs {
 
   type Css<D extends object, P> = Css.Ctx<D, P> | undefined
 
-  type DeferredContext<D extends object, P> = DataProps.Payload<D, P, true>
+  type DeferredData<D extends object, P> = SingleOrArray<Deferred.Entry<D, P>> | undefined
+
+  type DeferredStatus = Deferred.Status
 
   type FormAssociation = Form.Association
 
