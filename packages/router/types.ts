@@ -1,17 +1,4 @@
-import type {
-  Action,
-  Attrs,
-  Awaitable,
-  ClassName,
-  Css,
-  DataProps,
-  Descendant,
-  Html,
-  Hook,
-  Options,
-  Props,
-  SingleOrArray
-} from '../core/types'
+import type { Attrs, Awaitable, DataProps, Descendant, FiCs, Html } from '../core/types'
 import { denialCodes, RESERVED_ROUTER_DATA_KEYS, RPC_MODULE_TYPE, statusCodes } from './constants'
 
 export type Content<D extends object, P extends object, T = {}> = (
@@ -21,14 +8,14 @@ export type Content<D extends object, P extends object, T = {}> = (
 export interface FiCsLink<P extends object> {
   name?: string
   children?: Descendant[]
-  props?: SingleOrArray<Props<{}, P>>
-  className?: ClassName<{}, P>
-  attributes?: Attrs<{}, P>
+  props?: FiCs<{}, P>['props']
+  className?: FiCs<{}, P>['className']
+  attributes?: FiCs<{}, P>['attributes']
   anchorAttributes?: WithoutHref<Attrs<{}, P>>
   href: (({ props }: { props: Readonly<P> }) => string) | string
   content: Content<{}, P>
-  css?: Css.Ctx<{}, P>
-  actions?: Action.Handlers<{}, P>
+  css?: FiCs<{}, P>['css']
+  actions?: FiCs<{}, P>['actions']
 }
 
 export interface FiCsRouter<D extends object> {
@@ -42,12 +29,12 @@ export interface FiCsRouter<D extends object> {
   deferredData?: FiCs<RouterData<D>, {}>['deferredData']
   pathname?: string
   meta?: Record<string, string>
-  props?: SingleOrArray<Props<RouterData<D>, {}>>
-  className?: ClassName<RouterData<D>, {}>
-  attributes?: Attrs<RouterData<D>, {}>
-  css?: Css.Ctx<RouterData<D>, {}>
-  hooks?: Hook.Lifecycle<RouterData<D>, {}>
-  options?: Options.Ctx<RouterData<D>, {}>
+  props?: FiCs<RouterData<D>, {}>['props']
+  className?: FiCs<RouterData<D>, {}>['className']
+  attributes?: FiCs<RouterData<D>, {}>['attributes']
+  css?: FiCs<RouterData<D>, {}>['css']
+  hooks?: FiCs<RouterData<D>, {}>['hooks']
+  options?: FiCs<RouterData<D>, {}>['options']
 }
 
 type OverlappedKeys<D> = Extract<keyof D, keyof typeof RESERVED_ROUTER_DATA_KEYS>
