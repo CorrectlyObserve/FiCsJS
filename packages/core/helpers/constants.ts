@@ -16,6 +16,8 @@ export const MAX_RETRIES = 3 as const
 
 export const NOOP: () => void = () => {}
 
+export const PROTO = '__proto__' as const
+
 export const SPECIAL_CHAR: RegExp = /[.*+?^${}()|[\]\\]/g
 
 export const statusCodes = {
