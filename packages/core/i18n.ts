@@ -30,7 +30,7 @@ const i18nClosure = (() => {
       _directory = normalized
       _timeoutMs = timeoutMs
     },
-    i18n: async <T>({ lang, key, signal }: Parameters<I18n['i18n']>[0]): Promise<T> => {
+    i18n: async <T>({ lang, key, signal }: Parameters<I18n<T>>[0]): Promise<T> => {
       if (isBlankString(_directory))
         throw new Error(
           'The i18n function cannot be called before calling the configI18n function...'
