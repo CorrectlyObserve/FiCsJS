@@ -252,17 +252,15 @@ export declare namespace Hook {
   }
 }
 
-export interface I18n {
-  i18n: <T>({
-    lang,
-    key,
-    signal
-  }: {
-    lang: string
-    key: SingleOrArray<string>
-    signal?: AbortSignal
-  }) => Promise<T>
-}
+export type I18n<T> = ({
+  lang,
+  key,
+  signal
+}: {
+  lang: string
+  key: SingleOrArray<string>
+  signal?: AbortSignal
+}) => Promise<T>
 
 export declare namespace Optimistic {
   interface Backup<D extends object> {
