@@ -45,6 +45,8 @@ export const CLONED_SELVES_LENGTH = 256 as const
 
 export const IGNORED_DEFERRED_KEYS: ReadonlySet<string> = new Set(['toJSON', 'then'])
 
+export const MAX_LOOP_LENGTH = 10 as const
+
 export const symbols = {
   SANITIZED: Symbol('fics-sanitized-template'),
   UNSAFE_HTML: Symbol('fics-unsafe-html')
