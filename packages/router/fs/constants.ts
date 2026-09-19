@@ -63,5 +63,6 @@ export const ROUTER_CALL_REGEX: RegExp = new RegExp(
 
 export const segments = {
   CATCH_ALL: /^\[\.\.\.([^[\].]+)\]$/,
-  DYNAMIC: /^\[([^[\].]+)\]$/
+  DYNAMIC: /^\[([^[\].]+)\]$/,
+  PRIVATE: /^_/
 } as const
