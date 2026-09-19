@@ -8,7 +8,6 @@ import type {
   Form,
   Hook,
   Html,
-  I18n,
   Props as _Props,
   Options,
   SingleOrArray
@@ -34,8 +33,6 @@ export declare namespace FiCs {
   type Html<D extends object, P extends object> = Html.Core<D, P>
 
   type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
-
-  type I18nContext<D extends object, P> = DataProps.Payload<D, P> & I18n
 
   type Options<D extends object, P> = Options.Ctx<D, P> | undefined
 
