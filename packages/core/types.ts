@@ -302,6 +302,8 @@ export declare namespace Options {
   interface Resolved<D extends object, P> {
     ssr: boolean
     telemetry?: Telemetry.Options<D, P>
+    /** @param maxLoopLength Must be a positive integer. */
+    maxLoopLength?: number
     lazyLoad?: boolean
     rootMargin?: string
     websocket?: WebSocket.Options<D, P>
