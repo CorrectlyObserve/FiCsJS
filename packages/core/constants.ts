@@ -43,6 +43,8 @@ export const BOOLEAN_ATTRS: ReadonlySet<string> = new Set([
 /** @remarks The maximum capacity of 1 byte (8 bits), which is a power of 2 */
 export const CLONED_SELVES_LENGTH = 256 as const
 
+export const IGNORED_DEFERRED_KEYS: ReadonlySet<string> = new Set(['toJSON', 'then'])
+
 export const symbols = {
   SANITIZED: Symbol('fics-sanitized-template'),
   UNSAFE_HTML: Symbol('fics-unsafe-html')
