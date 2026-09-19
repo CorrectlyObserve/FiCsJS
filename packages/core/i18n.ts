@@ -10,7 +10,9 @@ import {
 import type { I18n, Translations } from '../core/types'
 
 const i18nClosure = (() => {
-  let _directory: string = ''
+  let _directory: string = '',
+    _timeoutMs: number | undefined
+
   const translationsCache: Map<string, Translations> = new Map(),
     promiseCache: Map<string, Promise<Translations>> = new Map()
 
