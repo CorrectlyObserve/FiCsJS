@@ -59,6 +59,7 @@ export const ficsRouter = <D extends object>(
   const {
       children,
       data,
+      deferredData,
       pathname = '/',
       meta: defaultMeta,
       props,
@@ -108,6 +109,7 @@ export const ficsRouter = <D extends object>(
       return { ..._data, pathname, queries: {}, status: statusCodes.OK } as RouterData<D>
     },
     immutableDataKeys: ['pathname', 'queries'],
+    deferredData,
     props,
     className,
     attributes,
