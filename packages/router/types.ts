@@ -39,6 +39,7 @@ export interface FiCsRouter<D extends object> {
       : {
           [K in OverlappedKeys<D>]: `Rename data key "${K & string}" as it is reserved by the router...`
         })
+  deferredData?: FiCs<RouterData<D>, {}>['deferredData']
   pathname?: string
   meta?: Record<string, string>
   props?: SingleOrArray<Props<RouterData<D>, {}>>
