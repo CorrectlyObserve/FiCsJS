@@ -12,7 +12,13 @@ export {
   statusCodes
 } from './constants'
 
-export { forwardAbort, isClientTermination, onAbort, scheduleAbort } from './abort'
+export {
+  attachSignal,
+  forwardAbort,
+  isClientTermination,
+  onAbort,
+  scheduleAbort
+} from './abort'
 export { browserError, isBrowser } from './browser'
 export { cssObject } from './css'
 export { deepEqual } from './deepEqual'
