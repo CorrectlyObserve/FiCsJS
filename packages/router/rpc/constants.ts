@@ -1,3 +1,4 @@
+import { PROTO } from './../../core/helpers'
 import type { Routing, Rpc } from '../types'
 
 export const CONTENT_LENGTH = 'content-length' as const
@@ -19,6 +20,6 @@ export const metricReasons = {
 
 export const REDIRECT_HEADER = 'fics-redirect' as const
 
-export const RESERVED_KEYS: ReadonlySet<string> = new Set(['__proto__', 'prototype', 'constructor'])
+export const RESERVED_KEYS: ReadonlySet<string> = new Set([PROTO, 'prototype', 'constructor'])
 
 export const RPC_INPUT_PARAM = 'input' as const
