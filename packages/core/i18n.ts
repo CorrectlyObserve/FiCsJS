@@ -17,7 +17,10 @@ const i18nClosure = (() => {
     promiseCache: Map<string, Promise<Translations>> = new Map()
 
   return {
-    configI18n: (directory: string): void => {
+    /** @params Must be a non-negative integer if it is a number. */
+    configI18n: (directory: string, { timeoutMs }: { timeoutMs?: number }): void => {
+      numberError({ timeoutMs }, 'non-negative-int')
+
       const normalized: string = isBlankString(directory) ? '' : normalizePath(directory)
 
       if (_directory && _directory !== normalized) {
@@ -25,6 +28,7 @@ const i18nClosure = (() => {
         promiseCache.clear()
       }
       _directory = normalized
+      _timeoutMs = timeoutMs
     },
     i18n: async <T>({ lang, key }: Parameters<I18n['i18n']>[0]): Promise<T> => {
       if (isBlankString(_directory))
