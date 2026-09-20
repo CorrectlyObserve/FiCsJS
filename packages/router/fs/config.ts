@@ -1,5 +1,5 @@
 import type { Routing } from '../types'
-import { COMMENT, config as configConstants, EXTENSIONS, fileNames, metaExports } from './constants'
+import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
 import { writeIfChanged } from './file'
 import { getFiles, joinLines, routerImport, toAbsolute, toPosix, toRelative } from './helpers'
 import { findClosestDir, generateRoutes } from './route'
@@ -59,8 +59,8 @@ export const configRoutes = (config: Routing.Config = {}): void => {
 
   scan(d)
 
-  const clientPath: string = join(o, configConstants.CLIENT),
-    serverPath: string = join(o, configConstants.SERVER),
+  const clientPath: string = join(o, c.CLIENT),
+    serverPath: string = join(o, c.SERVER),
     { clientCode, serverCode, clientEntries }: ReturnType<typeof generateRoutes> = generateRoutes({
       filePaths,
       options: { baseDir: toRelative(clientPath, d), pageFile, extensions },
@@ -73,7 +73,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
   else if (existsSync(serverPath)) rmSync(serverPath)
 
   if (entries) {
-    const entriesDir: string = join(o, configConstants.ENTRIES)
+    const entriesDir: string = join(o, c.ENTRIES)
     rmSync(entriesDir, { force: true, recursive: true })
     mkdirSync(entriesDir, { recursive: true })
 
