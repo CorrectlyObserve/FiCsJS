@@ -31,6 +31,28 @@ export const buildRoute = (pathSegments: string[]): string => {
 
 export const cleanPath = (path: string): string => toPosix(path).replace(/^\.?\//, '')
 
+export const excludePrivateDirs = (filePaths: string[]): string[] => {
+  const routed: string[] = [],
+    excluded: string[] = []
+
+  for (const path of filePaths) {
+    const pathSegments: string[] = cleanPath(path).split('/'),
+      dirSegments: string[] = pathSegments.slice(0, -1),
+      fileName: string = pathSegments.slice(-1)[0] ?? ''
+
+    if (!dirSegments.some(segment => segments.PRIVATE.test(segment))) routed.push(path)
+    else if (fileName.startsWith('+')) excluded.push(path)
+  }
+
+  const { length }: { length: number } = excluded
+  if (length > 0)
+    console.warn(
+      `${length} route file${length > 1 ? 's were' : ' was'} ignored inside "_" directories:\n  - ${excluded.join('\n  - ')}`
+    )
+
+  return routed
+}
+
 export const getDirName = (path: string, { clean = true }: { clean?: boolean } = {}): string =>
   (clean ? cleanPath(path) : path).split('/').slice(0, -1).join('/')
 
