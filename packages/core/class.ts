@@ -317,6 +317,7 @@ export class FiCsElement<D extends object, P extends object> {
     if (options) {
       const {
         ssr,
+        maxLoopLength,
         telemetry,
         lazyLoad,
         rootMargin,
@@ -327,6 +328,9 @@ export class FiCsElement<D extends object, P extends object> {
       }: Options.Ctx<D, P> = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
+
+      numberError({ maxLoopLength }, 'positive-int')
+      if (maxLoopLength !== undefined) this.#options.maxLoopLength = maxLoopLength
 
       if (telemetry && !isEmptyObject(telemetry)) this.#options.telemetry = telemetry
 
