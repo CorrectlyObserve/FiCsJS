@@ -3,6 +3,7 @@ import {
   attrs,
   BOOLEAN_ATTRS,
   CLONED_SELVES_LENGTH,
+  MAX_LOOP_LENGTH,
   symbols,
   VAR_TAG_NAME
 } from './constants'
@@ -98,7 +99,12 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #isStaticCss: boolean
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
-  readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #options: Options.Resolved<D, P> = {
+    ssr: true,
+    maxLoopLength: MAX_LOOP_LENGTH,
+    lazyLoad: false,
+    rootMargin: '0px'
+  }
   readonly #isFormAssociated: boolean = false
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #activeApis: Map<string, boolean> = new Map()
