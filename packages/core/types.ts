@@ -239,7 +239,9 @@ export declare namespace Hook {
     ) => void
     updated?: { [K in keyof D]?: (ctx: Ctx<D, P>) => void }
     rerendered?: (
-      ctx: Omit<Ctx<D, P>, 'crud' | 'optimisticUpdate' | 'queryCache'> & { changed: ChangedKeys<D, P> }
+      ctx: Omit<Ctx<D, P>, 'crud' | 'optimisticUpdate' | 'queryCache'> & {
+        changedKeys: ChangedKeys<D, P>
+      }
     ) => void
     destroyed?: (ctx: Ctx<D, P>) => void
     adopted?: (ctx: Ctx<D, P>) => void
