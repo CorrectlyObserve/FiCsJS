@@ -132,7 +132,6 @@ export class FiCsElement<D extends object, P extends object> {
     data,
     immutableDataKeys,
     deferredData,
-    i18nData,
     props,
     className,
     attributes,
