@@ -833,7 +833,6 @@ export class FiCsElement<D extends object, P extends object> {
           statusLiveRegion: a11y.STATUS_LIVE_REGION
         },
         isBrowser: this.#isBrowser,
-        isDeferred: this.#isDeferred,
         form: this.#formAssociation,
         scroll: <T>(
           array: ReadonlyArray<T> | null | undefined,
