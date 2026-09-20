@@ -1,7 +1,15 @@
 import type { Routing } from '../types'
 import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
 import { writeIfChanged } from './file'
-import { getFiles, joinLines, routerImport, toAbsolute, toPosix, toRelative } from './helpers'
+import {
+  excludePrivateDirs,
+  getFiles,
+  joinLines,
+  routerImport,
+  toAbsolute,
+  toPosix,
+  toRelative
+} from './helpers'
 import { findClosestDir, generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
@@ -47,19 +55,20 @@ export const configRoutes = (config: Routing.Config = {}): void => {
 
   if (!existsSync(d)) throw new Error(`The directory "${d}" does not exist...`)
 
-  const filePaths: string[] = [],
+  const scannedPaths: string[] = [],
     scan = (current: string): void => {
       for (const entry of readdirSync(current, { withFileTypes: true })) {
         const joined: string = join(current, entry.name)
 
         if (entry.isDirectory()) scan(joined)
-        else if (entry.isFile()) filePaths.push(toPosix(relative(d, joined)))
+        else if (entry.isFile()) scannedPaths.push(toPosix(relative(d, joined)))
       }
     }
 
   scan(d)
 
-  const clientPath: string = join(o, c.CLIENT),
+  const filePaths: string[] = excludePrivateDirs(scannedPaths),
+    clientPath: string = join(o, c.CLIENT),
     serverPath: string = join(o, c.SERVER),
     { clientCode, serverCode, clientEntries }: ReturnType<typeof generateRoutes> = generateRoutes({
       filePaths,
