@@ -187,7 +187,7 @@ export const toPascal = (path: string): string =>
       ''
     )
 
-/** @remarks Means Portable Operating System Interface */
+/** @remarks Portable Operating System Interface. */
 export const toPosix = (path: string): string => path.replace(/\\/g, '/')
 
 export const toRelative = (from: string, to: string): string => {
