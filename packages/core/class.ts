@@ -1064,7 +1064,7 @@ export class FiCsElement<D extends object, P extends object> {
           newStartNode: ChildNode = newChildNodes[newStartIndex],
           newEndNode: ChildNode = newChildNodes[newEndIndex]
 
-        const keys: Record<string, true> = {}
+        const keys: Set<string> = new Set()
 
         for (const newChildNode of newChildNodes) {
           if (!isElement(newChildNode)) continue
@@ -1072,14 +1072,14 @@ export class FiCsElement<D extends object, P extends object> {
           const { localName }: { localName: string } = newChildNode,
             key: string = getKey(newChildNode) ?? localName
 
-          if (keys[key])
+          if (keys.has(key))
             console.warn(
               (newChildNode.hasAttribute('key')
                 ? `The key "${key}" in multiple ${localName} elements are duplicated.`
                 : `There are multiple ${localName} elements that don't have keys.`) +
                 ' therefore, the difference detection might not be working correctly...'
             )
-          else keys[key] = true
+          else keys.add(key)
         }
 
         const dom: Map<string, ChildNode[]> = new Map(),
