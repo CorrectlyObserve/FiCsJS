@@ -1442,15 +1442,25 @@ export class FiCsElement<D extends object, P extends object> {
     })
   }
 
+  /** @remarks Read lazily as hooks retain this object after initialization. */
   get #formAssociation(): Form.Association {
-    const { component }: { component?: HTMLElement } = this.#cache
+    const that: FiCsElement<D, P> = this
 
     return {
-      element: this.#internals?.form ?? null,
+      get element(): HTMLFormElement | null {
+        return that.#internals?.form ?? null
+      },
       /** @remarks Evaluates :disabled to catch states inherited from parent fieldsets. */
-      isDisabled: component?.matches(':disabled') ?? false,
-      isUserInvalid:
-        !!component && touchedControls.has(component) && this.#internals?.validity.valid === false
+      get isDisabled(): boolean {
+        return that.#cache.component?.matches(':disabled') ?? false
+      },
+      get isUserInvalid(): boolean {
+        const { component }: { component?: HTMLElement } = that.#cache
+
+        return (
+          !!component && touchedControls.has(component) && that.#internals?.validity.valid === false
+        )
+      }
     }
   }
 
