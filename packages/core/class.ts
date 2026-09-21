@@ -1464,6 +1464,17 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #getHookCtx(shadowRoot?: ShadowRoot): Hook.Ctx<D, P> {
+    return {
+      ...this.#getDataProps(true),
+      ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
+      debounce: this.#debounce.bind(this),
+      throttle: this.#throttle.bind(this),
+      signal: this.#abortController.signal,
+      form: this.#formAssociation
+    }
+  }
+
   #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
