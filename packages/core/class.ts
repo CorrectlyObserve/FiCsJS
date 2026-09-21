@@ -1468,7 +1468,7 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
+  #callback(key: Exclude<Hook.Key<D, P>, 'updated' | 'rerendered'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
     const ctx: Hook.Ctx<D, P> = this.#getHookCtx(shadowRoot),
