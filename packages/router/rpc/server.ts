@@ -61,7 +61,11 @@ export const createRpcHandler = <C = unknown>(
 
   return async (req: Request): Promise<Response> => {
     const { method, url, headers, signal }: Request = req,
-      /** @remarks Means the OPTIONS request a browser auto-sends before a cross-origin call to check it is allowed. It runs no procedure. */
+      /** 
+       * @remarks 
+       * the OPTIONS request a browser auto-sends before a cross-origin call to check it is allowed.
+       * It runs no procedure.
+       */
       isCorsPreflight: boolean = method === 'OPTIONS'
 
     if (isCorsPreflight) return respond({ code: 'NO_CONTENT' })
