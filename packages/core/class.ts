@@ -246,14 +246,7 @@ export class FiCsElement<D extends object, P extends object> {
             this.#emitMetric({ key: KEY, details: { dataKey } })
 
             try {
-              updated[dataKey]!({
-                ...this.#getDataProps(true),
-                ref: (selector: string) => this.#queryDeeply(selector),
-                debounce: this.#debounce.bind(this),
-                throttle: this.#throttle.bind(this),
-                signal: this.#abortController.signal,
-                form: this.#formAssociation
-              })
+              updated[dataKey]!(this.#getHookCtx())
               this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
             } catch (error) {
               this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
@@ -1478,14 +1471,7 @@ export class FiCsElement<D extends object, P extends object> {
   #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
-    const ctx: Hook.Ctx<D, P> = {
-        ...this.#getDataProps(true),
-        ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
-        debounce: this.#debounce.bind(this),
-        throttle: this.#throttle.bind(this),
-        signal: this.#abortController.signal,
-        form: this.#formAssociation
-      },
+    const ctx: Hook.Ctx<D, P> = this.#getHookCtx(shadowRoot),
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
         this.#emitMetric({ key })
