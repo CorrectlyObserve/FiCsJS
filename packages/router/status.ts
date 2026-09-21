@@ -9,5 +9,5 @@ export const showStatus = (code: Routing.Status.PageCode): void => {
   window.dispatchEvent(new CustomEvent(FICS_STATUS, { detail }))
 
   if (!detail.isHandled)
-    console.warn(`The showStatus(${code}) call was ignored as no router is currently mounted...`)
+    console.warn(`The showStatus(${code}) call was ignored, as no router is currently mounted...`)
 }
