@@ -22,6 +22,7 @@ import {
   isObject,
   normalizeRootMargin,
   numberError,
+  setOwnKey,
   toArray,
   typedEntries,
   uid
@@ -192,7 +193,11 @@ export class FiCsElement<D extends object, P extends object> {
           )
 
         registered.set(key, child.#name)
-        this.#children[key] = child.#name === `f-${child.#nameKey}` ? child.#clone() : child
+        setOwnKey(
+          this.#children,
+          key,
+          child.#name === `f-${child.#nameKey}` ? child.#clone() : child
+        )
       }
     }
 
@@ -209,16 +214,8 @@ export class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (let [key, value] of typedEntries({ ...data(), ...attrData } as D)) {
-        this.#rawData[key] = value
-
-        if ((deferredData || i18nData) && this.#isBrowser) {
-          this.#isDeferred = false
-
-          if (deferredData) this.#deferredData = deferredData
-          if (i18nData) this.#i18nData = i18nData
-        }
-      }
+      for (let [key, value] of typedEntries({ ...data(), ...attrData } as D))
+        setOwnKey(this.#rawData, key, value)
 
       this.#data = new Proxy(this.#rawData, {
         get: (target, prop, receiver): D[keyof D] => {
@@ -236,7 +233,7 @@ export class FiCsElement<D extends object, P extends object> {
 
           if (deepEqual(this.#rawData[dataKey], value)) return true
 
-          this.#rawData[dataKey] = value
+          setOwnKey(this.#rawData, dataKey, value)
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
           if (subscribers) for (const run of subscribers) run()
@@ -299,7 +296,7 @@ export class FiCsElement<D extends object, P extends object> {
 
         if (deepEqual(this.#rawProps[key], value)) return true
 
-        this.#rawProps[key] = value
+        setOwnKey(this.#rawProps, key, value)
 
         const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
         if (subscribers) for (const run of subscribers) run()
@@ -461,7 +458,7 @@ export class FiCsElement<D extends object, P extends object> {
         options: { ...args, scroll: scroll?.options }
       })
 
-    for (const [key, value] of typedEntries(this.#rawProps)) cloned.#rawProps[key] = value
+    for (const [key, value] of typedEntries(this.#rawProps)) setOwnKey(cloned.#rawProps, key, value)
     return cloned
   }
 
@@ -765,7 +762,7 @@ export class FiCsElement<D extends object, P extends object> {
 
     for (let index = 0; index < attributes.length; index++) {
       const { name, value }: { name: string; value: string } = attributes[index]
-      oldAttrs[name] = value
+      setOwnKey(oldAttrs, name, value)
     }
 
     for (let [key, value] of this.#computedAttrs) {
@@ -973,8 +970,8 @@ export class FiCsElement<D extends object, P extends object> {
             oldAttrList: Record<string, Omit<Html.PickedAttr, 'name'>> = {}
 
           for (let i = 0; i < oldAttrs.length; i++) {
-            const { name, value, namespaceURI, localName }: Html.PickedAttr = oldAttrs[i]
-            oldAttrList[name] = { value, namespaceURI, localName }
+            const { name, ...args }: Html.PickedAttr = oldAttrs[i]
+            setOwnKey(oldAttrList, name, args)
           }
 
           for (let i = 0; i < newAttrs.length; i++) {
@@ -1372,7 +1369,7 @@ export class FiCsElement<D extends object, P extends object> {
 
         for (let index = 0; index < element.attributes.length; index++) {
           const { name, value }: { name: string; value: string } = element.attributes[index]
-          attrs[name] = value
+          setOwnKey(attrs, name, value)
         }
 
         const formError =
