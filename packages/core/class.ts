@@ -522,6 +522,7 @@ export class FiCsElement<D extends object, P extends object> {
     enqueue({
       instanceId: this.#instanceId,
       key,
+      maxLoopLength: this.#options.maxLoopLength,
       func: async (): Promise<void> => {
         const startedAt: number = Date.now()
         this.#emitMetric({ key })
