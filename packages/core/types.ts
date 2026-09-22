@@ -631,7 +631,8 @@ export declare namespace SSE {
 export interface Task {
   instanceId: string
   func: () => Awaitable
-  key: 'define' | 're-render' | 'fetch'
+  key: 'define' | 're-render'
+  maxLoopLength: number
 }
 
 export declare namespace Telemetry {
