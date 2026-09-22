@@ -655,7 +655,7 @@ export declare namespace Telemetry {
   interface Metric<D extends object, P> extends Omit<Ctx<D, P>, 'details'> {
     name: string
     instanceId: string
-    status: 'starting' | 'success' | 'error'
+    status: 'starting' | 'success' | 'error' | 'aborted'
     details: Details<D, P>[Ctx<D, P>['key']] & { durationMs: number }
     timestamp: number
   }
