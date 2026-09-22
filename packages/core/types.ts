@@ -637,7 +637,10 @@ export interface Task {
 export declare namespace Telemetry {
   interface Ctx<D extends object, P> {
     key: keyof Details<D, P>
+    /** @remarks Raw thrown error. Use `isError` for checks, as it can be `undefined`. */
     error?: unknown
+    isError?: boolean
+    isAborted?: boolean
     startedAt?: number
     details?: Details<D, P>[Ctx<D, P>['key']]
   }
