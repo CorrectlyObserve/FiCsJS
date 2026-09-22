@@ -655,7 +655,8 @@ export declare namespace Telemetry {
     updated: { dataKey: keyof D }
   } & { [K in Exclude<Hook.Key<D, P>, 'updated'> | Task['key']]: {} }
 
-  interface Metric<D extends object, P> extends Omit<Ctx<D, P>, 'details'> {
+  interface Metric<D extends object, P>
+    extends Omit<Ctx<D, P>, 'details' | 'isError' | 'isAborted'> {
     name: string
     instanceId: string
     status: 'starting' | 'success' | 'error' | 'aborted'
