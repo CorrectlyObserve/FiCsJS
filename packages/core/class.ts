@@ -593,7 +593,13 @@ export class FiCsElement<D extends object, P extends object> {
       this.#emitMetric({ key: OPTIMISTIC, startedAt, details: { ...details, result: 'success' } })
       return optimisticUpdated
     } catch (error) {
-      this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
+      this.#emitMetric({
+        key: OPTIMISTIC,
+        error,
+        isError: true,
+        startedAt,
+        details: { ...details, result: 'reverted' }
+      })
       throw error
     }
   }
