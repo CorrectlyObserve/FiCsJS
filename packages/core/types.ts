@@ -120,6 +120,40 @@ export declare namespace DeepReadonly {
     | EventTarget
 }
 
+export declare namespace DeferredData {
+  interface Config<D extends object, P> {
+    load: (
+      ctx: Omit<DataProps.Payload<D, P, true>, 'reloadDeferredData'> & {
+        i18n: I18n<D>
+        signal: AbortSignal
+      }
+    ) => Promise<Partial<D> | void>
+    key?: string
+    dataKey?: SingleOrArray<keyof D>
+    propsKey?: SingleOrArray<keyof P>
+    allowStale?: boolean
+  }
+
+  interface Load<D extends object, P> {
+    id: string
+    config: Config<D, P>
+    chain: string[]
+    isChainStopped: boolean
+    hasLoadedOnce: boolean
+    shouldLoad: boolean
+    loadedValues: (D[keyof D] | P[keyof P])[]
+    version: number
+    abort?: () => void
+  }
+
+  type State =
+    | { status: 'loading' }
+    | { status: 'error'; error: unknown }
+    | { status: 'done'; error?: unknown }
+
+  type States = Readonly<Record<string, State>>
+}
+
 export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
