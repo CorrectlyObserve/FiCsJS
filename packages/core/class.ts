@@ -95,7 +95,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #props: P = {} as P
   readonly #classNames?: ClassName<D, P>
   readonly #attrs?: Attrs<D, P>
-  readonly #html: Html.Core<D, P>
+  readonly #html: Html.Fn<D, P>
   readonly #css: Css.StringOrFn<D, P>[] = []
   readonly #isStaticCss: boolean
   readonly #hooks: Hook.Lifecycle<D, P> = {}
