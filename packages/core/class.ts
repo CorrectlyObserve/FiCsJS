@@ -83,7 +83,8 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #subscribers: {
     data: Map<keyof D, Set<() => void>>
     props: Map<keyof P, Set<() => void>>
-  } = { data: new Map(), props: new Map() }
+    deferredStates: Map<string, Set<() => void>>
+  } = { data: new Map(), props: new Map(), deferredStates: new Map() }
   readonly #cache: {
     boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
