@@ -88,8 +88,14 @@ export declare namespace DataProps {
   type Payload<D extends object, P, B extends boolean = false> = {
     data: B extends true ? ProxyMutable<D> : DeepReadonly.Core<D>
     props: Readonly<P>
+    deferredStates: DeferredData.States
   } & (B extends true
-    ? { crud: Crud.Fetcher; queryCache: Query.Api; optimisticUpdate: Optimistic.Fn<D> }
+    ? {
+        crud: Crud.Fetcher
+        queryCache: Query.Api
+        optimisticUpdate: Optimistic.Fn<D>
+        reloadDeferredData: (key?: string) => void
+      }
     : {})
 }
 
