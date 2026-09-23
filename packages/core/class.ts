@@ -474,9 +474,8 @@ export class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #emitMetric({ key, error, startedAt, details }: Telemetry.Ctx<D, P>): void {
-    const isError: boolean = error !== undefined,
-      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric',
+  #emitMetric({ key, error, isError, isAborted, startedAt, details }: Telemetry.Ctx<D, P>): void {
+    const type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric',
       hasNotStarted = startedAt === undefined
 
     try {
