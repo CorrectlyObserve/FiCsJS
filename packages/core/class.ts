@@ -1486,7 +1486,7 @@ export class FiCsElement<D extends object, P extends object> {
           callback()
           this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({ key, error, startedAt })
+          this.#emitMetric({ key, isError: true, error, startedAt })
           if (!this.#options.telemetry?.onError) throw error
         }
       }
