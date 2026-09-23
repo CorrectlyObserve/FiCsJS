@@ -484,7 +484,7 @@ export class FiCsElement<D extends object, P extends object> {
         key,
         name: this.#name,
         instanceId: this.#instanceId,
-        status: hasNotStarted ? 'starting' : isError ? 'error' : 'success',
+        status: hasNotStarted ? 'starting' : isAborted ? 'aborted' : isError ? 'error' : 'success',
         error,
         details: { ...(details ?? {}), durationMs: hasNotStarted ? 0 : timestamp - startedAt },
         timestamp
