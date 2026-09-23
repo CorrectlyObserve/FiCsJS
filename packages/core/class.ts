@@ -250,7 +250,13 @@ export class FiCsElement<D extends object, P extends object> {
               updated[dataKey]!(this.#getHookCtx())
               this.#emitMetric({ key: UPDATED_KEY, startedAt, details: { dataKey } })
             } catch (error) {
-              this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
+              this.#emitMetric({
+                key: UPDATED_KEY,
+                isError: true,
+                error,
+                startedAt,
+                details: { dataKey }
+              })
               if (!this.#options.telemetry?.onError)
                 console.error(
                   `The updated hook of "${String(dataKey)}" failed in ${this.#name}...`,
