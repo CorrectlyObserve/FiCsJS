@@ -239,16 +239,16 @@ export class FiCsElement<D extends object, P extends object> {
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
           if (subscribers) for (const run of subscribers) run()
 
-          const KEY = 'updated' as const,
-            updated: Hook.Lifecycle<D, P>[typeof KEY] | undefined = this.#hooks.updated
+          const UPDATED_KEY = 'updated' as const,
+            updated: Hook.Lifecycle<D, P>[typeof UPDATED_KEY] | undefined = this.#hooks.updated
 
           if (updated && dataKey in updated) {
             const startedAt: number = Date.now()
-            this.#emitMetric({ key: KEY, details: { dataKey } })
+            this.#emitMetric({ key: UPDATED_KEY, details: { dataKey } })
 
             try {
               updated[dataKey]!(this.#getHookCtx())
-              this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
+              this.#emitMetric({ key: UPDATED_KEY, startedAt, details: { dataKey } })
             } catch (error) {
               this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
               if (!this.#options.telemetry?.onError)
