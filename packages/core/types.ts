@@ -414,7 +414,7 @@ export declare namespace Query {
     inflight: Promise<void> | null
     abort: AbortController | null
     isOptimistic: boolean
-    fetchId: number
+    version: number
     gcTimer?: SetTimeout
     refetchTimer?: ReturnType<typeof setInterval>
     lastOptimisticTask?: Promise<void>
