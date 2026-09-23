@@ -252,8 +252,8 @@ export class FiCsElement<D extends object, P extends object> {
             } catch (error) {
               this.#emitMetric({
                 key: UPDATED_KEY,
-                isError: true,
                 error,
+                isError: true,
                 startedAt,
                 details: { dataKey }
               })
@@ -530,7 +530,7 @@ export class FiCsElement<D extends object, P extends object> {
           await func()
           this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({ key, isError: true, error, startedAt })
+          this.#emitMetric({ key, error, isError: true, startedAt })
           if (!this.#options.telemetry?.onError) throw error
         }
       }
@@ -563,7 +563,7 @@ export class FiCsElement<D extends object, P extends object> {
       this.#emitMetric({ key: 'crud', startedAt, details })
       return result
     } catch (error) {
-      this.#emitMetric({ key: 'crud', isError: true, error, startedAt, details })
+      this.#emitMetric({ key: 'crud', error, isError: true, startedAt, details })
       throw error
     }
   }
@@ -1486,7 +1486,7 @@ export class FiCsElement<D extends object, P extends object> {
           callback()
           this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({ key, isError: true, error, startedAt })
+          this.#emitMetric({ key, error, isError: true, startedAt })
           if (!this.#options.telemetry?.onError) throw error
         }
       }
