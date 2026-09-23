@@ -563,7 +563,7 @@ export class FiCsElement<D extends object, P extends object> {
       this.#emitMetric({ key: 'crud', startedAt, details })
       return result
     } catch (error) {
-      this.#emitMetric({ key: 'crud', error, startedAt, details })
+      this.#emitMetric({ key: 'crud', isError: true, error, startedAt, details })
       throw error
     }
   }
