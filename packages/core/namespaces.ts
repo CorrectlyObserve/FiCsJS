@@ -32,7 +32,7 @@ export declare namespace FiCs {
 
   type GlobalCss = string
 
-  type Html<D extends object, P extends object> = Html.Core<D, P>
+  type Html<D extends object, P extends object> = Html.Fn<D, P>
 
   type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
 
