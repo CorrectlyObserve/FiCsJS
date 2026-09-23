@@ -177,17 +177,17 @@ export declare namespace Html {
     | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
     | string
 
-  type Core<D extends object, P extends object> = (
-    ctx: Omit<DataProps.Payload<D, P, true>, 'props'> &
-      Syntaxes<D, P> & {
-        isBrowser: boolean
-        form: Form.Association
-        scroll: <T>(
-          array: ReadonlyArray<T> | null | undefined,
-          callback: (item: T, index: number) => Sanitized<D, P>
-        ) => Sanitized<D, P>
-      }
-  ) => Sanitized<D, P>
+  type Ctx<D extends object, P extends object> = Omit<DataProps.Payload<D, P, true>, 'props'> &
+    Syntaxes<D, P> & {
+      isBrowser: boolean
+      form: Form.Association
+      scroll: <T>(
+        array: ReadonlyArray<T> | null | undefined,
+        callback: (item: T, index: number) => Sanitized<D, P>
+      ) => Sanitized<D, P>
+    }
+
+  type Fn<D extends object, P extends object> = (ctx: Ctx<D, P>) => Sanitized<D, P>
 
   type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
 
