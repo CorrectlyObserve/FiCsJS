@@ -163,7 +163,7 @@ export interface FiCs<D extends object, P extends object> {
   isCloned?: boolean
   children?: Descendant[]
   data?: () => Partial<D>
-  deferredData?: SingleOrArray<Deferred.Entry<D, P>>
+  deferredData?: SingleOrArray<DeferredData.Config<D, P>>
   immutableDataKeys?: (keyof D)[]
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
