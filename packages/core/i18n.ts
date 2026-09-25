@@ -44,33 +44,49 @@ const i18nClosure = (() => {
         throw new Error(`The i18n url "${url}" must be an absolute URL in SSR/Edge environments...`)
 
       const keys: string[] = toArray(key),
-        fetchTranslations = async (lang: string): Promise<Translations> => {
-          if (translationsCache.has(lang)) return translationsCache.get(lang)!
-          if (promiseCache.has(lang)) return promiseCache.get(lang)!
+        download = async (directory: string): Promise<Translations> => {
+          const controller: AbortController = new AbortController()
 
-          const translations: Promise<Translations> = (async (): Promise<Translations> => {
-            try {
-              const res: Response = await fetch(url)
+          try {
+            const res: Response = await fetch(url, { signal: controller.signal })
 
-              if (!res.ok)
-                throw new Error(
-                  `${res.status} ${res.statusText}: The request to load the ${url} failed...`
-                )
+            if (!res.ok)
+              throw new Error(
+                `${res.status} ${res.statusText}: The request to load the ${url} failed...`
+              )
 
-              const json: Translations = await res.json()
+            const json: Translations = await res.json()
 
-              translationsCache.set(lang, json)
-              return json
-            } finally {
-              promiseCache.delete(lang)
-            }
-          })()
+            if (_directory === directory) translationsCache.set(lang, json)
+            return json
+          } finally {
+            scheduleAbort({
+              controller,
+              timeoutMs: _timeoutMs,
+              message: `The request to load the ${url} timed out after ${_timeoutMs}ms...`
+            })
+          }
+        },
+        fetchTranslations = async (): Promise<Translations> => {
+          const cached: Translations | undefined = translationsCache.get(lang)
+          if (cached !== undefined) return cached
+
+          const inflight: Promise<Translations> | undefined = promiseCache.get(lang)
+          if (inflight) return inflight
+
+          const translations: Promise<Translations> = download(_directory)
 
           promiseCache.set(lang, translations)
-          return translations
+
+          try {
+            return await translations
+          } finally {
+            /** @remarks The entry may already belong to a download from the new directory. */
+            if (promiseCache.get(lang) === translations) promiseCache.delete(lang)
+          }
         }
 
-      const translations: Translations = await attachSignal(fetchTranslations(lang), signal)
+      const translations: Translations = await attachSignal(fetchTranslations(), signal)
       if (keys.length === 0) return translations as T
 
       let _translations: Translations | undefined = translations
