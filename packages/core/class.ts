@@ -1612,27 +1612,6 @@ export class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
-          if (that.#deferredData || that.#i18nData)
-            that.#enqueue(async () => {
-              if (that.#deferredData)
-                for (const [key, value] of typedEntries(
-                  (await that.#deferredData(that.#getDataProps(true))) as D
-                ))
-                  that.#data[key] = value
-
-              if (that.#i18nData)
-                for (const [key, value] of typedEntries(
-                  await that.#i18nData({
-                    ...that.#getDataProps(),
-                    i18n: async <T>({ lang, key }: Parameters<I18n['i18n']>[0]) =>
-                      i18n<T>({ lang, key })
-                  })
-                ))
-                  that.#data[key as keyof D] = value as D[keyof D]
-
-              that.#isDeferred = true
-            }, 'fetch')
-
           that.#setClassNames(this)
           that.#setAttrs(this)
           that.#buildHtml(this.#shadowRoot, true)
