@@ -1767,17 +1767,6 @@ export class FiCsElement<D extends object, P extends object> {
       const { component }: { component?: HTMLElement } = this.#cache
       if (!component) return
 
-      if (this.#i18nData)
-        for (const [key, value] of typedEntries(
-          await this.#i18nData({
-            ...this.#getDataProps(),
-            i18n: async <T>({ lang, key }: Parameters<I18n['i18n']>[0]) => i18n<T>({ lang, key })
-          })
-        )) {
-          const _key: keyof D = key as keyof D
-          if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
-        }
-
       /** @remarks Syncs the final state to the form, allowing custom validation to append data before rendering. */
       this.#syncForm()
       this.#setClassNames(component)
