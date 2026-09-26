@@ -1760,7 +1760,8 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   async #reRender(): Promise<void> {
-    this.#isInRerendering = true
+    this.#rerenderPhase = 'rendering'
+    let shadowRoot: ShadowRoot
 
     try {
       const { component }: { component?: HTMLElement } = this.#cache
@@ -1782,7 +1783,7 @@ export class FiCsElement<D extends object, P extends object> {
       this.#setClassNames(component)
       this.#setAttrs(component)
 
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
+      shadowRoot = this.#getShadowRoot(component)
       this.#buildHtml(shadowRoot)
       this.#buildCss(shadowRoot)
       this.#infiniteVirtualScroll(shadowRoot)
@@ -1805,8 +1806,10 @@ export class FiCsElement<D extends object, P extends object> {
 
       this.#newElements.clear()
     } finally {
-      this.#isInRerendering = false
+      this.#rerenderPhase = 'idle'
     }
+
+    this.#callRerenderedHook(shadowRoot)
   }
 
   #cloneDeeply(): FiCsElement<D, P> {
