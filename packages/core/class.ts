@@ -1729,6 +1729,36 @@ export class FiCsElement<D extends object, P extends object> {
     window.customElements.define(that.#name, FiCsCustomElement)
   }
 
+  #callRerenderedHook(shadowRoot: ShadowRoot): void {
+    if (!this.#hooks.rerendered) return
+
+    const changedKeys: Hook.ChangedKeys<D, P> = {
+        data: [...this.#changedKeys.data],
+        props: [...this.#changedKeys.props],
+        deferredStates: [...this.#changedKeys.deferredStates]
+      },
+      startedAt: number = Date.now()
+
+    for (const keys of Object.values(this.#changedKeys)) keys.clear()
+
+    const RERENDERED_KEY = 'rerendered' as const,
+      { crud, optimisticUpdate, queryCache, ...ctx }: Hook.Ctx<D, P> = this.#getHookCtx(shadowRoot)
+
+    this.#emitMetric({ key: RERENDERED_KEY })
+    this.#rerenderPhase = 'hook'
+
+    try {
+      this.#hooks.rerendered({ ...ctx, changedKeys })
+      this.#emitMetric({ key: RERENDERED_KEY, startedAt })
+    } catch (error) {
+      this.#emitMetric({ key: RERENDERED_KEY, error, isError: true, startedAt })
+      if (!this.#options.telemetry?.onError)
+        console.error(`The rerendered hook failed in ${this.#name}...`, error)
+    } finally {
+      this.#rerenderPhase = 'idle'
+    }
+  }
+
   async #reRender(): Promise<void> {
     this.#isInRerendering = true
 
