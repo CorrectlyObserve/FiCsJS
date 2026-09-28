@@ -14,7 +14,10 @@ const config: { directory: string; timeoutMs?: number } = { directory: '' },
   promiseCache: Map<string, Promise<Translations>> = new Map()
 
 /** @param timeoutMs Must be a non-negative integer if it is a number. */
-export const configI18n = (directory: string, { timeoutMs }: { timeoutMs?: number }): void => {
+export const configI18n = (
+  directory: string,
+  { timeoutMs }: { timeoutMs?: number } = {}
+): void => {
   numberError({ timeoutMs }, 'non-negative-int')
 
   const normalized: string = isBlankString(directory) ? '' : normalizePath(directory)
