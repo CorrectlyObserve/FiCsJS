@@ -17,6 +17,11 @@ const tasks: Map<string, TaskEntry> = new Map(),
   dequeue = async (task: Task): Promise<void> => {
     try {
       await task.func()
+    } catch (error) {
+      console.error(
+        `The task has the instanceId ${task.instanceId} and the key "${task.key}" failed to process...`,
+        error
+      )
     } finally {
       if (task.key !== 'define') ids.delete(getQueueId(task))
     }
