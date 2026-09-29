@@ -83,11 +83,28 @@ const tasks: Map<string, TaskEntry> = new Map(),
 export const enqueue = (task: Task): void => {
   if (!isBrowser()) return
 
-  const queueId: string = getQueueId(task)
+  const id: string = getQueueId(task),
+    entry: TaskEntry | undefined = tasks.get(id)
 
-  if (!ids.has(queueId)) {
-    ids.add(queueId)
-    queue.push(task)
-    void drainQueue()
+  if (!entry) tasks.set(id, { state: 'queued', loopLength: 0 })
+  else if (entry.state !== 'processing') return
+  else {
+    const loopLength: number = entry.loopLength + 1
+
+    if (loopLength >= task.maxLoopLength) {
+      console.error(`The task with the queue ID "${id}" exceeded the loop limit...`)
+      return
+    }
+
+    entry.state = 'processing-requeued'
+    entry.loopLength = loopLength
   }
+
+  if (task.key === 're-render' && isBatchOpen) {
+    reRenderQueue.push(task)
+    return
+  }
+
+  queue.push(task)
+  void drainQueue()
 }
