@@ -9,6 +9,15 @@ const tasks: Map<string, TaskEntry> = new Map(),
   queue: Task[] = [],
   reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
+  mergeLoops = ({
+    target,
+    src
+  }: {
+    target: Map<string, number>
+    src: Map<string, number>
+  }): void => {
+    for (const [id, count] of src) target.set(id, Math.max(target.get(id) ?? 0, count))
+  },
   processTask = async (task: Task): Promise<void> => {
     const id: string = getQueueId(task),
       entry: TaskEntry | undefined = tasks.get(id)
