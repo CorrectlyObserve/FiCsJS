@@ -57,19 +57,14 @@ const tasks: Map<string, TaskEntry> = new Map(),
     if (isDrainingReRenders || reRenderQueue.length === 0) return
 
     isDrainingReRenders = true
+    isBatchOpen = true
 
     await new Promise<void>(resolve => {
-      const run = (): void => {
-        const batch: Promise<void>[] = reRenderQueue.splice(0).map(async task => {
-          try {
-            await dequeue(task)
-          } catch (error) {
-            report(task, error)
-          }
-        })
+      const processBatch = (): void => {
+        isBatchOpen = false
 
-        void Promise.allSettled(batch).finally(() => {
-          isReRendering = false
+        void Promise.all(reRenderQueue.splice(0).map(processTask)).finally(() => {
+          isDrainingReRenders = false
           resolve()
         })
       }
