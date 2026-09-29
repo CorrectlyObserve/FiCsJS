@@ -677,7 +677,7 @@ export interface Task {
 
 export type TaskEntry = {
   state: 'queued' | 'processing' | 'processing-requeued' | 'defined'
-  loopLength: number
+  loops: Map<string, number>
 }
 
 export declare namespace Telemetry {
