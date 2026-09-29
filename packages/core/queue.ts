@@ -94,8 +94,8 @@ export const enqueue = (task: Task): void => {
     }
 
     entry.state = 'processing-requeued'
-    entry.loopLength = loopLength
-  }
+    entry.loops = loops
+  } else tasks.set(id, { state: 'queued', loops })
 
   if (task.key === 're-render' && isBatchOpen) {
     reRenderQueue.push(task)
