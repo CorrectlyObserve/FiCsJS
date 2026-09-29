@@ -25,7 +25,7 @@ const tasks: Map<string, TaskEntry> = new Map(),
         error
       )
     } finally {
-      const shouldProcessAgain = entry.state === 'processing-requeued'
+      const shouldProcessAgain: boolean = entry.state === 'processing-requeued'
 
       if (shouldProcessAgain) entry.state = 'queued'
       else if (entry.state === 'processing') tasks.delete(id)
