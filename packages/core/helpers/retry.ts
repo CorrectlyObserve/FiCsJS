@@ -56,7 +56,7 @@ export const getDelayMs = ({
 
   const baseMs: number = Math.min(intervalMs * 2 ** (attempt - 1), maxDelayMs)
 
-  /** @remarks Prevents DDoS by adding jitterRatio to the retry delay. */
+  /** @remarks Prevents synchronized retries by adding jitterRatio to the retry delay. */
   const fractionalMs: number = baseMs + Math.random() * baseMs * jitterRatio
 
   return Math.floor(fractionalMs)
