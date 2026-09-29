@@ -72,7 +72,7 @@ const tasks: Map<string, TaskEntry> = new Map(),
         })
       }
 
-      if (!isBrowser() || document.visibilityState === 'hidden') setTimeout(processBatch)
+      if (document.visibilityState === 'hidden') setTimeout(processBatch)
       else requestAnimationFrame(processBatch)
     })
   }
