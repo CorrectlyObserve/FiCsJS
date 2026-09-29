@@ -20,10 +20,7 @@ const tasks: Map<string, TaskEntry> = new Map(),
     try {
       await task.func()
     } catch (error) {
-      console.error(
-        `The task has the instanceId ${task.instanceId} and the key "${task.key}" failed to process...`,
-        error
-      )
+      console.error(`The task with the queue ID "${id}" failed to process...`, error)
     } finally {
       const shouldProcessAgain: boolean = entry.state === 'processing-requeued'
 
