@@ -9,12 +9,14 @@ const tasks: Map<string, TaskEntry> = new Map(),
   queue: Task[] = [],
   reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
-  report = ({ instanceId, key }: Task, error: unknown): void =>
-    console.error(
-      `The task has the instanceId ${instanceId} and the key "${key}" failed to process...`,
-      error
-    ),
-  dequeue = async (task: Task): Promise<void> => {
+  processTask = async (task: Task): Promise<void> => {
+    const id: string = getQueueId(task),
+      entry: TaskEntry | undefined = tasks.get(id)
+    if (!entry) return
+
+    /** @remarks Sets the state before processing to avoid ignoring a request made during it. */
+    entry.state = (task.key === 'define' ? 'defined' : 'processing') as TaskEntry['state']
+
     try {
       await task.func()
     } catch (error) {
@@ -23,7 +25,10 @@ const tasks: Map<string, TaskEntry> = new Map(),
         error
       )
     } finally {
-      if (task.key !== 'define') ids.delete(getQueueId(task))
+      const shouldProcessAgain = entry.state === 'processing-requeued'
+
+      if (shouldProcessAgain) entry.state = 'queued'
+      else if (entry.state === 'processing') tasks.delete(id)
     }
   },
   drainQueue = async (): Promise<void> => {
