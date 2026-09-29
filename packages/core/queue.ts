@@ -2,7 +2,8 @@ import { isBrowser } from './helpers'
 import type { Task, TaskEntry } from './types'
 
 let isDraining: boolean = false,
-  isDrainingReRenders: boolean = false
+  isDrainingReRenders: boolean = false,
+  isBatchOpen: boolean = false
 
 const tasks: Map<string, TaskEntry> = new Map(),
   queue: Task[] = [],
