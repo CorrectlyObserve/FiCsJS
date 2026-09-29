@@ -675,6 +675,11 @@ export interface Task {
   maxLoopLength: number
 }
 
+export type TaskEntry = {
+  state: 'queued' | 'processing' | 'processing-requeued' | 'defined'
+  loopLength: number
+}
+
 export declare namespace Telemetry {
   interface Ctx<D extends object, P> {
     key: keyof Details<D, P>
