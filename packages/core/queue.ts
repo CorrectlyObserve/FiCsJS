@@ -41,18 +41,14 @@ const tasks: Map<string, TaskEntry> = new Map(),
         const batch: Task[] = queue.splice(0)
         if (batch.length === 0) break
 
-        for (const task of batch)
-          if (task.key === 're-render') reRenderQueue.push(task)
-          else
-            try {
-              await dequeue(task)
-            } catch (error) {
-              const { instanceId, key }: Task = task
-              console.error(
-                `The task has instanceId ${instanceId} and key "${key}" failed to process...`,
-                error
-              )
-            }
+        for (const task of batch) {
+          if (task.key === 're-render') {
+            reRenderQueue.push(task)
+            continue
+          }
+
+          await processTask(task)
+        }
       }
 
       await drainReRendersQueue()
