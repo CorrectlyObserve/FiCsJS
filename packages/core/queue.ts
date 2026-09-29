@@ -4,7 +4,7 @@ import type { Task, TaskEntry } from './types'
 let isProcessing: boolean = false,
   isReRendering: boolean = false
 
-const queueIds: Set<string> = new Set(),
+const tasks: Map<string, TaskEntry> = new Map(),
   queue: Task[] = [],
   reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
