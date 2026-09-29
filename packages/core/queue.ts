@@ -1,5 +1,5 @@
 import { isBrowser } from './helpers'
-import type { Task } from './types'
+import type { Task, TaskEntry } from './types'
 
 let isProcessing: boolean = false,
   isReRendering: boolean = false
