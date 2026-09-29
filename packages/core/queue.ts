@@ -8,6 +8,11 @@ const queueIds: Set<string> = new Set(),
   queue: Task[] = [],
   reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
+  report = ({ instanceId, key }: Task, error: unknown): void =>
+    console.error(
+      `The task has the instanceId ${instanceId} and the key "${key}" failed to process...`,
+      error
+    ),
   dequeue = async (task: Task): Promise<void> => {
     try {
       await task.func()
@@ -58,10 +63,7 @@ const queueIds: Set<string> = new Set(),
           try {
             await dequeue(task)
           } catch (error) {
-            console.error(
-              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`,
-              error
-            )
+            report(task, error)
           }
         })
 
