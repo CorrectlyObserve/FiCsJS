@@ -21,9 +21,9 @@ const tasks: Map<string, TaskEntry> = new Map(),
     }
   },
   drainQueue = async (): Promise<void> => {
-    if (isProcessing || queue.length === 0) return
+    if (isDraining || queue.length === 0) return
 
-    isProcessing = true
+    isDraining = true
 
     try {
       while (true) {
@@ -46,16 +46,16 @@ const tasks: Map<string, TaskEntry> = new Map(),
 
       await drainReRendersQueue()
     } finally {
-      isProcessing = false
+      isDraining = false
 
       if (queue.length > 0) void drainQueue()
       else if (reRenderQueue.length > 0) void drainReRendersQueue()
     }
   },
   drainReRendersQueue = async (): Promise<void> => {
-    if (isReRendering || reRenderQueue.length === 0) return
+    if (isDrainingReRenders || reRenderQueue.length === 0) return
 
-    isReRendering = true
+    isDrainingReRenders = true
 
     await new Promise<void>(resolve => {
       const run = (): void => {
