@@ -35,6 +35,8 @@ const tasks: Map<string, TaskEntry> = new Map(),
 
       if (shouldProcessAgain) entry.state = 'queued'
       else if (entry.state === 'processing') tasks.delete(id)
+
+      if (entry.state === 'defined') entry.loops.clear()
     }
   },
   drainQueue = async (): Promise<void> => {
