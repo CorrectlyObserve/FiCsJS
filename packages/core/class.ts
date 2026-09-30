@@ -222,7 +222,7 @@ export class FiCsElement<D extends object, P extends object> {
             const key: keyof D = prop as keyof D
 
             if (!this.#subscribers.data.has(key)) this.#subscribers.data.set(key, new Set())
-            this.#subscribers.data.get(key)!.add(FiCsElement.#activeEffect.run)
+            this.#subscribers.data.get(key)!.add(FiCsElement.#activeEffect.sync)
           }
 
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
@@ -235,7 +235,7 @@ export class FiCsElement<D extends object, P extends object> {
           setOwnKey(this.#rawData, dataKey, value)
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
-          if (subscribers) for (const run of subscribers) run()
+          if (subscribers) for (const sync of subscribers) sync()
 
           const UPDATED_KEY = 'updated' as const,
             updated: Hook.Lifecycle<D, P>[typeof UPDATED_KEY] | undefined = this.#hooks.updated
@@ -284,7 +284,7 @@ export class FiCsElement<D extends object, P extends object> {
           const key: keyof P = prop as keyof P
 
           if (!this.#subscribers.props.has(key)) this.#subscribers.props.set(key, new Set())
-          this.#subscribers.props.get(key)!.add(FiCsElement.#activeEffect.run)
+          this.#subscribers.props.get(key)!.add(FiCsElement.#activeEffect.sync)
         }
 
         return this.#bindFunction(Reflect.get(target, prop, receiver)) as P[keyof P]
@@ -701,7 +701,7 @@ export class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      run()
+      sync()
     }
 
     this.#addSetIndividualProps()
