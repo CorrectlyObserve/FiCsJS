@@ -262,7 +262,7 @@ export class FiCsElement<D extends object, P extends object> {
             }
           }
 
-          if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
+          if (this.#rerenderPhase !== 'rendering' && this.#isBrowser && this.#cache.component)
             this.#enqueue(this.#reRender.bind(this), 're-render')
 
           return true
@@ -1722,7 +1722,7 @@ export class FiCsElement<D extends object, P extends object> {
       { crud, optimisticUpdate, queryCache, ...ctx }: Hook.Ctx<D, P> = this.#getHookCtx(shadowRoot)
 
     this.#emitMetric({ key: RERENDERED_KEY })
-    this.#rerenderPhase = 'hook'
+    this.#rerenderPhase = 'post-rerendering'
 
     try {
       this.#hooks.rerendered({ ...ctx, changedKeys })
