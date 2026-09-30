@@ -520,6 +520,7 @@ export class FiCsElement<D extends object, P extends object> {
   #enqueue(func: () => Awaitable, key: Task['key']): void {
     enqueue({
       instanceId: this.#instanceId,
+      name: this.#name,
       key,
       maxLoopLength: this.#options.maxLoopLength,
       func: async (): Promise<void> => {
