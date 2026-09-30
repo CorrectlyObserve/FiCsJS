@@ -28,7 +28,12 @@ const tasks: Map<string, TaskEntry> = new Map(),
     entry.state = (task.key === 'define' ? 'defined' : 'processing') as TaskEntry['state']
 
     try {
-      await task.func()
+      /** @remarks Tracks only requests made before the first await, as await breaks the trace. */
+      processingLoops = entry.loops
+      const processing: Awaitable = task.func()
+      processingLoops = undefined
+
+      await processing
     } catch (error) {
       console.error(`The task with the queue ID "${id}" failed to process...`, error)
     } finally {
