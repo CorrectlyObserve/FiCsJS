@@ -264,8 +264,8 @@ export declare namespace Hook {
 
   interface ChangedKeys<D extends object, P> {
     data: (keyof D)[]
+    deferredData: (keyof DeferredData.States)[]
     props: (keyof P)[]
-    deferredStates: (keyof DeferredData.States)[]
   }
 
   type Key<D extends object, P> = keyof Lifecycle<D, P>
