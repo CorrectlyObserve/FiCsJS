@@ -9,6 +9,7 @@ import {
 } from './constants'
 import { crud } from './crud'
 import { addHostToSelectors, getGlobalStyleSheet } from './css'
+import { DeferredData } from './deferredData'
 import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls } from './form'
 import {
   browserError,
@@ -86,6 +87,7 @@ export class FiCsElement<D extends object, P extends object> {
     data: new Set(),
     props: new Set()
   }
+  readonly #deferredData: DeferredData<D, P>
   readonly #cache: {
     boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
