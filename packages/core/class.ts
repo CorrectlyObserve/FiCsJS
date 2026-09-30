@@ -111,8 +111,7 @@ export class FiCsElement<D extends object, P extends object> {
   readonly #optimisticUpdateFn: ReturnType<typeof optimisticUpdate>
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
-  #isDeferred: boolean = true
-  #isInRerendering: boolean = false
+  #rerenderPhase: 'idle' | 'rendering' | 'post-rerendering' = 'idle'
   #isInitialized: boolean = false
   #styleSheet?: CSSStyleSheet
   #lastCssText?: string
