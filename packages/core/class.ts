@@ -1659,6 +1659,7 @@ export class FiCsElement<D extends object, P extends object> {
 
           that.#cache.component = this
           this.#activateRuntime()
+          that.#deferredData.mount()
         }
 
         async connectedCallback(): Promise<void> {
