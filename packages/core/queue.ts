@@ -37,6 +37,9 @@ const tasks: Map<string, TaskEntry> = new Map(),
     } catch (error) {
       console.error(`The task with the queue ID "${id}" failed to process...`, error)
     } finally {
+      /** @remarks Clears it in case func throws synchronously, which skips the reset above. */
+      processingLoops = undefined
+
       const shouldProcessAgain: boolean = entry.state === 'processing-requeued'
 
       if (shouldProcessAgain) entry.state = 'queued'
