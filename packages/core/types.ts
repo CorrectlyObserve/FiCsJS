@@ -142,7 +142,7 @@ export declare namespace DeferredData {
 
   interface Load<D extends object, P> {
     id: string
-    config: Config<D, P>
+    entry: Entry<D, P>
     chain: string[]
     isChainStopped: boolean
     hasLoadedOnce: boolean
