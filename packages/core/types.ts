@@ -669,8 +669,8 @@ export declare namespace SSE {
 }
 
 export interface Task {
-  instanceId: string
   name: string
+  instanceId: string
   key: 'define' | 're-render'
   maxLoopLength: number
   func: () => Awaitable
