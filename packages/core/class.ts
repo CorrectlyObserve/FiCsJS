@@ -534,6 +534,11 @@ export class FiCsElement<D extends object, P extends object> {
     })
   }
 
+  #enqueueReRender(): void {
+    if (this.#isBrowser && this.#cache.component)
+      this.#enqueue(this.#reRender.bind(this), 're-render')
+  }
+
   get #queryCache(): QueryCache {
     if (this.#ssrQueryCache) return this.#ssrQueryCache
 
