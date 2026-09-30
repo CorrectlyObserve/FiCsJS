@@ -297,7 +297,7 @@ export class FiCsElement<D extends object, P extends object> {
         setOwnKey(this.#rawProps, key, value)
 
         const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
-        if (subscribers) for (const run of subscribers) run()
+        if (subscribers) for (const sync of subscribers) sync()
 
         if (this.#clonedSelves.size > 0)
           for (const clone of this.#clonedSelves.values()) clone.#props[key] = value
