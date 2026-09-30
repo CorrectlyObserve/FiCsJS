@@ -127,7 +127,7 @@ export declare namespace DeepReadonly {
 }
 
 export declare namespace DeferredData {
-  interface Config<D extends object, P> {
+  interface Entry<D extends object, P> {
     load: (
       ctx: Omit<DataProps.Payload<D, P, true>, 'reloadDeferredData'> & {
         i18n: I18n<D>
