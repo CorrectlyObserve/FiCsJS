@@ -293,18 +293,18 @@ export class FiCsElement<D extends object, P extends object> {
         return this.#bindFunction(Reflect.get(target, prop, receiver)) as P[keyof P]
       },
       set: (_, prop, value): true => {
-        const key: keyof P = prop as keyof P
+        const propsKey: keyof P = prop as keyof P
 
-        if (deepEqual(this.#rawProps[key], value)) return true
+        if (deepEqual(this.#rawProps[propsKey], value)) return true
 
-        setOwnKey(this.#rawProps, key, value)
-        if (this.#hooks.rerendered) this.#changedKeys.props.add(key)
+        setOwnKey(this.#rawProps, propsKey, value)
+        if (this.#hooks.rerendered) this.#changedKeys.props.add(propsKey)
 
-        const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
+        const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(propsKey)
         if (subscribers) for (const sync of subscribers) sync()
 
         if (this.#clonedSelves.size > 0)
-          for (const clone of this.#clonedSelves.values()) clone.#props[key] = value
+          for (const clone of this.#clonedSelves.values()) clone.#props[propsKey] = value
 
         if (this.#isBrowser && this.#cache.component)
           this.#enqueue(() => this.#reRender(), 're-render')
