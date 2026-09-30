@@ -233,6 +233,7 @@ export class FiCsElement<D extends object, P extends object> {
           if (deepEqual(this.#rawData[dataKey], value)) return true
 
           setOwnKey(this.#rawData, dataKey, value)
+          if (this.#hooks.rerendered) this.#changedKeys.data.add(dataKey)
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
           if (subscribers) for (const sync of subscribers) sync()
