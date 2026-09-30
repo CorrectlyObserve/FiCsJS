@@ -66,7 +66,7 @@ import { openWebSocket } from './websocket'
 export class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
-  static #activeEffect: { instance: Descendant; run: () => void } | null = null
+  static #activeEffect: { instance: Descendant; sync: () => void } | null = null
   static #childOwners: WeakMap<Descendant, string> = new WeakMap()
   static #warnedMisuses: Set<string> = new Set()
   static #clonedNames: Map<string, string> = new Map()
