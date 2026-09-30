@@ -552,9 +552,13 @@ export class FiCsElement<D extends object, P extends object> {
     return {
       data: this.#data,
       props: this.#props,
+      deferredStates: this.#deferredData.states,
       crud: hasMethods ? this.#crud.bind(this) : undefined,
       queryCache: hasMethods ? this.#queryCache.api : undefined,
-      optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
+      optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined,
+      reloadDeferredData: hasMethods
+        ? (key?: string): void => this.#deferredData.reload(key)
+        : undefined
     } as DataProps.Payload<D, P, boolean>
   }
 
