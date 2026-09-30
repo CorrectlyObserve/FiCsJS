@@ -1744,8 +1744,8 @@ export class FiCsElement<D extends object, P extends object> {
 
     const changedKeys: Hook.ChangedKeys<D, P> = {
         data: [...this.#changedKeys.data],
-        props: [...this.#changedKeys.props],
-        deferredStates: [...this.#changedKeys.deferredStates]
+        deferredData: this.#deferredData.takeChangedKeys(),
+        props: [...this.#changedKeys.props]
       },
       startedAt: number = Date.now()
 
