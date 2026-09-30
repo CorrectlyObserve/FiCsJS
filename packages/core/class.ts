@@ -308,6 +308,8 @@ export class FiCsElement<D extends object, P extends object> {
         if (this.#clonedSelves.size > 0)
           for (const clone of this.#clonedSelves.values()) clone.#props[propsKey] = value
 
+        this.#deferredData.queueLoads({ propsKey })
+
         if (this.#isBrowser && this.#cache.component)
           this.#enqueue(() => this.#reRender(), 're-render')
 
