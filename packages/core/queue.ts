@@ -35,7 +35,7 @@ const tasks: Map<string, TaskEntry> = new Map(),
 
       await processing
     } catch (error) {
-      console.error(`The task with the queue ID "${id}" failed to process...`, error)
+      console.error(`The task "${id}" failed in ${task.name}...`, error)
     } finally {
       /** @remarks Clears it in case func throws synchronously, which skips the reset above. */
       processingLoops = undefined
@@ -116,13 +116,7 @@ export const enqueue = (task: Task): void => {
   }
 
   if (loopLength > task.maxLoopLength) {
-    const partnerIds: string[] = [...loops]
-      .filter(([loopId, count]) => loopId !== id && count > 1)
-      .map(([loopId]) => `"${loopId}"`)
-
-    console.error(
-      `The task with the queue ID "${id}" exceeded the loop limit${partnerIds.length > 0 ? ` with ${partnerIds.join(', ')}` : ''}...`
-    )
+    console.error(`The task "${id}" exceeded the loop limit in ${task.name}...`)
     return
   }
 
