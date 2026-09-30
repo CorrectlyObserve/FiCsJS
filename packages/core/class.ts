@@ -1475,7 +1475,7 @@ export class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  /** @remarks Read lazily as hooks retain this object after initialization. */
+  /** @remarks Reads lazily as hooks retain this object after initialization. */
   get #formAssociation(): Form.Association {
     const that: FiCsElement<D, P> = this
 
