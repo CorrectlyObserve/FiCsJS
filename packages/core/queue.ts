@@ -1,5 +1,5 @@
 import { isBrowser } from './helpers'
-import type { Task, TaskEntry } from './types'
+import type { Awaitable, Task, TaskEntry } from './types'
 
 let isDraining: boolean = false,
   isDrainingReRenders: boolean = false,
@@ -101,18 +101,32 @@ export const enqueue = (task: Task): void => {
   if (!isBrowser()) return
 
   const id: string = getQueueId(task),
-    entry: TaskEntry | undefined = tasks.get(id)
+    entry: TaskEntry | undefined = tasks.get(id),
+    loops: Map<string, number> = new Map(processingLoops)
 
-  if (!entry) tasks.set(id, { state: 'queued', loopLength: 0 })
-  else if (entry.state !== 'processing') return
-  else {
-    const loopLength: number = entry.loopLength + 1
+  /** @remarks Keeps counting a self-request made after await, which processingLoops misses. */
+  if (entry?.state === 'processing') mergeLoops({ target: loops, src: entry.loops })
 
-    if (loopLength >= task.maxLoopLength) {
-      console.error(`The task with the queue ID "${id}" exceeded the loop limit...`)
-      return
-    }
+  const loopLength: number = (loops.get(id) ?? 0) + 1
+  loops.set(id, loopLength)
 
+  if (entry && entry.state !== 'processing') {
+    if (entry.state !== 'defined') mergeLoops({ target: entry.loops, src: loops })
+    return
+  }
+
+  if (loopLength > task.maxLoopLength) {
+    const partnerIds: string[] = [...loops]
+      .filter(([loopId, count]) => loopId !== id && count > 1)
+      .map(([loopId]) => `"${loopId}"`)
+
+    console.error(
+      `The task with the queue ID "${id}" exceeded the loop limit${partnerIds.length > 0 ? ` with ${partnerIds.join(', ')}` : ''}...`
+    )
+    return
+  }
+
+  if (entry) {
     entry.state = 'processing-requeued'
     entry.loops = loops
   } else tasks.set(id, { state: 'queued', loops })
