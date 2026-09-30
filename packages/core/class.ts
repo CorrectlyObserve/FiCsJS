@@ -1665,8 +1665,10 @@ export class FiCsElement<D extends object, P extends object> {
         async connectedCallback(): Promise<void> {
           if (that.#abortController.signal.aborted) that.#abortController = new AbortController()
 
-          if (this.#isRendered) this.#activateRuntime()
-          else {
+          if (this.#isRendered) {
+            this.#activateRuntime()
+            that.#deferredData.reconnect()
+          } else {
             const mount = (): void => {
               this.#init()
               that.#callback('mounted', this.#shadowRoot)
