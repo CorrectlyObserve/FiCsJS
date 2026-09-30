@@ -266,6 +266,8 @@ export class FiCsElement<D extends object, P extends object> {
             }
           }
 
+          this.#deferredData.queueLoads({ dataKey })
+
           if (this.#rerenderPhase !== 'rendering' && this.#isBrowser && this.#cache.component)
             this.#enqueue(this.#reRender.bind(this), 're-render')
 
