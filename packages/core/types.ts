@@ -670,9 +670,10 @@ export declare namespace SSE {
 
 export interface Task {
   instanceId: string
-  func: () => Awaitable
+  name: string
   key: 'define' | 're-render'
   maxLoopLength: number
+  func: () => Awaitable
 }
 
 export type TaskEntry = {
