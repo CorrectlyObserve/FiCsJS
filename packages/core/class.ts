@@ -267,9 +267,7 @@ export class FiCsElement<D extends object, P extends object> {
           }
 
           this.#deferredData.queueLoads({ dataKey })
-
-          if (this.#rerenderPhase !== 'rendering' && this.#isBrowser && this.#cache.component)
-            this.#enqueue(this.#reRender.bind(this), 're-render')
+          if (this.#rerenderPhase !== 'rendering') this.#enqueueReRender()
 
           return true
         }
@@ -309,9 +307,7 @@ export class FiCsElement<D extends object, P extends object> {
           for (const clone of this.#clonedSelves.values()) clone.#props[propsKey] = value
 
         this.#deferredData.queueLoads({ propsKey })
-
-        if (this.#isBrowser && this.#cache.component)
-          this.#enqueue(() => this.#reRender(), 're-render')
+        this.#enqueueReRender()
 
         return true
       }
