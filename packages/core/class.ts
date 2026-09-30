@@ -82,14 +82,14 @@ export class FiCsElement<D extends object, P extends object> {
     data: Map<keyof D, Set<() => void>>
     props: Map<keyof P, Set<() => void>>
   } = { data: new Map(), props: new Map() }
-  readonly #cache: {
-    boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
-    component?: HTMLElement
-  } = { boundFunctions: new WeakMap() }
   readonly #changedKeys: { data: Set<keyof D>; props: Set<keyof P> } = {
     data: new Set(),
     props: new Set()
   }
+  readonly #cache: {
+    boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
+    component?: HTMLElement
+  } = { boundFunctions: new WeakMap() }
   readonly #propsSources: Props<D, P>[] = []
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
