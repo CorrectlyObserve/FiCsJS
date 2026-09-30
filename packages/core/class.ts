@@ -27,7 +27,6 @@ import {
   typedEntries,
   uid
 } from './helpers'
-import { i18n } from './i18n'
 import { optimisticUpdate } from './optimisticUpdate'
 import { enqueue } from './queue'
 import { CACHE_LENGTH } from './scroll/constants'
@@ -52,7 +51,6 @@ import type {
   Form,
   Html,
   Hook,
-  I18n,
   Optimistic,
   Options,
   Props,
