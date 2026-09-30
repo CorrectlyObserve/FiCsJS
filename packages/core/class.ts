@@ -513,6 +513,27 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
+  #enqueue(func: () => Awaitable, key: Task['key']): void {
+    enqueue({
+      instanceId: this.#instanceId,
+      name: this.#name,
+      key,
+      maxLoopLength: this.#options.maxLoopLength,
+      func: async (): Promise<void> => {
+        const startedAt: number = Date.now()
+        this.#emitMetric({ key })
+
+        try {
+          await func()
+          this.#emitMetric({ key, startedAt })
+        } catch (error) {
+          this.#emitMetric({ key, error, isError: true, startedAt })
+          if (!this.#options.telemetry?.onError) throw error
+        }
+      }
+    })
+  }
+
   get #queryCache(): QueryCache {
     if (this.#ssrQueryCache) return this.#ssrQueryCache
 
@@ -534,27 +555,6 @@ export class FiCsElement<D extends object, P extends object> {
       queryCache: hasMethods ? this.#queryCache.api : undefined,
       optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
     } as DataProps.Payload<D, P, boolean>
-  }
-
-  #enqueue(func: () => Awaitable, key: Task['key']): void {
-    enqueue({
-      instanceId: this.#instanceId,
-      name: this.#name,
-      key,
-      maxLoopLength: this.#options.maxLoopLength,
-      func: async (): Promise<void> => {
-        const startedAt: number = Date.now()
-        this.#emitMetric({ key })
-
-        try {
-          await func()
-          this.#emitMetric({ key, startedAt })
-        } catch (error) {
-          this.#emitMetric({ key, error, isError: true, startedAt })
-          if (!this.#options.telemetry?.onError) throw error
-        }
-      }
-    })
   }
 
   #crud<T>(endpoint: string, options?: Crud.Options): Promise<T>
