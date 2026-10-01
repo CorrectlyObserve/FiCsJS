@@ -24,7 +24,7 @@ export declare namespace FiCs {
 
   type Css<D extends object, P> = Css.Ctx<D, P> | undefined
 
-  type DeferredData<D extends object, P> = SingleOrArray<_DeferredData.Config<D, P>> | undefined
+  type DeferredData<D extends object, P> = SingleOrArray<_DeferredData.Entry<D, P>> | undefined
 
   type FormAssociation = Form.Association
 
