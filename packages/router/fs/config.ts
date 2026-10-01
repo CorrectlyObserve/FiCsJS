@@ -1,6 +1,6 @@
 import type { Routing } from '../types'
 import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
-import { writeIfChanged } from './file'
+import { writeIfChanged } from '../file'
 import {
   excludePrivateDirs,
   getFiles,
