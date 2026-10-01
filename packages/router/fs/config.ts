@@ -1,15 +1,15 @@
-import type { Routing } from '../types'
-import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
 import { writeIfChanged } from '../file'
+import { joinLines } from '../helpers'
+import type { Routing } from '../types'
 import {
   excludePrivateDirs,
   getFiles,
-  joinLines,
   routerImport,
   toAbsolute,
   toPosix,
   toRelative
 } from './helpers'
+import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
 import { findClosestDir, generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
