@@ -78,13 +78,12 @@ export const ficsRouter = <D extends object>(
     attemptedPathname: string | null = null
 
   const css: FiCsRouter<D>['css'] = [
-    `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
-    ...toArray(_css ?? [])
-  ]
-
-  const { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
-    spec?.redirects ?? {}
-  )
+      `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
+      ...toArray(_css ?? [])
+    ],
+    { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
+      spec?.redirects ?? {}
+    )
 
   for (const { path, redirect } of resolved.pages)
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
