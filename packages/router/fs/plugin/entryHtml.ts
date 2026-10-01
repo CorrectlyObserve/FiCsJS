@@ -1,5 +1,5 @@
 import { escape } from '../../../core/helpers'
-import { ROUTER_COMPONENT_NAME } from '../../constants'
+import { INDEX_HTML, ROUTER_COMPONENT_NAME } from '../../constants'
 import { readIfExists, writeIfChanged } from '../../file'
 import { config } from '../constants'
 import { readIfExists, writeIfChanged } from '../file'
@@ -58,9 +58,9 @@ export const generateEntryHtml = ({
 }): string | null => {
   const appHtml: string | null = readIfExists(join(root, 'app.html'))
 
-  if (appHtml === null && existsSync(join(root, 'index.html'))) return null
+  if (appHtml === null && existsSync(join(root, INDEX_HTML))) return null
 
-  const entry: string = join(dirname(output), 'index.html'),
+  const entry: string = join(dirname(output), INDEX_HTML),
     importPath: string = [config.ALIAS, basename(output), removeExt(config.CLIENT)].join('/')
 
   writeIfChanged({
