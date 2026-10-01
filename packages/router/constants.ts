@@ -9,6 +9,7 @@ export const denialCodes = {
 
 export const FICS_NAVIGATE = 'fics:navigate' as const
 export const FICS_STATUS = 'fics:status' as const
+export const INDEX_HTML = 'index.html' as const
 export const LINK_COMPONENT_NAME = '_link' as const
 
 export const RESERVED_ROUTER_DATA_KEYS = ['pathname', 'queries', 'status'] as const
