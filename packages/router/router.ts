@@ -74,7 +74,8 @@ export const ficsRouter = <D extends object>(
   if (resolved.pages.length === 0)
     throw new Error('Pass a spec or call registerRoutes first as the router has no pages...')
 
-  let hasWarned: boolean = false
+  let hasWarned: boolean = false,
+    attemptedPathname: string | null = null
 
   const css: FiCsRouter<D>['css'] = [
     `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
