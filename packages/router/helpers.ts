@@ -35,12 +35,22 @@ export const flattenRedirects = (map: ReadonlyMap<string, string>): Map<string, 
 export const hasMethod = <T>(value: unknown, key: string): value is T =>
   isObject(value) && typeof (value as { [key]?: unknown })[key] === 'function'
 
+export const indent = (length: number = 1): string => ' '.repeat(length * 2)
+
 export const isBodiless = (method: Rpc.Method | string): method is 'GET' | 'HEAD' =>
   method === 'GET' || isHeadMethod(method)
 
 export const isDynamicPath = (path: string): boolean => path.includes(':')
 
 export const isHeadMethod = (method: Rpc.Method | string): method is 'HEAD' => method === 'HEAD'
+
+export const joinLines = (
+  lines: string[],
+  { comma, filter }: { comma?: boolean; filter?: boolean } = {}
+): string => {
+  if (filter) lines = lines.filter(Boolean)
+  return lines.join(`${comma ? ',' : ''}\n`)
+}
 
 export const parseRedirects = (
   redirects: Record<string, string>

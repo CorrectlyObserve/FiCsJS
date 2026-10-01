@@ -108,8 +108,6 @@ export const getOrThrow = <V>(map: Map<string, V>, key: string): V => {
   return value
 }
 
-export const indent = (length: number = 1): string => ' '.repeat(length * 2)
-
 export const isValidFileType = ({
   file,
   expectedType,
@@ -129,14 +127,6 @@ export const joinAndWrap = (
 ): string => {
   const joined: string = arr.join(`${separator} `)
   return wrapType === '{}' ? `{ ${joined} }` : `[${joined}]`
-}
-
-export const joinLines = (
-  lines: string[],
-  { comma, filter }: { comma?: boolean; filter?: boolean } = {}
-): string => {
-  if (filter) lines = lines.filter(Boolean)
-  return lines.join(`${comma ? ',' : ''}\n`)
 }
 
 export const removeExt = (file: string): string => {
