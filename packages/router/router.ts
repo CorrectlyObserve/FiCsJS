@@ -97,13 +97,12 @@ export const ficsRouter = <D extends object>(
         hasWarned = true
 
         const reservedKeys: string[] = RESERVED_ROUTER_DATA_KEYS.filter(key => key in _data),
-          { length } = reservedKeys
+          { length }: { length: number } = reservedKeys
 
-        if (length > 0) {
+        if (length > 0)
           console.warn(
             `Rename data key${length > 1 ? 's' : ''} "${reservedKeys.join('", "')}" as ${length > 1 ? 'they are' : 'it is'} reserved by the router...`
           )
-        }
       }
 
       return { ..._data, pathname, queries: {}, status: statusCodes.OK } as RouterData<D>
