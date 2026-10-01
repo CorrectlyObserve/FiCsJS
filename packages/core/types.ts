@@ -137,7 +137,11 @@ export declare namespace DeferredData {
     startedAt: number
     details: Telemetry.Details<D, P>[typeof DEFERRED_DATA_LOAD_KEY]
   }
-  
+
+  interface Ctx<D extends object, P> extends Pick<Attempt<D, P>, 'isStale' | 'details'> {
+    load: Load<D, P>
+  }
+
   interface Entry<D extends object, P> {
     load: (
       ctx: Omit<DataProps.Payload<D, P, true>, 'reloadDeferredData'> & {
