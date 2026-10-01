@@ -1,5 +1,5 @@
 import { CONTENT_TYPE, NOOP } from '../../../core/helpers'
-import { statusCodes } from '../../constants'
+import { INDEX_HTML, statusCodes } from '../../constants'
 import type { Routing, Vite } from '../../types'
 import { configRoutes } from '../config'
 import { config as configConstants, MODULE_EXT_REGEX, ROUTER_CALL_REGEX } from '../constants'
@@ -92,7 +92,7 @@ export const vitePlugin = (
         built: string = join(outAbs, relative(root, entry))
 
       if (existsSync(built)) {
-        renameSync(built, join(outAbs, 'index.html'))
+        renameSync(built, join(outAbs, INDEX_HTML))
 
         try {
           rmdirSync(dirname(built))
