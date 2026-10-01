@@ -82,7 +82,56 @@ export const ficsRouter = <D extends object>(
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
 
   const redirects: ReadonlyMap<string, string> | undefined =
-    redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
+      redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined,
+    hooks: FiCsRouter<D>['hooks'] = {
+      created: ({ data, ...args }) => {
+        hooks?.created?.({ data, ...args })
+
+        const onPopState: () => void = (): void =>
+          setRouterData({ data, pathname: window.location.pathname, redirects })
+
+        window.addEventListener('popstate', onPopState)
+
+        const onCustomEvent: (event: Event) => void = (event): void => {
+          const {
+              detail: { href }
+            }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
+            { pathname }: { pathname: string } = new URL(href, window.location.origin)
+
+          gotoPathname = pathname
+          setRouterData({ data, pathname, redirects })
+        }
+
+        window.addEventListener(FICS_NAVIGATE, onCustomEvent)
+
+        const onStatus: (event: Event) => void = (event: Event): void => {
+          const { detail }: { detail: Routing.Status.Event } =
+            event as CustomEvent<Routing.Status.Event>
+
+          if (detail.isHandled) return
+
+          detail.isHandled = true
+          ;(data as RouterData<D>).status = detail.code
+        }
+
+        window.addEventListener(FICS_STATUS, onStatus)
+
+        removeEventListeners = (): void => {
+          window.removeEventListener('popstate', onPopState)
+          window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
+          window.removeEventListener(FICS_STATUS, onStatus)
+        }
+
+        setRouterData({ data, pathname: window.location.pathname, redirects })
+      },
+      mounted: _hooks?.mounted,
+      updated: _hooks?.updated,
+      destroyed: ({ ...args }) => {
+        removeEventListeners()
+        _hooks?.destroyed?.({ ...args })
+      },
+      adopted: _hooks?.adopted
+    }
 
   let removeEventListeners: () => void = NOOP,
     hasWarned: boolean = false
@@ -222,54 +271,7 @@ export const ficsRouter = <D extends object>(
       return setContent()
     },
     css: [`${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`, ...toArray(css ?? [])],
-    hooks: {
-      created: ({ data, ...args }) => {
-        hooks?.created?.({ data, ...args })
-
-        const onPopState: () => void = (): void =>
-          setRouterData({ data, pathname: window.location.pathname, redirects })
-
-        window.addEventListener('popstate', onPopState)
-
-        const onCustomEvent: (event: Event) => void = (event): void => {
-          const {
-              detail: { href }
-            }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
-            { pathname }: { pathname: string } = new URL(href, window.location.origin)
-
-          setRouterData({ data, pathname, redirects })
-        }
-
-        window.addEventListener(FICS_NAVIGATE, onCustomEvent)
-
-        const onStatus: (event: Event) => void = (event: Event): void => {
-          const { detail }: { detail: Routing.Status.Event } =
-            event as CustomEvent<Routing.Status.Event>
-
-          if (detail.isHandled) return
-
-          detail.isHandled = true
-          ;(data as RouterData<D>).status = detail.code
-        }
-
-        window.addEventListener(FICS_STATUS, onStatus)
-
-        removeEventListeners = (): void => {
-          window.removeEventListener('popstate', onPopState)
-          window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
-          window.removeEventListener(FICS_STATUS, onStatus)
-        }
-
-        setRouterData({ data, pathname: window.location.pathname, redirects })
-      },
-      mounted: hooks?.mounted,
-      updated: hooks?.updated,
-      destroyed: ({ ...args }) => {
-        removeEventListeners()
-        hooks?.destroyed?.({ ...args })
-      },
-      adopted: hooks?.adopted
-    },
+    hooks,
     options
   })
 }
