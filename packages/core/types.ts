@@ -143,13 +143,13 @@ export declare namespace DeferredData {
   interface Load<D extends object, P> {
     id: string
     entry: Entry<D, P>
+    needsLoad: boolean
     chain: string[]
-    isChainStopped: boolean
-    hasLoadedOnce: boolean
-    shouldLoad: boolean
-    loadedValues: (D[keyof D] | P[keyof P])[]
+    hasReportedLoop: boolean
     version: number
     abort?: () => void
+    hasLoadedOnce: boolean
+    loadedValues: (D[keyof D] | P[keyof P])[]
   }
 
   interface Runtime<D extends object, P> {
