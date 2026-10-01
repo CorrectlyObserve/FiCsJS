@@ -65,14 +65,21 @@ export const ficsRouter = <D extends object>(
       props,
       className,
       attributes,
-      css,
-      hooks,
+      css: _css,
+      hooks: _hooks,
       options
     }: FiCsRouter<D> = spa,
     resolved: Readonly<Routing.ResolvedSpec> = resolveSpec(spec)
 
   if (resolved.pages.length === 0)
     throw new Error('Pass a spec or call registerRoutes first as the router has no pages...')
+
+  let hasWarned: boolean = false
+
+  const css: FiCsRouter<D>['css'] = [
+    `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
+    ...toArray(_css ?? [])
+  ]
 
   const { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
     spec?.redirects ?? {}
@@ -81,62 +88,59 @@ export const ficsRouter = <D extends object>(
   for (const { path, redirect } of resolved.pages)
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
 
-  const css: FiCsRouter<D>['css'] = [
-    `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
-    ...toArray(_css ?? [])
-  ]
-
   const redirects: ReadonlyMap<string, string> | undefined =
-      redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined,
-    hooks: FiCsRouter<D>['hooks'] = {
-      created: ({ data, ...args }) => {
-        hooks?.created?.({ data, ...args })
+    redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
+  let removeEventListeners: () => void = NOOP
 
-        const onPopState: () => void = (): void =>
-          setRouterData({ data, pathname: window.location.pathname, redirects })
+  const hooks: FiCsRouter<D>['hooks'] = {
+    created: ({ data, ...args }) => {
+      hooks?.created?.({ data, ...args })
 
-        window.addEventListener('popstate', onPopState)
-
-        const onCustomEvent: (event: Event) => void = (event): void => {
-          const {
-              detail: { href }
-            }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
-            { pathname }: { pathname: string } = new URL(href, window.location.origin)
-
-          gotoPathname = pathname
-          setRouterData({ data, pathname, redirects })
-        }
-
-        window.addEventListener(FICS_NAVIGATE, onCustomEvent)
-
-        const onStatus: (event: Event) => void = (event: Event): void => {
-          const { detail }: { detail: Routing.Status.Event } =
-            event as CustomEvent<Routing.Status.Event>
-
-          if (detail.isHandled) return
-
-          detail.isHandled = true
-          ;(data as RouterData<D>).status = detail.code
-        }
-
-        window.addEventListener(FICS_STATUS, onStatus)
-
-        removeEventListeners = (): void => {
-          window.removeEventListener('popstate', onPopState)
-          window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
-          window.removeEventListener(FICS_STATUS, onStatus)
-        }
-
+      const onPopState: () => void = (): void =>
         setRouterData({ data, pathname: window.location.pathname, redirects })
-      },
-      mounted: _hooks?.mounted,
-      updated: _hooks?.updated,
-      destroyed: ({ ...args }) => {
-        removeEventListeners()
-        _hooks?.destroyed?.({ ...args })
-      },
-      adopted: _hooks?.adopted
-    }
+
+      window.addEventListener('popstate', onPopState)
+
+      const onCustomEvent: (event: Event) => void = (event): void => {
+        const {
+            detail: { href }
+          }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
+          { pathname }: { pathname: string } = new URL(href, window.location.origin)
+
+        gotoPathname = pathname
+        setRouterData({ data, pathname, redirects })
+      }
+
+      window.addEventListener(FICS_NAVIGATE, onCustomEvent)
+
+      const onStatus: (event: Event) => void = (event: Event): void => {
+        const { detail }: { detail: Routing.Status.Event } =
+          event as CustomEvent<Routing.Status.Event>
+
+        if (detail.isHandled) return
+
+        detail.isHandled = true
+        ;(data as RouterData<D>).status = detail.code
+      }
+
+      window.addEventListener(FICS_STATUS, onStatus)
+
+      removeEventListeners = (): void => {
+        window.removeEventListener('popstate', onPopState)
+        window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
+        window.removeEventListener(FICS_STATUS, onStatus)
+      }
+
+      setRouterData({ data, pathname: window.location.pathname, redirects })
+    },
+    mounted: _hooks?.mounted,
+    updated: _hooks?.updated,
+    destroyed: ({ ...args }) => {
+      removeEventListeners()
+      _hooks?.destroyed?.({ ...args })
+    },
+    adopted: _hooks?.adopted
+  }
 
   let removeEventListeners: () => void = NOOP,
     hasWarned: boolean = false
