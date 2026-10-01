@@ -95,7 +95,17 @@ export const ficsLink = <P extends object>({
           },
           { blur: true }
         ]
-      },
-      ...actions
+      }
     }
+
+  return new FiCsElement<{}, P>({
+    name,
+    children,
+    props,
+    className,
+    attributes,
+    html,
+    css,
+    actions: { ...(shouldGoto ? actions : {}), ..._actions }
   })
+}
