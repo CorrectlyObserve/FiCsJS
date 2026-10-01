@@ -1,5 +1,5 @@
 import type { SingleOrArray } from '../types'
-import { SPECIAL_CHAR } from './constants'
+import { char as c, SPECIAL_CHAR } from './constants'
 import { numberError } from './numberError'
 import { isPlainObject } from './typeCheck'
 
@@ -24,14 +24,12 @@ export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   return str.toLowerCase().replace(/[-_]([a-z])/g, (_, char) => char.toUpperCase())
 }
 
-export const escape = (str: string, context: 'attr' | 'text-content' = 'attr'): string => {
-  const escaped: string = str.replace(
-    /[&<>]/g,
-    char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char] as string
-  )
+export const escape = (str: string, context: 'attr' | 'text-content' | 'xml' = 'attr'): string => {
+  if (context === 'text-content')
+    return str.replace(/[&<>]/g, char => TEXT_ESCAPE_MAP[char] as string)
 
-  if (context === 'text-content') return escaped
-  return escaped.replace(/["']/g, char => ({ '"': '&quot;', "'": '&#39;' })[char] as string)
+  const map: Record<string, string> = context === 'xml' ? XML_ESCAPE_MAP : ATTR_ESCAPE_MAP
+  return str.replace(/[&<>"']/g, char => map[char] as string)
 }
 
 export const escapeRegExp = (str: string): string => str.replace(SPECIAL_CHAR, '\\$&')
