@@ -1,5 +1,5 @@
 import { FiCsElement } from './class'
-import { a11y, attrs } from './constants'
+import { a11y, attrs, DEFERRED_DATA_LOAD_KEY } from './constants'
 import { char as c } from './helpers'
 import type { QueryCache } from './query'
 
@@ -127,6 +127,17 @@ export declare namespace DeepReadonly {
 }
 
 export declare namespace DeferredData {
+  interface Attempt<D extends object, P> {
+    signal: AbortSignal
+    nextChain: string[]
+    settle: () => boolean
+    isLatest: () => boolean
+    loadedValues: (D[keyof D] | P[keyof P])[]
+    isStale: boolean
+    startedAt: number
+    details: Telemetry.Details<D, P>[typeof DEFERRED_DATA_LOAD_KEY]
+  }
+  
   interface Entry<D extends object, P> {
     load: (
       ctx: Omit<DataProps.Payload<D, P, true>, 'reloadDeferredData'> & {
