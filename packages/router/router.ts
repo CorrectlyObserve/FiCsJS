@@ -142,9 +142,6 @@ export const ficsRouter = <D extends object>(
     adopted: _hooks?.adopted
   }
 
-  let removeEventListeners: () => void = NOOP,
-    hasWarned: boolean = false
-
   return new FiCsElement<RouterData<D>, {}>({
     name: ROUTER_COMPONENT_NAME,
     children,
