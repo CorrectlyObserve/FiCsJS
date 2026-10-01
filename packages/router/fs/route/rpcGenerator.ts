@@ -1,15 +1,8 @@
 import { RPC_BASE } from '../../constants'
+import { indent, joinLines } from '../../helpers'
 import type { Routing, Rpc, TypeNode } from '../../types'
 import { fileNames, prefixes, segments } from '../constants'
-import {
-  buildRoute,
-  getFiles,
-  getOrThrow,
-  indent,
-  joinAndWrap,
-  joinLines,
-  resolveOptions
-} from '../helpers'
+import { buildRoute, getFiles, getOrThrow, joinAndWrap, resolveOptions } from '../helpers'
 import { getAllMiddlewares } from '../middleware'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
