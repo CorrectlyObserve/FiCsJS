@@ -1,5 +1,6 @@
 import { FiCsElement } from '../core/class'
 import { CSS_LAYER, HOST_SELECTOR, NOOP, normalizePath, toArray } from '../core/helpers'
+import type { FiCs } from '../core/namespaces'
 import type { DeepReadonly, Html } from '../core/types'
 import {
   FICS_NAVIGATE,
@@ -77,97 +78,7 @@ export const ficsRouter = <D extends object>(
   let hasWarned: boolean = false,
     attemptedPathname: string | null = null
 
-  const css: FiCsRouter<D>['css'] = [
-      `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
-      ...toArray(_css ?? [])
-    ],
-    { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
-      spec?.redirects ?? {}
-    )
-
-  for (const { path, redirect } of resolved.pages)
-    if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
-
-  const redirects: ReadonlyMap<string, string> | undefined =
-    redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
-  let removeEventListeners: () => void = NOOP
-
-  const hooks: FiCsRouter<D>['hooks'] = {
-    created: ({ data, ...args }) => {
-      hooks?.created?.({ data, ...args })
-
-      const onPopState: () => void = (): void =>
-        setRouterData({ data, pathname: window.location.pathname, redirects })
-
-      window.addEventListener('popstate', onPopState)
-
-      const onCustomEvent: (event: Event) => void = (event): void => {
-        const {
-            detail: { href }
-          }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
-          { pathname }: { pathname: string } = new URL(href, window.location.origin)
-
-        attemptedPathname = pathname
-        setRouterData({ data, pathname, redirects })
-      }
-
-      window.addEventListener(FICS_NAVIGATE, onCustomEvent)
-
-      const onStatus: (event: Event) => void = (event: Event): void => {
-        const { detail }: { detail: Routing.Status.Event } =
-          event as CustomEvent<Routing.Status.Event>
-
-        if (detail.isHandled) return
-
-        detail.isHandled = true
-        ;(data as RouterData<D>).status = detail.code
-      }
-
-      window.addEventListener(FICS_STATUS, onStatus)
-
-      removeEventListeners = (): void => {
-        window.removeEventListener('popstate', onPopState)
-        window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
-        window.removeEventListener(FICS_STATUS, onStatus)
-      }
-
-      setRouterData({ data, pathname: window.location.pathname, redirects })
-    },
-    mounted: _hooks?.mounted,
-    updated: _hooks?.updated,
-    destroyed: ({ ...args }) => {
-      removeEventListeners()
-      _hooks?.destroyed?.({ ...args })
-    },
-    adopted: _hooks?.adopted
-  }
-
-  return new FiCsElement<RouterData<D>, {}>({
-    name: ROUTER_COMPONENT_NAME,
-    children,
-    data: () => {
-      const _data: D | object = data?.() ?? {}
-
-      if (!hasWarned) {
-        hasWarned = true
-
-        const reservedKeys: string[] = RESERVED_ROUTER_DATA_KEYS.filter(key => key in _data),
-          { length }: { length: number } = reservedKeys
-
-        if (length > 0)
-          console.warn(
-            `Rename data key${length > 1 ? 's' : ''} "${reservedKeys.join('", "')}" as ${length > 1 ? 'they are' : 'it is'} reserved by the router...`
-          )
-      }
-
-      return { ..._data, pathname, queries: {}, status: statusCodes.OK } as RouterData<D>
-    },
-    immutableDataKeys: ['pathname', 'queries'],
-    deferredData,
-    props,
-    className,
-    attributes,
-    html: ({ data, template, ...args }) => {
+  const html: FiCs.Html<RouterData<D>, {}> = ({ data, template, ...args }) => {
       const pathname = normalizePath(data.pathname),
         setContent = (): Html.Sanitized<RouterData<D>, {}> => {
           const staticPages: Page<D>[] = [],
@@ -283,6 +194,97 @@ export const ficsRouter = <D extends object>(
 
       return setContent()
     },
+    css: FiCsRouter<D>['css'] = [
+      `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
+      ...toArray(_css ?? [])
+    ],
+    { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
+      spec?.redirects ?? {}
+    )
+
+  for (const { path, redirect } of resolved.pages)
+    if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
+
+  const redirects: ReadonlyMap<string, string> | undefined =
+    redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
+  let removeEventListeners: () => void = NOOP
+
+  const hooks: FiCsRouter<D>['hooks'] = {
+    created: ({ data, ...args }) => {
+      hooks?.created?.({ data, ...args })
+
+      const onPopState: () => void = (): void =>
+        setRouterData({ data, pathname: window.location.pathname, redirects })
+
+      window.addEventListener('popstate', onPopState)
+
+      const onCustomEvent: (event: Event) => void = (event): void => {
+        const {
+            detail: { href }
+          }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
+          { pathname }: { pathname: string } = new URL(href, window.location.origin)
+
+        attemptedPathname = pathname
+        setRouterData({ data, pathname, redirects })
+      }
+
+      window.addEventListener(FICS_NAVIGATE, onCustomEvent)
+
+      const onStatus: (event: Event) => void = (event: Event): void => {
+        const { detail }: { detail: Routing.Status.Event } =
+          event as CustomEvent<Routing.Status.Event>
+
+        if (detail.isHandled) return
+
+        detail.isHandled = true
+        ;(data as RouterData<D>).status = detail.code
+      }
+
+      window.addEventListener(FICS_STATUS, onStatus)
+
+      removeEventListeners = (): void => {
+        window.removeEventListener('popstate', onPopState)
+        window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
+        window.removeEventListener(FICS_STATUS, onStatus)
+      }
+
+      setRouterData({ data, pathname: window.location.pathname, redirects })
+    },
+    mounted: _hooks?.mounted,
+    updated: _hooks?.updated,
+    destroyed: ({ ...args }) => {
+      removeEventListeners()
+      _hooks?.destroyed?.({ ...args })
+    },
+    adopted: _hooks?.adopted
+  }
+
+  return new FiCsElement<RouterData<D>, {}>({
+    name: ROUTER_COMPONENT_NAME,
+    children,
+    data: () => {
+      const _data: D | object = data?.() ?? {}
+
+      if (!hasWarned) {
+        hasWarned = true
+
+        const reservedKeys: string[] = RESERVED_ROUTER_DATA_KEYS.filter(key => key in _data),
+          { length }: { length: number } = reservedKeys
+
+        if (length > 0)
+          console.warn(
+            `Rename data key${length > 1 ? 's' : ''} "${reservedKeys.join('", "')}" as ${length > 1 ? 'they are' : 'it is'} reserved by the router...`
+          )
+      }
+
+      return { ..._data, pathname, queries: {}, status: statusCodes.OK } as RouterData<D>
+    },
+    immutableDataKeys: ['pathname', 'queries'],
+    deferredData,
+    props,
+    className,
+    attributes,
+    html,
     css,
     hooks,
     options
