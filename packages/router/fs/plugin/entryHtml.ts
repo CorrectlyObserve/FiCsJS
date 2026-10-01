@@ -1,5 +1,6 @@
 import { escape } from '../../../core/helpers'
 import { ROUTER_COMPONENT_NAME } from '../../constants'
+import { readIfExists, writeIfChanged } from '../../file'
 import { config } from '../constants'
 import { readIfExists, writeIfChanged } from '../file'
 import { indent, joinLines, removeExt } from '../helpers'
