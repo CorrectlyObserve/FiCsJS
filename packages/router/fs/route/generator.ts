@@ -1,7 +1,8 @@
 import { STATUS_FALLBACK } from '../../constants'
+import { indent, joinLines } from '../../helpers'
 import type { Routing } from '../../types'
 import { ERROR_PATH, exportedNames, prefixes } from '../constants'
-import { getDirName, getOrThrow, indent, joinAndWrap, joinLines } from '../helpers'
+import { getDirName, getOrThrow, joinAndWrap } from '../helpers'
 import { findStatusEntry } from './finder'
 import { toEntry, toSpaAlias } from './path'
 
