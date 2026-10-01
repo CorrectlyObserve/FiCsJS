@@ -2,10 +2,11 @@
 import { isBlankString } from '../../core/helpers'
 import type { SetTimeout } from '../../core/types'
 import { RPC_BASE } from '../constants'
+import { indent, joinLines } from '../helpers'
 import type { Routing } from '../types'
 import { configRoutes } from './config'
 import { config, DEBOUNCE_DELAY_MS, exitCodes } from './constants'
-import { indent, joinLines, toAbsolute } from './helpers'
+import { toAbsolute } from './helpers'
 import { watch as watchDir } from 'node:fs'
 
 const { OUTPUT, SCANNED_DIR, TOOL_NAME } = config,
