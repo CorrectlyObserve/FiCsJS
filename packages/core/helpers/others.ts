@@ -3,6 +3,8 @@ import { SPECIAL_CHAR } from './constants'
 import { numberError } from './numberError'
 import { isPlainObject } from './typeCheck'
 
+export const ATTR_ESCAPE_REGEXP: RegExp = /[&<>"']/g
+
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   return str.toLowerCase().replace(/[-_]([a-z])/g, (_, char) => char.toUpperCase())
