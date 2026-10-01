@@ -1,5 +1,6 @@
 import { FiCsElement } from '../core/class'
 import { CSS_LAYER, escape, HOST_SELECTOR, isBlankString, typedEntries } from '../core/helpers'
+import type { FiCs } from '../core/namespaces'
 import { LINK_COMPONENT_NAME } from './constants'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
@@ -13,16 +14,11 @@ export const ficsLink = <P extends object>({
   attributes,
   anchorAttributes,
   content,
-  css,
-  actions
-}: FiCsLink<P>): FiCsElement<{}, P> =>
-  new FiCsElement<{}, P>({
-    name,
-    children,
-    props,
-    className,
-    attributes,
-    html: ({ data, props, deferredStates, template, ...args }) => {
+  css: _css,
+  goto: shouldGoto = true,
+  actions: _actions
+}: FiCsLink<P>): FiCsElement<{}, P> => {
+  const html: FiCs.Html<{}, P> = ({ data, props, deferredStates, template, ...args }) => {
       const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
       if (isBlankString(_href)) throw new Error('The "href" must be a non-empty string...')
 
@@ -54,7 +50,7 @@ export const ficsLink = <P extends object>({
         </a>
       `
     },
-    css: [
+    css: FiCs.Css<{}, P> = [
       `
         ${CSS_LAYER} {
           ${HOST_SELECTOR} {
@@ -70,9 +66,9 @@ export const ficsLink = <P extends object>({
           }
         }
       `,
-      ...(css ? (Array.isArray(css) ? css : [css]) : [])
+      ...(_css ? (Array.isArray(_css) ? _css : [_css]) : [])
     ],
-    actions: {
+    actions: FiCs.Actions<{}, P> = {
       [`${HOST_SELECTOR} > a[href]`]: {
         click: [
           ({ event, attributes: { href } }) => {
