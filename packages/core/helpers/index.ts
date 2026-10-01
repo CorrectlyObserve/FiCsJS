@@ -24,7 +24,6 @@ export { cssObject } from './css'
 export { deepEqual } from './deepEqual'
 export { numberError } from './numberError'
 export {
-  ATTR_ESCAPE_REGEXP,
   convertStr,
   escape,
   escapeRegExp,
