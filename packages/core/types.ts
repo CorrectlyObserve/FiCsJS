@@ -152,6 +152,21 @@ export declare namespace DeferredData {
     abort?: () => void
   }
 
+  interface Runtime<D extends object, P> {
+    name: string
+    /** @remarks Not proxied data for reading values without triggering subscriptions. */
+    rawData: D
+    /** @remarks Not proxied props for reading values without triggering subscriptions. */
+    rawProps: P
+    getDataProps: DataProps.Getter<D, P>
+    options: Options.Resolved<D, P> & { maxLoopLength: number }
+    getSignal: () => AbortSignal
+    getActiveSync: () => (() => void) | null
+    isPostRerendering: () => boolean
+    enqueueReRender: () => void
+    emitMetric: (ctx: Telemetry.Ctx<D, P>) => void
+  }
+
   type State =
     | { status: 'loading' }
     | { status: 'error'; error: unknown }
