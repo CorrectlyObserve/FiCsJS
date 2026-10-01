@@ -81,6 +81,11 @@ export const ficsRouter = <D extends object>(
   for (const { path, redirect } of resolved.pages)
     if (typeof redirect === 'string') redirectsMap.set(normalizePath(path), redirect)
 
+  const css: FiCsRouter<D>['css'] = [
+    `${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`,
+    ...toArray(_css ?? [])
+  ]
+
   const redirects: ReadonlyMap<string, string> | undefined =
       redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined,
     hooks: FiCsRouter<D>['hooks'] = {
@@ -270,7 +275,7 @@ export const ficsRouter = <D extends object>(
 
       return setContent()
     },
-    css: [`${CSS_LAYER}{${HOST_SELECTOR}{display:contents;}}`, ...toArray(css ?? [])],
+    css,
     hooks,
     options
   })
