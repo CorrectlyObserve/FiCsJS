@@ -1,9 +1,9 @@
 import { escape } from '../../../core/helpers'
 import { INDEX_HTML, ROUTER_COMPONENT_NAME } from '../../constants'
 import { readIfExists, writeIfChanged } from '../../file'
+import { indent, joinLines } from '../../helpers'
 import { config } from '../constants'
-import { readIfExists, writeIfChanged } from '../file'
-import { indent, joinLines, removeExt } from '../helpers'
+import { removeExt } from '../helpers'
 import { existsSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 
