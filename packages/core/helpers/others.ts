@@ -3,7 +3,21 @@ import { SPECIAL_CHAR } from './constants'
 import { numberError } from './numberError'
 import { isPlainObject } from './typeCheck'
 
-export const ATTR_ESCAPE_REGEXP: RegExp = /[&<>"']/g
+const TEXT_ESCAPE_MAP: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;'
+  },
+  ATTR_ESCAPE_MAP: Record<string, string> = {
+    ...TEXT_ESCAPE_MAP,
+    [c.DOUBLE_QUOTE]: '&quot;',
+    [c.SINGLE_QUOTE]: '&#39;'
+  },
+  XML_ESCAPE_MAP: Record<string, string> = {
+    ...TEXT_ESCAPE_MAP,
+    [c.DOUBLE_QUOTE]: '&quot;',
+    [c.SINGLE_QUOTE]: '&apos;'
+  }
 
 export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
