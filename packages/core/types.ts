@@ -149,7 +149,7 @@ export declare namespace DeferredData {
         signal: AbortSignal
       }
     ) => Promise<Partial<D> | void>
-    stateKey?: string
+    stateKey?: keyof States
     dataKey?: SingleOrArray<keyof D>
     propsKey?: SingleOrArray<keyof P>
     allowStale?: boolean
