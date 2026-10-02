@@ -34,7 +34,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
   path: string
 }): Promise<Response> => {
   const {
-      module: { meta = {}, default: def, script, noStore },
+      module: { meta = {}, default: def, noScript, noStore },
       entry
     } = page,
     resolvedMeta: Record<string, string> = resolveMeta({ defaultMeta, meta, status }),
@@ -42,7 +42,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
       meta: resolvedMeta,
       content: def ? await def({ ...ctx, status }) : '',
       path,
-      script: script === false ? '' : `${scriptBase}/${entry}.js`,
+      script: noScript ? '' : `${scriptBase}/${entry}.js`,
       styles: getGlobalCss()
     })
 
