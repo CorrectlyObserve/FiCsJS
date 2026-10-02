@@ -232,6 +232,11 @@ export class FiCsElement<D extends object, P extends object> {
         set: (_, prop, value): boolean => {
           const dataKey: keyof D = prop as keyof D
 
+          if (FiCsElement.#activeEffect)
+            throw new Error(
+              `The data of ${this.#name} is read-only in the props of fics function as it would cause an infinite loop...`
+            )
+
           if (deepEqual(this.#rawData[dataKey], value)) return true
 
           setOwnKey(this.#rawData, dataKey, value)
