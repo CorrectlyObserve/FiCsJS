@@ -716,24 +716,26 @@ export class FiCsElement<D extends object, P extends object> {
 
       if (_descendants.length === 0) continue
 
-      const run = (): void => {
-        FiCsElement.#activeEffect = { instance: this, run }
+      const stashedActiveEffects: ({ instance: Descendant; sync: () => void } | null)[] = [],
+        sync = (): void => {
+          stashedActiveEffects.push(FiCsElement.#activeEffect)
+          FiCsElement.#activeEffect = { instance: this, sync }
 
-        try {
-          for (const descendant of _descendants)
-            for (const [key, value] of typedEntries(
-              values({
-                ...this.#getDataProps(true),
-                children: this.#children,
-                sendToWebsocket: (value: WebSocketNS.Value) =>
-                  this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
-              })
-            ))
-              descendant.#props[key] = value
-        } finally {
-          FiCsElement.#activeEffect = null
+          try {
+            for (const descendant of _descendants)
+              for (const [key, value] of typedEntries(
+                values({
+                  ...this.#getDataProps(true),
+                  children: this.#children,
+                  sendToWebsocket: (value: WebSocketNS.Value) =>
+                    this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
+                })
+              ))
+                descendant.#props[key] = value
+          } finally {
+            FiCsElement.#activeEffect = stashedActiveEffects.pop() ?? null
+          }
         }
-      }
 
       sync()
     }
