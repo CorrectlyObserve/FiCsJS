@@ -3,7 +3,7 @@ import { indent, joinLines } from '../helpers'
 
 /**
  * @remarks
- * Omit lastmod, priority and changefreq 
+ * Omit lastmod, priority and changefreq
  * as build date is not the true update date and search engines ignore the last two.
  */
 export const buildSitemap = ({ origin, paths }: { origin: string; paths: string[] }): string =>
