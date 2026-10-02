@@ -234,7 +234,10 @@ export declare namespace Routing {
       ctx: MiddlewareCtx<C> & { error?: unknown; status: Status.Resolved }
     ) => Awaitable<string>
     meta?: Meta
+    noScript?: boolean
     noStore?: boolean
+    /** @remarks Pass `true` for static pages, or a function returning parameters for dynamic pages. */
+    prerender?: boolean | (() => Awaitable<readonly Record<string, string>[]>)
   }
 
   interface Spec {
