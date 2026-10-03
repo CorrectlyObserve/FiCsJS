@@ -38,6 +38,8 @@ export interface FiCsRouter<D extends object> {
   options?: FiCs<RouterData<D>, {}>['options']
 }
 
+export type FlagType = 'catchAll' | 'optional' | null
+
 type OverlappedKeys<D> = Extract<keyof D, keyof typeof RESERVED_ROUTER_DATA_KEYS>
 
 export interface Page<D extends object = Record<string, unknown>> extends PageContent<D> {
