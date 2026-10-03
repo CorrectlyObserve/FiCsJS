@@ -1,5 +1,5 @@
 import { INDEX_HTML } from '../constants'
-import { fillDynamicPaths } from '../dynamicPaths'
+import { fillDynamicPath } from '../dynamicPaths'
 import { isDynamicPath } from '../helpers'
 import type { Routing } from '../types'
 import { join } from 'node:path'
@@ -28,7 +28,7 @@ export const toStaticPaths = async ({
 
   const paths: string[] = []
   for (const params of await prerender()) {
-    const filled: string | null = fillDynamicPaths(path, params)
+    const filled: string | null = fillDynamicPath(path, params)
 
     if (filled === null)
       throw new Error(
