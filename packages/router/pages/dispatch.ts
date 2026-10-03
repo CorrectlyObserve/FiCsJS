@@ -1,6 +1,6 @@
 import { normalizePath } from '../../core/helpers'
 import { statusCodes } from '../constants'
-import { getDynamicPaths } from '../dynamicPaths'
+import { getDynamicParams } from '../dynamicPaths'
 import { findRedirect, isBodiless, prependSlash } from '../helpers'
 import { deny, resolveMiddlewares } from '../middleware'
 import type { Routing } from '../types'
@@ -49,7 +49,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
     for (const { regex, ...args } of dynamics)
       if (regex.test(_path)) {
         resolvedRoute = args
-        dynamicParams = getDynamicPaths(resolvedRoute.path, _path)
+        dynamicParams = getDynamicParams(resolvedRoute.path, _path)
         break
       }
 
