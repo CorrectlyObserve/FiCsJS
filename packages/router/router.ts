@@ -285,7 +285,7 @@ export const ficsRouter = <D extends object>(
         status: statusCodes.OK
       } as RouterData<D>
     },
-    immutableDataKeys: ['pathname', 'queries'],
+    immutableDataKeys: ['pathname', 'dynamicParams', 'queries'],
     deferredData,
     props,
     className,
