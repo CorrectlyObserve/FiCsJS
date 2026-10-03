@@ -7,7 +7,7 @@ import {
   removeTrailingSlash
 } from '../../core/helpers'
 import { RPC_BASE } from '../constants'
-import { dynamicPathToRegex, getDynamicPaths } from '../dynamicPaths'
+import { dynamicPathToRegex, getDynamicParams } from '../dynamicPaths'
 import { hasMethod, isBodiless, isDynamicPath, prependSlash } from '../helpers'
 import { deny, resolveMiddlewares } from '../middleware'
 import type { Routing, Rpc } from '../types'
@@ -85,7 +85,7 @@ export const createRpcHandler = <C = unknown>(
         const _path: string = prependSlash(path)
         if (regex.test(_path)) {
           _static = args
-          dynamicParams = getDynamicPaths(pattern, _path)
+          dynamicParams = getDynamicParams(pattern, _path)
           break
         }
       }
