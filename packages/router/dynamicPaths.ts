@@ -5,19 +5,18 @@ export const dynamicPathToRegex = (pattern: string): RegExp => {
   pattern = prependSlash(pattern)
 
   const required = '/([^/]+?)' as const,
-    caughtAll = '/(.*?)' as const
+    segments: Readonly<Record<string, string>> = {
+      '*': '/(.*?)',
+      '?': `(?:${required})?`,
+      '': required
+    }
 
   let source: string = '',
     lastIndex: number = 0
 
-  for (const match of pattern.matchAll(dynamicRegex)) {
-    const staticPart: string = pattern.slice(lastIndex, match.index),
-      flag: string | undefined = match[2],
-      segment: string = flag === '*' ? caughtAll : flag === '?' ? `(?:${required})?` : required
-
-    source += `${escapeRegExp(staticPart)}${segment}`
-
-    lastIndex = match.index + match[0].length
+  for (const { 0: fullMatched, 2: flag = '', index } of pattern.matchAll(dynamicRegex)) {
+    source += `${escapeRegExp(pattern.slice(lastIndex, index))}${segments[flag]}`
+    lastIndex = index + fullMatched.length
   }
   source += escapeRegExp(pattern.slice(lastIndex))
 
