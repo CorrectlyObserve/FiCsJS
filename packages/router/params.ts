@@ -23,12 +23,12 @@ class Params {
     /** @remarks Don't throw an error as SSR calls this. */
     if (!this.#isBrowser) return
 
-    type === 'dynamicPaths' ? (this.#dynamicPaths = { ...value }) : (this.#queries = { ...value })
+    type === 'dynamicParams' ? (this.#dynamicParams = { ...value }) : (this.#queries = { ...value })
   }
 
   get(type: ParamType): Record<string, string> {
     if (!this.#isBrowser) return {}
-    return type === 'dynamicPaths' ? { ...this.#dynamicPaths } : { ...this.#queries }
+    return type === 'dynamicParams' ? { ...this.#dynamicParams } : { ...this.#queries }
   }
 }
 
