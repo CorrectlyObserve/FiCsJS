@@ -14,6 +14,7 @@ export const createSpaPage =
       data: {
         ...(initialData && (await initialData(ctx))),
         pathname: normalizePath(pathname),
+        dynamicParams: ctx.dynamicParams,
         queries: Object.fromEntries(searchParams)
       } as Partial<RouterData<D>>
     })
