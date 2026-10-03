@@ -9,7 +9,7 @@ import {
   ROUTER_COMPONENT_NAME,
   statusCodes
 } from './constants'
-import { dynamicPathToRegex, getDynamicPaths } from './dynamicPaths'
+import { dynamicPathToRegex, getDynamicParams } from './dynamicPaths'
 import { goto } from './goto'
 import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
 import { applyMeta, resolveMeta } from './meta'
@@ -120,7 +120,7 @@ export const ficsRouter = <D extends object>(
 
               for (const { path: pattern, ..._args } of dynamicPages)
                 if (dynamicPathToRegex(pattern).test(redirectedPath)) {
-                  params.set('dynamicPaths', getDynamicPaths(pattern, redirectedPath))
+                  params.set('dynamicParams', getDynamicParams(pattern, redirectedPath))
                   return render({ ..._args, visited })
                 }
 
@@ -173,7 +173,7 @@ export const ficsRouter = <D extends object>(
 
           for (const { path: pattern, meta, content, redirect } of dynamicPages)
             if (dynamicPathToRegex(pattern).test(pathname)) {
-              params.set('dynamicPaths', getDynamicPaths(pattern, pathname))
+              params.set('dynamicParams', getDynamicParams(pattern, pathname))
               applyMeta(resolveMeta({ defaultMeta, meta, status: statusCodes.OK }))
 
               return render({ content, redirect })
