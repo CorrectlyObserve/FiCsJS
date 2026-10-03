@@ -211,7 +211,7 @@ export const ficsRouter = <D extends object>(
 
   const hooks: FiCsRouter<D>['hooks'] = {
     created: ({ data, ...args }) => {
-      hooks?.created?.({ data, ...args })
+      _hooks?.created?.({ data, ...args })
 
       const onPopState: () => void = (): void =>
         setRouterData({ data, pathname: window.location.pathname, redirects })
