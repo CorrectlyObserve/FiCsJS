@@ -112,7 +112,7 @@ export const ficsRouter = <D extends object>(
               }
 
               if (staticPage) {
-                params.set('dynamicPaths', {})
+                params.set('dynamicParams', {})
 
                 const { content, redirect }: Page<D> = staticPage
                 return render({ content, redirect, visited })
@@ -144,7 +144,7 @@ export const ficsRouter = <D extends object>(
             status: Routing.Status.Resolved
           ): Html.Sanitized<RouterData<D>, {}> => {
             ;(data as RouterData<D>).status = status
-            params.set('dynamicPaths', {})
+            params.set('dynamicParams', {})
 
             const statusModule: PageContent<D> | undefined = (
               status === statusCodes.OK
@@ -163,7 +163,7 @@ export const ficsRouter = <D extends object>(
             ({ path }) => pathname === normalizePath(path)
           )
           if (staticPage) {
-            params.set('dynamicPaths', {})
+            params.set('dynamicParams', {})
 
             const { meta, content, redirect }: Page<D> = staticPage
             applyMeta(resolveMeta({ defaultMeta, meta, status: statusCodes.OK }))
