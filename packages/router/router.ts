@@ -277,7 +277,13 @@ export const ficsRouter = <D extends object>(
           )
       }
 
-      return { ..._data, pathname, queries: {}, status: statusCodes.OK } as RouterData<D>
+      return {
+        ..._data,
+        pathname,
+        dynamicParams: {},
+        queries: {},
+        status: statusCodes.OK
+      } as RouterData<D>
     },
     immutableDataKeys: ['pathname', 'queries'],
     deferredData,
