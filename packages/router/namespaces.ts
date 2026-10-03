@@ -85,6 +85,8 @@ export declare namespace FiCsServerRouter {
 
   type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
 
+  type PrerenderOptions<C = Record<string, unknown>> = Routing.Options.Prerender<C>
+
   type Render = Routing.Render
 
   type SpaInitialData<D extends object, C = Record<string, unknown>> = Routing.SpaInitialData<D, C>
