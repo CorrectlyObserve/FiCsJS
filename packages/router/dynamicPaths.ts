@@ -25,6 +25,39 @@ export const dynamicPathToRegex = (pattern: string): RegExp => {
 
 export const dynamicRegex: RegExp = /\/:([^\/?*]+)(\?|\*)?/g
 
+export const fillDynamicPath = (pattern: string, params: Record<string, string>): string | null => {
+  let filled: string = '',
+    lastIndex: number = 0
+
+  for (const { 0: fullMatched, 1: paramName, 2: flag, index } of pattern.matchAll(dynamicRegex)) {
+    const staticPart: string = pattern.slice(lastIndex, index),
+      value: string | undefined = params[paramName],
+      isOptional: boolean = flag === '?',
+      isCatchAll: boolean = flag === '*'
+
+    lastIndex = index + fullMatched.length
+
+    if (isOptional && !value) {
+      filled += staticPart
+      continue
+    }
+
+    const isMissing: boolean = value === undefined || (value === '' && !isCatchAll)
+
+    if (isMissing) return null
+
+    /** @remarks Preserves slashes as a catch-all ('*') may contain them (e.g., "foo/bar"). */
+    const encoded: string = isCatchAll
+      ? value.split('/').map(encodeURIComponent).join('/')
+      : encodeURIComponent(value)
+
+    filled += `${staticPart}/${encoded}`
+  }
+
+  /** @remarks Returns the filled path or the root ("/") if nothing is filled. */
+  return `${filled}${pattern.slice(lastIndex)}` || '/'
+}
+
 export const getDynamicParams = (pattern: string, pathname: string): Record<string, string> => {
   pattern = prependSlash(pattern)
   pathname = prependSlash(pathname)
