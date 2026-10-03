@@ -129,7 +129,9 @@ export declare namespace DeepReadonly {
 export declare namespace DeferredData {
   interface Attempt<D extends object, P> {
     signal: AbortSignal
+    /** @remarks The chain passed to loads triggered by this run. */
     nextChain: string[]
+    /** @remarks Returns whether the result may be used, and stops watching the abort when it may. */
     settle: () => boolean
     isLatest: () => boolean
     loadedValues: (D[keyof D] | P[keyof P])[]
