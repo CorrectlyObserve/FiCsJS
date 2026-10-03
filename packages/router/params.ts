@@ -37,5 +37,5 @@ export const getQueries = (): Record<string, string> =>
 
 export const params: Params = new Params()
 
-export const dynamicPaths = (): Record<string, string> => params.get('dynamicPaths')
+export const dynamicParams = (): Record<string, string> => params.get('dynamicParams')
 export const queries = (): Record<string, string> => params.get('queries')
