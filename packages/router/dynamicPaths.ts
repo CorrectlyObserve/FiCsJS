@@ -25,7 +25,7 @@ export const dynamicPathToRegex = (pattern: string): RegExp => {
 
 export const dynamicRegex: RegExp = /\/:([^\/?*]+)(\?|\*)?/g
 
-export const getDynamicPaths = (pattern: string, pathname: string): Record<string, string> => {
+export const getDynamicParams = (pattern: string, pathname: string): Record<string, string> => {
   pattern = prependSlash(pattern)
   pathname = prependSlash(pathname)
 
