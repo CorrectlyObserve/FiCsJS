@@ -75,6 +75,22 @@ export const ficsRouter = <D extends object>(
   if (resolved.pages.length === 0)
     throw new Error('Pass a spec or call registerRoutes first as the router has no pages...')
 
+  const toDynamicParams = (pathname: string): Record<string, string> => {
+    const normalized: string = normalizePath(pathname)
+    let fallback: Record<string, string> | null = null
+
+    for (const { path } of resolved.pages) {
+      const isDynamic: boolean = isDynamicPath(path)
+
+      if (!isDynamic && normalizePath(path) === normalized) return {}
+
+      if (!fallback && isDynamic && dynamicPathToRegex(path).test(normalized))
+        fallback = getDynamicParams(path, normalized)
+    }
+
+    return fallback || {}
+  }
+
   let hasWarned: boolean = false,
     attemptedPathname: string | null = null
 
