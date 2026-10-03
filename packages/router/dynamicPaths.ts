@@ -31,9 +31,7 @@ export const getDynamicParams = (pattern: string, pathname: string): Record<stri
 
   const regexes: RegExpExecArray | null = dynamicPathToRegex(pattern).exec(pathname),
     paths: Record<string, string> = {},
-    names: string[] = []
-
-  for (const match of pattern.matchAll(dynamicRegex)) names.push(match[1])
+    names: string[] = [...pattern.matchAll(dynamicRegex)].map(({ 1: paramName }) => paramName)
 
   if (regexes && regexes.length > 0)
     for (const [index, value] of regexes.slice(1).entries()) {
