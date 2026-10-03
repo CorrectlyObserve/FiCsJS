@@ -4,7 +4,7 @@ import type { ParamType } from './types'
 
 class Params {
   #isBrowser: boolean = isBrowser()
-  #dynamicPaths: Record<string, string> = {}
+  #dynamicParams: Record<string, string> = {}
   #queries: Record<string, string> = {}
 
   constructor() {
