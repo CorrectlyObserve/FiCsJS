@@ -16,7 +16,7 @@ import {
   typedEntries
 } from '../../core/helpers'
 import { statusCodes } from '../constants'
-import { isBodiless } from '../helpers'
+import { isBodiless, toMessage } from '../helpers'
 import type { Routing, Rpc } from '../types'
 import { DENIED_HEADER, REDIRECT_HEADER, RPC_INPUT_PARAM } from './constants'
 import { RpcError } from './error'
@@ -216,7 +216,7 @@ const toRpcError = async (
 
   return new RpcError<Rpc.TransportCode>({
     code: name === 'AbortError' ? 'ABORTED' : name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
-    message: error instanceof Error ? error.message : String(error),
+    message: toMessage(error),
     expose: false
   })
 }
