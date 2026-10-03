@@ -50,7 +50,7 @@ export interface PageContent<D extends object = Record<string, unknown>> {
   meta?: Routing.Meta
 }
 
-export type ParamType = 'dynamicPaths' | 'queries'
+export type ParamType = 'dynamicParams' | 'queries'
 
 export type Returned<D extends object, P extends object> = Descendant | Html.Sanitized<D, P>
 
