@@ -67,3 +67,6 @@ export const parseRedirects = (
 }
 
 export const prependSlash = (path: string): string => (path.startsWith('/') ? path : `/${path}`)
+
+export const toMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
