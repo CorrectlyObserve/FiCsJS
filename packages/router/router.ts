@@ -68,19 +68,22 @@ const patchRouterData = <D extends object>(
 
 const setRouterData = <D extends object>({
   data,
+  toDynamicParams,
   ...args
 }: {
   data: RouterData<D>
   pathname: string
   redirects?: ReadonlyMap<string, string>
+  toDynamicParams: (pathname: string) => Record<string, string>
 }): void => {
-  data.status = statusCodes.OK
+  const resolvedPathname: string = resolveRedirect(args)
 
-  data.pathname = resolveRedirect(args)
-
-  const queries: Record<string, string> = getQueries()
-  data.queries = queries
-  params.set('queries', queries)
+  patchRouterData(data, {
+    status: statusCodes.OK,
+    dynamicParams: toDynamicParams(resolvedPathname),
+    queries: getQueries(),
+    pathname: resolvedPathname
+  })
 }
 
 export const ficsRouter = <D extends object>(
