@@ -187,8 +187,7 @@ export const ficsRouter = <D extends object>(
           const renderStatus = (
             status: Routing.Status.Resolved
           ): Html.Sanitized<RouterData<D>, {}> => {
-            ;(data as RouterData<D>).status = status
-            params.set('dynamicParams', {})
+            patchRouterData(data as RouterData<D>, { status, dynamicParams: {} })
 
             const statusModule: PageContent<D> | undefined = (
               status === statusCodes.OK
