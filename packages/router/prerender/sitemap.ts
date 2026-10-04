@@ -1,5 +1,6 @@
-import { escape, removeTrailingSlash } from '../../core/helpers'
+import { escape } from '../../core/helpers'
 import { indent, joinLines } from '../helpers'
+import { toFullPath } from './paths'
 
 /**
  * @remarks
@@ -12,7 +13,7 @@ export const buildSitemap = ({ origin, paths }: { origin: string; paths: string[
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...paths.map(
       path =>
-        `${indent()}<url><loc>${escape(`${removeTrailingSlash(origin)}${path}`, 'xml')}</loc></url>`
+        `${indent()}<url><loc>${escape(toFullPath(origin, path), 'xml')}</loc></url>`
     ),
     '</urlset>',
     ''
