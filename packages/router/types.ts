@@ -182,6 +182,11 @@ export declare namespace Routing {
       /** @remarks Server-only. Rewrites arbitrary inbound URLs that the client SPA never sees before routing. */
       redirects?: ((pathname: string) => string | null) | Record<string, string>
     }
+
+    interface Prerender<C = Record<string, unknown>> extends PageHost<C> {
+      outDir: string
+      sitemapOrigin?: string
+    }
   }
 
   namespace Prerender {
