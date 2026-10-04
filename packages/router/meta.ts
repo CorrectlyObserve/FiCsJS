@@ -1,5 +1,6 @@
 import { escape, isBrowser, typedEntries } from '../core/helpers'
-import { STATUS_PAGE_META, statusCodes } from './constants'
+import { STATUS_PAGE_META } from './constants'
+import { isStatusOk } from './helpers'
 import type { Routing } from './types'
 
 const defaultMeta: Map<string, string> = new Map(),
@@ -93,6 +94,6 @@ export const resolveMeta = ({
   status: Routing.Status.Resolved
 }): Record<string, string> => ({
   ...defaultMeta,
-  ...(status === statusCodes.OK ? {} : STATUS_PAGE_META),
+  ...(isStatusOk(status) ? {} : STATUS_PAGE_META),
   ...(typeof meta === 'function' ? meta({ status }) : meta)
 })
