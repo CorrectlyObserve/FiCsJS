@@ -8,10 +8,7 @@ export const findStaticRoutes = async <C extends Record<string, unknown>>({
   routes,
   middlewares,
   statusFallback
-}: Routing.Options.PageManifest<C>): Promise<{
-  staticRoutes: Routing.Prerender.StaticRoutes
-  errors: string[]
-}> => {
+}: Routing.Options.PageManifest<C>): Promise<Routing.Prerender.Found> => {
   const staticRoutes: Routing.Prerender.StaticRoutes = [],
     errors: string[] = [],
     /** @remarks Requires "404.html" at the root, not "404/index.html" for static hosts. */
