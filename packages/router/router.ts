@@ -36,6 +36,36 @@ const resolveRedirect = ({
   return resolvedPath
 }
 
+/** @remarks Must preserve this exact order: status (fail-fast) -> dynamicParams (identity) -> queries (modifier) -> pathname (render trigger). */
+const patchRouterData = <D extends object>(
+  data: RouterData<D>,
+  {
+    status,
+    dynamicParams,
+    queries,
+    pathname
+  }: {
+    status?: Routing.Status.Resolved
+    dynamicParams?: Record<string, string>
+    queries?: Record<string, string>
+    pathname?: string
+  }
+): void => {
+  if (status !== undefined) data.status = status
+
+  if (dynamicParams) {
+    data.dynamicParams = dynamicParams
+    params.set('dynamicParams', dynamicParams)
+  }
+
+  if (queries) {
+    data.queries = queries
+    params.set('queries', queries)
+  }
+
+  if (pathname !== undefined) data.pathname = pathname
+}
+
 const setRouterData = <D extends object>({
   data,
   ...args
