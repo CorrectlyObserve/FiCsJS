@@ -1,4 +1,5 @@
 import { isObject, normalizePath, typedEntries } from '../core/helpers'
+import { statusCodes } from './constants'
 import { Rpc } from './types'
 
 export const findRedirect = (
@@ -43,6 +44,8 @@ export const isBodiless = (method: Rpc.Method | string): method is 'GET' | 'HEAD
 export const isDynamicPath = (path: string): boolean => path.includes(':')
 
 export const isHeadMethod = (method: Rpc.Method | string): method is 'HEAD' => method === 'HEAD'
+
+export const isStatusOk = (status: number): boolean => status === statusCodes.OK
 
 export const joinLines = (
   lines: string[],
