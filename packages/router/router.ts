@@ -261,7 +261,7 @@ export const ficsRouter = <D extends object>(
       _hooks?.created?.({ data, ...args })
 
       const onPopState: () => void = (): void =>
-        setRouterData({ data, pathname: window.location.pathname, redirects })
+        setRouterData({ data, toDynamicParams, pathname: window.location.pathname, redirects })
 
       window.addEventListener('popstate', onPopState)
 
@@ -272,7 +272,7 @@ export const ficsRouter = <D extends object>(
           { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
         attemptedPathname = pathname
-        setRouterData({ data, pathname, redirects })
+        setRouterData({ data, toDynamicParams, pathname, redirects })
       }
 
       window.addEventListener(FICS_NAVIGATE, onCustomEvent)
