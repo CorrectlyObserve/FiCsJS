@@ -295,7 +295,7 @@ export const ficsRouter = <D extends object>(
         window.removeEventListener(FICS_STATUS, onStatus)
       }
 
-      setRouterData({ data, pathname: window.location.pathname, redirects })
+      onPopState()
     },
     mounted: _hooks?.mounted,
     updated: _hooks?.updated,
