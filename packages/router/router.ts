@@ -170,10 +170,8 @@ export const ficsRouter = <D extends object>(
               }
 
               for (const { path: pattern, ..._args } of dynamicPages)
-                if (dynamicPathToRegex(pattern).test(redirectedPath)) {
-                  params.set('dynamicParams', getDynamicParams(pattern, redirectedPath))
+                if (dynamicPathToRegex(pattern).test(redirectedPath))
                   return render({ ..._args, visited })
-                }
 
               throw new Error(`The redirect path "${redirect}" does not exist on pages...`)
             }
