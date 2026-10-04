@@ -11,7 +11,13 @@ import {
 } from './constants'
 import { dynamicPathToRegex, getDynamicParams } from './dynamicPaths'
 import { goto } from './goto'
-import { findRedirect, flattenRedirects, isDynamicPath, parseRedirects } from './helpers'
+import {
+  findRedirect,
+  flattenRedirects,
+  isDynamicPath,
+  isStatusOk,
+  parseRedirects
+} from './helpers'
 import { applyMeta, resolveMeta } from './meta'
 import { getQueries, params } from './params'
 import { resolveSpec } from './registry'
@@ -195,7 +201,7 @@ export const ficsRouter = <D extends object>(
             patchRouterData(data, { status, dynamicParams: {} })
 
             const statusModule: PageContent<D> | undefined = (
-              status === statusCodes.OK
+              isStatusOk(status)
                 ? undefined
                 : (resolved.statusModules[status] ?? resolved.statusFallback)
             ) as PageContent<D> | undefined
@@ -205,7 +211,7 @@ export const ficsRouter = <D extends object>(
             return statusModule ? render(statusModule) : template`<h1>${status}</h1>`
           }
 
-          if (data.status !== statusCodes.OK) return renderStatus(data.status)
+          if (!isStatusOk(data.status)) return renderStatus(data.status)
 
           const staticPage: Page<D> | undefined = staticPages.find(
             ({ path }) => pathname === normalizePath(path)
