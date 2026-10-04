@@ -379,8 +379,11 @@ export declare namespace Optimistic {
 }
 
 export declare namespace Options {
-  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'rootMargin' | 'scroll'> {
+  interface Ctx<D extends object, P>
+    extends Omit<Resolved<D, P>, 'ssr' | 'maxLoopLength' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
+    /** @param maxLoopLength Must be a positive integer if it is a number. */
+    maxLoopLength?: number
     /** @param rootMargin Must be an integer if it is a number. */
     rootMargin?: string | number
     scroll?: (ctx: DataProps.Payload<D, P, true>) => Scroll.Options
