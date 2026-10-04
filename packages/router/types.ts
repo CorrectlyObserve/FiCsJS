@@ -184,6 +184,21 @@ export declare namespace Routing {
     }
   }
 
+  namespace Prerender {
+    interface Found {
+      staticRoutes: StaticRoutes
+      errors: string[]
+    }
+
+    interface Rendered {
+      files: { path: string; content: string }[]
+      sitemapPaths: string[]
+      errors: string[]
+    }
+
+    type StaticRoutes = { paths: string[]; statusFile?: string }[]
+  }
+
   type Redirects = ((pathname: string) => string | null) | Map<string, string>
 
   interface Render {
