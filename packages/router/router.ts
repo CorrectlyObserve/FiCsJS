@@ -157,7 +157,7 @@ export const ficsRouter = <D extends object>(
               visited.add(redirectedPath)
 
               if (pathname !== redirectedPath) {
-                patchRouterData(data as RouterData<D>, {
+                patchRouterData(data, {
                   dynamicParams: toDynamicParams(redirectedPath),
                   pathname: redirectedPath
                 })
@@ -194,7 +194,7 @@ export const ficsRouter = <D extends object>(
           const renderStatus = (
             status: Routing.Status.Resolved
           ): Html.Sanitized<RouterData<D>, {}> => {
-            patchRouterData(data as RouterData<D>, { status, dynamicParams: {} })
+            patchRouterData(data, { status, dynamicParams: {} })
 
             const statusModule: PageContent<D> | undefined = (
               status === statusCodes.OK
@@ -284,7 +284,7 @@ export const ficsRouter = <D extends object>(
         if (detail.isHandled) return
 
         detail.isHandled = true
-        ;(data as RouterData<D>).status = detail.code
+        patchRouterData(data, { status: detail.code })
       }
 
       window.addEventListener(FICS_STATUS, onStatus)
