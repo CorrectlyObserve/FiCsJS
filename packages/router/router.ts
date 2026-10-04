@@ -153,7 +153,10 @@ export const ficsRouter = <D extends object>(
               visited.add(redirectedPath)
 
               if (pathname !== redirectedPath) {
-                ;(data as RouterData<D>).pathname = redirectedPath
+                patchRouterData(data as RouterData<D>, {
+                  dynamicParams: toDynamicParams(redirectedPath),
+                  pathname: redirectedPath
+                })
                 goto(redirect, { isWithoutHistory: true })
               }
 
