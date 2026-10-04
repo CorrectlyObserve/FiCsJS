@@ -1,3 +1,4 @@
+import { removeTrailingSlash } from '../../core/helpers'
 import { INDEX_HTML } from '../constants'
 import { fillDynamicPath } from '../dynamicPaths'
 import { isDynamicPath } from '../helpers'
@@ -7,6 +8,9 @@ import { join } from 'node:path'
 /** @returns "something" -> "something/index.html" */
 export const toFilePath = (path: string): string =>
   path === '/' ? INDEX_HTML : join(path.replace(/^\/+/, ''), INDEX_HTML)
+
+export const toFullPath = (origin: string, path: string): string =>
+  `${removeTrailingSlash(origin)}${path}`
 
 export const toStaticPaths = async ({
   path,
