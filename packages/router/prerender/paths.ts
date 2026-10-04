@@ -9,7 +9,7 @@ import { join } from 'node:path'
 export const toFilePath = (path: string): string =>
   path === '/' ? INDEX_HTML : join(path.replace(/^\/+/, ''), INDEX_HTML)
 
-export const toFullPath = (origin: string, path: string): string =>
+export const toFullPath = ({ origin, path }: { origin: string; path: string }): string =>
   `${removeTrailingSlash(origin)}${path}`
 
 export const toStaticPaths = async ({
