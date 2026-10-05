@@ -1,6 +1,6 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
 import { calc, forScreenReaders, size, truncate } from 'ficsjs/style'
-import { white } from '@/utils/style'
+import { white } from '@/styles/theme'
 
 interface Props {
   id: number
