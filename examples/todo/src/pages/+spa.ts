@@ -1,6 +1,11 @@
 import type { FiCsRouter } from 'ficsjs/router'
 import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
 import { $lang, type Lang } from '@/domain/lang'
+import { parseTaskPath, type TaskPath } from '@/domain/path'
+import TaskList from '@/pages/_task/List'
+import TaskDetail from '@/pages/_task/Details'
+import NotFound from '@/pages/NotFound'
+import { getAllTasks, getTask, type Task as TaskType } from '@/domain/task'
 import { breakpoints } from '@/utils/style'
 
 export interface Data {
@@ -37,10 +42,11 @@ const syncDraft = async (
 
 const props: FiCsRouter.Props<Data> = [
   {
-    descendants: ({ children: { tasks, taskDetails, notFound } }) => {
-      const targets = [tasks, taskDetails, notFound]
-      return [...targets, ...targets.map(child => child.getChildren().loading)]
-    },
+    descendants: ({ children: { taskList, taskDetails, notFound } }) => [
+      taskList,
+      taskDetails,
+      notFound
+    ],
     values: ({ data: { lang } }) => ({ lang })
   },
   {
@@ -76,7 +82,7 @@ const css: FiCsRouter.Css<Data> = `
     padding-block: ${size(8)};
 
     @container (width >= ${breakpoints.LG}) {
-      .tasks + .task-details {
+      .task-list + .task-details {
         padding-inline-start: ${size(8)};
         box-shadow: ${size(-2)} 0px ${size(2)} ${size(-2)} ${oklch(cssVar('black'), { darker: 0.3 })};
       }
@@ -106,7 +112,7 @@ const hooks: FiCsRouter.Hooks<Data> = {
 }
 
 const spa: FiCsRouter.Spa<Data> = {
-  children: [Tasks, TaskDetail, NotFound],
+  children: [TaskList, TaskDetail, NotFound],
   data: () => ({ lang: $lang.get(), tasks: [], draft: undefined }),
   props,
   css,
