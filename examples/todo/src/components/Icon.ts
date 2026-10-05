@@ -29,7 +29,8 @@ const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
     color: ${color ?? white()};
     padding: ${size(2)};
 
-    &:hover { background: ${white(0.1)}; }
+    &[disabled] { color: ${white(0.2)}; cursor: not-allowed; }
+    &:not([disabled]):hover { background: ${white(0.1)}; }
     &:focus-visible { outline-color: ${color ?? white()}; }
 
     svg {
