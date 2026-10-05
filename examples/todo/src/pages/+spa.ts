@@ -6,7 +6,7 @@ import TaskList from '@/pages/_task/List'
 import TaskDetail from '@/pages/_task/Details'
 import NotFound from '@/pages/NotFound'
 import { getAllTasks, getTask, type Task as TaskType } from '@/domain/task'
-import { breakpoints } from '@/utils/style'
+import { breakpoints } from '@/styles/theme'
 
 export interface Data {
   lang: Lang
