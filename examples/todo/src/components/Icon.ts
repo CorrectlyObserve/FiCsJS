@@ -6,12 +6,13 @@ interface Props {
   svg: string
   ariaLabel: string
   isPressed?: boolean
+  isDisabled?: boolean
   color?: string
   click?: () => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { ariaLabel, svg, isPressed },
+  props: { ariaLabel, svg, isPressed, isDisabled },
   template,
   unsafeHtml,
   attributes: { boolean }
@@ -19,6 +20,7 @@ const html: FiCs.Html<{}, Props> = ({
   <button
     aria-label="${ariaLabel}"
     ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
+    ${isDisabled && 'disabled'}
     type="button"
   >${unsafeHtml(svg)}</button>
 `
