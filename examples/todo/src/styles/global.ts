@@ -1,6 +1,6 @@
 import type { FiCs } from 'ficsjs'
 import { calc, cssVar, oklch, size, textSize } from 'ficsjs/style'
-import { breakpoints, columnWidth, white } from '@/utils/style'
+import { breakpoints, columnWidth, white } from '@/styles/theme'
 
 const outline = `${cssVar('outline')} solid ${white()}` as const
 
