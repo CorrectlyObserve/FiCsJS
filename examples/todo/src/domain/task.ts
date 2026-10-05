@@ -1,5 +1,5 @@
 import { createPersistentState } from 'ficsjs/persistent-state'
-import { getTimestamp } from '@/utils/timestamp'
+import { getTimestamp } from '@/domain/timestamp'
 
 export interface Task {
   id: number
