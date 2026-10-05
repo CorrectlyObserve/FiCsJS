@@ -27,15 +27,15 @@ const toTaskId = ({
 const syncDraft = async (
   data: FiCsRouter.DefaultData & { draft?: Readonly<TaskType> }
 ): Promise<void> => {
-  const id: number | null = toTaskId(data)
+  const path: TaskPath | null = parseTaskPath({ pathname: data.pathname, queries: data.queries })
 
-  if (id === null) {
+  if (path === null) {
     data.status = 200
     data.draft = undefined
     return
   }
 
-  const task: TaskType | undefined = getTask(await getAllTasks(), id)
+  const task: TaskType | undefined = getTask(await getAllTasks(), path.id)
   data.status = task === undefined ? 404 : 200
   data.draft = task
 }
