@@ -47,7 +47,7 @@ const props: FiCsRouter.Props<Data> = [
     descendants: ({ children: { tasks } }) => tasks,
     values: ({ data }) => ({
       tasks: data.tasks,
-      taskId: toTaskId(data) ?? NaN,
+      taskId: parseTaskPath({ pathname: data.pathname, queries: data.queries })?.id ?? NaN,
       setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
     })
   },
@@ -55,6 +55,8 @@ const props: FiCsRouter.Props<Data> = [
     descendants: ({ children: { taskDetails } }) => taskDetails,
     values: ({ data }) => ({
       draft: data.draft,
+      isQueryParam:
+        parseTaskPath({ pathname: data.pathname, queries: data.queries })?.isQueryParam ?? false,
       editTask: (value: Partial<TaskType>) => {
         if (!data.draft) return
         data.draft = { ...data.draft, ...value }
