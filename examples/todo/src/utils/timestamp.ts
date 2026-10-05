@@ -41,5 +41,3 @@ export const convertTimestamp = (timestamp: number): string => {
 
   return `${dateStr} ${timeStr}`
 }
-
-export const getTimestamp = (): number => Date.now()
