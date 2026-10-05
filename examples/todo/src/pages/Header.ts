@@ -4,7 +4,7 @@ import { ficsLink } from 'ficsjs/router'
 import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
-import { breakpoints } from '@/utils/style'
+import { breakpoints } from '@/styles/theme'
 
 interface Data {
   langs: readonly Lang[]
