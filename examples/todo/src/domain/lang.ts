@@ -1,8 +1,8 @@
 import { createState } from 'ficsjs/state'
 
-export const LANG_LIST = ['en', 'ja'] as const
-
 export type Lang = (typeof LANG_LIST)[number]
+
+export const LANG_LIST = ['en', 'ja'] as const
 
 export const $lang = createState<Lang>('en', {
   sessionStorage: {
