@@ -13,7 +13,15 @@
     "completed": "(Completed)",
     "uncompleted": "(Uncompleted)",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
-    "unapplicable": "There are no tasks..."
+    "unapplicable": "There are no tasks...",
+    "reorder": {
+      "handle": "Reorder this task",
+      "up": "Move up",
+      "down": "Move down",
+      "copy": "Duplicate",
+      "moved": "The task was moved.",
+      "cloned": "The task was cloned."
+    }
   },
   "task": {
     "heading": "Task details",

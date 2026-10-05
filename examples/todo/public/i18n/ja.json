@@ -13,7 +13,15 @@
     "completed": "（完了済み）",
     "uncompleted": "（未完了）",
     "confirmation": "本当にタスクを削除しますか？\n一度削除すると、元に戻すことはできません。",
-    "unapplicable": "タスクがありません。"
+    "unapplicable": "タスクがありません。",
+    "reorder": {
+      "handle": "このタスクを並べ替える",
+      "up": "上へ移動する",
+      "down": "下へ移動する",
+      "copy": "複製する",
+      "moved": "タスクを移動しました。",
+      "cloned": "タスクを複製しました。"
+    }
   },
   "task": {
     "heading": "タスク詳細",
