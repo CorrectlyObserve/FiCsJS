@@ -20,15 +20,17 @@ const throwErrorIfAny = (errors: string[]): void => {
 
 export const prerender = async <C extends Record<string, unknown>>(
   manifest: Routing.Options.PageManifest<C>,
-  { outDir, sitemapOrigin, ...host }: Routing.Options.Prerender<C>
+  { outDir, origin, sitemap, ...host }: Routing.Options.Prerender<C>
 ): Promise<string[]> => {
   const { staticRoutes, errors: configErrors }: Routing.Prerender.Found =
     await findStaticRoutes(manifest)
 
+  if (sitemap && origin === undefined)
+    configErrors.push('Set "origin" as "sitemap" needs absolute URLs...')
+
   throwErrorIfAny(configErrors)
 
-  const origin: string = sitemapOrigin ?? 'http://localhost',
-    handler: (req: Request) => Promise<Response> = createPageHandler(manifest, host),
+  const handler: (req: Request) => Promise<Response> = createPageHandler(manifest, host),
     {
       files,
       sitemapPaths,
@@ -36,16 +38,17 @@ export const prerender = async <C extends Record<string, unknown>>(
     }: Routing.Prerender.Rendered = await renderStaticRoutes({
       manifest,
       staticRoutes,
-      request: (path: string) => handler(new Request(toFullPath({ origin, path }))),
+      request: (path: string) =>
+        handler(new Request(toFullPath({ origin: origin ?? 'http://localhost', path }))),
       outDir
     })
 
   throwErrorIfAny(renderErrors)
 
-  if (sitemapOrigin && sitemapPaths.length > 0)
+  if (sitemap && origin !== undefined && sitemapPaths.length > 0)
     files.push({
       path: join(outDir, 'sitemap.xml'),
-      content: buildSitemap({ origin: sitemapOrigin, paths: sitemapPaths })
+      content: buildSitemap({ origin, paths: sitemapPaths })
     })
 
   for (const file of files) writeIfChanged(file)
