@@ -14,7 +14,7 @@ export const findStaticRoutes = async <C extends Record<string, unknown>>({
     /** @remarks Requires "404.html" at the root, not "404/index.html" for static hosts. */
     statusFiles: Map<Routing.ServerModule<C>, string> = new Map()
 
-  for (const [code, page] of typedEntries(statusPages))
+  for (const [code, page] of typedEntries(statusPages ?? {}))
     if (page) statusFiles.set(page.module, `${code}.html`)
 
   for (const { path, page } of routes) {
