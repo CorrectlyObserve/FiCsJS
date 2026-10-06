@@ -185,7 +185,9 @@ export declare namespace Routing {
 
     interface Prerender<C = Record<string, unknown>> extends PageHost<C> {
       outDir: string
-      sitemapOrigin?: string
+      origin?: string
+      /** @remarks Needs origin, as the sitemap format requires absolute URLs. */
+      sitemap?: boolean
     }
   }
 
