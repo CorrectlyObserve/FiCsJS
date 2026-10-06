@@ -147,7 +147,7 @@ export declare namespace DeferredData {
   interface Entry<D extends object, P> {
     load: (
       ctx: Omit<DataProps.Payload<D, P, true>, 'reloadDeferredData'> & {
-        i18n: I18n<D>
+        i18n: <T>(args: Parameters<I18n<T>>[0]) => Promise<T>
         signal: AbortSignal
       }
     ) => Promise<Partial<D> | void>
