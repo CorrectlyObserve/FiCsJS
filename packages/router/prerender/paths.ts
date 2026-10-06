@@ -36,7 +36,7 @@ export const toStaticPaths = async ({
 
     if (filled === null)
       throw new Error(
-        `Provide all parameters as "prerender" of "${path}" returned ${JSON.stringify(params)}...`
+        `Provide all parameters, as "prerender" of "${path}" returned ${JSON.stringify(params)}...`
       )
 
     paths.push(filled)
