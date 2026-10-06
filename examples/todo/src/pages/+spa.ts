@@ -14,15 +14,9 @@ export interface Data {
   draft?: TaskType
 }
 
-const toTaskId = ({
-  pathname,
-  queries
-}: Pick<FiCsRouter.DefaultData, 'pathname' | 'queries'>): number | null => {
-  const segment: string = pathname.replace(/^\//, ''),
-    raw: string = segment === '' ? (queries.taskId ?? '') : segment
-
-  if (raw === '') return null
-  return /^\d+$/.test(raw) ? Number(raw) : NaN
+const texts: Record<Lang, { loading: string; error: string; retry: string }> = {
+  en: { loading: 'Loading...', error: 'The texts could not be loaded.', retry: 'Try again' },
+  ja: { loading: '読み込み中', error: '文言を読み込めませんでした。', retry: '再読み込み' }
 }
 const syncDraft = async (
   data: FiCsRouter.DefaultData & { draft?: Readonly<TaskType> }
