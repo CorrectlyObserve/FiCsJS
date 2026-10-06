@@ -25,7 +25,7 @@ export interface FiCsRouter<D extends object> {
     ([OverlappedKeys<D>] extends [never]
       ? unknown
       : {
-          [K in OverlappedKeys<D>]: `Rename data key "${K & string}" as it is reserved by the router...`
+          [K in OverlappedKeys<D>]: `Rename data key "${K & string}", as it is reserved by the router...`
         })
   deferredData?: FiCs<RouterData<D>, {}>['deferredData']
   pathname?: string
