@@ -190,7 +190,7 @@ export class FiCsElement<D extends object, P extends object> {
         const existing: string | undefined = registered.get(key)
         if (existing !== undefined)
           throw new Error(
-            `Rename ${existing} or ${child.#name} as both share the key "${key}" in ${this.#name}...`
+            `Rename ${existing} or ${child.#name}, as both share the key "${key}" in ${this.#name}...`
           )
 
         registered.set(key, child.#name)
