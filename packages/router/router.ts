@@ -114,7 +114,7 @@ export const ficsRouter = <D extends object>(
     resolved: Readonly<Routing.ResolvedSpec> = resolveSpec(spec)
 
   if (resolved.pages.length === 0)
-    throw new Error('Pass a spec or call registerRoutes first as the router has no pages...')
+    throw new Error('Pass a spec or call registerRoutes first, as the router has no pages...')
 
   const toDynamicParams = (pathname: string): Record<string, string> => {
     const normalized: string = normalizePath(pathname)
