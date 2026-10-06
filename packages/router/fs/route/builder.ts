@@ -183,7 +183,7 @@ export const buildSpa = ({
   for (const dir of dirs)
     if (!spaOwners.includes(dir))
       throw new Error(
-        `Add at least a "${fileNames.PAGE}" file as the SPA "${prependSlash(dir)}" currently has no page...`
+        `Add at least a "${fileNames.PAGE}" file, as the SPA "${prependSlash(dir)}" currently has no page...`
       )
 
   return { dirs, files, serverFiles, spaAlias, spaOwners, areSpaEntry }
