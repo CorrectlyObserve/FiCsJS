@@ -34,9 +34,7 @@ export const renderStaticRoutes = async <C extends Record<string, unknown>>({
       const isStatusPage: boolean = statusFile !== undefined
 
       if (!isStatusOk(res.status) && !isStatusPage) {
-        errors.push(
-          `"${path}" must either return status 200 or be a status page, but received ${res.status}...`
-        )
+        errors.push(`"${path}" responded ${res.status}, but prerendering needs 200...`)
         continue
       }
 
