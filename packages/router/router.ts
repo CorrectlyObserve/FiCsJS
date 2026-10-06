@@ -328,7 +328,7 @@ export const ficsRouter = <D extends object>(
 
         if (length > 0)
           console.warn(
-            `Rename data key${length > 1 ? 's' : ''} "${reservedKeys.join('", "')}" as ${length > 1 ? 'they are' : 'it is'} reserved by the router...`
+            `Rename data key${length > 1 ? 's' : ''} "${reservedKeys.join('", "')}", as ${length > 1 ? 'they are' : 'it is'} reserved by the router...`
           )
       }
 
