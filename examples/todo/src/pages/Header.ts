@@ -113,8 +113,12 @@ export default fics<Data, {}>({
     }),
     Button()
   ],
-  data: () => ({ langs: LANG_LIST, lang: 'en', isShown: false }),
-  i18nData: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
+  data: () => ({ langs: LANG_LIST, lang: 'en', isShown: false, label: '' }),
+  deferredData: {
+    load: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
+    dataKey: 'lang',
+    allowStale: true
+  },
   html,
   css,
   hooks
