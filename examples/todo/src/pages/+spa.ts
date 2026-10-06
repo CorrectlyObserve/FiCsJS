@@ -47,7 +47,20 @@ const props: FiCsRouter.Props<Data> = [
     values: ({ data: { lang } }) => ({ lang })
   },
   {
-    descendants: ({ children: { tasks } }) => tasks,
+    descendants: ({ children: { taskList, taskDetails, notFound } }) =>
+      [taskList, taskDetails, notFound].map(child => child.getChildren().loading),
+    values: ({ data: { lang } }) => ({ text: texts[lang].loading })
+  },
+  {
+    descendants: ({ children: { taskList, taskDetails, notFound } }) =>
+      [taskList, taskDetails, notFound].map(child => child.getChildren().loadError),
+    values: ({ data: { lang } }) => ({
+      errorText: texts[lang].error,
+      buttonText: texts[lang].retry
+    })
+  },
+  {
+    descendants: ({ children: { taskList } }) => taskList,
     values: ({ data }) => ({
       tasks: data.tasks,
       taskId:
