@@ -1,16 +1,17 @@
 import { fics, type FiCs } from 'ficsjs'
-import { dynamicPaths, goto } from 'ficsjs/router'
+import { goto } from 'ficsjs/router'
 import { flexCenter, size } from 'ficsjs/style'
 import Loading from '@/components/Loading'
+import LoadError from '@/components/LoadError'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Textarea from '@/components/Textarea'
 import Button from '@/components/Button'
-import { deleteTask, getAllTasks, getTask, updateTask } from '@/stores'
-import type { Task } from '@/types'
-import type { Lang } from '@/utils/lang'
-import { convertTimestamp, getTimestamp } from '@/utils/timestamp'
-import { columnWidth } from '@/utils/style'
+import { deleteTask, getAllTasks, getTask, type Task, updateTask } from '@/domain/task'
+import type { Lang } from '@/domain/lang'
+import { getTimestamp } from '@/domain/timestamp'
+import { columnWidth } from '@/styles/theme'
+import { convertTimestamp } from '@/utils/timestamp'
 import { Circle, CircleCheckBig } from 'lucide-static'
 
 type Datetime = 'createdAt' | 'updatedAt'
@@ -20,7 +21,7 @@ interface Data {
   status: string
   texts: string[]
   labels: string[]
-  isError: (task: Task) => boolean
+  isError: (task?: Task) => boolean
   error: string
   descriptions: string[]
   placeholders: string[]
@@ -31,17 +32,22 @@ interface Data {
 
 interface Props {
   lang: Lang
-  draft: Task
+  draft?: Task
+  isQueryParam: boolean
   editTask: (newValue: Partial<Task>) => void
   updateTasks: (tasks: Task[]) => void
 }
 
 const props: FiCs.Props<Data, Props> = [
   {
+    descendants: ({ children: { loadError } }) => loadError,
+    values: ({ reloadDeferredData }) => ({ retry: () => reloadDeferredData() })
+  },
+  {
     descendants: ({ children: { icon } }) => icon,
     values: ({ props: { draft, editTask } }) => ({
       click: () => {
-        if ('completedAt' in draft)
+        if (draft && 'completedAt' in draft)
           editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
       }
     })
@@ -76,7 +82,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { loading, icon, input, textarea, button },
+  children: { loading, loadError, icon, input, textarea, button },
   data: {
     heading,
     status,
@@ -85,11 +91,14 @@ const html: FiCs.Html<Data, Props> = ({
     buttonText,
     confirmation
   },
-  props: { draft, editTask, updateTasks },
+  props: { draft, isQueryParam, editTask, updateTasks },
   template,
-  isDeferred
+  deferredStates: { texts }
 }) => {
-  if (!isDeferred) return template`${loading}`
+  if (texts.status === 'error') return template`${loadError}`
+  if (texts.status === 'loading') return template`${loading}`
+
+  if (!draft) return template`${loading}`
 
   const label = draft?.completedAt ? revert : complete
 
@@ -135,7 +144,7 @@ const html: FiCs.Html<Data, Props> = ({
             goto('/')
           }
         })}
-        ${[_delete, !Number.isInteger(parseInt(dynamicPaths().taskId)) ? close : back].map(
+        ${[_delete, isQueryParam ? close : back].map(
           (buttonText, index) =>
             template`${button.setIndividualProps(index, {
               type: index === 0 ? 'delete' : 'normal',
@@ -186,19 +195,24 @@ const css: FiCs.Css<Data, Props> = `
 
 export default fics<Data, Props>({
   name: 'task-details',
-  children: [Loading(), Icon(), Input(), Textarea, Button()],
+  children: [Loading(), LoadError(), Icon(), Input(), Textarea, Button()],
   data: () => ({
     labels: [],
     descriptions: [],
-    isError: (task: Task) => task?.title === '',
+    isError: (task?: Task) => task?.title === '',
     placeholders: [],
     texts: [],
     datetimes: {} as Record<Datetime, string>
   }),
-  i18nData: async ({ props: { lang }, i18n }) => ({
-    ...(await i18n<Data>({ lang, key: 'task' })),
-    confirmation: (await i18n({ lang, key: ['tasks', 'confirmation'] })) as string
-  }),
+  deferredData: {
+    load: async ({ props: { lang }, i18n }) => ({
+      ...(await i18n<Data>({ lang, key: 'task' })),
+      confirmation: (await i18n({ lang, key: ['tasks', 'confirmation'] })) as string
+    }),
+    stateKey: 'texts',
+    propsKey: 'lang',
+    allowStale: true
+  },
   props,
   className: 'task-details',
   html,
