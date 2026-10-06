@@ -202,7 +202,7 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
   numberError({ chroma }, 'non-negative')
 
   if (darker > 0 && lighter > 0)
-    throw new Error('Both "darker" and "lighter" options cannot be used at the same time...')
+    throw new Error('Pass either "darker" or "lighter" as they cannot be used together...')
 
   const { l, c, h }: Color.Oklch = oklch
   let lightness: number = l + (darker > 0 ? -darker : lighter > 0 ? lighter : 0)
