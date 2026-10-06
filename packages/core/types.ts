@@ -176,7 +176,7 @@ export declare namespace DeferredData {
     /** @remarks Not proxied props for reading values without triggering subscriptions. */
     rawProps: P
     getDataProps: DataProps.Getter<D, P>
-    options: Options.Resolved<D, P> & { maxLoopLength: number }
+    getOptions: () => Options.Resolved<D, P> & { maxLoopLength: number }
     getSignal: () => AbortSignal
     getActiveSync: () => (() => void) | null
     isPostRerendering: () => boolean
