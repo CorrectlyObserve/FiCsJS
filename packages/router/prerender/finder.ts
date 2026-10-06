@@ -42,7 +42,7 @@ export const findStaticRoutes = async <C extends Record<string, unknown>>({
     }
   }
 
-  /** @remarks Check "+error" here as it is not in routes. */
+  /** @remarks Check "+error" here, as it is not in routes. */
   if (typeof statusFallback?.module.prerender === 'function')
     errors.push('Set "prerender" to true, as "+error" has no parameters...')
 
