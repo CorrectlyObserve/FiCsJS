@@ -134,7 +134,7 @@ export class DeferredData<D extends object, P> {
     load.hasReportedLoop = true
 
     const error = new Error(
-      `Increase options.maxLoopLength or suspect an infinite loop as the chain "${[...load.chain, load.id].join(' > ')}" exceeded the limit in ${this.#runtime.name}...`
+      `Increase options.maxLoopLength or suspect an infinite loop, as the chain "${[...load.chain, load.id].join(' > ')}" exceeded the limit in ${this.#runtime.name}...`
     )
 
     this.#runtime.emitMetric({
