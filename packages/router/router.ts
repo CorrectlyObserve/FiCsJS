@@ -237,7 +237,7 @@ export const ficsRouter = <D extends object>(
           if (attemptedPathname === pathname) {
             attemptedPathname = null
             console.warn(
-              `Make sure to set "goto: false" on FiCsLink components as "${pathname}" is not found in routes...`
+              `Make sure to set "goto: false" on FiCsLink components, as "${pathname}" is not found in routes...`
             )
           }
 
