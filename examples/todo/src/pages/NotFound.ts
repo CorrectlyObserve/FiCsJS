@@ -28,11 +28,14 @@ const props: FiCs.Props<Data, Props> = {
 const html: FiCs.Html<Data, Props> = ({
   children: { button, loading },
   data,
+  deferredStates: {
+    texts: { status }
+  },
   template,
-  attributes: { statusLiveRegion },
-  isDeferred
+  attributes: { statusLiveRegion }
 }) => {
-  if (!isDeferred) return template`${loading}`
+  if (status === 'error') return template`${loadError}`
+  if (status === 'loading') return template`${loading}`
 
   const {
     seconds,
@@ -79,12 +82,12 @@ const css: FiCs.Css<Data, Props> = `
 `
 
 const hooks: FiCs.Hooks<Data, Props> = {
-  mounted: ({ data, poll }) => {
+  mounted: ({ data, poll, deferredStates }) => {
     data.seconds = MAX
 
     poll(
       () => {
-        if (!data.isCounting) return
+        if (!data.isCounting || deferredStates.texts?.status !== 'done') return
 
         if (data.seconds <= 1) {
           data.seconds = 0
