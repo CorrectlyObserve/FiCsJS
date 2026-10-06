@@ -117,7 +117,7 @@ export const enqueue = (task: Task): void => {
 
   if (loopLength > task.maxLoopLength) {
     console.error(
-      `Increase options.maxLoopLength or suspect an infinite loop as the task "${id}" exceeded the limit in ${task.name}...`
+      `Increase options.maxLoopLength or suspect an infinite loop, as the task "${id}" exceeded the limit in ${task.name}...`
     )
     return
   }
