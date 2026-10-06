@@ -449,7 +449,7 @@ export declare namespace Vite {
       use: (
         handler: (
           req: { url?: string; originalUrl?: string },
-          /** @remarks Keeps `number` as it mirrors Node's `ServerResponse`. */
+          /** @remarks Keeps `number`, as it mirrors Node's `ServerResponse`. */
           res: {
             statusCode: number
             setHeader: (key: string, value: string) => void
