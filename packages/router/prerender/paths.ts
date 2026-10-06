@@ -28,7 +28,7 @@ export const toStaticPaths = async ({
   }
 
   if (typeof prerender !== 'function')
-    throw new Error(`Make "prerender" a function as "${path}" needs its parameters...`)
+    throw new Error(`Make "prerender" a function, as "${path}" needs its parameters...`)
 
   const paths: string[] = []
   for (const params of await prerender()) {
