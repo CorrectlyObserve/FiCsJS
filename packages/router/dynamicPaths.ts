@@ -46,7 +46,7 @@ export const fillDynamicPath = (pattern: string, params: Record<string, string>)
 
     if (isMissing) return null
 
-    /** @remarks Preserves slashes as a catch-all ('*') may contain them (e.g., "foo/bar"). */
+    /** @remarks Preserves slashes, as a catch-all ('*') may contain them (e.g., "foo/bar"). */
     const encoded: string = isCatchAll
       ? value.split('/').map(encodeURIComponent).join('/')
       : encodeURIComponent(value)
