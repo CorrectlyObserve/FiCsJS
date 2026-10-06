@@ -28,7 +28,7 @@ export const findStaticRoutes = async <C extends Record<string, unknown>>({
     }
 
     if ((middlewares?.[path] ?? []).length > 0) {
-      errors.push(`"prerender" cannot be used in "${path}" as it is guarded by "+middleware.ts"...`)
+      errors.push(`Remove "prerender" from "${path}" as "+middleware.ts" guards it...`)
       continue
     }
 
