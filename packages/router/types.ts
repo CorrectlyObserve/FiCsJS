@@ -253,7 +253,7 @@ export declare namespace Routing {
   interface ServerModule<C = Record<string, unknown>> {
     default?: (
       ctx: MiddlewareCtx<C> & { error?: unknown; status: Status.Resolved }
-    ) => Awaitable<string>
+    ) => Awaitable<string | Denial>
     meta?: Meta
     noScript?: boolean
     noStore?: boolean
