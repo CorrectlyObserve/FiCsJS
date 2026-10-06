@@ -318,6 +318,20 @@ export class FiCsElement<D extends object, P extends object> {
       }
     })
 
+    /** @remarks Builds before the options, as options.scroll reads deferredStates through `this.#getDataProps`. */
+    this.#deferredData = new DeferredData(deferredData, {
+      name: this.#name,
+      rawData: this.#rawData,
+      rawProps: this.#rawProps,
+      getDataProps: this.#getDataProps.bind(this),
+      getOptions: () => this.#options,
+      getSignal: (): AbortSignal => this.#abortController.signal,
+      getActiveSync: (): (() => void) | null => FiCsElement.#activeEffect?.sync ?? null,
+      isPostRerendering: (): boolean => this.#rerenderPhase === 'post-rerendering',
+      enqueueReRender: this.#enqueueReRender.bind(this),
+      emitMetric: (ctx: Telemetry.Ctx<D, P>): void => this.#emitMetric(ctx)
+    })
+
     if (options) {
       const {
         ssr,
@@ -432,19 +446,6 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
-
-    this.#deferredData = new DeferredData(deferredData, {
-      name: this.#name,
-      rawData: this.#rawData,
-      rawProps: this.#rawProps,
-      getDataProps: this.#getDataProps.bind(this),
-      options: this.#options,
-      getSignal: (): AbortSignal => this.#abortController.signal,
-      getActiveSync: (): (() => void) | null => FiCsElement.#activeEffect?.sync ?? null,
-      isPostRerendering: (): boolean => this.#rerenderPhase === 'post-rerendering',
-      enqueueReRender: this.#enqueueReRender.bind(this),
-      emitMetric: (ctx: Telemetry.Ctx<D, P>): void => this.#emitMetric(ctx)
-    })
 
     this.#optimisticUpdateFn = optimisticUpdate()
   }
