@@ -4,26 +4,21 @@ import { forScreenReaders, rect, size } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 import { Loader } from 'lucide-static'
 
-interface Data {
-  texts: Record<Lang, string>
-}
-
 interface Props {
-  lang: Lang
+  text: string
 }
 
-const html: FiCs.Html<Data, Props> = ({
-  data: { texts },
-  props: { lang },
+const html: FiCs.Html<{}, Props> = ({
+  props: { text },
   template,
   unsafeHtml,
   attributes: { statusLiveRegion }
 }) => template`
-  <p ${statusLiveRegion}>${texts[lang]}</p>
+  <p ${statusLiveRegion}>${text}</p>
   <div aria-hidden="true">${unsafeHtml(Loader)}</div>
 `
 
-const css: FiCs.Css<Data, Props> = `
+const css: FiCs.Css<{}, Props> = `
   p {${forScreenReaders}}
 
   div {
@@ -38,10 +33,4 @@ const css: FiCs.Css<Data, Props> = `
   }
 `
 
-export default () =>
-  fics<Data, Props>({
-    name: 'loading',
-    data: () => ({ texts: { en: 'Loading...', ja: '読み込み中' } }),
-    html,
-    css
-  })
+export default () => fics<{}, Props>({ name: 'loading', html, css })
