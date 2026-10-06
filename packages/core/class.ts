@@ -544,7 +544,7 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (!this.#isBrowser)
       throw new Error(
-        `Pass a queryCache via toString({ queryCache }) in ${this.#name} as it is required in non-browser environments...`
+        `Pass a queryCache via toString({ queryCache }) in ${this.#name}, as it is required in non-browser environments...`
       )
 
     return getQueryCache()
