@@ -234,7 +234,7 @@ export class FiCsElement<D extends object, P extends object> {
 
           if (FiCsElement.#activeEffect)
             throw new Error(
-              `The data of ${this.#name} is read-only in the props of fics function as it would cause an infinite loop...`
+              `The data of ${this.#name} is read-only in the props of fics function, as it would cause an infinite loop...`
             )
 
           if (deepEqual(this.#rawData[dataKey], value)) return true
