@@ -21,7 +21,9 @@ export const findStaticRoutes = async <C extends Record<string, unknown>>({
     if (!page.prerender) continue
 
     if (page.noStore) {
-      errors.push(`Both "prerender" and "noStore" cannot be set in "${path}" at the same time...`)
+      errors.push(
+        `Remove "prerender" or "noStore" from "${path}" as they cannot be used together...`
+      )
       continue
     }
 
