@@ -3,19 +3,17 @@ import { calc, forScreenReaders, size, truncate } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
-  id: number
+  href: string
   title: string
-  completedAt?: number
+  isDone: boolean
   status: string
-  isQuery: boolean
 }
 
-const href: FiCsLink.Href<Props> = ({ props: { id, isQuery } }) =>
-  `/${isQuery ? '?taskId=' : ''}${id}`
+const href: FiCsLink.Href<Props> = ({ props: { href } }) => href
 
-const content: FiCsLink.Content<Props> = ({ props: { title, completedAt, status }, template }) =>
+const content: FiCsLink.Content<Props> = ({ props: { title, isDone, status }, template }) =>
   template`
-    <span${!!completedAt && ' class="done"'}>${title}</span>
+    <span${isDone && ' class="done"'}>${title}</span>
     <span style="${String(forScreenReaders)}">${status}</span>
   `
 
