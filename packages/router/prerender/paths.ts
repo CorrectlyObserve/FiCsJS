@@ -17,7 +17,7 @@ export const toStaticPaths = async ({
   page: { prerender }
 }: {
   path: string
-  /** @remarks Narrows to "prerender" as this executes without a request context. */
+  /** @remarks Narrows to "prerender", as this executes without a request context. */
   page: Pick<Routing.ServerModule, 'prerender'>
 }): Promise<string[]> => {
   if (!isDynamicPath(path)) {
