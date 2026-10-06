@@ -21,7 +21,10 @@ const texts: Record<Lang, { loading: string; error: string; retry: string }> = {
 const syncDraft = async (
   data: FiCsRouter.DefaultData & { draft?: Readonly<TaskType> }
 ): Promise<void> => {
-  const path: TaskPath | null = parseTaskPath({ pathname: data.pathname, queries: data.queries })
+  const path: TaskPath | null = parseTaskPath({
+    dynamicParams: data.dynamicParams,
+    queries: data.queries
+  })
 
   if (path === null) {
     data.status = 200
@@ -47,7 +50,8 @@ const props: FiCsRouter.Props<Data> = [
     descendants: ({ children: { tasks } }) => tasks,
     values: ({ data }) => ({
       tasks: data.tasks,
-      taskId: parseTaskPath({ pathname: data.pathname, queries: data.queries })?.id ?? NaN,
+      taskId:
+        parseTaskPath({ dynamicParams: data.dynamicParams, queries: data.queries })?.id ?? NaN,
       setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
     })
   },
@@ -56,7 +60,8 @@ const props: FiCsRouter.Props<Data> = [
     values: ({ data }) => ({
       draft: data.draft,
       isQueryParam:
-        parseTaskPath({ pathname: data.pathname, queries: data.queries })?.isQueryParam ?? false,
+        parseTaskPath({ dynamicParams: data.dynamicParams, queries: data.queries })?.isQueryParam ??
+        false,
       editTask: (value: Partial<TaskType>) => {
         if (!data.draft) return
         data.draft = { ...data.draft, ...value }
