@@ -275,21 +275,21 @@ export const ficsRouter = <D extends object>(
             }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
             { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
-        attemptedPathname = pathname
-        setRouterData({ data, toDynamicParams, pathname, redirects })
-      }
+          attemptedPathname = pathname
+          setRouterData({ data, toDynamicParams, pathname, redirects })
+        },
+        setHasRouter = (event: Event): void => {
+          ;(event as CustomEvent<{ hasRouter: boolean }>).detail.hasRouter = true
+        },
+        onStatus: (event: Event) => void = (event: Event): void => {
+          const { detail }: { detail: Routing.Status.Event } =
+            event as CustomEvent<Routing.Status.Event>
 
-      window.addEventListener(FICS_NAVIGATE, onCustomEvent)
+          if (detail.isHandled) return
 
-      const onStatus: (event: Event) => void = (event: Event): void => {
-        const { detail }: { detail: Routing.Status.Event } =
-          event as CustomEvent<Routing.Status.Event>
-
-        if (detail.isHandled) return
-
-        detail.isHandled = true
-        patchRouterData(data, { status: detail.code })
-      }
+          detail.isHandled = true
+          patchRouterData(data, { status: detail.code })
+        }
 
       window.addEventListener(FICS_STATUS, onStatus)
 
