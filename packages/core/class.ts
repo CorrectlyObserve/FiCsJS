@@ -1270,7 +1270,7 @@ export class FiCsElement<D extends object, P extends object> {
         (prev, curr) => `${prev}${typeof curr === 'function' ? curr(this.#getDataProps()) : curr}`,
         ''
       ),
-      /** @remarks Matches the specificity of `:host` as `#id` would be too hard to override. */
+      /** @remarks Matches the specificity of `:host`, as `#id` would be too hard to override. */
       ssrHost: isSsr ? `[id="${this.#name}"]` : undefined,
       warnMisuse: (text: string): void =>
         FiCsElement.#warnMisuse(
