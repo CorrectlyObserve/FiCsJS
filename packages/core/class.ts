@@ -184,7 +184,7 @@ export class FiCsElement<D extends object, P extends object> {
         else if (owner !== this.#name)
           FiCsElement.#warnMisuse(
             `${child.#name}>${owner}>${this.#name}`,
-            `Create a new instance of ${child.#name} as ${owner} and ${this.#name} cannot share it...`
+            `Create a new instance of ${child.#name}, as ${owner} and ${this.#name} cannot share it...`
           )
 
         const existing: string | undefined = registered.get(key)
