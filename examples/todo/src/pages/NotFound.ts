@@ -103,7 +103,12 @@ export default fics<Data, Props>({
   name: 'not-found',
   children: [Button(), Loading()],
   data: () => ({ seconds: MAX, descriptions: [], isCounting: true }),
-  i18nData: ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' }),
+  deferredData: {
+    stateKey: 'texts',
+    propsKey: 'lang',
+    allowStale: true,
+    load: async ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' })
+  },
   props,
   html,
   css,
