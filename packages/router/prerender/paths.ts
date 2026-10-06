@@ -22,7 +22,7 @@ export const toStaticPaths = async ({
 }): Promise<string[]> => {
   if (!isDynamicPath(path)) {
     if (typeof prerender === 'function')
-      throw new Error(`Set "prerender" to true as "${path}" has no parameters...`)
+      throw new Error(`Set "prerender" to true, as "${path}" has no parameters...`)
 
     return [path]
   }
