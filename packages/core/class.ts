@@ -965,7 +965,7 @@ export class FiCsElement<D extends object, P extends object> {
             if (ariaLive === '' ? a11y.ANNOUNCING_ROLES.has(role) : ariaLive !== 'off')
               FiCsElement.#warnMisuse(
                 `${this.#name}>${announcingAttr}`,
-                `Do not hide the ${announcingAttr} element in ${this.#name} as a hidden one never announces...`
+                `Do not hide the ${announcingAttr} element in ${this.#name}, as a hidden one never announces...`
               )
 
             ;(childNode as HTMLElement).style.display = 'none'
