@@ -11,13 +11,14 @@ export const createTaskPath = ({ id, isQueryParam }: TaskPath): string =>
   '/' + (isQueryParam ? `?${TASK_ID}=${id}` : id)
 
 export const parseTaskPath = ({
-  pathname,
+  dynamicParams,
   queries
-}: Pick<FiCsRouter.DefaultData, 'pathname' | 'queries'>): TaskPath | null => {
-  const segment: string = pathname.replace(/^\//, ''),
-    isQueryParam: boolean = segment === '',
-    raw: string = isQueryParam ? (queries[TASK_ID] ?? '') : segment
+}: Pick<FiCsRouter.DefaultData, 'dynamicParams' | 'queries'>): TaskPath | null => {
+  const raw: string = dynamicParams[TASK_ID] ?? queries[TASK_ID] ?? ''
 
   if (raw === '') return null
-  return { id: /^\d+$/.test(raw) ? Number(raw) : NaN, isQueryParam }
+  return {
+    id: /^\d+$/.test(raw) ? Number(raw) : NaN,
+    isQueryParam: dynamicParams[TASK_ID] === undefined
+  }
 }
