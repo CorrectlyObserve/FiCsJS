@@ -3,6 +3,7 @@ import { CSS_LAYER, HOST_SELECTOR, NOOP, normalizePath, toArray } from '../core/
 import type { FiCs } from '../core/namespaces'
 import type { DeepReadonly, Html } from '../core/types'
 import {
+  FICS_HAS_ROUTER,
   FICS_NAVIGATE,
   FICS_STATUS,
   RESERVED_ROUTER_DATA_KEYS,
@@ -291,11 +292,14 @@ export const ficsRouter = <D extends object>(
           patchRouterData(data, { status: detail.code })
         }
 
+      window.addEventListener(FICS_NAVIGATE, onNavigate)
+      window.addEventListener(FICS_HAS_ROUTER, setHasRouter)
       window.addEventListener(FICS_STATUS, onStatus)
 
       removeEventListeners = (): void => {
         window.removeEventListener('popstate', onPopState)
-        window.removeEventListener(FICS_NAVIGATE, onCustomEvent)
+        window.removeEventListener(FICS_NAVIGATE, onNavigate)
+        window.removeEventListener(FICS_HAS_ROUTER, setHasRouter)
         window.removeEventListener(FICS_STATUS, onStatus)
       }
 
