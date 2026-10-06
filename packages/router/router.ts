@@ -269,11 +269,11 @@ export const ficsRouter = <D extends object>(
 
       window.addEventListener('popstate', onPopState)
 
-      const onCustomEvent: (event: Event) => void = (event): void => {
-        const {
-            detail: { href }
-          }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
-          { pathname }: { pathname: string } = new URL(href, window.location.origin)
+      const onNavigate: (event: Event) => void = (event): void => {
+          const {
+              detail: { href }
+            }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
+            { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
         attemptedPathname = pathname
         setRouterData({ data, toDynamicParams, pathname, redirects })
