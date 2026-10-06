@@ -144,7 +144,7 @@ export class DeferredData<D extends object, P> {
       startedAt: Date.now(),
       details
     })
-    if (!this.#runtime.options.telemetry?.onError) console.error(error)
+    if (!this.#runtime.getOptions().telemetry?.onError) console.error(error)
 
     this.#setState(load, { status: isStale ? 'done' : 'error', error })
   }
@@ -224,7 +224,7 @@ export class DeferredData<D extends object, P> {
         startedAt,
         details
       })
-      if (!this.#runtime.options.telemetry?.onError)
+      if (!this.#runtime.getOptions().telemetry?.onError)
         console.error(
           `The deferredData load "${load.id}" failed in ${this.#runtime.name}...`,
           error
@@ -303,7 +303,7 @@ export class DeferredData<D extends object, P> {
 
     load.chain = chain
 
-    if (load.chain.length >= this.#runtime.options.maxLoopLength)
+    if (load.chain.length >= this.#runtime.getOptions().maxLoopLength)
       return this.#stopChain({ load, isStale, details })
 
     load.hasReportedLoop = false
