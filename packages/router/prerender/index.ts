@@ -26,7 +26,7 @@ export const prerender = async <C extends Record<string, unknown>>(
     await findStaticRoutes(manifest)
 
   if (sitemap && origin === undefined)
-    configErrors.push('Set "origin" as "sitemap" needs absolute URLs...')
+    configErrors.push('Set "origin", as "sitemap" needs absolute URLs...')
 
   throwErrorIfAny(configErrors)
 
