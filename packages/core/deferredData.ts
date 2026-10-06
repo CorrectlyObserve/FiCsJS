@@ -36,7 +36,7 @@ export class DeferredData<D extends object, P> {
       if (key !== undefined) {
         if (keys.has(key))
           throw new Error(
-            `Rename the key "${key}" in ${runtime.name} as it is already used by other deferredData...`
+            `Rename the key "${key}" in ${runtime.name}, as it is already used by other deferredData...`
           )
 
         keys.add(key)
