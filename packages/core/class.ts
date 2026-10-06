@@ -1862,7 +1862,7 @@ export class FiCsElement<D extends object, P extends object> {
         if (!that.#options.ssr) {
           if (data)
             throw new Error(
-              `The "data" never reaches ${that.#name} as it has "options.ssr: false"...`
+              `The "data" never reaches ${that.#name}, as it has "options.ssr: false"...`
             )
           return `<${that.#name}></${that.#name}>`
         }
