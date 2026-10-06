@@ -79,6 +79,8 @@ export declare namespace FiCsRpc {
 }
 
 export declare namespace FiCsServerRouter {
+  type Denial = Routing.Denial
+
   type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
 
   type MiddlewareCtx<C = Record<string, unknown>> = Routing.MiddlewareCtx<C>
