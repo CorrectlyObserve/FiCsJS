@@ -1275,7 +1275,7 @@ export class FiCsElement<D extends object, P extends object> {
       warnMisuse: (text: string): void =>
         FiCsElement.#warnMisuse(
           `${this.#name}:${text}`,
-          `The declaration "${text}" in ${this.#name} is ignored as it lacks a selector...`
+          `The declaration "${text}" in ${this.#name} is ignored, as it lacks a selector...`
         )
     })
   }
