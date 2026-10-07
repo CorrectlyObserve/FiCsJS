@@ -26,21 +26,31 @@ export const respondPage = async <C extends Record<string, unknown>>({
   scriptBase,
   meta: defaultMeta,
   ctx,
-  path
+  path,
+  handleDenial
 }: Routing.Options.InternalPageHost<C> & {
   page: { module: Routing.ServerModule<C>; entry: string }
   status: Routing.Status.Resolved
   ctx: Routing.MiddlewareCtx<C>
   path: string
+  handleDenial?: (denial: Routing.Denial) => Promise<Response>
 }): Promise<Response> => {
   const {
       module: { meta = {}, default: def, noScript, noStore },
       entry
     } = page,
-    resolvedMeta: Record<string, string> = resolveMeta({ defaultMeta, meta, status }),
+    content: string | Routing.Denial = def ? await def({ ...ctx, status }) : ''
+
+  if (typeof content !== 'string') {
+    /** @remarks Prevents an infinite loop, as a status page already answers a denial. */
+    if (!handleDenial) throw new Error('Return a string from a status page, as it cannot deny...')
+    return handleDenial(content)
+  }
+
+  const resolvedMeta: Record<string, string> = resolveMeta({ defaultMeta, meta, status }),
     html: string = render({
       meta: resolvedMeta,
-      content: def ? await def({ ...ctx, status }) : '',
+      content,
       path,
       script: noScript ? '' : `${scriptBase}/${entry}.js`,
       styles: getGlobalCss()
