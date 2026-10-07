@@ -204,10 +204,14 @@ export const generateSpaRouters = ({
   spaOwners,
   aliases,
   inheritedStatusKeys,
-  redirect
+  redirect,
+  rootStatusFiles
 }: Routing.Build.Ctx): string => {
-  return joinLines(
-    dirs.map(dir => {
+  const appPaths: string[] = Array.from(
+      new Set([...routes, ...rootStatusFiles].map(({ path }) => path))
+    ),
+    hasMultipleRouters: boolean = dirs.length > 1,
+    routers: string[] = dirs.map(dir => {
       const routeEntries: string[] = []
 
       for (let i = 0; i < routes.length; i++) {
@@ -265,9 +269,32 @@ export const generateSpaRouters = ({
       const isRootDir: boolean = dir === ''
       if (isRootDir && redirect) append(`${indent()}redirects: ${prefixes.REDIRECT}`)
 
-      append(`${indent()}appPaths`)
+      if (hasMultipleRouters) append(`${indent()}appPaths`)
+      else
+        append(
+          joinLines([
+            `${indent()}appPaths: [`,
+            joinLines(
+              appPaths.map(path => `${indent(2)}'${path}'`),
+              { comma: true }
+            ),
+            `${indent()}]`
+          ])
+        )
 
       return joinLines([...lines, '})'])
     })
-  )
+
+  return joinLines([
+    ...(hasMultipleRouters
+      ? [
+          `const appPaths = ${joinAndWrap(
+            appPaths.map(path => `'${path}'`),
+            { wrapType: '[]' }
+          )}`,
+          ''
+        ]
+      : []),
+    ...routers
+  ])
 }
