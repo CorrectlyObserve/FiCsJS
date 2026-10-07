@@ -11,15 +11,14 @@ import { existsSync, renameSync, rmdirSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 
 export const vitePlugin = (
-  config: Routing.Config & { watch?: boolean; title?: string } = {}
+  config: Routing.Config & { watch?: boolean; title?: string; viewTransition?: boolean } = {}
 ): Vite.Plugin => {
   const { dir, output }: { dir: string; output: string } = toAbsolute({
       dir: config.dir,
       output: config.output
     }),
-    { title }: { title?: string } = config,
-    ficsDir: string = dirname(output),
-    clientPath: string = join(output, configConstants.CLIENT)
+    { title, viewTransition }: { title?: string; viewTransition?: boolean } = config,
+    ficsDir: string = dirname(output)
 
   let root: string = process.cwd(),
     outDir: string = 'dist',
@@ -32,7 +31,7 @@ export const vitePlugin = (
       resolve: { alias: Record<string, string> }
       build?: { rollupOptions: { input: string } }
     } {
-      entry = generateEntryHtml({ root, output, title })
+      entry = generateEntryHtml({ root, output, title, viewTransition })
       return {
         resolve: { alias: { [configConstants.ALIAS]: ficsDir } },
         ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
@@ -41,7 +40,7 @@ export const vitePlugin = (
     configResolved(resolved: { root: string; build: { outDir: string } }): void {
       root = resolved.root
       outDir = resolved.build.outDir
-      entry = generateEntryHtml({ root, output, title })
+      entry = generateEntryHtml({ root, output, title, viewTransition })
     },
     configureServer(server: Vite.DevServer): () => void {
       if (config.watch ?? true) server.watcher.add(dir)
@@ -104,7 +103,8 @@ export const vitePlugin = (
     },
     handleHotUpdate({ file }: { file: string }): void {
       if (file.startsWith(dir)) configRoutes(config)
-      if (file === join(root, 'app.html')) entry = generateEntryHtml({ root, output, title })
+      if (file === join(root, 'app.html'))
+        entry = generateEntryHtml({ root, output, title, viewTransition })
     }
   } as const
 }
