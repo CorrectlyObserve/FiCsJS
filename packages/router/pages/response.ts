@@ -68,7 +68,7 @@ export const respondStatus = async <C extends Record<string, unknown>>({
   status,
   statusFallback,
   ...args
-}: Omit<Parameters<typeof respondPage<C>>[0], 'page' | 'status'> &
+}: Omit<Parameters<typeof respondPage<C>>[0], 'page' | 'status' | 'handleDenial'> &
   Routing.Status.Manifest<C> & { status: Routing.Status.PageCode }): Promise<Response> => {
   const page: Routing.Status.Page<C> | undefined = statusPages[status] ?? statusFallback
   return page
