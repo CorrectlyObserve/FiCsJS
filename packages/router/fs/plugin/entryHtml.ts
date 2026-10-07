@@ -59,11 +59,13 @@ const defaultTemplate = ({
 export const generateEntryHtml = ({
   root,
   output,
-  title = ''
+  title = '',
+  viewTransition = false
 }: {
   root: string
   output: string
   title?: string
+  viewTransition?: boolean
 }): string | null => {
   const appHtml: string | null = readIfExists(join(root, 'app.html'))
 
@@ -76,8 +78,13 @@ export const generateEntryHtml = ({
     path: entry,
     content:
       appHtml === null
-        ? defaultTemplate({ title, importPath })
-        : injectHtml({ html: appHtml, importPath })
+        ? defaultTemplate({ title, viewTransition, importPath })
+        : injectHtml({
+            html: viewTransition
+              ? appHtml.replace(/<\/head>/i, `${VIEW_TRANSITION_STYLE}</head>`)
+              : appHtml,
+            importPath
+          })
   })
 
   return entry
