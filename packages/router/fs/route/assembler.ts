@@ -113,7 +113,7 @@ export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
           `const appPaths = ${joinAndWrap(
             uniquePaths.map(path => `'${path}'`),
             { wrapType: '[]' }
-          )}`,
+          )}\n`,
         spaRouters,
         rpc?.client.code ?? '',
         `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
