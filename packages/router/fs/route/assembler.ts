@@ -106,15 +106,9 @@ export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
     uniquePaths: string[] = Array.from(
       new Set([...routes, ...rootStatusFiles].map(({ path }) => path))
     ),
-    spaRouters: string = generateSpaRouters(ctx),
     code: string = joinLines(
       [
-        spaRouters &&
-          `const appPaths = ${joinAndWrap(
-            uniquePaths.map(path => `'${path}'`),
-            { wrapType: '[]' }
-          )}\n`,
-        spaRouters,
+        generateSpaRouters(ctx),
         rpc?.client.code ?? '',
         `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
         `export type FiCsRoutingPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
