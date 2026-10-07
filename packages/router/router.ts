@@ -96,7 +96,7 @@ const setRouterData = <D extends object>({
 
 export const ficsRouter = <D extends object>(
   spa: FiCsRouter<D>,
-  spec?: Routing.Spec
+  spec: Routing.Spec
 ): FiCsElement<RouterData<D>, {}> => {
   const {
       children,
@@ -114,7 +114,7 @@ export const ficsRouter = <D extends object>(
     resolved: Readonly<Routing.ResolvedSpec> = resolveSpec(spec)
 
   if (resolved.pages.length === 0)
-    throw new Error('Pass a spec or call registerRoutes first, as the router has no pages...')
+    throw new Error('Add a page to the SPA, as the router has no pages...')
 
   const toDynamicParams = (pathname: string): Record<string, string> => {
     const normalized: string = normalizePath(pathname)
@@ -251,7 +251,7 @@ export const ficsRouter = <D extends object>(
       ...toArray(_css ?? [])
     ],
     { exact: redirectsMap, prefixes }: ReturnType<typeof parseRedirects> = parseRedirects(
-      spec?.redirects ?? {}
+      spec.redirects ?? {}
     )
 
   for (const { path, redirect } of resolved.pages)
