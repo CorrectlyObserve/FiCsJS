@@ -1,6 +1,6 @@
 import { getGlobalCss } from '../../core/css'
 import { CONTENT_TYPE } from '../../core/helpers'
-import { statusCodes } from '../constants'
+import { statusCodes, VIEW_TRANSITION_STYLE } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
 import type { Routing } from '../types'
 
@@ -25,6 +25,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
   render,
   scriptBase,
   meta: defaultMeta,
+  viewTransition,
   ctx,
   path,
   handleDenial
@@ -57,7 +58,10 @@ export const respondPage = async <C extends Record<string, unknown>>({
     })
 
   return respond({
-    html: injectMeta({ html, metaTags: renderMeta(resolvedMeta) }),
+    html: injectMeta({
+      html,
+      metaTags: `${renderMeta(resolvedMeta)}${viewTransition ? VIEW_TRANSITION_STYLE : ''}`
+    }),
     status,
     noStore
   })
