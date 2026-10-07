@@ -15,7 +15,6 @@ export interface FiCsLink<P extends object> {
   href: (({ props }: { props: Readonly<P> }) => string) | string
   content: Content<{}, P>
   css?: FiCs<{}, P>['css']
-  goto?: boolean
   actions?: FiCs<{}, P>['actions']
 }
 
