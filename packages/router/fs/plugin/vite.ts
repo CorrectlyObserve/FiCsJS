@@ -45,9 +45,11 @@ export const vitePlugin = (
       if (config.watch ?? true) server.watcher.add(dir)
       if (entry === null) return NOOP
 
-      // Returned so Vite installs this after its own middlewares: htmlFallbackMiddleware has
-      // by then rewritten deep links ("/42") to "/index.html", and indexHtmlMiddleware — which
-      // would 404 looking for <root>/index.html — has not run yet.
+      /**
+       * @remarks 
+       * Returns a middleware to run between Vite's htmlFallbackMiddleware and indexHtmlMiddleware,
+       * catching rewritten deep links before they 404.
+       */
       return () =>
         server.middlewares.use(async (req, res, next) => {
           const url: string = req.url ?? '/',
