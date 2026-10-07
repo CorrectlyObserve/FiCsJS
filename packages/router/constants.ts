@@ -32,3 +32,6 @@ export const statusCodes = {
   PAYLOAD_TOO_LARGE: 413,
   REDIRECT: 302
 } as const
+
+export const VIEW_TRANSITION_STYLE =
+  '<style>@view-transition { navigation: auto; }</style>' as const
