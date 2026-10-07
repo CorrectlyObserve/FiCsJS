@@ -14,22 +14,7 @@ const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} },
     }
   }
 
-export const registerRoutes = (spec: Routing.Spec): void => {
-  const { pages, statusModules, statusFallback }: Routing.ResolvedSpec = resolveSpec(spec)
-  registry.pages = pages
-  registry.statusModules = statusModules
-  registry.statusFallback = statusFallback
-}
-
-export const resetRoutes = (): void => {
-  registry.pages = []
-  registry.statusModules = {}
-  registry.statusFallback = undefined
-}
-
-export const resolveSpec = (spec?: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
-  if (!spec) return registry
-
+export const resolveSpec = (spec: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
   const { routes, statusModules, statusFallback, inheritedStatusKeys = [] }: Routing.Spec = spec,
     pages: Page[] = [],
     modules: Routing.ResolvedSpec['statusModules'] = {}
