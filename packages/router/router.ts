@@ -116,21 +116,22 @@ export const ficsRouter = <D extends object>(
   if (resolved.pages.length === 0)
     throw new Error('Add a page to the SPA, as the router has no pages...')
 
-  const toDynamicParams = (pathname: string): Record<string, string> => {
-    const normalized: string = normalizePath(pathname)
-    let fallback: Record<string, string> | null = null
+  const ownPaths: string[] = resolved.pages.map(({ path }) => path),
+    toDynamicParams = (pathname: string): Record<string, string> => {
+      const normalized: string = normalizePath(pathname)
+      let fallback: Record<string, string> | null = null
 
-    for (const { path } of resolved.pages) {
-      const isDynamic: boolean = isDynamicPath(path)
+      for (const { path } of resolved.pages) {
+        const isDynamic: boolean = isDynamicPath(path)
 
-      if (!isDynamic && normalizePath(path) === normalized) return {}
+        if (!isDynamic && normalizePath(path) === normalized) return {}
 
-      if (!fallback && isDynamic && dynamicPathToRegex(path).test(normalized))
-        fallback = getDynamicParams(path, normalized)
+        if (!fallback && isDynamic && dynamicPathToRegex(path).test(normalized))
+          fallback = getDynamicParams(path, normalized)
+      }
+
+      return fallback || {}
     }
-
-    return fallback || {}
-  }
 
   let hasWarned: boolean = false
 
