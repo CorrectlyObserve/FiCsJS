@@ -231,13 +231,13 @@ export const ficsRouter = <D extends object>(
         }
 
       window.addEventListener(FICS_NAVIGATE, onNavigate)
-      window.addEventListener(FICS_HAS_ROUTER, setHasRouter)
+      window.addEventListener(FICS_CAN_NAVIGATE, setCanNavigate)
       window.addEventListener(FICS_STATUS, onStatus)
 
       removeEventListeners = (): void => {
         window.removeEventListener('popstate', onPopState)
         window.removeEventListener(FICS_NAVIGATE, onNavigate)
-        window.removeEventListener(FICS_HAS_ROUTER, setHasRouter)
+        window.removeEventListener(FICS_CAN_NAVIGATE, setCanNavigate)
         window.removeEventListener(FICS_STATUS, onStatus)
       }
 
