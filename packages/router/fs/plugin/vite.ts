@@ -2,7 +2,7 @@ import { CONTENT_TYPE, NOOP } from '../../../core/helpers'
 import { INDEX_HTML, statusCodes } from '../../constants'
 import type { Routing, Vite } from '../../types'
 import { configRoutes } from '../config'
-import { config as configConstants } from '../constants'
+import { config as c } from '../constants'
 import { readIfExists } from '../../file'
 import { toAbsolute } from '../helpers'
 import { generateEntryHtml } from './entryHtml'
@@ -24,7 +24,7 @@ export const vitePlugin = (
     entry: string | null = null
 
   return {
-    name: configConstants.TOOL_NAME,
+    name: c.TOOL_NAME,
     enforce: 'pre',
     config(): {
       resolve: { alias: Record<string, string> }
@@ -32,7 +32,7 @@ export const vitePlugin = (
     } {
       entry = generateEntryHtml({ root, output, title, viewTransition })
       return {
-        resolve: { alias: { [configConstants.ALIAS]: ficsDir } },
+        resolve: { alias: { [c.ALIAS]: ficsDir } },
         ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
       }
     },
