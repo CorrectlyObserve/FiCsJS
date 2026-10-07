@@ -473,14 +473,6 @@ export declare namespace Vite {
     configResolved: (config: { root: string; build: { outDir: string } }) => void
     configureServer: (server: DevServer) => () => void
     buildStart: () => void
-    transform: (
-      code: string,
-      id: string
-    ) => {
-      code: string
-      /** @remarks No source map — the transformation only prepends one line. */
-      map: null
-    } | null
     writeBundle: () => void
     handleHotUpdate: ({ file }: { file: string }) => void
   }
