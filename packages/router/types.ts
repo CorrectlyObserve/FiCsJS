@@ -275,6 +275,7 @@ export declare namespace Routing {
     statusFallback?: Module
     inheritedStatusKeys?: string[]
     redirects?: Record<string, string>
+    appPaths?: readonly string[]
   }
 
   namespace Status {
