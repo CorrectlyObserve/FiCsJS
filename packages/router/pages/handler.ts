@@ -13,7 +13,7 @@ export const createPageHandler = <C extends Record<string, unknown>>(
     statusFallback,
     redirects
   }: Routing.Options.PageManifest<C>,
-  { render, createContext, scriptBase, meta }: Routing.Options.PageHost<C>
+  { render, createContext, scriptBase, meta, viewTransition }: Routing.Options.PageHost<C>
 ): ((req: Request) => Promise<Response>) => {
   const statics: Map<string, Routing.ResolvedRoute<C>> = new Map(),
     dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[] = []
@@ -53,7 +53,8 @@ export const createPageHandler = <C extends Record<string, unknown>>(
       render,
       createContext,
       scriptBase: removeTrailingSlash(scriptBase ?? '/dist'),
-      meta
+      meta,
+      viewTransition
     })
 
     if (isHeadMethod(req.method))
