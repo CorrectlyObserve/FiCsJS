@@ -173,6 +173,8 @@ export declare namespace Routing {
       createContext?: (req: Request) => Awaitable<C>
       scriptBase?: string
       meta?: Record<string, string>
+      /** @remarks Off by default, as it changes how every same-origin page load looks. */
+      viewTransition?: boolean
     }
 
     interface PageManifest<C = Record<string, unknown>> extends Status.Manifest<C> {
