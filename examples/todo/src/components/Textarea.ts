@@ -45,4 +45,4 @@ const actions: FiCs.Actions<{}, Props> = {
   }
 }
 
-export default fics<{}, Props>({ name: 'textarea', html, css, actions })
+export default () => fics<{}, Props>({ name: 'textarea', html, css, actions })
