@@ -21,7 +21,7 @@ import {
 } from './helpers'
 import { applyMeta, resolveMeta } from './meta'
 import { getQueries, params } from './params'
-import { resolveSpec } from './registry'
+import { resolveSpec } from './spec'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData, Routing } from './types'
 
 const resolveRedirect = ({
