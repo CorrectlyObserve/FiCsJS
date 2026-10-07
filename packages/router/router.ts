@@ -3,7 +3,7 @@ import { CSS_LAYER, HOST_SELECTOR, NOOP, normalizePath, toArray } from '../core/
 import type { FiCs } from '../core/namespaces'
 import type { DeepReadonly, Html } from '../core/types'
 import {
-  FICS_HAS_ROUTER,
+  FICS_CAN_NAVIGATE,
   FICS_NAVIGATE,
   FICS_STATUS,
   RESERVED_ROUTER_DATA_KEYS,
