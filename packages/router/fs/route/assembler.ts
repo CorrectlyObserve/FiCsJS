@@ -122,14 +122,13 @@ export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble):
       { filter: true }
     )
 
-  let imports: string[] = emitModuleImports({ ...ctx, baseDir, code })
+  const imports: string[] = emitModuleImports({ ...ctx, baseDir, code })
 
-  const routerNames: string[] = []
-  if (uses(code, exportedNames.router)) routerNames.push(exportedNames.router)
-  if (uses(code, 'createRpcClient')) routerNames.push('createRpcClient')
-
-  if (routerNames.length > 0)
-    imports = [`import ${joinAndWrap(routerNames)} from ${routerImport()}`, ...imports]
+  for (const { id, path } of [
+    { id: 'createRpcClient' },
+    { id: exportedNames.router, path: 'internal' }
+  ])
+    if (uses(code, id)) imports.unshift(`import { ${id} } from ${routerImport(path)}`)
 
   if (rpc && (rpc.client.imports ?? []).length > 0) imports.push(...rpc.client.imports)
 
