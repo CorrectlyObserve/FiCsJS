@@ -20,6 +20,7 @@ import {
   parseRedirects
 } from './helpers'
 import { applyMeta, resolveMeta } from './meta'
+import { canNavigate } from './navigation'
 import { patchRouterData, setRouterData } from './routerData'
 import { resolveSpec } from './spec'
 import type { FiCsRouter, Page, PageContent, Returned, RouterData, Routing } from './types'
@@ -202,8 +203,22 @@ export const ficsRouter = <D extends object>(
 
           setRouterData({ data, toDynamicParams, pathname, redirects })
         },
-        setHasRouter = (event: Event): void => {
-          ;(event as CustomEvent<{ hasRouter: boolean }>).detail.hasRouter = true
+        setCanNavigate = (event: Event): void => {
+          const { detail }: { detail: Routing.CanNavigateEvent } =
+            event as CustomEvent<Routing.CanNavigateEvent>
+
+          /** @remarks Passes if at least one router matches, as this flag is only ever set to true. */
+          if (
+            canNavigate({
+              href: detail.href,
+              currentHref: window.location.href,
+              basePath: pathname,
+              ownPaths,
+              appPaths: spec.appPaths,
+              redirects
+            })
+          )
+            detail.canNavigate = true
         },
         onStatus: (event: Event) => void = (event: Event): void => {
           const { detail }: { detail: Routing.Status.Event } =
