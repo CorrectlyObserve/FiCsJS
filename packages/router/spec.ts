@@ -3,16 +3,19 @@ import { STATUS_FALLBACK } from './constants'
 import { applyLayout } from './layout'
 import type { Page, PageContent, Routing } from './types'
 
-const registry: Routing.ResolvedSpec = { pages: [], statusModules: {} },
-  resolveModule = ({ default: def, redirect, meta }: Routing.Module): PageContent | undefined => {
-    if (typeof redirect === 'string') return { redirect }
-    if (def === undefined) return undefined
+const resolveModule = ({
+  default: def,
+  redirect,
+  meta
+}: Routing.Module): PageContent | undefined => {
+  if (typeof redirect === 'string') return { redirect }
+  if (def === undefined) return undefined
 
-    return {
-      content: (typeof def === 'function' ? def : () => def) as PageContent['content'],
-      meta
-    }
+  return {
+    content: (typeof def === 'function' ? def : () => def) as PageContent['content'],
+    meta
   }
+}
 
 export const resolveSpec = (spec: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
   const { routes, statusModules, statusFallback, inheritedStatusKeys = [] }: Routing.Spec = spec,
