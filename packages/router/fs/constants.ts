@@ -46,8 +46,6 @@ export const metaExports = {
   BLOCK: /\bexport\s*\{[^}]*\bmeta\b/
 } as const
 
-export const MODULE_EXT_REGEX: RegExp = /\.(?:tsx?|jsx?|mts|mjs|cts|cjs)$/
-
 export const prefixes = {
   ERROR: '__error',
   LAYOUT: '__layout',
@@ -55,11 +53,6 @@ export const prefixes = {
   REDIRECT: '__redirect',
   STATUS: '__status'
 } as const
-
-/** @remarks Matches a `ficsRouter(...)` / `ficsRouter<T>(...)` call. */
-export const ROUTER_CALL_REGEX: RegExp = new RegExp(
-  `\\b${exportedNames.router}\\s*(?:<[^>]+>)?\\s*\\(`
-)
 
 export const segments = {
   CATCH_ALL: /^\[\.\.\.([^[\].]+)\]$/,
