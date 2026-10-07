@@ -1,5 +1,5 @@
 import { escape } from '../../../core/helpers'
-import { INDEX_HTML, ROUTER_COMPONENT_NAME } from '../../constants'
+import { INDEX_HTML, ROUTER_COMPONENT_NAME, VIEW_TRANSITION_STYLE } from '../../constants'
 import { readIfExists, writeIfChanged } from '../../file'
 import { indent, joinLines } from '../../helpers'
 import { config } from '../constants'
@@ -17,7 +17,15 @@ const rootLines = (importPath: string): string[] => [
   renderRoot = (importPath: string, indentation: string): string =>
     joinLines(rootLines(importPath).map(line => `${indentation}${line}`))
 
-const defaultTemplate = ({ title, importPath }: { title: string; importPath: string }): string =>
+const defaultTemplate = ({
+    title,
+    viewTransition,
+    importPath
+  }: {
+    title: string
+    viewTransition: boolean
+    importPath: string
+  }): string =>
     joinLines([
       '<!doctype html>',
       '<html>',
@@ -25,6 +33,7 @@ const defaultTemplate = ({ title, importPath }: { title: string; importPath: str
       `${indent(2)}<meta charset="UTF-8" />`,
       `${indent(2)}<meta name="viewport" content="width=device-width, initial-scale=1.0" />`,
       `${indent(2)}<title>${escape(title, 'text-content')}</title>`,
+      ...(viewTransition ? [`${indent(2)}${VIEW_TRANSITION_STYLE}`] : []),
       `${indent()}</head>`,
       `${indent()}<body>`,
       renderRoot(importPath, indent(2)),
