@@ -2,10 +2,9 @@ import { CONTENT_TYPE, NOOP } from '../../../core/helpers'
 import { INDEX_HTML, statusCodes } from '../../constants'
 import type { Routing, Vite } from '../../types'
 import { configRoutes } from '../config'
-import { config as configConstants, MODULE_EXT_REGEX, ROUTER_CALL_REGEX } from '../constants'
+import { config as configConstants } from '../constants'
 import { readIfExists } from '../../file'
-import { joinLines } from '../../helpers'
-import { toAbsolute, toRelative } from '../helpers'
+import { toAbsolute } from '../helpers'
 import { generateEntryHtml } from './entryHtml'
 import { existsSync, renameSync, rmdirSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
@@ -72,18 +71,6 @@ export const vitePlugin = (
     },
     buildStart(): void {
       configRoutes(config)
-    },
-    transform(code: string, id: string): { code: string; map: null } | null {
-      const cleanedId: string = id.split('?')[0]
-
-      if (!MODULE_EXT_REGEX.test(cleanedId) || cleanedId.includes('/node_modules/')) return null
-      if (toAbsolute({ cleanedId }).cleanedId === clientPath) return null
-      if (!ROUTER_CALL_REGEX.test(code)) return null
-
-      const relativeId: string = toRelative(cleanedId, clientPath).replace(MODULE_EXT_REGEX, '')
-      if (code.includes(`'${relativeId}'`) || code.includes(`"${relativeId}"`)) return null
-
-      return { code: joinLines([`import '${relativeId}';`, code]), map: null }
     },
     writeBundle(): void {
       if (entry === null) return
