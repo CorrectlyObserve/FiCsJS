@@ -103,7 +103,6 @@ export const cloneTask = async (id: number, targetId?: number): Promise<Task[]> 
     })
   )
 
-
 export const completeTask = async (id: number): Promise<Task[]> =>
   enqueue(() =>
     mutateTask(id, (task, timestamp) => {
