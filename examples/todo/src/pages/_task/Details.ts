@@ -1,8 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { flexCenter, size } from 'ficsjs/style'
-import Loading from '@/components/Loading'
-import LoadError from '@/components/LoadError'
+import LoadState from '@/components/LoadState'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Textarea from '@/components/Textarea'
@@ -40,8 +39,11 @@ interface Props {
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendants: ({ children: { loadError } }) => loadError,
-    values: ({ reloadDeferredData }) => ({ retry: () => reloadDeferredData() })
+    descendants: ({ children: { loadState } }) => loadState,
+    values: ({ deferredStates, reloadDeferredData }) => ({
+      isError: deferredStates.texts.status === 'error',
+      retry: () => reloadDeferredData()
+    })
   },
   {
     descendants: ({ children: { icon } }) => icon,
@@ -82,7 +84,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { loading, loadError, icon, input, textarea, button },
+  children: { loadState, icon, input, textarea, button },
   data: {
     heading,
     status,
@@ -95,13 +97,9 @@ const html: FiCs.Html<Data, Props> = ({
   template,
   deferredStates: { texts }
 }) => {
-  if (texts.status === 'error') return template`${loadError}`
-  if (texts.status === 'loading') return template`${loading}`
-
-  if (!draft) return template`${loading}`
+  if (texts.status !== 'done' || !draft) return template`${loadState}`
 
   const label = draft?.completedAt ? revert : complete
-
   return template`
     <h2>${heading}</h2>
     <div>
@@ -195,7 +193,7 @@ const css: FiCs.Css<Data, Props> = `
 
 export default fics<Data, Props>({
   name: 'task-details',
-  children: [Loading(), LoadError(), Icon(), Input(), Textarea, Button()],
+  children: [LoadState(), Icon(), Input(), Textarea(), Button()],
   data: () => ({
     labels: [],
     descriptions: [],
