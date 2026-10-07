@@ -15,7 +15,6 @@ export const ficsLink = <P extends object>({
   anchorAttributes,
   content,
   css: _css,
-  goto: shouldGoto = true,
   actions: _actions
 }: FiCsLink<P>): FiCsElement<{}, P> => {
   const html: FiCs.Html<{}, P> = ({ data, props, deferredStates, template, ...args }) => {
@@ -71,9 +70,14 @@ export const ficsLink = <P extends object>({
     actions: FiCs.Actions<{}, P> = {
       [`${HOST_SELECTOR} > a[href]`]: {
         click: [
-          ({ event, attributes: { href } }) => {
+          ({ event, attributes: { href, download, target } }) => {
             href = href.trim()
-            if (isBlankString(href)) return
+            if (
+              isBlankString(href) ||
+              download !== undefined ||
+              (target !== undefined && target !== '_self')
+            )
+              return
 
             const { defaultPrevented, button, metaKey, ctrlKey, shiftKey, altKey }: MouseEvent =
               event as MouseEvent
@@ -106,6 +110,6 @@ export const ficsLink = <P extends object>({
     attributes,
     html,
     css,
-    actions: { ...(shouldGoto ? actions : {}), ..._actions }
+    actions: { ...actions, ..._actions }
   })
 }
