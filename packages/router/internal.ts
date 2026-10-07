@@ -1,0 +1,1 @@
+export { ficsRouter } from './router'

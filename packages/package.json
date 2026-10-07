@@ -38,6 +38,10 @@
       "import": "./dist/router/index.js",
       "types": "./dist/router/index.d.ts"
     },
+    "./router/internal": {
+      "import": "./dist/router/internal.js",
+      "types": "./dist/router/internal.d.ts"
+    },
     "./router/plugin": {
       "import": "./dist/router/fs/plugin/index.js",
       "types": "./dist/router/fs/plugin/index.d.ts"
