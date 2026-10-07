@@ -77,14 +77,13 @@ export const dispatch = async <C extends Record<string, unknown>>({
 
     if (!resolvedRoute) return await respondStatus({ status: statusCodes.NOT_FOUND, ctx, ...args })
 
-    const denial: Routing.Denial | undefined = await resolveMiddlewares(
-      resolvedRoute.middlewares,
-      ctx
-    )
-    if (denial)
-      return denial.redirect
-        ? respond(denial.redirect)
-        : await respondStatus({ status: denial.code, ctx, ...args })
+    const handleDenial = (denial: Routing.Denial): Promise<Response> =>
+        denial.redirect
+          ? Promise.resolve(respond(denial.redirect))
+          : respondStatus({ status: denial.code, ctx, ...args }),
+      denial: Routing.Denial | undefined = await resolveMiddlewares(resolvedRoute.middlewares, ctx)
+
+    if (denial) return await handleDenial(denial)
 
     /** @remarks ⚠️ Ensures rendering errors are caught by the catch block below to show a 500 page. */
     return await respondPage({ page: resolvedRoute, status: statusCodes.OK, ctx, ...args })
