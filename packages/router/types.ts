@@ -103,6 +103,11 @@ export declare namespace Routing {
     }
   }
 
+  interface CanNavigateEvent {
+    href: string
+    canNavigate: boolean
+  }
+
   type ClientEntries = { name: string; src: string; spaRouterName?: string }[]
 
   interface Config {
