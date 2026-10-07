@@ -132,8 +132,7 @@ export const ficsRouter = <D extends object>(
     return fallback || {}
   }
 
-  let hasWarned: boolean = false,
-    attemptedPathname: string | null = null
+  let hasWarned: boolean = false
 
   const html: FiCs.Html<RouterData<D>, {}> = ({ data, template, ...args }) => {
       const pathname = normalizePath(data.pathname),
@@ -234,13 +233,6 @@ export const ficsRouter = <D extends object>(
           const redirectTarget: string | null = findRedirect(pathname, prefixes)
           if (redirectTarget !== null) return render({ redirect: redirectTarget })
 
-          if (attemptedPathname === pathname) {
-            attemptedPathname = null
-            console.warn(
-              `Make sure to set "goto: false" on FiCsLink components, as "${pathname}" is not found in routes...`
-            )
-          }
-
           return renderStatus(statusCodes.NOT_FOUND)
         }
 
@@ -259,6 +251,7 @@ export const ficsRouter = <D extends object>(
 
   const redirects: ReadonlyMap<string, string> | undefined =
     redirectsMap.size > 0 ? flattenRedirects(redirectsMap) : undefined
+
   let removeEventListeners: () => void = NOOP
 
   const hooks: FiCsRouter<D>['hooks'] = {
@@ -276,7 +269,6 @@ export const ficsRouter = <D extends object>(
             }: { detail: { href: string } } = event as CustomEvent<{ href: string }>,
             { pathname }: { pathname: string } = new URL(href, window.location.origin)
 
-          attemptedPathname = pathname
           setRouterData({ data, toDynamicParams, pathname, redirects })
         },
         setHasRouter = (event: Event): void => {
