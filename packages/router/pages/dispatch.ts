@@ -17,7 +17,8 @@ export const dispatch = async <C extends Record<string, unknown>>({
   render,
   createContext,
   scriptBase,
-  meta
+  meta,
+  viewTransition
 }: Routing.Options.InternalPageHost<C> &
   Routing.Status.Manifest<C> & {
     req: Request
@@ -67,6 +68,7 @@ export const dispatch = async <C extends Record<string, unknown>>({
     render,
     scriptBase,
     meta,
+    viewTransition,
     path,
     statusPages,
     statusFallback
