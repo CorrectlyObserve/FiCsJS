@@ -2,7 +2,6 @@ import { fics, type FiCs } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { flexCenter, size } from 'ficsjs/style'
 import LoadState from '@/components/LoadState'
-import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Textarea from '@/components/Textarea'
 import Button from '@/components/Button'
@@ -46,15 +45,6 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendants: ({ children: { icon } }) => icon,
-    values: ({ props: { draft, editTask } }) => ({
-      click: () => {
-        if (draft && 'completedAt' in draft)
-          editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
-      }
-    })
-  },
-  {
     descendants: ({ children: { input } }) => input,
     values: ({
       data: { labels, isError, error, descriptions, placeholders },
@@ -84,7 +74,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { loadState, icon, input, textarea, button },
+  children: { loadState, input, textarea, button },
   data: {
     heading,
     status,
@@ -106,15 +96,9 @@ const html: FiCs.Html<Data, Props> = ({
       <fieldset>
         <legend>${status}</legend>
         <div>
-          ${icon.setIndividualProps('icon', {
-            svg: draft?.completedAt ? CircleCheckBig : Circle,
-            ariaLabel: label,
-            isPressed: !!draft?.completedAt
-          })}
           ${button.setIndividualProps('status', {
             type: 'label',
             buttonText: label,
-            isPressed: !!draft?.completedAt,
             click: () => editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
           })}
         </div>
@@ -193,7 +177,7 @@ const css: FiCs.Css<Data, Props> = `
 
 export default fics<Data, Props>({
   name: 'task-details',
-  children: [LoadState(), Icon(), Input(), Textarea(), Button()],
+  children: [LoadState(), Input(), Textarea(), Button()],
   data: () => ({
     labels: [],
     descriptions: [],
