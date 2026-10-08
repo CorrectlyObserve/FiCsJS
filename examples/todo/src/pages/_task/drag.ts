@@ -1,3 +1,5 @@
+export type Direction = 'up' | 'down'
+
 export interface ReorderLabels {
   handle: string
   up: string
