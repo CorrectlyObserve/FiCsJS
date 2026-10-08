@@ -24,7 +24,8 @@ const css: FiCsLink.Css<Props> = `
     a {
       display: flex;
       color: ${white()};
-      padding: ${size(3)};
+      padding: ${size(4)};
+      line-height: 1;
 
       span {
         ${truncate()}
