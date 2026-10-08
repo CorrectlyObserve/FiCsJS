@@ -1,11 +1,11 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, oklch, size, textSize } from 'ficsjs/style'
+import { cssVar, oklch, rect, size, textSize } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
   isDisabled?: boolean
   isPressed?: boolean
-  type: 'normal' | 'gradation' | 'selected' | 'label' | 'delete'
+  type: 'normal' | 'gradation' | 'selected' | 'delete'
   controls?: string
   svg?: string
   fixedUnit?: number
@@ -81,7 +81,14 @@ const css: FiCs.Css<{}, Props> = ({ props: { fixedUnit } }) => `
         text-decoration: underline;
       }
 
-      &[data-type="label"] { padding-inline: ${cssVar('outline')}; }
+      &:has(span) {
+        display: inline-flex;
+        align-items: center;
+        gap: ${size(2)};
+        padding-block: ${size(3)};
+
+        svg { ${rect(6)}; display: flex; }
+      }
     }
   }
 `
