@@ -12,7 +12,8 @@ export const documentCss: string = `
     --red: ${oklch('#d14344')};
     --gradation: linear-gradient(30deg, var(--red) 30%, ${oklch('#cb0078')});
 
-    --outline: 0.125rem;
+    --outline: ${calc(`${size(1)} / 2`)};
+    --border-width: ${calc(`${size(1)} / 4`)};
     --transition: 0.2s ease-out;
   }
 
@@ -58,9 +59,9 @@ export const globalCss: FiCs.GlobalCss = `
     &::placeholder { color: ${white(0.5)}; } 
 
     max-width: ${columnWidth};
-    padding-block: ${size(3)};
+    padding-block: ${calc(`${size(3)} - ${cssVar('border-width')}`)};
     padding-inline: ${size(4)};
-    border: ${calc(`${size(1)} / 4`)} solid ${white()};
+    border: ${cssVar('border-width')} solid ${white()};
   }
 
   a {
