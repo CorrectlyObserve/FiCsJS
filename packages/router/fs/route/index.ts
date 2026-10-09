@@ -17,8 +17,8 @@ export const generateRoutes = ({
 } => {
   const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
     routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
-    layout: Routing.Build.Layout = buildLayout({ routes, filePaths, extensions }),
     spa: Routing.Build.Spa = buildSpa({ routes, filePaths, extensions }),
+    layout: Routing.Build.Layout = buildLayout({ routes, filePaths, extensions, spaDirs: spa.dirs }),
     mw: Routing.Build.Middleware = buildMiddleware({
       routes,
       filePaths,
