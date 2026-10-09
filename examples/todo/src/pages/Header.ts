@@ -1,7 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
-import { calc, cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
+import { cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
 import { breakpoints } from '@/styles/theme'
@@ -47,8 +47,7 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
   `
 }
 
-const buttonHeight = calc(`${size(4)} * 3 + ${cssVar('outline')} * 2`)
-const headerHeight = calc(`${buttonHeight} + ${size(6)}`)
+const headerHeight = size(18)
 const css: FiCs.Css<Data, {}> = `
   :host {
     position: sticky;
@@ -80,10 +79,10 @@ const css: FiCs.Css<Data, {}> = `
 
       div.container {
         ${positionCenter('y')}
-        right: ${calc(`${size(8)} + ${cssVar('outline')}`)};
+        right: ${size(8)};
 
         @media (max-width: ${breakpoints.SM}) {
-          right: ${calc(`${size(3)} + ${cssVar('outline')}`)};
+          right: ${size(3)};
         }
 
         .langs {
@@ -91,8 +90,8 @@ const css: FiCs.Css<Data, {}> = `
           position: absolute;
           right: 0;
           display: flex;
-          gap: ${calc(`${cssVar('outline')} * 2`)};
-          margin-block-start: ${calc(`${cssVar('outline')} * 2`)};
+          gap: ${size(1)};
+          margin-block-start: ${size(1)};
         }
       }
     }
