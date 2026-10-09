@@ -2,7 +2,7 @@ import { fics, type FiCs } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/Button'
-import Loading from '@/components/Loading'
+import LoadState from '@/components/LoadState'
 import type { Lang } from '@/domain/lang'
 import { breakpoints } from '@/styles/theme'
 
@@ -20,13 +20,19 @@ interface Props {
 
 const MAX = 20 as const
 
-const props: FiCs.Props<Data, Props> = {
-  descendants: ({ children: { button } }) => button,
-  values: () => ({ fixedUnit: 48 })
-}
+const props: FiCs.Props<Data, Props> = [
+  {
+    descendants: ({ children: { loadState } }) => loadState,
+    values: ({ deferredStates, reloadDeferredData }) => ({
+      isError: deferredStates.texts.status === 'error',
+      retry: () => reloadDeferredData()
+    })
+  },
+  { descendants: ({ children: { button } }) => button, values: () => ({ fixedUnit: 48 }) }
+]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { button, loading },
+  children: { button, loadState },
   data,
   deferredStates: {
     texts: { status }
@@ -34,8 +40,7 @@ const html: FiCs.Html<Data, Props> = ({
   template,
   attributes: { statusLiveRegion }
 }) => {
-  if (status === 'error') return template`${loadError}`
-  if (status === 'loading') return template`${loading}`
+  if (status !== 'done') return template`${loadState}`
 
   const {
     seconds,
@@ -104,7 +109,7 @@ const hooks: FiCs.Hooks<Data, Props> = {
 
 export default fics<Data, Props>({
   name: 'not-found',
-  children: [Button(), Loading()],
+  children: [Button(), LoadState()],
   data: () => ({ seconds: MAX, descriptions: [], isCounting: true }),
   deferredData: {
     stateKey: 'texts',
