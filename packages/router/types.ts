@@ -272,6 +272,7 @@ export declare namespace Routing {
 
   interface Spec {
     routes: Route<Module>[]
+    statusLayout?: Module
     statusModules?: Record<string, Module>
     statusFallback?: Module
     inheritedStatusKeys?: string[]
