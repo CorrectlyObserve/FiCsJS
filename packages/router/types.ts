@@ -67,6 +67,7 @@ export declare namespace Routing {
     interface Layout {
       clientLayouts: (string | null)[]
       serverLayouts: (string | null)[]
+      spaLayouts: Map<string, string>
       uniqueLayouts: string[]
       layoutAlias: Map<string, string>
     }
