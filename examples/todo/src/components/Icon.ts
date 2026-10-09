@@ -32,15 +32,16 @@ const html: FiCs.Html<{}, Props> = ({
 `
 
 const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
-  button[type="button"] {
-    background: none;
+  button {
     color: ${color ?? white()};
     padding: ${size(2)};
 
-    &[aria-pressed="true"] { color: ${cssVar('red')}; }
+    &:focus-visible { outline-color: currentColor; }
+    
+    &[aria-pressed="true"], &[aria-expanded="true"] { color: ${cssVar('red')}; }
+    &[draggable="true"] { &:hover { cursor: grab; } &:active { cursor: grabbing; } }
+
     &[disabled] { color: ${white(0.2)}; cursor: not-allowed; }
-    &:not([disabled]):hover { background: ${white(0.1)}; }
-    &:focus-visible { outline-color: ${color ?? white()}; }
 
     svg {
       ${rect(8)}
