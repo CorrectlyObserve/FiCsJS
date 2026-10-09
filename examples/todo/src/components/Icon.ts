@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { rect, size } from 'ficsjs/style'
+import { cssVar, rect, size } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
@@ -31,6 +31,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
     color: ${color ?? white()};
     padding: ${size(2)};
 
+    &[aria-pressed="true"] { color: ${cssVar('red')}; }
     &[disabled] { color: ${white(0.2)}; cursor: not-allowed; }
     &:not([disabled]):hover { background: ${white(0.1)}; }
     &:focus-visible { outline-color: ${color ?? white()}; }
