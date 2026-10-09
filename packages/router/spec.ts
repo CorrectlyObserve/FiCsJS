@@ -18,7 +18,13 @@ const resolveModule = ({
 }
 
 export const resolveSpec = (spec: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
-  const { routes, statusModules, statusFallback, inheritedStatusKeys = [] }: Routing.Spec = spec,
+  const {
+      routes,
+      statusLayout,
+      statusModules,
+      statusFallback,
+      inheritedStatusKeys = []
+    }: Routing.Spec = spec,
     pages: Page[] = [],
     modules: Routing.ResolvedSpec['statusModules'] = {}
 
@@ -34,7 +40,9 @@ export const resolveSpec = (spec: Routing.Spec): Readonly<Routing.ResolvedSpec> 
   }
 
   const resolveStatus = (module: Routing.Module, key: string): PageContent | undefined => {
-    const content: PageContent | undefined = resolveModule(module)
+    const content: PageContent | undefined = resolveModule(
+      applyLayout({ layout: statusLayout, page: module })
+    )
 
     if (!content && !inheritedStatusKeys.includes(key))
       throw new Error(`The status module "${key}" must export default content or a "redirect"...`)
