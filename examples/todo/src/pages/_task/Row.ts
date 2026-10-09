@@ -44,6 +44,6 @@ const html: FiCs.Html<{}, Props> = ({
   })}
 `
 
-const css: FiCs.Css<{}, Props> = `:host { ${flexCenter('y')}; gap: ${size(1)}; flex: 1; }`
+const css: FiCs.Css<{}, Props> = `:host { ${flexCenter('y')}; gap: ${size(1)}; flex: 1; min-width: 0; }`
 
 export default fics<{}, Props>({ name: 'row', children: [Icon(), Link()], props, html, css })
