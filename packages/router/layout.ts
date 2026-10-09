@@ -10,7 +10,8 @@ export const applyLayout = <T extends Routing.Module>({
   const { default: layoutDef }: T = layout,
     { default: pageDef, redirect }: T = page
 
-  if (typeof layoutDef !== 'function' || typeof redirect === 'string') return page
+  if (typeof layoutDef !== 'function' || pageDef === undefined || typeof redirect === 'string')
+    return page
 
   return {
     ...page,
