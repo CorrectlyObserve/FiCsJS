@@ -198,6 +198,7 @@ export const generatePages = ({
 export const generateSpaRouters = ({
   routes,
   clientLayouts,
+  spaLayouts,
   layoutAlias,
   dirs,
   spaAlias,
@@ -256,6 +257,10 @@ export const generateSpaRouters = ({
       }
 
       if (statusFallbackLine) append(statusFallbackLine)
+
+      const statusLayout: string | undefined = spaLayouts.get(dir)
+      if (statusLayout && (statusModules.length > 0 || statusFallbackLine))
+        append(`${indent()}statusLayout: ${getOrThrow(layoutAlias, statusLayout)}`)
 
       const dirInheritedKeys: string[] = [...(inheritedStatusKeys.get(dir) ?? [])]
       if (dirInheritedKeys.length > 0) {
