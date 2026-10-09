@@ -40,10 +40,8 @@ export const globalCss: FiCs.GlobalCss = `
     outline: none;
     border-radius: ${size(2)};
 
-    &:not([disabled]) {
-      &:hover { background: ${white(0.1)}; cursor: pointer; }
-      &:focus-visible { outline: ${outline}; }
-    }
+    &:not([disabled]):hover { background: ${white(0.1)}; cursor: pointer; }
+    &:focus-visible { outline: ${outline}; }
   }
 
   h2 {
