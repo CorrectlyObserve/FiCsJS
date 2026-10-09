@@ -244,10 +244,10 @@ export const generateSpaRouters = ({
           lines[lines.length - 1] += ','
           lines.push(line)
         }
-      let fallbackLine: string | undefined
+      let statusFallbackLine: string | undefined
 
       for (const [key, alias] of getOrThrow(aliases, dir))
-        if (key === STATUS_FALLBACK) fallbackLine = `${indent()}statusFallback: ${alias}`
+        if (key === STATUS_FALLBACK) statusFallbackLine = `${indent()}statusFallback: ${alias}`
         else statusModules.push(`${indent(2)}${key}: ${alias}`)
 
       if (statusModules.length > 0) {
@@ -255,7 +255,7 @@ export const generateSpaRouters = ({
         append(joinLines([`${indent()}statusModules: {`, modulesLine, `${indent()}}`]))
       }
 
-      if (fallbackLine) append(fallbackLine)
+      if (statusFallbackLine) append(statusFallbackLine)
 
       const dirInheritedKeys: string[] = [...(inheritedStatusKeys.get(dir) ?? [])]
       if (dirInheritedKeys.length > 0) {
