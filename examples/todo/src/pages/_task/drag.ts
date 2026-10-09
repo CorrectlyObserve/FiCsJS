@@ -1,4 +1,11 @@
+import type { Task } from '@/domain/task'
+
 export type Direction = 'up' | 'down'
+
+export interface Placement {
+  task: Task
+  after?: Task
+}
 
 export interface ReorderLabels {
   handle: string
