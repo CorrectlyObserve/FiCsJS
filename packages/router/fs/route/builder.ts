@@ -48,8 +48,9 @@ export const buildEntries = ({
 export const buildLayout = ({
   routes,
   filePaths,
-  extensions
-}: Routing.Build.Query): Routing.Build.Layout => {
+  extensions,
+  spaDirs
+}: Routing.Build.Query & { spaDirs: string[] }): Routing.Build.Layout => {
   const files: Record<'client' | 'server', Map<string, string>> = {
       client: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT }),
       server: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT_SERVER })
@@ -57,6 +58,7 @@ export const buildLayout = ({
     layouts: Omit<Routing.Build.Layout, 'layoutAlias'> = {
       clientLayouts: [],
       serverLayouts: [],
+      spaLayouts: new Map(),
       uniqueLayouts: []
     },
     uniqueSet: Set<string> = new Set()
@@ -68,6 +70,14 @@ export const buildLayout = ({
       layouts[`${type}Layouts`].push(dir)
       if (dir) uniqueSet.add(dir)
     }
+
+  for (const dir of spaDirs) {
+    const spaSrc: string | undefined = files.client.get(dir)
+    if (spaSrc === undefined) continue
+
+    layouts.spaLayouts.set(dir, spaSrc)
+    uniqueSet.add(spaSrc)
+  }
 
   layouts.uniqueLayouts = Array.from(uniqueSet)
 
