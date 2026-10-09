@@ -1,5 +1,5 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
-import { calc, forScreenReaders, size, truncate } from 'ficsjs/style'
+import { forScreenReaders, size, truncate } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
@@ -19,7 +19,7 @@ const content: FiCsLink.Content<Props> = ({ props: { title, isDone, status }, te
 
 const css: FiCsLink.Css<Props> = `
   :host {
-    width: ${calc(`100% - ${size(12)}`)};
+    min-width: 0;
 
     a {
       display: flex;
