@@ -1,12 +1,13 @@
 import type { FiCs } from 'ficsjs'
 import { calc, cssVar, oklch, size, textSize } from 'ficsjs/style'
-import { breakpoints, columnWidth, white } from '@/styles/theme'
+import { breakpoints, columnWidth, headerHeight, white } from '@/styles/theme'
 
 const outline = `${cssVar('outline')} solid ${white()}` as const
 
 export const documentCss: string = `
   :root {
     color-scheme: dark;
+    scroll-padding-block-start: ${calc(`${headerHeight} + ${size(2)}`)};
 
     --black: ${oklch('#010107')};
     --red: ${oklch('#d14344')};
