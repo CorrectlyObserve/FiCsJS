@@ -46,6 +46,14 @@ interface Props {
   setTasks: (tasks: Task[]) => void
 }
 
+const submitTask = async (data: Data, setTasks: Props['setTasks']) => {
+  const title: string = data.value
+  if (title === '') return
+
+  data.value = ''
+  setTasks(await addTask(title))
+}
+
 const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { loadState } }) => loadState,
@@ -67,12 +75,7 @@ const props: FiCs.Props<Data, Props> = [
         description,
         placeholder,
         input: (value: string) => (data.value = value),
-        enterKey: async () => {
-          if (value !== '') {
-            setTasks(await addTask(value))
-            data.value = ''
-          }
-        }
+        enterKey: () => submitTask(data, setTasks)
       }
     }
   },
@@ -81,12 +84,7 @@ const props: FiCs.Props<Data, Props> = [
     values: ({ data, props: { setTasks } }) => ({
       svg: Plus,
       ariaLabel: data.placeholder,
-      click: async () => {
-        if (data.value !== '') {
-          setTasks(await addTask(data.value))
-          data.value = ''
-        }
-      }
+      click: () => submitTask(data, setTasks)
     })
   },
   {
