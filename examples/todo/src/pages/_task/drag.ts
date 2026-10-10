@@ -44,24 +44,23 @@ export const getToIndex = ({
   return isCopyMode ? fromIndex : fromIndex - 1
 }
 
-export const isValidIndex = <T>({
-  array,
+export const isValidIndex = ({
+  tasks,
   fromIndex,
   toIndex,
   isCopyMode
 }: {
-  array: readonly T[]
+  tasks: readonly Task[]
   fromIndex: number
   toIndex: number
   isCopyMode: boolean
 }): boolean => {
-  const isInvalidFromIndex =
-    !Number.isInteger(fromIndex) || fromIndex < 0 || fromIndex >= array.length
+  const { length } = tasks
+  const isInvalidFromIndex = !Number.isInteger(fromIndex) || fromIndex < 0 || fromIndex >= length
 
   if (isInvalidFromIndex || !Number.isInteger(toIndex)) return false
 
   return (
-    toIndex >= 0 &&
-    (isCopyMode ? toIndex <= array.length : toIndex < array.length && toIndex !== fromIndex)
+    toIndex >= 0 && (isCopyMode ? toIndex <= length : toIndex < length && toIndex !== fromIndex)
   )
 }
