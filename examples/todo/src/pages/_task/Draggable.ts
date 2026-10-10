@@ -75,7 +75,6 @@ const props: FiCs.Props<Data, Props> = [
     }) => ({
       svg: GripVertical,
       ariaLabel: handle,
-      hasPopup: true,
       isDraggable: true,
       color: white(0.75)
     })
