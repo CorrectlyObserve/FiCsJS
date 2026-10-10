@@ -90,7 +90,15 @@ export const reorderTasks = async (id: number, targetId?: number): Promise<Task[
     })
   )
 
-export const cloneTask = async (id: number, targetId?: number): Promise<Task[]> =>
+export const cloneTask = async ({
+  id,
+  copiedTitle,
+  targetId
+}: {
+  id: number
+  copiedTitle: (values: Record<string, string | number>) => string
+  targetId?: number
+}): Promise<Task[]> =>
   enqueue(() =>
     mutateTasks((tasks, timestamp) => {
       const task: Task | undefined = getTask(tasks, id)
@@ -99,6 +107,7 @@ export const cloneTask = async (id: number, targetId?: number): Promise<Task[]> 
       tasks.splice(findNextIndex(tasks, targetId), 0, {
         ...task,
         id: timestamp,
+        title: copiedTitle({ title: task.title }),
         createdAt: timestamp,
         updatedAt: timestamp,
         completedAt: undefined
