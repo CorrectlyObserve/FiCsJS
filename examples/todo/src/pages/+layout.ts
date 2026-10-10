@@ -17,12 +17,12 @@ const syncLang = async (lang: Lang): Promise<void> => {
   document.documentElement.lang = lang
 
   try {
-    const meta = await i18n<Record<'title' | 'description', string>>({ lang, key: 'head' })
+    const description = await i18n<string>({ lang, key: ['head', 'description'] })
 
     // A later call can finish before an earlier one, as i18n caches each language.
     if ($lang.get() !== lang) return
 
-    applyMeta(meta, { merge: true })
+    applyMeta({ description }, { merge: true })
   } catch (error) {
     // A failure here is not fatal, as the page renders without head translations.
     console.warn(error)
