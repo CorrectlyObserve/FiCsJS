@@ -91,7 +91,6 @@ const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { button } }) => button,
     values: ({ data }) => ({
-      type: 'normal',
       isPressed: data.isShown,
       svg: data.isShown ? SquareCheck : Square,
       buttonText: data.check,
