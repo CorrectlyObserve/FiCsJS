@@ -43,7 +43,7 @@ const html: FiCs.Html<Data, Props> = ({
   template,
   attributes: { statusLiveRegion }
 }) => {
-  if (status !== 'done') return template`${loadState}`
+  if (status !== 'done') return template`<p ${statusLiveRegion}></p>${loadState}`
 
   const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data
   return template`
