@@ -98,7 +98,6 @@ const html: FiCs.Html<Data, Props> = ({
         <legend>${status}</legend>
         <div>
           ${button.setIndividualProps('status', {
-            type: 'normal',
             svg: draft?.completedAt ? CircleCheckBig : Circle,
             buttonText: label,
             click: () => editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
@@ -131,7 +130,7 @@ const html: FiCs.Html<Data, Props> = ({
         ${[remove, isQueryParam ? close : back].map(
           (buttonText, index) =>
             template`${button.setIndividualProps(index, {
-              type: index === 0 ? 'delete' : 'normal',
+              type: index === 0 ? 'delete' : undefined,
               fixedUnit: 32,
               buttonText,
               click: async () => {
