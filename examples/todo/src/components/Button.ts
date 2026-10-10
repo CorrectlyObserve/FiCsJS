@@ -24,7 +24,7 @@ const html: FiCs.Html<{}, Props> = ({
     ${isPressed !== undefined && `aria-pressed="${boolean(isPressed)}"`}
     ${isExpanded !== undefined && `aria-expanded="${boolean(isExpanded)}"`}
     type="button"
-    data-type="${controls ? 'toggle' : type}"
+    data-type="${type}"
   >${svg ? template`<span aria-hidden="true">${unsafeHtml(svg)}</span>` : ''}${buttonText}</button>
 `
 
