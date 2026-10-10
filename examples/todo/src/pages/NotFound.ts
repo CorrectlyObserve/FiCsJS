@@ -9,7 +9,9 @@ import { breakpoints } from '@/styles/theme'
 interface Data {
   seconds: number
   heading: string
-  descriptions: string[]
+  countdown: (seconds: number) => string
+  pause: string
+  restart: string
   buttonText: string
   isCounting: boolean
 }
@@ -42,18 +44,13 @@ const html: FiCs.Html<Data, Props> = ({
 }) => {
   if (status !== 'done') return template`${loadState}`
 
-  const {
-    seconds,
-    heading,
-    descriptions: [start, end, pause, restart],
-    buttonText,
-    isCounting
-  } = data
+  const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data,
+    description = countdown(seconds)
 
   return template`
     <h2>404 ${heading}</h2>
-    <p ${statusLiveRegion}>${start}${seconds}${end}</p>
-    <p aria-hidden="true">${start}${seconds}${end}</p>
+    <p ${statusLiveRegion}>${description}</p>
+    <p aria-hidden="true">${description}</p>
     <div>
       ${button.setIndividualProps('back', {
         type: 'gradation',
@@ -110,12 +107,22 @@ const hooks: FiCs.Hooks<Data, Props> = {
 export default fics<Data, Props>({
   name: 'not-found',
   children: [Button(), LoadState()],
-  data: () => ({ seconds: MAX, descriptions: [], isCounting: true }),
+  data: () => ({ seconds: MAX, isCounting: true }),
   deferredData: {
+    load: async ({ props: { lang }, i18n }) => {
+      const countdown = await i18n({ lang, key: ['notFound', 'countdown'], interpolate: true })
+
+      return {
+        ...(await i18n<Omit<Data, 'countdown'>>({ lang, key: 'notFound' })),
+        countdown: (seconds: number) => {
+          const text = countdown({ seconds })
+          return lang === 'en' && seconds === 1 ? `${text.slice(0, -2)}${text.slice(-1)}` : text
+        }
+      }
+    },
     stateKey: 'texts',
     propsKey: 'lang',
-    allowStale: true,
-    load: async ({ props: { lang }, i18n }) => i18n<Data>({ lang, key: 'notFound' })
+    allowStale: true
   },
   props,
   html,
