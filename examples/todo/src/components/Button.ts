@@ -6,7 +6,7 @@ interface Props {
   isDisabled?: boolean
   isPressed?: boolean
   type: 'normal' | 'gradation' | 'selected' | 'delete'
-  controls?: string
+  isExpanded?: boolean
   svg?: string
   fixedUnit?: number
   buttonText: string
@@ -14,7 +14,7 @@ interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { isDisabled, isPressed, type, controls, svg, buttonText },
+  props: { isDisabled, isPressed, isExpanded, type, svg, buttonText },
   template,
   unsafeHtml,
   attributes: { boolean }
@@ -22,7 +22,7 @@ const html: FiCs.Html<{}, Props> = ({
   <button
     ${isDisabled && 'disabled'}
     ${isPressed !== undefined && `aria-pressed="${boolean(isPressed)}"`}
-    ${controls && `aria-expanded="${boolean(isPressed)}" aria-controls="${controls}"`}
+    ${isExpanded !== undefined && `aria-expanded="${boolean(isExpanded)}"`}
     type="button"
     data-type="${controls ? 'toggle' : type}"
   >${svg ? template`<span aria-hidden="true">${unsafeHtml(svg)}</span>` : ''}${buttonText}</button>
