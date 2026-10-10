@@ -3,6 +3,7 @@ import { cssVar, size } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
+  height: number
   isShown: boolean
   isValidIndex: (isCopyMode: boolean) => boolean
   show: () => void
@@ -13,14 +14,14 @@ interface Props {
 const html: FiCs.Html<{}, Props> = ({ props: { isShown }, template }) =>
   template`<div${isShown && ' class="is-shown"'}></div>`
 
-const css: FiCs.Css<{}, Props> = `
+const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
   div {
     height: ${size(2)};
     border-radius: ${size(2)};
     transition: ${cssVar('transition')};
 
     &.is-shown {
-      height: ${cssVar('zone-height')};
+      height: ${height}px;
       margin-block: ${size(2)};
       background: ${white(0.1)};
       border: ${cssVar('outline')} dashed ${cssVar('red')};
