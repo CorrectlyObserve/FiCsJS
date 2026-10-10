@@ -4,7 +4,7 @@ import { ficsLink } from 'ficsjs/router'
 import { cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
-import { breakpoints } from '@/styles/theme'
+import { breakpoints, headerHeight } from '@/styles/theme'
 
 interface Data {
   langs: readonly Lang[]
@@ -46,7 +46,6 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
   `
 }
 
-const headerHeight = size(18)
 const css: FiCs.Css<Data, {}> = `
   :host {
     position: sticky;
