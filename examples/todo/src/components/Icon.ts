@@ -52,7 +52,9 @@ const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
 `
 
 const actions: FiCs.Actions<{}, Props> = {
-  button: { click: [({ props: { click } }) => click?.(), { throttleMs: 500, blur: true }] }
+  button: {
+    click: [({ props: { click }, event }) => click?.(event as MouseEvent), { throttleMs: 500 }]
+  }
 }
 
 export default () => fics<{}, Props>({ name: 'icon', html, css, actions })
