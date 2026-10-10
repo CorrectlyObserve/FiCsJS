@@ -1,7 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { goto } from 'ficsjs/router'
 import Button from '@/components/Button'
-import { CHAT_PAGE } from '@/utils'
+import { CHAT_PATH } from '@/domain/path'
 
 interface Data {
   tabs: { href: string; text: string }[]
@@ -35,9 +35,9 @@ export default fics({
   children: [Button()],
   data: () => ({
     tabs: [
-      { href: CHAT_PAGE, text: 'Chat' },
-      { href: `${CHAT_PAGE}/activities`, text: 'Activities' },
-      { href: `${CHAT_PAGE}/stream`, text: 'Stream' }
+      { href: CHAT_PATH, text: 'Chat' },
+      { href: `${CHAT_PATH}/activities`, text: 'Activities' },
+      { href: `${CHAT_PATH}/stream`, text: 'Stream' }
     ],
     current: ''
   }),
