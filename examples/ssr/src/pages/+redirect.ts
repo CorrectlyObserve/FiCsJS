@@ -1,3 +1,3 @@
-import { CHAT_PAGE } from '@/utils'
+import { CHAT_PATH } from '@/domain/path'
 
-export default { [`${CHAT_PAGE}*`]: CHAT_PAGE }
+export default { [`${CHAT_PATH}*`]: CHAT_PATH }
