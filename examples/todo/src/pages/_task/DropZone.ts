@@ -31,16 +31,16 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
 
 const actions: FiCs.Actions<{}, Props> = {
   div: {
-    dragover: ({ props: { isValidIndex, show, hide }, event }) => {
+    dragover: ({ props: { isValidIndex, activate, deactivate }, event }) => {
       const drag = event as DragEvent
       drag.preventDefault()
       if (!drag.dataTransfer) return
 
       drag.dataTransfer.dropEffect = drag.altKey ? 'copy' : 'move'
-      isValidIndex(drag.altKey) ? show() : hide()
+      isValidIndex(drag.altKey) ? activate() : deactivate()
     },
-    dragleave: ({ props: { hide } }) => hide(),
-    drop: ({ props: { isShown, drop }, event }) => {
+    dragleave: ({ props: { deactivate } }) => deactivate(),
+    drop: ({ props: { isActive, drop }, event }) => {
       const drag = event as DragEvent
       drag.preventDefault()
 
