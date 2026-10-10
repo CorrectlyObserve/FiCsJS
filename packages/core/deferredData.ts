@@ -186,8 +186,7 @@ export class DeferredData<D extends object, P> {
           crud,
           queryCache,
           optimisticUpdate,
-          i18n: <T>(args: Parameters<I18n<T>>[0]): Promise<T> =>
-            i18n<T>({ ...args, signal: args.signal ?? signal }),
+          i18n: ((args: I18n.Args) => i18n({ ...args, signal: args.signal ?? signal })) as I18n.Fn,
           signal
         })) ?? {}
 
