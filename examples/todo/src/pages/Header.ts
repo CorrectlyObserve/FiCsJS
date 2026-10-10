@@ -21,7 +21,6 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
       <h1>${link}</h1>
       <div class="container">
         ${button.setIndividualProps('toggle', {
-          type: 'normal',
           isExpanded: isShown,
           buttonText: lang.toUpperCase(),
           click: () => (data.isShown = !data.isShown)
@@ -30,7 +29,7 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
           ${langs.map(
             _lang => template`
               ${button.setIndividualProps(_lang, {
-                type: lang === _lang ? 'selected' : 'normal',
+                type: lang === _lang ? 'selected' : undefined,
                 isPressed: lang === _lang,
                 buttonText: _lang.toUpperCase(),
                 click: () => {
