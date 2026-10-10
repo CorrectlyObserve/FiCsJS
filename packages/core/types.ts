@@ -326,15 +326,20 @@ export declare namespace Hook {
   }
 }
 
-export type I18n<T> = ({
-  lang,
-  key,
-  signal
-}: {
-  lang: string
-  key: SingleOrArray<string>
-  signal?: AbortSignal
-}) => Promise<T>
+export declare namespace I18n {
+  interface Args {
+    lang: string
+    key: SingleOrArray<string>
+    signal?: AbortSignal
+  }
+
+  type Interpolate = (values: Record<string, string | number>) => string
+
+  interface Fn {
+    <T>(args: Args & { interpolate?: false }): Promise<T>
+    (args: Args & { interpolate: true }): Promise<Interpolate>
+  }
+}
 
 export declare namespace Optimistic {
   interface Backup<D extends object> {
