@@ -7,7 +7,6 @@ interface Props {
   ariaLabel: string
   isPressed?: boolean
   isExpanded?: boolean
-  hasPopup?: boolean
   isDraggable?: boolean
   isDisabled?: boolean
   color?: string
@@ -15,7 +14,7 @@ interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { ariaLabel, svg, isPressed, isExpanded, hasPopup, isDraggable, isDisabled },
+  props: { ariaLabel, svg, isPressed, isExpanded, isDraggable, isDisabled },
   template,
   unsafeHtml,
   attributes: { boolean }
@@ -24,7 +23,6 @@ const html: FiCs.Html<{}, Props> = ({
     aria-label="${ariaLabel}"
     ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
     ${isExpanded === undefined ? '' : `aria-expanded="${boolean(isExpanded)}"`}
-    ${hasPopup && 'aria-haspopup="menu"'}
     ${isDraggable && 'draggable="true"'}
     ${isDisabled && 'disabled'}
     type="button"
