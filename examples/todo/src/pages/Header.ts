@@ -25,7 +25,7 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
           buttonText: lang.toUpperCase(),
           click: () => (data.isShown = !data.isShown)
         })}
-        <div class="langs" id="lang-menu" role="group" aria-label="${label}" ${show(isShown)}>
+        <div class="langs" role="group" aria-label="${label}" ${show(isShown)}>
           ${langs.map(
             _lang => template`
               ${button.setIndividualProps(_lang, {
