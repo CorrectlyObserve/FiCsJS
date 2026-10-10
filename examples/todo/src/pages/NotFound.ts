@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { goto } from 'ficsjs/router'
+import { applyMeta, goto } from 'ficsjs/router'
 import { forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/Button'
 import LoadState from '@/components/LoadState'
@@ -9,6 +9,7 @@ import { breakpoints } from '@/styles/theme'
 interface Data {
   seconds: number
   heading: string
+  pageTitle: FiCs.Interpolate
   countdown: (seconds: number) => string
   pause: string
   restart: string
@@ -101,6 +102,10 @@ const hooks: FiCs.Hooks<Data, Props> = {
       },
       { intervalMs: 1000, exit: () => data.seconds <= 0 }
     )
+  },
+  rerendered: ({ data: { pageTitle }, changedKeys }) => {
+    if (changedKeys.data.includes('pageTitle'))
+      applyMeta({ title: pageTitle({ page: '404 - Not Found' }) }, { merge: true })
   }
 }
 
@@ -114,6 +119,7 @@ export default fics<Data, Props>({
 
       return {
         ...(await i18n<Omit<Data, 'countdown'>>({ lang, key: 'notFound' })),
+        pageTitle: await i18n({ lang, key: ['head', 'title'], interpolate: true }),
         countdown: (seconds: number) => {
           const text = countdown({ seconds })
           return lang === 'en' && seconds === 1 ? `${text.slice(0, -2)}${text.slice(-1)}` : text
