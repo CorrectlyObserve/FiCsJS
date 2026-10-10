@@ -11,7 +11,7 @@ interface Props {
   texts: { complete: string; revert: string; remove: string }
   statuses: { completed: string; uncompleted: string }
   isQueryParam: boolean
-  toggle: () => void
+  switchStatus: () => void
   remove: () => void
 }
 
@@ -27,13 +27,13 @@ const props: FiCs.Props<{}, Props> = {
 
 const html: FiCs.Html<{}, Props> = ({
   children: { icon, link },
-  props: { task, texts, toggle, remove },
+  props: { task, texts, switchStatus, remove },
   template
 }) => template`
   ${icon.setIndividualProps('status', {
     svg: task.completedAt ? CircleCheckBig : Circle,
     ariaLabel: task.completedAt ? texts.revert : texts.complete,
-    click: toggle
+    click: switchStatus
   })}
   ${link}
   ${icon.setIndividualProps('delete', {
