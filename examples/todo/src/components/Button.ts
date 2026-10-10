@@ -5,7 +5,7 @@ import { white } from '@/styles/theme'
 interface Props {
   isDisabled?: boolean
   isPressed?: boolean
-  type: 'normal' | 'gradation' | 'selected' | 'delete'
+  type?: 'gradation' | 'selected' | 'delete'
   isExpanded?: boolean
   svg?: string
   fixedUnit?: number
@@ -24,7 +24,7 @@ const html: FiCs.Html<{}, Props> = ({
     ${isPressed !== undefined && `aria-pressed="${boolean(isPressed)}"`}
     ${isExpanded !== undefined && `aria-expanded="${boolean(isExpanded)}"`}
     type="button"
-    data-type="${type}"
+    ${type && `data-type="${type}"`}
   >${svg ? template`<span aria-hidden="true">${unsafeHtml(svg)}</span>` : ''}${buttonText}</button>
 `
 
