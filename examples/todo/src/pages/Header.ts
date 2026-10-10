@@ -21,8 +21,7 @@ const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template,
       <h1>${link}</h1>
       <div class="container">
         ${button.setIndividualProps('toggle', {
-          isPressed: isShown,
-          controls: 'lang-menu',
+          isExpanded: isShown,
           buttonText: lang.toUpperCase(),
           click: () => (data.isShown = !data.isShown)
         })}
