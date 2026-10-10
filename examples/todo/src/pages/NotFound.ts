@@ -45,13 +45,11 @@ const html: FiCs.Html<Data, Props> = ({
 }) => {
   if (status !== 'done') return template`${loadState}`
 
-  const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data,
-    description = countdown(seconds)
-
+  const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data
   return template`
     <h2>404 ${heading}</h2>
-    <p ${statusLiveRegion}>${description}</p>
-    <p aria-hidden="true">${description}</p>
+    <p ${statusLiveRegion}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
+    <p aria-hidden="true">${countdown(seconds)}</p>
     <div>
       ${button.setIndividualProps('back', {
         type: 'gradation',
