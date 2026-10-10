@@ -10,7 +10,7 @@ interface Props {
   isDraggable?: boolean
   isDisabled?: boolean
   color?: string
-  click?: () => void
+  click?: (event: MouseEvent) => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
