@@ -27,7 +27,14 @@ export const configI18n = (directory: string, { timeoutMs }: { timeoutMs?: numbe
   config.timeoutMs = timeoutMs
 }
 
-export const i18n = async <T>({ lang, key, signal }: Parameters<I18n<T>>[0]): Promise<T> => {
+export async function i18n<T>(args: I18n.Args & { interpolate?: false }): Promise<T>
+export async function i18n(args: I18n.Args & { interpolate: true }): Promise<I18n.Interpolate>
+export async function i18n<T>({
+  lang,
+  key,
+  signal,
+  interpolate
+}: I18n.Args & { interpolate?: boolean }): Promise<T | I18n.Interpolate> {
   if (isBlankString(config.directory))
     throw new Error('The i18n function cannot be called before calling the configI18n function...')
 
@@ -82,7 +89,10 @@ export const i18n = async <T>({ lang, key, signal }: Parameters<I18n<T>>[0]): Pr
     }
 
   const translations: Translations = await attachSignal(fetchTranslations(), signal)
-  if (keys.length === 0) return translations as T
+  if (keys.length === 0) {
+    if (interpolate) throw new Error('Pass the key of a string to interpolate it...')
+    return translations as T
+  }
 
   let nested: Translations | undefined = translations
   for (const nestedKey of keys) nested = nested?.[nestedKey] as Translations | undefined
@@ -90,5 +100,19 @@ export const i18n = async <T>({ lang, key, signal }: Parameters<I18n<T>>[0]): Pr
   if (nested === undefined)
     throw new Error(`The key "${keys.join('.')}" does not exist in the ${url}...`)
 
-  return nested as T
+  if (!interpolate) return nested as T
+
+  const template: unknown = nested
+  if (typeof template !== 'string')
+    throw new Error(`Point the key "${keys.join('.')}" at a string to interpolate it...`)
+
+  return (values: Record<string, string | number>): string => {
+    return template.replace(/\{\{|\}\}|\{(\w+)\}/g, (match: string, key?: string): string => {
+      if (match === '{{' || match === '}}') return match[0]
+      if (key !== undefined && Object.hasOwn(values, key)) return String(values[key])
+
+      console.warn(`Pass a value for "{${key}}" in the translation...`)
+      return match
+    })
+  }
 }
