@@ -31,7 +31,7 @@ export const getDropZoneIndex = ({
   return fromIndex > zoneIndex ? zoneIndex + 1 : zoneIndex
 }
 
-export const getInsertAnchorId = ({
+export const getInsertion = ({
   tasks,
   fromIndex,
   toIndex,
@@ -41,12 +41,17 @@ export const getInsertAnchorId = ({
   fromIndex: number
   toIndex: number
   isCopyMode: boolean
-}): Task['id'] | undefined => {
+}): Insertion | undefined => {
+  if (!isValidIndex({ tasks, fromIndex, toIndex, isCopyMode })) return undefined
+
   const remainingTasks: readonly Task[] = isCopyMode
     ? tasks
     : tasks.filter((_, index) => index !== fromIndex)
 
-  return toIndex === 0 ? undefined : remainingTasks[toIndex - 1]?.id
+  return {
+    taskId: tasks[fromIndex].id,
+    targetId: toIndex === 0 ? undefined : remainingTasks[toIndex - 1]?.id
+  }
 }
 
 export const getToIndex = ({
