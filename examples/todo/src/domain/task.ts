@@ -61,6 +61,9 @@ export const addTask = async (title: string): Promise<Task[]> =>
 export const getTask = (tasks: Task[], id: number): Task | undefined =>
   tasks.find(task => task.id === id)
 
+export const getIncompleteTasks = (tasks: Task[]): Task[] =>
+  tasks.filter(({ completedAt }) => !completedAt)
+
 export const updateTask = async ({
   id,
   title,
