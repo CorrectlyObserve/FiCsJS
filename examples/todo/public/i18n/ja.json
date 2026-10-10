@@ -13,6 +13,7 @@
     "uncompleted": "（未完了）",
     "confirmation": "本当にタスクを削除しますか？\n一度削除すると、元に戻すことはできません。",
     "unapplicable": "タスクがありません。",
+    "copiedTitle": "{title}のコピー",
     "reorder": {
       "handle": "このタスクを並べ替える",
       "up": "上へ移動する",
@@ -41,7 +42,9 @@
   },
   "notFound": {
     "heading": "ページが存在しません",
-    "descriptions": ["あと", "秒後にトップページに遷移します。", "一時停止する", "再開する"],
+    "countdown": "あと{seconds}秒後にトップページに遷移します。",
+    "pause": "一時停止する",
+    "restart": "再開する",
     "buttonText": "戻る"
   }
 }

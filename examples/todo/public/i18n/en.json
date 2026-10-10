@@ -13,6 +13,7 @@
     "uncompleted": "(Uncompleted)",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
     "unapplicable": "There are no tasks...",
+    "copiedTitle": "Copy of {title}",
     "reorder": {
       "handle": "Reorder this task",
       "up": "Move up",
@@ -44,7 +45,9 @@
   },
   "notFound": {
     "heading": "Not Found...",
-    "descriptions": ["You will be redirected to the top page in ", " seconds.", "Pause", "Restart"],
+    "countdown": "You will be redirected to the top page in {seconds} seconds.",
+    "pause": "Pause",
+    "restart": "Restart",
     "buttonText": "Back"
   }
 }
