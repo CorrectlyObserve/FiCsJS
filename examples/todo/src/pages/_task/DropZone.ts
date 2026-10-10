@@ -11,8 +11,8 @@ interface Props {
   drop: (fromIndex: number, isCopyMode: boolean) => void
 }
 
-const html: FiCs.Html<{}, Props> = ({ props: { isShown }, template }) =>
-  template`<div${isShown && ' class="is-shown"'}></div>`
+const html: FiCs.Html<{}, Props> = ({ props: { isActive }, template }) =>
+  template`<div${isActive && ' class="is-active"'}></div>`
 
 const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
   div {
@@ -20,7 +20,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
     border-radius: ${size(2)};
     transition: ${cssVar('transition')};
 
-    &.is-shown {
+    &.is-active {
       height: ${height}px;
       margin-block: ${size(2)};
       background: ${white(0.1)};
@@ -44,7 +44,7 @@ const actions: FiCs.Actions<{}, Props> = {
       const drag = event as DragEvent
       drag.preventDefault()
 
-      if (!drag.dataTransfer || !isShown) return
+      if (!drag.dataTransfer || !isActive) return
 
       drop(parseInt(drag.dataTransfer.getData('text/plain')), drag.altKey)
     }
