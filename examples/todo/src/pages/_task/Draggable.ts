@@ -290,7 +290,6 @@ export default fics<Data, Props>({
     status: ''
   }),
   props,
-  attributes: { role: 'list' },
   html,
   css,
   hooks,
