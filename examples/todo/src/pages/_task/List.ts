@@ -16,7 +16,7 @@ import {
   revertTask,
   type Task
 } from '@/domain/task'
-import type { Placement, ReorderLabels } from '@/pages/_task/drag'
+import type { Insertion, ReorderLabels } from '@/pages/_task/drag'
 import Draggable from '@/pages/_task/Draggable'
 import TaskRow from '@/pages/_task/Row'
 import { columnWidth, measureOffsetWidth } from '@/styles/theme'
@@ -129,9 +129,10 @@ const props: FiCs.Props<Data, Props> = [
               if (taskId === task.id) goto('/')
             }
           }),
-        onMove: async ({ task, after }: Placement) =>
-          setTasks(await reorderTasks(task.id, after?.id)),
-        onCopy: async ({ task, after }: Placement) => setTasks(await cloneTask(task.id, after?.id))
+        onMove: async ({ taskId, targetId }: Insertion) =>
+          setTasks(await reorderTasks(taskId, targetId)),
+        onCopy: async ({ taskId, targetId }: Insertion) =>
+          setTasks(await cloneTask(taskId, targetId))
       }
     }
   }
