@@ -112,7 +112,7 @@ const props: FiCs.Props<Data, Props> = [
       } = data
 
       return {
-        array: getTasks(tasks, !isShown),
+        tasks: getTasks(tasks, !isShown),
         labels: reorder,
         slot: (task: Task, index: number) =>
           row.setIndividualProps(index, {
