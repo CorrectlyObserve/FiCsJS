@@ -72,12 +72,7 @@ const props: FiCs.Props<Data, Props> = [
       props: {
         labels: { handle }
       }
-    }) => ({
-      svg: GripVertical,
-      ariaLabel: handle,
-      isDraggable: true,
-      color: white(0.75)
-    })
+    }) => ({ svg: GripVertical, ariaLabel: handle, isDraggable: true, color: white(0.75) })
   },
   {
     descendants: ({ children: { dropZone } }) => dropZone,
