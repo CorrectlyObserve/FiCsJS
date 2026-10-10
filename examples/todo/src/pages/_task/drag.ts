@@ -18,6 +18,19 @@ export interface ReorderLabels {
 
 export const MENU_ID = 'drag-menu' as const
 
+export const getDropZoneIndex = ({
+  fromIndex,
+  zoneIndex,
+  isCopyMode
+}: {
+  fromIndex: number
+  zoneIndex: number
+  isCopyMode: boolean
+}): number => {
+  if (isCopyMode) return zoneIndex + 1
+  return fromIndex > zoneIndex ? zoneIndex + 1 : zoneIndex
+}
+
 export const getToIndex = ({
   fromIndex,
   isDown,
