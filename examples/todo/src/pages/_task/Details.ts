@@ -17,7 +17,7 @@ type Datetime = 'createdAt' | 'updatedAt'
 interface Data {
   heading: string
   status: string
-  texts: string[]
+  texts: Record<string, string>
   labels: string[]
   isError: (task?: Task) => boolean
   error: string
@@ -78,7 +78,7 @@ const html: FiCs.Html<Data, Props> = ({
   data: {
     heading,
     status,
-    texts: [complete, revert, _delete, back, close],
+    texts: { complete, revert, remove, back, close },
     datetimes,
     buttonText,
     confirmation
@@ -127,7 +127,7 @@ const html: FiCs.Html<Data, Props> = ({
             goto('/')
           }
         })}
-        ${[_delete, isQueryParam ? close : back].map(
+        ${[remove, isQueryParam ? close : back].map(
           (buttonText, index) =>
             template`${button.setIndividualProps(index, {
               type: index === 0 ? 'delete' : 'normal',
@@ -184,7 +184,7 @@ export default fics<Data, Props>({
     descriptions: [],
     isError: (task?: Task) => task?.title === '',
     placeholders: [],
-    texts: [],
+    texts: {},
     datetimes: {} as Record<Datetime, string>
   }),
   deferredData: {
