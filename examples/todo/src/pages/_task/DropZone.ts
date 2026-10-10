@@ -4,7 +4,7 @@ import { white } from '@/styles/theme'
 
 interface Props {
   height: number
-  isShown: boolean
+  isActive: boolean
   isValidIndex: (isCopyMode: boolean) => boolean
   show: () => void
   hide: () => void
