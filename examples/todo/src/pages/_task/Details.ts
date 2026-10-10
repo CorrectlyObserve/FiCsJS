@@ -97,7 +97,7 @@ const html: FiCs.Html<Data, Props> = ({
         <legend>${status}</legend>
         <div>
           ${button.setIndividualProps('status', {
-            type: 'label',
+            type: 'normal',
             svg: draft?.completedAt ? CircleCheckBig : Circle,
             buttonText: label,
             click: () => editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
