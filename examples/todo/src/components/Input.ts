@@ -80,7 +80,7 @@ const actions: FiCs.Actions<Data, Props> = {
         if (value !== '' && (event as KeyboardEvent).key === 'Enter' && !isComposing && enterKey)
           enterKey()
       },
-      { throttleMs: 500 }
+      { throttleMs: 200 }
     ],
     blur: ({ props: { value, blur } }) => {
       if (value !== '' && blur) blur()
