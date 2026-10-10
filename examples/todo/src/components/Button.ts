@@ -95,10 +95,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { fixedUnit } }) => `
 
 const actions: FiCs.Actions<{}, Props> = {
   button: {
-    click: [
-      ({ props: { isDisabled, click } }) => !isDisabled && click(),
-      { throttleMs: 500, blur: true }
-    ]
+    click: [({ props: { isDisabled, click } }) => !isDisabled && click(), { throttleMs: 500 }]
   }
 }
 
