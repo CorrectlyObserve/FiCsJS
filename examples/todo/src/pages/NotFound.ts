@@ -57,7 +57,6 @@ const html: FiCs.Html<Data, Props> = ({
         click: () => goto('/', { isWithoutHistory: true })
       })}
       ${button.setIndividualProps('count', {
-        type: 'normal',
         buttonText: isCounting ? pause : restart,
         click: () => (data.isCounting = !data.isCounting)
       })}
