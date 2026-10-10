@@ -29,7 +29,7 @@ interface Data {
   description: string
   isShown: boolean
   check: string
-  texts: string[]
+  texts: Record<string, string>
   reorder: ReorderLabels
   completed: string
   uncompleted: string
@@ -101,15 +101,7 @@ const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { draggable } }) => draggable,
     values: ({ data, children: { row }, props: { tasks, taskId, setTasks } }) => {
-      const {
-        getTasks,
-        isShown,
-        texts: [complete, revert, remove],
-        reorder,
-        completed,
-        uncompleted,
-        confirmation
-      } = data
+      const { getTasks, isShown, texts, reorder, completed, uncompleted, confirmation } = data
 
       return {
         tasks: getTasks(tasks, !isShown),
@@ -117,7 +109,7 @@ const props: FiCs.Props<Data, Props> = [
         slot: (task: Task, index: number) =>
           row.setIndividualProps(index, {
             task,
-            texts: { complete, revert, remove },
+            texts,
             statuses: { completed, uncompleted },
             isQueryParam: measureOffsetWidth(),
             switchStatus: async () =>
@@ -194,7 +186,7 @@ export default fics<Data, Props>({
     placeholder: '',
     isShown: false,
     tasks: [],
-    texts: [],
+    texts: {},
     reorder: {} as ReorderLabels,
     getTasks: (tasks: Task[], isOnlyIncomplete: boolean) =>
       isOnlyIncomplete ? getIncompleteTasks(tasks) : tasks
@@ -202,7 +194,7 @@ export default fics<Data, Props>({
   deferredData: {
     load: async ({ props: { lang }, i18n }) => ({
       ...(await i18n({ lang, key: 'tasks' })),
-      texts: ((await i18n({ lang, key: ['task', 'texts'] })) as string[]).slice(0, 3)
+      texts: await i18n({ lang, key: ['task', 'texts'] })
     }),
     stateKey: 'texts',
     propsKey: 'lang',
