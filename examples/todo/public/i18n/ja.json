@@ -1,6 +1,6 @@
 {
   "head": {
-    "title": "FiCsJSで開発されたToDoアプリケーション",
+    "title": "{page} | FiCsJSで開発されたToDoアプリケーション",
     "description": "これはFiCsJSで開発されたToDoアプリです。他のJavaScriptフレームワークを使うことなく、FiCsJSで処理を全て完結しています。"
   },
   "lang": "言語選択",
