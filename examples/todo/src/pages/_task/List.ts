@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { goto } from 'ficsjs/router'
+import { applyMeta, goto } from 'ficsjs/router'
 import { flexCenter, size } from 'ficsjs/style'
 import LoadState from '@/components/LoadState'
 import Icon from '@/components/Icon'
@@ -24,6 +24,7 @@ import { Plus, Square, SquareCheck } from 'lucide-static'
 
 interface Data {
   heading: string
+  pageTitle: FiCs.Interpolate
   value: string
   placeholder: string
   description: string
@@ -186,6 +187,15 @@ const css: FiCs.Css<Data, Props> = `
   }
 `
 
+const hooks: FiCs.Hooks<Data, Props> = {
+  rerendered: ({ data: { heading, pageTitle }, props: { taskId }, changedKeys }) => {
+    const isChanged = changedKeys.data.includes('pageTitle') || changedKeys.props.includes('taskId')
+
+    if (isChanged && Number.isNaN(taskId))
+      applyMeta({ title: pageTitle({ page: heading }) }, { merge: true })
+  }
+}
+
 export default fics<Data, Props>({
   name: 'task-list',
   children: [LoadState(), Icon(), Input(), Button(), Draggable, TaskRow],
@@ -202,6 +212,7 @@ export default fics<Data, Props>({
   deferredData: {
     load: async ({ props: { lang }, i18n }) => ({
       ...(await i18n({ lang, key: 'tasks' })),
+      pageTitle: await i18n({ lang, key: ['head', 'title'], interpolate: true }),
       texts: await i18n({ lang, key: ['task', 'texts'] }),
       copiedTitle: await i18n({ lang, key: ['tasks', 'copiedTitle'], interpolate: true })
     }),
@@ -213,5 +224,6 @@ export default fics<Data, Props>({
   className: 'task-list',
   html,
   css,
+  hooks,
   options: { lazyLoad: true }
 })
