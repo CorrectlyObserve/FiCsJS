@@ -30,6 +30,7 @@ interface Data {
   isShown: boolean
   check: string
   texts: Record<string, string>
+  copiedTitle: FiCs.Interpolate
   reorder: ReorderLabels
   completed: string
   uncompleted: string
@@ -100,33 +101,42 @@ const props: FiCs.Props<Data, Props> = [
   },
   {
     descendants: ({ children: { draggable } }) => draggable,
-    values: ({ data, children: { row }, props: { tasks, taskId, setTasks } }) => {
-      const { getTasks, isShown, texts, reorder, completed, uncompleted, confirmation } = data
+    values: ({
+      data: {
+        getTasks,
+        isShown,
+        texts,
+        copiedTitle,
+        reorder,
+        completed,
+        uncompleted,
+        confirmation,
+      },
+      children: { row },
+      props: { tasks, taskId, setTasks }
+    }) => ({
+      tasks: getTasks(tasks, !isShown),
+      labels: reorder,
+      slot: (task: Task, index: number) =>
+        row.setIndividualProps(index, {
+          task,
+          texts,
+          statuses: { completed, uncompleted },
+          isQueryParam: measureOffsetWidth(),
+          switchStatus: async () =>
+            setTasks(await (task.completedAt ? revertTask(task.id) : completeTask(task.id))),
+          remove: async () => {
+            if (!window.confirm(confirmation)) return
 
-      return {
-        tasks: getTasks(tasks, !isShown),
-        labels: reorder,
-        slot: (task: Task, index: number) =>
-          row.setIndividualProps(index, {
-            task,
-            texts,
-            statuses: { completed, uncompleted },
-            isQueryParam: measureOffsetWidth(),
-            switchStatus: async () =>
-              setTasks(await (task.completedAt ? revertTask(task.id) : completeTask(task.id))),
-            remove: async () => {
-              if (!window.confirm(confirmation)) return
-
-              setTasks(await deleteTask(task.id))
-              if (taskId === task.id) goto('/')
-            }
-          }),
-        onMove: async ({ taskId, targetId }: Insertion) =>
-          setTasks(await reorderTasks(taskId, targetId)),
-        onCopy: async ({ taskId, targetId }: Insertion) =>
-          setTasks(await cloneTask(taskId, targetId))
-      }
-    }
+            setTasks(await deleteTask(task.id))
+            if (taskId === task.id) goto('/')
+          }
+        }),
+      onMove: async ({ taskId, targetId }: Insertion) =>
+        setTasks(await reorderTasks(taskId, targetId)),
+      onCopy: async ({ taskId, targetId }: Insertion) =>
+        setTasks(await cloneTask({ id: taskId, targetId, copiedTitle }))
+    })
   }
 ]
 
@@ -180,7 +190,7 @@ const css: FiCs.Css<Data, Props> = `
 
 export default fics<Data, Props>({
   name: 'task-list',
-  children: [LoadState(), Icon(), Input(), Button(), Draggable(), TaskRow],
+  children: [LoadState(), Icon(), Input(), Button(), Draggable, TaskRow],
   data: () => ({
     value: '',
     placeholder: '',
@@ -194,7 +204,8 @@ export default fics<Data, Props>({
   deferredData: {
     load: async ({ props: { lang }, i18n }) => ({
       ...(await i18n({ lang, key: 'tasks' })),
-      texts: await i18n({ lang, key: ['task', 'texts'] })
+      texts: await i18n({ lang, key: ['task', 'texts'] }),
+      copiedTitle: await i18n({ lang, key: ['tasks', 'copiedTitle'], interpolate: true })
     }),
     stateKey: 'texts',
     propsKey: 'lang',
