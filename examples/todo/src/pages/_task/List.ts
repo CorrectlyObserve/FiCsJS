@@ -108,7 +108,7 @@ const props: FiCs.Props<Data, Props> = [
         reorder,
         completed,
         uncompleted,
-        confirmation,
+        confirmation
       },
       children: { row },
       props: { tasks, taskId, setTasks }
