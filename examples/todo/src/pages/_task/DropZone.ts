@@ -6,8 +6,8 @@ interface Props {
   height: number
   isActive: boolean
   isValidIndex: (isCopyMode: boolean) => boolean
-  show: () => void
-  hide: () => void
+  activate: () => void
+  deactivate: () => void
   drop: (fromIndex: number, isCopyMode: boolean) => void
 }
 
