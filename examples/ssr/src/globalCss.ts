@@ -1,4 +1,4 @@
 import { configGlobalCss } from 'ficsjs'
-import css from '@/.tailwindcss.txt'
+import css from '@/tailwind.generated'
 
 configGlobalCss(css)
