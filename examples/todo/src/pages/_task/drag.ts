@@ -9,6 +9,8 @@ export interface Insertion {
   targetId?: Task['id']
 }
 
+export type MenuButton = 'copy' | Direction
+
 export interface ReorderLabels {
   handle: string
   up: string
