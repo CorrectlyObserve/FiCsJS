@@ -9,6 +9,7 @@ interface Props {
   isExpanded?: boolean
   isDraggable?: boolean
   isDisabled?: boolean
+  isFocused?: boolean
   color?: string
   click?: (event: MouseEvent) => void
 }
@@ -49,10 +50,19 @@ const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
   }
 `
 
+const hooks: FiCs.Hooks<{}, Props> = {
+  rerendered: ({ props: { isFocused }, changedKeys: { props: changedProps }, ref }) => {
+    if (!isFocused || !changedProps.includes('isFocused')) return
+
+    const button: Element | null = ref('button')
+    if (button instanceof HTMLElement) button.focus()
+  }
+}
+
 const actions: FiCs.Actions<{}, Props> = {
   button: {
     click: [({ props: { click }, event }) => click?.(event as MouseEvent), { throttleMs: 500 }]
   }
 }
 
-export default () => fics<{}, Props>({ name: 'icon', html, css, actions })
+export default () => fics<{}, Props>({ name: 'icon', html, css, hooks, actions })
