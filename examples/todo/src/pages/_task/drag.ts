@@ -1,5 +1,7 @@
 import type { Task } from '@/domain/task'
 
+export type ButtonStates = Partial<Record<MenuButton, 'disabled' | 'focused'>>
+
 export type Direction = 'up' | 'down'
 
 export interface Insertion {
