@@ -251,6 +251,12 @@ const actions: FiCs.Actions<Data, Props> = {
     }
   },
   'div[popover]': {
+    keydown: ({ event, ref }) => {
+      if ((event as KeyboardEvent).key !== 'Escape') return
+
+      const handle: Element | null = ref('button[aria-expanded="true"]')
+      if (handle instanceof HTMLElement) handle.focus()
+    },
     toggle: ({ data, event }) => {
       if ((event as ToggleEvent).newState === 'closed' && !Number.isNaN(data.menuIndex))
         data.menuIndex = NaN
