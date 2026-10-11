@@ -8,6 +8,7 @@ import {
   getToIndex,
   isValidIndex,
   MENU_ID,
+  type ButtonStates,
   type Direction,
   type Insertion,
   type ReorderLabels
@@ -85,12 +86,17 @@ const props: FiCs.Props<Data, Props> = [
       const toIndex = (direction: Direction) =>
         getToIndex({ fromIndex, isDown: direction === 'down', isCopyMode })
 
+      const buttonStates: ButtonStates = {}
+      if (data.menuFocus) buttonStates[data.menuFocus] = 'focused'
+
+      for (const direction of ['up', 'down'] as Direction[])
+        if (!isValidIndex({ tasks, fromIndex, toIndex: toIndex(direction), isCopyMode }))
+          buttonStates[direction] = 'disabled'
+
       return {
         labels,
         isCopyMode,
-        disabledDirections: (['up', 'down'] as const).filter(
-          direction => !isValidIndex({ tasks, fromIndex, toIndex: toIndex(direction), isCopyMode })
-        ),
+        buttonStates,
         switchCopyMode: () => (data.isCopyMode = !data.isCopyMode),
         move: (direction: Direction) =>
           placeTask({
