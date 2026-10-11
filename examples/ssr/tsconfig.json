@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
   },
-  "include": ["app.ts", "src/**/*", ".fics/routing/*.ts"]
+  "include": ["app.ts", "scripts/**/*", "src/**/*", ".fics/routing/*.ts"]
 }
