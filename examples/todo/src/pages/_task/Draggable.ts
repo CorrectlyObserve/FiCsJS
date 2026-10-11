@@ -3,12 +3,12 @@ import { flexCenter, forScreenReaders, size } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import type { Task } from '@/domain/task'
 import {
-  type Direction,
   getDropZoneIndex,
   getInsertion,
   getToIndex,
   isValidIndex,
   MENU_ID,
+  type Direction,
   type Insertion,
   type ReorderLabels
 } from '@/pages/_task/drag'
