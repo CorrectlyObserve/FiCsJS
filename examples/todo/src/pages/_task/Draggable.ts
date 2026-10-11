@@ -25,7 +25,7 @@ interface Data {
   draggingIndex: number
   isCopyMode: boolean
   menuIndex: number
-  menuFocus: MenuButton | null
+  focusedMenuButton: MenuButton | null
   height: number
 }
 
@@ -89,7 +89,7 @@ const props: FiCs.Props<Data, Props> = [
         getToIndex({ fromIndex, isDown: direction === 'down', isCopyMode })
 
       const buttonStates: ButtonStates = {}
-      if (data.menuFocus) buttonStates[data.menuFocus] = 'focused'
+      if (data.focusedMenuButton) buttonStates[data.focusedMenuButton] = 'focused'
 
       for (const direction of ['up', 'down'] as Direction[])
         if (!isValidIndex({ tasks, fromIndex, toIndex: toIndex(direction), isCopyMode }))
@@ -122,7 +122,7 @@ const props: FiCs.Props<Data, Props> = [
             isCopyMode
           })
 
-          if (!isCopyMode && isAtEdge) data.menuFocus = isDown ? 'up' : 'down'
+          if (!isCopyMode && isAtEdge) data.focusedMenuButton = isDown ? 'up' : 'down'
         }
       }
     }
@@ -287,21 +287,22 @@ const actions: FiCs.Actions<Data, Props> = {
 
 const hooks: FiCs.Hooks<Data, Props> = {
   updated: {
-    menuIndex: ({ data: { menuIndex }, ref }) => {
+    menuIndex: ({ data, ref }) => {
       const popover: Element | null = ref('[popover]')
       if (!(popover instanceof HTMLElement)) return
 
       const isOpen = popover.matches(':popover-open')
 
-      if (Number.isNaN(menuIndex)) {
+      if (Number.isNaN(data.menuIndex)) {
         if (isOpen) popover.hidePopover()
+        data.focusedMenuButton = null
         return
       }
 
-      const source: Element | null = ref(`div.handle[key="${menuIndex}-handle"]`)
+      const source: Element | null = ref(`div.handle[key="${data.menuIndex}-handle"]`)
       if (!(source instanceof HTMLElement)) return
 
-      if (isOpen) popover.hidePopover()
+      isOpen ? popover.hidePopover() : (data.focusedMenuButton = 'copy')
       popover.showPopover({ source })
     }
   }
@@ -311,12 +312,13 @@ export default fics<Data, Props>({
   name: 'draggable',
   children: [Icon(), DropZone, DragMenu],
   data: () => ({
+    status: '',
     activeZoneIndex: NaN,
     draggingIndex: NaN,
     height: 0,
     menuIndex: NaN,
-    isCopyMode: false,
-    status: ''
+    focusedMenuButton: null,
+    isCopyMode: false
   }),
   props,
   html,
