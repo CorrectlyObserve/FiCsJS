@@ -1,14 +1,14 @@
 import { fics, type FiCs } from 'ficsjs'
 import { cssVar, flexCenter, size } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { Direction, MENU_ID, type ReorderLabels } from '@/pages/_task/drag'
+import { MENU_ID, type ButtonStates, type Direction, type ReorderLabels } from '@/pages/_task/drag'
 import { white } from '@/styles/theme'
 import { ArrowDownFromLine, ArrowUpFromLine, CopyPlus } from 'lucide-static'
 
 interface Props {
   labels: ReorderLabels
   isCopyMode: boolean
-  disabledDirections: Direction[]
+  buttonStates: ButtonStates
   switchCopyMode: () => void
   move: (direction: Direction) => void
 }
@@ -16,7 +16,7 @@ interface Props {
 const SVGS = { copy: CopyPlus, up: ArrowUpFromLine, down: ArrowDownFromLine } as const
 const html: FiCs.Html<{}, Props> = ({
   children: { icon },
-  props: { labels, isCopyMode, disabledDirections, switchCopyMode, move },
+  props: { labels, isCopyMode, buttonStates, switchCopyMode, move },
   template
 }) => template`
   ${(Object.keys(SVGS) as (keyof typeof SVGS)[]).map(button => {
@@ -26,8 +26,8 @@ const html: FiCs.Html<{}, Props> = ({
           svg: SVGS[button],
           ariaLabel: labels[button],
           isPressed: isCopyButton ? isCopyMode : undefined,
-          isDisabled: !isCopyButton && disabledDirections.includes(button),
-          isFocused: focusedButton === button,
+          isDisabled: buttonStates[button] === 'disabled',
+          isFocused: buttonStates[button] === 'focused',
           click: () => (isCopyButton ? switchCopyMode() : move(button))
         })}
       `
