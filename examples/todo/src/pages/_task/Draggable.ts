@@ -153,18 +153,26 @@ const html: FiCs.Html<Data, Props> = ({
   return template`
     <p ${statusLiveRegion}>${status}</p>
     <div popover id="${MENU_ID}">${dragMenu}</div>
-    ${zone(-1)}
-    ${tasks.map(
-      (task, index) => template`
-        <div class="row" role="listitem" key="${index}-row">
-          <div class="handle" key="${index}-handle">
-            ${icon.setIndividualProps(index, { isExpanded: menuIndex === index })}
+    <div role="list">
+      ${zone(-1)}
+      ${tasks.map(
+        (task, index) => template`
+          <div class="row" role="listitem" key="${index}-row">
+            <div class="handle" key="${index}-handle">
+              ${icon.setIndividualProps(index, {
+                isExpanded: menuIndex === index,
+                click: (event: MouseEvent) => {
+                  if ((event as PointerEvent).pointerType === 'mouse') return
+                  data.menuIndex = data.menuIndex === index ? NaN : index
+                }
+              })}
+            </div>
+            ${slot(task, index)}
           </div>
-          ${slot(task, index)}
-        </div>
-        ${zone(index)}
-      `
-    )}
+          ${zone(index)}
+        `
+      )}
+    </div>
   `
 }
 
