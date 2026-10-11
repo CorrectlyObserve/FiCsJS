@@ -11,6 +11,7 @@ import {
   type ButtonStates,
   type Direction,
   type Insertion,
+  type MenuButton,
   type ReorderLabels
 } from '@/pages/_task/drag'
 import DragMenu from '@/pages/_task/DragMenu'
@@ -24,6 +25,7 @@ interface Data {
   draggingIndex: number
   isCopyMode: boolean
   menuIndex: number
+  menuFocus: MenuButton | null
   height: number
 }
 
@@ -98,7 +100,10 @@ const props: FiCs.Props<Data, Props> = [
         isCopyMode,
         buttonStates,
         switchCopyMode: () => (data.isCopyMode = !data.isCopyMode),
-        move: (direction: Direction) =>
+        move: (direction: Direction) => {
+          const nextIndex: number = toIndex(direction)
+          const isDown: boolean = direction === 'down'
+
           placeTask({
             data,
             tasks,
@@ -106,9 +111,19 @@ const props: FiCs.Props<Data, Props> = [
             onMove,
             onCopy,
             fromIndex,
-            toIndex: toIndex(direction),
+            toIndex: nextIndex,
             isCopyMode
           })
+
+          const isAtEdge: boolean = !isValidIndex({
+            tasks,
+            fromIndex: nextIndex,
+            toIndex: getToIndex({ fromIndex: nextIndex, isDown, isCopyMode }),
+            isCopyMode
+          })
+
+          if (!isCopyMode && isAtEdge) data.menuFocus = isDown ? 'up' : 'down'
+        }
       }
     }
   }
