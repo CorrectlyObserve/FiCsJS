@@ -27,6 +27,7 @@ const html: FiCs.Html<{}, Props> = ({
           ariaLabel: labels[button],
           isPressed: isCopyButton ? isCopyMode : undefined,
           isDisabled: !isCopyButton && disabledDirections.includes(button),
+          isFocused: focusedButton === button,
           click: () => (isCopyButton ? switchCopyMode() : move(button))
         })}
       `
