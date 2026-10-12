@@ -1,5 +1,6 @@
 import { FiCsElement } from './class'
-import { a11y, attrs, DEFERRED_DATA_LOAD_KEY } from './constants'
+import { a11y, a11yAttrs } from './a11y'
+import { attrs, DEFERRED_DATA_LOAD_KEY } from './constants'
 import { char as c } from './helpers'
 import type { QueryCache } from './query'
 
@@ -34,7 +35,22 @@ export declare namespace Action {
   }
 }
 
-export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
+export declare namespace Attr {
+  type Entry = readonly [string, string]
+
+  type Input<D extends object, P> =
+    | Record<string, string>
+    | ((ctx: DataProps.Payload<D, P> & { a11y: typeof a11yAttrs }) => Record<string, string>)
+
+  type Stringified<T extends readonly Entry[]> = T extends readonly [
+    infer H extends Entry,
+    ...infer R extends readonly Entry[]
+  ]
+    ? R extends []
+      ? `${H[0]}="${H[1]}"`
+      : `${H[0]}="${H[1]}" ${Stringified<R>}`
+    : ''
+}
 
 export type Awaitable<T = void> = T | Promise<T>
 
