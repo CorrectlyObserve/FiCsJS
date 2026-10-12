@@ -862,13 +862,13 @@ export class FiCsElement<D extends object, P extends object> {
           ...variables: (Html.Content<D, P> | unknown)[]
         ): Html.Sanitized<D, P> => template(strings, ...variables),
         unsafeHtml: (str: string): Record<symbol, string> => ({ [symbols.UNSAFE_HTML]: str }),
-        show: (condition: boolean): string => (condition ? '' : attrs.SHOW),
         activeApis: Object.fromEntries(this.#activeApis),
         attributes: {
+          a11y,
           boolean: (condition: boolean | undefined): 'true' | 'false' =>
             condition ? 'true' : 'false',
           formAnchor: attrs.FORM_ANCHOR,
-          statusLiveRegion: a11y.STATUS_LIVE_REGION
+          show: (condition: boolean): string => (!condition && attrs.SHOW) || ''
         },
         isBrowser: this.#isBrowser,
         form: this.#formAssociation,
