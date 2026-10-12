@@ -47,7 +47,7 @@ export declare namespace FiCsRouter {
 
   type ClassName<D extends object> = _ClassName<RouterData<D>, {}> | undefined
 
-  type Css<D extends object> = Css.Ctx<RouterData<D>, {}> | undefined
+  type Css<D extends object> = Css.Input<RouterData<D>, {}> | undefined
 
   type DefaultData = RouterData<{}>
 
