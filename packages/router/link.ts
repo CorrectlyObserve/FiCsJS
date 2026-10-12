@@ -21,7 +21,7 @@ export const ficsLink = <P extends object>({
       const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
       if (isBlankString(_href)) throw new Error('The "href" must be a non-empty string...')
 
-      let anchorAttrs: string = ''
+      let anchorAttrsStr: string = ''
 
       if (anchorAttributes !== undefined) {
         const entries = typedEntries(
@@ -39,12 +39,12 @@ export const ficsLink = <P extends object>({
           attrs.push(`${key}="${escape(String(value))}"`)
         }
 
-        anchorAttrs = attrs.join(' ')
+        anchorAttrsStr = attrs.join(' ')
       }
 
       const _content: Returned<{}, P> = content({ data, props, deferredStates, template, ...args })
       return template`
-        <a ${[`href="${_href}"`, anchorAttrs].filter(Boolean).join(' ')}>
+        <a ${[`href="${_href}"`, anchorAttrsStr].filter(Boolean).join(' ')}>
           ${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}
         </a>
       `
