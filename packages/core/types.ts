@@ -286,12 +286,11 @@ export declare namespace Html {
     props: Readonly<P>
     template: Template<D, P>
     unsafeHtml: (str: string) => Record<symbol, string>
-    show: (condition: boolean) => string
     activeApis: Record<string, boolean>
     attributes: {
       boolean: (condition: boolean | undefined) => 'true' | 'false'
       formAnchor: typeof attrs.FORM_ANCHOR
-      statusLiveRegion: typeof a11y.STATUS_LIVE_REGION
+      show: (condition: boolean) => string
     }
   }
 
