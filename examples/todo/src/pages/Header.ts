@@ -13,7 +13,12 @@ interface Data {
   label: string
 }
 
-const html: FiCs.Html<Data, {}> = ({ children: { link, button }, data, template, show }) => {
+const html: FiCs.Html<Data, {}> = ({
+  children: { link, button },
+  data,
+  template,
+  attributes: { show }
+}) => {
   const { langs, lang, isShown, label } = data
 
   return template`
