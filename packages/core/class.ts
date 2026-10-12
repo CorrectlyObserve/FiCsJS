@@ -343,7 +343,7 @@ export class FiCsElement<D extends object, P extends object> {
         sse,
         form,
         scroll
-      }: Options.Ctx<D, P> = options
+      }: Options.Input<D, P> = options
 
       if (ssr === false || lazyLoad) this.#options.ssr = false
 
