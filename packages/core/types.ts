@@ -384,7 +384,7 @@ export declare namespace Optimistic {
 }
 
 export declare namespace Options {
-  interface Ctx<D extends object, P>
+  interface Input<D extends object, P>
     extends Omit<Resolved<D, P>, 'ssr' | 'maxLoopLength' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
     /** @param maxLoopLength Must be a positive integer if it is a number. */
