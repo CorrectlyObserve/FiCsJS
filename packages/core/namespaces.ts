@@ -1,6 +1,6 @@
 import type {
   Action,
-  Attrs,
+  Attr,
   ClassName as _ClassName,
   Css,
   DeferredData as _DeferredData,
@@ -17,7 +17,7 @@ import type {
 export declare namespace FiCs {
   type Actions<D extends object, P> = Action.Handlers<D, P> | undefined
 
-  type Attributes<D extends object, P> = Attrs<D, P> | undefined
+  type Attributes<D extends object, P> = Attr.Input<D, P> | undefined
 
   type Children = Descendant[] | undefined
 
