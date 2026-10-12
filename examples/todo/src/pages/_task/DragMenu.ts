@@ -22,15 +22,15 @@ const html: FiCs.Html<{}, Props> = ({
   ${(Object.keys(SVGS) as (keyof typeof SVGS)[]).map(button => {
     const isCopyButton = button === 'copy'
     return template`
-        ${icon.setIndividualProps(button, {
-          svg: SVGS[button],
-          ariaLabel: labels[button],
-          isPressed: isCopyButton ? isCopyMode : undefined,
-          isDisabled: buttonStates[button] === 'disabled',
-          isFocused: buttonStates[button] === 'focused',
-          click: () => (isCopyButton ? switchCopyMode() : move(button))
-        })}
-      `
+      ${icon.setIndividualProps(button, {
+        svg: SVGS[button],
+        ariaLabel: labels[button],
+        isPressed: isCopyButton ? isCopyMode : undefined,
+        isDisabled: buttonStates[button] === 'disabled',
+        isFocused: buttonStates[button] === 'focused',
+        click: () => (isCopyButton ? switchCopyMode() : move(button))
+      })}
+    `
   })}
 `
 
