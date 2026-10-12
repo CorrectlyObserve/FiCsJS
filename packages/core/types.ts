@@ -211,7 +211,7 @@ export interface FiCs<D extends object, P extends object> {
   clonedCss?: Css.StringOrFn<D, P>[]
   hooks?: Hook.Lifecycle<D, P>
   actions?: Action.Handlers<D, P>
-  options?: Options.Ctx<D, P>
+  options?: Options.Input<D, P>
 }
 
 export declare namespace Form {
