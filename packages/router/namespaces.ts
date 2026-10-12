@@ -25,7 +25,7 @@ export declare namespace FiCsLink {
 
   type Actions<P> = Action.Handlers<{}, P> | undefined
 
-  type Attributes<P> = Attrs<{}, P> | undefined
+  type Attributes<P> = Attr.Input<{}, P> | undefined
 
   type Children = Descendant[] | undefined
 
