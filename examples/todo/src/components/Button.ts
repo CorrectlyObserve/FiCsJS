@@ -17,7 +17,10 @@ const html: FiCs.Html<{}, Props> = ({
   props: { isDisabled, isPressed, isExpanded, type, svg, buttonText },
   template,
   unsafeHtml,
-  attributes: { boolean }
+  attributes: {
+    a11y: { ariaHidden },
+    boolean
+  }
 }) => template`
   <button
     ${isDisabled && 'disabled'}
@@ -25,7 +28,7 @@ const html: FiCs.Html<{}, Props> = ({
     ${isExpanded !== undefined && `aria-expanded="${boolean(isExpanded)}"`}
     type="button"
     ${type && `data-type="${type}"`}
-  >${svg ? template`<span aria-hidden="true">${unsafeHtml(svg)}</span>` : ''}${buttonText}</button>
+  >${svg ? template`<span ${ariaHidden}>${unsafeHtml(svg)}</span>` : ''}${buttonText}</button>
 `
 
 const css: FiCs.Css<{}, Props> = ({ props: { fixedUnit } }) => `
