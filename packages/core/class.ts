@@ -772,10 +772,10 @@ export class FiCsElement<D extends object, P extends object> {
     if (component.classList.length === 0) component.removeAttribute('class')
   }
 
-  get #computedAttrs(): [string, string][] {
+  get #computedAttrs(): Attr.Entry[] {
     if (!this.#attrs) return []
 
-    const attrs: [string, string][] = []
+    const attrs: Attr.Entry[] = []
     for (const [key, value] of typedEntries(
       typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
     ))
