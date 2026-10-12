@@ -1,3 +1,4 @@
+import { a11yAttrs } from '../core/a11y'
 import { FiCsElement } from '../core/class'
 import { CSS_LAYER, escape, HOST_SELECTOR, isBlankString, typedEntries } from '../core/helpers'
 import type { FiCs } from '../core/namespaces'
@@ -26,7 +27,7 @@ export const ficsLink = <P extends object>({
       if (anchorAttributes !== undefined) {
         const entries = typedEntries(
             typeof anchorAttributes === 'function'
-              ? anchorAttributes({ data, props, deferredStates })
+              ? anchorAttributes({ data, props, deferredStates, a11y: a11yAttrs })
               : anchorAttributes
           ),
           attrs: string[] = []
