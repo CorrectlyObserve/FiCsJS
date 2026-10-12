@@ -223,6 +223,33 @@ const getFocusedElement = (): Element | null => {
   return active
 }
 
+const hooks: FiCs.Hooks<Data, Props> = {
+  updated: {
+    menuIndex: ({ data, ref }) => {
+      const popover: Element | null = ref('[popover]')
+      if (!(popover instanceof HTMLElement)) return
+
+      const isOpen = popover.matches(':popover-open')
+
+      if (Number.isNaN(data.menuIndex)) {
+        if (isOpen) popover.hidePopover()
+        data.focusedMenuButton = null
+        return
+      }
+
+      const source: Element | null = ref(`div.handle[key="${data.menuIndex}-handle"]`)
+      if (!(source instanceof HTMLElement)) return
+
+      const focused: Element | null = getFocusedElement()
+
+      isOpen ? popover.hidePopover() : (data.focusedMenuButton = 'copy')
+      popover.showPopover({ source })
+
+      if (focused instanceof HTMLElement && focused !== document.body) focused.focus()
+    }
+  }
+}
+
 const actions: FiCs.Actions<Data, Props> = {
   'div.handle': {
     dragstart: ({ data, event, attributes: { key } }) => {
@@ -289,29 +316,6 @@ const actions: FiCs.Actions<Data, Props> = {
     toggle: ({ data, event }) => {
       if ((event as ToggleEvent).newState === 'closed' && !Number.isNaN(data.menuIndex))
         data.menuIndex = NaN
-    }
-  }
-}
-
-const hooks: FiCs.Hooks<Data, Props> = {
-  updated: {
-    menuIndex: ({ data, ref }) => {
-      const popover: Element | null = ref('[popover]')
-      if (!(popover instanceof HTMLElement)) return
-
-      const isOpen = popover.matches(':popover-open')
-
-      if (Number.isNaN(data.menuIndex)) {
-        if (isOpen) popover.hidePopover()
-        data.focusedMenuButton = null
-        return
-      }
-
-      const source: Element | null = ref(`div.handle[key="${data.menuIndex}-handle"]`)
-      if (!(source instanceof HTMLElement)) return
-
-      isOpen ? popover.hidePopover() : (data.focusedMenuButton = 'copy')
-      popover.showPopover({ source })
     }
   }
 }
