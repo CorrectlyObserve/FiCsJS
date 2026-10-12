@@ -5,6 +5,7 @@
   "trailing-spaces.trimOnSave": false,
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": [
+    "apos",
     "fieldsets",
     "formnovalidate",
     "itemscope",
