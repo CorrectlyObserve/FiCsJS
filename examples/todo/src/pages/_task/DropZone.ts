@@ -53,7 +53,7 @@ const actions: FiCs.Actions<{}, Props> = {
 
 export default fics<{}, Props>({
   name: 'drop-zone',
-  attributes: { 'aria-hidden': 'true' },
+  attributes: ({ a11y: { ariaHidden } }) => ariaHidden,
   html,
   css,
   actions
