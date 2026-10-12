@@ -221,7 +221,7 @@ export interface FiCs<D extends object, P extends object> {
   immutableDataKeys?: (keyof D)[]
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
+  attributes?: Attr.Input<D, P>
   html: Html.Fn<D, P>
   css?: Css.Input<D, P>
   clonedCss?: Css.StringOrFn<D, P>[]
