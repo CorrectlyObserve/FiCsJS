@@ -37,7 +37,7 @@ export declare namespace FiCs {
 
   type Interpolate = I18n.Interpolate
 
-  type Options<D extends object, P> = Options.Ctx<D, P> | undefined
+  type Options<D extends object, P> = Options.Input<D, P> | undefined
 
   type Props<D extends object, P> = SingleOrArray<_Props<D, P>> | undefined
 }
