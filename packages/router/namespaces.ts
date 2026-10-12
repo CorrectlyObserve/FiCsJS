@@ -55,7 +55,7 @@ export declare namespace FiCsRouter {
 
   type Layout<D extends object> = _Content<RouterData<D>, {}, { slot: Returned<D, {}> }>
 
-  type Options<D extends object> = Options.Ctx<RouterData<D>, {}> | undefined
+  type Options<D extends object> = Options.Input<RouterData<D>, {}> | undefined
 
   type Page<D extends object> = _Content<RouterData<D>, {}>
 
