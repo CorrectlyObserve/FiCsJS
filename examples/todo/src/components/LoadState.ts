@@ -26,14 +26,16 @@ const html: FiCs.Html<{}, Props> = ({
   props: { isError, texts },
   template,
   unsafeHtml,
-  attributes: { statusLiveRegion }
+  attributes: {
+    a11y: { ariaHidden, statusLiveRegion }
+  }
 }) =>
   isError
     ? template`<div class="error"><p role="alert">${texts.error}</p>${button}</div>`
     : template`
         <div class="loading">
           <p ${statusLiveRegion}>${texts.loading}</p>
-          <div aria-hidden="true">${unsafeHtml(Loader)}</div>
+          <div ${ariaHidden}>${unsafeHtml(Loader)}</div>
         </div>
       `
 
