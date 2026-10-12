@@ -134,7 +134,9 @@ const html: FiCs.Html<Data, Props> = ({
   data,
   props: { tasks, slot, labels, onMove, onCopy },
   template,
-  attributes: { statusLiveRegion }
+  attributes: {
+    a11y: { statusLiveRegion }
+  }
 }) => {
   const { activeZoneIndex, draggingIndex: fromIndex, menuIndex, status } = data
   const zone = (zoneIndex: number) => {
