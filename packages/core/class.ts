@@ -1,5 +1,5 @@
 import {
-  a11y,
+  ANNOUNCING_ROLES,
   attrs,
   BOOLEAN_ATTRS,
   CLONED_SELVES_LENGTH,
@@ -963,7 +963,7 @@ export class FiCsElement<D extends object, P extends object> {
               announcingAttr: string =
                 ariaLive === '' ? `role="${role}"` : `aria-live="${ariaLive}"`
 
-            if (ariaLive === '' ? a11y.ANNOUNCING_ROLES.has(role) : ariaLive !== 'off')
+            if (ariaLive === '' ? ANNOUNCING_ROLES.has(role) : ariaLive !== 'off')
               FiCsElement.#warnMisuse(
                 `${this.#name}>${announcingAttr}`,
                 `Do not hide the ${announcingAttr} element in ${this.#name}, as a hidden one never announces...`
