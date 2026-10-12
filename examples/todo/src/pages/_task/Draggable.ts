@@ -215,6 +215,14 @@ const css: FiCs.Css<Data, Props> = `
   }
 `
 
+const getFocusedElement = (): Element | null => {
+  let active: Element | null = document.activeElement
+
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+
+  return active
+}
+
 const actions: FiCs.Actions<Data, Props> = {
   'div.handle': {
     dragstart: ({ data, event, attributes: { key } }) => {
