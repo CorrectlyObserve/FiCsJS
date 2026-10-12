@@ -288,6 +288,7 @@ export declare namespace Html {
     unsafeHtml: (str: string) => Record<symbol, string>
     activeApis: Record<string, boolean>
     attributes: {
+      a11y: typeof a11y
       boolean: (condition: boolean | undefined) => 'true' | 'false'
       formAnchor: typeof attrs.FORM_ANCHOR
       show: (condition: boolean) => string
