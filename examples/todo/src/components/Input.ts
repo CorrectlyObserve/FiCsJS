@@ -22,7 +22,10 @@ interface Props {
 const html: FiCs.Html<Data, Props> = ({
   props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
   template,
-  attributes: { boolean, statusLiveRegion }
+  attributes: {
+    a11y: { statusLiveRegion },
+    boolean
+  }
 }) => {
   const hasError = !!(isError && error)
   return template`
