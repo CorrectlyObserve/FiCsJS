@@ -215,7 +215,7 @@ export class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (let [key, value] of typedEntries({ ...data(), ...attrData } as D))
+      for (let [key, value] of typedEntries({ ...data(), ...attrData }))
         setOwnKey(this.#rawData, key, value)
 
       this.#data = new Proxy(this.#rawData, {
