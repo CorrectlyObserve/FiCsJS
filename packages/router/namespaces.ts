@@ -33,7 +33,7 @@ export declare namespace FiCsLink {
 
   type Content<P extends object> = _Content<{}, P>
 
-  type Css<P> = Css.Ctx<{}, P> | undefined
+  type Css<P> = Css.Input<{}, P> | undefined
 
   type Href<P> = (({ props }: { props: P }) => string) | string
 
