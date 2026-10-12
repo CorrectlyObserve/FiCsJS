@@ -208,7 +208,7 @@ export const buildSpecial = ({
       ...typedEntries(fileNames.statuses).map(
         ([name, file]) => [String(statusCodes[name]), file] as const
       ),
-      [STATUS_FALLBACK, fileNames.ERROR] as const
+      [STATUS_FALLBACK, fileNames.ERROR]
     ],
     inheritedStatusKeys: Map<string, Set<string>> = new Map<string, Set<string>>(),
     statusFiles: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
