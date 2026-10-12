@@ -41,7 +41,9 @@ const html: FiCs.Html<Data, Props> = ({
     texts: { status }
   },
   template,
-  attributes: { statusLiveRegion }
+  attributes: {
+    a11y: { ariaHidden, statusLiveRegion }
+  }
 }) => {
   if (status !== 'done') return template`<p key="status" ${statusLiveRegion}></p>${loadState}`
 
@@ -49,7 +51,7 @@ const html: FiCs.Html<Data, Props> = ({
   return template`
     <h2>404 ${heading}</h2>
     <p key="status" ${statusLiveRegion}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
-    <p aria-hidden="true">${countdown(seconds)}</p>
+    <p ${ariaHidden}>${countdown(seconds)}</p>
     <div>
       ${button.setIndividualProps('back', {
         type: 'gradation',
