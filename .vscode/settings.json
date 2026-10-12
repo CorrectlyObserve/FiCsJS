@@ -11,6 +11,7 @@
     "itemscope",
     "novalidate",
     "playsinline",
+    "prerendered",
     "shadowrootclonable",
     "shadowrootdelegatesfocus",
     "shadowrootserializable"
