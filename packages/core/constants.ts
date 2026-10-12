@@ -1,12 +1,9 @@
+export const ANNOUNCING_ROLES: ReadonlySet<string> = new Set(['alert', 'log', 'status'])
+
 export const attrs = {
   FICS_ID: 'fics-id',
   FORM_ANCHOR: 'fics-form-anchor',
   SHOW: 'fics-show-syntax'
-} as const
-
-export const a11y = {
-  ANNOUNCING_ROLES: new Set(['alert', 'log', 'status']),
-  STATUS_LIVE_REGION: 'role="status" aria-live="polite" aria-atomic="true"'
 } as const
 
 export const BOOLEAN_ATTRS: ReadonlySet<string> = new Set([
