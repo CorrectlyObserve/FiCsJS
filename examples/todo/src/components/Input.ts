@@ -75,18 +75,15 @@ const actions: FiCs.Actions<Data, Props> = {
     compositionend: ({ data }) => {
       data.isComposing = false
     },
-    keydown: [
-      ({ data: { isComposing }, props: { input, enterKey }, event }) => {
-        const { key, currentTarget } = event as KeyboardEvent,
-          { value } = currentTarget as HTMLInputElement
+    keydown: ({ data: { isComposing }, props: { input, enterKey }, event }) => {
+      const { key, currentTarget } = event as KeyboardEvent,
+        { value } = currentTarget as HTMLInputElement
 
-        if (key !== 'Enter' || isComposing || value === '' || !enterKey) return
+      if (key !== 'Enter' || isComposing || value === '' || !enterKey) return
 
-        input(value)
-        enterKey()
-      },
-      { throttleMs: 200 }
-    ],
+      input(value)
+      enterKey()
+    },
     blur: ({ props: { input, blur }, event }) => {
       const { value } = event.currentTarget as HTMLInputElement
 
