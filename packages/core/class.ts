@@ -1,3 +1,4 @@
+import { a11y, a11yAttrs } from './a11y'
 import {
   ANNOUNCING_ROLES,
   attrs,
@@ -777,7 +778,9 @@ export class FiCsElement<D extends object, P extends object> {
 
     const attrs: Attr.Entry[] = []
     for (const [key, value] of typedEntries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
+      typeof this.#attrs === 'function'
+        ? this.#attrs({ ...this.#getDataProps(), a11y: a11yAttrs })
+        : this.#attrs
     ))
       attrs.push([key.trim(), value.trim()])
 
