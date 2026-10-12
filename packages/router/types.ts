@@ -1,4 +1,4 @@
-import type { Attrs, Awaitable, DataProps, Descendant, FiCs, Html } from '../core/types'
+import type { Attr, Awaitable, DataProps, Descendant, FiCs, Html } from '../core/types'
 import { denialCodes, RESERVED_ROUTER_DATA_KEYS, RPC_MODULE_TYPE, statusCodes } from './constants'
 
 export type Content<D extends object, P extends object, T = {}> = (
@@ -11,7 +11,7 @@ export interface FiCsLink<P extends object> {
   props?: FiCs<{}, P>['props']
   className?: FiCs<{}, P>['className']
   attributes?: FiCs<{}, P>['attributes']
-  anchorAttributes?: WithoutHref<Attrs<{}, P>>
+  anchorAttributes?: WithoutHref<Attr.Input<{}, P>>
   href: (({ props }: { props: Readonly<P> }) => string) | string
   content: Content<{}, P>
   css?: FiCs<{}, P>['css']
