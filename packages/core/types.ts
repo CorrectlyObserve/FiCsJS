@@ -40,7 +40,7 @@ export type Awaitable<T = void> = T | Promise<T>
 
 export type Children = Record<string, Descendant>
 
-export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
+export type ClassName<D extends object, P> = string | ((ctx: DataProps.Payload<D, P>) => string)
 
 export declare namespace Crud {
   interface Ctx {
@@ -789,8 +789,6 @@ export declare namespace Template {
 }
 
 export type Translations = Record<string, unknown>
-
-type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
 
 export declare namespace WebSocket {
   namespace Ctx {
