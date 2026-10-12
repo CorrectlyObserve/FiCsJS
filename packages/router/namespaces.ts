@@ -21,7 +21,7 @@ import type {
 } from './types'
 
 export declare namespace FiCsLink {
-  type AnchorAttributes<P> = WithoutHref<Attrs<{}, P>> | undefined
+  type AnchorAttributes<P> = WithoutHref<Attr.Input<{}, P>> | undefined
 
   type Actions<P> = Action.Handlers<{}, P> | undefined
 
