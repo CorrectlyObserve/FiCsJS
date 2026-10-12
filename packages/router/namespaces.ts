@@ -1,6 +1,6 @@
 import type {
   Action,
-  Attrs,
+  Attr,
   Awaitable,
   ClassName as _ClassName,
   Css,
@@ -41,7 +41,7 @@ export declare namespace FiCsLink {
 }
 
 export declare namespace FiCsRouter {
-  type Attributes<D extends object> = Attrs<RouterData<D>, {}> | undefined
+  type Attributes<D extends object> = Attr.Input<RouterData<D>, {}> | undefined
 
   type Children = Descendant[] | undefined
 
