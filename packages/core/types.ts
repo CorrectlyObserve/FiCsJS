@@ -73,7 +73,7 @@ export declare namespace Crud {
 }
 
 export declare namespace Css {
-  type Ctx<D extends object, P> = SingleOrArray<StringOrFn<D, P>>
+  type Input<D extends object, P> = SingleOrArray<StringOrFn<D, P>>
 
   interface Declarations {
     [key: string]: string | number | undefined | Declarations
