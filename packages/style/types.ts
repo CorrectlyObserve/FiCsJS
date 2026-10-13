@@ -50,15 +50,6 @@ export declare namespace Color {
   }
 }
 
-export type Direction = 'row' | 'column'
-
-export interface Flex {
-  display: 'flex' | 'inline-flex'
-  'flex-direction': Direction
-}
-
-export type FlexOptions = { direction?: Direction; inline?: boolean }
-
 export type Operator = '+' | '-' | '*' | '/'
 
 export type Position = 'absolute' | 'fixed'
