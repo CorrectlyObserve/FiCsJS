@@ -5,17 +5,18 @@ import { white } from '@/styles/theme'
 interface Props {
   svg: string
   ariaLabel: string
+  isDisabled?: boolean
+  state?: 'pressed' | 'expanded'
   isPressed?: boolean
   isExpanded?: boolean
   isDraggable?: boolean
-  isDisabled?: boolean
   isFocused?: boolean
   color?: string
   click?: (event: MouseEvent) => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { ariaLabel, svg, isPressed, isExpanded, isDraggable, isDisabled },
+  props: { svg, ariaLabel: label, isDisabled, state, isDraggable },
   template,
   unsafeHtml,
   attributes: {
