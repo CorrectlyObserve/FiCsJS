@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { flexCenter, forScreenReaders, size } from 'ficsjs/style'
+import { flex, forScreenReaders, size } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import type { Task } from '@/domain/task'
 import {
@@ -203,10 +203,7 @@ const css: FiCs.Css<Data, Props> = `
   p {${forScreenReaders}}
 
   div {
-    &.row {
-      ${flexCenter('y')}
-      gap: ${size(1)};
-    }
+    &.row { ${flex({ center: 'y', gap: size(1) })} }
 
     &[popover] {
       position-anchor: auto;
