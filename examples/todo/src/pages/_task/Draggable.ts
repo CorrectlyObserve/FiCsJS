@@ -200,7 +200,7 @@ const html: FiCs.Html<Data, Props> = ({
 }
 
 const css: FiCs.Css<Data, Props> = `
-  p {${forScreenReaders}}
+  p { ${forScreenReaders} }
 
   div {
     &.row { ${flex({ center: 'y', gap: size(1) })} }
