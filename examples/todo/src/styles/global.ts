@@ -1,5 +1,5 @@
 import type { FiCs } from 'ficsjs'
-import { calc, cssVar, oklch, size, textSize } from 'ficsjs/style'
+import { calc, cssVar, flex, oklch, size, textSize } from 'ficsjs/style'
 import { breakpoints, columnWidth, headerHeight, white } from '@/styles/theme'
 
 const outline = `${cssVar('outline')} solid ${white()}` as const
@@ -19,11 +19,10 @@ export const documentCss: string = `
   }
 
   body {
+    ${flex({ direction: 'column' })}
+    min-height: 100dvh;
     background: var(--black);
     margin: 0;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
   }
 `
 
