@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flexCenter, size } from 'ficsjs/style'
+import { cssVar, flex, size } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import { createTaskPath } from '@/domain/path'
@@ -44,6 +44,7 @@ const html: FiCs.Html<{}, Props> = ({
   })}
 `
 
-const css: FiCs.Css<{}, Props> = `:host { ${flexCenter('y')}; gap: ${size(1)}; flex: 1; min-width: 0; }`
+const css: FiCs.Css<{}, Props> =
+  `:host { ${flex({ center: 'y', gap: size(1) })}; flex: 1; min-width: 0; }`
 
 export default fics<{}, Props>({ name: 'row', children: [Icon(), Link()], props, html, css })
