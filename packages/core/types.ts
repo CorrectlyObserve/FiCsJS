@@ -38,6 +38,8 @@ export declare namespace Action {
 export declare namespace Attr {
   type AriaCurrent = 'page' | 'step' | 'location' | 'date' | 'time'
 
+  type AriaState = 'checked' | 'pressed' | 'selected'
+
   type Entry = readonly [string, string]
 
   type Input<D extends object, P> =
