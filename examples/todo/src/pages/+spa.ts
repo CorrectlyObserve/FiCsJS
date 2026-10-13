@@ -1,5 +1,5 @@
 import type { FiCsRouter } from 'ficsjs/router'
-import { cssVar, flexCenter, oklch, size } from 'ficsjs/style'
+import { cssVar, flex, oklch, size } from 'ficsjs/style'
 import { $lang, type Lang } from '@/domain/lang'
 import { parseTaskPath, type TaskPath } from '@/domain/path'
 import TaskList from '@/pages/_task/List'
@@ -78,10 +78,9 @@ const props: FiCsRouter.Props<Data> = [
 
 const css: FiCsRouter.Css<Data> = `
   main {
-    ${flexCenter('x')}
+    ${flex({ center: 'x', gap: size(8) })}
     flex-grow: 1;
     container-type: inline-size;
-    gap: ${size(8)};
     width: 100%;
     padding-block: ${size(8)};
 
