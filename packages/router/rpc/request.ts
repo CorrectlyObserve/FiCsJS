@@ -149,7 +149,7 @@ export const sendRequest = async ({
       if (error instanceof Response && rpcError.denied) {
         const denial: Routing.Denial = {
           code: error.status as Routing.Status.DenialCode,
-          ...(rpcError.redirect ? { redirect: rpcError.redirect } : {})
+          ...(rpcError.redirect && { redirect: rpcError.redirect })
         }
 
         onDeny ? onDeny(denial) : showStatus(denial.code)
