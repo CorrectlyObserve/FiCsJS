@@ -33,7 +33,7 @@ export const vitePlugin = (
       entry = generateEntryHtml({ root, output, title, viewTransition })
       return {
         resolve: { alias: { [c.ALIAS]: ficsDir } },
-        ...(entry ? { build: { rollupOptions: { input: entry } } } : {})
+        ...(entry && { build: { rollupOptions: { input: entry } } })
       }
     },
     configResolved(resolved: { root: string; build: { outDir: string } }): void {
