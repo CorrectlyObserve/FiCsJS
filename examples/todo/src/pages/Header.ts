@@ -37,8 +37,8 @@ const html: FiCs.Html<Data, {}> = ({
           ${langs.map(
             _lang => template`
               ${button.setIndividualProps(_lang, {
+                state: lang === _lang ? 'pressed' : undefined,
                 type: lang === _lang ? 'selected' : undefined,
-                isPressed: lang === _lang,
                 buttonText: _lang.toUpperCase(),
                 click: () => {
                   $lang.set(_lang)
