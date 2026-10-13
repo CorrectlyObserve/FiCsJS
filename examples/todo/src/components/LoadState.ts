@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
-import { forScreenReaders, rect, size } from 'ficsjs/style'
+import { flex, forScreenReaders, rect, size } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { white } from '@/styles/theme'
 import { Loader } from 'lucide-static'
@@ -56,10 +56,7 @@ const css: FiCs.Css<{}, Props> = `
   }
 
   .error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: ${size(4)};
+    ${flex({ direction: 'column', gap: size(4) })}
     padding-block: ${size(8)};
   }
 `
