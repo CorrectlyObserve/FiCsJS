@@ -14,7 +14,7 @@ export function respond(
     status: arg.status,
     headers: {
       [CONTENT_TYPE]: 'text/html; charset=utf-8',
-      ...(arg.noStore ? { 'cache-control': 'no-store' } : {})
+      ...(arg.noStore && { 'cache-control': 'no-store' })
     }
   })
 }
