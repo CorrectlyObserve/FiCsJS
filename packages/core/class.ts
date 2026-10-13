@@ -867,9 +867,51 @@ export class FiCsElement<D extends object, P extends object> {
         unsafeHtml: (str: string): Record<symbol, string> => ({ [symbols.UNSAFE_HTML]: str }),
         activeApis: Object.fromEntries(this.#activeApis),
         attributes: {
-          a11y,
+          a11y: {
+            ...a11y,
+            ariaLabel: (label: string): string => label && `aria-label="${label}"`,
+            ariaState: <T extends Attr.AriaState>({
+              state,
+              isActive,
+              isMixed,
+              options
+            }: {
+              state: T
+              isActive?: boolean
+              isMixed?: T extends 'checked' | 'pressed' ? boolean : never
+              options?: T extends 'checked'
+                ? { invalid?: boolean; required?: boolean }
+                : T extends 'selected'
+                  ? { expanded?: boolean }
+                  : never
+            }) => {
+              if (isActive === undefined && !isMixed) return ''
+
+              let attr: string = `aria-${state}="${isMixed ? 'mixed' : isActive}"`
+
+              for (const [key, value] of typedEntries(options ?? {}))
+                if (typeof key === 'string' && value !== undefined)
+                  attr += ` aria-${key}="${value}"`
+
+              return attr
+            },
+            current: ({
+              type,
+              isCurrent
+            }: {
+              type?: Attr.AriaCurrent
+              isCurrent?: boolean
+            }): string => (isCurrent && `aria-current="${type ?? isCurrent}"`) || '',
+            expanded: (isExpanded?: boolean): string =>
+              (isExpanded !== undefined && `aria-expanded="${isExpanded}"`) || '',
+            invalid: (isInvalid?: boolean): string =>
+              (isInvalid !== undefined && `aria-invalid="${isInvalid}"`) || '',
+            required: (isRequired?: boolean): string =>
+              (isRequired !== undefined && `aria-required="${isRequired}"`) || ''
+          },
           boolean: (condition: boolean | undefined): 'true' | 'false' =>
             condition ? 'true' : 'false',
+          disabled: (isDisabled?: boolean): string => (isDisabled && 'disabled') || '',
           formAnchor: attrs.FORM_ANCHOR,
           show: (condition: boolean): string => (!condition && attrs.SHOW) || ''
         },
