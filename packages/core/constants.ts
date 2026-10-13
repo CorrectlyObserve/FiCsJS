@@ -3,7 +3,7 @@ export const ANNOUNCING_ROLES: ReadonlySet<string> = new Set(['alert', 'log', 's
 export const attrs = {
   FICS_ID: 'fics-id',
   FORM_ANCHOR: 'fics-form-anchor',
-  SHOW: 'fics-show-syntax'
+  HIDDEN: 'fics-hidden-syntax'
 } as const
 
 export const BOOLEAN_ATTRS: ReadonlySet<string> = new Set([
