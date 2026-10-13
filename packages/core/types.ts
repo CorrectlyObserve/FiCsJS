@@ -288,8 +288,25 @@ export declare namespace Html {
     unsafeHtml: (str: string) => Record<symbol, string>
     activeApis: Record<string, boolean>
     attributes: {
-      a11y: typeof a11y
+      a11y: typeof a11y & {
+        ariaLabel: (label: string) => string
+        ariaState: <T extends Attr.AriaState>(ctx: {
+          state: T
+          isActive?: boolean
+          isMixed?: T extends 'checked' | 'pressed' ? boolean : never
+          options?: T extends 'checked'
+            ? { invalid?: boolean; required?: boolean }
+            : T extends 'selected'
+              ? { expanded?: boolean }
+              : never
+        }) => string
+        current: (ctx: { type?: Attr.AriaCurrent; isCurrent?: boolean }) => string
+        expanded: (isExpanded?: boolean) => string
+        invalid: (isInvalid?: boolean) => string
+        required: (isRequired?: boolean) => string
+      }
       boolean: (condition: boolean | undefined) => 'true' | 'false'
+      disabled: (isDisabled?: boolean) => string
       formAnchor: typeof attrs.FORM_ANCHOR
       show: (condition: boolean) => string
     }
