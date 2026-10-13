@@ -69,7 +69,7 @@ export const respondDenial = ({
 
   /** @remarks The key `error` is for the toRpcError function. */
   const serialized: string = JSON.stringify({
-      error: { denied: true, ...(redirect ? { redirect } : {}) }
+      error: { denied: true, ...(redirect && { redirect }) }
     }),
     _isHeadMethod: boolean = isHeadMethod(method)
 
