@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flexCenter, size } from 'ficsjs/style'
+import { cssVar, flex, size } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { MENU_ID, type ButtonStates, type Direction, type ReorderLabels } from '@/pages/_task/drag'
 import { white } from '@/styles/theme'
@@ -36,8 +36,7 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = `
   :host {
-    ${flexCenter('y')}
-    gap: ${size(1)};
+    ${flex({ center: 'y', gap: size(1) })}
     background: ${cssVar('black')};
     border: ${cssVar('outline')} solid ${white(0.2)};
     border-radius: ${size(2)};
