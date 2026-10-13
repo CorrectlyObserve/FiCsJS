@@ -61,7 +61,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
         &:not(:empty) { margin-block-end: ${size(2)}; }
       }
 
-      &:last-of-type {${forScreenReaders}}
+      &:last-of-type { ${forScreenReaders} }
     }
 
     ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
