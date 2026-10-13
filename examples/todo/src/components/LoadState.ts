@@ -45,12 +45,12 @@ const css: FiCs.Css<{}, Props> = `
 
     > div {
       padding: ${size(2)};
-      margin-inline: auto;
+      text-align: center;
 
       svg {
-        ${rect(16)}${spin()}
-        display: flex;
-        stroke: ${white()};
+        ${rect(16)}
+        ${spin()}
+        stroke: ${white()}
       }
     }
   }
