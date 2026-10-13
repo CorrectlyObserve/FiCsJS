@@ -1,7 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
-import { cssVar, flexCenter, positionCenter, size, textSize } from 'ficsjs/style'
+import { cssVar, flex, positionCenter, size, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
 import { breakpoints, headerHeight } from '@/styles/theme'
@@ -64,11 +64,11 @@ const css: FiCs.Css<Data, {}> = `
     z-index: 10;
 
     header {
-      ${flexCenter('xy')}
+      ${flex({ center: 'xy' })}
       position: relative;
 
       h1 {
-        ${flexCenter('y')}
+        ${flex({ center: 'y' })}
         ${textSize('2xl')}
         height: ${headerHeight};
         background: ${cssVar('gradation')};
@@ -92,11 +92,10 @@ const css: FiCs.Css<Data, {}> = `
         }
 
         .langs {
+          ${flex({ gap: size(1) })}
           ${fade(cssVar('transition'))}
           position: absolute;
           right: 0;
-          display: flex;
-          gap: ${size(1)};
           margin-block-start: ${size(1)};
         }
       }
