@@ -25,8 +25,8 @@ const html: FiCs.Html<{}, Props> = ({
       ${icon.setIndividualProps(button, {
         svg: SVGS[button],
         ariaLabel: labels[button],
-        isPressed: isCopyButton ? isCopyMode : undefined,
         isDisabled: buttonStates[button] === 'disabled',
+        state: isCopyButton && isCopyMode ? 'pressed' : undefined,
         isFocused: buttonStates[button] === 'focused',
         click: () => (isCopyButton ? switchCopyMode() : move(button))
       })}
