@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { forScreenReaders, size } from 'ficsjs/style'
+import { flex, forScreenReaders, size } from 'ficsjs/style'
 import Button from '@/components/Button'
 import LoadState from '@/components/LoadState'
 import type { Lang } from '@/domain/lang'
@@ -76,11 +76,7 @@ const css: FiCs.Css<Data, Props> = `
     }
   }
 
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: ${size(4)};
-  }
+  div { ${flex({ direction: 'column', gap: size(4) })} }
 `
 
 const hooks: FiCs.Hooks<Data, Props> = {
