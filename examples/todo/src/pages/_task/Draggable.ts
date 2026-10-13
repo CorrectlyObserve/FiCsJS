@@ -183,7 +183,7 @@ const html: FiCs.Html<Data, Props> = ({
           <div class="row" role="listitem" key="${index}-row">
             <div class="handle" key="${index}-handle">
               ${icon.setIndividualProps(index, {
-                isExpanded: menuIndex === index,
+                state: menuIndex === index ? 'expanded' : undefined,
                 click: (event: MouseEvent) => {
                   if ((event as PointerEvent).pointerType === 'mouse') return
                   data.menuIndex = data.menuIndex === index ? NaN : index
