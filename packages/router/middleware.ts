@@ -8,7 +8,7 @@ export const deny = ({ code, redirect }: Partial<Routing.Denial> = {}): Routing.
   if (!codes.includes(_code))
     throw new Error(`The middleware denial code ${_code} must be one of ${codes.join(', ')}...`)
 
-  return { code: _code, ...(redirect ? { redirect } : {}) }
+  return { code: _code, ...(redirect && { redirect }) }
 }
 
 export const resolveMiddlewares = async <C>(
