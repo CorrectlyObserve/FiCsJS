@@ -91,7 +91,7 @@ const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { button } }) => button,
     values: ({ data }) => ({
-      isPressed: data.isShown,
+      state: data.isShown ? 'pressed' : undefined,
       svg: data.isShown ? SquareCheck : Square,
       buttonText: data.check,
       click: () => (data.isShown = !data.isShown)
