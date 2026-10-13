@@ -311,7 +311,7 @@ export declare namespace Html {
       }
       disabled: (isDisabled?: boolean) => string
       formAnchor: typeof attrs.FORM_ANCHOR
-      show: (condition: boolean) => string
+      show: (isShown: boolean) => string
     }
   }
 
