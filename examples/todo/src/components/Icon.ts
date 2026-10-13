@@ -18,14 +18,17 @@ const html: FiCs.Html<{}, Props> = ({
   props: { ariaLabel, svg, isPressed, isExpanded, isDraggable, isDisabled },
   template,
   unsafeHtml,
-  attributes: { boolean }
+  attributes: {
+    a11y: { ariaLabel, ariaState, expanded },
+    disabled
+  }
 }) => template`
   <button
-    aria-label="${ariaLabel}"
-    ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
-    ${isExpanded === undefined ? '' : `aria-expanded="${boolean(isExpanded)}"`}
+    ${ariaLabel(label)}
+    ${disabled(isDisabled)}
+    ${ariaState({ state: 'pressed', isActive: state === 'pressed' })}
+    ${expanded(state === 'expanded')}
     ${isDraggable && 'draggable="true"'}
-    ${isDisabled && 'disabled'}
     type="button"
   >${unsafeHtml(svg)}</button>
 `
