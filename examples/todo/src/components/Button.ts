@@ -4,9 +4,8 @@ import { white } from '@/styles/theme'
 
 interface Props {
   isDisabled?: boolean
-  isPressed?: boolean
+  state?: 'pressed' | 'expanded'
   type?: 'gradation' | 'selected' | 'delete'
-  isExpanded?: boolean
   svg?: string
   fixedUnit?: number
   buttonText: string
@@ -14,7 +13,7 @@ interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { isDisabled, isPressed, isExpanded, type, svg, buttonText },
+  props: { isDisabled, state, type, svg, buttonText },
   template,
   unsafeHtml,
   attributes: {
