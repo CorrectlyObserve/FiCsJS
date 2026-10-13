@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flexCenter, forScreenReaders, size, textSize } from 'ficsjs/style'
+import { cssVar, flex, forScreenReaders, size, textSize } from 'ficsjs/style'
 
 interface Data {
   isComposing: boolean
@@ -48,7 +48,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
   div {
-    ${flexCenter('x', { direction: 'column' })}
+    ${flex({ direction: 'column' })}
 
     label { padding-block-end: ${size(2)}; }
 
