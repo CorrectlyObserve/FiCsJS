@@ -94,6 +94,6 @@ export const resolveMeta = ({
   status: Routing.Status.Resolved
 }): Record<string, string> => ({
   ...defaultMeta,
-  ...(isStatusOk(status) ? {} : STATUS_PAGE_META),
+  ...(!isStatusOk(status) && STATUS_PAGE_META),
   ...(typeof meta === 'function' ? meta({ status }) : meta)
 })
