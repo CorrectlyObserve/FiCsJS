@@ -176,7 +176,7 @@ const css: FiCs.Css<Data, Props> = `
         ${flex({ center: 'y', gap: size(1) })}
         width: 100%;
 
-        .input { flex: 1; min-width: 0; }
+        .input { width: 100%; }
       }
     }
 
