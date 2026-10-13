@@ -911,7 +911,7 @@ export class FiCsElement<D extends object, P extends object> {
           },
           disabled: (isDisabled?: boolean): string => (isDisabled && 'disabled') || '',
           formAnchor: attrs.FORM_ANCHOR,
-          show: (condition: boolean): string => (!condition && attrs.SHOW) || ''
+          show: (isShown: boolean): string => (!isShown && attrs.HIDDEN) || ''
         },
         isBrowser: this.#isBrowser,
         form: this.#formAssociation,
@@ -1000,7 +1000,7 @@ export class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(attrs.SHOW)) {
+          if (childNode.hasAttribute(attrs.HIDDEN)) {
             const ariaLive: string = childNode.getAttribute('aria-live') ?? '',
               role: string = childNode.getAttribute('role') ?? '',
               announcingAttr: string =
@@ -1013,7 +1013,7 @@ export class FiCsElement<D extends object, P extends object> {
               )
 
             ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(attrs.SHOW)
+            childNode.removeAttribute(attrs.HIDDEN)
           }
         }
 
