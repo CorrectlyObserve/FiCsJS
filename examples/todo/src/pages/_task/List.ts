@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { flexCenter, size } from 'ficsjs/style'
+import { flex, size } from 'ficsjs/style'
 import LoadState from '@/components/LoadState'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -169,13 +169,11 @@ const css: FiCs.Css<Data, Props> = `
     max-width: calc(100cqi - ${size(8)});
 
     > div {
-      ${flexCenter('y', { direction: 'column' })}
-      gap: ${size(4)};
+      ${flex({ center: 'y', direction: 'column', gap: size(4) })}
       margin-block-end: ${size(2)};
 
       > div {
-        ${flexCenter('y')}
-        gap: ${size(1)};
+        ${flex({ center: 'y', gap: size(1) })}
         width: 100%;
 
         .input { flex: 1; min-width: 0; }
