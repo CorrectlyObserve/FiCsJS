@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, oklch, rect, size, textSize } from 'ficsjs/style'
+import { cssVar, flex, oklch, rect, size, textSize } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
@@ -84,12 +84,10 @@ const css: FiCs.Css<{}, Props> = ({ props: { fixedUnit } }) => `
       }
 
       &:has(span) {
-        display: inline-flex;
-        align-items: center;
-        gap: ${size(2)};
+        ${flex({ inline: true, center: 'y', gap: size(2) })}
         padding-block: ${size(3)};
 
-        svg { ${rect(6)}; display: flex; }
+        svg { ${flex()} ${rect(6)} }
       }
     }
   }
