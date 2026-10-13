@@ -46,7 +46,7 @@ export const vitePlugin = (
       if (entry === null) return NOOP
 
       /**
-       * @remarks 
+       * @remarks
        * Returns a middleware to run between Vite's htmlFallbackMiddleware and indexHtmlMiddleware,
        * catching rewritten deep links before they 404.
        */
