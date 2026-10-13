@@ -41,7 +41,7 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = `
   .loading {
-    > p {${forScreenReaders}}
+    > p { ${forScreenReaders} }
 
     > div {
       padding: ${size(2)};
