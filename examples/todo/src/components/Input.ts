@@ -23,8 +23,7 @@ const html: FiCs.Html<Data, Props> = ({
   props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
   template,
   attributes: {
-    a11y: { statusLiveRegion },
-    boolean
+    a11y: { ariaLabel, invalid, statusLiveRegion }
   }
 }) => {
   const hasError = !!(isError && error)
@@ -37,9 +36,9 @@ const html: FiCs.Html<Data, Props> = ({
         id="${id}"
         value="${value}"
         placeholder="${placeholder}"
-        ${isAriaLabel && `aria-label="${label}"`}
+        ${isAriaLabel && ariaLabel(label)}
         aria-describedby="${[`${id}-info`, hasError && `${id}-error`].filter(Boolean).join(' ')}"
-        aria-invalid="${boolean(hasError)}"
+        ${invalid(hasError)}
         ${hasError && `aria-errormessage="${id}-error"`}
         type="text"
       />
