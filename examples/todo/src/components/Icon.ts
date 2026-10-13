@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, rect, size } from 'ficsjs/style'
+import { cssVar, flex, rect, size } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
@@ -47,8 +47,8 @@ const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
     &[disabled] { color: ${white(0.2)}; cursor: not-allowed; }
 
     svg {
+      ${flex()}
       ${rect(8)}
-      display: flex;
       stroke: currentColor;
     }
   }
