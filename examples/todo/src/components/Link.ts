@@ -1,5 +1,5 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
-import { forScreenReaders, size, truncate } from 'ficsjs/style'
+import { flex, forScreenReaders, size, truncate } from 'ficsjs/style'
 import { white } from '@/styles/theme'
 
 interface Props {
@@ -22,7 +22,7 @@ const css: FiCsLink.Css<Props> = `
     min-width: 0;
 
     a {
-      display: flex;
+      ${flex()}
       color: ${white()};
       padding: ${size(4)};
       line-height: 1;
