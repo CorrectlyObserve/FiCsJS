@@ -1,4 +1,4 @@
-export { flexCenter } from './flexCenter'
+export { flex } from './flex'
 export { forScreenReaders } from './forScreenReaders'
 export { oklch } from './oklch'
 export { calc, cssVar, hideScrollbar, remToPx } from './others'
