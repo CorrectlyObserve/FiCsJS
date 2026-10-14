@@ -19,8 +19,10 @@ export const ficsLink = <P extends object>({
   actions: _actions
 }: FiCsLink<P>): FiCsElement<{}, P> => {
   const html: FiCs.Html<{}, P> = ({ data, props, deferredStates, template, ...args }) => {
-      const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
-      if (isBlankString(_href)) throw new Error('The "href" must be a non-empty string...')
+      const resolvedHref: unknown = typeof href === 'function' ? href({ props }) : href
+
+      if (typeof resolvedHref !== 'string' || isBlankString(resolvedHref))
+        throw new Error('The "href" must be a non-empty string...')
 
       let anchorAttrsStr: string = ''
 
@@ -45,7 +47,7 @@ export const ficsLink = <P extends object>({
 
       const _content: Returned<{}, P> = content({ data, props, deferredStates, template, ...args })
       return template`
-        <a ${[`href="${_href}"`, anchorAttrsStr].filter(Boolean).join(' ')}>
+        <a ${[`href="${resolvedHref.trim()}"`, anchorAttrsStr].filter(Boolean).join(' ')}>
           ${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}
         </a>
       `
