@@ -1,13 +1,24 @@
 import type { FiCs } from 'ficsjs'
-import { calc, cssVar, flex, oklch, size, textSize } from 'ficsjs/style'
-import { breakpoints, columnWidth, headerHeight, white } from '@/styles/theme'
-
-const outline = `${cssVar('outline')} solid ${white()}` as const
+import {
+  calc,
+  color,
+  documentCss as ficsDocumentCss,
+  flex,
+  interactive,
+  layout,
+  motion,
+  oklch,
+  radius,
+  space,
+  stroke,
+  tapSize,
+  textSize
+} from 'ficsjs/style'
 
 export const documentCss: string = `
   :root {
     color-scheme: dark;
-    scroll-padding-block-start: ${calc(`${headerHeight} + ${size(2)}`)};
+    scroll-padding-block-start: ${calc(`${headerHeight} + ${space('sm')}`)};
 
     --black: ${oklch('#010107')};
     --red: ${oklch('#d14344')};
@@ -46,7 +57,7 @@ export const globalCss: FiCs.GlobalCss = `
 
   h2 {
     ${textSize('xl')}
-    margin-block-end: ${size(8)};
+    margin-block-end: ${space('lg')};
 
     @media (max-width: ${breakpoints.SM}) { margin-block-end: ${size(6)}; }
   }
