@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color, flex, forScreenReaders, space, textSize } from 'ficsjs/style'
+import { color, flex, forScreenReaders, space, tapSize, textSize } from 'ficsjs/style'
 
 interface Data {
   isComposing: boolean
@@ -64,7 +64,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
       &:last-of-type { ${forScreenReaders} }
     }
 
-    ${isError && error ? `input { border-color: ${cssVar('red')}; }` : ''}
+    input { height: ${tapSize()}; }
   }
 `
 
