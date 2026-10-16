@@ -47,7 +47,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
     text-align: center;
 
     button {
-      ${textSize('base', true)}
+      ${textSize('md', true)}
       ${fixedUnit ? `width: ${size(fixedUnit)};` : ''}
       min-width: ${size(16)};
       padding: ${size(4)};
