@@ -36,6 +36,8 @@ export const remToPx = (rem: number | string): Readonly<number> => {
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
 
+export const toRem = (unit: number) => `${unit * 0.25}rem` as const
+
 export const toVar = ({
   name,
   value,
