@@ -1,12 +1,11 @@
 import type { FiCsRouter } from 'ficsjs/router'
-import { cssVar, flex, oklch, size } from 'ficsjs/style'
+import { calc, color, flex, layout, size, space } from 'ficsjs/style'
 import { $lang, type Lang } from '@/domain/lang'
 import { parseTaskPath, type TaskPath } from '@/domain/path'
 import TaskList from '@/pages/_task/List'
 import TaskDetail from '@/pages/_task/Details'
 import NotFound from '@/pages/NotFound'
 import { getAllTasks, getTask, type Task as TaskType } from '@/domain/task'
-import { breakpoints } from '@/styles/theme'
 
 export interface Data {
   lang: Lang
@@ -78,20 +77,19 @@ const props: FiCsRouter.Props<Data> = [
 
 const css: FiCsRouter.Css<Data> = `
   main {
-    ${flex({ center: 'x', gap: size(8) })}
+    ${flex({ center: 'x', gap: space('lg') })}
     flex-grow: 1;
     container-type: inline-size;
     width: 100%;
-    padding-block: ${size(8)};
+    padding-block: ${space('lg')} ${calc(`${space('lg')} + ${space('md-')}`)};
 
-    @container (width >= ${breakpoints.LG}) {
+    @container ${layout('expanded')} {
       .task-list + .task-details {
-        padding-inline-start: ${size(8)};
-        box-shadow: ${size(-2)} 0px ${size(2)} ${size(-2)} ${oklch(cssVar('black'), { darker: 0.3 })};
+        padding-inline-start: ${space('lg')};
       }
     }
 
-    @media (max-width: ${breakpoints.SM}) { padding-block: ${size(4)}; }
+    @container not ${layout('expanded')} { padding-block-start: ${space('md')}; }
   }
 `
 
