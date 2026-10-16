@@ -14,4 +14,4 @@ const EASING: string = toVar({ name: 'motion', scale: 'easing', value: 'ease-out
     )
   )
 
-export const motion = (scale: keyof typeof MOTIONS): string => MOTIONS[scale]
+export const motion = (scale: keyof typeof MOTIONS = 'normal'): string => MOTIONS[scale]
