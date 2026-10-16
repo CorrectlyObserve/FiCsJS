@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flex, forScreenReaders, size, textSize } from 'ficsjs/style'
+import { color, flex, forScreenReaders, space, textSize } from 'ficsjs/style'
 
 interface Data {
   isComposing: boolean
@@ -50,7 +50,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
   div {
     ${flex({ direction: 'column' })}
 
-    label { padding-block-end: ${size(2)}; }
+    label { padding-block-end: ${space('sm')}; }
 
     p {
       &:first-of-type {
@@ -58,7 +58,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
         color: ${cssVar('red')};
         text-align: left;
 
-        &:not(:empty) { margin-block-end: ${size(2)}; }
+        &:not(:empty) { margin-block-end: ${space('sm')}; }
       }
 
       &:last-of-type { ${forScreenReaders} }
