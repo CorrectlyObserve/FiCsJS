@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { flex, size } from 'ficsjs/style'
+import { flex, space } from 'ficsjs/style'
 import LoadState from '@/components/LoadState'
 import Input from '@/components/Input'
 import Textarea from '@/components/Textarea'
@@ -152,26 +152,26 @@ const html: FiCs.Html<Data, Props> = ({
 const css: FiCs.Css<Data, Props> = `
   :host > div {
     width: ${columnWidth};
-    max-width: calc(100cqi - ${size(8)});
+    max-width: calc(100cqi - ${space('lg')});
     margin-inline: auto;
 
     fieldset {
       ${flex({ direction: 'column' })}
-      margin-block-end: ${size(4)};
+      margin-block-end: ${space('md')};
       border: 0;
 
-      legend { padding-block-end: ${size(2)}; }
+      legend { padding-block-end: ${space('sm')}; }
       div { ${flex({ center: 'y' })} }
     }
 
     p {
-      margin-block-end: ${size(2)};
+      margin-block-end: ${space('sm')};
       text-align: left;
 
-      &:last-of-type { margin-block-end: ${size(8)}; }
+      &:last-of-type { margin-block-end: ${space('lg')}; }
     }
 
-    > div { ${flex({ direction: 'column', gap: size(2) })} }
+    > div { ${flex({ direction: 'column', gap: space('sm') })} }
   }
 `
 
