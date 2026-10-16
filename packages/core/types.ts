@@ -13,6 +13,8 @@ export declare namespace Action {
 
   type Entry<D extends object, P> = Method<D, P> | [Method<D, P>, Options]
 
+  type Handlers<D extends object, P> = Record<string, Record<string, Entry<D, P>>>
+
   type Method<D extends object, P> = (
     ctx: DataProps.Payload<D, P, true> & {
       ref: (selector: string) => Element | null
