@@ -1,10 +1,9 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { flex, forScreenReaders, size } from 'ficsjs/style'
+import { flex, forScreenReaders, layout, space } from 'ficsjs/style'
 import Button from '@/components/Button'
 import LoadState from '@/components/LoadState'
 import type { Lang } from '@/domain/lang'
-import { breakpoints } from '@/styles/theme'
 
 interface Data {
   seconds: number
@@ -71,12 +70,13 @@ const css: FiCs.Css<Data, Props> = `
     &[role="status"] { ${forScreenReaders} }
 
     &[aria-hidden="true"] {
-      margin-block-end: ${size(8)};
-      @media (max-width: ${breakpoints.SM}) { margin-block-end: ${size(6)}; }
+      margin-block-end: ${space('lg')};
+
+      @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
     }
   }
 
-  div { ${flex({ direction: 'column', gap: size(4) })} }
+  div { ${flex({ direction: 'column', gap: space('md') })} }
 `
 
 const hooks: FiCs.Hooks<Data, Props> = {
