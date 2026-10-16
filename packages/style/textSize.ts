@@ -1,53 +1,53 @@
-import { cssObject } from '../core/helpers'
-import type { TextSize } from './types'
+import { cssObject, typedFromEntries } from '../core/helpers'
+import { toVar } from './others'
 
-export const textSize = (size: TextSize, isLineHeightNone?: boolean) => {
-  let fontSize: string, lineHeight: string
+const BASE_SIZES = {
+    xs: ['0.75rem', '1.25rem'],
+    sm: ['0.875rem', '1.375rem'],
+    md: ['1rem', '1.5rem'],
+    lg: ['1.25rem', '1.75rem'],
+    xl: ['1.5rem', '2rem'],
+    '2xl': ['2rem', '2.5rem'],
+    '3xl': ['2.5rem', '3rem']
+  } as const,
+  PROPS = ['font-size', 'line-height'] as const
 
-  switch (size) {
-    case 'xs':
-      fontSize = '0.75rem'
-      lineHeight = '1.25rem'
-      break
+const createCss = (values: readonly string[]) =>
+  typedFromEntries(PROPS.map((name, i) => [name, values[i]] as const))
 
-    case 'sm':
-      fontSize = '0.875rem'
-      lineHeight = '1.375rem'
-      break
+const SIZES = typedFromEntries(
+  (Object.keys(BASE_SIZES) as (keyof typeof BASE_SIZES)[]).flatMap(scale => {
+    const [fontSize, lineHeight] = PROPS.map((name, i) =>
+        toVar({ name, scale, value: BASE_SIZES[scale][i] })
+      ),
+      entries: [keyof typeof BASE_SIZES | 'md-' | 'md+', ReturnType<typeof createCss>][] = [
+        [scale, createCss([fontSize, lineHeight])]
+      ]
 
-    case 'ui':
-      fontSize = '0.9375rem'
-      lineHeight = '1.5rem'
-      break
+    if (scale === 'md')
+      entries.push(
+        [`${scale}-`, createCss([`calc(${fontSize} * 0.9375)`, lineHeight])],
+        [`${scale}+`, createCss([`calc(${fontSize} * 1.125)`, `calc(${lineHeight} + 0.25rem)`])]
+      )
 
-    case 'base':
-      fontSize = '1rem'
-      lineHeight = '1.5rem'
-      break
+    return entries
+  })
+)
 
-    case 'lg':
-      fontSize = '1.125rem'
-      lineHeight = '1.75rem'
-      break
-
-    case 'xl':
-      fontSize = '1.5rem'
-      lineHeight = '2rem'
-      break
-
-    case '2xl':
-      fontSize = '2rem'
-      lineHeight = '2.5rem'
-      break
-
-    case '3xl':
-      fontSize = '2.5rem'
-      lineHeight = '3rem'
-      break
-  }
-
-  return cssObject({
-    'font-size': fontSize,
-    'line-height': isLineHeightNone ? 1 : lineHeight
-  } as const)
-}
+/**
+ * @remarks
+ * The defaults as font-size / line-height, each overridable through --fics-font-size-<scale> and
+ * --fics-line-height-<scale>; md- and md+ follow md:
+ *
+ * - xs: 0.75rem / 1.25rem
+ * - sm: 0.875rem / 1.375rem
+ * - md-: 0.9375rem / 1.5rem
+ * - md: 1rem / 1.5rem
+ * - md+: 1.125rem / 1.75rem
+ * - lg: 1.25rem / 1.75rem
+ * - xl: 1.5rem / 2rem
+ * - 2xl: 2rem / 2.5rem
+ * - 3xl: 2.5rem / 3rem
+ */
+export const textSize = (scale: keyof typeof SIZES, isLineHeightNone?: boolean) =>
+  cssObject(isLineHeightNone ? { ...SIZES[scale], [PROPS[1]]: 1 } : SIZES[scale])
