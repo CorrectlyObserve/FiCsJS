@@ -8,7 +8,7 @@ const origin: string | undefined = process.env.ORIGIN
 await prerender(pages, {
   render,
   createContext: () => ({ queryCache: createQueryCache() }),
-  outDir: 'static',
+  outDir: 'dist',
   viewTransition: true,
   ...(origin ? { origin, sitemap: true } : {})
 })
