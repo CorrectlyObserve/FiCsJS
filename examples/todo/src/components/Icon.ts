@@ -34,8 +34,7 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
   button {
-    color: ${color ?? white()};
-    padding: ${size(2)};
+    ${flex({ center: 'xy' })};
 
     &:focus-visible { outline-color: currentColor; }
     
