@@ -42,7 +42,7 @@ export const globalCss: FiCs.GlobalCss = `
 
   h2, p, button, label, legend, input, textarea, span { color: ${white()}; }
   h2, p, button { text-align: center; }
-  p, label, legend, input, textarea { ${textSize('base')} }
+  p, label, legend, input, textarea { ${textSize('md')} }
 
   button, input, textarea {
     transition: ${cssVar('transition')};
