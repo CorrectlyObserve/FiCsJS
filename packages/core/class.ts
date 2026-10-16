@@ -1154,22 +1154,26 @@ export class FiCsElement<D extends object, P extends object> {
           newStartNode: ChildNode = newChildNodes[newStartIndex],
           newEndNode: ChildNode = newChildNodes[newEndIndex]
 
-        const keys: Set<string> = new Set()
+        const keys: Set<string> = new Set(),
+          isSameShape: boolean =
+            oldChildNodes.length === newChildNodes.length &&
+            newChildNodes.every(({ nodeName }, index) => nodeName === oldChildNodes[index].nodeName)
 
         for (const newChildNode of newChildNodes) {
           if (!isElement(newChildNode)) continue
 
           const { localName }: { localName: string } = newChildNode,
-            key: string = getKey(newChildNode) ?? localName
+            key: string = getKey(newChildNode) ?? localName,
+            hasKey: boolean = newChildNode.hasAttribute('key')
 
-          if (keys.has(key))
+          if (!keys.has(key)) keys.add(key)
+          else if (hasKey || !isSameShape)
             console.warn(
-              (newChildNode.hasAttribute('key')
+              (hasKey
                 ? `The key "${key}" in multiple ${localName} elements are duplicated.`
                 : `There are multiple ${localName} elements that don't have keys.`) +
                 ' therefore, the difference detection might not be working correctly...'
             )
-          else keys.add(key)
         }
 
         const dom: Map<string, ChildNode[]> = new Map(),
