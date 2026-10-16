@@ -1,7 +1,7 @@
 export { flex } from './flex'
 export { forScreenReaders } from './forScreenReaders'
 export { oklch } from './oklch'
-export { calc, cssVar, hideScrollbar, remToPx } from './others'
+export { calc, cssVar, hideScrollbar, layout, remToPx } from './others'
 export { positionCenter } from './positionCenter'
 export { circle, rect, size } from './size'
 export { textSize } from './textSize'
