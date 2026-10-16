@@ -1,5 +1,5 @@
 import type {
-  Action,
+  Action as _Action,
   Attr,
   ClassName as _ClassName,
   Css,
@@ -15,7 +15,9 @@ import type {
 } from './types'
 
 export declare namespace FiCs {
-  type Actions<D extends object, P> = Action.Handlers<D, P> | undefined
+  type Action<D extends object, P> = _Action.Entry<D, P>
+
+  type Actions<D extends object, P> = _Action.Handlers<D, P> | undefined
 
   type Attributes<D extends object, P> = Attr.Input<D, P> | undefined
 
