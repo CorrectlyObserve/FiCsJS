@@ -43,6 +43,13 @@ const css: FiCs.Css<{}, Props> = `
   div {
     &.loading {
       > p { ${forScreenReaders} }
+
+      > div {
+        ${rect(16, 16)}
+        ${spin()}
+        ${maskIcon(Loader)}
+        margin: ${space('sm')} auto;
+      }
     }
 
     &.error {
