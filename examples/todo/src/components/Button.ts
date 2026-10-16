@@ -1,6 +1,19 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flex, oklch, rect, size, textSize } from 'ficsjs/style'
-import { white } from '@/styles/theme'
+import {
+  color,
+  cssVar,
+  flex,
+  fontWeight,
+  interactive,
+  maskIcon,
+  motion,
+  rect,
+  size,
+  space,
+  stroke,
+  tapSize,
+  textSize
+} from 'ficsjs/style'
 
 interface Props {
   isDisabled?: boolean
@@ -15,7 +28,6 @@ interface Props {
 const html: FiCs.Html<{}, Props> = ({
   props: { isDisabled, state, type, svg, buttonText },
   template,
-  unsafeHtml,
   attributes: {
     a11y: { ariaHidden, ariaState, expanded },
     disabled
@@ -27,10 +39,10 @@ const html: FiCs.Html<{}, Props> = ({
     ${expanded(state === 'expanded')}
     type="button"
     ${type && `data-type="${type}"`}
-  >${svg ? template`<span ${ariaHidden}>${unsafeHtml(svg)}</span>` : ''}${buttonText}</button>
+  >${svg && template`<span ${ariaHidden}></span>`}${buttonText}</button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { fixedUnit } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
   :host {
     text-align: center;
 
@@ -84,10 +96,9 @@ const css: FiCs.Css<{}, Props> = ({ props: { fixedUnit } }) => `
       }
 
       &:has(span) {
-        ${flex({ inline: true, center: 'y', gap: size(2) })}
-        padding-block: ${size(3)};
+        ${flex({ inline: true, center: 'y', gap: space('sm') })}
 
-        svg { ${flex()} ${rect(6)} }
+        > span { ${rect(6, 6)} ${svg ? maskIcon(svg) : ''} }
       }
     }
   }
