@@ -1,8 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flex, size } from 'ficsjs/style'
+import { color, flex, radius, space, stroke } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { MENU_ID, type ButtonStates, type Direction, type ReorderLabels } from '@/pages/_task/drag'
-import { white } from '@/styles/theme'
 import { ArrowDownFromLine, ArrowUpFromLine, CopyPlus } from 'lucide-static'
 
 interface Props {
@@ -36,10 +35,7 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = `
   :host {
-    ${flex({ center: 'y', gap: size(1) })}
-    background: ${cssVar('black')};
-    border: ${cssVar('outline')} solid ${white(0.2)};
-    border-radius: ${size(2)};
+    ${flex({ center: 'y', gap: space('xs') })}
   }
 `
 
