@@ -4,6 +4,7 @@
 # output
 **/dist
 **/dist-ssr
+**/.fics
 
 # env
 .env
