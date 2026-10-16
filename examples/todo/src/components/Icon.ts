@@ -1,6 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flex, rect, size } from 'ficsjs/style'
-import { white } from '@/styles/theme'
+import { color as colorOf, flex, maskIcon, rect, tapSize } from 'ficsjs/style'
 
 interface Props {
   svg: string
@@ -16,9 +15,8 @@ interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { svg, ariaLabel: label, isDisabled, state, isDraggable },
+  props: { ariaLabel: label, isDisabled, state, isDraggable },
   template,
-  unsafeHtml,
   attributes: {
     a11y: { ariaLabel, ariaState, expanded },
     disabled
@@ -31,10 +29,10 @@ const html: FiCs.Html<{}, Props> = ({
     ${expanded(state === 'expanded')}
     ${isDraggable && 'draggable="true"'}
     type="button"
-  >${unsafeHtml(svg)}</button>
+  ><span></span></button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
   button {
     color: ${color ?? white()};
     padding: ${size(2)};
@@ -44,13 +42,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color } }) => `
     &[aria-pressed="true"], &[aria-expanded="true"] { color: ${cssVar('red')}; }
     &[draggable="true"] { &:hover { cursor: grab; } &:active { cursor: grabbing; } }
 
-    &[disabled] { color: ${white(0.2)}; cursor: not-allowed; }
-
-    svg {
-      ${flex()}
-      ${rect(8)}
-      stroke: currentColor;
-    }
+    > span { ${rect(8, 8)}; ${maskIcon(svg)}; }
   }
 `
 
