@@ -8,9 +8,13 @@ export function calc(arg: string | Operator, ...remaining: (string | number)[]):
   return `calc(${typeof arg === 'string' && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
 }
 
-export const cssVar = (variable: string): Readonly<string> => {
+export const cssVar = (variable: string, fallback?: string): string => {
   variable = variable.trim()
-  return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})` as const
+
+  const PREFIX = '--' as const,
+    name = variable.startsWith(PREFIX) ? variable.slice(PREFIX.length) : variable
+
+  return `var(${PREFIX}${name}${fallback === undefined ? '' : `, ${fallback}`})` as const
 }
 
 export const hideScrollbar = cssObject({
