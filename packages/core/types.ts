@@ -8,7 +8,7 @@ export declare namespace Action {
   interface Ctx<D extends object, P> {
     element: Element
     shadowRoot: ShadowRoot
-    entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
+    entries: [string, Entry<D, P>][]
   }
 
   type Entry<D extends object, P> = Method<D, P> | [Method<D, P>, Options]
