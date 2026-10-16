@@ -68,9 +68,7 @@ export const globalCss: FiCs.GlobalCss = `
     &::placeholder { color: ${white(0.5)}; } 
 
     max-width: ${columnWidth};
-    padding-block: ${calc(`${size(3)} - ${cssVar('border-width')}`)};
-    padding-inline: ${size(4)};
-    border: ${cssVar('border-width')} solid ${white()};
+    padding-inline: ${space('md')};
   }
 
   a {
