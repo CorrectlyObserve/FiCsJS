@@ -94,6 +94,7 @@ const css: FiCs.Css<Data, {}> = `
 
         .langs {
           ${flex({ gap: space('xs') })}
+          ${fade(motion())}
           position: absolute;
           right: 0;
           margin-block-start: ${space('xs')};
