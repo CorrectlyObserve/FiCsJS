@@ -36,7 +36,9 @@ export const getGlobalStyleSheet = (): CSSStyleSheet => {
   styleSheet ??= new CSSStyleSheet()
 
   if (isStale) {
-    styleSheet.replaceSync(`${CSS_LAYER}{${HOST_SELECTOR}{display:block}}${getGlobalCss()}`)
+    styleSheet.replaceSync(
+      `${CSS_LAYER}{${HOST_SELECTOR}{display:block}${layoutCss(HOST_SELECTOR)}${DISABLED_CSS}}${globalCss()}`
+    )
     isStale = false
   }
 
