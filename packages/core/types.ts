@@ -106,7 +106,7 @@ export declare namespace DataProps {
   type Getter<D extends object, P> = <B extends boolean = false>(hasMethods?: B) => Payload<D, P, B>
 
   type Payload<D extends object, P, B extends boolean = false> = {
-    data: B extends true ? ProxyMutable<D> : DeepReadonly.Core<D>
+    data: B extends true ? MutableData<D> : DeepReadonly.Core<D>
     props: Readonly<P>
     deferredStates: DeferredData.States
   } & (B extends true
@@ -379,13 +379,13 @@ export declare namespace I18n {
 
 export declare namespace Optimistic {
   interface Backup<D extends object> {
-    backedUpData: ProxyMutable<D>
+    backedUpData: MutableData<D>
     rollback: () => void
     touchedKeys: Set<keyof D>
   }
 
   interface Config<D extends object, T> {
-    updateData: (ctx: { data: ProxyMutable<D> }) => Awaitable
+    updateData: (ctx: { data: MutableData<D> }) => Awaitable
     mutate: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
     dataKeys?: DataKeys<D>
     statusKey?: string
