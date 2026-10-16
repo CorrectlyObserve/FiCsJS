@@ -11,10 +11,7 @@ export declare namespace Action {
     entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
   }
 
-  type Handlers<D extends object, P> = Record<
-    string,
-    Record<string, Method<D, P> | [Method<D, P>, Options]>
-  >
+  type Entry<D extends object, P> = Method<D, P> | [Method<D, P>, Options]
 
   type Method<D extends object, P> = (
     ctx: DataProps.Payload<D, P, true> & {
