@@ -40,7 +40,6 @@ export const documentCss: string = `
 export const globalCss: FiCs.GlobalCss = `
   * { padding: 0; margin: 0; box-sizing: border-box; }
 
-  h2, p, button, label, legend, input, textarea, span { color: ${white()}; }
   h2, p, button { text-align: center; }
   p, label, legend, input, textarea { ${textSize('md')} }
 
