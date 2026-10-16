@@ -9,6 +9,7 @@ import type {
   Hook,
   Html,
   I18n,
+  MutableData as _MutableData,
   Props as _Props,
   Options,
   SingleOrArray
@@ -38,6 +39,8 @@ export declare namespace FiCs {
   type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
 
   type Interpolate = I18n.Interpolate
+
+  type MutableData<D extends object> = _MutableData<D>
 
   type Options<D extends object, P> = Options.Input<D, P> | undefined
 
