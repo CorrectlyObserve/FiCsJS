@@ -40,6 +40,17 @@ const html: FiCs.Html<{}, Props> = ({
       `
 
 const css: FiCs.Css<{}, Props> = `
+  div {
+    &.loading {
+      > p { ${forScreenReaders} }
+    }
+
+    &.error {
+      ${flex({ direction: 'column', gap: space('md') })}
+      padding-block: ${space('lg')};
+    }
+  }
+    
   .loading {
     > p { ${forScreenReaders} }
 
@@ -53,11 +64,6 @@ const css: FiCs.Css<{}, Props> = `
         stroke: ${white()}
       }
     }
-  }
-
-  .error {
-    ${flex({ direction: 'column', gap: space('md') })}
-    padding-block: ${space('lg')};
   }
 `
 
