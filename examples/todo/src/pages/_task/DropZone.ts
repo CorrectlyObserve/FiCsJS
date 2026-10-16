@@ -1,6 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, size } from 'ficsjs/style'
-import { white } from '@/styles/theme'
+import { color, motion, radius, size, space, stroke } from 'ficsjs/style'
 
 interface Props {
   height: number
@@ -22,9 +21,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
 
     &.is-active {
       height: ${height}px;
-      margin-block: ${size(2)};
-      background: ${white(0.1)};
-      border: ${cssVar('outline')} dashed ${cssVar('red')};
+      margin-block: ${space('sm')};
     }
   }
 `
