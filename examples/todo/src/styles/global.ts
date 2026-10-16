@@ -59,7 +59,7 @@ export const globalCss: FiCs.GlobalCss = `
     ${textSize('xl')}
     margin-block-end: ${space('lg')};
 
-    @media (max-width: ${breakpoints.SM}) { margin-block-end: ${size(6)}; }
+    @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
   }
 
   label:hover { cursor: pointer; }
