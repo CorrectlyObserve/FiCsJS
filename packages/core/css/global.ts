@@ -1,11 +1,20 @@
 import { CSS_LAYER, HOST_SELECTOR } from '../helpers'
+import { COMPACT_SIZE, DISABLED_CSS, EXPANDED_SIZE } from './constants'
 
-const addedCss: Set<string> = new Set()
+const addedCss: Set<string> = new Set(),
+  globalCss = (): string => `${[...addedCss].join('')}${configuredCss}`,
+  layoutCss = (selector: string): string =>
+    [
+      [`width < ${COMPACT_SIZE}`, 'compact'],
+      [`${COMPACT_SIZE} <= width < ${EXPANDED_SIZE}`, 'regular'],
+      [`width >= ${EXPANDED_SIZE}`, 'expanded']
+    ]
+      .map(([query, scale]) => `@media (${query}){${selector}{${ficsCssVar('layout')}:${scale}}}`)
+      .join('')
+
 let configuredCss: string = '',
   styleSheet: CSSStyleSheet | undefined,
   isStale: boolean = true
-
-const globalCss = (): string => `${[...addedCss].join('')}${configuredCss}`
 
 export const addGlobalCss = (css: string): void => {
   if (addedCss.has(css)) return
