@@ -2,6 +2,7 @@ import type { SingleOrArray } from '../types'
 import { char as c, SPECIAL_CHAR } from './constants'
 import { numberError } from './numberError'
 import { isPlainObject } from './typeCheck'
+import type { FromEntries } from './types'
 
 const TEXT_ESCAPE_MAP: Record<string, string> = {
     '&': '&amp;',
@@ -62,6 +63,10 @@ export const toLowerFirst = (str: string): string => str.charAt(0).toLowerCase()
 
 export const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] =>
   Object.entries(obj) as [keyof T, T[keyof T]][]
+
+export const typedFromEntries = <const T extends readonly (readonly [PropertyKey, unknown])[]>(
+  entries: T
+): FromEntries<T> => Object.fromEntries(entries) as FromEntries<T>
 
 export function* uid(): Generator<number> {
   let n: number = 1
