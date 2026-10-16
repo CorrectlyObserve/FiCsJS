@@ -1,8 +1,13 @@
+import { ficsCssVar } from './../helpers'
+
 export const AT_RULE = '@' as const
 export const BACKSLASH = '\\' as const
 
 export const BRACKET_PAIRS = { '(': ')', '{': '}' } as const
 export const COMMENT_TOKEN = { open: '/*', close: '*/' } as const
+
+export const DISABLED_CSS =
+  `:is(:disabled,[aria-disabled='true']){${ficsCssVar('disabled')}:50%;cursor:not-allowed}` as const
 
 export const GROUPING_AT_RULES = [
   '@container',
