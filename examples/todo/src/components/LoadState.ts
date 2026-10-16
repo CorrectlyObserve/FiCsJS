@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
-import { flex, forScreenReaders, rect, size } from 'ficsjs/style'
+import { color, flex, forScreenReaders, maskIcon, rect, space } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { white } from '@/styles/theme'
 import { Loader } from 'lucide-static'
@@ -44,7 +44,7 @@ const css: FiCs.Css<{}, Props> = `
     > p { ${forScreenReaders} }
 
     > div {
-      padding: ${size(2)};
+      padding: ${space('sm')};
       text-align: center;
 
       svg {
@@ -56,8 +56,8 @@ const css: FiCs.Css<{}, Props> = `
   }
 
   .error {
-    ${flex({ direction: 'column', gap: size(4) })}
-    padding-block: ${size(8)};
+    ${flex({ direction: 'column', gap: space('md') })}
+    padding-block: ${space('lg')};
   }
 `
 
