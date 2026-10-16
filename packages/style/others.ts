@@ -1,4 +1,4 @@
-import { browserError, cssObject, numberError } from '../core/helpers'
+import { browserError, cssObject, ficsCssVar, numberError } from '../core/helpers'
 import type { Operator } from './types'
 
 export function calc(expression: string): string
@@ -24,7 +24,7 @@ export const hideScrollbar = cssObject({
 } as const)
 
 export const layout = (size: 'compact' | 'regular' | 'expanded'): string =>
-  `style(--fics-layout: ${size})`
+  `style(${ficsCssVar('layout')}: ${size})`
 
 /** @param rem Must be a non-negative number if it is a number. */
 export const remToPx = (rem: number | string): Readonly<number> => {
@@ -46,4 +46,4 @@ export const toVar = ({
   name: string
   value: string
   scale?: string
-}): string => cssVar(`fics-${name}${scale === undefined ? '' : `-${scale}`}`, value)
+}): string => cssVar(ficsCssVar(`${name}${scale === undefined ? '' : `-${scale}`}`), value)
