@@ -7,6 +7,7 @@ export const char = {
 
 export const CONTENT_TYPE = 'content-type' as const
 export const CSS_LAYER = '@layer fics' as const
+export const DISABLED_SELECTOR = ':disabled, [aria-disabled="true"]' as const
 export const EVENT_STREAM = 'text/event-stream' as const
 export const HOST_SELECTOR = ':host' as const
 export const INTERVAL_MS = 1_000 as const
