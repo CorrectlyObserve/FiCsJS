@@ -74,7 +74,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
           inset: 0;
           background: ${cssVar('black')};
           opacity: 0;
-          transition: ${cssVar('transition')};
+          transition: ${motion()};
           z-index: -1;
         }
 
