@@ -28,7 +28,8 @@ export const configGlobalCss = (css: string): void => {
   isStale = true
 }
 
-export const getGlobalCss = (): string => `${[...addedCss].join('')}${configuredCss}`
+export const getDocumentCss = (): string =>
+  `${CSS_LAYER}{${layoutCss(':root')}${DISABLED_CSS}}${globalCss()}`
 
 export const getGlobalStyleSheet = (): CSSStyleSheet => {
   styleSheet ??= new CSSStyleSheet()
