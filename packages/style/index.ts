@@ -1,6 +1,7 @@
 export { flex } from './flex'
 export { forScreenReaders } from './forScreenReaders'
 export { maskIcon } from './maskIcon'
+export { motion } from './motion'
 export { oklch } from './oklch'
 export { calc, cssVar, hideScrollbar, layout, remToPx } from './others'
 export { positionCenter } from './positionCenter'
