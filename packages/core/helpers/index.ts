@@ -20,7 +20,7 @@ export {
   scheduleAbort
 } from './abort'
 export { browserError, isBrowser } from './browser'
-export { cssObject } from './css'
+export { cssObject, ficsCssVar } from './css'
 export { deepEqual } from './deepEqual'
 export { numberError } from './numberError'
 export {
