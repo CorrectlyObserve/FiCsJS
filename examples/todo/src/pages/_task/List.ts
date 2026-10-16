@@ -19,7 +19,7 @@ import {
 import type { Insertion, ReorderLabels } from '@/pages/_task/drag'
 import Draggable from '@/pages/_task/Draggable'
 import TaskRow from '@/pages/_task/Row'
-import { columnWidth, measureOffsetWidth } from '@/styles/theme'
+import { columnWidth, isExpanded } from '@/styles/theme'
 import { Plus, Square, SquareCheck } from 'lucide-static'
 
 interface Data {
@@ -120,7 +120,7 @@ const props: FiCs.Props<Data, Props> = [
           task,
           texts,
           statuses: { completed, uncompleted },
-          isQueryParam: measureOffsetWidth(),
+          isQueryParam: isExpanded(),
           switchStatus: async () =>
             setTasks(await (task.completedAt ? revertTask(task.id) : completeTask(task.id))),
           remove: async () => {
