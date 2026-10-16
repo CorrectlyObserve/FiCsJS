@@ -51,6 +51,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       ${fixedUnit ? `width: ${size(fixedUnit)};` : ''}
       min-width: ${size(16)};
       min-height: ${tapSize()};
+      padding-inline: ${space('md')};
 
       &[disabled] {
         background: none !important;
@@ -63,7 +64,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       &[data-type="gradation"] {
         position: relative;
         background: ${cssVar('gradation')};
-        padding-inline: ${size(4)};
+        padding-inline: ${space('md')};
         overflow: hidden;
         z-index: 0;
 
