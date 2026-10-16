@@ -16,8 +16,7 @@ const html: FiCs.Html<{}, Props> = ({ props: { isActive }, template }) =>
 const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
   div {
     height: ${size(2)};
-    border-radius: ${size(2)};
-    transition: ${cssVar('transition')};
+    border-radius: ${radius('sm')};
 
     &.is-active {
       height: ${height}px;
