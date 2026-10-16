@@ -35,6 +35,8 @@ const html: FiCs.Html<{}, Props> = ({
 const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
   button {
     ${flex({ center: 'xy' })};
+    min-width: ${tapSize()};
+    min-height: ${tapSize()};
 
     &:focus-visible { outline-color: currentColor; }
     
