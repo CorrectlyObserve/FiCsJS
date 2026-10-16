@@ -5,6 +5,8 @@ let configuredCss: string = '',
   styleSheet: CSSStyleSheet | undefined,
   isStale: boolean = true
 
+const globalCss = (): string => `${[...addedCss].join('')}${configuredCss}`
+
 export const addGlobalCss = (css: string): void => {
   if (addedCss.has(css)) return
 
