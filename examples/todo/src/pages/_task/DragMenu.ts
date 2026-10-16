@@ -36,6 +36,7 @@ const html: FiCs.Html<{}, Props> = ({
 const css: FiCs.Css<{}, Props> = `
   :host {
     ${flex({ center: 'y', gap: space('xs') })}
+    border-radius: ${radius('sm')};
   }
 `
 
