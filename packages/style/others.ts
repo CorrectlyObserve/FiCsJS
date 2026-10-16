@@ -28,3 +28,13 @@ export const remToPx = (rem: number | string): Readonly<number> => {
   numberError({ rem }, 'non-negative')
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
+
+export const toVar = ({
+  name,
+  value,
+  scale
+}: {
+  name: string
+  value: string
+  scale?: string
+}): string => cssVar(`fics-${name}${scale === undefined ? '' : `-${scale}`}`, value)
