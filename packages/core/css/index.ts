@@ -1,2 +1,7 @@
-export { addGlobalCss, configGlobalCss, getGlobalCss, getGlobalStyleSheet } from './global'
+export {
+  addGlobalCss,
+  configGlobalCss,
+  getDocumentCss,
+  getGlobalStyleSheet
+} from './global'
 export { addHostToSelectors } from './host'
