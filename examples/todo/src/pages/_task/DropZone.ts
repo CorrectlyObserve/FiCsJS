@@ -17,6 +17,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
   div {
     height: ${size(2)};
     border-radius: ${radius('sm')};
+    transition: ${motion()};
 
     &.is-active {
       height: ${height}px;
