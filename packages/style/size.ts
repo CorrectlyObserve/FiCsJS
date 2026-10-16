@@ -25,5 +25,5 @@ export const rect = (width: Rect, height: Rect = 'auto') =>
 /** @param unit Must be an integer. It is multiplied by 0.25rem. */
 export const size = (unit: number) => {
   numberError({ unit }, 'int')
-  return `${unit * 0.25}rem` as const
+  return toRem(unit)
 }
