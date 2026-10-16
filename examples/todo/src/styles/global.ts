@@ -81,6 +81,4 @@ export const globalCss: FiCs.GlobalCss = `
     &:focus-visible { color: inherit; outline: ${outline}; outline-offset: 0; }
     &:active { scale: 0.98; }
   }
-
-  span[role="button"] { padding: ${size(4)}; }
 `
