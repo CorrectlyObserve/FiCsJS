@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { flex, size } from 'ficsjs/style'
+import { flex, space } from 'ficsjs/style'
 import LoadState from '@/components/LoadState'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -166,21 +166,21 @@ const html: FiCs.Html<Data, Props> = ({
 const css: FiCs.Css<Data, Props> = `
   :host {
     width: ${columnWidth};
-    max-width: calc(100cqi - ${size(8)});
+    max-width: calc(100cqi - ${space('lg')});
 
     > div {
-      ${flex({ center: 'y', direction: 'column', gap: size(4) })}
-      margin-block-end: ${size(2)};
+      ${flex({ center: 'y', direction: 'column', gap: space('md') })}
+      margin-block-end: ${space('sm')};
 
       > div {
-        ${flex({ center: 'y', gap: size(1) })}
+        ${flex({ center: 'y', gap: space('xs') })}
         width: 100%;
 
         .input { width: 100%; }
       }
     }
 
-    > p { margin-block-start: ${size(2)}; }
+    > p { margin-block-start: ${space('sm')}; }
   }
 `
 
