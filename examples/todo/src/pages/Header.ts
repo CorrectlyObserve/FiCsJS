@@ -4,7 +4,6 @@ import { ficsLink } from 'ficsjs/router'
 import { color, cssVar, flex, layout, motion, positionCenter, space, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
-import { breakpoints, headerHeight } from '@/styles/theme'
 
 interface Data {
   langs: readonly Lang[]
@@ -70,7 +69,6 @@ const css: FiCs.Css<Data, {}> = `
       h1 {
         ${flex({ center: 'y' })}
         ${textSize('2xl')}
-        height: ${headerHeight};
         background: ${cssVar('gradation')};
         background-clip: text;
         padding-block: ${space('md-')};
