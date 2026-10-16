@@ -112,7 +112,7 @@ export default fics<Data, {}>({
     ficsLink({
       href: '/',
       content: ({ template }) => template`FiCs ToDo`,
-      css: `a { padding-block: ${size(1)}; padding-inline: ${size(2)}; }`
+      css: `a { padding-block: ${space('xs')}; padding-inline: ${space('sm')}; }`
     }),
     Button()
   ],
