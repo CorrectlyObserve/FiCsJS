@@ -1,4 +1,4 @@
-import { getGlobalCss } from '../../core/css'
+import { getDocumentCss } from '../../core/css'
 import { CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes, VIEW_TRANSITION_STYLE } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
@@ -54,7 +54,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
       content,
       path,
       script: noScript ? '' : `${scriptBase}/${entry}.js`,
-      styles: getGlobalCss()
+      styles: getDocumentCss()
     })
 
   return respond({
