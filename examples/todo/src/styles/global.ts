@@ -45,7 +45,7 @@ export const globalCss: FiCs.GlobalCss = `
   p, label, legend, input, textarea { ${textSize('md')} }
 
   button, input, textarea {
-    transition: ${cssVar('transition')};
+    transition: ${motion()};
     background: none;
     border: none;
     outline: none;
