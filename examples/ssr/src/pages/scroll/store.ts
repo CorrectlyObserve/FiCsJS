@@ -6,5 +6,3 @@ export const $isHorizontal = createState<boolean>(false, {
     validate: (value): value is boolean => typeof value === 'boolean'
   }
 })
-
-export const $userName = createState<string>('', { sessionStorage: { key: 'userName' } })
