@@ -20,4 +20,15 @@ const SCALES = typedFromEntries(
     )
   }
 
+/**
+ * @remarks
+ * The defaults, each overridable through --fics-space-<scale>; md- and md+ follow --fics-space-md:
+ * - xs: 0.25rem
+ * - sm: 0.5rem
+ * - md-: 0.75rem
+ * - md: 1rem
+ * - md+: 1.5rem
+ * - lg: 2rem
+ * - xl: 4rem
+ */
 export const space = (scale: keyof typeof SPACES): string => SPACES[scale]
