@@ -5,7 +5,6 @@
     "module": "ESNext",
     "lib": ["ESNext", "DOM"],
     "moduleResolution": "bundler",
-    "outDir": "./dist",
     "skipLibCheck": true,
     "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
   },
