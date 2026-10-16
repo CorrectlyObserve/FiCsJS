@@ -1,11 +1,11 @@
 import { browserError, cssObject, numberError } from '../core/helpers'
 import type { Operator } from './types'
 
-export function calc(expression: string): Readonly<string>
-export function calc(operator: Operator, ...remaining: (string | number)[]): Readonly<string>
-export function calc(arg: string | Operator, ...remaining: (string | number)[]): Readonly<string> {
+export function calc(expression: string): string
+export function calc(operator: Operator, ...remaining: (string | number)[]): string
+export function calc(arg: string | Operator, ...remaining: (string | number)[]): string {
   arg = arg.trim()
-  return `calc(${typeof arg === 'string' && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
+  return `calc(${remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
 }
 
 export const cssVar = (variable: string, fallback?: string): string => {
