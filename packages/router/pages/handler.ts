@@ -52,7 +52,7 @@ export const createPageHandler = <C extends Record<string, unknown>>(
       statusFallback,
       render,
       createContext,
-      scriptBase: removeTrailingSlash(scriptBase ?? '/dist'),
+      scriptBase: removeTrailingSlash(scriptBase ?? '/assets'),
       meta,
       viewTransition
     })
