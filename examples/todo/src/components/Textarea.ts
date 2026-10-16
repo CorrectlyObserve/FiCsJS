@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, flex, forScreenReaders, size } from 'ficsjs/style'
+import { calc, flex, forScreenReaders, space, tapSize } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -27,7 +27,7 @@ const css: FiCs.Css<{}, Props> = `
   div {
     ${flex({ direction: 'column' })}
 
-    label { padding-block-end: ${size(2)}; }
+    label { padding-block-end: ${space('sm')}; }
 
     p { ${forScreenReaders} }
 
