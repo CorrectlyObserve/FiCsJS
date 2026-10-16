@@ -22,3 +22,5 @@ const convertCss = (css: Css.Declarations): string =>
 
 export const cssObject = <T extends Css.Declarations>(css: T): T =>
   Object.defineProperty(css, 'toString', { value: (): string => convertCss(css) })
+
+export const ficsCssVar = (varName: string): string => `--fics-${varName}`
