@@ -33,6 +33,7 @@ export {
   toArray,
   toLowerFirst,
   typedEntries,
+  typedFromEntries,
   uid
 } from './others'
 export { delay, getDelayMs, isIdempotentMethod, shouldRetry, watch } from './retry'
