@@ -50,7 +50,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       ${textSize('md', true)}
       ${fixedUnit ? `width: ${size(fixedUnit)};` : ''}
       min-width: ${size(16)};
-      padding: ${size(4)};
+      min-height: ${tapSize()};
 
       &[disabled] {
         background: none !important;
