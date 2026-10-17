@@ -1,5 +1,6 @@
 import { convertStr, DISABLED_SELECTOR } from '../core/helpers'
 import { colorMix } from './others'
+import type { Interactive } from './types'
 
 const createLayer = (ratio: number): string => {
     const tint: string = colorMix({ ratio })
@@ -15,10 +16,12 @@ const createLayer = (ratio: number): string => {
     focusVisible: { default: false, enabledOnly: false }
   } as const
 
-export const interactive = (ctx: { [K in keyof typeof STATES]?: string | false } = {}): string =>
+export const interactive = (ctx: { [K in keyof typeof STATES]?: Interactive } = {}): string =>
   Object.entries(STATES)
     .map(([key, { default: def, enabledOnly }]) => {
-      const cssValue: string | false = ctx[key as keyof typeof STATES] ?? def
+      const value: Interactive | undefined = ctx[key as keyof typeof STATES],
+        cssValue: string | false = typeof value === 'function' ? value(def || '') : (value ?? def)
+
       if (typeof cssValue !== 'string') return null
 
       const pseudo: string = convertStr(key, 'kebab'),
