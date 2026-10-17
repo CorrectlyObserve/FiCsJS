@@ -1,4 +1,4 @@
-import { addGlobalCss } from '../core/css'
+import { addGlobalCss, getDocumentCss } from '../core/css'
 import { PULSE_OPACITY, VIBRATE_UNIT } from './constants'
 
 const translate3d = (multiplier: number): string =>
@@ -15,6 +15,7 @@ addGlobalCss(`
   }
 `)
 
+export { getDocumentCss }
 export { pulse, spin } from './loading'
 export { fade, float, slide, zoom } from './transition'
 export { vibrate } from './vibrate'
