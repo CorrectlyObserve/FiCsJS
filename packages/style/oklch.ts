@@ -157,7 +157,7 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
   let oklch: Color.Oklch, alpha: number
 
   if (/^oklch\(/i.test(resolved)) {
-    const { a, ...args } = parseOklch(resolved)
+    const { a, ...args }: Color.Oklch & { a: number } = parseOklch(resolved)
     oklch = args
     alpha = a
     cache.set(cacheKey('oklch', resolved), args)
