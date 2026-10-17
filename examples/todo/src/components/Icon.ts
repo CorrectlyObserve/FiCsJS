@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color as colorOf, flex, maskIcon, rect, tapSize } from 'ficsjs/style'
+import { color as colorOf, flex, interactive, maskIcon, rect, tapSize } from 'ficsjs/style'
 
 interface Props {
   svg: string
@@ -35,6 +35,7 @@ const html: FiCs.Html<{}, Props> = ({
 const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
   button {
     ${flex({ center: 'xy' })};
+    ${interactive({ focusVisible: 'outline-color: currentColor;' })}
     min-width: ${tapSize()};
     min-height: ${tapSize()};
 
