@@ -32,7 +32,7 @@ const html: FiCs.Html<{}, Props> = ({
 }) => template`
   ${icon.setIndividualProps('status', {
     svg: task.completedAt ? CircleCheckBig : Circle,
-    ariaLabel: task.completedAt ? texts.revert : texts.complete,
+    ariaLabel: texts[task.completedAt ? 'revert' : 'complete'],
     click: switchStatus
   })}
   ${link}
