@@ -50,4 +50,4 @@ const SIZES = typedFromEntries(
  * - 3xl: 2.5rem / 3rem
  */
 export const textSize = (scale: keyof typeof SIZES, isLineHeightNone?: boolean) =>
-  cssObject(isLineHeightNone ? { ...SIZES[scale], [PROPS[1]]: 1 } : SIZES[scale])
+  cssObject({ ...SIZES[scale], ...(isLineHeightNone && { [PROPS[1]]: 1 }) })
