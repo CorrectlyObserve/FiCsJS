@@ -81,15 +81,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
         &:not([disabled]):hover::before { opacity: 0.5; }
       }
 
-      &[data-type="selected"], &[data-type="delete"] {
-        color: ${cssVar('red')};
-        text-underline-offset: ${cssVar('outline')};
-
-        &:not([disabled]):hover {
-          background: ${oklch(cssVar('red'), { opacity: 0.3 })};
-          color: ${white()};
-        }
-      }
+      &[data-type="selected"], &[data-type="delete"] { text-underline-offset: ${stroke('md')}; }
 
       &[data-type="selected"] {
         font-weight: bold;
