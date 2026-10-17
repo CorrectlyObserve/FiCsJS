@@ -7,7 +7,7 @@ const createLayer = (ratio: number): string => {
   },
   /** @remarks `active` wins over `hover` as they are written out in this order. */
   STATES = {
-    hover: { default: createLayer(0.1), enabledOnly: true },
+    hover: { default: `${createLayer(0.1)} cursor: pointer;`, enabledOnly: true },
     active: {
       default: `${createLayer(0.15)} @media (prefers-reduced-motion: no-preference) { scale: 0.95 }`,
       enabledOnly: true
