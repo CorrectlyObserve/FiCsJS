@@ -10,7 +10,7 @@ export declare namespace Color {
     darker?: number
     lighter?: number
     chroma?: number
-    opacity?: number
+    alpha?: number
   }
 
   interface Lms {
