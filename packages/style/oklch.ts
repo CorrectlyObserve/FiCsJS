@@ -153,17 +153,17 @@ const cache: Map<string, Color.Oklch> = new Map(),
  * @param options.chroma Must be a non-negative number.
  */
 export const oklch = (color: string, options?: Color.Ctx): string => {
-  const resolved: string = convertCssVar(color).trim()
+  color = color.trim()
   let oklch: Color.Oklch, alpha: number
 
-  if (/^oklch\(/i.test(resolved)) {
-    const { a, ...args }: Color.Oklch & { a: number } = parseOklch(resolved)
+  if (/^oklch\(/i.test(color)) {
+    const { a, ...args }: Color.Oklch & { a: number } = parseOklch(color)
     oklch = args
     alpha = a
-    cache.set(cacheKey('oklch', resolved), args)
+    cache.set(cacheKey('oklch', color), args)
   } else {
-    alpha = alphaFromHex(resolved)
-    oklch = hexToOklch(resolved)
+    alpha = alphaFromHex(color)
+    oklch = hexToOklch(color)
   }
 
   const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
