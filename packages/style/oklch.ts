@@ -174,10 +174,7 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
   }
 
   const { l, c, h }: Color.Oklch = oklch
-  let lightness: number = l + (darker > 0 ? -darker : lighter > 0 ? lighter : 0)
-
-  if (lightness < 0) lightness = 0
-  else if (lightness > 1) lightness = 1
+  let lightness: number = Math.min(Math.max(l - (darker ?? 0) + (lighter ?? 0), 0), 1)
 
   return `oklch(${round(lightness * 100, 2)}% ${round(c * chroma, 4)} ${h} / ${round(opacity * alpha, 4)})`
 }
