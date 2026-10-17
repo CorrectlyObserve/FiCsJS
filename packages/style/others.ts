@@ -9,14 +9,14 @@ export function calc(arg: string | Operator, ...remaining: (string | number)[]):
 }
 
 export const colorMix = ({
-  colors: [first, second] = ['currentColor', 'transparent'],
+  colors: [first, second = 'transparent'] = ['currentColor'],
   ratio
 }: {
   colors?: [string, string?]
-  ratio: number
+  ratio: number | string
 }): string => {
-  numberError({ ratio }, 'ratio')
-  return `color-mix(in oklab, ${first} ${ratio * 100}%, ${second})`
+  if (typeof ratio === 'number') numberError({ ratio }, 'ratio')
+  return `color-mix(in oklab, ${first} ${typeof ratio === 'number' ? `${ratio * 100}%` : ratio}, ${second})`
 }
 
 export const cssVar = (variable: string, fallback?: string): string => {
