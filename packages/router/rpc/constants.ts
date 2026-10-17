@@ -1,4 +1,4 @@
-import { PROTO } from './../../core/helpers'
+import { PROTO } from '../../core/helpers'
 import type { Routing, Rpc } from '../types'
 
 export const CONTENT_LENGTH = 'content-length' as const
