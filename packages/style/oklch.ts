@@ -120,6 +120,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     return { l: oklab.l, c: Math.hypot(_a, _b), h }
   },
+  round = (value: number, places: number): number => Number(value.toFixed(places)),
   cacheKey = (type: 'hex' | 'oklch', key: string): string => `${type}:${key}`,
   hexToOklch = (hex: string): Color.Oklch => {
     const rawKey: string = cacheKey('hex', hex)
