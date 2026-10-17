@@ -8,6 +8,17 @@ export function calc(arg: string | Operator, ...remaining: (string | number)[]):
   return `calc(${remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
 }
 
+export const colorMix = ({
+  color: [first, second] = ['currentColor', 'transparent'],
+  ratio
+}: {
+  color?: [string, string?]
+  ratio: number
+}): string => {
+  numberError({ ratio }, 'ratio')
+  return `color-mix(in oklab, ${first} ${ratio * 100}%, ${second})`
+}
+
 export const cssVar = (variable: string, fallback?: string): string => {
   variable = variable.trim()
 
