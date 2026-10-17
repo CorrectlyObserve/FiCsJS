@@ -62,6 +62,10 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       &:not([disabled]):active { scale: 0.95; }
 
       &[data-type="gradation"] {
+        ${interactive({
+          hover: 'cursor: pointer; &::before { opacity: 0.5; }',
+          active: '@media (prefers-reduced-motion: no-preference) { scale: 0.95 }'
+        })}
         position: relative;
         background: ${cssVar('gradation')};
         padding-inline: ${space('md')};
