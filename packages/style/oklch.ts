@@ -149,12 +149,12 @@ const cache: Map<string, Color.Oklch> = new Map(),
 /**
  * @param options.darker Must be a number between 0 and 1.
  * @param options.lighter Must be a number between 0 and 1.
- * @param options.opacity Must be a number between 0 and 1.
  * @param options.chroma Must be a non-negative number.
+ * @param options.alpha Must be a number between 0 and 1.
  */
 export const oklch = (color: string, options?: Color.Ctx): string => {
-  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
-  numberError({ darker, lighter, opacity }, 'ratio')
+  const { darker = 0, lighter = 0, chroma = 1, alpha = 1 }: Color.Ctx = options ?? {}
+  numberError({ darker, lighter, alpha }, 'ratio')
   numberError({ chroma }, 'non-negative')
 
   if (darker > 0 && lighter > 0)
@@ -164,17 +164,17 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
   let oklch: Color.Oklch, alpha: number
 
   if (/^oklch\(/i.test(color)) {
-    const { a, ...args }: Color.Oklch & { a: number } = parseOklch(color)
+    const { a: _a, ...args }: Color.Oklch & { a: number } = parseOklch(color)
     oklch = args
-    alpha = a
+    a = _a
     cache.set(cacheKey('oklch', color), args)
   } else {
-    alpha = alphaFromHex(color)
+    a = alphaFromHex(color)
     oklch = hexToOklch(color)
   }
 
   const { l, c, h }: Color.Oklch = oklch
   let lightness: number = Math.min(Math.max(l - (darker ?? 0) + (lighter ?? 0), 0), 1)
 
-  return `oklch(${round(lightness * 100, 2)}% ${round(c * chroma, 4)} ${h} / ${round(opacity * alpha, 4)})`
+  return `oklch(${round(lightness * 100, 2)}% ${round(c * chroma, 4)} ${h} / ${round(a * alpha, 4)})`
 }
