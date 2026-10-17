@@ -17,6 +17,6 @@ export const LIGHTNESS_CLAMP = {
   graphic: [0.6, 0.55] as const
 } as const
 
-export const RATIOS = { muted: 62, border: 44, divider: 15 } as const
+export const RATIOS = { muted: 0.62, border: 0.44, divider: 0.15 } as const
 
 export const TEXTS = { onDark: '#f7f8f8', onLight: '#141413' } as const
