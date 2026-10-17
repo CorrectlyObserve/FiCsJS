@@ -153,6 +153,13 @@ const cache: Map<string, Color.Oklch> = new Map(),
  * @param options.chroma Must be a non-negative number.
  */
 export const oklch = (color: string, options?: Color.Ctx): string => {
+  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
+  numberError({ darker, lighter, opacity }, 'ratio')
+  numberError({ chroma }, 'non-negative')
+
+  if (darker > 0 && lighter > 0)
+    throw new Error('Pass either "darker" or "lighter", as they cannot be used together...')
+
   color = color.trim()
   let oklch: Color.Oklch, alpha: number
 
@@ -165,13 +172,6 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
     alpha = alphaFromHex(color)
     oklch = hexToOklch(color)
   }
-
-  const { darker = 0, lighter = 0, chroma = 1, opacity = 1 }: Color.Ctx = options ?? {}
-  numberError({ darker, lighter, opacity }, 'ratio')
-  numberError({ chroma }, 'non-negative')
-
-  if (darker > 0 && lighter > 0)
-    throw new Error('Pass either "darker" or "lighter", as they cannot be used together...')
 
   const { l, c, h }: Color.Oklch = oklch
   let lightness: number = l + (darker > 0 ? -darker : lighter > 0 ? lighter : 0)
