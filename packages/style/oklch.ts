@@ -180,5 +180,5 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
   if (lightness < 0) lightness = 0
   else if (lightness > 1) lightness = 1
 
-  return `oklch(${lightness * 100}% ${c * chroma} ${h} / ${opacity * alpha})`
+  return `oklch(${round(lightness * 100, 2)}% ${round(c * chroma, 4)} ${h} / ${round(opacity * alpha, 4)})`
 }
