@@ -26,6 +26,7 @@ export declare namespace FiCs {
 
   type ClassName<D extends object, P> = _ClassName<D, P> | undefined
 
+  /** @remarks Requires a ternary (not `&&`) for conditions, as it's a plain template literal. */
   type Css<D extends object, P> = Css.Input<D, P> | undefined
 
   type DeferredData<D extends object, P> = SingleOrArray<_DeferredData.Entry<D, P>> | undefined
