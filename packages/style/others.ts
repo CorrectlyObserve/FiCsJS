@@ -9,10 +9,10 @@ export function calc(arg: string | Operator, ...remaining: (string | number)[]):
 }
 
 export const colorMix = ({
-  color: [first, second] = ['currentColor', 'transparent'],
+  colors: [first, second] = ['currentColor', 'transparent'],
   ratio
 }: {
-  color?: [string, string?]
+  colors?: [string, string?]
   ratio: number
 }): string => {
   numberError({ ratio }, 'ratio')
