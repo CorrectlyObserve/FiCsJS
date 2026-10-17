@@ -20,26 +20,6 @@ const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   } as const
 
 const cache: Map<string, Color.Oklch> = new Map(),
-  normalizeHex = (hex: string): string => {
-    const HEX = 'hex:' as const,
-      OKLCH = 'oklch:' as const
-
-    if (hex.startsWith(HEX)) hex = hex.slice(HEX.length)
-    else if (hex.startsWith(OKLCH)) hex = hex.slice(OKLCH.length)
-
-    hex = hex.replace(/^#/, '').toLowerCase()
-    const { length }: { length: number } = hex
-
-    if (![3, 4, 6, 8].some(_length => length === _length) || !/^[a-f\d]+$/.test(hex))
-      throw new Error(
-        `The HEX color "${hex}" is invalid; expected 3, 4, 6, or 8 hexadecimal digits...`
-      )
-
-    if (length === 3 || length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
-    if (length === 8) hex = hex.slice(0, 6)
-
-    return hex
-  },
   parseOklch = (literal: string): Color.Oklch & { a: number } => {
     const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i),
       OKLCH_LITERAL = '"oklch(<lightness> <chroma> <hue>[/ <alpha>])"' as const
@@ -72,6 +52,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     numberError({ a }, 'ratio')
     return { l, c, h, a }
   },
+  cacheKey = (type: 'hex' | 'oklch', key: string): string => `${type}:${key}`,
   alphaFromHex = (hex: string): number => {
     hex = hex.replace(/^#/, '').toLowerCase()
     const { length }: { length: number } = hex
@@ -85,12 +66,31 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     return length === 4 || length === 8 ? parseInt(hex.slice(6, 8), 16) / MAX : 1
   },
+  normalizeHex = (hex: string): string => {
+    const HEX = 'hex:' as const,
+      OKLCH = 'oklch:' as const
+
+    if (hex.startsWith(HEX)) hex = hex.slice(HEX.length)
+    else if (hex.startsWith(OKLCH)) hex = hex.slice(OKLCH.length)
+
+    hex = hex.replace(/^#/, '').toLowerCase()
+    const { length }: { length: number } = hex
+
+    if (![3, 4, 6, 8].some(_length => length === _length) || !/^[a-f\d]+$/.test(hex))
+      throw new Error(
+        `The HEX color "${hex}" is invalid; expected 3, 4, 6, or 8 hexadecimal digits...`
+      )
+
+    if (length === 3 || length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
+    if (length === 8) hex = hex.slice(0, 6)
+
+    return hex
+  },
   toLinearSRgb = (c: number): number => {
     const v: number = c / MAX
     return v <= THRESHOLD ? v / DIVISOR : ((v + OFFSET) / SCALE) ** EXPONENT
   },
   hexToRgb = (hex: string): Color.Rgb => {
-    hex = normalizeHex(hex)
     const rgb: Color.Rgb = { r: 0, g: 0, b: 0 }
 
     for (const [index, color] of ['r', 'g', 'b'].entries())
@@ -121,17 +121,16 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return { l: oklab.l, c: Math.hypot(_a, _b), h }
   },
   round = (value: number, places: number): number => Number(value.toFixed(places)),
-  cacheKey = (type: 'hex' | 'oklch', key: string): string => `${type}:${key}`,
   hexToOklch = (hex: string): Color.Oklch => {
     const rawKey: string = cacheKey('hex', hex)
     if (cache.has(rawKey)) return cache.get(rawKey)!
 
-    const normalizedHex: string = normalizeHex(convertCssVar(hex)),
-      key: string = cacheKey('hex', normalizedHex)
+    hex = normalizeHex(hex)
+    const key: string = cacheKey('hex', hex)
 
     if (cache.has(key)) return cache.get(key)!
 
-    const rgb: Color.Rgb = hexToRgb(normalizedHex),
+    const rgb: Color.Rgb = hexToRgb(hex),
       oklch: Color.Oklch = rgbToOklch(rgb)
 
     for (const [key, decimalPlace] of typedEntries({ l: 4, c: 4, h: 2 })) {
