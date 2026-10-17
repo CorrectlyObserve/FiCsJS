@@ -41,8 +41,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
 
     &:focus-visible { outline-color: currentColor; }
     
-    &[aria-pressed="true"], &[aria-expanded="true"] { color: ${cssVar('red')}; }
-    &[draggable="true"] { &:hover { cursor: grab; } &:active { cursor: grabbing; } }
+    &[draggable="true"] { ${interactive({ hover: 'cursor: grab;', active: 'cursor: grabbing;' })} }
 
     > span { ${rect(8, 8)}; ${maskIcon(svg)}; }
   }
