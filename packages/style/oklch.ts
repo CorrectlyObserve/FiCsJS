@@ -1,4 +1,4 @@
-import { browserError, isBlankString, numberError, typedEntries } from '../core/helpers'
+import { numberError, typedEntries } from '../core/helpers'
 import type { Color } from './types'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
@@ -20,37 +20,6 @@ const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   } as const
 
 const cache: Map<string, Color.Oklch> = new Map(),
-  convertCssVar = (str: string, seen: Set<string> = new Set()): string => {
-    str = str.trim()
-
-    const matchArray: RegExpMatchArray | null = str.match(CSS_VAR)
-    if (!matchArray) return str
-
-    browserError()
-
-    const [, name, fallback]: RegExpMatchArray = matchArray,
-      resolved: string = getComputedStyle(document.documentElement)
-        .getPropertyValue(`--${name}`)
-        .trim()
-
-    if (seen.has(name)) {
-      const cycle: string = [...seen, name].map(_name => `--${_name}`).join(' -> ')
-      throw new Error(
-        `A circular CSS variable reference was detected (${cycle}) while resolving "${str}"...`
-      )
-    }
-
-    seen.add(name)
-
-    if (!isBlankString(resolved)) return convertCssVar(resolved, seen)
-
-    const _fallback: string | undefined = fallback?.trim()
-    if (_fallback) return convertCssVar(_fallback, seen)
-
-    throw new Error(
-      `The CSS variable "--${name}" is not defined and no fallback was provided in "${str}"...`
-    )
-  },
   normalizeHex = (hex: string): string => {
     const HEX = 'hex:' as const,
       OKLCH = 'oklch:' as const
@@ -121,7 +90,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return v <= THRESHOLD ? v / DIVISOR : ((v + OFFSET) / SCALE) ** EXPONENT
   },
   hexToRgb = (hex: string): Color.Rgb => {
-    hex = normalizeHex(convertCssVar(hex))
+    hex = normalizeHex(hex)
     const rgb: Color.Rgb = { r: 0, g: 0, b: 0 }
 
     for (const [index, color] of ['r', 'g', 'b'].entries())
