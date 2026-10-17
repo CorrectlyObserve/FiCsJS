@@ -66,6 +66,7 @@ export const globalCss: FiCs.GlobalCss = `
   input, textarea {
     &::placeholder { color: ${white(0.5)}; } 
 
+    ${interactive({ hover: base => `${base} cursor: text;`, active: false })}
     max-width: ${columnWidth};
     padding-inline: ${space('md')};
   }
