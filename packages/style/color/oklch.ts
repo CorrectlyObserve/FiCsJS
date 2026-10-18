@@ -12,7 +12,6 @@ const cache: Map<string, Color.Oklch> = new Map(),
       throw new Error(`The oklch() literal "${literal}" must match the format ${OKLCH_LITERAL}...`)
 
     const segments: string[] = match[1].split('/').map(s => s.trim())
-
     if (segments.length > 2)
       throw new Error(`The oklch() literal "${literal}" must contain at most one "/" separator...`)
 
