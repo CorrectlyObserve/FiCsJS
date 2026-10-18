@@ -23,6 +23,7 @@ export const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
 export const CLAMP_SCALAR = 100_000 as const,
   /** @remarks ITU-R BT.709: Relative luminance coefficients [R, G, B] based on human eye sensitivity. */
   LUMA = [0.2126, 0.7152, 0.0722] as const,
+  LUMINANCE = `(${LUMA[0]} * r + ${LUMA[1]} * g + ${LUMA[2]} * b)` as const,
   MAX_LUMA = 1 as const,
   /** @remarks W3C WCAG 2.x: Minimum contrast ratio (4.5:1) and ambient light surface reflection offset. */
   WCAG_RATIO = 4.5 as const
