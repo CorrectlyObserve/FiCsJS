@@ -1,16 +1,7 @@
 import { numberError, typedEntries } from '../../core/helpers'
 import type { Color } from '../types'
-import {
-  CSS_VAR,
-  GAMMA,
-  MATRIX_OF_RGB_TO_LMS,
-  MATRIX_OF_LMS_TO_OKLAB,
-  OFFSET,
-  RGB_MAX,
-  SCALE,
-  SLOPE,
-  THRESHOLD
-} from './constants'
+import { CSS_VAR, MATRIX_OF_RGB_TO_LMS, MATRIX_OF_LMS_TO_OKLAB } from './constants'
+import { hexToRatio, toLinearSRgb } from './helpers'
 
 const cache: Map<string, Color.Oklch> = new Map(),
   parseOklch = (literal: string): Color.Oklch & { a: number } => {
@@ -57,7 +48,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     if (length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
 
-    return length === 4 || length === 8 ? parseInt(hex.slice(6, 8), 16) / RGB_MAX : 1
+    return length === 4 || length === 8 ? hexToRatio(hex.slice(6, 8)) : 1
   },
   normalizeHex = (hex: string): string => {
     const HEX = 'hex:' as const,
@@ -79,17 +70,11 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     return hex
   },
-  toLinearSRgb = (c: number): number => {
-    const v: number = c / RGB_MAX
-    return v <= THRESHOLD ? v / SLOPE : ((v + OFFSET) / SCALE) ** GAMMA
-  },
   hexToRgb = (hex: string): Color.Rgb => {
     const rgb: Color.Rgb = { r: 0, g: 0, b: 0 }
 
     for (const [index, color] of ['r', 'g', 'b'].entries())
-      rgb[color as keyof Color.Rgb] = toLinearSRgb(
-        parseInt(hex.slice(index * 2, index * 2 + 2), 16)
-      )
+      rgb[color as keyof Color.Rgb] = toLinearSRgb(hex.slice(index * 2, index * 2 + 2))
 
     return rgb
   },
