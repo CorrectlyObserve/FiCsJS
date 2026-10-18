@@ -1,5 +1,5 @@
-import { numberError, typedEntries } from '../core/helpers'
-import type { Color } from './types'
+import { numberError, typedEntries } from '../../core/helpers'
+import type { Color } from '../types'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   MAX = 255 as const,
