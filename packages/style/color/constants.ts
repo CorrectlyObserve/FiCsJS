@@ -18,3 +18,11 @@ export const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
     A: { L: 1.9779984951, M: -2.428592205, S: 0.4505937099 },
     B: { L: 0.0259040371, M: 0.7827717662, S: -0.808675766 }
   } as const
+
+/** @remarks Multiplier to simulate a boolean step function (0 or 1) in CSS clamp(). */
+export const CLAMP_SCALAR = 100_000 as const,
+  /** @remarks ITU-R BT.709: Relative luminance coefficients [R, G, B] based on human eye sensitivity. */
+  LUMA = [0.2126, 0.7152, 0.0722] as const,
+  MAX_LUMA = 1 as const,
+  /** @remarks W3C WCAG 2.x: Minimum contrast ratio (4.5:1) and ambient light surface reflection offset. */
+  WCAG_RATIO = 4.5 as const
