@@ -1,7 +1,7 @@
 import { numberError, typedEntries } from '../../core/helpers'
 import type { Color } from '../types'
 import { CSS_VAR, MATRIX_OF_RGB_TO_LMS, MATRIX_OF_LMS_TO_OKLAB } from './constants'
-import { hexToRatio, toLinearSRgb } from './helpers'
+import { hexToRatio, hexToRgb } from './helpers'
 
 const cache: Map<string, Color.Oklch> = new Map(),
   parseOklch = (literal: string): Color.Oklch & { a: number } => {
@@ -69,14 +69,6 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     return hex
   },
-  hexToRgb = (hex: string): Color.Rgb => {
-    const rgb: Color.Rgb = { r: 0, g: 0, b: 0 }
-
-    for (const [index, color] of ['r', 'g', 'b'].entries())
-      rgb[color as keyof Color.Rgb] = toLinearSRgb(hex.slice(index * 2, index * 2 + 2))
-
-    return rgb
-  },
   rgbToOklch = ({ r, g, b }: Color.Rgb): Color.Oklch => {
     numberError({ r, g, b }, 'non-negative')
 
@@ -107,8 +99,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     if (cache.has(key)) return cache.get(key)!
 
-    const rgb: Color.Rgb = hexToRgb(hex),
-      oklch: Color.Oklch = rgbToOklch(rgb)
+    const oklch: Color.Oklch = rgbToOklch(hexToRgb(hex))
 
     for (const [key, decimalPlace] of typedEntries({ l: 4, c: 4, h: 2 })) {
       const value: number = oklch[key]
