@@ -7,7 +7,7 @@ export const BASE_COLORS = {
   warning: '#edb333'
 } as const
 
-export const BG_SHIFT = {
+export const BACKGROUND_DELTAS = {
   sunken: { light: -0.03, dark: -0.03 },
   raised: { light: 0.02, dark: 0.04 }
 } as const
