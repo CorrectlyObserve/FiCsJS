@@ -1,13 +1,8 @@
 import { numberError, typedEntries } from '../../core/helpers'
 import type { Color } from '../types'
+import { GAMMA, OFFSET, RGB_MAX, SCALE, SLOPE, THRESHOLD } from './constants'
 
 const CSS_VAR: RegExp = /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
-  MAX = 255 as const,
-  THRESHOLD = 0.04045 as const,
-  DIVISOR = 12.92 as const,
-  OFFSET = 0.055 as const,
-  SCALE = 1.055 as const,
-  EXPONENT = 2.4 as const,
   MATRIX_OF_RGB_TO_LMS: { L: Color.Vector; M: Color.Vector; S: Color.Vector } = {
     L: { R: 0.4122214708, G: 0.5363325363, B: 0.0514459929 },
     M: { R: 0.2119034982, G: 0.6806995451, B: 0.1073969566 },
@@ -64,7 +59,7 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     if (length === 4) hex = hex.replace(/([a-f\d])/g, '$1$1')
 
-    return length === 4 || length === 8 ? parseInt(hex.slice(6, 8), 16) / MAX : 1
+    return length === 4 || length === 8 ? parseInt(hex.slice(6, 8), 16) / RGB_MAX : 1
   },
   normalizeHex = (hex: string): string => {
     const HEX = 'hex:' as const,
@@ -87,8 +82,8 @@ const cache: Map<string, Color.Oklch> = new Map(),
     return hex
   },
   toLinearSRgb = (c: number): number => {
-    const v: number = c / MAX
-    return v <= THRESHOLD ? v / DIVISOR : ((v + OFFSET) / SCALE) ** EXPONENT
+    const v: number = c / RGB_MAX
+    return v <= THRESHOLD ? v / SLOPE : ((v + OFFSET) / SCALE) ** GAMMA
   },
   hexToRgb = (hex: string): Color.Rgb => {
     const rgb: Color.Rgb = { r: 0, g: 0, b: 0 }
