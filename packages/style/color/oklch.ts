@@ -129,10 +129,8 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
     throw new Error('Pass either "darker" or "lighter", as they cannot be used together...')
 
   color = color.trim()
-  const offset: number = (lighter ?? 0) - (darker ?? 0)
-
   if (CSS_VAR.test(color))
-    return `oklch(from ${color} clamp(0, l + ${offset}, 1) calc(c * ${chroma}) h / calc(alpha * ${alpha}))`
+    return `oklch(from ${color} clamp(0, l + ${lighter - darker}, 1) calc(c * ${chroma}) h / calc(alpha * ${alpha}))`
 
   let oklch: Color.Oklch, a: number
 
@@ -146,8 +144,8 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
     oklch = hexToOklch(color)
   }
 
-  const { l, c, h }: Color.Oklch = oklch
-  let lightness: number = Math.min(Math.max(l + offset, 0), 1)
+  const { l, c, h }: Color.Oklch = oklch,
+    lightness: number = Math.min(Math.max(l + lighter - darker, 0), 1)
 
   return `oklch(${round(lightness * 100, 2)}% ${round(c * chroma, 4)} ${h} / ${round(a * alpha, 4)})`
 }
