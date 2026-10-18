@@ -1,20 +1,19 @@
 import { addGlobalCss, getDocumentCss } from '../core/css'
 import { CSS_LAYER } from '../core/helpers'
-import { color, surface } from './color'
+import { color, oklch, surface } from './color'
 import { stroke } from './stroke'
 
 addGlobalCss(
   `${CSS_LAYER}{:focus-visible{outline:${stroke('md')} solid ${color('focus')};outline-offset:0}}`
 )
 
-export { color, getDocumentCss, stroke, surface }
+export { color, getDocumentCss, oklch, stroke, surface }
 export { flex } from './flex'
 export { fontWeight } from './fontWeight'
 export { forScreenReaders } from './forScreenReaders'
 export { interactive } from './interactive'
 export { maskIcon } from './maskIcon'
 export { motion } from './motion'
-export { oklch } from './oklch'
 export { calc, cssVar, hideScrollbar, layout, remToPx } from './others'
 export { positionCenter } from './positionCenter'
 export { radius } from './radius'
