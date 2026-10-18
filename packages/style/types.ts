@@ -37,6 +37,8 @@ export declare namespace Color {
     b: number
   }
 
+  type RgbArray = [r: number, g: number, b: number]
+
   interface Vector {
     R: number
     G: number
