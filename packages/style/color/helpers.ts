@@ -1,5 +1,5 @@
-import type { Color } from '../types'
 import { GAMMA, OFFSET, RGB_MAX, SLOPE, SCALE, THRESHOLD } from './constants'
+import type { Color } from './types'
 
 const parseHex = (hex: string): number => parseInt(hex, 16)
 
