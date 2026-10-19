@@ -1,4 +1,4 @@
-import type { Color } from '../types'
+import type { Color } from './types'
 
 export const GAMMA = 2.4 as const,
   OFFSET = 0.055 as const,
