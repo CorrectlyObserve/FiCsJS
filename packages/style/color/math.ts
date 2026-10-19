@@ -1,7 +1,7 @@
-import type { Color } from '../types'
 import { CLAMP_SCALAR, LUMA, LUMINANCE, MAX_LUMA, OFFSET, WCAG_RATIO } from './constants'
 import { hexToRgb } from './helpers'
 import { TEXTS } from './tokens'
+import type { Color } from './types'
 
 const toLuminance = (rgb: Color.RgbArray): number =>
   rgb.reduce((prev, current, index) => prev + current * LUMA[index], 0)
