@@ -1,7 +1,7 @@
 import { numberError, typedEntries } from '../../core/helpers'
-import type { Color } from '../types'
 import { CSS_VAR, MATRIX_OF_RGB_TO_LMS, MATRIX_OF_LMS_TO_OKLAB } from './constants'
 import { hexToRatio, hexToRgb } from './helpers'
+import type { Color } from './types'
 
 const cache: Map<string, Color.Oklch> = new Map(),
   parseOklch = (literal: string): Color.Oklch & { a: number } => {
