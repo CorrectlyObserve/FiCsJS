@@ -1315,7 +1315,7 @@ export class FiCsElement<D extends object, P extends object> {
 
     return addHostToSelectors({
       css: css.reduce<string>(
-        (prev, curr) => `${prev}${typeof curr === 'function' ? curr(this.#getDataProps()) : curr}`,
+        (acc, cur) => `${acc}${typeof cur === 'function' ? cur(this.#getDataProps()) : cur}`,
         ''
       ),
       /** @remarks Matches the specificity of `:host`, as `#id` would be too hard to override. */
