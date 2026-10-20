@@ -52,9 +52,9 @@ export const toRem = (unit: number) => `${unit * 0.25}rem` as const
 export const toVar = ({
   name,
   value,
-  scale
+  token
 }: {
   name: string
   value: string
-  scale?: string
-}): string => cssVar(ficsCssVar(`${name}${scale === undefined ? '' : `-${scale}`}`), value)
+  token?: string
+}): string => cssVar(ficsCssVar(`${name}${token === undefined ? '' : `-${token}`}`), value)
