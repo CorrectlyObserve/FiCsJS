@@ -1,4 +1,4 @@
-import { CLAMP_SCALAR, LUMA, LUMINANCE, MAX_LUMA, OFFSET, WCAG_RATIO } from './constants'
+import { CLAMP_SCALAR, LUMA, LUMA_MAX, LUMINANCE, WCAG_FLARE, WCAG_RATIO } from './constants'
 import { hexToRgb } from './helpers'
 import { TEXTS } from './tokens'
 import type { Color } from './types'
@@ -13,9 +13,9 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
   lightLuma: number = toLuminance(lightText),
   darkLuma: number = toLuminance(darkText),
   thresholds: Record<'light' | 'mid' | 'dark', number> = {
-    light: (lightLuma + OFFSET) / WCAG_RATIO - OFFSET,
-    mid: Math.sqrt((MAX_LUMA + OFFSET) * OFFSET) - OFFSET,
-    dark: WCAG_RATIO * (darkLuma + OFFSET) - OFFSET
+    light: (lightLuma + WCAG_FLARE) / WCAG_RATIO - WCAG_FLARE,
+    mid: Math.sqrt((LUMA_MAX + WCAG_FLARE) * WCAG_FLARE) - WCAG_FLARE,
+    dark: WCAG_RATIO * (darkLuma + WCAG_FLARE) - WCAG_FLARE
   },
   steps: string[] = Object.values(thresholds).map(
     threshold => `clamp(0, (${LUMINANCE} - ${threshold.toFixed(4)}) * ${CLAMP_SCALAR}, 1)`
@@ -26,7 +26,7 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
       const d: number = darkText[i],
         [light, mid, dark]: string[] = steps
 
-      return `calc(${l} + ${light} * (${MAX_LUMA - l}) - ${mid} + ${dark} * ${d})`
+      return `calc(${l} + ${light} * (${LUMA_MAX - l}) - ${mid} + ${dark} * ${d})`
     })
     .join(' ')
 
