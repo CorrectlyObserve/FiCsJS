@@ -1,11 +1,22 @@
-import type { Color } from './types'
+import { ficsCssVar } from '../../core/helpers'
 
-export const GAMMA = 2.4 as const,
+/** @remarks Multiplier to simulate a boolean step function (0 or 1) in CSS clamp(). */
+export const CLAMP_SCALAR = 100_000 as const,
+  GAMMA = 2.4 as const,
   OFFSET = 0.055 as const,
   RGB_MAX = 255 as const,
   SCALE = 1.055 as const,
   SLOPE = 12.92 as const,
-  THRESHOLD = 0.04045 as const
+  THRESHOLD = 0.04045 as const,
+  /** @remarks W3C WCAG 2.x: The 0.05 added to each luminance for the flare of a screen, not the 0.055 of sRGB. */
+  WCAG_FLARE = 0.05 as const,
+  /** @remarks W3C WCAG 2.x: Minimum contrast ratio (4.5:1). */
+  WCAG_RATIO = 4.5 as const
+
+/** @remarks ITU-R BT.709: Relative luminance coefficients [R, G, B] based on human eye sensitivity. */
+export const LUMA = [0.2126, 0.7152, 0.0722] as const,
+  LUMA_MAX = 1 as const,
+  LUMINANCE = `(${LUMA[0]} * r + ${LUMA[1]} * g + ${LUMA[2]} * b)` as const
 
 export const oklch = {
   CSS_VAR: /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
