@@ -47,11 +47,7 @@ export const globalCss: FiCs.GlobalCss = `
     transition: ${motion()};
     background: none;
     border: none;
-    outline: none;
-    border-radius: ${size(2)};
-
-    &:not([disabled]):hover { background: ${white(0.1)}; cursor: pointer; }
-    &:focus-visible { outline: ${outline}; }
+    border-radius: ${radius('sm')};
   }
 
   h2 {
