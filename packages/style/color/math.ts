@@ -12,7 +12,7 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
   }),
   lightLuma: number = toLuminance(lightText),
   darkLuma: number = toLuminance(darkText),
-  thresholds: Record<'light' | 'mid' | 'dark', number> = {
+  thresholds: Record<Color.Tone | 'mid', number> = {
     light: (lightLuma + WCAG_FLARE) / WCAG_RATIO - WCAG_FLARE,
     mid: Math.sqrt((LUMA_MAX + WCAG_FLARE) * WCAG_FLARE) - WCAG_FLARE,
     dark: WCAG_RATIO * (darkLuma + WCAG_FLARE) - WCAG_FLARE
