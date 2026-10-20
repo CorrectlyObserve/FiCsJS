@@ -6,14 +6,14 @@ export const adjustLightness = ({
   deltas
 }: {
   backgrounds: readonly [light: string, dark: string]
-  deltas: readonly [light: number, dark: number]
-}): string => {
-  const adjust = (color: string, delta: number): string =>
-    oklch(color, delta < 0 ? { darker: -delta } : { lighter: delta })
-
-  const adjusted = backgrounds.map((bg, i) => adjust(bg, deltas[i]))
-  return `light-dark(${adjusted.join(', ')})`
-}
+  deltas: { light: number; dark: number }
+}): string =>
+  `light-dark(${backgrounds
+    .map((bgColor, i) => {
+      const delta: number = deltas[i === 0 ? 'light' : 'dark']
+      return oklch(bgColor, delta < 0 ? { darker: -delta } : { lighter: delta })
+    })
+    .join(', ')})`
 
 export const clampLightness = (fill: string, [light, dark]: readonly [number, number]): string =>
   `light-dark(oklch(from ${fill} min(l, ${light}) c h), oklch(from ${fill} max(l, ${dark}) c h))`
