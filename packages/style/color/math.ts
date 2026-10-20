@@ -30,5 +30,22 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
     })
     .join(' ')
 
+/**
+ * @remarks
+ * Utilizes the remaining luminance margin (1 - L) to prevent color clipping
+ * while calculating the contrast ratio.
+ */
+export const adjustLuminance = (color: string, text: Color.Tone): string => {
+  const channels: string = ['r', 'g', 'b']
+    .map(cur =>
+      text === 'light'
+        ? `calc(${cur} * min(1, ${fitLimits[text]} / ${LUMINANCE}))`
+        : `calc(${cur} + max(0, (${fitLimits[text]} - ${LUMINANCE}) / (1 - ${LUMINANCE})) * (1 - ${cur}))`
+    )
+    .join(' ')
+
+  return `color(from ${color} srgb-linear ${channels})`
+}
+
 export const toTextColor = (background: string): string =>
   `color(from ${background} srgb-linear ${channels})`
