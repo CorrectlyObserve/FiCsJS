@@ -32,11 +32,7 @@ export declare namespace Color {
 
   type RgbArray = [r: number, g: number, b: number]
 
-  interface Vector {
-    R: number
-    G: number
-    B: number
-  }
+  type Tone = 'light' | 'dark'
 
   interface Wave {
     L: number
