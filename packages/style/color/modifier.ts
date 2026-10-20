@@ -28,12 +28,3 @@ export const muteText = ({
   surface: string
   ratio: number
 }): string => colorMix({ colors: [text, surface], ratio })
-
-const shift = (colorStr: string, by: number): string =>
-  oklch(colorStr, by < 0 ? { darker: -by } : { lighter: by })
-
-export const shiftBg = (
-  lightBg: string,
-  darkBg: string,
-  [lightShift, darkShift]: readonly [number, number]
-): string => `light-dark(${shift(lightBg, lightShift)}, ${shift(darkBg, darkShift)})`
