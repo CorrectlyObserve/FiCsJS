@@ -1,12 +1,13 @@
-import { oklch } from './oklch'
 import { colorMix } from '../others'
+import { oklch } from './oklch'
+import type { Color } from './types'
 
 export const adjustLightness = ({
   backgrounds,
   deltas
 }: {
   backgrounds: readonly [light: string, dark: string]
-  deltas: { light: number; dark: number }
+  deltas: Record<Color.Tone, number>
 }): string =>
   `light-dark(${backgrounds
     .map((bgColor, i) => {
