@@ -929,15 +929,15 @@ export class FiCsElement<D extends object, P extends object> {
           })
       })[symbols.SANITIZED]
 
-    return contents.reduce<string>((prev, curr) => {
-      if (isObject(curr) && curr instanceof FiCsElement) {
-        const instanceId: string = curr.#instanceId
+    return contents.reduce<string>((acc, cur) => {
+      if (isObject(cur) && cur instanceof FiCsElement) {
+        const instanceId: string = cur.#instanceId
 
-        this.#childrenStore[instanceId] ??= curr
-        curr = `<${VAR_TAG_NAME} ${attrs.FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
+        this.#childrenStore[instanceId] ??= cur
+        cur = `<${VAR_TAG_NAME} ${attrs.FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
-      return `${prev}${curr}`
+      return `${acc}${cur}`
     }, '')
   }
 
