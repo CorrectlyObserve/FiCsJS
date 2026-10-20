@@ -8,7 +8,7 @@ export const gradient = (
     deg = 180,
     text = 'light',
     adjust = true
-  }: { deg?: number; text?: Color.GradientText; adjust?: boolean } = {}
+  }: { deg?: number; text?: Color.Tone; adjust?: boolean } = {}
 ): Color.Gradient => {
   numberError({ deg }, 'finite')
 
