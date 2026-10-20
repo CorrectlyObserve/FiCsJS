@@ -1,5 +1,5 @@
 import { numberError } from '../../core/helpers'
-import { fitToText } from './math'
+import { adjustLuminance } from './math'
 import type { Color } from './types'
 
 export const gradient = (
@@ -17,7 +17,7 @@ export const gradient = (
     entries: string = colors
       .map(entry => {
         const [color, position] = typeof entry === 'string' ? [entry] : entry
-        return `${adjust ? fitToText(color, text) : color}${position ? ` ${position}` : ''}`
+        return `${adjust ? adjustLuminance(color, text) : color}${position ? ` ${position}` : ''}`
       })
       .join(', '),
     image: string = `linear-gradient(in ${colorSpace} ${deg}deg, ${entries})`
