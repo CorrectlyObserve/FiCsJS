@@ -2,19 +2,19 @@ import { typedFromEntries } from '../core/helpers'
 import { toVar } from './others'
 import { size } from './size'
 
-const SCALES = typedFromEntries(
+const TOKENS = typedFromEntries(
     (['xs', 'sm', 'md', 'lg', 'xl'] as const).map(
-      (scale, index) => [scale, toVar({ name: 'space', scale, value: size(2 ** index) })] as const
+      (token, index) => [token, toVar({ name: 'space', token, value: size(2 ** index) })] as const
     )
   ),
   SPACES = {
-    ...SCALES,
+    ...TOKENS,
     ...typedFromEntries(
       (['md'] as const).flatMap(
-        scale =>
+        token =>
           [
-            [`${scale}-`, `calc(${SCALES[scale]} * 0.75)`],
-            [`${scale}+`, `calc(${SCALES[scale]} * 1.5)`]
+            [`${token}-`, `calc(${TOKENS[token]} * 0.75)`],
+            [`${token}+`, `calc(${TOKENS[token]} * 1.5)`]
           ] as const
       )
     )
@@ -22,7 +22,7 @@ const SCALES = typedFromEntries(
 
 /**
  * @remarks
- * The defaults, each overridable through --fics-space-<scale>; md- and md+ follow --fics-space-md:
+ * The defaults, each overridable through --fics-space-<token>; md- and md+ follow --fics-space-md:
  * - xs: 0.25rem
  * - sm: 0.5rem
  * - md-: 0.75rem
@@ -31,4 +31,4 @@ const SCALES = typedFromEntries(
  * - lg: 2rem
  * - xl: 4rem
  */
-export const space = (scale: keyof typeof SPACES): string => SPACES[scale]
+export const space = (token: keyof typeof SPACES): string => SPACES[token]
