@@ -4,7 +4,7 @@ import { TEXTS } from './tokens'
 import type { Color } from './types'
 
 const toLuminance = (rgb: Color.RgbArray): number =>
-  rgb.reduce((prev, current, index) => prev + current * LUMA[index], 0)
+  rgb.reduce((acc, cur, index) => acc + cur * LUMA[index], 0)
 
 const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => {
     const { r, g, b }: Color.Rgb = hexToRgb(hex)
