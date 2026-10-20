@@ -10,7 +10,7 @@ const RADII = typedFromEntries(
       ['lg', size(4)],
       ['full', '9999rem']
     ] as const
-  ).map(([scale, value]) => [scale, toVar({ name: 'radius', scale, value })] as const)
+  ).map(([token, value]) => [token, toVar({ name: 'radius', token, value })] as const)
 )
 
-export const radius = (scale: keyof typeof RADII): string => RADII[scale]
+export const radius = (token: keyof typeof RADII): string => RADII[token]
