@@ -74,12 +74,12 @@ const cache: Map<string, Color.Oklch> = new Map(),
 
     const lms: Color.Lms = { l: 0, m: 0, s: 0 }
 
-    for (const [key, { R, G, B }] of typedEntries(MATRIX_OF_RGB_TO_LMS))
+    for (const [key, { R, G, B }] of typedEntries(o.MATRIX_OF_RGB_TO_LMS))
       lms[key.toLowerCase() as keyof Color.Lms] = Math.cbrt(R * r + G * g + B * b)
 
     const oklab: Color.Oklab = { l: 0, a: 0, b: 0 }
 
-    for (const [key, { L, M, S }] of typedEntries(MATRIX_OF_LMS_TO_OKLAB))
+    for (const [key, { L, M, S }] of typedEntries(o.MATRIX_OF_LMS_TO_OKLAB))
       oklab[key.toLowerCase() as keyof Color.Oklab] = L * lms.l + M * lms.m + S * lms.s
 
     const { a: _a, b: _b }: Color.Oklab = oklab
@@ -129,7 +129,7 @@ export const oklch = (color: string, options?: Color.Ctx): string => {
     throw new Error('Pass either "darker" or "lighter", as they cannot be used together...')
 
   color = color.trim()
-  if (CSS_VAR.test(color))
+  if (o.CSS_VAR.test(color))
     return `oklch(from ${color} clamp(0, l + ${lighter - darker}, 1) calc(c * ${chroma}) h / calc(alpha * ${alpha}))`
 
   let oklch: Color.Oklch, a: number
