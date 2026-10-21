@@ -1,10 +1,11 @@
 import { convertStr, DISABLED_SELECTOR } from '../core/helpers'
-import { colorMix } from './others'
+import { FILL_GRADIENT_VAR, TINT_VAR } from './constants'
+import { colorMix, cssVar } from './others'
 import type { Interactive } from './types'
 
-const createLayer = (ratio: number): string => {
-    const tint: string = colorMix({ ratio })
-    return `background-image: linear-gradient(${tint}, ${tint});`
+const tintBackground = (ratio: number): string => {
+    const tint: string = colorMix({ colors: [cssVar(TINT_VAR, 'currentColor')], ratio })
+    return `background-image: linear-gradient(${tint}, ${tint}), ${cssVar(FILL_GRADIENT_VAR, 'none')};`
   },
   /** @remarks `active` wins over `hover` as they are written out in this order. */
   STATES = {
