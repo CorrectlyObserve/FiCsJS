@@ -23,18 +23,18 @@ export const clampLightness = (fill: string, [light, dark]: readonly [number, nu
 
 export const mixTowardFill = ({
   text,
-  surface,
+  fill,
   ratio,
-  isOnFill
+  isUnmutedOnFill
 }: {
   text: string
-  surface: string
+  fill: string
   ratio: number
-  isOnFill?: boolean
+  isUnmutedOnFill?: boolean
 }): string => {
-  if (isOnFill) numberError({ ratio }, 'ratio')
+  if (isUnmutedOnFill) numberError({ ratio }, 'ratio')
   return colorMix({
-    colors: [text, surface],
-    ratio: isOnFill ? cssVar(MUTE_RATIO_VAR, `${Math.round(ratio * 100)}%`) : ratio
+    colors: [text, fill],
+    ratio: isUnmutedOnFill ? cssVar(MUTE_RATIO_VAR, `${Math.round(ratio * 100)}%`) : ratio
   })
 }
