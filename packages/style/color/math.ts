@@ -49,7 +49,7 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
 export const adjustLuminance = (color: string, text: Color.Tone): string => {
   const isLight: boolean = text === 'light',
     luminanceMargin: number = (ROUNDING_THRESHOLD / RGB_MAX) * (GAMMA / SCALE),
-    limit: string = (thresholds[text] + (isLight ? -luminanceMargin : luminanceMargin)).toFixed(6)
+    limit: string = (thresholds[text] + luminanceMargin * (isLight ? -1 : 1)).toFixed(6)
 
   const channels: string = ['r', 'g', 'b']
     .map(cur =>
