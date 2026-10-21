@@ -1,7 +1,7 @@
 import { convertStr, ficsCssVar, numberError } from '../../core/helpers'
 import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
-import { COLOR_TOKENS, DESCENDANTS, MUTE_RATIO_VAR } from './constants'
+import { COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
 import { adjustLightness, clampLightness, mixTowardFill } from './modifier'
 import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP, TEXTS } from './tokens'
