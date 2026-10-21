@@ -1,11 +1,11 @@
 import { addGlobalCss, getDocumentCss } from '../core/css'
-import { PULSE_OPACITY, VIBRATE_UNIT } from './constants'
+import { PULSE_OPACITY_VAR, VIBRATE_UNIT_VAR } from './constants'
 
 const translate3d = (multiplier: number): string =>
-  `translate3d(calc(var(${VIBRATE_UNIT}) * ${multiplier}), 0, 0)`
+  `translate3d(calc(var(${VIBRATE_UNIT_VAR}) * ${multiplier}), 0, 0)`
 
 addGlobalCss(`
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:var(${PULSE_OPACITY})}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:var(${PULSE_OPACITY_VAR})}}
   @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   @keyframes vibrate{
     10%,90%{transform:${translate3d(-1)}}
