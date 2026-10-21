@@ -2,7 +2,7 @@ import { ficsCssVar, numberError } from '../../core/helpers'
 import { colorMix, cssVar, toVar } from '../others'
 import { COLOR_TOKENS } from './constants'
 import { toTextColor } from './math'
-import { adjustLightness, clampLightness, muteText } from './modifier'
+import { adjustLightness, clampLightness, mixTowardFill } from './modifier'
 import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP } from './tokens'
 import type { Color } from './types'
 
@@ -47,7 +47,7 @@ for (const token of COLOR_TOKENS) {
       COLORS[token] = colorMix({ colors: [TEXT, SURFACE], ratio: fadeRatio(0.6) })
       COLORS[`${token}-muted`] = colorMix({
         colors: [
-          muteText({
+          mixTowardFill({
             text: TEXT,
             surface: SURFACE,
             ratio: RATIOS.muted,
@@ -73,7 +73,7 @@ for (const token of COLOR_TOKENS) {
     case 'divider':
       COLORS[token] = colorMix({
         colors: [
-          muteText({
+          mixTowardFill({
             text: TEXT,
             surface: SURFACE,
             ratio: RATIOS[token],
