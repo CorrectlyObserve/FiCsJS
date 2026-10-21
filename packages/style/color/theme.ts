@@ -12,9 +12,9 @@ const toColor = (token: keyof typeof BASE_COLORS): string =>
 const BG_BASE: readonly [string, string] = [toColor('bg-light'), toColor('bg-dark')],
   BG: string = `light-dark(${BG_BASE.join(', ')})`,
   LINK_VAR: string = ficsCssVar('link'),
-  SURFACE_VAR: string = ficsCssVar('surface'),
-  SURFACE: string = cssVar(SURFACE_VAR, BG),
-  TEXT: string = toTextColor(SURFACE)
+  FILL_VAR: string = ficsCssVar('fill'),
+  FILL: string = cssVar(FILL_VAR, BG),
+  TEXT: string = toTextColor(FILL)
 
 const COLORS = {} as Record<Color.Theme, string>,
   fadeRatio = (ratio: number = 1): string => {
