@@ -1,4 +1,4 @@
 import { ficsCssVar } from '../core/helpers'
 
-export const PULSE_OPACITY = ficsCssVar('pulse-opacity'),
-  VIBRATE_UNIT = ficsCssVar('vibrate-unit')
+export const PULSE_OPACITY_VAR = ficsCssVar('pulse-opacity'),
+  VIBRATE_UNIT_VAR = ficsCssVar('vibrate-unit')
