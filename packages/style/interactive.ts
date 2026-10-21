@@ -9,9 +9,9 @@ const tintBackground = (ratio: number): string => {
   },
   /** @remarks `active` wins over `hover` as they are written out in this order. */
   STATES = {
-    hover: { default: `${createLayer(0.1)} cursor: pointer;`, enabledOnly: true },
+    hover: { default: `${tintBackground(0.1)} cursor: pointer;`, enabledOnly: true },
     active: {
-      default: `${createLayer(0.15)} @media (prefers-reduced-motion: no-preference) { scale: 0.95 }`,
+      default: `${tintBackground(0.15)} @media (prefers-reduced-motion: no-preference) { scale: 0.95 }`,
       enabledOnly: true
     },
     focusVisible: { default: false, enabledOnly: false }
