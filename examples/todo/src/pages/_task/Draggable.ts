@@ -16,7 +16,6 @@ import {
 } from '@/pages/_task/drag'
 import DragMenu from '@/pages/_task/DragMenu'
 import DropZone from '@/pages/_task/DropZone'
-import { white } from '@/styles/theme'
 import { GripVertical } from 'lucide-static'
 
 interface Data {
@@ -75,7 +74,7 @@ const props: FiCs.Props<Data, Props> = [
       props: {
         labels: { handle }
       }
-    }) => ({ svg: GripVertical, ariaLabel: handle, isDraggable: true, color: white(0.75) })
+    }) => ({ svg: GripVertical, ariaLabel: handle, isDraggable: true, color: color('text-muted') })
   },
   {
     descendants: ({ children: { dropZone } }) => dropZone,
