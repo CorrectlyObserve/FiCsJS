@@ -7,11 +7,9 @@ import {
   interactive,
   layout,
   motion,
-  oklch,
   radius,
   space,
   stroke,
-  tapSize,
   textSize
 } from 'ficsjs/style'
 import { columnWidth, headerHeight } from '@/styles/theme'
