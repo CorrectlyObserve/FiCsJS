@@ -48,6 +48,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
 
     button {
       ${textSize('md', true)}
+      ${interactive()}
       ${fixedUnit ? `width: ${size(fixedUnit)};` : ''}
       min-width: ${size(16)};
       min-height: ${tapSize()};
