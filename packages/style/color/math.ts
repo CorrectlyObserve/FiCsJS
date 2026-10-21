@@ -1,5 +1,16 @@
-import { CLAMP_SCALAR, LUMA, LUMA_MAX, LUMINANCE, WCAG_FLARE, WCAG_RATIO } from './constants'
-import { hexToRgb } from './helpers'
+import {
+  CLAMP_SCALAR,
+  GAMMA,
+  LUMA,
+  LUMA_MAX,
+  LUMINANCE,
+  ROUNDING_THRESHOLD,
+  RGB_MAX,
+  SCALE,
+  WCAG_FLARE,
+  WCAG_RATIO
+} from './constants'
+import { hexToRgb, isLightTone } from './helpers'
 import { TEXTS } from './tokens'
 import type { Color } from './types'
 
@@ -36,11 +47,15 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
  * while calculating the contrast ratio.
  */
 export const adjustLuminance = (color: string, text: Color.Tone): string => {
+  const isLight: boolean = isLightTone(text),
+    luminanceMargin: number = (ROUNDING_THRESHOLD / RGB_MAX) * (GAMMA / SCALE),
+    limit: string = (thresholds[text] + (isLight ? -luminanceMargin : luminanceMargin)).toFixed(6)
+
   const channels: string = ['r', 'g', 'b']
     .map(cur =>
-      text === 'light'
-        ? `calc(${cur} * min(1, ${fitLimits[text]} / ${LUMINANCE}))`
-        : `calc(${cur} + max(0, (${fitLimits[text]} - ${LUMINANCE}) / (1 - ${LUMINANCE})) * (1 - ${cur}))`
+      isLight
+        ? `calc(${cur} * min(1, ${limit} / ${LUMINANCE}))`
+        : `calc(${cur} + max(0, (${limit} - ${LUMINANCE}) / (1 - ${LUMINANCE})) * (1 - ${cur}))`
     )
     .join(' ')
 
