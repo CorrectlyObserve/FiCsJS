@@ -1,6 +1,6 @@
 import { numberError } from '../../core/helpers'
 import { colorMix, cssVar } from '../others'
-import { MUTE_RATIO } from './constants'
+import { MUTE_RATIO_VAR } from './constants'
 import { oklch } from './oklch'
 import type { Color } from './types'
 
@@ -35,6 +35,6 @@ export const muteText = ({
   if (isOnFill) numberError({ ratio }, 'ratio')
   return colorMix({
     colors: [text, surface],
-    ratio: isOnFill ? cssVar(MUTE_RATIO, `${Math.round(ratio * 100)}%`) : ratio
+    ratio: isOnFill ? cssVar(MUTE_RATIO_VAR, `${Math.round(ratio * 100)}%`) : ratio
   })
 }
