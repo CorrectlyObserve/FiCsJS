@@ -36,10 +36,6 @@ export const globalCss: FiCs.GlobalCss = `
 
   h2, p, button { text-align: center; }
 
-  h2, button, input, textarea {
-    &:focus-visible { outline-color: ${color('text')}; }
-  }
-
   h2 {
     ${textSize('xl')}
     margin-block-end: ${space('lg')};
@@ -55,6 +51,8 @@ export const globalCss: FiCs.GlobalCss = `
     color: ${color('text')};
     border: none;
     border-radius: ${radius('sm')};
+
+    &:focus-visible { outline-color: ${color('text')}; }
   }
 
   label:hover { cursor: pointer; }
