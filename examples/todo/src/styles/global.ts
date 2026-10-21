@@ -42,6 +42,14 @@ export const globalCss: FiCs.GlobalCss = `
   * { padding: 0; margin: 0; box-sizing: border-box; }
 
   h2, p, button { text-align: center; }
+
+  h2 {
+    ${textSize('xl')}
+    margin-block-end: ${space('lg')};
+
+    @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
+  }
+
   p, label, legend, input, textarea { ${textSize('md')} }
 
   button, input, textarea {
@@ -50,13 +58,6 @@ export const globalCss: FiCs.GlobalCss = `
     color: ${color('text')};
     border: none;
     border-radius: ${radius('sm')};
-  }
-
-  h2 {
-    ${textSize('xl')}
-    margin-block-end: ${space('lg')};
-
-    @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
   }
 
   label:hover { cursor: pointer; }
