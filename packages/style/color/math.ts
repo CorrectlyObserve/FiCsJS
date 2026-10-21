@@ -10,7 +10,7 @@ import {
   WCAG_FLARE,
   WCAG_RATIO
 } from './constants'
-import { hexToRgb, isLightTone } from './helpers'
+import { hexToRgb } from './helpers'
 import { TEXTS } from './tokens'
 import type { Color } from './types'
 
@@ -47,7 +47,7 @@ const [lightText, darkText]: Color.RgbArray[] = Object.values(TEXTS).map(hex => 
  * while calculating the contrast ratio.
  */
 export const adjustLuminance = (color: string, text: Color.Tone): string => {
-  const isLight: boolean = isLightTone(text),
+  const isLight: boolean = text === 'light',
     luminanceMargin: number = (ROUNDING_THRESHOLD / RGB_MAX) * (GAMMA / SCALE),
     limit: string = (thresholds[text] + (isLight ? -luminanceMargin : luminanceMargin)).toFixed(6)
 
