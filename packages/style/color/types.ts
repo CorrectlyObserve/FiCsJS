@@ -48,10 +48,4 @@ export declare namespace Color {
     | 'text-muted'
 
   type Tone = 'light' | 'dark'
-
-  interface Wave {
-    L: number
-    M: number
-    S: number
-  }
 }
