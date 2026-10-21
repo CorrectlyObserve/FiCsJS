@@ -61,13 +61,4 @@ export const globalCss: FiCs.GlobalCss = `
     padding-inline: ${space('md')};
     border: ${stroke('sm')} solid ${color('border')};
   }
-
-  a {
-    transition: ${cssVar('transition')};
-    border-radius: ${size(2)};
-
-    &:hover { background: ${white(0.1)}; cursor: pointer; }
-    &:focus-visible { color: inherit; outline: ${outline}; outline-offset: 0; }
-    &:active { scale: 0.98; }
-  }
 `
