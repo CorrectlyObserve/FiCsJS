@@ -2,7 +2,6 @@ import { fics, type FiCs } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
 import { color, flex, forScreenReaders, maskIcon, rect, space } from 'ficsjs/style'
 import Button from '@/components/Button'
-import { white } from '@/styles/theme'
 import { Loader } from 'lucide-static'
 
 interface Props {
@@ -48,6 +47,7 @@ const css: FiCs.Css<{}, Props> = `
         ${rect(16, 16)}
         ${spin()}
         ${maskIcon(Loader)}
+        color: ${color('text')};
         margin: ${space('sm')} auto;
       }
     }
