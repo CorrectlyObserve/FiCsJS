@@ -32,7 +32,8 @@ export const documentCss: string = `
   body {
     ${flex({ direction: 'column' })}
     min-height: 100dvh;
-    background: var(--black);
+    background: ${color('bg')};
+    color: ${color('text')};
     margin: 0;
   }
 `
@@ -46,6 +47,7 @@ export const globalCss: FiCs.GlobalCss = `
   button, input, textarea {
     transition: ${motion()};
     background: none;
+    color: ${color('text')};
     border: none;
     border-radius: ${radius('sm')};
   }
@@ -60,11 +62,12 @@ export const globalCss: FiCs.GlobalCss = `
   label:hover { cursor: pointer; }
 
   input, textarea {
-    &::placeholder { color: ${white(0.5)}; } 
+    &::placeholder { color: ${color('text-muted')}; } 
 
     ${interactive({ hover: base => `${base} cursor: text;`, active: false })}
     max-width: ${columnWidth};
     padding-inline: ${space('md')};
+    border: ${stroke('sm')} solid ${color('border')};
   }
 
   a {
