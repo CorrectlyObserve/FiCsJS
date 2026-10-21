@@ -1,4 +1,6 @@
-import { colorMix } from '../others'
+import { numberError } from '../../core/helpers'
+import { colorMix, cssVar } from '../others'
+import { MUTE_RATIO } from './constants'
 import { oklch } from './oklch'
 import type { Color } from './types'
 
@@ -22,9 +24,17 @@ export const clampLightness = (fill: string, [light, dark]: readonly [number, nu
 export const muteText = ({
   text,
   surface,
-  ratio
+  ratio,
+  isOnFill
 }: {
   text: string
   surface: string
   ratio: number
-}): string => colorMix({ colors: [text, surface], ratio })
+  isOnFill?: boolean
+}): string => {
+  if (isOnFill) numberError({ ratio }, 'ratio')
+  return colorMix({
+    colors: [text, surface],
+    ratio: isOnFill ? cssVar(MUTE_RATIO, `${Math.round(ratio * 100)}%`) : ratio
+  })
+}
