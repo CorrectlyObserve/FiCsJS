@@ -8,6 +8,8 @@ export declare namespace Color {
     alpha?: number
   }
 
+  type Fill = (typeof COLOR_TOKENS)[number] | 'bg' | 'bg-sunken' | 'bg-raised'
+
   interface Gradient {
     readonly image: string
     readonly text: Tone
