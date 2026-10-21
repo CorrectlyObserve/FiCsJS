@@ -57,21 +57,6 @@ const css: FiCs.Css<{}, Props> = `
       padding-block: ${space('lg')};
     }
   }
-    
-  .loading {
-    > p { ${forScreenReaders} }
-
-    > div {
-      padding: ${space('sm')};
-      text-align: center;
-
-      svg {
-        ${rect(16)}
-        ${spin()}
-        stroke: ${white()}
-      }
-    }
-  }
 `
 
 export default () => fics<{}, Props>({ name: 'load-state', children: [Button()], props, html, css })
