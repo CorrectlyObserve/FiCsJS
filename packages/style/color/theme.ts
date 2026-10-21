@@ -116,7 +116,7 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
       `${FILL_VAR}: ${
         isGradient(paint)
           ? TEXTS[convertStr(`on-${paint.text}`, 'camel') as keyof typeof TEXTS]
-          : paint
+          : color(paint)
       };`,
       `${LINK_VAR}: ${TEXT};`,
       `${TINT_VAR}: color(from ${TEXT} srgb calc(1 - r) calc(1 - g) calc(1 - b));`,
