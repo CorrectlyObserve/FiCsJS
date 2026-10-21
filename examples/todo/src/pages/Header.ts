@@ -1,7 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
 import { ficsLink } from 'ficsjs/router'
-import { color, cssVar, flex, layout, motion, positionCenter, space, textSize } from 'ficsjs/style'
+import { color, flex, layout, motion, positionCenter, space, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
 
@@ -58,8 +58,7 @@ const css: FiCs.Css<Data, {}> = `
     position: sticky;
     top: 0;
     width: 100vw;
-    height: ${headerHeight};
-    background: ${cssVar('black')};
+    background: ${color('bg')};
     z-index: 10;
 
     header {
