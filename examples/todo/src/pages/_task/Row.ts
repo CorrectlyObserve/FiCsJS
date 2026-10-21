@@ -39,7 +39,7 @@ const html: FiCs.Html<{}, Props> = ({
   ${icon.setIndividualProps('delete', {
     svg: Trash2,
     ariaLabel: texts.remove,
-    color: cssVar('red'),
+    color: color('danger-text'),
     click: remove
   })}
 `
