@@ -19,6 +19,8 @@ export const LUMA = [0.2126, 0.7152, 0.0722] as const,
   LUMA_MAX = 1 as const,
   LUMINANCE = `(${LUMA[0]} * r + ${LUMA[1]} * g + ${LUMA[2]} * b)` as const
 
+export const MUTE_RATIO_VAR = ficsCssVar('mute-ratio')
+
 export const oklch = {
   CSS_VAR: /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
   MATRIX_OF_RGB_TO_LMS: {
