@@ -112,7 +112,7 @@ const html: FiCs.Html<Data, Props> = ({
       <div>
         ${button.setIndividualProps('save', {
           isDisabled: draft?.title === '',
-          type: 'gradation',
+          type: 'gradient',
           fixedUnit: 32,
           buttonText,
           click: async () => {
