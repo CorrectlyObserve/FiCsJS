@@ -1,7 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import {
   color,
-  cssVar,
   flex,
   fontWeight,
   interactive,
@@ -88,9 +87,12 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       &[data-type="selected"], &[data-type="delete"] { text-underline-offset: ${stroke('md')}; }
 
       &[data-type="selected"] {
-        font-weight: bold;
+        color: ${color('primary-text')};
+        font-weight: ${fontWeight('bold')};
         text-decoration: underline;
       }
+
+      &[data-type="delete"] { color: ${color('danger-text')}; }
 
       &:has(span) {
         ${flex({ inline: true, center: 'y', gap: space('sm') })}
