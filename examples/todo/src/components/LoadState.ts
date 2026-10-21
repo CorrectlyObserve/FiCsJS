@@ -24,7 +24,6 @@ const html: FiCs.Html<{}, Props> = ({
   children: { button },
   props: { isError, texts },
   template,
-  unsafeHtml,
   attributes: {
     a11y: { ariaHidden, statusLiveRegion }
   }
