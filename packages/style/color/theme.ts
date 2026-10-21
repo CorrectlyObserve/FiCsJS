@@ -1,9 +1,10 @@
-import { ficsCssVar, numberError } from '../../core/helpers'
+import { convertStr, ficsCssVar, numberError } from '../../core/helpers'
+import { FILL_GRADIENT_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
-import { COLOR_TOKENS } from './constants'
+import { COLOR_TOKENS, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
 import { adjustLightness, clampLightness, mixTowardFill } from './modifier'
-import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP } from './tokens'
+import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP, TEXTS } from './tokens'
 import type { Color } from './types'
 
 const toColor = (token: keyof typeof BASE_COLORS): string =>
@@ -106,4 +107,31 @@ export const color = (token: Color.Theme | 'focus'): string => {
     })
 
   return COLORS[token]
+}
+
+/** @remarks Paints a color or a gradient() and keeps the text, links and hover inside readable. */
+export const fill = (paint: string | Color.Gradient): string => {
+  const isGradient = (paint: string | Color.Gradient): paint is Color.Gradient =>
+      typeof paint !== 'string',
+    variables: string[] = [
+      `${FILL_VAR}: ${
+        isGradient(paint)
+          ? TEXTS[convertStr(`on-${paint.text}`, 'camel') as keyof typeof TEXTS]
+          : paint
+      };`,
+      `${LINK_VAR}: ${TEXT};`,
+      `${TINT_VAR}: color(from ${TEXT} srgb calc(1 - r) calc(1 - g) calc(1 - b));`,
+      `${MUTE_RATIO_VAR}: 100%;`
+    ],
+    styles: string[] = [
+      `color: ${TEXT}; background: ${cssVar(isGradient(paint) ? FILL_GRADIENT_VAR : FILL_VAR)};`
+    ]
+
+  if (isGradient(paint)) {
+    const DESCENDANTS = ':where(& *)' as const
+
+    variables.push(`${FILL_GRADIENT_VAR}: ${paint.image};`)
+    styles.push(`${DESCENDANTS} { ${FILL_GRADIENT_VAR}: none; }`)
+  }
+  return [...variables, ...styles].join(' ')
 }
