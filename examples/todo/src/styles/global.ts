@@ -43,6 +43,10 @@ export const globalCss: FiCs.GlobalCss = `
 
   h2, p, button { text-align: center; }
 
+  h2, button, input, textarea {
+    &:focus-visible { outline-color: ${color('text')}; }
+  }
+
   h2 {
     ${textSize('xl')}
     margin-block-end: ${space('lg')};
