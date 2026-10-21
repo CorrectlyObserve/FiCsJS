@@ -1,3 +1,5 @@
+import { COLOR_TOKENS, MAIN_COLOR_TOKENS } from './constants'
+
 export declare namespace Color {
   interface Ctx {
     darker?: number
@@ -31,6 +33,13 @@ export declare namespace Color {
   }
 
   type RgbArray = [r: number, g: number, b: number]
+
+  type Theme =
+    | (typeof COLOR_TOKENS)[number]
+    | `${(typeof MAIN_COLOR_TOKENS)[number]}-text`
+    | 'bg-sunken'
+    | 'bg-raised'
+    | 'text-muted'
 
   type Tone = 'light' | 'dark'
 
