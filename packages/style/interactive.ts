@@ -1,5 +1,5 @@
-import { convertStr, DISABLED_SELECTOR } from '../core/helpers'
-import { FILL_GRADIENT_VAR, TINT_VAR } from './constants'
+import { convertStr, CSS_LAYER, DISABLED_SELECTOR } from '../core/helpers'
+import { motion } from './motion'
 import { colorMix, cssVar } from './others'
 import type { Interactive } from './types'
 
@@ -18,8 +18,9 @@ const tintBackground = (ratio: number): string => {
   } as const
 
 export const interactive = (ctx: { [K in keyof typeof STATES]?: Interactive } = {}): string =>
-  Object.entries(STATES)
-    .map(([key, { default: def, enabledOnly }]) => {
+  [
+    `${CSS_LAYER} { transition: ${motion()}; }`,
+    ...Object.entries(STATES).map(([key, { default: def, enabledOnly }]) => {
       const value: Interactive | undefined = ctx[key as keyof typeof STATES],
         cssValue: string | false = typeof value === 'function' ? value(def || '') : (value ?? def)
 
@@ -31,5 +32,6 @@ export const interactive = (ctx: { [K in keyof typeof STATES]?: Interactive } = 
 
       return key === 'hover' ? `@media (hover: hover) { ${css} }` : css
     })
+  ]
     .filter(Boolean)
     .join(' ')
