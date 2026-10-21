@@ -1,5 +1,5 @@
 import { cssObject, numberError } from '../core/helpers'
-import { PULSE_OPACITY } from './constants'
+import { PULSE_OPACITY_VAR } from './constants'
 
 /**
  * @param durationSec Must be greater than 0. Defaults to `2`.
@@ -11,7 +11,7 @@ export const pulse = (durationSec = 2, opacity = 0.4) => {
 
   return cssObject({
     animation: `pulse ${durationSec}s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
-    [PULSE_OPACITY]: opacity
+    [PULSE_OPACITY_VAR]: opacity
   } as const)
 }
 
