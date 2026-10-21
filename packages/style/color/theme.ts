@@ -108,9 +108,9 @@ export const color = (token: Color.Theme | 'focus'): string => {
   return COLORS[token]
 }
 
-/** @remarks Paints a color or a gradient() and keeps the text, links and hover inside readable. */
-export const fill = (paint: string | Color.Gradient): string => {
-  const isGradient = (paint: string | Color.Gradient): paint is Color.Gradient =>
+/** @remarks Paints a color token or a gradient() and keeps the text, links and hover inside readable. */
+export const fill = (paint: Color.Fill | Color.Gradient): string => {
+  const isGradient = (paint: Color.Fill | Color.Gradient): paint is Color.Gradient =>
       typeof paint !== 'string',
     variables: string[] = [
       `${FILL_VAR}: ${
