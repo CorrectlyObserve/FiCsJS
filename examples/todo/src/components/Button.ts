@@ -10,9 +10,11 @@ import {
   size,
   space,
   stroke,
+  fill,
   tapSize,
   textSize
 } from 'ficsjs/style'
+import { gradientColor } from '@/styles/theme'
 
 interface Props {
   isDisabled?: boolean
@@ -52,36 +54,11 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       min-height: ${tapSize()};
       padding-inline: ${space('md')};
 
-      &[disabled] {
-        background: none !important;
-        color: ${white(0.2)};
-        cursor: not-allowed;
-      }
+      &[disabled] { background: none !important; }
 
-      &:not([disabled]):active { scale: 0.95; }
-
-      &[data-type="gradation"] {
-        ${interactive({
-          hover: 'cursor: pointer; &::before { opacity: 0.5; }',
-          active: '@media (prefers-reduced-motion: no-preference) { scale: 0.95 }'
-        })}
-        position: relative;
-        background: ${cssVar('gradation')};
-        padding-inline: ${space('md')};
-        overflow: hidden;
-        z-index: 0;
-
-        &::before {
-          position: absolute;
-          content: '';
-          inset: 0;
-          background: ${cssVar('black')};
-          opacity: 0;
-          transition: ${motion()};
-          z-index: -1;
-        }
-
-        &:not([disabled]):hover::before { opacity: 0.5; }
+      &[data-type="gradient"] {
+        ${fill(gradientColor())}
+        &[disabled] { color: ${color('text')}; }
       }
 
       &[data-type="selected"], &[data-type="delete"] { text-underline-offset: ${stroke('md')}; }
