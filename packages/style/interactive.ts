@@ -1,12 +1,15 @@
 import { convertStr, CSS_LAYER, DISABLED_SELECTOR } from '../core/helpers'
+import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from './constants'
 import { motion } from './motion'
 import { colorMix, cssVar } from './others'
 import type { Interactive } from './types'
 
-const tintBackground = (ratio: number): string => {
-    const tint: string = colorMix({ colors: [cssVar(TINT_VAR, 'currentColor')], ratio })
-    return `background-image: linear-gradient(${tint}, ${tint}), ${cssVar(FILL_GRADIENT_VAR, 'none')};`
-  },
+const tintBackground = (ratio: number): string =>
+    `background: ${colorMix({
+      colors: [cssVar(TINT_VAR, 'currentColor'), cssVar(TINT_BASE_VAR, 'transparent')],
+      ratio: `calc(${ratio * 100}% * ${cssVar(TINT_SCALE_VAR, '1')})`,
+      space: 'srgb'
+    })};`,
   /** @remarks `active` wins over `hover` as they are written out in this order. */
   STATES = {
     hover: { default: `${tintBackground(0.1)} cursor: pointer;`, enabledOnly: true },
