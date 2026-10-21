@@ -2,6 +2,7 @@ import { ficsCssVar } from '../../core/helpers'
 
 /** @remarks Multiplier to simulate a boolean step function (0 or 1) in CSS clamp(). */
 export const CLAMP_SCALAR = 100_000 as const,
+  DESCENDANTS = ':where(& *)' as const,
   GAMMA = 2.4 as const,
   OFFSET = 0.055 as const,
   RGB_MAX = 255 as const,
