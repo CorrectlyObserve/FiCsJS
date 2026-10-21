@@ -1,13 +1,13 @@
 import { addGlobalCss, getDocumentCss } from '../core/css'
 import { CSS_LAYER } from '../core/helpers'
-import { color, oklch, surface } from './color'
+import { color, fill, gradient, oklch } from './color'
 import { stroke } from './stroke'
 
 addGlobalCss(
   `${CSS_LAYER}{:focus-visible{outline:${stroke('md')} solid ${color('focus')};outline-offset:0}}`
 )
 
-export { color, getDocumentCss, oklch, stroke, surface }
+export { color, fill, getDocumentCss, gradient, oklch, stroke }
 export { flex } from './flex'
 export { fontWeight } from './fontWeight'
 export { forScreenReaders } from './forScreenReaders'
