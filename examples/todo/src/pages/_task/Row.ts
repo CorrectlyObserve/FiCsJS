@@ -19,9 +19,9 @@ const props: FiCs.Props<{}, Props> = {
   descendants: ({ children: { link } }) => link,
   values: ({ props: { task, statuses, isQueryParam } }) => ({
     href: createTaskPath({ id: task.id, isQueryParam }),
-    title: task.title,
-    isDone: !!task.completedAt,
-    status: statuses[task.completedAt ? 'completed' : 'uncompleted']
+    text: task.title,
+    isStruckThrough: !!task.completedAt,
+    textForScreenReaders: statuses[task.completedAt ? 'completed' : 'uncompleted']
   })
 }
 
