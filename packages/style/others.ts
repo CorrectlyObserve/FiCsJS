@@ -8,15 +8,23 @@ export function calc(arg: string | Operator, ...remaining: (string | number)[]):
   return `calc(${remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
 }
 
+/**
+ * @param space
+ * -
+ * - `oklab`: perceptually uniform color space
+ * - `srgb`: standard RGB color space
+ */
 export const colorMix = ({
   colors: [first, second = 'transparent'] = ['currentColor'],
-  ratio
+  ratio,
+  space = 'oklab'
 }: {
   colors?: [string, string?]
   ratio: number | string
+  space?: 'oklab' | 'srgb'
 }): string => {
   if (typeof ratio === 'number') numberError({ ratio }, 'ratio')
-  return `color-mix(in oklab, ${first} ${typeof ratio === 'number' ? `${ratio * 100}%` : ratio}, ${second})`
+  return `color-mix(in ${space}, ${first} ${typeof ratio === 'number' ? `${ratio * 100}%` : ratio}, ${second})`
 }
 
 export const cssVar = (variable: string, fallback?: string): string => {
