@@ -21,7 +21,7 @@ export const adjustLightness = ({
 export const clampLightness = (fill: string, [light, dark]: readonly [number, number]): string =>
   `light-dark(oklch(from ${fill} min(l, ${light}) c h), oklch(from ${fill} max(l, ${dark}) c h))`
 
-export const muteText = ({
+export const mixTowardFill = ({
   text,
   surface,
   ratio,
