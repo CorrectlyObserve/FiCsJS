@@ -6,7 +6,6 @@ import {
   flex,
   interactive,
   layout,
-  motion,
   radius,
   space,
   stroke,
@@ -44,7 +43,6 @@ export const globalCss: FiCs.GlobalCss = `
   p, label, legend, input, textarea { ${textSize('md')} }
 
   button, input, textarea {
-    transition: ${motion()};
     background: none;
     color: ${color('text')};
     border: none;
