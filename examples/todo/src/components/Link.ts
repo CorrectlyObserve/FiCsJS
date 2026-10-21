@@ -11,10 +11,13 @@ interface Props {
 
 const href: FiCsLink.Href<Props> = ({ props: { href } }) => href
 
-const content: FiCsLink.Content<Props> = ({ props: { title, isDone, status }, template }) =>
+const content: FiCsLink.Content<Props> = ({
+  props: { text, isStruckThrough, textForScreenReaders },
+  template
+}) =>
   template`
-    <span${isDone && ' class="done"'}>${title}</span>
-    <span style="${String(forScreenReaders)}">${status}</span>
+    <span${isStruckThrough && ' class="struck-through"'}>${text}</span>
+    ${textForScreenReaders && template`<span style="${String(forScreenReaders)}">${textForScreenReaders}</span>`}
   `
 
 const css: FiCsLink.Css<Props> = `
