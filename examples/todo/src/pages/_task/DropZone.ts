@@ -21,7 +21,9 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
 
     &.is-active {
       height: ${height}px;
+      background: ${color('bg-raised')};
       margin-block: ${space('sm')};
+      border: ${stroke('md')} dashed ${color('primary-text')};
     }
   }
 `
