@@ -14,6 +14,7 @@ import {
   tapSize,
   textSize
 } from 'ficsjs/style'
+import { columnWidth, headerHeight } from '@/styles/theme'
 
 export const documentCss: string = `
   :root {
