@@ -8,6 +8,12 @@ export declare namespace Color {
     alpha?: number
   }
 
+  interface Gradient {
+    readonly image: string
+    readonly text: Tone
+    toString: () => string
+  }
+
   interface Lms {
     l: number
     m: number
