@@ -23,7 +23,7 @@ const COLORS = {} as Record<Color.Theme, string>,
     return `calc(100% - (${cssVar(ficsCssVar('disabled'), '0%')} * ${ratio}))`
   }
 
-for (const token of COLOR_TOKENS) {
+for (const token of COLOR_TOKENS)
   switch (token) {
     case 'bg':
       COLORS[token] = colorMix({ colors: [BG], ratio: fadeRatio() })
@@ -96,7 +96,6 @@ for (const token of COLOR_TOKENS) {
         ratio: fadeRatio(0.6)
       })
   }
-}
 
 export const color = (token: Color.Theme | 'focus'): string => {
   if (token === 'focus')
