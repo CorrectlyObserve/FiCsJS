@@ -2,6 +2,7 @@ import { numberError } from '../../core/helpers'
 import { adjustLuminance } from './math'
 import type { Color } from './types'
 
+/** @param deg Must be finite. */
 export const gradient = (
   colors: readonly (string | readonly [color: string, position: string])[],
   {
