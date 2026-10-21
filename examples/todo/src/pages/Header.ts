@@ -1,8 +1,8 @@
 import { fics, type FiCs } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
-import { ficsLink } from 'ficsjs/router'
 import { color, flex, layout, motion, positionCenter, space, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
+import Link from '@/components/Link'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
 import { gradientColor } from '@/styles/theme'
 
@@ -11,6 +11,11 @@ interface Data {
   lang: Lang
   isShown: boolean
   label: string
+}
+
+const props: FiCs.Props<Data, {}> = {
+  descendants: ({ children: { link } }) => link,
+  values: () => ({ href: '/', text: 'FiCs ToDo' })
 }
 
 const html: FiCs.Html<Data, {}> = ({
@@ -108,25 +113,14 @@ const hooks: FiCs.Hooks<Data, {}> = {
 
 export default fics<Data, {}>({
   name: 'header',
-  children: [
-    ficsLink({
-      href: '/',
-      content: ({ template }) => template`FiCs ToDo`,
-      css: `a { 
-        padding-block: ${space('xs')};
-        padding-inline: ${space('sm')};
-        
-        &:focus-visible { outline-color: ${color('text')}; }
-      }`
-    }),
-    Button()
-  ],
+  children: [Link(), Button()],
   data: () => ({ langs: LANG_LIST, lang: 'en', isShown: false, label: '' }),
   deferredData: {
     load: async ({ data: { lang }, i18n }) => ({ label: await i18n({ lang, key: 'lang' }) }),
     dataKey: 'lang',
     allowStale: true
   },
+  props,
   html,
   css,
   hooks
