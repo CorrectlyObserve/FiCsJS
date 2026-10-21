@@ -12,3 +12,5 @@ export const hexToRatio = (hex: string): number => parseHex(hex) / RGB_MAX,
 
     return { r, g, b }
   }
+
+export const isLightTone = (tone: Color.Tone): boolean => tone === 'light'
