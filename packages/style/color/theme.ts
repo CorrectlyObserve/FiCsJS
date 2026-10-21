@@ -1,5 +1,5 @@
 import { convertStr, ficsCssVar, numberError } from '../../core/helpers'
-import { FILL_GRADIENT_VAR, TINT_VAR } from '../constants'
+import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
 import { COLOR_TOKENS, DESCENDANTS, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
