@@ -1,6 +1,14 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
-import { flex, forScreenReaders, size, truncate } from 'ficsjs/style'
-import { white } from '@/styles/theme'
+import {
+  color,
+  flex,
+  forScreenReaders,
+  interactive,
+  radius,
+  space,
+  tapSize,
+  truncate
+} from 'ficsjs/style'
 
 interface Props {
   href: string
@@ -20,22 +28,35 @@ const content: FiCsLink.Content<Props> = ({
     ${textForScreenReaders && template`<span style="${String(forScreenReaders)}">${textForScreenReaders}</span>`}
   `
 
-const css: FiCsLink.Css<Props> = `
+const css: FiCsLink.Css<Props> = ({ props: { textForScreenReaders } }) => `
   :host {
     min-width: 0;
 
     a {
-      ${flex()}
-      color: ${white()};
-      padding: ${size(4)};
-      line-height: 1;
+      ${interactive({ focusVisible: `color: inherit; outline-color: ${color('text')};` })}
+      border-radius: ${radius('sm')};
 
-      span {
-        ${truncate()}
-        width: 100%;
-        line-height: inherit;
+      ${
+        textForScreenReaders === undefined
+          ? `
+            padding-block: ${space('xs')};
+            padding-inline: ${space('sm')};
+          `
+          : `
+            ${flex({ center: 'y' })}
+            min-height: ${tapSize()};
+            color: ${color('text')};
+            padding-inline: ${space('md')};
+            line-height: 1;
 
-        &.done { text-decoration: line-through; }
+            span {
+              ${truncate()}
+              width: 100%;
+              line-height: inherit;
+
+              &.struck-through { text-decoration: line-through; }
+            }
+          `
       }
     }
   }
