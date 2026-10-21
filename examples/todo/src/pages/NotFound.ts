@@ -53,7 +53,7 @@ const html: FiCs.Html<Data, Props> = ({
     <p ${ariaHidden}>${countdown(seconds)}</p>
     <div>
       ${button.setIndividualProps('back', {
-        type: 'gradation',
+        type: 'gradient',
         buttonText,
         click: () => goto('/', { isWithoutHistory: true })
       })}
