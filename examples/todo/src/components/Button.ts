@@ -18,7 +18,7 @@ import {
 interface Props {
   isDisabled?: boolean
   state?: 'pressed' | 'expanded'
-  type?: 'gradation' | 'selected' | 'delete'
+  type?: 'gradient' | 'selected' | 'delete'
   svg?: string
   fixedUnit?: number
   buttonText: string
