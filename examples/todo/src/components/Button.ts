@@ -5,7 +5,6 @@ import {
   fontWeight,
   interactive,
   maskIcon,
-  motion,
   rect,
   size,
   space,
