@@ -4,9 +4,9 @@ import { white } from '@/styles/theme'
 
 interface Props {
   href: string
-  title: string
-  isDone: boolean
-  status: string
+  text: string
+  isStruckThrough?: boolean
+  textForScreenReaders?: string
 }
 
 const href: FiCsLink.Href<Props> = ({ props: { href } }) => href
