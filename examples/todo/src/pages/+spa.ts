@@ -86,6 +86,7 @@ const css: FiCsRouter.Css<Data> = `
     @container ${layout('expanded')} {
       .task-list + .task-details {
         padding-inline-start: ${space('lg')};
+        box-shadow: ${size(-2)} 0px ${size(2)} ${size(-2)} ${color('shadow')};
       }
     }
 
