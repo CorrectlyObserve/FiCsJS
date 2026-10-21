@@ -13,7 +13,7 @@ interface Props {
 const props: FiCs.Props<{}, Props> = {
   descendants: ({ children: { button } }) => button,
   values: ({ props: { texts, retry } }) => ({
-    type: 'gradation',
+    type: 'gradient',
     fixedUnit: 32,
     buttonText: texts.retry,
     click: retry
