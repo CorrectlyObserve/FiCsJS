@@ -1,5 +1,5 @@
 import { cssObject, numberError } from '../core/helpers'
-import { VIBRATE_UNIT } from './constants'
+import { VIBRATE_UNIT_VAR } from './constants'
 
 /**
  * @param durationSec Must be greater than 0. Defaults to `0.4`.
@@ -11,6 +11,6 @@ export const vibrate = (durationSec = 0.4, unit = 2) => {
 
   return cssObject({
     animation: `vibrate ${durationSec}s cubic-bezier(0.36, 0.07, 0.19, 0.97) both`,
-    [VIBRATE_UNIT]: `${unit}px`
+    [VIBRATE_UNIT_VAR]: `${unit}px`
   } as const)
 }
