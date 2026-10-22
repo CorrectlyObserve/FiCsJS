@@ -1,5 +1,3 @@
-import ChatButton from '@/components/ChatButton'
-import Link from '@/components/Link'
 import Photos from '@/pages/scroll/Photos'
 
 export const meta = {
@@ -7,8 +5,4 @@ export const meta = {
   description: 'This is an example of an infinite scroll and a virtual scroll with FiCsJS.'
 }
 
-export default (): string => `
-  ${Link.toString()}
-  ${Photos.toString()}
-  ${ChatButton.toString()}
-`
+export default (): string => Photos.toString()
