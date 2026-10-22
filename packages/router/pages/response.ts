@@ -1,4 +1,4 @@
-import { getDocumentCss } from '../../core/css'
+import { getGlobalCss, GLOBAL_STYLE_ATTR } from '../../core/css'
 import { CONTENT_TYPE } from '../../core/helpers'
 import { statusCodes, VIEW_TRANSITION_STYLE } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
@@ -59,7 +59,10 @@ export const respondPage = async <C extends Record<string, unknown>>({
   return respond({
     html: injectMeta({
       html,
-      metaTags: `${renderMeta(resolvedMeta)}${viewTransition ? VIEW_TRANSITION_STYLE : ''}`
+      metaTags: `
+        ${renderMeta(resolvedMeta)}${viewTransition ? VIEW_TRANSITION_STYLE : ''}
+        <style ${GLOBAL_STYLE_ATTR}>${getGlobalCss()}</style>
+      `
     }),
     status,
     noStore
