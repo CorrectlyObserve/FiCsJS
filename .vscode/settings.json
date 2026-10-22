@@ -9,6 +9,7 @@
     "fieldsets",
     "formnovalidate",
     "itemscope",
+    "LUMA",
     "novalidate",
     "playsinline",
     "prerendered",
