@@ -910,6 +910,7 @@ export class FiCsElement<D extends object, P extends object> {
               (isRequired !== undefined && `aria-required="${isRequired}"`) || ''
           },
           disabled: (isDisabled?: boolean): string => (isDisabled && 'disabled') || '',
+          required: (isRequired?: boolean): string => (isRequired && 'required') || '',
           formAnchor: attrs.FORM_ANCHOR,
           show: (isShown: boolean): string => (!isShown && attrs.HIDDEN) || ''
         },
