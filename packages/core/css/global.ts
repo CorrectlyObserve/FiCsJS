@@ -22,12 +22,12 @@ export const addGlobalCss = (css: string): void => {
   if (addedCss.has(css)) return
 
   addedCss.add(css)
-  isStale = true
+  refresh()
 }
 
 export const configGlobalCss = (css: string): void => {
   configuredCss = css
-  isStale = true
+  refresh()
 }
 
 export const getDocumentCss = (): string =>
