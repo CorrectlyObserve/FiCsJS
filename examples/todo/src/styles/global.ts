@@ -6,16 +6,17 @@ import {
   interactive,
   layout,
   radius,
+  size,
   space,
   stroke,
   textSize
 } from 'ficsjs/style'
-import { columnWidth, headerHeight } from '@/styles/theme'
+import { columnWidth } from '@/styles/theme'
 
 export const documentCss: string = `
   :root {
     color-scheme: dark;
-    scroll-padding-block-start: ${calc(`${headerHeight} + ${space('sm')}`)};
+    scroll-padding-block-start: ${calc(`${size(8 + 10)} + ${space('sm')}`)};
   }
 
   body {
