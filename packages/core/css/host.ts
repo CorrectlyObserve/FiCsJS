@@ -6,7 +6,7 @@ const isHostAt = (css: string, index: number): boolean => {
     const head: string = css.slice(index, index + HOST_CONTEXT_SELECTOR.length).toLowerCase()
     return head.startsWith(HOST_SELECTOR) && !head.startsWith(HOST_CONTEXT_SELECTOR)
   },
-  replaceHost = (selector: string, ssrHost: string): string => {
+  toScope = (css: string): string => {
     let result: string = '',
       cursor: number = 0
 
