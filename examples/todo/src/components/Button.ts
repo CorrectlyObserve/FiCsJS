@@ -54,12 +54,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       min-height: ${tapSize()};
       padding-inline: ${space('md')};
 
-      &[disabled] { background: none !important; }
-
-      &[data-type="gradient"] {
-        ${fill(gradientColor())}
-        &[disabled] { color: ${color('text')}; }
-      }
+      &[data-type="gradient"] { ${fill(gradientColor())} }
 
       &[data-type="selected"], &[data-type="delete"] { text-underline-offset: ${stroke('md')}; }
 
