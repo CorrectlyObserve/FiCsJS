@@ -3,7 +3,6 @@ import { CSS_LAYER, HOST_SELECTOR } from '../helpers'
 import { COMPACT_SIZE, DISABLED_CSS, EXPANDED_SIZE } from './constants'
 
 const addedCss: Set<string> = new Set(),
-  globalCss = (): string => `${[...addedCss].join('')}${configuredCss}`,
   layoutCss = (selector: string): string =>
     [
       [`width < ${COMPACT_SIZE}`, 'compact'],
@@ -16,6 +15,17 @@ const addedCss: Set<string> = new Set(),
 
 let configuredCss: string = '',
   styleSheet: CSSStyleSheet | undefined
+
+export const getDocumentCss = (): string =>
+  `
+    ${CSS_LAYER} {
+      ${HOST_SELECTOR}{display:block}
+      ${layoutCss(`:root,${HOST_SELECTOR}`)}${DISABLED_CSS}
+    }
+      
+    ${[...addedCss].join('')}
+    ${configuredCss}
+  `
 
 export const addGlobalCss = (css: string): void => {
   if (addedCss.has(css)) return
