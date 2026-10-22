@@ -1,7 +1,3 @@
-import ChatButton from '@/components/ChatButton'
-import Link from '@/components/Link'
-import Users from '@/pages/index/Users'
+import Top from '@/pages/index/Top'
 
-Link.describe()
-Users.describe()
-ChatButton.describe()
+Top.describe()
