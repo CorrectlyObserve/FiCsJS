@@ -19,3 +19,11 @@ export const parseName = (name: unknown): string => {
 
   return name.trim()
 }
+
+export const parseEmail = (email: unknown): string => {
+  const normalized: string | null = normalizeEmail(email)
+  if (normalized === null)
+    throw rpcError({ code: 'BAD_REQUEST', message: 'The email must be a valid address.' })
+
+  return normalized
+}
