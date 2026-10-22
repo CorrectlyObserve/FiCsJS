@@ -10,11 +10,11 @@ const isHostAt = (css: string, index: number): boolean => {
     let result: string = '',
       cursor: number = 0
 
-    while (cursor < selector.length) {
-      const validIndex: number = getNextValidIndex(selector, cursor)
+    while (cursor < css.length) {
+      const validIndex: number = getNextValidIndex(css, cursor)
 
       if (validIndex !== cursor) {
-        result += selector.slice(cursor, validIndex)
+        result += css.slice(cursor, validIndex)
         cursor = validIndex
         continue
       }
@@ -27,8 +27,8 @@ const isHostAt = (css: string, index: number): boolean => {
 
       const openIndex: number = cursor + HOST_SELECTOR.length
 
-      if (selector[openIndex] === '(') {
-        const closeIndex: number = findCloseBracket(selector, openIndex)
+        if (css[openIndex] === '(') {
+          const closeIndex: number = findCloseBracket(css, openIndex)
 
         /** @remarks Excludes `(` and `)` to convert `:host(.class)` to `[id="id"].class`. */
         result += `${ssrHost}${replaceHost(selector.slice(openIndex + 1, closeIndex - 1), ssrHost)}`
