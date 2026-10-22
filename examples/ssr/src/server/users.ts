@@ -1,5 +1,11 @@
 import type { User } from '@/domain/user'
 
+const users: User[] = [
+  { id: 1, name: 'Alice', email: 'alice@example.com', role: 'admin' },
+  { id: 2, name: 'Bob', email: 'bob@example.com', role: 'member' },
+  { id: 3, name: 'Carol', email: 'carol@example.com', role: 'member' }
+]
+
 export const getUsers = (): readonly User[] => users
 
 export const findUser = (userId: number): User | undefined => users.find(({ id }) => id === userId)
