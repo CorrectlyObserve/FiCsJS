@@ -16,7 +16,7 @@ export const nonExistentUserError = (userId: number) =>
   rpcError({ code: 'NOT_FOUND', message: `The user ${userId} does not exist.` })
 
 export const addUser = (userData: Omit<User, 'id'>): User | null => {
-  if (users.some(({ email }) => email === userData.email)) return null
+  if (findUser(userData.email)) return null
 
   const user: User = { id: users.reduce((max, { id }) => Math.max(max, id), 0) + 1, ...userData }
 
