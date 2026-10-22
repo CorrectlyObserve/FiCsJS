@@ -1,6 +1,4 @@
-import { ficsCssVar } from './../helpers'
-import { CSS_LAYER, HOST_SELECTOR } from '../helpers'
-import { COMPACT_SIZE, DISABLED_CSS, EXPANDED_SIZE } from './constants'
+import { COMPACT_SIZE, DISABLED_CSS, EXPANDED_SIZE, GLOBAL_STYLE_ATTR } from './constants'
 
 const addedCss: Set<string> = new Set(),
   layoutCss = (selector: string): string =>
