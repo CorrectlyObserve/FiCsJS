@@ -14,7 +14,7 @@ const addedCss: Set<string> = new Set(),
 let configuredCss: string = '',
   styleSheet: CSSStyleSheet | undefined
 
-export const getDocumentCss = (): string =>
+export const getGlobalCss = (): string =>
   `
     ${CSS_LAYER} {
       ${HOST_SELECTOR}{display:block}
