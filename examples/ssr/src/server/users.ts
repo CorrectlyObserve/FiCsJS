@@ -26,12 +26,13 @@ export const addUser = (userData: Omit<User, 'id'>): User | null => {
   return user
 }
 
-export const updateUser = (id: number, patch: Partial<Omit<User, 'id'>>): User | undefined => {
-  const current: User | undefined = findUser(id)
-  if (!current) return undefined
+export const updateUser = (userId: number, patch: Partial<Omit<User, 'id'>>): User | null => {
+  const current: User | undefined = findUser(userId)
+  if (!current) return null
 
   const updated: User = { ...current, ...patch }
-  users = users.map(user => (user.id === id ? updated : user))
+
+  users = users.map(user => (user.id === userId ? updated : user))
   return updated
 }
 
