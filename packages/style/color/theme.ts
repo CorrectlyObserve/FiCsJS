@@ -1,7 +1,7 @@
 import { convertStr, ficsCssVar, numberError } from '../../core/helpers'
 import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
-import { COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
+import { BLENDS, COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
 import { adjustLightness, clampLightness, mixTowardFill } from './modifier'
 import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP, TEXTS } from './tokens'
@@ -126,10 +126,17 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
     styles: string[] = [`color: ${TEXT};`]
 
   if (isGradient(paint)) {
-    const DESCENDANTS = ':where(& *)' as const
+    const { image, text }: Color.Gradient = paint
 
-    variables.push(`${FILL_GRADIENT_VAR}: ${paint.image};`)
-    styles.push(`${DESCENDANTS} { ${FILL_GRADIENT_VAR}: none; }`)
-  }
+    variables.push(`${TINT_BASE_VAR}: ${BLENDS[text].color};`)
+    styles.push(`background-image: ${image}; background-blend-mode: ${BLENDS[text].mode};`)
+  } else variables.push(`${TINT_BASE_VAR}: ${cssVar(FILL_VAR)};`)
+
+  /** @remarks Sets the base background for hover tints. */
+  styles.push(`background-color: ${cssVar(TINT_BASE_VAR)};`)
+
+  /** @remarks Resets the descendant tint base to transparent. */
+  styles.push(`${DESCENDANTS_SELECTOR} { ${TINT_BASE_VAR}: transparent; }`)
+
   return [...variables, ...styles].join(' ')
 }
