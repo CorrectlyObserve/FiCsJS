@@ -4,7 +4,7 @@ import Photos from '@/pages/scroll/Photos'
 
 export const meta = {
   title: 'Infinite and virtual scroll',
-  description: 'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.'
+  description: 'This is an example of an infinite scroll and a virtual scroll with FiCsJS.'
 }
 
 export default (): string => `
