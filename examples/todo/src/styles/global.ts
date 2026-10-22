@@ -13,7 +13,7 @@ import {
 } from 'ficsjs/style'
 import { columnWidth } from '@/styles/theme'
 
-export const documentCss: string = `
+export const globalCss: FiCs.GlobalCss = `
   :root {
     color-scheme: dark;
     scroll-padding-block-start: ${calc(`${size(8 + 10)} + ${space('sm')}`)};
@@ -26,9 +26,7 @@ export const documentCss: string = `
     color: ${color('text')};
     margin: 0;
   }
-`
 
-export const globalCss: FiCs.GlobalCss = `
   * { padding: 0; margin: 0; box-sizing: border-box; }
 
   h2, p, button { text-align: center; }
