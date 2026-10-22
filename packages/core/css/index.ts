@@ -1,3 +1,4 @@
+export { GLOBAL_STYLE_ATTR } from './constants'
 export {
   addGlobalCss,
   configGlobalCss,
