@@ -1,9 +1,9 @@
-import { convertStr, ficsCssVar, numberError } from '../../core/helpers'
+import { convertStr, DISABLED_SELECTOR, ficsCssVar } from '../../core/helpers'
 import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
 import { BLENDS, COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
-import { adjustLightness, clampLightness, mixTowardFill } from './modifier'
+import { adjustLightness, clampLightness, fadeRatio, mixTowardFill } from './modifier'
 import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP, TEXTS } from './tokens'
 import type { Color } from './types'
 
@@ -17,11 +17,7 @@ const BG_BASE: readonly [string, string] = [toColor('bg-light'), toColor('bg-dar
   FILL: string = cssVar(FILL_VAR, BG),
   TEXT: string = toTextColor(FILL)
 
-const COLORS = {} as Record<Color.Theme, string>,
-  fadeRatio = (ratio: number = 1): string => {
-    numberError({ ratio }, 'ratio')
-    return `calc(100% - (${cssVar(ficsCssVar('disabled'), '0%')} * ${ratio}))`
-  }
+const COLORS = {} as Record<Color.Theme, string>
 
 for (const token of COLOR_TOKENS)
   switch (token) {

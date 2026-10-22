@@ -1,4 +1,4 @@
-import { numberError } from '../../core/helpers'
+import { ficsCssVar, numberError } from '../../core/helpers'
 import { colorMix, cssVar } from '../others'
 import { MUTE_RATIO_VAR } from './constants'
 import { oklch } from './oklch'
@@ -20,6 +20,11 @@ export const adjustLightness = ({
 
 export const clampLightness = (fill: string, [light, dark]: readonly [number, number]): string =>
   `light-dark(oklch(from ${fill} min(l, ${light}) c h), oklch(from ${fill} max(l, ${dark}) c h))`
+
+export const fadeRatio = (ratio: number = 1): string => {
+  numberError({ ratio }, 'ratio')
+  return `calc(100% - (${cssVar(ficsCssVar('disabled'), '0%')} * ${ratio}))`
+}
 
 export const mixTowardFill = ({
   text,
