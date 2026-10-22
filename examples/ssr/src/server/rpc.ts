@@ -27,3 +27,10 @@ export const parseEmail = (email: unknown): string => {
 
   return normalized
 }
+
+export const parseRole = (role: unknown): Role => {
+  if (typeof role !== 'string' || !isRole(role))
+    throw rpcError({ code: 'BAD_REQUEST', message: 'The role must be "admin" or "member".' })
+
+  return role
+}
