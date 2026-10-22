@@ -1,3 +1,4 @@
+import { CSS_LAYER, ficsCssVar, HOST_SELECTOR, isBrowser } from '../helpers'
 import { COMPACT_SIZE, DISABLED_CSS, EXPANDED_SIZE, GLOBAL_STYLE_ATTR } from './constants'
 
 const addedCss: Set<string> = new Set(),
@@ -37,17 +38,15 @@ export const configGlobalCss = (css: string): void => {
   refresh()
 }
 
-export const getDocumentCss = (): string =>
-  `${CSS_LAYER}{${layoutCss(':root')}${DISABLED_CSS}}${globalCss()}`
-
 export const getGlobalStyleSheet = (): CSSStyleSheet => {
-  styleSheet ??= new CSSStyleSheet()
+  if (styleSheet) return styleSheet
 
-  if (isStale) {
-    styleSheet.replaceSync(
-      `${CSS_LAYER}{${HOST_SELECTOR}{display:block}${layoutCss(HOST_SELECTOR)}${DISABLED_CSS}}${globalCss()}`
-    )
-    isStale = false
+  styleSheet = new CSSStyleSheet()
+  refresh()
+
+  if (isBrowser()) {
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, styleSheet]
+    document.querySelector(`style[${GLOBAL_STYLE_ATTR}]`)?.remove()
   }
 
   return styleSheet
