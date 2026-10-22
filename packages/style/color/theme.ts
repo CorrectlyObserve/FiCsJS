@@ -128,11 +128,13 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
     styles.push(`background-image: ${image}; background-blend-mode: ${BLENDS[text].mode};`)
   } else variables.push(`${TINT_BASE_VAR}: ${cssVar(FILL_VAR)};`)
 
-  /** @remarks Sets the base background for hover tints. */
-  styles.push(`background-color: ${cssVar(TINT_BASE_VAR)};`)
+  styles.push(
+    /** @remarks Sets the base background for hover tints. */
+    `background-color: ${cssVar(TINT_BASE_VAR)};`,
 
-  /** @remarks Resets the descendant tint base to transparent. */
-  styles.push(`${DESCENDANTS_SELECTOR} { ${TINT_BASE_VAR}: transparent; }`)
+    /** @remarks Resets the descendant tint base to transparent. */
+    `${DESCENDANTS_SELECTOR} { ${TINT_BASE_VAR}: transparent; }`
+  )
 
   return [...variables, ...styles].join(' ')
 }
