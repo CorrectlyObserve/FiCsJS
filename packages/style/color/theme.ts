@@ -119,13 +119,18 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
       `${TINT_SCALE_VAR}: 2;`,
       `${MUTE_RATIO_VAR}: 100%;`
     ],
-    styles: string[] = [`color: ${TEXT};`]
+    styles: string[] = [`color: ${color('text')};`]
 
   if (isGradient(paint)) {
     const { image, text }: Color.Gradient = paint
 
     variables.push(`${TINT_BASE_VAR}: ${BLENDS[text].color};`)
-    styles.push(`background-image: ${image}; background-blend-mode: ${BLENDS[text].mode};`)
+    styles.push(
+      `background-image: ${image}; background-blend-mode: ${BLENDS[text].mode};`,
+
+      /** @remarks Omits the blend color to prevent hiding the page. */
+      `&:is(${DISABLED_SELECTOR}) { ${TINT_BASE_VAR}: transparent; }`
+    )
   } else variables.push(`${TINT_BASE_VAR}: ${cssVar(FILL_VAR)};`)
 
   styles.push(
