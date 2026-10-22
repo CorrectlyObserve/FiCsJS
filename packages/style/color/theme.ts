@@ -123,9 +123,7 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
       `${TINT_SCALE_VAR}: 2;`,
       `${MUTE_RATIO_VAR}: 100%;`
     ],
-    styles: string[] = [
-      `color: ${TEXT}; background: ${cssVar(isGradient(paint) ? FILL_GRADIENT_VAR : FILL_VAR)};`
-    ]
+    styles: string[] = [`color: ${TEXT};`]
 
   if (isGradient(paint)) {
     const DESCENDANTS = ':where(& *)' as const
