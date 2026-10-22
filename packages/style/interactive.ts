@@ -5,7 +5,7 @@ import { colorMix, cssVar } from './others'
 import type { Interactive } from './types'
 
 const tintBackground = (ratio: number): string =>
-    `background: ${colorMix({
+    `background-color: ${colorMix({
       colors: [cssVar(TINT_VAR, 'currentColor'), cssVar(TINT_BASE_VAR, 'transparent')],
       ratio: `calc(${ratio * 100}% * ${cssVar(TINT_SCALE_VAR, '1')})`,
       space: 'srgb'
