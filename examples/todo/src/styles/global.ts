@@ -2,7 +2,6 @@ import type { FiCs } from 'ficsjs'
 import {
   calc,
   color,
-  documentCss as ficsDocumentCss,
   flex,
   interactive,
   layout,
