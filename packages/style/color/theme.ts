@@ -120,6 +120,7 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
       };`,
       `${LINK_VAR}: ${TEXT};`,
       `${TINT_VAR}: color(from ${TEXT} srgb calc(1 - r) calc(1 - g) calc(1 - b));`,
+      `${TINT_SCALE_VAR}: 2;`,
       `${MUTE_RATIO_VAR}: 100%;`
     ],
     styles: string[] = [
