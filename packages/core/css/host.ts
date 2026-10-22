@@ -1,3 +1,4 @@
+import { attrs } from '../constants'
 import { HOST_SELECTOR, isBlankString } from '../helpers'
 import { AT_RULE, COMMENT_TOKEN, HOST_CONTEXT_SELECTOR, SCOPE_SELECTOR } from './constants'
 import { findCloseBracket, findDelimiter, getNextValidIndex } from './scan'
@@ -37,20 +38,16 @@ const isHostAt = (css: string, index: number): boolean => {
     let result: string = '',
       index: number = 0
 
-  while (index < css.length) {
-    if (css.startsWith(COMMENT_TOKEN.open, index)) {
+    while (index < css.length) {
       const validIndex: number = getNextValidIndex(css, index)
 
-      result += css.slice(index, validIndex)
-      index = validIndex
-      continue
-    }
+      if (css.startsWith(COMMENT_TOKEN.open, index) || css[index].trim() === '') {
+        const end: number = validIndex === index ? index + 1 : validIndex
 
-    if (css[index].trim() === '') {
-      result += css[index]
-      index++
-      continue
-    }
+        result += css.slice(index, end)
+        index = end
+        continue
+      }
 
       const delimitedIndex: number = findDelimiter({ css, index, delimiters: '{;' })
       if (delimitedIndex === -1) {
@@ -59,52 +56,15 @@ const isHostAt = (css: string, index: number): boolean => {
         break
       }
 
-    if (css[delimitedIndex] === ';') {
-      const upToSemicolon: string = css.slice(index, delimitedIndex + 1)
-      upToSemicolon.startsWith(AT_RULE) ? (result += upToSemicolon) : warnMisuse(upToSemicolon)
+      const end: number =
+          css[delimitedIndex] === ';' ? delimitedIndex + 1 : findCloseBracket(css, delimitedIndex),
+        chunk: string = css.slice(index, end)
 
-      index = delimitedIndex + 1
-      continue
+      if (css[delimitedIndex] === '{' || chunk.startsWith(AT_RULE)) result += chunk
+      else warnMisuse(chunk)
+
+      index = end
     }
-
-    const header: string = css.slice(index, delimitedIndex),
-      trimmed: string = header.trim(),
-      closeIndex: number = findCloseBracket(css, delimitedIndex),
-      block: string = css.slice(delimitedIndex + 1, closeIndex - 1),
-      rule: string = css.slice(index, closeIndex)
-
-    if (
-      ssrHost !== undefined &&
-      trimmed.startsWith(AT_RULE) &&
-      GROUPING_AT_RULES.some(atRule => trimmed.startsWith(atRule))
-    )
-      result += `${header}{${addHostToSelectors({ css: block, warnMisuse, ssrHost })}}`
-    else if (ssrHost === undefined || trimmed.startsWith(AT_RULE)) result += rule
-    else {
-      const selectors: string[] = []
-      let cursor: number = 0
-
-      while (cursor <= header.length) {
-        const commaIndex: number = findDelimiter({ css: header, index: cursor, delimiters: ',' }),
-          isLast: boolean = commaIndex === -1
-        let selector: string = header.slice(cursor, isLast ? header.length : commaIndex).trim()
-
-        if (!isBlankString(selector))
-          selector = isHostAt(selector, 0)
-            ? replaceHost(selector, ssrHost)
-            : `:where(${ssrHost}) ${selector}`
-
-        selectors.push(selector)
-        if (isLast) break
-
-        cursor = commaIndex + 1
-      }
-
-      result += `${selectors.join(',')}{${block}}`
-    }
-
-    index = closeIndex
-  }
 
     return result
   }
