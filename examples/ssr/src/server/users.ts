@@ -12,7 +12,7 @@ const defaultUsers: User[] = [
 
 let users: User[] = defaultUsers
 
-export const getUsers = (): User[] => users
+export const getUsers = (): readonly User[] => users
 
 export const findUser = (id: number): User | undefined => users.find(user => user.id === id)
 
