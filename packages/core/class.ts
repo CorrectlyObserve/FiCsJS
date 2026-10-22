@@ -9,7 +9,7 @@ import {
   VAR_TAG_NAME
 } from './constants'
 import { crud } from './crud'
-import { addHostToSelectors, getGlobalStyleSheet } from './css'
+import { getGlobalStyleSheet, toComponentCss } from './css'
 import { DeferredData } from './deferredData'
 import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls } from './form'
 import {
@@ -1313,13 +1313,12 @@ export class FiCsElement<D extends object, P extends object> {
   #cssToString(css: Css.StringOrFn<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
-    return addHostToSelectors({
+    return toComponentCss({
       css: css.reduce<string>(
         (acc, cur) => `${acc}${typeof cur === 'function' ? cur(this.#getDataProps()) : cur}`,
         ''
       ),
-      /** @remarks Matches the specificity of `:host`, as `#id` would be too hard to override. */
-      ssrHost: isSsr ? `[id="${this.#name}"]` : undefined,
+      host: (isSsr && `[slot="${this.#instanceId}"]`) || undefined,
       warnMisuse: (text: string): void =>
         FiCsElement.#warnMisuse(
           `${this.#name}:${text}`,
