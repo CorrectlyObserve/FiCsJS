@@ -5,8 +5,8 @@ import Users, { USERS_KEY } from '@/pages/index/Users'
 import { getUsers, type User } from '@/server/users'
 
 export const meta = {
-  title: 'FiCsJS with Hono',
-  description: 'This is a simple example of FiCsJS with Hono in SSR.'
+  title: 'FiCsJS on Bun',
+  description: 'This is an example of FiCsJS for SSR / SSG.'
 }
 
 export default async ({ queryCache }: { queryCache: QueryCache }): Promise<string> => {
