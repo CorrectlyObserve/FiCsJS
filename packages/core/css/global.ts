@@ -11,7 +11,8 @@ const addedCss: Set<string> = new Set(),
       [`width >= ${EXPANDED_SIZE}`, 'expanded']
     ]
       .map(([query, scale]) => `@media (${query}){${selector}{${ficsCssVar('layout')}:${scale}}}`)
-      .join('')
+      .join(''),
+  refresh = (): void => styleSheet?.replaceSync(getDocumentCss())
 
 let configuredCss: string = '',
   styleSheet: CSSStyleSheet | undefined,
