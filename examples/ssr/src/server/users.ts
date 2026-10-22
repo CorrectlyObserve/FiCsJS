@@ -14,7 +14,8 @@ let users: User[] = defaultUsers
 
 export const getUsers = (): readonly User[] => users
 
-export const findUser = (id: number): User | undefined => users.find(user => user.id === id)
+export const findUser = (userId: number): User | undefined => users.find(({ id }) => id === userId)
+
 
 export const addUser = (userData: Omit<User, 'id'>): User | null => {
   if (users.some(({ email }) => email === userData.email)) return null
