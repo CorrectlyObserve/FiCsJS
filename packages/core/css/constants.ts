@@ -17,3 +17,5 @@ export const EXPANDED_SIZE = '64rem' as const,
 export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 
 export const IGNORE_TOKENS = [COMMENT_TOKEN, { open: 'url(', close: ')' }] as const
+
+export const SCOPE_SELECTOR = ':scope' as const
