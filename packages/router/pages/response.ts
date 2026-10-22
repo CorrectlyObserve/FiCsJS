@@ -53,8 +53,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
       meta: resolvedMeta,
       content,
       path,
-      script: noScript ? '' : `${scriptBase}/${entry}.js`,
-      styles: getDocumentCss()
+      script: (!noScript && `${scriptBase}/${entry}.js`) || ''
     })
 
   return respond({
