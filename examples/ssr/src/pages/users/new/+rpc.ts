@@ -31,7 +31,7 @@ export const remove = mutationOnly(
       if (loggedInId === id)
         throw rpcError({
           code: 'BAD_REQUEST',
-          message: 'You cannot delete the account you are logged in as.'
+          message: 'The account you are logged in as cannot be deleted.'
         })
 
       if (!removeUser(id)) throw nonExistentUserError(id)
