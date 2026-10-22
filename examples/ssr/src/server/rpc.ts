@@ -12,3 +12,10 @@ export const parseId = ({ id }: Record<string, unknown> = {}): { id: number } =>
 
   return { id }
 }
+
+export const parseName = (name: unknown): string => {
+  if (typeof name !== 'string' || name.trim() === '')
+    throw rpcError({ code: 'BAD_REQUEST', message: 'The name is required.' })
+
+  return name.trim()
+}
