@@ -309,6 +309,7 @@ export declare namespace Html {
         required: (isRequired?: boolean) => string
       }
       disabled: (isDisabled?: boolean) => string
+      required: (isRequired?: boolean) => string
       formAnchor: typeof attrs.FORM_ANCHOR
       show: (isShown: boolean) => string
     }
