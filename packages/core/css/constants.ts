@@ -14,15 +14,6 @@ export const DISABLED_CSS =
 export const EXPANDED_SIZE = '64rem' as const,
   GLOBAL_STYLE_ATTR = 'data-fics-global' as const
 
-export const GROUPING_AT_RULES = [
-  '@container',
-  '@layer',
-  '@media',
-  '@scope',
-  '@starting-style',
-  '@supports'
-] as const
-
 export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 
 export const IGNORE_TOKENS = [COMMENT_TOKEN, { open: 'url(', close: ')' }] as const
