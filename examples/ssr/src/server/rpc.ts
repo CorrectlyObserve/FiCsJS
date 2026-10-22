@@ -1,4 +1,6 @@
 import { initRpc, RpcError, type FiCsRpc } from 'ficsjs/router/server-only'
+import { normalizeEmail } from '@/domain/email'
+import { isRole, type Role } from '@/domain/role'
 
 export const { defineProcedure } = initRpc()
 export const rpcError = (init: FiCsRpc.ErrorInit): RpcError => new RpcError(init)
