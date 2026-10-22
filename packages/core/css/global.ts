@@ -9,7 +9,7 @@ const addedCss: Set<string> = new Set(),
     ]
       .map(([query, scale]) => `@media (${query}){${selector}{${ficsCssVar('layout')}:${scale}}}`)
       .join(''),
-  refresh = (): void => styleSheet?.replaceSync(getDocumentCss())
+  refresh = (): void => styleSheet?.replaceSync(getGlobalCss())
 
 let configuredCss: string = '',
   styleSheet: CSSStyleSheet | undefined
