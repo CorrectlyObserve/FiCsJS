@@ -15,8 +15,7 @@ const addedCss: Set<string> = new Set(),
   refresh = (): void => styleSheet?.replaceSync(getDocumentCss())
 
 let configuredCss: string = '',
-  styleSheet: CSSStyleSheet | undefined,
-  isStale: boolean = true
+  styleSheet: CSSStyleSheet | undefined
 
 export const addGlobalCss = (css: string): void => {
   if (addedCss.has(css)) return
