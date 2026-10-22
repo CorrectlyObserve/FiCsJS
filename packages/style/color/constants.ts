@@ -1,5 +1,10 @@
 import { ficsCssVar } from '../../core/helpers'
 
+export const BLENDS = {
+  light: { mode: 'multiply', color: '#fff' },
+  dark: { mode: 'screen', color: '#000' }
+} as const
+
 /** @remarks Multiplier to simulate a boolean step function (0 or 1) in CSS clamp(). */
 export const CLAMP_SCALAR = 100_000 as const,
   DESCENDANTS_SELECTOR = ':where(& *)' as const,
