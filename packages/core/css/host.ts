@@ -2,11 +2,9 @@ import { HOST_SELECTOR, isBlankString } from '../helpers'
 import { AT_RULE, COMMENT_TOKEN, GROUPING_AT_RULES, HOST_CONTEXT_SELECTOR } from './constants'
 import { findCloseBracket, findDelimiter, getNextValidIndex } from './scan'
 
-const isHostAt = (selector: string, index: number): boolean => {
-    const _selector: string = selector
-      .slice(index, index + HOST_CONTEXT_SELECTOR.length)
-      .toLowerCase()
-    return _selector.startsWith(HOST_SELECTOR) && !_selector.startsWith(HOST_CONTEXT_SELECTOR)
+const isHostAt = (css: string, index: number): boolean => {
+    const head: string = css.slice(index, index + HOST_CONTEXT_SELECTOR.length).toLowerCase()
+    return head.startsWith(HOST_SELECTOR) && !head.startsWith(HOST_CONTEXT_SELECTOR)
   },
   replaceHost = (selector: string, ssrHost: string): string => {
     let result: string = '',
