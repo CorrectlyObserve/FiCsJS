@@ -128,7 +128,7 @@ const options: FiCs.Options<Data, {}> = {
         const { chunk, index } = JSON.parse(messageData) as { chunk: string; index: number }
         data.chunks = [...data.chunks, `chunk[${index}]: ${chunk}`]
       } catch {
-        data.chunks = [...data.chunks, `message: ${data}`]
+        data.chunks = [...data.chunks, `message: ${messageData}`]
       }
     },
     actions: { complete: ({ close }) => close() }
