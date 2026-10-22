@@ -40,19 +40,10 @@ const isHostAt = (css: string, index: number): boolean => {
     }
 
     return result
-  }
-
-export const addHostToSelectors = ({
-  css,
-  warnMisuse,
-  ssrHost
-}: {
-  css: string
-  warnMisuse: (text: string) => void
-  ssrHost?: string
-}): string => {
-  let result: string = '',
-    index: number = 0
+  },
+  dropBareDeclarations = (css: string, warnMisuse: (text: string) => void): string => {
+    let result: string = '',
+      index: number = 0
 
   while (index < css.length) {
     if (css.startsWith(COMMENT_TOKEN.open, index)) {
