@@ -1,16 +1,4 @@
-export interface User {
-  id: number
-  name: string
-  email: string
-}
-
-const defaultUsers: User[] = [
-  { id: 1, name: 'Alice', email: 'alice@example.com' },
-  { id: 2, name: 'Bob', email: 'bob@example.com' },
-  { id: 3, name: 'Carol', email: 'carol@example.com' }
-]
-
-let users: User[] = defaultUsers
+import type { User } from '@/domain/user'
 
 export const getUsers = (): readonly User[] => users
 
