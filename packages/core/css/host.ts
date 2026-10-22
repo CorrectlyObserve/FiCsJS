@@ -1,5 +1,5 @@
 import { HOST_SELECTOR, isBlankString } from '../helpers'
-import { AT_RULE, COMMENT_TOKEN, GROUPING_AT_RULES, HOST_CONTEXT_SELECTOR } from './constants'
+import { AT_RULE, COMMENT_TOKEN, HOST_CONTEXT_SELECTOR, SCOPE_SELECTOR } from './constants'
 import { findCloseBracket, findDelimiter, getNextValidIndex } from './scan'
 
 const isHostAt = (css: string, index: number): boolean => {
