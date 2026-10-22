@@ -34,9 +34,10 @@ export const updateUser = (id: number, patch: Partial<Omit<User, 'id'>>): User |
   return updated
 }
 
-export const removeUser = (id: number): boolean => {
-  const exists: boolean = users.some(user => user.id === id)
-  if (exists) users = users.filter(user => user.id !== id)
+export const removeUser = (userId: number): boolean => {
+  const index: number = users.findIndex(({ id }) => id === userId)
+  if (index === -1) return false
 
-  return exists
+  users.splice(index, 1)
+  return true
 }
