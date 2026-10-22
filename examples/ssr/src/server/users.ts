@@ -9,8 +9,8 @@ const users: User[] = [
 
 export const getUsers = (): readonly User[] => users
 
-export const findUser = (userId: number): User | undefined => users.find(({ id }) => id === userId)
-
+export const findUser = (value: number | string): User | undefined =>
+  users.find(({ id, email }) => (typeof value === 'number' ? id : email) === value)
 
 export const nonExistentUserError = (userId: number) =>
   rpcError({ code: 'NOT_FOUND', message: `The user ${userId} does not exist.` })
