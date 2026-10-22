@@ -69,12 +69,12 @@ export const addHostToSelectors = ({
       continue
     }
 
-    const delimitedIndex: number = findDelimiter({ css, index, delimiters: '{;' })
-    if (delimitedIndex === -1) {
-      const rest: string = css.slice(index).trim()
-      if (!isBlankString(rest)) warnMisuse(rest)
-      break
-    }
+      const delimitedIndex: number = findDelimiter({ css, index, delimiters: '{;' })
+      if (delimitedIndex === -1) {
+        const rest: string = css.slice(index).trim()
+        if (!isBlankString(rest)) warnMisuse(rest)
+        break
+      }
 
     if (css[delimitedIndex] === ';') {
       const upToSemicolon: string = css.slice(index, delimitedIndex + 1)
@@ -123,5 +123,5 @@ export const addHostToSelectors = ({
     index = closeIndex
   }
 
-  return result
-}
+    return result
+  }
