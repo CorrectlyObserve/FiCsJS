@@ -4,11 +4,7 @@ import { $lang, type Lang } from '@/domain/lang'
 import Footer from '@/pages/Footer'
 import Header from '@/pages/Header'
 import type { Data } from '@/pages/+spa'
-import { documentCss, globalCss } from '@/styles/global'
-
-const documentStyleSheet: CSSStyleSheet = new CSSStyleSheet()
-documentStyleSheet.replaceSync(documentCss)
-document.adoptedStyleSheets = [documentStyleSheet]
+import { globalCss } from '@/styles/global'
 
 configGlobalCss(globalCss)
 configI18n('/i18n')
