@@ -16,27 +16,19 @@ const isHostAt = (css: string, index: number): boolean => {
       if (validIndex !== cursor) {
         result += css.slice(cursor, validIndex)
         cursor = validIndex
-        continue
-      }
-
-      if (!isHostAt(selector, cursor)) {
-        result += selector[cursor]
-        cursor++
-        continue
-      }
-
-      const openIndex: number = cursor + HOST_SELECTOR.length
+      } else if (isHostAt(css, cursor)) {
+        const openIndex: number = cursor + HOST_SELECTOR.length
 
         if (css[openIndex] === '(') {
           const closeIndex: number = findCloseBracket(css, openIndex)
 
-        /** @remarks Excludes `(` and `)` to convert `:host(.class)` to `[id="id"].class`. */
-        result += `${ssrHost}${replaceHost(selector.slice(openIndex + 1, closeIndex - 1), ssrHost)}`
-        cursor = closeIndex
-      } else {
-        result += ssrHost
-        cursor = openIndex
-      }
+          result += `${SCOPE_SELECTOR}:is(${toScope(css.slice(openIndex + 1, closeIndex - 1))})`
+          cursor = closeIndex
+        } else {
+          result += SCOPE_SELECTOR
+          cursor = openIndex
+        }
+      } else result += css[cursor++]
     }
 
     return result
