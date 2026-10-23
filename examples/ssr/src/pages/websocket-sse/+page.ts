@@ -7,4 +7,5 @@ export const meta = {
 }
 
 const page: FiCsRouter.Page<Data> = ({ children: { chat } }) => chat
+
 export default page
