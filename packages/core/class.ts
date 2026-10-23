@@ -1785,6 +1785,12 @@ export class FiCsElement<D extends object, P extends object> {
           that.#callback('adopted', this.#shadowRoot)
         }
 
+        formAssociatedCallback(form: HTMLFormElement | null): void {
+          this.#form?.removeEventListener('submit', this.#markTouched)
+          this.#form = form
+          this.#form?.addEventListener('submit', this.#markTouched)
+        }
+
         formResetCallback(): void {
           that.#options.form?.reset?.(that.#getDataProps(true))
           that.#syncForm()
