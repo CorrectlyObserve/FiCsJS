@@ -15,19 +15,19 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { extname, join, relative } from 'node:path'
 
 const emitClientEntry = ({
-  layoutSpecifier,
+  layoutSpecifiers,
   pageSpecifier,
   spaRouter,
   code
 }: {
-  layoutSpecifier: string | null
+  layoutSpecifiers: string[]
   pageSpecifier: string
   spaRouter: { name: string; specifier: string } | null
   code: string
 }): string => {
   const arr: string[] = [COMMENT]
 
-  if (layoutSpecifier) arr.push(`import '${layoutSpecifier}'`)
+  for (const specifier of layoutSpecifiers) arr.push(`import '${specifier}'`)
 
   if (spaRouter)
     arr.push(
