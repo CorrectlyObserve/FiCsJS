@@ -1792,6 +1792,7 @@ export class FiCsElement<D extends object, P extends object> {
         }
 
         formResetCallback(): void {
+          touchedControls.delete(this)
           that.#options.form?.reset?.(that.#getDataProps(true))
           that.#syncForm()
           that.#enqueue(that.#reRender.bind(that), 're-render')
