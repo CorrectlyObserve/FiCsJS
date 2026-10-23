@@ -479,7 +479,7 @@ export declare namespace Query {
   interface Binding<D extends object, T = unknown> {
     key: Key
     data: D
-    dataKey: keyof D
+    dataKey: WritableDataKeys<D>
     signal?: AbortSignal
     shouldInitCache?: boolean
     select?: (state: State<T>, current: D[keyof D]) => D[keyof D]
