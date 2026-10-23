@@ -3,6 +3,22 @@ import { ERROR_PATH, fileNames } from '../constants'
 import { cleanPath, getDirName, getExt, getOrThrow, removeExt } from '../helpers'
 import { toEntry } from './path'
 
+export const findAncestorDirs = (
+  src: string,
+  map: Map<string, string>
+): { key: string; value: string }[] => {
+  const found: { key: string; value: string }[] = []
+  let dir: string = getDirName(src)
+
+  while (true) {
+    if (map.has(dir)) found.unshift({ key: dir, value: map.get(dir)! })
+    if (dir === '') return found
+
+    const index: number = dir.lastIndexOf('/')
+    dir = index === -1 ? '' : dir.slice(0, index)
+  }
+}
+
 export const findClientEntries = ({
   routes,
   filePaths,
