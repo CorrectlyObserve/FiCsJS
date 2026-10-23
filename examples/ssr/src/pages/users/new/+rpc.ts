@@ -2,7 +2,7 @@ import { mutationOnly } from 'ficsjs/router/server-only'
 import type { User } from '@/domain/user'
 import { requireUser } from '@/server/auth'
 import { defineProcedure, parseEmail, parseId, parseName, parseRole, rpcError } from '@/server/rpc'
-import { addUser, nonExistentUserError, removeUser } from '@/server/users'
+import { addUser, emailTakenError, nonExistentUserError, removeUser } from '@/server/users'
 
 export const create = mutationOnly(
   defineProcedure({
@@ -14,9 +14,7 @@ export const create = mutationOnly(
     handler: async (input): Promise<User> => {
       const user: User | null = addUser(input)
 
-      if (user === null)
-        throw rpcError({ code: 'CONFLICT', message: `The email ${input.email} is already taken.` })
-
+      if (user === null) throw emailTakenError(input.email)
       return user
     }
   })
