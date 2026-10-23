@@ -89,19 +89,7 @@ export const findClientEntries = ({
 export const findClosestDir = (
   src: string,
   map: Map<string, string>
-): { key: string; value: string } | null => {
-  let dir: string = getDirName(src)
-
-  while (true) {
-    if (map.has(dir)) return { key: dir, value: map.get(dir)! }
-
-    const isRootDir: boolean = dir === ''
-    if (isRootDir) return null
-
-    const index: number = dir.lastIndexOf('/')
-    dir = index === -1 ? '' : dir.slice(0, index)
-  }
-}
+): { key: string; value: string } | null => findAncestorDirs(src, map).at(-1) ?? null
 
 export const findFileSrc = ({
   filePaths,
