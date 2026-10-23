@@ -1655,15 +1655,8 @@ export class FiCsElement<D extends object, P extends object> {
           if (that.#isFormAssociated) {
             formInternals.set(this, this.attachInternals())
 
-            const markTouched = (): void => {
-              if (touchedControls.has(this)) return
-
-              touchedControls.add(this)
-              that.#enqueue(that.#reRender.bind(that), 're-render')
-            }
-
-            this.#shadowRoot.addEventListener('focusout', markTouched)
-            this.addEventListener('invalid', markTouched)
+            this.#shadowRoot.addEventListener('focusout', this.#markTouched)
+            this.addEventListener('invalid', this.#markTouched)
           }
         }
 
