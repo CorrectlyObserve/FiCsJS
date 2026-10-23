@@ -15,6 +15,9 @@ export const findUser = (value: number | string): User | undefined =>
 export const nonExistentUserError = (userId: number) =>
   rpcError({ code: 'NOT_FOUND', message: `The user ${userId} does not exist.` })
 
+export const emailTakenError = (email: string) =>
+  rpcError({ code: 'CONFLICT', message: `The email ${email} is already taken.` })
+
 export const addUser = (userData: Omit<User, 'id'>): User | null => {
   if (findUser(userData.email)) return null
 
