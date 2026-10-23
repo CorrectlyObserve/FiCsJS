@@ -1636,6 +1636,12 @@ export class FiCsElement<D extends object, P extends object> {
         #form: HTMLFormElement | null = null
 
         #removeEventListeners?: () => void
+        #markTouched = (): void => {
+          if (touchedControls.has(this)) return
+
+          touchedControls.add(this)
+          that.#enqueue(that.#reRender.bind(that), 're-render')
+        }
 
         constructor() {
           super()
