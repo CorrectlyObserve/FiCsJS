@@ -61,7 +61,8 @@ import type {
   SSE,
   Task,
   Telemetry,
-  WebSocket as WebSocketNS
+  WebSocket as WebSocketNS,
+  WritableDataKeys
 } from './types'
 import { openWebSocket } from './websocket'
 
@@ -1973,7 +1974,7 @@ export class FiCsElement<D extends object, P extends object> {
     if (parent) parent.append(document.createElement(this.#name))
   }
 
-  setData<K extends keyof D>(key: K, value: D[K]): void {
+  setData<K extends WritableDataKeys<D>>(key: K, value: D[K]): void {
     this.#assertDescribed('setData')
     this.#guardImmutableData(key)
     this.#data[key as keyof D] = value as D[keyof D]
