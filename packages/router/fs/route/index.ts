@@ -2,10 +2,10 @@ import type { Routing, Rpc } from '../../types'
 import { resolveOptions } from '../helpers'
 import { assembleClient, assembleServer } from './assembler'
 import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
-import { findClientEntries, findClosestDir } from './finder'
+import { findAncestorDirs, findClientEntries, findClosestDir } from './finder'
 import { generateRpcs } from './rpcGenerator'
 
-export { findClosestDir }
+export { findAncestorDirs, findClosestDir }
 
 export const generateRoutes = ({
   filePaths,
