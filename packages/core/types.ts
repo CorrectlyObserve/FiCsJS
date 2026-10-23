@@ -872,3 +872,13 @@ export declare namespace WebSocket {
 
   type Value = string | Blob | BufferSource
 }
+
+export type WritableDataKeys<D> = {
+  [K in keyof D]-?: (<U>() => U extends { [Q in K]: D[K] } ? 1 : 2) extends <U>() => U extends {
+    -readonly [Q in K]: D[K]
+  }
+    ? 1
+    : 2
+    ? K
+    : never
+}[keyof D]
