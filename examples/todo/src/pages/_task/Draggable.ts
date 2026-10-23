@@ -299,7 +299,7 @@ const actions: FiCs.Actions<Data, Props> = {
 
       const toggle = () => (data.menuIndex = data.menuIndex === index ? NaN : index)
 
-      /** @remarks Prevents Safari from closing the popover early due to macOS firing contextmenu on mousedown. */
+      // Prevents Safari from closing the popover early due to macOS firing contextmenu on mousedown.
       if ((event as MouseEvent).buttons === 0) toggle()
       else addEventListener('pointerup', toggle, { once: true })
     }
