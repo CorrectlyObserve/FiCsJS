@@ -12,7 +12,7 @@ import {
   typedEntries,
   watch
 } from '../helpers'
-import type { Query } from '../types'
+import type { Query, WritableDataKeys } from '../types'
 import { GC_LIMIT_MS, STALE_MS } from './constants'
 import { hash } from './hash'
 
@@ -470,7 +470,7 @@ export class QueryCache {
     const unsubscribe = subscribeQuery(key, state => {
       data[dataKey] = (
         select ? select(state, data[dataKey]) : (state.value ?? data[dataKey])
-      ) as D[keyof D]
+      ) as D[WritableDataKeys<D>]
     })
 
     if (signal) onAbort(signal, unsubscribe)
