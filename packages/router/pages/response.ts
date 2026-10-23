@@ -50,6 +50,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
 
   const resolvedMeta: Record<string, string> = resolveMeta({ defaultMeta, meta, status }),
     html: string = render({
+      ctx,
       meta: resolvedMeta,
       content,
       path,
