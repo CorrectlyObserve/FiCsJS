@@ -1633,6 +1633,8 @@ export class FiCsElement<D extends object, P extends object> {
         #isRendered: boolean = false
         #websocket?: WebSocketNS.Runtime
         #eventSource?: EventSource
+        #form: HTMLFormElement | null = null
+
         #removeEventListeners?: () => void
 
         constructor() {
