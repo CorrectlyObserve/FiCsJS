@@ -10,7 +10,7 @@ import {
   toRelative
 } from './helpers'
 import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
-import { findClosestDir, generateRoutes } from './route'
+import { findAncestorDirs, generateRoutes } from './route'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
 
@@ -93,13 +93,14 @@ export const configRoutes = (config: Routing.Config = {}): void => {
     })
 
     for (const { name, src, spaRouterName } of clientEntries) {
-      const entryPath: string = join(entriesDir, `${name}${extname(src)}`),
-        layoutSrc: string | null = findClosestDir(src, clientLayoutFiles)?.value ?? null
+      const entryPath: string = join(entriesDir, `${name}${extname(src)}`)
 
       writeFileSync(
         entryPath,
         emitClientEntry({
-          layoutSpecifier: layoutSrc ? toRelative(entryPath, join(d, layoutSrc)) : null,
+          layoutSpecifiers: findAncestorDirs(src, clientLayoutFiles).map(({ value }) =>
+            toRelative(entryPath, join(d, value))
+          ),
           pageSpecifier: toRelative(entryPath, join(d, src)),
           spaRouter: spaRouterName
             ? { name: spaRouterName, specifier: toRelative(entryPath, clientPath) }
