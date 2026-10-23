@@ -215,7 +215,8 @@ export declare namespace Routing {
 
   type Redirects = ((pathname: string) => string | null) | Map<string, string>
 
-  interface Render {
+  interface Render<C = Record<string, unknown>> {
+    ctx: MiddlewareCtx<C>
     meta: Record<string, string>
     content: string
     path: string
