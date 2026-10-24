@@ -8,6 +8,11 @@ export interface User {
   role: Role
 }
 
+export const toUserId = (value: unknown): number | null => {
+  if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : null
+  return typeof value === 'string' && /^[1-9]\d*$/.test(value) ? Number(value) : null
+}
+
 export const validateName = (value: string): string | null =>
   value.trim() === '' ? 'Enter a name.' : null
 
