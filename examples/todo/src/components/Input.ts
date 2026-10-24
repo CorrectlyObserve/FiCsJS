@@ -23,14 +23,14 @@ const html: FiCs.Html<Data, Props> = ({
   props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
   template,
   attributes: {
-    a11y: { ariaLabel, invalid, statusLiveRegion }
+    a11y: { ariaLabel, invalid, liveStatus }
   }
 }) => {
   const hasError = !!(isError && error)
   return template`
     <div>
       ${!isAriaLabel && template`<label for="${id}">${label}</label>`}
-      <p id="${id}-error" ${statusLiveRegion}>${hasError && error}</p>
+      <p id="${id}-error" ${liveStatus}>${hasError && error}</p>
       <p id="${id}-info">${description}</p>
       <input
         id="${id}"
