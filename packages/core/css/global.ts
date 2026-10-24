@@ -1,5 +1,11 @@
 import { CSS_LAYER, ficsCssVar, HOST_SELECTOR, isBrowser } from '../helpers'
-import { COMPACT_SIZE, DISABLED_CSS, EXPANDED_SIZE, GLOBAL_STYLE_ATTR } from './constants'
+import {
+  COMPACT_SIZE,
+  DISABLED_CSS,
+  EXPANDED_SIZE,
+  GLOBAL_STYLE_ATTR,
+  SR_ONLY_CSS
+} from './constants'
 
 const addedCss: Set<string> = new Set(),
   layoutCss = (selector: string): string =>
@@ -19,7 +25,7 @@ export const getGlobalCss = (): string =>
   `
     ${CSS_LAYER} {
       ${HOST_SELECTOR}{display:block}
-      ${layoutCss(`:root,${HOST_SELECTOR}`)}${DISABLED_CSS}
+      ${layoutCss(`:root,${HOST_SELECTOR}`)}${DISABLED_CSS}${SR_ONLY_CSS}
     }
       
     ${[...addedCss].join('')}
