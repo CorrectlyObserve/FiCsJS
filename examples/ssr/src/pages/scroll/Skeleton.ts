@@ -14,13 +14,13 @@ const html: FiCs.Html<{}, Props> = ({
   }
 }) => template`<div ${ariaHidden}></div>`
 
-const css: FiCs.Css<{}, Props> = ({ props: { size } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { size, radius: r } }) => `
   div {
     ${pulse()}
     width: ${size}px;
     height: ${size}px;
     background: ${color('divider')};
-    border-radius: ${radius('sm')};
+    border-radius: ${radius(r)};
   }
 `
 
