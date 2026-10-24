@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
-import { color, flex, maskIcon, rect, space, srOnly } from 'ficsjs/style'
+import { color, flex, maskIcon, rect, space } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { Loader } from 'lucide-static'
 
@@ -25,13 +25,13 @@ const html: FiCs.Html<{}, Props> = ({
   props: { isError, texts },
   template,
   attributes: {
-    a11y: { ariaHidden, liveStatus }
+    a11y: { ariaHidden, liveStatus, srOnly }
   }
 }) => {
   const state = isError ? 'error' : 'loading'
   return template`
     <div class="${state}">
-      <p ${isError ? liveStatus : 'role="alert"'}>${texts[state]}</p>
+      <p ${isError ? liveStatus : 'role="alert"'} ${!isError && srOnly}>${texts[state]}</p>
       ${isError ? template`${button}` : `<div ${ariaHidden}></div>`}
     </div>
   `
@@ -39,16 +39,12 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = `
   div {
-    &.loading {
-      > p { ${srOnly} }
-
-      > div {
-        ${rect(16, 16)}
-        ${spin()}
-        ${maskIcon(Loader)}
-        color: ${color('text')};
-        margin: ${space('sm')} auto;
-      }
+    &.loading > div {
+      ${rect(16, 16)}
+      ${spin()}
+      ${maskIcon(Loader)}
+      color: ${color('text')};
+      margin: ${space('sm')} auto;
     }
 
     &.error {
