@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color, flex, forScreenReaders, space, tapSize, textSize } from 'ficsjs/style'
+import { color, flex, srOnly, space, tapSize, textSize } from 'ficsjs/style'
 
 interface Data {
   isComposing: boolean
@@ -61,7 +61,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
         &:not(:empty) { margin-block-end: ${space('sm')}; }
       }
 
-      &:last-of-type { ${forScreenReaders} }
+      &:last-of-type { ${srOnly} }
     }
 
     input { height: ${tapSize()}; }
