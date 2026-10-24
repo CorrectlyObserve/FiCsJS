@@ -1,11 +1,10 @@
+import { getStatusPage, NOT_FOUND_STATUS } from '@/domain/status'
 import StatusError from '@/pages/StatusError'
 
-export const noScript = true
+const { title, description } = getStatusPage(NOT_FOUND_STATUS)
+
+export const meta = { title: `404 \u2013 ${title}`, description }
+
 export const prerender = true
 
-export const meta = {
-  title: '404 \u2014 Not Found',
-  description: 'The page you requested could not be found.'
-}
-
-export default (): string => StatusError.toString({ data: { description: meta.description } })
+export default (): string => StatusError.toString({ data: { status: NOT_FOUND_STATUS } })
