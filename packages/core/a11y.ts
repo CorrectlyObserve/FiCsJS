@@ -18,7 +18,7 @@ const baseA11y = {
 export const a11y = Object.fromEntries(
   Object.entries(baseA11y).map(([attrKey, entries]) => [
     attrKey,
-    entries.map(([key, value]) => `${key}="${value}"`).join(' ')
+    entries.map(([key, value]) => (value === '' ? key : `${key}="${value}"`)).join(' ')
   ])
 ) as {
   [K in keyof typeof baseA11y]: Attr.Stringified<(typeof baseA11y)[K]>
