@@ -1,3 +1,4 @@
+import { SR_ONLY_ATTR } from './css'
 import type { Attr } from './types'
 
 const baseA11y = {
@@ -10,7 +11,8 @@ const baseA11y = {
     ['aria-live', 'polite'],
     ['role', 'status'],
     ['aria-atomic', 'true']
-  ]
+  ],
+  srOnly: [[SR_ONLY_ATTR, '']]
 } as const
 
 export const a11y = Object.fromEntries(
