@@ -41,15 +41,15 @@ const html: FiCs.Html<Data, Props> = ({
   },
   template,
   attributes: {
-    a11y: { ariaHidden, statusLiveRegion }
+    a11y: { ariaHidden, liveStatus }
   }
 }) => {
-  if (status !== 'done') return template`<p key="status" ${statusLiveRegion}></p>${loadState}`
+  if (status !== 'done') return template`<p key="status" ${liveStatus}></p>${loadState}`
 
   const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data
   return template`
     <h2>404 ${heading}</h2>
-    <p key="status" ${statusLiveRegion}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
+    <p key="status" ${liveStatus}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
     <p ${ariaHidden}>${countdown(seconds)}</p>
     <div>
       ${button.setIndividualProps('back', {
