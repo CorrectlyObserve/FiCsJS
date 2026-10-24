@@ -32,3 +32,5 @@ export const SR_ONLY = cssObject({
   'white-space': 'nowrap',
   border: 0
 } as const)
+
+export const SR_ONLY_ATTR = 'data-fics-sr-only' as const
