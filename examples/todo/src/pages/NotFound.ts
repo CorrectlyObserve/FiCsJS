@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { flex, forScreenReaders, layout, space } from 'ficsjs/style'
+import { flex, layout, space, srOnly } from 'ficsjs/style'
 import Button from '@/components/Button'
 import LoadState from '@/components/LoadState'
 import type { Lang } from '@/domain/lang'
@@ -67,7 +67,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   p {
-    &[role="status"] { ${forScreenReaders} }
+    &[role="status"] { ${srOnly} }
 
     &[aria-hidden="true"] {
       margin-block-end: ${space('lg')};
