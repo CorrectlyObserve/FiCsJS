@@ -1,8 +1,10 @@
 import { createState } from 'ficsjs/state'
 
-export const $isHorizontal = createState<boolean>(false, {
+export type Axis = 'horizontal' | 'vertical'
+
+export const $axis = createState<Axis>('vertical', {
   sessionStorage: {
-    key: 'isHorizontal',
-    validate: (value): value is boolean => typeof value === 'boolean'
+    key: 'axis',
+    validate: (value): value is Axis => value === 'horizontal' || value === 'vertical'
   }
 })
