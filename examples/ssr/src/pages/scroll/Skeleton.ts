@@ -4,6 +4,7 @@ import { color, radius } from 'ficsjs/style'
 
 interface Props {
   size: number
+  radius: 'full' | 'lg' | 'none' | 'sm'
 }
 
 const html: FiCs.Html<{}, Props> = ({
