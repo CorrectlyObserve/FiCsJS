@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { spin } from 'ficsjs/animation'
-import { color, flex, forScreenReaders, maskIcon, rect, space } from 'ficsjs/style'
+import { color, flex, maskIcon, rect, space, srOnly } from 'ficsjs/style'
 import Button from '@/components/Button'
 import { Loader } from 'lucide-static'
 
@@ -40,7 +40,7 @@ const html: FiCs.Html<{}, Props> = ({
 const css: FiCs.Css<{}, Props> = `
   div {
     &.loading {
-      > p { ${forScreenReaders} }
+      > p { ${srOnly} }
 
       > div {
         ${rect(16, 16)}
