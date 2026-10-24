@@ -1,6 +1,26 @@
-import { fics } from 'ficsjs'
+import { fics, type FiCs } from 'ficsjs'
+import { pulse } from 'ficsjs/animation'
+import { color, radius } from 'ficsjs/style'
 
-export default fics({
-  name: 'skeleton',
-  html: ({ template }) => template`<div class="size-50 mx-auto bg-white/5 animate-pulse"></div>`
-})
+interface Props {
+  size: number
+}
+
+const html: FiCs.Html<{}, Props> = ({
+  template,
+  attributes: {
+    a11y: { ariaHidden }
+  }
+}) => template`<div ${ariaHidden}></div>`
+
+const css: FiCs.Css<{}, Props> = ({ props: { size } }) => `
+  div {
+    ${pulse()}
+    width: ${size}px;
+    height: ${size}px;
+    background: ${color('divider')};
+    border-radius: ${radius('sm')};
+  }
+`
+
+export default fics<{}, Props>({ name: 'skeleton', html, css })
