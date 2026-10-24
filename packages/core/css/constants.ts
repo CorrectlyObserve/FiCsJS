@@ -36,4 +36,6 @@ export const SR_ONLY = cssObject({
 export const SR_ONLY_ATTR = 'data-fics-sr-only' as const
 
 /** @remarks Shows hidden elements on focus (e.g., for skip links). */
-export const SR_ONLY_CSS = `[${SR_ONLY_ATTR}]:not(:focus-within){${SR_ONLY}}` as const
+export const SR_ONLY_CSS: string = `[${SR_ONLY_ATTR}]:not(:focus-within){${Object.entries(SR_ONLY)
+  .map(([key, value]) => `${key}:${value} !important`)
+  .join(';')}}`
