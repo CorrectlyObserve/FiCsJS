@@ -17,7 +17,9 @@ const BG_BASE: readonly [string, string] = [toColor('bg-light'), toColor('bg-dar
   FILL: string = cssVar(FILL_VAR, BG),
   TEXT: string = toTextColor(FILL)
 
-const COLORS = {} as Record<Color.Theme, string>
+const fadeText = (colors: [string, string]): string =>
+    `light-dark(${[1, 0.6].reduce((acc, cur) => `${acc}${acc ? ', ' : ''}${colorMix({ colors, ratio: fadeRatio(cur) })}`, '')})`,
+  COLORS = {} as Record<Color.Theme, string>
 
 for (const token of COLOR_TOKENS)
   switch (token) {
