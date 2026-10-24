@@ -43,21 +43,18 @@ for (const token of COLOR_TOKENS)
       break
 
     case 'text':
-      COLORS[token] = colorMix({ colors: [TEXT, FILL], ratio: fadeRatio(0.6) })
-      COLORS[`${token}-muted`] = colorMix({
-        colors: [
-          mixTowardFill({ text: TEXT, fill: FILL, ratio: RATIOS.muted, isUnmutedOnFill: true }),
-          FILL
-        ],
-        ratio: fadeRatio(0.6)
-      })
+      COLORS[token] = fadeText([TEXT, FILL])
+      COLORS[`${token}-muted`] = fadeText([
+        mixTowardFill({ text: TEXT, fill: FILL, ratio: RATIOS.muted, isUnmutedOnFill: true }),
+        FILL
+      ])
       break
 
     case 'link':
-      COLORS[token] = colorMix({
-        colors: [cssVar(LINK_VAR, clampLightness(toColor('primary'), LIGHTNESS_CLAMP.text)), FILL],
-        ratio: fadeRatio(0.6)
-      })
+      COLORS[token] = fadeText([
+        cssVar(LINK_VAR, clampLightness(toColor('primary'), LIGHTNESS_CLAMP.text)),
+        FILL
+      ])
       break
 
     case 'border':
@@ -89,10 +86,10 @@ for (const token of COLOR_TOKENS)
 
     default:
       COLORS[token] = colorMix({ colors: [toColor(token)], ratio: fadeRatio() })
-      COLORS[`${token}-text`] = colorMix({
-        colors: [clampLightness(toColor(token), LIGHTNESS_CLAMP.text), FILL],
-        ratio: fadeRatio(0.6)
-      })
+      COLORS[`${token}-text`] = fadeText([
+        clampLightness(toColor(token), LIGHTNESS_CLAMP.text),
+        FILL
+      ])
   }
 
 export const color = (token: Color.Theme | 'focus'): string => {
