@@ -134,7 +134,7 @@ const html: FiCs.Html<Data, Props> = ({
   props: { tasks, slot, labels, onMove, onCopy },
   template,
   attributes: {
-    a11y: { statusLiveRegion }
+    a11y: { liveStatus }
   }
 }) => {
   const { activeZoneIndex, draggingIndex: fromIndex, menuIndex, status } = data
@@ -173,7 +173,7 @@ const html: FiCs.Html<Data, Props> = ({
   }
 
   return template`
-    <p ${statusLiveRegion}>${status}</p>
+    <p ${liveStatus}>${status}</p>
     <div popover id="${MENU_ID}">${dragMenu}</div>
     <div role="list">
       ${zone(-1)}
