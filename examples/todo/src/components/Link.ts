@@ -1,5 +1,5 @@
 import { ficsLink, type FiCsLink } from 'ficsjs/router'
-import { color, flex, interactive, radius, space, srOnly, tapSize, truncate } from 'ficsjs/style'
+import { color, flex, interactive, radius, space, tapSize, truncate } from 'ficsjs/style'
 
 interface Props {
   href: string
@@ -12,11 +12,14 @@ const href: FiCsLink.Href<Props> = ({ props: { href } }) => href
 
 const content: FiCsLink.Content<Props> = ({
   props: { text, isStruckThrough, textForScreenReaders },
-  template
+  template,
+  attributes: {
+    a11y: { srOnly }
+  }
 }) =>
   template`
     <span${isStruckThrough && ' class="struck-through"'}>${text}</span>
-    ${textForScreenReaders && template`<span style="${String(srOnly)}">${textForScreenReaders}</span>`}
+    ${textForScreenReaders && template`<span ${srOnly}>${textForScreenReaders}</span>`}
   `
 
 const css: FiCsLink.Css<Props> = ({ props: { textForScreenReaders } }) => `
