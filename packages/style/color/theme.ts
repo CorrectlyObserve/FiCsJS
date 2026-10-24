@@ -17,8 +17,9 @@ const BG_BASE: readonly [string, string] = [toColor('bg-light'), toColor('bg-dar
   FILL: string = cssVar(FILL_VAR, BG),
   TEXT: string = toTextColor(FILL)
 
+/** @remarks `light` fades like a border, as a thin border reads weaker on a light page. */
 const fadeText = (colors: [string, string]): string =>
-    `light-dark(${[1, 0.6].reduce((acc, cur) => `${acc}${acc ? ', ' : ''}${colorMix({ colors, ratio: fadeRatio(cur) })}`, '')})`,
+    `light-dark(${[1, 0.6].map(ratio => colorMix({ colors, ratio: fadeRatio(ratio) })).join(', ')})`,
   COLORS = {} as Record<Color.Theme, string>
 
 for (const token of COLOR_TOKENS)
