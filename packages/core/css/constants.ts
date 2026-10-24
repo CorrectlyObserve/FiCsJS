@@ -1,4 +1,4 @@
-import { DISABLED_SELECTOR, ficsCssVar } from './../helpers'
+import { cssObject, DISABLED_SELECTOR, ficsCssVar } from './../helpers'
 
 export const AT_RULE = '@' as const,
   BACKSLASH = '\\' as const
