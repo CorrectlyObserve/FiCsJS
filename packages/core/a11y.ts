@@ -2,7 +2,7 @@ import type { Attr } from './types'
 
 const baseA11y = {
   ariaHidden: [['aria-hidden', 'true']],
-  statusLiveRegion: [
+  liveStatus: [
     ['aria-live', 'polite'],
     ['role', 'status'],
     ['aria-atomic', 'true']
