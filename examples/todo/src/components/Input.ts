@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color, flex, space, srOnly, tapSize, textSize } from 'ficsjs/style'
+import { color, flex, space, tapSize, textSize } from 'ficsjs/style'
 
 interface Data {
   isComposing: boolean
@@ -23,7 +23,7 @@ const html: FiCs.Html<Data, Props> = ({
   props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
   template,
   attributes: {
-    a11y: { ariaLabel, invalid, liveStatus }
+    a11y: { ariaLabel, invalid, liveStatus, srOnly }
   }
 }) => {
   const hasError = !!(isError && error)
@@ -31,7 +31,7 @@ const html: FiCs.Html<Data, Props> = ({
     <div>
       ${!isAriaLabel && template`<label for="${id}">${label}</label>`}
       <p id="${id}-error" ${liveStatus}>${hasError && error}</p>
-      <p id="${id}-info">${description}</p>
+      <p id="${id}-info" ${srOnly}>${description}</p>
       <input
         id="${id}"
         value="${value}"
@@ -60,8 +60,6 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
 
         &:not(:empty) { margin-block-end: ${space('sm')}; }
       }
-
-      &:last-of-type { ${srOnly} }
     }
 
     input { height: ${tapSize()}; }
