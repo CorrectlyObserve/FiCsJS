@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color, flex, srOnly, space, tapSize, textSize } from 'ficsjs/style'
+import { color, flex, space, srOnly, tapSize, textSize } from 'ficsjs/style'
 
 interface Data {
   isComposing: boolean
