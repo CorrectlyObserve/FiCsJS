@@ -2,6 +2,10 @@ import type { Attr } from './types'
 
 const baseA11y = {
   ariaHidden: [['aria-hidden', 'true']],
+  liveLog: [
+    ['role', 'log'],
+    ['aria-live', 'polite']
+  ],
   liveStatus: [
     ['aria-live', 'polite'],
     ['role', 'status'],
