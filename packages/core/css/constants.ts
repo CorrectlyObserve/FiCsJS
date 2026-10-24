@@ -34,3 +34,6 @@ export const SR_ONLY = cssObject({
 } as const)
 
 export const SR_ONLY_ATTR = 'data-fics-sr-only' as const
+
+/** @remarks Shows hidden elements on focus (e.g., for skip links). */
+export const SR_ONLY_CSS = `[${SR_ONLY_ATTR}]:not(:focus-within){${SR_ONLY}}` as const
