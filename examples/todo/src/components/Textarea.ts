@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, flex, space, srOnly, stroke, tapSize } from 'ficsjs/style'
+import { calc, flex, space, stroke, tapSize } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -13,12 +13,15 @@ interface Props {
 
 const html: FiCs.Html<{}, Props> = ({
   props: { id, label, description, placeholder, value },
-  template
+  template,
+  attributes: {
+    a11y: { srOnly }
+  }
 }) =>
   template`
     <div>
       <label for="${id}">${label}</label>
-      <p id="${id}-info">${description}</p>
+      <p id="${id}-info" ${srOnly}>${description}</p>
       <textarea id="${id}" placeholder="${placeholder}" aria-describedby="${id}-info">${value}</textarea>
     </div>
   `
@@ -28,8 +31,6 @@ const css: FiCs.Css<{}, Props> = `
     ${flex({ direction: 'column' })}
 
     label { padding-block-end: ${space('sm')}; }
-
-    p { ${srOnly} }
 
     textarea {
       height: ${calc(`${tapSize()} + 5lh`)};
