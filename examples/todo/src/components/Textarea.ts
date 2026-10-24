@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, flex, forScreenReaders, space, stroke, tapSize } from 'ficsjs/style'
+import { calc, flex, space, srOnly, stroke, tapSize } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -29,7 +29,7 @@ const css: FiCs.Css<{}, Props> = `
 
     label { padding-block-end: ${space('sm')}; }
 
-    p { ${forScreenReaders} }
+    p { ${srOnly} }
 
     textarea {
       height: ${calc(`${tapSize()} + 5lh`)};
