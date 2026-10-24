@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { applyMeta, goto } from 'ficsjs/router'
-import { flex, layout, space, srOnly } from 'ficsjs/style'
+import { flex, layout, space } from 'ficsjs/style'
 import Button from '@/components/Button'
 import LoadState from '@/components/LoadState'
 import type { Lang } from '@/domain/lang'
@@ -41,15 +41,15 @@ const html: FiCs.Html<Data, Props> = ({
   },
   template,
   attributes: {
-    a11y: { ariaHidden, liveStatus }
+    a11y: { ariaHidden, liveStatus, srOnly }
   }
 }) => {
-  if (status !== 'done') return template`<p key="status" ${liveStatus}></p>${loadState}`
+  if (status !== 'done') return template`<p key="status" ${liveStatus} ${srOnly}></p>${loadState}`
 
   const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data
   return template`
     <h2>404 ${heading}</h2>
-    <p key="status" ${liveStatus}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
+    <p key="status" ${liveStatus} ${srOnly}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
     <p ${ariaHidden}>${countdown(seconds)}</p>
     <div>
       ${button.setIndividualProps('back', {
@@ -67,8 +67,6 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   p {
-    &[role="status"] { ${srOnly} }
-
     &[aria-hidden="true"] {
       margin-block-end: ${space('lg')};
 
