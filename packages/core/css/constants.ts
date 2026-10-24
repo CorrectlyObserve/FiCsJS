@@ -19,3 +19,16 @@ export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 export const IGNORE_TOKENS = [COMMENT_TOKEN, { open: 'url(', close: ')' }] as const
 
 export const SCOPE_SELECTOR = ':scope' as const
+
+export const SR_ONLY = cssObject({
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  'clip-path': 'inset(50%)',
+  'white-space': 'nowrap',
+  border: 0
+} as const)
