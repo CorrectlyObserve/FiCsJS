@@ -1,3 +1,3 @@
-import { CHAT_PATH } from '@/domain/path'
+import { paths } from '@/domain/path'
 
-export default { [`${CHAT_PATH}*`]: CHAT_PATH }
+export default { [`${paths.CHAT}*`]: paths.CHAT }
