@@ -10,7 +10,6 @@ addGlobalCss(
 export { color, fill, getGlobalCss, gradient, oklch, stroke }
 export { flex } from './flex'
 export { fontWeight } from './fontWeight'
-export { forScreenReaders } from './forScreenReaders'
 export { interactive } from './interactive'
 export { maskIcon } from './maskIcon'
 export { motion } from './motion'
