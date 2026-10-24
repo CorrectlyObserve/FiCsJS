@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color, flex, space, srOnly } from 'ficsjs/style'
+import { color, flex, space } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import type { Task } from '@/domain/task'
 import {
@@ -134,7 +134,7 @@ const html: FiCs.Html<Data, Props> = ({
   props: { tasks, slot, labels, onMove, onCopy },
   template,
   attributes: {
-    a11y: { liveStatus }
+    a11y: { liveStatus, srOnly }
   }
 }) => {
   const { activeZoneIndex, draggingIndex: fromIndex, menuIndex, status } = data
@@ -173,7 +173,7 @@ const html: FiCs.Html<Data, Props> = ({
   }
 
   return template`
-    <p ${liveStatus}>${status}</p>
+    <p ${liveStatus} ${srOnly}>${status}</p>
     <div popover id="${MENU_ID}">${dragMenu}</div>
     <div role="list">
       ${zone(-1)}
@@ -199,8 +199,6 @@ const html: FiCs.Html<Data, Props> = ({
 }
 
 const css: FiCs.Css<Data, Props> = `
-  p { ${srOnly} }
-
   div {
     &.row { ${flex({ center: 'y', gap: space('xs') })} }
 
