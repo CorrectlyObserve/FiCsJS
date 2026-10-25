@@ -16,14 +16,11 @@ interface Photo {
 }
 
 interface Data {
-  isHorizontal: boolean
-  toAxis: (isHorizontal: boolean) => 'horizontal' | 'vertical'
+  axis: Axis
   page: number
   photos: Photo[]
   photoId: string
-  photoElement: HTMLImageElement | null
-  author: string
-  onEscapeKeydown: ((event: KeyboardEvent) => void) | null
+  isOpen: boolean
 }
 
 const BASE_URL = 'https://picsum.photos' as const,
