@@ -71,9 +71,6 @@ const props: FiCs.Props<Data, {}> = [
   }
 ]
 
-const className: FiCs.ClassName<Data, {}> = ({ data: { isHorizontal } }) =>
-  isHorizontal ? 'block w-full overflow-x-hidden' : 'min-h-200'
-
 const html: FiCs.Html<Data, {}> = ({
   children: { icon, axisButton, skeleton },
   data: { isHorizontal, toAxis, photos, photoId, author },
@@ -330,7 +327,6 @@ export default fics<Data, {}>({
   }),
   deferredData,
   props,
-  className,
   html,
   css,
   hooks,
