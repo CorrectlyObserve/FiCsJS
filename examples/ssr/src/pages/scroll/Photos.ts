@@ -5,6 +5,7 @@ import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import AxisButton from '@/pages/scroll/AxisButton'
 import Skeleton from '@/pages/scroll/Skeleton'
+import { $axis, type Axis } from '@/pages/scroll/store'
 import { MoveHorizontal, MoveVertical } from 'lucide-static'
 
 interface Data {
