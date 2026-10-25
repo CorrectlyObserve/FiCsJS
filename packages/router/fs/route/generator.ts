@@ -147,11 +147,11 @@ export const generateEntries = ({
     joinLines(
       [
         ...existingRoutes,
-        ...rootStatusFiles.map(({ path, prop, serverSrc }) =>
+        ...rootStatusFiles.map(({ path, prop, serverSrc, isServerOnly }) =>
           emitEntry({
             path,
             config: serverSrc === null ? '{}' : `__${prop}`,
-            entry: findStatusEntry({ routes, spaOwners, areSpaEntry, path })
+            entry: toStatusEntry({ routes, rootLayout, spaOwners, areSpaEntry, path, isServerOnly })
           })
         )
       ],
