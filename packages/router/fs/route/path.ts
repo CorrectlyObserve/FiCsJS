@@ -29,8 +29,12 @@ export const toEntry = (path: string): string => {
 export const toRoute = (filePath: string, extensions: Routing.Extensions): string | null => {
   const segments: string[] = cleanPath(filePath).split('/')
 
-  if (!isValidFileType({ file: segments.at(-1) ?? '', expectedType: fileNames.PAGE, extensions }))
-    return null
+  const file: string = segments.at(-1) ?? '',
+    isPage: boolean = [fileNames.PAGE, fileNames.PAGE_SERVER].some(expectedType =>
+      isValidFileType({ file, expectedType, extensions })
+    )
+
+  if (!isPage) return null
 
   const route: string = buildRoute(segments.slice(0, -1).filter(segment => segment !== 'index'))
   return normalizePath(`/${route}`)
