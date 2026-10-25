@@ -35,6 +35,23 @@ const emitEntry = ({
   }): string => {
     if (layout === null || !shouldApply) return base
     return [base, `layout: ${getOrThrow(layoutAlias, layout)}`].join(', ')
+  }
+
+const toStatusEntry = ({
+    routes,
+    rootLayout,
+    spaOwners,
+    areSpaEntry,
+    path,
+    isServerOnly
+  }: Pick<Routing.Build.Ctx, 'routes' | 'rootLayout' | 'spaOwners' | 'areSpaEntry'> & {
+    path: string
+    isServerOnly: boolean
+  }): string | undefined => {
+    const entry: string = findStatusEntry({ routes, spaOwners, areSpaEntry, path }),
+      isServedBySpa: boolean = entry !== toEntry(path)
+
+    return isServedBySpa || hasClientEntry({ isServerOnly, layout: rootLayout }) ? entry : undefined
   },
   isSpaScoped = (layout: string | null, dir: string): boolean => {
     if (layout === null) return false
