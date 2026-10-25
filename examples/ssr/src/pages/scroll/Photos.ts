@@ -3,8 +3,8 @@ import { queries } from 'ficsjs/router'
 import { color, flex, hideScrollbar, stroke } from 'ficsjs/style'
 import IconButton from '@/components/IconButton'
 import {
-  PHOTO_SIZE,
   type Photo,
+  PHOTO_SIZE,
   photoListUrl,
   photoUrl,
   toLoadedPhotos,
