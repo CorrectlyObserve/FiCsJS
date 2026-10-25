@@ -56,6 +56,7 @@ export const buildLayout = ({
       server: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT_SERVER })
     },
     layouts: Omit<Routing.Build.Layout, 'layoutAlias'> = {
+      rootLayout: files.client.get('') ?? null,
       clientLayouts: [],
       serverLayouts: [],
       spaLayouts: new Map(),
