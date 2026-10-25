@@ -21,7 +21,7 @@ const emitClientEntry = ({
   code
 }: {
   layoutSpecifiers: string[]
-  pageSpecifier: string
+  pageSpecifier: string | null
   spaRouter: { name: string; specifier: string } | null
   code: string
 }): string => {
