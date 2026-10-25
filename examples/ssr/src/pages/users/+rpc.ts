@@ -1,6 +1,6 @@
-import { requireUser } from '@/server/auth'
 import { isAdmin } from '@/domain/role'
 import type { User } from '@/domain/user'
+import { requireUser } from '@/server/guards'
 import { defineProcedure, parseId } from '@/server/rpc'
 import { findUser, getUsers, nonExistentUserError } from '@/server/users'
 
