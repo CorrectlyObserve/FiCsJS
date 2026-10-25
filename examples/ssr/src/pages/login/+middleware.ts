@@ -1,3 +1,3 @@
-import { guestOnly } from '@/server/auth'
+import { guestOnly } from '@/server/guards'
 
 export default guestOnly
