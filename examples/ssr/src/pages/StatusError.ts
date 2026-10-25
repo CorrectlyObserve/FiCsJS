@@ -2,7 +2,7 @@ import { fics, type FiCs } from 'ficsjs'
 import Link from '@/components/Link'
 
 interface Data {
-  description: string
+  status: number
   message: string
 }
 
