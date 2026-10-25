@@ -9,13 +9,10 @@ const userIdError = (id: unknown): RpcError =>
   rpcError({ code: 'BAD_REQUEST', message: `The user id ${id} must be a positive integer.` })
 
 export const parseId = ({ id }: Record<string, unknown> = {}): { id: number } => {
-  if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0)
-    throw rpcError({
-      code: 'BAD_REQUEST',
-      message: `The user id ${id} must be a positive integer.`
-    })
+  const userId: number | null = typeof id === 'number' ? toUserId(id) : null
+  if (userId === null) throw userIdError(id)
 
-  return { id }
+  return { id: userId }
 }
 
 export const parseName = (name: unknown): string => {
