@@ -109,7 +109,12 @@ export declare namespace Routing {
     canNavigate: boolean
   }
 
-  type ClientEntries = { name: string; src: string; spaRouterName?: string }[]
+  type ClientEntries = {
+    name: string
+    src: string
+    spaRouterName?: string
+    isServerOnly?: boolean
+  }[]
 
   interface Config {
     dir?: string
