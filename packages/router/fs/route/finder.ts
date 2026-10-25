@@ -1,5 +1,5 @@
 import type { Routing } from '../../types'
-import { ERROR_PATH, fileNames } from '../constants'
+import { ERROR_PATH } from '../constants'
 import { cleanPath, getDirName, getExt, getOrThrow, removeExt } from '../helpers'
 import { toEntry } from './path'
 
@@ -21,8 +21,6 @@ export const findAncestorDirs = (
 
 export const findClientEntries = ({
   routes,
-  filePaths,
-  extensions,
   rootLayout,
   clientLayouts,
   files,
@@ -31,8 +29,8 @@ export const findClientEntries = ({
   areSpaEntry,
   rootStatusFiles,
   statusFallback
-}: Routing.Build.Query &
-  Pick<Routing.Build.Layout, 'clientLayouts' | 'rootLayout'> &
+}: Routing.RouteManifest &
+  Pick<Routing.Build.Layout, 'rootLayout' | 'clientLayouts'> &
   Pick<Routing.Build.Spa, 'files' | 'spaAlias' | 'spaOwners' | 'areSpaEntry'> &
   Pick<Routing.Build.Special, 'rootStatusFiles' | 'statusFallback'>): {
   clientEntries: Routing.ClientEntries
@@ -81,10 +79,7 @@ export const findClientEntries = ({
 
     if (!hasClientEntry({ isServerOnly, layout: clientLayouts[i] })) continue
 
-    push({
-      name,
-      src: findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
-    })
+    push({ name, src, isServerOnly })
   }
 
   const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
