@@ -1,5 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import Link from '@/components/Link'
+import { getStatusPage, type StatusPage } from '@/domain/status'
 
 interface Data {
   status: number
@@ -16,14 +17,14 @@ const props: FiCs.Props<Data, {}> = {
 
 const html: FiCs.Html<Data, {}> = ({
   children: { link },
-  data: { description, message },
+  data: { status, message },
   template
 }) => template`
-  <div class="text-base text-white text-center">
-    <p class="pt-4 mb-4">${description}</p>
-    ${message === '' ? '' : template`<p class="mb-6 break-words">${message}</p>`}
+  <section>
+    <p>${getStatusPage(status).description}</p>
+    ${message !== '' && template`<p>${message}</p>`}
     ${link}
-  </div>
+  </section>
 `
 
 export default fics<Data, {}>({
