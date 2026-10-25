@@ -163,6 +163,7 @@ export const generateEntries = ({
 
 export const generatePages = ({
   routes,
+  rootLayout,
   middlewares,
   middlewareAlias,
   spaOwners,
