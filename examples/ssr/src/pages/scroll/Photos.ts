@@ -316,14 +316,11 @@ export default fics<Data, {}>({
   name: 'photos',
   children: [Icon(), AxisButton, Skeleton],
   data: () => ({
-    isHorizontal: $isHorizontal.get(),
-    toAxis: (isHorizontal: boolean) => (isHorizontal ? 'horizontal' : 'vertical'),
+    axis: $axis.get(),
     page: 0,
     photos: [] as Photo[],
     photoId: '',
-    photoElement: null as HTMLImageElement | null,
-    author: '',
-    onEscapeKeydown: null as ((event: KeyboardEvent) => void) | null
+    isOpen: false
   }),
   deferredData,
   props,
