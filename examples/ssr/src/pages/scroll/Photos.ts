@@ -26,6 +26,24 @@ interface Data {
 const PAGE_KEY = ['page'] as const,
   PHOTOS_KEY = ['photos'] as const
 
+const deferredData: FiCs.DeferredData<Data, {}> = {
+  load: async ({ data, queryCache }) => {
+    const nextPage: number = data.page + 1,
+      key = ['photos', nextPage] as const
+
+    await queryCache.prefetch<Photo[]>(key, ({ signal }) =>
+      fetch(photoListUrl(nextPage), { signal }).then(res => res.json())
+    )
+
+    const photos: Photo[] = queryCache.get<Photo[]>(key) ?? []
+
+    queryCache.set<Photo[]>(PHOTOS_KEY, photos)
+    queryCache.set<number>(PAGE_KEY, nextPage)
+
+    return { page: nextPage, photos }
+  }
+}
+
 const props: FiCs.Props<Data, {}> = [
   {
     descendants: ({ children: { skeleton } }) => skeleton,
