@@ -247,6 +247,7 @@ export declare namespace Routing {
     specifier: string
     src: string
     serverSpecifier: string | null
+    isServerOnly: boolean
   }
 
   interface RouteManifest {
