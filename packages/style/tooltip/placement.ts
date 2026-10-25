@@ -15,4 +15,6 @@ const PLACEMENTS: Record<Placement, { margin: string; shape: string }> = typedFr
   ])
 )
 
+export const isBlockPlacement = (placement: Placement) => placement === 'top' || placement === 'bottom'
+
 export const toPlacement = (placement: Placement) => PLACEMENTS[placement]
