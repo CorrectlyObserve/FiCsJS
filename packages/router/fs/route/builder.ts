@@ -252,30 +252,22 @@ export const buildSpecial = ({
     rootStatusFiles: Routing.Status.RootFiles = typedEntries(
       fileNames.statuses
     ).reduce<Routing.Status.RootFiles>((entries, [key, target]) => {
-      const src: string | null = findFileSrc({ filePaths, extensions, target })
+      const file: Routing.Status.StatusFile | null = toStatusFile(target)
 
-      if (src !== null)
+      if (file !== null)
         entries.push({
+          ...file,
           prop: convertStr(key, 'camel'),
-          path: prependSlash(target.slice(1)),
-          src,
-          serverSrc: findServerFileSrc({ filePaths, extensions, target })
+          path: prependSlash(target.slice(1))
         })
 
       return entries
-    }, []),
-    fallbackSrc: string | null = findFileSrc({ filePaths, extensions, target: fileNames.ERROR })
+    }, [])
 
   return {
     rootStatusFiles,
     inheritedStatusKeys,
-    statusFallback: fallbackSrc
-      ? {
-          src: fallbackSrc,
-          serverSrc: findServerFileSrc({ filePaths, extensions, target: fileNames.ERROR })
-        }
-      : null,
-
+    statusFallback: toStatusFile(fileNames.ERROR),
     redirect: findFileSrc({ filePaths, extensions, target: fileNames.REDIRECT }),
     statusFiles,
     aliases
