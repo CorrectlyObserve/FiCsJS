@@ -3,7 +3,7 @@ import type { Routing } from '../types'
 import { config, EXTENSIONS, fileNames, segments } from './constants'
 import { dirname, relative, resolve } from 'node:path'
 
-const { LAYOUT, LAYOUT_SERVER, MIDDLEWARE, PAGE, RPC, SPA, SPA_SERVER } = fileNames
+const { LAYOUT, LAYOUT_SERVER, MIDDLEWARE, PAGE, PAGE_SERVER, RPC, SPA, SPA_SERVER } = fileNames
 
 type FrequentFileName =
   | typeof LAYOUT
@@ -114,7 +114,7 @@ export const isValidFileType = ({
   extensions
 }: {
   file: string
-  expectedType: FrequentFileName | typeof PAGE | typeof RPC
+  expectedType: FrequentFileName | typeof PAGE | typeof PAGE_SERVER | typeof RPC
   extensions: Routing.Extensions
 }): boolean => {
   if (!extensions.includes(getExt(file))) return false
