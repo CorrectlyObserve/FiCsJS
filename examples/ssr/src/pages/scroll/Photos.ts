@@ -48,25 +48,26 @@ const deferredData = async ({ data, queryCache }: FiCs.DeferredContext<Data, {}>
 
 const props: FiCs.Props<Data, {}> = [
   {
-    descendants: ({ children: { icon } }) => icon,
-    values: ({ data }) => ({
-      svg: CircleX,
-      ariaLabel: 'Close the dialog',
-      click: () => {
-        data.photoId = ''
-        data.photoElement?.focus()
-        data.photoElement = null
-      }
-    })
+    descendants: ({ children: { skeleton } }) => skeleton,
+    values: () => ({ size: PHOTO_SIZE, radius: 'sm' })
   },
   {
-    descendants: ({ children: { axisButton } }) => axisButton,
-    values: ({ data }) => ({
-      isHorizontal: data.isHorizontal,
-      click: () => {
-        data.isHorizontal = !data.isHorizontal
-        $isHorizontal.set(data.isHorizontal)
+    descendants: ({ children: { iconButton } }) => iconButton,
+    values: ({ data }) => {
+      const nextAxis = data.axis === 'horizontal' ? 'vertical' : 'horizontal'
+      return {
+        svg: data.axis === 'horizontal' ? MoveVertical : MoveHorizontal,
+        ariaLabel: `Switch axis direction to ${nextAxis}`,
+        click: () => $axis.set(nextAxis)
       }
+    }
+  },
+  {
+    descendants: ({ children: { dialog } }) => dialog,
+    values: ({ data }) => ({
+      author: data.photos.find(({ id }) => id === data.photoId)?.author ?? '',
+      isOpen: data.isOpen,
+      close: () => (data.isOpen = false)
     })
   }
 ]
