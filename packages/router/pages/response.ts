@@ -30,7 +30,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
   path,
   handleDenial
 }: Routing.Options.InternalPageHost<C> & {
-  page: { module: Routing.ServerModule<C>; entry: string }
+  page: { module: Routing.ServerModule<C>; entry?: string }
   status: Routing.Status.Resolved
   ctx: Routing.MiddlewareCtx<C>
   path: string
@@ -54,7 +54,7 @@ export const respondPage = async <C extends Record<string, unknown>>({
       meta: resolvedMeta,
       content,
       path,
-      script: (!noScript && `${scriptBase}/${entry}.js`) || ''
+      script: (!noScript && entry !== undefined && `${scriptBase}/${entry}.js`) || ''
     })
 
   return respond({
