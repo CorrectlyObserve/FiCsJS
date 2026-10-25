@@ -1,6 +1,6 @@
 import { mutationOnly } from 'ficsjs/router/server-only'
 import type { User } from '@/domain/user'
-import { requireUser } from '@/server/auth'
+import { requireUser } from '@/server/guards'
 import { defineProcedure, parseEmail, parseId, parseName, parseRole, rpcError } from '@/server/rpc'
 import { addUser, emailTakenError, nonExistentUserError, removeUser } from '@/server/users'
 
