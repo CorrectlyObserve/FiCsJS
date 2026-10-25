@@ -6,6 +6,14 @@ interface Data {
   message: string
 }
 
+const props: FiCs.Props<Data, {}> = {
+  descendants: ({ children: { link } }) => link,
+  values: ({ data: { status } }) => {
+    const { href, text }: StatusPage = getStatusPage(status)
+    return { href, text }
+  }
+}
+
 const html: FiCs.Html<Data, {}> = ({
   children: { link },
   data: { description, message },
