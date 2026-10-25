@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "setup": "rm -rf dist && bun run --cwd ../../packages build && fics-routing --entries && bun scripts/buildCss.ts",
-    "bundle": "bun build .fics/routing/entries/*.ts --outdir dist --splitting --chunk-naming [hash].[ext]",
-    "dev": "trap 'kill 0' EXIT INT TERM; bun run setup && { fics-routing --entries --watch & bun scripts/buildCss.ts --watch & bun run bundle --watch --no-clear-screen & bun run --hot app.ts; }",
-    "build": "bun run setup && bun run bundle --minify",
+    "setup": "rm -rf dist && bun run --cwd ../../packages build && fics-routing --entries",
+    "bundle": "bun build .fics/routing/entries/*.ts --outdir dist/assets --splitting --chunk-naming [hash].[ext]",
+    "dev": "trap 'kill 0' EXIT INT TERM; bun run setup && { fics-routing --entries --watch & bun run bundle --watch --no-clear-screen & bun run --hot app.ts; }",
+    "build": "bun run setup && bun run bundle --production && bun scripts/prerender.ts",
     "start": "bun run app.ts"
   },
   "dependencies": {
