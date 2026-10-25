@@ -97,7 +97,7 @@ export declare namespace Routing {
     interface Special {
       rootStatusFiles: Status.RootFiles
       inheritedStatusKeys: Map<string, Set<string>>
-      statusFallback: { src: string; serverSrc: string | null } | null
+      statusFallback: Status.StatusFile | null
       redirect: string | null
       statusFiles: Map<string, Map<string, string>>
       aliases: Map<string, Map<string, string>>
