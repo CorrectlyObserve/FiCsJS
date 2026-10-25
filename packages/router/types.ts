@@ -317,6 +317,11 @@ export declare namespace Routing {
     interface RootFile extends StatusFile {
       prop: string
       path: string
+    }
+
+    type RootFiles = RootFile[]
+
+    interface StatusFile {
       src: string
       serverSrc: string | null
       isServerOnly: boolean
