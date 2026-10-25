@@ -168,8 +168,8 @@ const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {
     const initialPage = Number(queries().page)
 
-    if (Number.isInteger(initialPage) && initialPage > 0) data.page = initialPage - 1
-    else goto('/scroll?page=1', { isWithoutHistory: true })
+    // Uses the value before "?page=" (default 1) as "page" tracks the last loaded page.
+    data.page = (Number.isInteger(initialPage) && initialPage > 0 ? initialPage : 1) - 1
 
     const params = { data, signal, shouldInitCache: false }
 
