@@ -5,15 +5,7 @@ import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import AxisButton from '@/pages/scroll/AxisButton'
 import Skeleton from '@/pages/scroll/Skeleton'
-import { $isHorizontal } from '@/stores'
-import { dark } from '@/utils'
-import { CircleX } from 'lucide-static'
-
-interface Photo {
-  id: string
-  author: string
-  isLoaded: boolean
-}
+import { MoveHorizontal, MoveVertical } from 'lucide-static'
 
 interface Data {
   axis: Axis
