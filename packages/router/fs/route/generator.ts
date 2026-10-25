@@ -201,19 +201,17 @@ export const generatePages = ({
         ...(entry === undefined ? [] : [`entry: '${entry}'`])
       ])
     },
-    statusPages: string[] = rootStatusFiles.map(
-      ({ path, prop, serverSrc }) =>
-        `${path.slice(1)}: ${joinAndWrap([
-          `module: ${serverSrc === null ? '{}' : `__${prop}`}`,
-          `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path })}'`
-        ])}`
-    ),
+    statusPages: string[] = rootStatusFiles.map(({ path, prop, serverSrc, isServerOnly }) => {
+      const module: string = serverSrc === null ? '{}' : `__${prop}`
+      return `${path.slice(1)}: ${toStatusPage({ module, path, isServerOnly })}`
+    }),
     fallback: string | null =
       statusFallback &&
-      joinAndWrap([
-        `module: ${statusFallback.serverSrc === null ? '{}' : prefixes.ERROR}`,
-        `entry: '${findStatusEntry({ routes, spaOwners, areSpaEntry, path: ERROR_PATH })}'`
-      ])
+      toStatusPage({
+        module: statusFallback.serverSrc === null ? '{}' : prefixes.ERROR,
+        path: ERROR_PATH,
+        isServerOnly: statusFallback.isServerOnly
+      })
 
   return joinLines([
     'export const pages = {',
