@@ -176,27 +176,17 @@ const hooks: FiCs.Hooks<Data, {}> = {
     queryCache.bindTo({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
     queryCache.bindTo({ ...params, key: PAGE_KEY, dataKey: 'page' })
   },
-  mounted: ({ data, throttle }) => {
-    window.history.scrollRestoration = 'manual'
-
-    const onEscapeKeydown = throttle((event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || data.photoId === '') return
-
-      event.preventDefault()
-      data.photoId = ''
-      data.photoElement?.focus()
-      data.photoElement = null
-    }, 1000) as (event: KeyboardEvent) => void
-
-    data.onEscapeKeydown = onEscapeKeydown
-    window.addEventListener('keydown', onEscapeKeydown)
-  },
-  destroyed: ({ data }) => {
-    if (!data.onEscapeKeydown) return
-    window.removeEventListener('keydown', data.onEscapeKeydown)
-    data.onEscapeKeydown = null
-  }
 }
+
+const markLoaded: FiCs.Action<Data, {}> = [
+  ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
+    const index: number = parseInt((currentTarget as HTMLImageElement).dataset.index ?? ''),
+      loadedPhotos = Number.isInteger(index) && toLoadedPhotos(data.photos, key, index)
+
+    if (loadedPhotos) queryCache.set<Photo[]>(PHOTOS_KEY, loadedPhotos)
+  },
+  { once: true }
+]
 
 const actions: FiCs.Actions<Data, {}> = {
   img: {
