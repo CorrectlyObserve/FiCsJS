@@ -178,6 +178,10 @@ const hooks: FiCs.Hooks<Data, {}> = {
   },
   mounted: () => {
     window.history.scrollRestoration = 'manual'
+  },
+  rerendered: ({ data: { isOpen, photoId }, changedKeys, ref }) => {
+    if (changedKeys.data.includes('isOpen') && !isOpen)
+      (ref(`.photo > button[key="${photoId}"]`) as HTMLElement | null)?.focus()
   }
 }
 
