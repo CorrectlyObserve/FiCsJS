@@ -23,28 +23,8 @@ interface Data {
   isOpen: boolean
 }
 
-const BASE_URL = 'https://picsum.photos' as const,
-  UNIT_LENGTH = 8 as const,
-  PHOTO_SIZE = 200 as const,
-  PAGE_KEY = ['page'] as const,
-  PHOTOS_KEY = ['photos'] as const,
-  getPhotos = (page: number) => `${BASE_URL}/v2/list?page=${page}&limit=${UNIT_LENGTH}` as const
-
-const deferredData = async ({ data, queryCache }: FiCs.DeferredContext<Data, {}>) => {
-  const nextPage = data.page + 1,
-    key = ['photos', nextPage] as const
-
-  await queryCache.prefetch<Photo[]>(key, ({ signal }) =>
-    fetch(getPhotos(nextPage), { signal }).then(resolve => resolve.json())
-  )
-
-  const photos = queryCache.get<Photo[]>(key) ?? []
-
-  queryCache.set<Photo[]>(PHOTOS_KEY, photos)
-  queryCache.set<number>(PAGE_KEY, nextPage)
-
-  return { page: nextPage, photos }
-}
+const PAGE_KEY = ['page'] as const,
+  PHOTOS_KEY = ['photos'] as const
 
 const props: FiCs.Props<Data, {}> = [
   {
