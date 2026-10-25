@@ -93,8 +93,16 @@ export const findClientEntries = ({
     if (hasClientEntry({ isServerOnly, layout: rootLayout }) && isOutsideSpa(src))
       push({ name: toEntry(path), src, isServerOnly })
 
-  if (statusFallback && isOutsideSpa(statusFallback.src))
-    push({ name: toEntry(ERROR_PATH), src: statusFallback.src })
+  if (
+    statusFallback &&
+    hasClientEntry({ isServerOnly: statusFallback.isServerOnly, layout: rootLayout }) &&
+    isOutsideSpa(statusFallback.src)
+  )
+    push({
+      name: toEntry(ERROR_PATH),
+      src: statusFallback.src,
+      isServerOnly: statusFallback.isServerOnly
+    })
 
   return { clientEntries }
 }
