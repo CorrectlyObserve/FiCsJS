@@ -240,7 +240,16 @@ export const buildSpecial = ({
     aliases.set(dir, alias)
   }
 
-  const rootStatusFiles: Routing.Status.RootFiles = typedEntries(
+  const toStatusFile = (target: string): Routing.Status.StatusFile | null => {
+      const clientSrc: string | null = findFileSrc({ filePaths, extensions, target }),
+        serverSrc: string | null = findServerFileSrc({ filePaths, extensions, target }),
+        src: string | null = clientSrc ?? serverSrc
+
+      if (src === null) return null
+
+      return { src, serverSrc, isServerOnly: clientSrc === null }
+    },
+    rootStatusFiles: Routing.Status.RootFiles = typedEntries(
       fileNames.statuses
     ).reduce<Routing.Status.RootFiles>((entries, [key, target]) => {
       const src: string | null = findFileSrc({ filePaths, extensions, target })
