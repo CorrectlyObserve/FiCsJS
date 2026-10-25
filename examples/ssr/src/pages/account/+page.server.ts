@@ -1,6 +1,6 @@
 import type { User } from '@/domain/user'
 import Account from '@/pages/account/Account'
-import { requireUser } from '@/server/auth'
+import { requireUser } from '@/server/guards'
 
 export const meta = { title: 'Your account', description: 'Update your display name.' }
 
