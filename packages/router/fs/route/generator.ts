@@ -178,6 +178,29 @@ export const generatePages = ({
         ? ''
         : `${indent(2)}${JSON.stringify(path)}: ${joinAndWrap(chain.map(toMwAlias), { wrapType: '[]' })}`
     }),
+    toStatusPage = ({
+      module,
+      path,
+      isServerOnly
+    }: {
+      module: string
+      path: string
+      isServerOnly: boolean
+    }): string => {
+      const entry: string | undefined = toStatusEntry({
+        routes,
+        spaOwners,
+        areSpaEntry,
+        rootLayout,
+        path,
+        isServerOnly
+      })
+
+      return joinAndWrap([
+        `module: ${module}`,
+        ...(entry === undefined ? [] : [`entry: '${entry}'`])
+      ])
+    },
     statusPages: string[] = rootStatusFiles.map(
       ({ path, prop, serverSrc }) =>
         `${path.slice(1)}: ${joinAndWrap([
