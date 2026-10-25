@@ -59,7 +59,7 @@ export const findClientEntries = ({
     }
 
   for (let i = 0; i < routes.length; i++) {
-    const { path, src }: Routing.RouteEntry = routes[i],
+    const { path, src, isServerOnly }: Routing.RouteEntry = routes[i],
       spaOwner: string | null = spaOwners[i],
       isSpa: boolean = spaOwner !== null,
       name: string = toEntry(path)
@@ -76,6 +76,8 @@ export const findClientEntries = ({
       continue
     }
 
+    if (!hasClientEntry({ isServerOnly, layout: clientLayouts[i] })) continue
+
     push({
       name,
       src: findFileSrc({ filePaths, extensions, target: fileNames.PAGE, dir: getDirName(src) })
@@ -84,8 +86,9 @@ export const findClientEntries = ({
 
   const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
 
-  for (const { path, src } of rootStatusFiles)
-    if (isOutsideSpa(src)) push({ name: toEntry(path), src })
+  for (const { path, src, isServerOnly } of rootStatusFiles)
+    if (hasClientEntry({ isServerOnly, layout: rootLayout }) && isOutsideSpa(src))
+      push({ name: toEntry(path), src, isServerOnly })
 
   if (statusFallback && isOutsideSpa(statusFallback.src))
     push({ name: toEntry(ERROR_PATH), src: statusFallback.src })
