@@ -225,9 +225,9 @@ export declare namespace Routing {
 
   interface ResolvedRoute<C = Record<string, unknown>> {
     module: ServerModule<C>
-    entry: string
     path: string
     middlewares: readonly Middleware<C>[]
+    entry?: string
   }
 
   interface ResolvedSpec<D extends object = Record<string, unknown>> {
