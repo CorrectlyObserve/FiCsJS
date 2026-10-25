@@ -62,6 +62,8 @@ const toStatusEntry = ({
 
 export const generateEntries = ({
   routes,
+  rootLayout,
+  clientLayouts,
   serverLayouts,
   layoutAlias,
   serverFiles,
