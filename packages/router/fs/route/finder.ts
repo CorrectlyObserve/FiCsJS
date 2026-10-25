@@ -137,3 +137,11 @@ export const findStatusEntry = ({
 
 export const findServerFileSrc = (args: Parameters<typeof findFileSrc>[0]): string | null =>
   findFileSrc({ ...args, target: `${args.target}.server` })
+
+export const hasClientEntry = ({
+  isServerOnly,
+  layout
+}: {
+  isServerOnly: boolean
+  layout: string | null
+}): boolean => !isServerOnly || layout !== null
