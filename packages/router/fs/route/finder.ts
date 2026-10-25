@@ -23,6 +23,8 @@ export const findClientEntries = ({
   routes,
   filePaths,
   extensions,
+  rootLayout,
+  clientLayouts,
   files,
   spaAlias,
   spaOwners,
@@ -30,6 +32,7 @@ export const findClientEntries = ({
   rootStatusFiles,
   statusFallback
 }: Routing.Build.Query &
+  Pick<Routing.Build.Layout, 'clientLayouts' | 'rootLayout'> &
   Pick<Routing.Build.Spa, 'files' | 'spaAlias' | 'spaOwners' | 'areSpaEntry'> &
   Pick<Routing.Build.Special, 'rootStatusFiles' | 'statusFallback'>): {
   clientEntries: Routing.ClientEntries
