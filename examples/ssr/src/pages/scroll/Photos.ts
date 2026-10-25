@@ -176,6 +176,9 @@ const hooks: FiCs.Hooks<Data, {}> = {
     queryCache.bindTo({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
     queryCache.bindTo({ ...params, key: PAGE_KEY, dataKey: 'page' })
   },
+  mounted: () => {
+    window.history.scrollRestoration = 'manual'
+  }
 }
 
 const markLoaded: FiCs.Action<Data, {}> = [
