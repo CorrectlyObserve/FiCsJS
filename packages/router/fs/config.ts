@@ -25,28 +25,25 @@ const emitClientEntry = ({
   spaRouter: { name: string; specifier: string } | null
   code: string
 }): string => {
-  const arr: string[] = [COMMENT]
+  const arr: string[] = [COMMENT, ...layoutSpecifiers.map(specifier => `import '${specifier}'`)]
 
-  for (const specifier of layoutSpecifiers) arr.push(`import '${specifier}'`)
+  if (pageSpecifier !== null)
+    if (spaRouter)
+      arr.push(
+        `import { ${spaRouter.name} } from '${spaRouter.specifier}'`,
+        '',
+        `${spaRouter.name}.describe()`
+      )
+    else if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
+      arr.push(
+        `import { applyMeta } from ${routerImport()}`,
+        `import * as page from '${pageSpecifier}'`,
+        '',
+        'applyMeta((page as { meta?: Record<string, string> }).meta)'
+      )
+    else arr.push(`import '${pageSpecifier}'`)
 
-  if (spaRouter)
-    arr.push(
-      `import { ${spaRouter.name} } from '${spaRouter.specifier}'`,
-      '',
-      `${spaRouter.name}.describe()`,
-      ''
-    )
-  else if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
-    arr.push(
-      `import { applyMeta } from ${routerImport()}`,
-      `import * as page from '${pageSpecifier}'`,
-      '',
-      'applyMeta((page as { meta?: Record<string, string> }).meta)',
-      ''
-    )
-  else arr.push(`import '${pageSpecifier}'`, '')
-
-  return joinLines(arr)
+  return joinLines([...arr, ''])
 }
 
 export const configRoutes = (config: Routing.Config = {}): void => {
