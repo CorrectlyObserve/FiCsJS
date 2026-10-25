@@ -3,7 +3,7 @@ import { indent, joinLines } from '../../helpers'
 import type { Routing } from '../../types'
 import { ERROR_PATH, exportedNames, prefixes } from '../constants'
 import { getDirName, getOrThrow, joinAndWrap } from '../helpers'
-import { findStatusEntry } from './finder'
+import { findStatusEntry, hasClientEntry } from './finder'
 import { toEntry, toSpaAlias } from './path'
 
 const emitEntry = ({
@@ -134,7 +134,9 @@ export const generateEntries = ({
             layout,
             layoutAlias
           }),
-          entry: toEntry(path)
+          entry: hasClientEntry({ isServerOnly: routes[i].isServerOnly, layout: clientLayouts[i] })
+            ? toEntry(path)
+            : undefined
         })
       )
       continue
