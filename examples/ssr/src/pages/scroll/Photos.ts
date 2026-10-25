@@ -75,9 +75,11 @@ const html: FiCs.Html<Data, {}> = ({
   children: { icon, axisButton, skeleton },
   data: { isHorizontal, toAxis, photos, photoId, author },
   template,
-  show,
   activeApis: { isLoading },
-  attributes: { statusLiveRegion, boolean },
+  attributes: {
+    a11y: { liveStatus, srOnly },
+    show
+  },
   scroll
 }) => {
   const skeletons = [...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)
