@@ -92,7 +92,7 @@ export const configRoutes = (config: Routing.Config = {}): void => {
       extensions: extensions ?? EXTENSIONS
     })
 
-    for (const { name, src, spaRouterName } of clientEntries) {
+    for (const { name, src, spaRouterName, isServerOnly } of clientEntries) {
       const entryPath: string = join(entriesDir, `${name}${extname(src)}`)
 
       writeFileSync(
@@ -101,11 +101,11 @@ export const configRoutes = (config: Routing.Config = {}): void => {
           layoutSpecifiers: findAncestorDirs(src, clientLayoutFiles).map(({ value }) =>
             toRelative(entryPath, join(d, value))
           ),
-          pageSpecifier: toRelative(entryPath, join(d, src)),
+          pageSpecifier: isServerOnly ? null : toRelative(entryPath, join(d, src)),
           spaRouter: spaRouterName
             ? { name: spaRouterName, specifier: toRelative(entryPath, clientPath) }
             : null,
-          code: readFileSync(join(d, src), 'utf8')
+          code: isServerOnly ? '' : readFileSync(join(d, src), 'utf8')
         })
       )
     }
