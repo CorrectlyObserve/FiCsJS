@@ -1,6 +1,7 @@
 import { initRpc, RpcError, type FiCsRpc } from 'ficsjs/router/server-only'
 import { normalizeEmail } from '@/domain/email'
 import { isRole, type Role } from '@/domain/role'
+import { toUserId } from '@/domain/user'
 
 export const { defineProcedure } = initRpc()
 export const rpcError = (init: FiCsRpc.ErrorInit): RpcError => new RpcError(init)
@@ -13,6 +14,13 @@ export const parseId = ({ id }: Record<string, unknown> = {}): { id: number } =>
   if (userId === null) throw userIdError(id)
 
   return { id: userId }
+}
+
+export const parseIdParam = (raw: string): number => {
+  const userId: number | null = toUserId(raw)
+  if (userId === null) throw userIdError(raw)
+
+  return userId
 }
 
 export const parseName = (name: unknown): string => {
