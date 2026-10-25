@@ -1,9 +1,16 @@
 import { fics, type FiCs } from 'ficsjs'
-import { zoom } from 'ficsjs/animation'
-import { goto, queries } from 'ficsjs/router'
-import { cssVar, flexCenter, hideScrollbar, positionCenter } from 'ficsjs/style'
-import Icon from '@/components/Icon'
-import AxisButton from '@/pages/scroll/AxisButton'
+import { queries } from 'ficsjs/router'
+import { color, flex, hideScrollbar, stroke } from 'ficsjs/style'
+import IconButton from '@/components/IconButton'
+import {
+  PHOTO_SIZE,
+  type Photo,
+  photoListUrl,
+  photoUrl,
+  toLoadedPhotos,
+  UNIT_LENGTH
+} from '@/pages/scroll/photo'
+import Dialog from '@/pages/scroll/Dialog'
 import Skeleton from '@/pages/scroll/Skeleton'
 import { $axis, type Axis } from '@/pages/scroll/store'
 import { MoveHorizontal, MoveVertical } from 'lucide-static'
