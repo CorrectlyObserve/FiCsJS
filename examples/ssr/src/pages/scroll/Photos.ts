@@ -189,73 +189,12 @@ const markLoaded: FiCs.Action<Data, {}> = [
 ]
 
 const actions: FiCs.Actions<Data, {}> = {
-  img: {
-    load: [
-      ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
-        if (!currentTarget) return
-
-        const index = parseInt((currentTarget as HTMLImageElement).dataset.index ?? '')
-        if (!Number.isInteger(index)) return
-
-        const photo = data.photos[index]
-        if (!photo || photo.id !== key || photo.isLoaded) return
-
-        queryCache.set<Photo[]>(PHOTOS_KEY, current => {
-          const newPhotos = [...(current ?? data.photos)]
-
-          newPhotos[index] = { ...photo, isLoaded: true }
-          return newPhotos
-        })
-      },
-      { once: true }
-    ],
-    error: [
-      ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
-        if (!currentTarget) return
-
-        const img = currentTarget as HTMLImageElement,
-          index = parseInt(img.dataset.index ?? '')
-
-        if (Number.isInteger(index)) {
-          const photo = data.photos[index]
-
-          if (photo && photo.id === key && !photo.isLoaded)
-            queryCache.set<Photo[]>(PHOTOS_KEY, current => {
-              const newPhotos = [...(current ?? data.photos)]
-
-              newPhotos[index] = { ...photo, isLoaded: true }
-              return newPhotos
-            })
-        }
-
-        img.replaceWith(img.cloneNode(true))
-      },
-      { once: true }
-    ],
+  img: { load: markLoaded, error: markLoaded },
+  '.photo > button': {
     click: [
-      ({ data, event: { currentTarget }, ref, attributes: { key } }) => {
-        const isOpening = data.photoId !== key
-
-        data.photoId = isOpening ? key : ''
-        data.author = isOpening ? (data.photos.find(({ id }) => id === key)?.author ?? '') : ''
-
-        if (currentTarget && currentTarget instanceof HTMLImageElement) {
-          data.photoElement = currentTarget
-          if (!isOpening) return
-
-          const closeButton = ref('#photo-dialog button')
-          if (closeButton instanceof HTMLButtonElement) setTimeout(() => closeButton.focus())
-        }
-      },
-      { throttleMs: 500 }
-    ],
-    keydown: [
-      ({ event }) => {
-        const keyEvent = event as KeyboardEvent
-
-        if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return
-        keyEvent.preventDefault()
-        ;(keyEvent.currentTarget as HTMLElement | null)?.click()
+      ({ data, attributes: { key } }) => {
+        data.photoId = key
+        data.isOpen = true
       },
       { throttleMs: 500 }
     ]
