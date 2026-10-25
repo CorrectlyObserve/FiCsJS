@@ -1,5 +1,5 @@
 import type { User } from '@/domain/user'
-import { requireUser } from '@/server/auth'
+import { requireUser } from '@/server/guards'
 import Top from '@/pages/index/Top'
 
 export const meta = {
