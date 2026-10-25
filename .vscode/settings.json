@@ -12,7 +12,7 @@
     "LUMA",
     "novalidate",
     "playsinline",
-    "prerendered",
+    "prerender",
     "shadowrootclonable",
     "shadowrootdelegatesfocus",
     "shadowrootserializable"
