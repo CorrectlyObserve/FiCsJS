@@ -5,7 +5,7 @@ import type { Routing } from '../../types'
 import { fileNames, prefixes } from '../constants'
 import { getAllMiddlewares } from '../middleware'
 import { cleanPath, getDirName, getFiles, isValidFileType, toPascal, toSpecifier } from '../helpers'
-import { findClosestDir, findFileSrc, findServerFileSrc } from './finder'
+import { findClosestDir, findFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
 export const buildEntries = ({
@@ -242,7 +242,11 @@ export const buildSpecial = ({
 
   const toStatusFile = (target: string): Routing.Status.StatusFile | null => {
       const clientSrc: string | null = findFileSrc({ filePaths, extensions, target }),
-        serverSrc: string | null = findServerFileSrc({ filePaths, extensions, target }),
+        serverSrc: string | null = findFileSrc({
+          filePaths,
+          extensions,
+          target: `${target}.server`
+        }),
         src: string | null = clientSrc ?? serverSrc
 
       if (src === null) return null
