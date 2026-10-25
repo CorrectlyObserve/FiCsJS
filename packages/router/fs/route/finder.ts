@@ -39,16 +39,23 @@ export const findClientEntries = ({
     push = ({
       name,
       src,
-      spaRouterName
+      spaRouterName,
+      isServerOnly
     }: {
       name: string
       src: string | null
       spaRouterName?: string
+      isServerOnly?: boolean
     }): void => {
       if (src === null || seen.has(name)) return
 
       seen.add(name)
-      clientEntries.push({ name, src, ...(spaRouterName && { spaRouterName }) })
+      clientEntries.push({
+        name,
+        src,
+        ...(spaRouterName && { spaRouterName }),
+        ...(isServerOnly && { isServerOnly })
+      })
     }
 
   for (let i = 0; i < routes.length; i++) {
