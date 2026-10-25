@@ -281,7 +281,7 @@ const options: FiCs.Options<Data, {}> = {
         key: PAGE_KEY,
         newQuery: nextPage,
         mutator: async () => {
-          const photos = await crud<Photo[]>(getPhotos(nextPage), { key: 'isLoading' })
+          const photos: Photo[] = await crud<Photo[]>(photoListUrl(nextPage), { key: 'isLoading' })
 
           if (data.page !== nextPage) return data.page
 
