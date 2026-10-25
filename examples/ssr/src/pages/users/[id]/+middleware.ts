@@ -1,3 +1,3 @@
-import { adminOnly } from '@/server/auth'
+import { adminOnly } from '@/server/guards'
 
 export default adminOnly
