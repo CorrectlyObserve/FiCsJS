@@ -314,7 +314,7 @@ export declare namespace Routing {
 
     type Resolved = PageCode | Table['OK']
 
-    type RootFiles = {
+    interface RootFile extends StatusFile {
       prop: string
       path: string
       src: string
