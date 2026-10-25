@@ -319,7 +319,8 @@ export declare namespace Routing {
       path: string
       src: string
       serverSrc: string | null
-    }[]
+      isServerOnly: boolean
+    }
 
     type Table = typeof statusCodes
   }
