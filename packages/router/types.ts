@@ -305,7 +305,7 @@ export declare namespace Routing {
 
     interface Page<C = Record<string, unknown>> {
       module: ServerModule<C>
-      entry: string
+      entry?: string
     }
 
     type PageCode = Table[keyof typeof denialCodes | 'INTERNAL_SERVER_ERROR']
