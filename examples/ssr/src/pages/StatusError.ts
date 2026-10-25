@@ -38,7 +38,9 @@ const css: FiCs.Css<Data, {}> = `
 
 export default fics<Data, {}>({
   name: 'error',
-  children: [Link],
-  data: () => ({ description: '', message: '' }),
-  html
+  children: [Link()],
+  data: () => ({ status: 500, message: '' }),
+  props,
+  html,
+  css
 })
