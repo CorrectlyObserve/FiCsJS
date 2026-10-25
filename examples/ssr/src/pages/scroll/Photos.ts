@@ -53,8 +53,8 @@ const props: FiCs.Props<Data, {}> = [
 ]
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { icon, axisButton, skeleton },
-  data: { isHorizontal, toAxis, photos, photoId, author },
+  children: { skeleton, iconButton, dialog },
+  data: { axis, photos },
   template,
   activeApis: { isLoading },
   attributes: {
@@ -258,7 +258,7 @@ const options: FiCs.Options<Data, {}> = {
   scroll: ({ data, crud, queryCache }) => ({
     unit: UNIT_LENGTH,
     itemMinSize: PHOTO_SIZE,
-    axis: data.toAxis(data.isHorizontal),
+    axis: data.axis,
     trigger: data.photos.length > 0,
     parameter: 'page',
     rootMargin: PHOTO_SIZE,
@@ -297,7 +297,7 @@ const options: FiCs.Options<Data, {}> = {
 
 export default fics<Data, {}>({
   name: 'photos',
-  children: [Icon(), AxisButton, Skeleton],
+  children: [Skeleton, IconButton(), Dialog],
   data: () => ({
     axis: $axis.get(),
     page: 0,
