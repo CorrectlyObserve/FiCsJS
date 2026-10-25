@@ -20,6 +20,22 @@ export const buildEntries = ({
     const path: string | null = toRoute(filePath, extensions)
     if (path === null) continue
 
+    const dir: string = getDirName(filePath),
+      clientSrc: string | null = findFileSrc({
+        filePaths,
+        extensions,
+        target: fileNames.PAGE,
+        dir
+      }),
+      isServerFile: boolean = isValidFileType({
+        file: cleanPath(filePath).split('/').at(-1) ?? '',
+        expectedType: fileNames.PAGE_SERVER,
+        extensions
+      })
+
+    /** @remarks Skips this "+page.server", as the "+page" beside it registers the route with both files. */
+    if (isServerFile && clientSrc !== null) continue
+
     const existing: string | undefined = seen.get(path)
     if (existing)
       throw new Error(
@@ -31,14 +47,15 @@ export const buildEntries = ({
       filePaths,
       extensions,
       target: fileNames.PAGE_SERVER,
-      dir: getDirName(filePath)
+      dir
     })
 
     routes.push({
       path,
       specifier: toSpecifier(filePath, baseDir),
       src: filePath,
-      serverSpecifier: serverSrc === null ? null : toSpecifier(serverSrc, baseDir)
+      serverSpecifier: serverSrc === null ? null : toSpecifier(serverSrc, baseDir),
+      isServerOnly: isServerFile
     })
   }
 
