@@ -29,7 +29,7 @@ interface Data {
 }
 
 interface Props {
-  tasks: Task[]
+  tasks: readonly Task[]
   slot: (task: Task, index: number) => ReturnType<typeof fics>
   labels: ReorderLabels
   onMove: (insertion: Insertion) => void
