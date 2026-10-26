@@ -56,7 +56,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
       &:first-of-type {
         ${textSize('sm')}
         color: ${color('danger-text')};
-        text-align: left;
+        text-align: start;
 
         &:not(:empty) { margin-block-end: ${space('sm')}; }
       }
