@@ -42,9 +42,6 @@ export const hideScrollbar = cssObject({
   '-ms-overflow-style': 'none'
 } as const)
 
-export const layout = (size: 'compact' | 'regular' | 'expanded'): string =>
-  `style(${ficsCssVar('layout')}: ${size})`
-
 /** @param rem Must be a non-negative number if it is a number. */
 export const remToPx = (rem: number | string): Readonly<number> => {
   browserError()
