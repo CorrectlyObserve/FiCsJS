@@ -46,6 +46,6 @@ export const generateRoutes = ({
     clientCode: assembleClient({ ctx, baseDir, rpc }),
     serverCode:
       hasMpaRoute || hasMiddleware || rpc !== null ? assembleServer({ ctx, baseDir, rpc }) : null,
-    ...findClientEntries({ ...ctx, filePaths, extensions })
+    ...findClientEntries(ctx)
   }
 }
