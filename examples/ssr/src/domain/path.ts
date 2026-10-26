@@ -22,5 +22,5 @@ export const pages = {
   CHAT: { href: paths.WS_SSE, name: 'Chat' },
   ACTIVITIES: { href: `${paths.WS_SSE}/activities`, name: 'Activities' },
   STREAM: { href: `${paths.WS_SSE}/stream`, name: 'Stream' },
-  SCROLL: { href: paths.SCROLL, name: 'Photos' }
+  SCROLL: { href: paths.SCROLL, name: 'Infinite & virtual scroll' }
 } as const
