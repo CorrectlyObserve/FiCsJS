@@ -4,8 +4,8 @@ import Link from '@/components/Link'
 import { getStatusPage, type StatusPage } from '@/domain/status'
 
 interface Data {
-  status: number
-  message: string
+  readonly status: number
+  readonly message: string
 }
 
 const props: FiCs.Props<Data, {}> = {
