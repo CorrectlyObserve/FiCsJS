@@ -7,12 +7,12 @@ import type { Lang } from '@/domain/lang'
 
 interface Data {
   seconds: number
-  heading: string
-  pageTitle: FiCs.Interpolate
-  countdown: (seconds: number) => string
-  pause: string
-  restart: string
-  buttonText: string
+  readonly heading: string
+  readonly pageTitle: FiCs.Interpolate
+  readonly countdown: (seconds: number) => string
+  readonly pause: string
+  readonly restart: string
+  readonly buttonText: string
   isCounting: boolean
 }
 
