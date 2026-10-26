@@ -14,7 +14,7 @@ export const paths = {
 export const getUserPath = (id: number): string => `${paths.USERS}/${id}`
 
 export const pages = {
-  HOME: { href: paths.HOME, name: 'Top' },
+  HOME: { href: paths.HOME, name: 'Home' },
   USERS: { href: paths.USERS, name: 'Users' },
   NEW_USER: { href: paths.NEW_USER, name: 'Add a user' },
   ACCOUNT: { href: paths.ACCOUNT, name: 'Account' },
