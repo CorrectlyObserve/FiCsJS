@@ -42,9 +42,9 @@ interface Data {
 
 interface Props {
   lang: Lang
-  tasks: Task[]
+  tasks: readonly Task[]
   taskId: number
-  setTasks: (tasks: Task[]) => void
+  setTasks: (tasks: readonly Task[]) => void
 }
 
 const submitTask = async (data: Data, setTasks: Props['setTasks']) => {
