@@ -166,7 +166,7 @@ const css: FiCs.Css<Data, Props> = `
 
     p {
       margin-block-end: ${space('sm')};
-      text-align: left;
+      text-align: start;
 
       &:last-of-type { margin-block-end: ${space('lg')}; }
     }
