@@ -56,7 +56,7 @@ const props: FiCsRouter.Props<Data> = [
       tasks: data.tasks,
       taskId:
         parseTaskPath({ dynamicParams: data.dynamicParams, queries: data.queries })?.id ?? NaN,
-      setTasks: (tasks: TaskType[]) => (data.tasks = tasks)
+      setTasks: (tasks: readonly TaskType[]) => (data.tasks = tasks)
     })
   },
   {
@@ -70,7 +70,7 @@ const props: FiCsRouter.Props<Data> = [
         if (!data.draft) return
         data.draft = { ...data.draft, ...value }
       },
-      updateTasks: (tasks: TaskType[]) => (data.tasks = tasks)
+      updateTasks: (tasks: readonly TaskType[]) => (data.tasks = tasks)
     })
   }
 ]
