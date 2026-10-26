@@ -28,10 +28,11 @@ export const render = ({
       <script>(${applyTheme})('${THEME_KEY}')</script>
     </head>
     <body>
-      ${Header.toString({
-        data: { title: title ?? '', userName: getSessionUser(req)?.name ?? null }
-      })}
-      <main>${content}</main>
+      ${Header.toString({ data: { userName: getSessionUser(req)?.name ?? null } })}
+      <main>
+        ${(script !== '/assets/index.js' && `<h2>${title}</h2>`) || ''}
+        ${content}
+      </main>
       <footer><p>&copy; 2025 Masami Ogasawara</p></footer>
       ${script && `<script type="module" src="${script}"></script>`}
     </body>
