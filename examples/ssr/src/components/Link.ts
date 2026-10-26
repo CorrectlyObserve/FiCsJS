@@ -1,5 +1,5 @@
-import { fics, type FiCs } from 'ficsjs'
-import { white } from '@/utils'
+import { ficsLink } from 'ficsjs/router'
+import { color, flex, interactive, radius, space, stroke, tapSize } from 'ficsjs/style'
 
 interface Props {
   href: string
@@ -7,20 +7,25 @@ interface Props {
   isCurrent?: boolean
 }
 
-const html: FiCs.Html<Data, {}> = ({ data: { href, text }, template }) => {
-  href = href.trim()
+const css = `
+  :host {
+    width: auto;
 
-  if (href === '') throw new Error('The "href" must be a non-empty string...')
+    a {
+      ${flex({ inline: true, center: 'xy' })}
+      ${interactive()}
+      width: 100%;
+      min-height: ${tapSize()};
+      color: ${color('text')};
+      padding-inline: ${space('md')};
+      border: ${stroke('sm')} solid ${color('border')};
+      border-radius: ${radius('sm')};
+      text-decoration: none;
 
-  return template`
-    <p class="text-base text-white text-center leading-none">
-      <a class="clickable inline-block p-4 mb-3 rounded-lg" href="${href}">
-        <span class="border-b">${text}</span>
-      </a>
-    </p>
-  `
-}
-const css: FiCs.Css<Data, {}> = `a:hover { background: ${white(0.1)}; }`
+      &[aria-current='page'] { opacity: 0.5; }
+    }
+  }
+`
 
 export default fics({
   name: 'link',
