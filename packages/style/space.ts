@@ -22,7 +22,9 @@ const TOKENS = typedFromEntries(
 
 /**
  * @remarks
- * The defaults, each overridable through --fics-space-<token>; md- and md+ follow --fics-space-md:
+ * Defaults for spacing, overridable via --fics-space-<token>.
+ * `md-` and `md+` inherit from `md`.
+ *
  * - xs: 0.25rem
  * - sm: 0.5rem
  * - md-: 0.75rem
