@@ -36,8 +36,8 @@ const SIZES = typedFromEntries(
 
 /**
  * @remarks
- * The defaults as font-size / line-height, each overridable through --fics-font-size-<token> and
- * --fics-line-height-<token>; md- and md+ follow md:
+ * Defaults for font-size / line-height, overridable via --fics-font-size-<token> and --fics-line-height-<token>.
+ * `md-` and `md+` inherit from `md`.
  *
  * - xs: 0.75rem / 1.25rem
  * - sm: 0.875rem / 1.375rem
@@ -48,6 +48,8 @@ const SIZES = typedFromEntries(
  * - xl: 1.5rem / 2rem
  * - 2xl: 2rem / 2.5rem
  * - 3xl: 2.5rem / 3rem
+ *
+ * @returns `font-size: <value>; line-height: <value>`
  */
 export const textSize = (token: keyof typeof SIZES, isLineHeightNone?: boolean) =>
   cssObject({ ...SIZES[token], ...(isLineHeightNone && { [PROPS[1]]: 1 }) })
