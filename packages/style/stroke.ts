@@ -10,4 +10,11 @@ const STROKES = typedFromEntries(
   ).map(([token, unit]) => [token, toVar({ name: 'stroke', token, value: toRem(unit) })] as const)
 )
 
+/**
+ * @remarks
+ * Defaults for stroke, overridable via --fics-stroke-<token>.
+ *
+ * - sm: 0.25rem
+ * - md: 0.5rem
+ */
 export const stroke = (token: keyof typeof STROKES): string => STROKES[token]
