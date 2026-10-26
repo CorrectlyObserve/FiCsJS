@@ -1,6 +1,6 @@
 import type { User } from '@/domain/user'
 import { requireUser } from '@/server/guards'
-import Top from '@/pages/index/Top'
+import Home from '@/pages/index/Home'
 
 export const meta = {
   title: 'FiCsJS on Bun',
@@ -9,5 +9,5 @@ export const meta = {
 
 export default async (ctx: { req: Request }): Promise<string> => {
   const { name, role }: User = await requireUser(ctx)
-  return Top.toString({ data: { name, role } })
+  return Home.toString({ data: { name, role } })
 }
