@@ -42,9 +42,9 @@ export const globalCss: FiCs.GlobalCss = `
   button { border: none; }
 
   button, input, textarea {
+    ${radius('sm')};
     background: none;
     color: ${color('text')};
-    border-radius: ${radius('sm')};
 
     &:focus-visible { outline-color: ${color('text')}; }
   }
