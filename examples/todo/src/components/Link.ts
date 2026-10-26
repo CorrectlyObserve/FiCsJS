@@ -28,7 +28,7 @@ const css: FiCsLink.Css<Props> = ({ props: { textForScreenReaders } }) => `
 
     a {
       ${interactive({ focusVisible: `color: inherit; outline-color: ${color('text')};` })}
-      border-radius: ${radius('sm')};
+      ${radius('sm')};
 
       ${
         textForScreenReaders === undefined
