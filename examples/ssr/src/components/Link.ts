@@ -1,9 +1,10 @@
 import { fics, type FiCs } from 'ficsjs'
 import { white } from '@/utils'
 
-interface Data {
+interface Props {
   href: string
   text: string
+  isCurrent?: boolean
 }
 
 const html: FiCs.Html<Data, {}> = ({ data: { href, text }, template }) => {
