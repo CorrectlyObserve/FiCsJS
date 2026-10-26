@@ -76,7 +76,7 @@ const css: FiCs.Css<Data, {}> = `
         ${textSize('2xl')}
         background: ${gradientColor(false)};
         background-clip: text;
-        padding-block: ${space('md-')};
+        padding-block: ${space('sm')};
         -webkit-text-fill-color: transparent;
 
         @media (forced-colors: active) {
