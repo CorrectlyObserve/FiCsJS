@@ -34,7 +34,7 @@ export const globalCss: FiCs.GlobalCss = `
     ${textSize('xl')}
     margin-block-end: ${space('lg')};
 
-    @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
+    @container not ${layout('expanded')} { margin-block-end: ${space('md')}; }
   }
 
   p, label, legend, input, textarea { ${textSize('md')} }
