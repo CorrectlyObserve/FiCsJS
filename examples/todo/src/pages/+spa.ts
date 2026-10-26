@@ -81,7 +81,7 @@ const css: FiCsRouter.Css<Data> = `
     flex-grow: 1;
     container-type: inline-size;
     width: 100%;
-    padding-block: ${space('lg')} ${calc(`${space('lg')} + ${space('md-')}`)};
+    padding-block: ${calc(`${space('lg')} - ${space('sm')}`)} ${space('lg')};
 
     @container ${layout('expanded')} {
       .task-list + .task-details {
@@ -90,7 +90,7 @@ const css: FiCsRouter.Css<Data> = `
       }
     }
 
-    @container not ${layout('expanded')} { padding-block-start: ${space('md')}; }
+    @container ${layout('compact')} { padding-block: ${space('sm')} ${space('md')}; }
   }
 `
 
