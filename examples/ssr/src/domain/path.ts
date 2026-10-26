@@ -6,7 +6,7 @@ export const paths = {
   BREAK_SESSION: '/break-session',
   ACCOUNT: '/account',
   SCROLL: '/scroll',
-  CHAT: '/websocket-sse',
+  WS_SSE: '/websocket-sse',
   USERS: '/users',
   NEW_USER: '/users/new'
 } as const
