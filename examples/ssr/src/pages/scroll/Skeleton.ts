@@ -17,10 +17,10 @@ const html: FiCs.Html<{}, Props> = ({
 const css: FiCs.Css<{}, Props> = ({ props: { size, radius: r } }) => `
   div {
     ${pulse()}
+    ${radius(r)};
     width: ${size}px;
     height: ${size}px;
     background: ${color('divider')};
-    border-radius: ${radius(r)};
   }
 `
 
