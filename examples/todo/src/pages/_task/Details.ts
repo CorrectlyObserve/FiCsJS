@@ -15,18 +15,18 @@ import { Circle, CircleCheckBig } from 'lucide-static'
 type Datetime = 'createdAt' | 'updatedAt'
 
 interface Data {
-  heading: string
-  pageTitle: FiCs.Interpolate
-  status: string
-  texts: Record<string, string>
-  labels: string[]
-  isError: (task?: Task) => boolean
-  error: string
-  descriptions: string[]
-  placeholders: string[]
-  datetimes: Record<Datetime, string>
-  buttonText: string
-  confirmation: string
+  readonly heading: string
+  readonly pageTitle: FiCs.Interpolate
+  readonly status: string
+  readonly texts: Readonly<Record<string, string>>
+  readonly labels: readonly string[]
+  readonly isError: (task?: Task) => boolean
+  readonly error: string
+  readonly descriptions: readonly string[]
+  readonly placeholders: readonly string[]
+  readonly datetimes: Readonly<Record<Datetime, string>>
+  readonly buttonText: string
+  readonly confirmation: string
 }
 
 interface Props {
