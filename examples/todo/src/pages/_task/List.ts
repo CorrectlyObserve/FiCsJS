@@ -23,21 +23,21 @@ import { columnWidth, isExpanded } from '@/styles/theme'
 import { Plus, Square, SquareCheck } from 'lucide-static'
 
 interface Data {
-  heading: string
-  pageTitle: FiCs.Interpolate
+  readonly heading: string
+  readonly pageTitle: FiCs.Interpolate
   value: string
-  placeholder: string
-  description: string
+  readonly placeholder: string
+  readonly description: string
   isShown: boolean
-  check: string
-  texts: Record<string, string>
-  copiedTitle: FiCs.Interpolate
-  reorder: ReorderLabels
-  completed: string
-  uncompleted: string
-  confirmation: string
-  unapplicable: string
-  getTasks: (tasks: Task[], isOnlyIncomplete: boolean) => Task[]
+  readonly check: string
+  readonly texts: Readonly<Record<string, string>>
+  readonly copiedTitle: FiCs.Interpolate
+  readonly reorder: ReorderLabels
+  readonly completed: string
+  readonly uncompleted: string
+  readonly confirmation: string
+  readonly unapplicable: string
+  readonly getTasks: (tasks: readonly Task[], isOnlyIncomplete: boolean) => readonly Task[]
 }
 
 interface Props {
@@ -203,7 +203,7 @@ export default fics<Data, Props>({
     tasks: [],
     texts: {},
     reorder: {} as ReorderLabels,
-    getTasks: (tasks: Task[], isOnlyIncomplete: boolean) =>
+    getTasks: (tasks: readonly Task[], isOnlyIncomplete: boolean) =>
       isOnlyIncomplete ? getIncompleteTasks(tasks) : tasks
   }),
   deferredData: {
