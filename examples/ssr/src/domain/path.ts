@@ -18,8 +18,9 @@ export const pages = {
   USERS: { href: paths.USERS, name: 'Users' },
   NEW_USER: { href: paths.NEW_USER, name: 'Add a user' },
   ACCOUNT: { href: paths.ACCOUNT, name: 'Account' },
-  CHAT: { href: paths.CHAT, name: 'WebSocket & SSE' },
-  ACTIVITIES: { href: `${paths.CHAT}/activities`, name: 'Activities' },
-  STREAM: { href: `${paths.CHAT}/stream`, name: 'Stream' },
+  WS_SSE: { href: paths.WS_SSE, name: 'WebSocket & SSE' },
+  CHAT: { href: paths.WS_SSE, name: 'Chat' },
+  ACTIVITIES: { href: `${paths.WS_SSE}/activities`, name: 'Activities' },
+  STREAM: { href: `${paths.WS_SSE}/stream`, name: 'Stream' },
   SCROLL: { href: paths.SCROLL, name: 'Photos' }
 } as const
