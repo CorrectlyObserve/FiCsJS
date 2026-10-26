@@ -13,4 +13,15 @@ const RADII = typedFromEntries(
   ).map(([token, value]) => [token, toVar({ name: 'radius', token, value })] as const)
 )
 
-export const radius = (token: keyof typeof RADII): string => RADII[token]
+/**
+ * @remarks
+ * Defaults for border-radius, overridable via --fics-radius-<token>.
+ *
+ * - none: 0
+ * - sm: 0.5rem
+ * - lg: 1rem
+ * - full: 9999rem
+ * 
+ * @returns `border-radius: <value>`
+ */
+export const radius = (token: keyof typeof RADII): string => `border-radius: ${RADII[token]}`
