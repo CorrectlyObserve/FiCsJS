@@ -34,7 +34,7 @@ interface Props {
   draft?: Task
   isQueryParam: boolean
   editTask: (newValue: Partial<Task>) => void
-  updateTasks: (tasks: Task[]) => void
+  updateTasks: (tasks: readonly Task[]) => void
 }
 
 const props: FiCs.Props<Data, Props> = [
