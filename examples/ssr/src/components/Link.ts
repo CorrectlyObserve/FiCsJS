@@ -27,9 +27,12 @@ const css = `
   }
 `
 
-export default fics({
-  name: 'link',
-  data: () => ({ href: '/', text: 'Back to the top page' }),
-  html,
-  css
-})
+export default () =>
+  ficsLink<Props>({
+    href: ({ props }) => props.href,
+    anchorAttributes: ({ props: { isCurrent } }) => ({
+      ...(isCurrent && { 'aria-current': 'page' })
+    }),
+    content: ({ props: { text }, template }) => template`${text}`,
+    css
+  })
