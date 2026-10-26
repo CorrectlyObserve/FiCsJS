@@ -1,3 +1,3 @@
-import Top from '@/pages/index/Top'
+import Home from '@/pages/index/Home'
 
-Top.describe()
+Home.describe()
