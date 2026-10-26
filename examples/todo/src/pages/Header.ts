@@ -91,9 +91,7 @@ const css: FiCs.Css<Data, {}> = `
         ${positionCenter('y')}
         right: ${space('lg')};
 
-        @container not ${layout('expanded')} {
-          right: ${space('md-')};
-        }
+        @container not ${layout('expanded')} { right: ${space('md-')}; }
 
         .langs {
           ${flex({ gap: space('xs') })}
