@@ -7,10 +7,10 @@ import { $lang, Lang, LANG_LIST } from '@/domain/lang'
 import { gradientColor } from '@/styles/theme'
 
 interface Data {
-  langs: readonly Lang[]
+  readonly langs: readonly Lang[]
   lang: Lang
   isShown: boolean
-  label: string
+  readonly label: string
 }
 
 const props: FiCs.Props<Data, {}> = {
