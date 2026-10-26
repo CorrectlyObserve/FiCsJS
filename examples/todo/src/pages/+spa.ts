@@ -9,7 +9,7 @@ import { getAllTasks, getTask, type Task as TaskType } from '@/domain/task'
 
 export interface Data {
   lang: Lang
-  tasks: TaskType[]
+  tasks: readonly TaskType[]
   draft?: TaskType
 }
 
