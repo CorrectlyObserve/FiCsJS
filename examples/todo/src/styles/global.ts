@@ -24,7 +24,6 @@ export const globalCss: FiCs.GlobalCss = `
     min-height: 100dvh;
     background: ${color('bg')};
     color: ${color('text')};
-    margin: 0;
   }
 
   * { padding: 0; margin: 0; box-sizing: border-box; }
@@ -40,10 +39,11 @@ export const globalCss: FiCs.GlobalCss = `
 
   p, label, legend, input, textarea { ${textSize('md')} }
 
+  button { border: none; }
+
   button, input, textarea {
     background: none;
     color: ${color('text')};
-    border: none;
     border-radius: ${radius('sm')};
 
     &:focus-visible { outline-color: ${color('text')}; }
