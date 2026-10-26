@@ -18,7 +18,7 @@ import { MoveHorizontal, MoveVertical } from 'lucide-static'
 interface Data {
   axis: Axis
   page: number
-  photos: Photo[]
+  photos: readonly Photo[]
   photoId: string
   isOpen: boolean
 }
