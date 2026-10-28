@@ -433,6 +433,7 @@ export declare namespace Rpc {
 
   interface ResolvedProcedure<C = unknown> {
     procedure: Procedure<unknown, unknown, C>
+    route: string
     middlewares: readonly Routing.Middleware<C>[]
   }
 
