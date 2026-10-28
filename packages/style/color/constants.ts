@@ -1,4 +1,7 @@
 import { ficsCssVar } from '../../core/helpers'
+import type { Color } from './types'
+
+export const BG_FILLS: ReadonlySet<Color.BgFill> = new Set(['bg', 'bg-sunken', 'bg-raised'])
 
 export const BLENDS = {
   light: { mode: 'multiply', color: '#fff' },
