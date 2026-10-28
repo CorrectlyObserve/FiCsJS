@@ -19,6 +19,9 @@ export const compareRoutes = (
   return targetPath < comparedPath ? -1 : targetPath > comparedPath ? 1 : 0
 }
 
+export const toDirRoute = (dirs: string[]): string =>
+  normalizePath(`/${buildRoute(dirs.filter(segment => segment !== 'index'))}`)
+
 export const toEntry = (path: string): string => {
   const sanitized: string = path.replace(/[:*?]/g, ''),
     entry: string = sanitized.split('/').filter(Boolean).join('-')
