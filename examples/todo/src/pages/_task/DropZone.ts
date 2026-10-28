@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { color, motion, radius, size, space, stroke } from 'ficsjs/style'
+import { color, fill, motion, radius, size, space, stroke } from 'ficsjs/style'
 
 interface Props {
   height: number
@@ -20,8 +20,8 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
     transition: ${motion()};
 
     &.is-active {
+      ${fill('bg-raised')};
       height: ${height}px;
-      background: ${color('bg-raised')};
       margin-block: ${space('sm')};
       border: ${stroke('md')} dashed ${color('primary-text')};
     }
