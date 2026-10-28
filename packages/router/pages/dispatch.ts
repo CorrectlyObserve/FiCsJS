@@ -62,7 +62,14 @@ export const dispatch = async <C extends Record<string, unknown>>({
   }
 
   const createCtx = <T>(ctx: T): Routing.MiddlewareCtx<C> =>
-    ({ ...(ctx ?? {}), req, dynamicParams, deny, signal: req.signal }) as Routing.MiddlewareCtx<C>
+    ({
+      ...(ctx ?? {}),
+      req,
+      route: resolvedRoute?.path ?? null,
+      dynamicParams,
+      deny,
+      signal: req.signal
+    }) as Routing.MiddlewareCtx<C>
 
   const args: Omit<Parameters<typeof respondStatus<C>>[0], 'status' | 'ctx'> = {
     render,
