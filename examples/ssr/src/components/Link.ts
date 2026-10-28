@@ -13,13 +13,13 @@ const css = `
 
     a {
       ${flex({ inline: true, center: 'xy' })}
+      ${radius('sm')};
       ${interactive()}
       width: 100%;
       min-height: ${tapSize()};
       color: ${color('text')};
       padding-inline: ${space('md')};
       border: ${stroke('sm')} solid ${color('border')};
-      border-radius: ${radius('sm')};
       text-decoration: none;
 
       &[aria-current='page'] { opacity: 0.5; }
