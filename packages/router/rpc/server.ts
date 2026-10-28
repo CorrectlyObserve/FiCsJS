@@ -24,6 +24,11 @@ export const createRpcHandler = <C = unknown>(
     basePath?: string
     procedures: readonly {
       prefix: string
+      /**
+       * @remarks
+       * Omits `index` from the prefix(e.g., blog/index/:slug → /blog/:slug), as it must match the page route.
+       */
+      route?: string
       module: Record<string, unknown>
       middlewares?: readonly Routing.Middleware<C>[]
     }[]
