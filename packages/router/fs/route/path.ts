@@ -37,10 +37,7 @@ export const toRoute = (filePath: string, extensions: Routing.Extensions): strin
       isValidFileType({ file, expectedType, extensions })
     )
 
-  if (!isPage) return null
-
-  const route: string = buildRoute(segments.slice(0, -1).filter(segment => segment !== 'index'))
-  return normalizePath(`/${route}`)
+  return isPage ? toDirRoute(segments.slice(0, -1)) : null
 }
 
 export const toSpaAlias = (dir: string, role: 'Spa' | 'SpaServer'): string =>
