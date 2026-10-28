@@ -1,6 +1,8 @@
 import { COLOR_TOKENS, MAIN_COLOR_TOKENS } from './constants'
 
 export declare namespace Color {
+  type BgFill = 'bg' | 'bg-sunken' | 'bg-raised'
+
   interface Ctx {
     darker?: number
     lighter?: number
