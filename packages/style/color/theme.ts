@@ -1,7 +1,7 @@
 import { convertStr, DISABLED_SELECTOR, ficsCssVar } from '../../core/helpers'
 import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
-import { BLENDS, COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
+import { BG_FILLS, BLENDS, COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
 import { adjustLightness, clampLightness, fadeRatio, mixTowardFill } from './modifier'
 import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP, TEXTS } from './tokens'
