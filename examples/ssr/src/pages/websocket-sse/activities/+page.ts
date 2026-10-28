@@ -3,7 +3,7 @@ import type { Data } from '@/pages/websocket-sse/+spa'
 
 const page: FiCsRouter.Page<Data> = ({ data: { activities }, template }) => template`
   <section>
-    <h2>Activities</h2>
+    <h3>Activities</h3>
     <div>${activities.map((activity, index) => template`<p key="${index}">${activity}</p>`)}</div>
   </section>
 `
