@@ -4,6 +4,7 @@ import type { Routing, Rpc, TypeNode } from '../../types'
 import { fileNames, prefixes, segments } from '../constants'
 import { buildRoute, getFiles, getOrThrow, joinAndWrap, resolveOptions } from '../helpers'
 import { getAllMiddlewares } from '../middleware'
+import { toDirRoute } from './path'
 
 const newNode = (): TypeNode => ({ children: new Map() }),
   renderType = ({ alias, children, dynamic }: TypeNode): string => {
@@ -56,7 +57,12 @@ export const generateRpcs = ({
       if (!middlewareAlias.has(mw))
         middlewareAlias.set(mw, `${prefixes.MIDDLEWARE}${middlewareAlias.size}`)
 
-    const values: string[] = [`prefix: ${JSON.stringify(buildRoute(dirs))}`, `module: ${alias}`]
+    const values: string[] = [
+      `prefix: ${JSON.stringify(buildRoute(dirs))}`,
+      `route: ${JSON.stringify(toDirRoute(dirs))}`,
+      `module: ${alias}`
+    ]
+
     if (mws.length > 0)
       values.push(
         `middlewares: ${joinAndWrap(
