@@ -336,6 +336,8 @@ export declare namespace Rpc {
   type Ctx<C = unknown> = {
     req: Request
     signal: AbortSignal
+    /** @remarks Matches the page route (e.g., /:id), as the RPC file shares the same folder. */
+    route: string
     dynamicParams: Record<string, string>
   } & C
 
