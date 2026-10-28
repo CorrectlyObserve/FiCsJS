@@ -10,7 +10,7 @@ export declare namespace Color {
     alpha?: number
   }
 
-  type Fill = (typeof COLOR_TOKENS)[number] | 'bg' | 'bg-sunken' | 'bg-raised'
+  type Fill = (typeof COLOR_TOKENS)[number] | BgFill
 
   interface Gradient {
     readonly image: string
@@ -47,8 +47,7 @@ export declare namespace Color {
   type Theme =
     | (typeof COLOR_TOKENS)[number]
     | `${(typeof MAIN_COLOR_TOKENS)[number]}-text`
-    | 'bg-sunken'
-    | 'bg-raised'
+    | Exclude<BgFill, 'bg'>
     | 'text-muted'
 
   type Tone = 'light' | 'dark'
