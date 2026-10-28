@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { pulse } from 'ficsjs/animation'
-import { color, radius } from 'ficsjs/style'
+import { fill, radius } from 'ficsjs/style'
 
 interface Props {
   size: number
@@ -16,11 +16,11 @@ const html: FiCs.Html<{}, Props> = ({
 
 const css: FiCs.Css<{}, Props> = ({ props: { size, radius: r } }) => `
   div {
-    ${pulse()}
+    ${fill('divider')};
     ${radius(r)};
+    ${pulse()};
     width: ${size}px;
     height: ${size}px;
-    background: ${color('divider')};
   }
 `
 
