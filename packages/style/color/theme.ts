@@ -15,12 +15,19 @@ const BG_BASE: readonly [string, string] = [toColor('bg-light'), toColor('bg-dar
   LINK_VAR: string = ficsCssVar('link'),
   FILL_VAR: string = ficsCssVar('fill'),
   FILL: string = cssVar(FILL_VAR, BG),
-  TEXT: string = toTextColor(FILL)
+  TEXT: string = toTextColor(FILL),
+  FILL_VARS: Readonly<Record<string, string>> = {
+    [LINK_VAR]: TEXT,
+    [TINT_VAR]: `color(from ${TEXT} srgb calc(1 - r) calc(1 - g) calc(1 - b))`,
+    [TINT_SCALE_VAR]: '2',
+    [MUTE_RATIO_VAR]: '100%'
+  }
+
+const COLORS = {} as Record<Color.Theme, string>
 
 /** @remarks `light` fades like a border, as a thin border reads weaker on a light page. */
 const fadeText = (colors: [string, string]): string =>
-    `light-dark(${[1, 0.6].map(ratio => colorMix({ colors, ratio: fadeRatio(ratio) })).join(', ')})`,
-  COLORS = {} as Record<Color.Theme, string>
+  `light-dark(${[1, 0.6].map(ratio => colorMix({ colors, ratio: fadeRatio(ratio) })).join(', ')})`
 
 for (const token of COLOR_TOKENS)
   switch (token) {
