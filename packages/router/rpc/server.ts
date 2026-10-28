@@ -36,7 +36,7 @@ export const createRpcHandler = <C = unknown>(
     statics: Map<string, Rpc.ResolvedProcedure<C>> = new Map(),
     dynamics: ({ pattern: string; regex: RegExp } & Rpc.ResolvedProcedure<C>)[] = []
 
-  for (const { prefix, module, middlewares = [] } of procedures)
+  for (const { prefix, route = prependSlash(prefix), module, middlewares = [] } of procedures)
     for (const key of Object.keys(module)) {
       if (
         key === 'default' ||
@@ -54,9 +54,10 @@ export const createRpcHandler = <C = unknown>(
           pattern,
           regex: dynamicPathToRegex(pattern),
           procedure: module[key],
+          route,
           middlewares
         })
-      else statics.set(pattern, { procedure: module[key], middlewares })
+      else statics.set(pattern, { procedure: module[key], route, middlewares })
     }
 
   return async (req: Request): Promise<Response> => {
@@ -101,7 +102,7 @@ export const createRpcHandler = <C = unknown>(
     const startedAt: number = performance.now()
     emitMetric(onMetric, { type: 'handle:start', path, method: method as Rpc.Method })
 
-    const { procedure, middlewares }: Rpc.ResolvedProcedure<C> = _static
+    const { procedure, route, middlewares }: Rpc.ResolvedProcedure<C> = _static
     let ctx: Rpc.Ctx<C> & { deny: typeof deny }
 
     try {
