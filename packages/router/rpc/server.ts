@@ -109,6 +109,7 @@ export const createRpcHandler = <C = unknown>(
         ...(await createContext?.(req)),
         req,
         signal,
+        route,
         dynamicParams,
         deny
       } as typeof ctx
