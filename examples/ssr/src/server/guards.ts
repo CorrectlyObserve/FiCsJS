@@ -2,6 +2,7 @@ import type { FiCsRouter } from 'ficsjs/router/server-only'
 import { paths } from '@/domain/path'
 import { readRedirect, toSafePath, viaLogin } from '@/domain/redirect'
 import { isAdmin } from '@/domain/role'
+import { UNAUTHORIZED_STATUS } from '@/domain/status'
 import type { User } from '@/domain/user'
 import { readSession, type Session } from '@/server/session'
 
@@ -30,7 +31,7 @@ export const requireUser = async (ctx: { req: Request }): Promise<User> => {
 export const signedIn = async (ctx: FiCsRouter.MiddlewareCtx) => {
   const { account, isStale }: Session = readSession(ctx)
   if (account) return
-  if (isStale) return ctx.deny({ code: 401 })
+  if (isStale) return ctx.deny({ code: UNAUTHORIZED_STATUS })
 
   const { pathname, search }: URL = new URL(ctx.req.url)
   return ctx.deny({
