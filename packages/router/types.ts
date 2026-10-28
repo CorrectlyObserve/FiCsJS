@@ -142,6 +142,8 @@ export declare namespace Routing {
 
   type MiddlewareCtx<C = Record<string, unknown>> = C & {
     req: Request
+    /** @remarks Returns the matched route or `null` on 404 (folder route for RPC), as `req.url` may contain trailing slashes. */
+    route: string | null
     dynamicParams: Record<string, string>
     deny: (ctx?: Partial<Denial>) => Denial
     signal?: AbortSignal
