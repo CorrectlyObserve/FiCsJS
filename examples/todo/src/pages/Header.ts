@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { fade } from 'ficsjs/animation'
-import { color, flex, layout, motion, positionCenter, space, textSize } from 'ficsjs/style'
+import { fill, flex, layout, motion, positionCenter, space, textSize } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Link from '@/components/Link'
 import { $lang, Lang, LANG_LIST } from '@/domain/lang'
@@ -61,10 +61,10 @@ const html: FiCs.Html<Data, {}> = ({
 
 const css: FiCs.Css<Data, {}> = `
   :host {
+    ${fill('bg')}
     position: sticky;
     top: 0;
     width: 100vw;
-    background: ${color('bg')};
     z-index: 10;
 
     header {
@@ -95,6 +95,7 @@ const css: FiCs.Css<Data, {}> = `
 
         .langs {
           ${flex({ gap: space('xs') })}
+          ${fill('bg')}
           ${fade(motion())}
           position: absolute;
           right: 0;
