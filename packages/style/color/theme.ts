@@ -111,7 +111,7 @@ export const color = (token: Color.Theme | 'focus'): string => {
   return COLORS[token]
 }
 
-/** @remarks Paints a color token or a gradient() and keeps the text, links and hover inside readable. */
+/** @remarks Paints a color token or a gradient() and keeps the text, links and hover states readable. */
 export const fill = (paint: Color.Fill | Color.Gradient): string => {
   const isGradient = (paint: Color.Fill | Color.Gradient): paint is Color.Gradient =>
       typeof paint !== 'string',
@@ -121,10 +121,17 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
           ? TEXTS[convertStr(`on-${paint.text}`, 'camel') as keyof typeof TEXTS]
           : color(paint)
       };`,
-      `${LINK_VAR}: ${TEXT};`,
-      `${TINT_VAR}: color(from ${TEXT} srgb calc(1 - r) calc(1 - g) calc(1 - b));`,
-      `${TINT_SCALE_VAR}: 2;`,
-      `${MUTE_RATIO_VAR}: 100%;`
+      /** @remarks Preserves the default hover for bg fills, as inverted colors are hard to see. */
+      Object.keys(FILL_VARS)
+        .map(
+          name =>
+            `${name}: ${
+              !isGradient(paint) && BG_FILLS.has(paint as Color.BgFill)
+                ? 'initial'
+                : FILL_VARS[name]
+            };`
+        )
+        .join(' ')
     ],
     styles: string[] = [`color: ${color('text')};`]
 
