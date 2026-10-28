@@ -2,6 +2,7 @@ import type { FiCs } from 'ficsjs'
 import {
   calc,
   color,
+  fill,
   flex,
   interactive,
   layout,
@@ -21,9 +22,8 @@ export const globalCss: FiCs.GlobalCss = `
 
   body {
     ${flex({ direction: 'column' })}
+    ${fill('bg')}
     min-height: 100dvh;
-    background: ${color('bg')};
-    color: ${color('text')};
   }
 
   * { padding: 0; margin: 0; box-sizing: border-box; }
