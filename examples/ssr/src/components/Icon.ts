@@ -1,10 +1,11 @@
 import { fics, type FiCs } from 'ficsjs'
-import { maskIcon, rect, tapSize } from 'ficsjs/style'
+import { fill, layout, maskIcon, radius, rect, space } from 'ficsjs/style'
 
 export interface Props {
   svg: string
   ariaLabel: string
   isDisabled?: boolean
+  isBottomFixed?: boolean
   click: () => void
 }
 
@@ -19,8 +20,24 @@ const html: FiCs.Html<{}, Props> = ({
   </button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { svg } }) =>
-  `button > span { ${rect(8, 8)}; ${maskIcon(svg)}; }`
+const css: FiCs.Css<{}, Props> = ({ props: { svg, isBottomFixed } }) =>
+  `button {
+    ${
+      (isBottomFixed &&
+        `
+      ${fill('bg')};
+      ${radius('sm')};
+      position: fixed;
+      bottom: ${space('xl')};
+      right: ${space('lg')};
+      z-index: 1;
+  
+      @container ${layout('compact')} { bottom: ${space('lg')}; right: ${space('md')}; }`) ||
+      ''
+    }
+
+    > span { ${rect(8, 8)}; ${maskIcon(svg)}; }
+  }`
 
 const actions: FiCs.Actions<{}, Props> = {
   button: {
