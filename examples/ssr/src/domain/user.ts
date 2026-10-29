@@ -8,6 +8,8 @@ export interface User {
   role: Role
 }
 
+export const FAIL_USER = 'failUser' as const
+
 export const toUserId = (value: unknown): number | null => {
   if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : null
   return typeof value === 'string' && /^[1-9]\d*$/.test(value) ? Number(value) : null
