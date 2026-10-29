@@ -31,7 +31,5 @@ export const getStatusPage = (status: number): StatusPage => ({
   ...(texts[status] ?? { title: 'Error', description: 'The request could not be completed.' }),
   ...(status === UNAUTHORIZED_STATUS
     ? { href: paths.LOGIN, text: 'Log in as someone else \u2192' }
-    : status === NOT_FOUND_STATUS
-      ? { href: pages.HOME.href, text: `\u2190 Back to ${pages.HOME.name}` }
-      : { href: pages.USERS.href, text: `\u2190 Back to ${pages.USERS.name}` })
+    : { href: pages.USERS.href, text: `\u2190 Back to ${pages.USERS.name}` })
 })
