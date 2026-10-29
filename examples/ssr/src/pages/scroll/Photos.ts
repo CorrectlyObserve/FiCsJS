@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { queries } from 'ficsjs/router'
-import { flex, hideScrollbar, interactive, space, stroke } from 'ficsjs/style'
+import { flex, hideScrollbar, interactive, radius, space, stroke } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import {
   type Photo,
@@ -129,6 +129,8 @@ const css: FiCs.Css<Data, {}> = ({ data: { axis } }) => {
 
           > button {
             ${interactive({ focusVisible: base => `${base}; outline-offset: calc(${stroke('md')} * -1);` })}
+
+            > img { ${radius('sm')} }
           }
         }
       }
