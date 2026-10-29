@@ -139,7 +139,7 @@ const css: FiCs.Css<Data, {}> = `
       right: ${space('lg')};
       padding: ${space('md')};
       border: ${stroke('sm')} solid ${color('border')};
-      box-shadow: 0 ${size(1)} ${size(3)} ${color('shadow')};
+      box-shadow: ${size(1)} ${size(1)} ${size(3)} ${color('shadow')};
       z-index: 20;
 
       @container ${layout('compact')} { right: ${space('md')}; }
