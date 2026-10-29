@@ -42,11 +42,9 @@ const css: FiCs.Css<Data, Props> = `
     padding: ${space('md')};
     margin: auto;
     border: ${stroke('sm')} solid ${color('border')};
-    
     box-shadow:
-      0 0.625rem 0.9375rem -0.1875rem ${color('shadow')},
-      0 0.25rem 0.375rem -0.25rem ${color('shadow')};
-    z-index: 10;
+      0 ${size(3)} ${size(4)} ${size(-1)} ${color('shadow')},
+      0 ${size(1)} ${size(2)} ${size(-1)} ${color('shadow')};
 
     &::backdrop { background: ${oklch('#000', { alpha: 0.6 })}; }
 
