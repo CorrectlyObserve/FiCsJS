@@ -1,4 +1,5 @@
 import { hasMethod } from './helpers'
+import { isDenial } from './middleware'
 import type { Routing } from './types'
 
 export const applyLayout = <T extends Routing.Module>({
@@ -16,11 +17,10 @@ export const applyLayout = <T extends Routing.Module>({
   return {
     ...page,
     default: (ctx: Record<string, unknown>): unknown => {
-      const slot: unknown = typeof pageDef === 'function' ? pageDef(ctx) : pageDef
+      const slot: unknown = typeof pageDef === 'function' ? pageDef(ctx) : pageDef,
+        wrap = (slot: unknown): unknown => (isDenial(slot) ? slot : layoutDef({ ...ctx, slot }))
 
-      return hasMethod<Promise<unknown>>(slot, 'then')
-        ? slot.then(resolvedSlot => layoutDef({ ...ctx, slot: resolvedSlot }))
-        : layoutDef({ ...ctx, slot })
+      return hasMethod<Promise<unknown>>(slot, 'then') ? slot.then(wrap) : wrap(slot)
     }
   }
 }
