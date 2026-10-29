@@ -50,12 +50,13 @@ const props: FiCs.Props<Data, {}> = [
     values: () => ({ size: PHOTO_SIZE, radius: 'sm' })
   },
   {
-    descendants: ({ children: { iconButton } }) => iconButton,
+    descendants: ({ children: { icon } }) => icon,
     values: ({ data }) => {
       const nextAxis = data.axis === 'horizontal' ? 'vertical' : 'horizontal'
       return {
         svg: data.axis === 'horizontal' ? MoveVertical : MoveHorizontal,
         ariaLabel: `Switch axis direction to ${nextAxis}`,
+        isBottomFixed: true,
         click: () => $axis.set(nextAxis)
       }
     }
