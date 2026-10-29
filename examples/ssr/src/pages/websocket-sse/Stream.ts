@@ -1,24 +1,23 @@
 import { fics, type FiCs } from 'ficsjs'
+import { flex, space } from 'ficsjs/style'
 import Icon from '@/components/Icon'
-import { API_PATHS, dark } from '@/utils'
+import { paths } from '@/domain/path'
 import { RefreshCcw } from 'lucide-static'
 
 interface Data {
   isAccumulated: boolean
   accumulatedChunk: string
-  chunks: string[]
+  chunks: readonly string[]
 }
 
-let streamSession = 0,
-  streamAbortController: AbortController | null
+const SSE_FIELD = /^(event|data): ?(.*)$/gm
 
 const props: FiCs.Props<Data, {}> = {
   descendants: ({ children: { icon } }) => icon,
   values: ({ data }) => ({
     svg: RefreshCcw,
     ariaLabel: `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`,
-    isLarge: true,
-    isPressed: data.isAccumulated,
+    isBottomFixed: true,
     click: () => (data.isAccumulated = !data.isAccumulated)
   })
 }
@@ -27,94 +26,71 @@ const html: FiCs.Html<Data, {}> = ({
   children: { icon },
   data: { isAccumulated, accumulatedChunk, chunks },
   template,
-  attributes: { statusLiveRegion }
-}) => template`
-  <h2 class="text-lg text-white text-center mb-6">Stream</h2>
-  <p class="sr-only" ${statusLiveRegion}>
-    The current mode is ${isAccumulated ? 'accumulated' : 'chunked'}.
-  </p>
-  ${
-    isAccumulated
-      ? template`
-        <p class="max-w-full text-white mx-auto whitespace-pre-wrap break-words">${accumulatedChunk}</p>
-      `
-      : template`
-        <div
-          class="w-fit mx-auto"
-          role="log"
-          aria-live="polite"
-          aria-atomic="false"
-          aria-relevant="additions"
-        >
-          ${chunks.map((chunk, index) => template`<p class="text-white mb-4" key="${index}">${chunk}</p>`)}
-        </div>
-      `
+  attributes: {
+    a11y: { liveLog, liveStatus, srOnly }
   }
-  <span class="fixed bottom-8 right-4">${icon}</span>
+}) => template`
+  <section>
+    <h3>Stream</h3>
+    <p key="mode" ${liveStatus} ${srOnly}>
+      The current mode is ${isAccumulated ? 'accumulated' : 'chunked'}.
+    </p>
+    ${
+      isAccumulated
+        ? template`<p class="accumulated">${accumulatedChunk}</p>`
+        : template`<div ${liveLog}>${chunks.map((chunk, index) => template`<p key="${index}">${chunk}</p>`)}</div>`
+    }
+  </section>
+  ${icon}
 `
 
 const css: FiCs.Css<Data, {}> = `
-  :host {
-    > p:not(:first-of-type) {
-      width: var(--chat-width);
-      line-height: 2;
-    }
-
-    div p:last-child { margin-block-end: 0; }
-
-    span { background: ${dark()}; }
+  p.accumulated {
+    max-width: var(--chat-width);
+    line-height: 2;
+    overflow-wrap: break-word;
   }
+
+  div[role='log'] { ${flex({ direction: 'column', gap: space('md') })} }
 `
 
+let controller: AbortController | null = null
 const hooks: FiCs.Hooks<Data, {}> = {
+  destroyed: ({ data }) => (data.isAccumulated = false),
   updated: {
     isAccumulated: ({ data, crud }) => {
-      if (data.isAccumulated) {
-        if (streamAbortController) streamAbortController.abort()
-        streamAbortController = new AbortController()
+      controller?.abort()
+      controller = null
+      data.accumulatedChunk = ''
 
-        let buffer = ''
-        const currentSession = ++streamSession
+      if (!data.isAccumulated) return
 
-        void crud(API_PATHS.stream, {
-          signal: streamAbortController.signal,
-          onChunk: (chunked: string) => {
-            if (streamSession !== currentSession) return
+      const { signal }: AbortController = (controller = new AbortController())
+      let buffer = ''
 
-            buffer += chunked
+      void crud(paths.api.STREAM, {
+        signal,
+        onChunk: (chunked: string) => {
+          if (signal.aborted) return
 
-            const blocks = buffer.split('\n\n')
-            buffer = blocks.pop() || ''
+          buffer += chunked
 
-            for (const block of blocks) {
-              if (block.trim() === '') continue
+          const frames: string[] = buffer.split('\n\n')
+          buffer = frames.pop() ?? ''
 
-              let event: string | undefined, chunkData: string | undefined
+          for (const frame of frames) {
+            const fields = Object.fromEntries(
+              [...frame.matchAll(SSE_FIELD)].map(([, name, value]) => [name, value])
+            )
 
-              for (const line of block.split('\n'))
-                if (line.startsWith('event:')) {
-                  const index = line.indexOf('data:')
-                  event = line.slice('event:'.length, index > -1 ? index : undefined).trim()
-                } else if (line.startsWith('data:')) chunkData = line.slice('data:'.length).trim()
-
-              if (chunkData) {
-                const { chunk } = JSON.parse(chunkData) as { chunk?: string }
-                if (chunk) data.accumulatedChunk = `${data.accumulatedChunk}${chunk}`
-              }
-
-              if (event === 'complete') data.accumulatedChunk = `${data.accumulatedChunk}...`
-            }
+            if (fields.event === 'complete') data.accumulatedChunk += '...'
+            else if (fields.data)
+              try {
+                data.accumulatedChunk += JSON.parse(fields.data).chunk ?? ''
+              } catch {}
           }
-        })
-      } else {
-        if (streamAbortController) {
-          streamAbortController.abort()
-          streamAbortController = null
         }
-
-        data.accumulatedChunk = ''
-        streamSession++
-      }
+      })
     }
   }
 }
@@ -122,7 +98,10 @@ const hooks: FiCs.Hooks<Data, {}> = {
 const options: FiCs.Options<Data, {}> = {
   ssr: false,
   sse: {
-    path: API_PATHS.stream,
+    path: paths.api.STREAM,
+    onopen: ({ data }) => {
+      data.chunks = []
+    },
     onmessage: ({ data, event: { data: messageData } }) => {
       try {
         const { chunk, index } = JSON.parse(messageData) as { chunk: string; index: number }
@@ -135,10 +114,10 @@ const options: FiCs.Options<Data, {}> = {
   }
 }
 
-export default fics({
+export default fics<Data, {}>({
   name: 'stream',
   children: [Icon()],
-  data: () => ({ isAccumulated: false, accumulatedChunk: '', chunks: [] as string[] }),
+  data: () => ({ isAccumulated: false, accumulatedChunk: '', chunks: [] }),
   props,
   html,
   css,
