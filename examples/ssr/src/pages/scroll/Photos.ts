@@ -187,10 +187,8 @@ const hooks: FiCs.Hooks<Data, {}> = {
 }
 
 const markLoaded: FiCs.Action<Data, {}> = [
-  ({ data, queryCache, event: { currentTarget }, attributes: { key } }) => {
-    const index: number = parseInt((currentTarget as HTMLImageElement).dataset.index ?? ''),
-      loadedPhotos = Number.isInteger(index) && toLoadedPhotos(data.photos, key, index)
-
+  ({ data, queryCache, attributes: { key } }) => {
+    const loadedPhotos = toLoadedPhotos(data.photos, key)
     if (loadedPhotos) queryCache.set<Photo[]>(PHOTOS_KEY, loadedPhotos)
   },
   { once: true }
