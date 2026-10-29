@@ -64,7 +64,9 @@
     "url": "https://github.com/CorrectlyObserve/ficsjs.git"
   },
   "sideEffects": [
-    "./dist/router/serverOnly.js"
+    "./dist/animation/index.js",
+    "./dist/router/serverOnly.js",
+    "./dist/style/index.js"
   ],
   "scripts": {
     "build": "rm -rf dist && bunx tsc && bun run build:cli",
