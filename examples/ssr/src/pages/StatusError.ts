@@ -1,4 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
+import { flex, space } from 'ficsjs/style'
 import Link from '@/components/Link'
 import { getStatusPage, type StatusPage } from '@/domain/status'
 
@@ -21,13 +22,21 @@ const html: FiCs.Html<Data, {}> = ({
   template
 }) => template`
   <section>
-    <p>${getStatusPage(status).description}</p>
-    ${message !== '' && template`<p>${message}</p>`}
+    <div>
+      <p>${getStatusPage(status).description}</p>
+      ${message !== '' && template`<p>${message}</p>`}
+    </div>
     ${link}
   </section>
 `
 
-const css: FiCs.Css<Data, {}> = `section p:nth-of-type(2) { overflow-wrap: anywhere; }`
+const css: FiCs.Css<Data, {}> = `
+  section > div {
+    ${flex({ direction: 'column', gap: space('md') })}
+
+    p:nth-of-type(2) { overflow-wrap: anywhere; }
+  }
+`
 
 export default fics<Data, {}>({
   name: 'error',
