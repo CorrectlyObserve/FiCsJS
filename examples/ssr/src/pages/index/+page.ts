@@ -1,3 +1,3 @@
-import Home from '@/pages/index/Home'
+import UserList from '@/pages/index/UserList'
 
-Home.describe()
+UserList.describe()
