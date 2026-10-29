@@ -28,9 +28,9 @@ export const render = ({
       <script>(${applyTheme})('${THEME_KEY}')</script>
     </head>
     <body>
-      ${Header.toString({ data: { userName: getSessionUser(req)?.name ?? null } })}
+      ${Header.toString({ data: { hasLoggedIn: getSessionUser(req) !== null } })}
       <main>
-        ${(script !== '/assets/index.js' && `<h2>${title}</h2>`) || ''}
+        <h2>${title}</h2>
         ${content}
       </main>
       <footer><p>&copy; 2025 Masami Ogasawara</p></footer>
