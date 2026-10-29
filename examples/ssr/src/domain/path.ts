@@ -11,11 +11,10 @@ export const paths = {
   WS_SSE: '/websocket-sse'
 } as const
 
-export const getUserPath = (id: number): string => `${paths.USERS}/${id}`
+export const getUserPath = (id: number): string => `${paths.USER}/${id}`
 
 export const pages = {
-  HOME: { href: paths.HOME, name: 'Home' },
-  USERS: { href: paths.USERS, name: 'Users' },
+  USERS: { href: paths.HOME, name: 'Users' },
   NEW_USER: { href: paths.NEW_USER, name: 'Add a user' },
   ACCOUNT: { href: paths.ACCOUNT, name: 'Account' },
   WS_SSE: { href: paths.WS_SSE, name: 'WebSocket & SSE' },
