@@ -34,7 +34,7 @@ const props: FiCs.Props<Data, {}> = {
   values: () => ({ isFull: true })
 }
 
-const MENU = [pages.HOME, pages.USERS, pages.ACCOUNT, pages.WS_SSE, pages.SCROLL] as const
+const MENU = [pages.USERS, pages.ACCOUNT, pages.WS_SSE, pages.SCROLL] as const
 const FORMS = [
   {
     id: 'logout',
