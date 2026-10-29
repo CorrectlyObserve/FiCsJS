@@ -3,7 +3,7 @@ import StatusError from '@/pages/StatusError'
 
 const { title, description } = getStatusPage(NOT_FOUND_STATUS)
 
-export const meta = { title: `404 \u2013 ${title}`, description }
+export const meta = { title: `${NOT_FOUND_STATUS} \u2013 ${title}`, description }
 
 export const prerender = true
 
