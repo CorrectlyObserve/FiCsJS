@@ -49,8 +49,9 @@ const css: FiCs.Css<Data, Props> = `
     &::backdrop { background: ${oklch('#000', { alpha: 0.6 })}; }
 
     header {
-      ${flex({ center: 'y' })}
+      ${flex({ center: 'x' })}
       position: relative;
+      margin-block-end: ${space('md')};
 
       > div {
         position: absolute;
