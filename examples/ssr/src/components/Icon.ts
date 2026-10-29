@@ -1,43 +1,26 @@
 import { fics, type FiCs } from 'ficsjs'
-import { white } from '@/utils'
+import { maskIcon, rect, tapSize } from 'ficsjs/style'
 
-interface Props {
+export interface Props {
   svg: string
   ariaLabel: string
   isDisabled?: boolean
-  isActive?: boolean
-  isLarge?: boolean
-  isPressed?: boolean
   click: () => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { svg, ariaLabel, isDisabled, isActive, isLarge, isPressed },
+  props: { ariaLabel, isDisabled },
   template,
-  attributes: { boolean },
-  unsafeHtml,
-  isBrowser
-}) => {
-  const _isDisabled = !isBrowser || isDisabled,
-    textColor = !_isDisabled && isActive ? 'text-pink' : 'text-white'
-
-  return template`
-    <button
-      class="clickable flex ${textColor} ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
-      ${_isDisabled && 'disabled'}
-      aria-label="${ariaLabel}"
-      ${isPressed !== undefined && `aria-pressed="${boolean(isPressed)}"`}
-      type="button"
-    >${unsafeHtml(svg)}</button>
-  `
-}
-
-const css: FiCs.Css<{}, Props> = ({ props: { isLarge } }) => `
-  button {
-    &:hover { background: ${white(0.1)}; }
-    svg { width: ${isLarge ? '2.5' : '1.25'}rem; height: auto; stroke: currentColor; }
-  }
+  isBrowser,
+  attributes: { disabled }
+}) => template`
+  <button type="button" aria-label="${ariaLabel}" ${disabled(!isBrowser || isDisabled)}>
+    <span></span>
+  </button>
 `
+
+const css: FiCs.Css<{}, Props> = ({ props: { svg } }) =>
+  `button > span { ${rect(8, 8)}; ${maskIcon(svg)}; }`
 
 const actions: FiCs.Actions<{}, Props> = {
   button: {
@@ -48,4 +31,4 @@ const actions: FiCs.Actions<{}, Props> = {
   }
 }
 
-export default () => fics<{}, Props>({ name: 'icon', className: 'icon', html, css, actions })
+export default () => fics<{}, Props>({ name: 'icon', html, css, actions })
