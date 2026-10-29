@@ -1,7 +1,13 @@
 import type { FiCsRouter } from 'ficsjs/router/server-only'
-import { adminOnly } from '@/server/guards'
+import { isAdmin } from '@/domain/role'
+import type { User } from '@/domain/user'
+import { requireUser } from '@/server/guards'
 
-const middleware: FiCsRouter.Middleware = ctx =>
-  ctx.req.method === 'GET' ? undefined : adminOnly(ctx)
+const middleware: FiCsRouter.Middleware = async ctx => {
+  if (ctx.req.method === 'GET') return
+
+  const { id, role }: User = await requireUser(ctx)
+  if (!isAdmin(role) && String(id) !== ctx.dynamicParams.id) return ctx.deny()
+}
 
 export default middleware
