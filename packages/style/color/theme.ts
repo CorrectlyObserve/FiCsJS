@@ -82,7 +82,7 @@ for (const token of COLOR_TOKENS)
       break
 
     case 'shadow': {
-      const alphas: readonly [number, number] = [0.1, 0.4]
+      const alphas: readonly [number, number] = [0.2, 0.8]
       COLORS[token] = colorMix({
         colors: [
           `light-dark(${BG_BASE.map((bg, i) => `oklch(from ${bg} calc(l * 0.2) c h / ${alphas[i]})`).join(', ')})`
