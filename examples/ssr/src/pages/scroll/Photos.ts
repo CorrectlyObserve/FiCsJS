@@ -1,6 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { queries } from 'ficsjs/router'
-import { color, flex, hideScrollbar, stroke } from 'ficsjs/style'
+import { flex, hideScrollbar, interactive, space, stroke } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import {
   type Photo,
@@ -72,7 +72,7 @@ const props: FiCs.Props<Data, {}> = [
 ]
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { skeleton, iconButton, dialog },
+  children: { skeleton, icon, dialog },
   data: { axis, photos },
   template,
   activeApis: { isLoading },
@@ -82,87 +82,58 @@ const html: FiCs.Html<Data, {}> = ({
   },
   scroll
 }) => {
-  const skeletons = [...Array(UNIT_LENGTH)].map(_ => template`${skeleton}`)
+  const skeletons = [...Array(UNIT_LENGTH)].map(
+    (_, index) => template`<div class="photo" key="skeleton-${index}">${skeleton}</div>`
+  )
 
-  if (photos.length === 0) return template`<div class="flex-x">${skeletons}</div>`
+  if (photos.length === 0) return template`${skeletons}`
 
   return template`
-    ${axisButton}
-    <p class="sr-only" ${statusLiveRegion}>The current scroll axis is ${toAxis(isHorizontal)}.</p>
-    <div class="flex-x">
+    ${icon}
+    <p ${liveStatus} ${srOnly}>The current scroll axis is ${axis}.</p>
+    <div class="scroller">
       ${scroll(
         photos,
-        ({ id, author, isLoaded }, index) => template`
-          <div class="relative h-50" key="${id}-container">
-            ${skeleton}
-            <img
-              class="clickable mx-auto"
-              src="${BASE_URL}/id/${id}/${PHOTO_SIZE}/${PHOTO_SIZE}.webp?blur"
-              alt="Image created by ${author}"
-              key="${id}"
-              data-index="${index}"
-              tabindex="0"
-              role="button"
-              aria-haspopup="dialog"
-              aria-controls="photo-dialog"
-              aria-expanded="${boolean(photoId === id)}"
-              ${show(isLoaded)}
-            />
+        ({ id, author, isLoaded }) => template`
+          <div class="photo" key="${id}-container">
+            ${!isLoaded && skeleton}
+            <button type="button" key="${id}" aria-haspopup="dialog" ${show(isLoaded)}>
+              <img src="${photoUrl(id)}" alt="Image created by ${author}" key="${id}" />
+            </button>
           </div>
         `
       )}
       ${isLoading && skeletons}
     </div>
-    <dialog
-      id="photo-dialog"
-      class="w-3xs rounded-lg border border-white z-1"
-      aria-labelledby="dialog-title"
-      ${photoId !== '' && 'open'}
-      ${show(photoId !== '')}
-    >
-      ${icon}
-      <h3 id="dialog-title" class="sr-only">Photo details</h3>
-      <p class="text-base text-white text-center mt-2 mx-4 mb-4">Created by ${author}</p>
-    </dialog>
+    ${dialog}
   `
 }
 
-const css: FiCs.Css<Data, {}> = {
-  div: ({ data: { isHorizontal, photos } }) => ({
-    '&.flex-x': {
-      ...hideScrollbar,
-      ...(isHorizontal ? flexCenter('x') : {}),
-      'div.relative': {
-        ...flexCenter('xy'),
-        ...(isHorizontal
-          ? {
-              marginBlock: cssVar('outline'),
-              '&:first-child': { marginInlineStart: cssVar('outline') },
-              '&:last-child': { marginInlineEnd: cssVar('outline') }
-            }
-          : {})
-      },
-      img: {
-        position: 'absolute',
-        top: 0,
-        '&:focus-visible': {
-          zIndex: 1,
-          '&[data-index="0"]': {
-            [`margin${isHorizontal ? 'Inline' : 'Block'}Start`]: cssVar('outline')
-          },
-          [`&[data-index="${photos.length - 1}"]`]: {
-            [`margin${isHorizontal ? 'Inline' : 'Block'}End`]: cssVar('outline')
+const css: FiCs.Css<Data, {}> = ({ data: { axis } }) => {
+  const isHorizontal = axis === 'horizontal'
+  return `
+    :host { 
+      ${isHorizontal ? 'overflow-x: hidden;' : `min-height: calc(${PHOTO_SIZE}px * ${UNIT_LENGTH});`}
+
+      div {
+        &.scroller {
+          ${(isHorizontal && flex({ center: 'x' })) || ''}
+          ${hideScrollbar}
+        }
+
+        &.photo {
+          ${flex({ center: 'x' })}
+          margin-${isHorizontal ? 'inline' : 'block'}-end: ${space('sm')};
+
+          &:last-child { margin-${isHorizontal ? 'inline' : 'block'}-end: 0; }
+
+          > button {
+            ${interactive({ focusVisible: base => `${base}; outline-offset: calc(${stroke('md')} * -1);` })}
           }
         }
       }
     }
-  }),
-  dialog: {
-    ...positionCenter('xy', 'fixed'),
-    ...zoom('0.2s ease-out'),
-    background: dark(0.8),
-    '.icon': { display: 'flex', justifyContent: 'end' }
-  }
+  `
 }
 
 const hooks: FiCs.Hooks<Data, {}> = {
