@@ -1,7 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { queries } from 'ficsjs/router'
 import { color, flex, hideScrollbar, stroke } from 'ficsjs/style'
-import IconButton from '@/components/IconButton'
+import Icon from '@/components/Icon'
 import {
   type Photo,
   PHOTO_SIZE,
@@ -252,7 +252,7 @@ const options: FiCs.Options<Data, {}> = {
 
 export default fics<Data, {}>({
   name: 'photos',
-  children: [Skeleton, IconButton(), Dialog],
+  children: [Skeleton, Icon(), Dialog],
   data: () => ({
     axis: $axis.get(),
     page: 0,
