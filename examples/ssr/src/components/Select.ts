@@ -34,7 +34,9 @@ const html: FiCs.Html<Data, Props> = ({
   form: { isDisabled },
   template,
   attributes: {
-    a11y: { ariaHidden }
+    a11y: { ariaHidden },
+    disabled,
+    required
   }
 }) => template`
   <div>
@@ -43,8 +45,8 @@ const html: FiCs.Html<Data, Props> = ({
       <select
         id="${id}"
         ${hint && `aria-describedby="${id}-${describedBy}"`}
-        ${isRequired && 'required'}
-        ${isDisabled && 'disabled'}
+        ${disabled(isDisabled)}
+        ${required(isRequired)}
       >
         ${[{ value: '' as const, text: placeholder }, ...options].map(
           ({ value: v, text }) =>
