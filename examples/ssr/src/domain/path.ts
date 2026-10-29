@@ -4,11 +4,11 @@ export const paths = {
   LOGIN: '/login',
   LOGOUT: '/logout',
   BREAK_SESSION: '/break-session',
+  USER: '/user',
+  NEW_USER: '/user/new',
   ACCOUNT: '/account',
   SCROLL: '/scroll',
-  WS_SSE: '/websocket-sse',
-  USERS: '/users',
-  NEW_USER: '/users/new'
+  WS_SSE: '/websocket-sse'
 } as const
 
 export const getUserPath = (id: number): string => `${paths.USERS}/${id}`
