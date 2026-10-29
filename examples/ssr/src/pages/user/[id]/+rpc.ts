@@ -1,5 +1,7 @@
 import { mutationOnly } from 'ficsjs/router/server-only'
+import { isAdmin } from '@/domain/role'
 import type { User } from '@/domain/user'
+import { requireUser } from '@/server/guards'
 import {
   defineProcedure,
   parseEmail,
@@ -21,8 +23,12 @@ export const update = mutationOnly(
 
       return patch
     },
-    handler: async (patch, { dynamicParams: { id } }): Promise<User> => {
-      const userId: number = parseIdParam(id)
+    handler: async (patch, ctx): Promise<User> => {
+      const userId: number = parseIdParam(ctx.dynamicParams.id)
+      const wantsToChangeRole: boolean = patch.role !== undefined
+
+      if (wantsToChangeRole && !isAdmin((await requireUser(ctx)).role))
+        throw rpcError({ code: 'FORBIDDEN', message: 'Only an admin can change a role.' })
 
       if (patch.name?.toLowerCase() === 'expose test')
         throw rpcError({
