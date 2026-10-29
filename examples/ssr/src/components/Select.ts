@@ -57,7 +57,7 @@ const html: FiCs.Html<Data, Props> = ({
         )}
       </select>
     </span>
-    <p>${hint && template`<small id="${id}-${describedBy}">${hint}</small>`}</p>
+    ${hint && template`<small id="${id}-${describedBy}">${hint}</small>`}
   </div>
 `
 
@@ -68,15 +68,17 @@ const css: FiCs.Css<Data, Props> = `
     div {
       ${flex({ direction: 'column', gap: space('sm') })}
 
-      label, p { text-align: start; }
-
-      label > span {
-        ${fill('danger')};
-        ${textSize('xs')};
-        ${radius('sm')};
-        padding-block: ${space('xs')};
-        padding-inline: ${space('xs')};
-        margin-left: ${space('xs')};
+      label { 
+        text-align: start;
+        
+        > span {
+          ${fill('danger')};
+          ${textSize('xs')};
+          ${radius('sm')};
+          padding-block: ${space('xs')};
+          padding-inline: ${space('xs')};
+          margin-left: ${space('xs')};
+        }
       }
 
       > span {
