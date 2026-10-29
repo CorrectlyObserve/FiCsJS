@@ -1,8 +1,13 @@
-import Home from '@/pages/index/Home'
+import { isAdmin } from '@/domain/role'
+import type { User } from '@/domain/user'
+import UserList from '@/pages/index/UserList'
+import { requireUser } from '@/server/guards'
+import { getUsers } from '@/server/users'
 
-export const meta = {
-  title: 'FiCsJS on Bun',
-  description: 'This is an example of FiCsJS for SSR / SSG.'
+export const meta = { title: 'Users', description: 'Browse the user list.' }
+
+export default async (ctx: { req: Request }): Promise<string> => {
+  const { role }: User = await requireUser(ctx)
+
+  return UserList.toString({ data: { users: [...getUsers()], isAdmin: isAdmin(role) } })
 }
-
-export default async (): Promise<string> => Home.toString()
