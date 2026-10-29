@@ -1,5 +1,4 @@
 import { fics, type FiCs } from 'ficsjs'
-import { space } from 'ficsjs/style'
 import Link from '@/components/Link'
 import { getStatusPage, type StatusPage } from '@/domain/status'
 
@@ -28,13 +27,7 @@ const html: FiCs.Html<Data, {}> = ({
   </section>
 `
 
-const css: FiCs.Css<Data, {}> = `
-  section { 
-    gap: ${space('sm')};
-    
-    p:nth-of-type(2) { margin-bottom: ${space('sm')}; overflow-wrap: anywhere; }
-  }
-`
+const css: FiCs.Css<Data, {}> = `section p:nth-of-type(2) { overflow-wrap: anywhere; }`
 
 export default fics<Data, {}>({
   name: 'error',
