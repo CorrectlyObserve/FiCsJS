@@ -33,6 +33,7 @@ const html: FiCs.Html<Data, {}> = ({
 const css: FiCs.Css<Data, {}> = `
   section > div {
     ${flex({ direction: 'column', gap: space('md') })}
+    margin-inline: ${space('md')};
 
     p:nth-of-type(2) { overflow-wrap: anywhere; }
   }
