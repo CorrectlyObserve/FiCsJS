@@ -16,16 +16,11 @@ export const photoUrl = (id: string) => `${BASE_URL}/id/${id}/${PHOTO_SIZE}/${PH
 
 export const toLoadedPhotos = (
   photos: readonly Photo[],
-  key: string,
-  index: number
+  photoId: string
 ): ((current: Photo[] | undefined) => Photo[]) | null => {
-  const photo: Photo | undefined = photos[index]
-  if (!photo || photo.id !== key || photo.isLoaded) return null
+  const photo: Photo | undefined = photos.find(({ id }) => id === photoId)
+  if (!photo || photo.isLoaded) return null
 
-  return current => {
-    const newPhotos: Photo[] = [...(current ?? photos)]
-
-    newPhotos[index] = { ...photo, isLoaded: true }
-    return newPhotos
-  }
+  return current =>
+    (current ?? photos).map(photo => (photo.id === photoId ? { ...photo, isLoaded: true } : photo))
 }
