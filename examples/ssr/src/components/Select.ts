@@ -13,7 +13,6 @@ import {
 import { ChevronDown } from 'lucide-static'
 
 interface Data {
-  readonly id: string
   readonly describedBy: string
   value: string
 }
@@ -58,7 +57,7 @@ const html: FiCs.Html<Data, Props> = ({
         )}
       </select>
     </span>
-    <p>${hint && template`<small id="${id}-${describedBy}" class="hint">${hint}</small>`}</p>
+    <p>${hint && template`<small id="${id}-${describedBy}">${hint}</small>`}</p>
   </div>
 `
 
@@ -126,7 +125,7 @@ const options: FiCs.Options<Data, Props> = {
 export default () =>
   fics<Data, Props>({
     name: 'select',
-    data: () => ({ id: 'control', describedBy: 'hint', value: '' }),
+    data: () => ({ describedBy: 'hint', value: '' }),
     attributes: ({ props: { id } }) => ({ name: id }),
     html,
     css,
