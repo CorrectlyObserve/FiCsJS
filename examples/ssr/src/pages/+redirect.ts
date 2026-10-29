@@ -1,3 +1,3 @@
 import { paths } from '@/domain/path'
 
-export default { [`${paths.WS_SSE}*`]: paths.WS_SSE }
+export default { [paths.USER]: paths.HOME, [`${paths.WS_SSE}*`]: paths.WS_SSE }
