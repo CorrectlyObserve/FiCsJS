@@ -1,20 +1,15 @@
 import { fics, type FiCs } from 'ficsjs'
 import { cssVar, flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
-import { $userName } from '@/stores'
-import { white } from '@/utils'
-
-export interface Message {
-  userName: string
-  comment: string
-}
+import type { Message } from '@/domain/message'
 
 interface Data {
   comment: string
 }
 
 interface Props {
-  messages: Message[]
+  userName: string
+  messages: readonly Message[]
   sendMessage: (message: Message) => void
 }
 
