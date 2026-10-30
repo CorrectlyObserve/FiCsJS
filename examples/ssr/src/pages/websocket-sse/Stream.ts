@@ -10,8 +10,6 @@ interface Data {
   chunks: readonly string[]
 }
 
-const SSE_FIELD = /^(event|data): ?(.*)$/gm
-
 const props: FiCs.Props<Data, {}> = {
   descendants: ({ children: { icon } }) => icon,
   values: ({ data }) => ({
@@ -55,6 +53,7 @@ const css: FiCs.Css<Data, {}> = `
 `
 
 let controller: AbortController | null = null
+const SSE_FIELD = /^(event|data): ?(.*)$/gm
 const hooks: FiCs.Hooks<Data, {}> = {
   destroyed: ({ data }) => (data.isAccumulated = false),
   updated: {
@@ -99,9 +98,7 @@ const options: FiCs.Options<Data, {}> = {
   ssr: false,
   sse: {
     path: paths.api.STREAM,
-    onopen: ({ data }) => {
-      data.chunks = []
-    },
+    onopen: ({ data }) => (data.chunks = []),
     onmessage: ({ data, event: { data: messageData } }) => {
       try {
         const { chunk, index } = JSON.parse(messageData) as { chunk: string; index: number }
