@@ -1,4 +1,5 @@
 import { removeTrailingSlash } from '../../core/helpers'
+import { decodeStatusCookie, encodeStatusCookie } from '../cookie'
 import { dynamicPathToRegex } from '../dynamicPaths'
 import { flattenRedirects, isDynamicPath, isHeadMethod, parseRedirects } from '../helpers'
 import { applyLayout } from '../layout'
@@ -56,6 +57,10 @@ export const createPageHandler = <C extends Record<string, unknown>>(
       meta,
       viewTransition
     })
+
+    /** @remarks Clears the status cookie unconditionally, as the next request must render the normal page. */
+    if (decodeStatusCookie(req.headers.get('cookie') ?? '') !== null)
+      res.headers.append('set-cookie', encodeStatusCookie(null, new URL(req.url).pathname))
 
     if (isHeadMethod(req.method))
       return new Response(null, { status: res.status, headers: res.headers })
