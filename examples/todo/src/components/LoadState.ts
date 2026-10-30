@@ -32,7 +32,7 @@ const html: FiCs.Html<{}, Props> = ({
   return template`
     <div class="${state}">
       <p ${isError ? liveStatus : 'role="alert"'} ${!isError && srOnly}>${texts[state]}</p>
-      ${isError ? template`${button}` : `<div ${ariaHidden}></div>`}
+      ${isError ? template`${button}` : template`<div ${ariaHidden}></div>`}
     </div>
   `
 }
