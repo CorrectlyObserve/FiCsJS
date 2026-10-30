@@ -1,5 +1,6 @@
 import { normalizePath } from '../../core/helpers'
 import { statusCodes } from '../constants'
+import { decodeStatusCookie } from '../cookie'
 import { getDynamicParams } from '../dynamicPaths'
 import { findRedirect, isBodiless, prependSlash } from '../helpers'
 import { deny, resolveMiddlewares } from '../middleware'
@@ -93,6 +94,19 @@ export const dispatch = async <C extends Record<string, unknown>>({
       denial: Routing.Denial | undefined = await resolveMiddlewares(resolvedRoute.middlewares, ctx)
 
     if (denial) return await handleDenial(denial)
+
+    /** 
+     * @remarks 
+     * Intercepts bodiless requests to draw the status page,
+     * as POST mutations must not be hijacked by visual errors.
+     */
+    if (_isBodiless) {
+      const status: Routing.Status.PageCode | null = decodeStatusCookie(
+        req.headers.get('cookie') ?? ''
+      )
+
+      if (status !== null) return await respondStatus({ status, ctx, ...args })
+    }
 
     /** @remarks ⚠️ Ensures rendering errors are caught by the catch block below to show a 500 page. */
     return await respondPage({
