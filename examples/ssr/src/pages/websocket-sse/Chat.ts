@@ -13,20 +13,43 @@ interface Props {
   sendMessage: (message: Message) => void
 }
 
-const props: FiCs.Props<Data, Props> = {
-  descendants: ({ children: { button } }) => button,
-  values: ({ data, props: { sendMessage } }) => ({
-    isDisabled: data.comment.trim() === '',
-    buttonText: 'Send',
-    click: () => {
-      const userName = $userName.get()
-      if (userName === '') return
+const props: FiCs.Props<Data, Props> = [
+  {
+    descendants: ({ children: { textarea } }) => textarea,
+    values: ({ data, props: { userName, sendMessage } }) => ({
+      id: 'chat-message',
+      label: 'Message',
+      placeholder: 'Please enter your message',
+      value: data.comment,
+      isSrOnly: true,
+      hint: 'Press the Shift + Enter keys to send.',
+      input: (value: string) => (data.comment = value),
+      keydown: (event: KeyboardEvent) => {
+        if (event.key !== 'Enter' || !event.shiftKey) return
+        if (window.matchMedia('(pointer: coarse)').matches) return
 
-      sendMessage({ userName, comment: data.comment })
-      data.comment = ''
-    }
-  })
-}
+        event.preventDefault()
+        if (userName === '' || data.comment.trim() === '') return
+
+        sendMessage({ userName, comment: data.comment })
+        data.comment = ''
+      }
+    })
+  },
+  {
+    descendants: ({ children: { button } }) => button,
+    values: ({ data, props: { userName, sendMessage } }) => ({
+      label: 'Send',
+      isDisabled: data.comment.trim() === '',
+      click: () => {
+        if (userName === '' || data.comment.trim() === '') return
+
+        sendMessage({ userName, comment: data.comment })
+        data.comment = ''
+      }
+    })
+  }
+]
 
 const html: FiCs.Html<Data, Props> = ({
   children: { button },
