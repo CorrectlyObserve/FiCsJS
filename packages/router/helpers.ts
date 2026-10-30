@@ -1,6 +1,6 @@
 import { isObject, normalizePath, typedEntries } from '../core/helpers'
 import { statusCodes } from './constants'
-import { Rpc } from './types'
+import type { Rpc } from './types'
 
 export const findRedirect = (
   path: string,
