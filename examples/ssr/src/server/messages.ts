@@ -1,4 +1,4 @@
-import type { Message } from '@/pages/websocket-sse/Chat'
+import type { Message } from '@/domain/message'
 
 const messages: Message[] = []
 
