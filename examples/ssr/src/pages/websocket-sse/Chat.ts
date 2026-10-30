@@ -1,6 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { cssVar, flexCenter } from 'ficsjs/style'
 import Button from '@/components/Button'
+import Textarea from '@/components/Textarea'
 import type { Message } from '@/domain/message'
 
 interface Data {
@@ -157,7 +158,7 @@ const actions: FiCs.Actions<Data, Props> = {
 
 export default fics<Data, Props>({
   name: 'chat',
-  children: [Button()],
+  children: [Textarea(), Button()],
   data: () => ({ comment: '' }),
   props,
   html,
