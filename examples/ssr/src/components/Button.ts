@@ -57,7 +57,10 @@ const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement, isFull } }) => {
 const actions: FiCs.Actions<{}, Props> = {
   button: {
     click: [
-      ({ props: { isDisabled, click } }) => !isDisabled && click(),
+      ({ props: { type, isDisabled, click }, requestSubmit }) => {
+        if (isDisabled) return
+        type === 'button' ? click?.() : requestSubmit()
+      },
       { throttleMs: 500, blur: true }
     ],
     ...tooltipHandlers<{}, Props>()
