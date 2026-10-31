@@ -1,5 +1,12 @@
 import { fics, type FiCs } from 'ficsjs'
-import { white } from '@/utils'
+import { color, space, stroke } from 'ficsjs/style'
+import {
+  type Placement,
+  TOOLTIP_ID,
+  tooltipCss,
+  tooltipHandlers,
+  tooltipMarkup
+} from '@/components/Tooltip'
 
 export interface Props {
   text: string
@@ -39,7 +46,8 @@ const actions: FiCs.Actions<{}, Props> = {
     click: [
       ({ props: { isDisabled, click } }) => !isDisabled && click(),
       { throttleMs: 500, blur: true }
-    ]
+    ],
+    ...tooltipHandlers<{}, Props>()
   }
 }
 
