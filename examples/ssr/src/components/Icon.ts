@@ -11,6 +11,7 @@ import {
 export interface Props {
   svg: string
   ariaLabel: string
+  variant?: 'neutral' | 'danger'
   isDisabled?: boolean
   tooltip?: string
   tooltipPlacement?: Placement
@@ -19,7 +20,7 @@ export interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { ariaLabel, isDisabled },
+  props: { ariaLabel, variant = 'neutral', isDisabled, tooltip },
   template,
   isBrowser,
   attributes: { disabled }
@@ -54,8 +55,11 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixe
       ''
     }
 
-    > span { ${rect(8, 8)}; ${maskIcon(svg)}; }
-  }`
+    &[data-variant='danger'] { color: ${color('danger-text')}; }
+
+    > span.icon { ${rect(8, 8)}; ${maskIcon(svg)}; }
+  }
+`
 
 const actions: FiCs.Actions<{}, Props> = {
   button: {
