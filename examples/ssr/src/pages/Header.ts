@@ -90,7 +90,7 @@ const html: FiCs.Html<Data, {}> = ({
             ${FORMS.map(
               ({ id, action, text, description }) => template`
                 <form method="post" action="${action}" key="${id}">
-                  ${button.setIndividualProps(id, { label: text, type: 'submit', tooltip: description })}
+                  ${button.setIndividualProps(id, { text, tooltip: description })}
                 </form>
               `
             )}
