@@ -1,11 +1,15 @@
 import { fics, type FiCs } from 'ficsjs'
 import { white } from '@/utils'
 
-interface Props {
-  isDisabled: boolean
-  isCurrent?: boolean
-  buttonText: string
-  click: () => void
+export interface Props {
+  text: string
+  type?: 'button' | 'submit'
+  variant?: 'neutral' | 'danger'
+  isDisabled?: boolean
+  tooltip?: string
+  tooltipPlacement?: Placement
+  isFull?: boolean
+  click?: () => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
