@@ -39,16 +39,7 @@ const props: FiCs.Props<Data, Props> = [
   },
   {
     descendants: ({ children: { button } }) => button,
-    values: ({ data, props: { userName, sendMessage } }) => ({
-      label: 'Send',
-      isDisabled: data.comment.trim() === '',
-      click: () => {
-        if (userName === '' || data.comment.trim() === '') return
-
-        sendMessage({ userName, comment: data.comment })
-        data.comment = ''
-      }
-    })
+    values: ({ data: { comment } }) => ({ text: 'Send', isDisabled: comment.trim() === '' })
   }
 ]
 
