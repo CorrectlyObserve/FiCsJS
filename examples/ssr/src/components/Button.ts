@@ -13,16 +13,18 @@ export interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { isDisabled, isCurrent, buttonText },
+  props: { text, type = 'button', variant = 'neutral', isDisabled, tooltip },
   template,
-  isBrowser
+  isBrowser,
+  form,
+  attributes: { disabled }
 }) => template`
   <button
-    class="clickable w-24 text-white border border-white p-3 rounded-lg"
-    ${(!isBrowser || isDisabled) && 'disabled'}
-    ${isCurrent && 'aria-current="page"'}
-    type="button"
-  >${buttonText}</button>
+    type="${type}"
+    data-variant="${type === 'button' ? 'neutral' : variant}"
+    ${disabled(!isBrowser || isDisabled || form.isDisabled)}
+    ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
+  >${text}${tooltipMarkup(template, tooltip)}</button>
 `
 
 const css: FiCs.Css<{}, Props> = `
