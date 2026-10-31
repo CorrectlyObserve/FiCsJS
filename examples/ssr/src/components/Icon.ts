@@ -1,10 +1,19 @@
 import { fics, type FiCs } from 'ficsjs'
-import { fill, layout, maskIcon, radius, rect, space } from 'ficsjs/style'
+import { color, fill, layout, maskIcon, radius, rect, space } from 'ficsjs/style'
+import {
+  type Placement,
+  TOOLTIP_ID,
+  tooltipCss,
+  tooltipHandlers,
+  tooltipMarkup
+} from '@/components/Tooltip'
 
 export interface Props {
   svg: string
   ariaLabel: string
   isDisabled?: boolean
+  tooltip?: string
+  tooltipPlacement?: Placement
   isBottomFixed?: boolean
   click: () => void
 }
@@ -15,13 +24,22 @@ const html: FiCs.Html<{}, Props> = ({
   isBrowser,
   attributes: { disabled }
 }) => template`
-  <button type="button" aria-label="${ariaLabel}" ${disabled(!isBrowser || isDisabled)}>
-    <span></span>
+  <button
+    type="button"
+    aria-label="${ariaLabel}"
+    data-variant="${variant}"
+    ${disabled(!isBrowser || isDisabled)}
+    ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
+  >
+    <span class1="icon"></span>
+    ${tooltipMarkup(template, tooltip)}
   </button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { svg, isBottomFixed } }) =>
-  `button {
+const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixed } }) => `
+  button {
+    ${tooltipCss(tooltipPlacement)}
+
     ${
       (isBottomFixed &&
         `
@@ -44,7 +62,8 @@ const actions: FiCs.Actions<{}, Props> = {
     click: [
       ({ props: { isDisabled, click } }) => !isDisabled && click(),
       { throttleMs: 500, blur: true }
-    ]
+    ],
+    ...tooltipHandlers<{}, Props>()
   }
 }
 
