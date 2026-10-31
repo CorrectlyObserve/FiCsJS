@@ -32,7 +32,7 @@ const html: FiCs.Html<{}, Props> = ({
     ${disabled(!isBrowser || isDisabled)}
     ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
   >
-    <span class1="icon"></span>
+    <span class="icon"></span>
     ${tooltipMarkup(template, tooltip)}
   </button>
 `
