@@ -34,12 +34,25 @@ const html: FiCs.Html<{}, Props> = ({
   >${text}${tooltipMarkup(template, tooltip)}</button>
 `
 
-const css: FiCs.Css<{}, Props> = `
-  button {
-    &:not([disabled]):hover { background: ${white(0.1)}; }
-    &[aria-current="page"] { color: ${white(0.5)}; border-color: ${white(0.5)}; }
-  }
-`
+const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement, isFull } }) => {
+  const width = (isFull && `width: 100%;`) || ''
+
+  return `
+    :host { 
+      display: inline-block; ${width} 
+
+      button {
+        ${width}
+        ${tooltipCss(tooltipPlacement)}
+        padding-inline: ${space('md')};
+        border: ${stroke('sm')} solid ${color('border')};
+        white-space: nowrap;
+
+        &[data-variant='danger'] { color: ${color('danger-text')}; border-color: ${color('danger')}; }
+      }
+    }
+  `
+}
 
 const actions: FiCs.Actions<{}, Props> = {
   button: {
