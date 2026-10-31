@@ -23,7 +23,7 @@ const props: FiCs.Props<Data, {}> = [
   },
   {
     descendants: ({ children: { button } }) => button,
-    values: ({ data: { role } }) => ({ label: 'Log in', type: 'submit', isDisabled: role === '' })
+    values: ({ data: { role } }) => ({ text: 'Log in', isDisabled: role === '' })
   }
 ]
 
