@@ -1,4 +1,4 @@
-import { convertStr, DISABLED_SELECTOR, ficsCssVar } from '../../core/helpers'
+import { convertStr, CSS_LAYER, DISABLED_SELECTOR, ficsCssVar } from '../../core/helpers'
 import { TINT_BASE_VAR, TINT_SCALE_VAR, TINT_VAR } from '../constants'
 import { colorMix, cssVar, toVar } from '../others'
 import { BG_FILLS, BLENDS, COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
@@ -148,11 +148,10 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
   } else variables.push(`${TINT_BASE_VAR}: ${cssVar(FILL_VAR)};`)
 
   styles.push(
-    /** @remarks Sets the base background for hover tints. */
-    `background-color: ${cssVar(TINT_BASE_VAR)};`,
+    `${CSS_LAYER} { ${DESCENDANTS_SELECTOR} { ${TINT_BASE_VAR}: transparent; } }`,
 
-    /** @remarks Resets the descendant tint base to transparent. */
-    `${DESCENDANTS_SELECTOR} { ${TINT_BASE_VAR}: transparent; }`
+    /** @remarks Sets the base background for hover tints. */
+    `background-color: ${cssVar(TINT_BASE_VAR)};`
   )
 
   return [...variables, ...styles].join(' ')
