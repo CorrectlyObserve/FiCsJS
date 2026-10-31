@@ -10,7 +10,7 @@ import {
 
 export interface Props {
   text: string
-  type?: 'button' | 'submit'
+  isNotInForm?: boolean
   variant?: 'neutral' | 'danger'
   isDisabled?: boolean
   tooltip?: string
@@ -20,15 +20,15 @@ export interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { text, type = 'button', variant = 'neutral', isDisabled, tooltip },
+  props: { text, isNotInForm, variant = 'neutral', isDisabled, tooltip },
   template,
   isBrowser,
   form,
   attributes: { disabled }
 }) => template`
   <button
-    type="${type}"
-    data-variant="${type === 'button' ? 'neutral' : variant}"
+    type="${isNotInForm ? 'button' : 'submit'}"
+    data-variant="${isNotInForm ? 'neutral' : variant}"
     ${disabled(!isBrowser || isDisabled || form.isDisabled)}
     ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
   >${text}${tooltipMarkup(template, tooltip)}</button>
@@ -57,9 +57,11 @@ const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement, isFull } }) => {
 const actions: FiCs.Actions<{}, Props> = {
   button: {
     click: [
-      ({ props: { type, isDisabled, click }, requestSubmit }) => {
+      ({ props: { isNotInForm, isDisabled, click }, requestSubmit }) => {
         if (isDisabled) return
-        type === 'button' ? click?.() : requestSubmit()
+
+        click?.()
+        !isNotInForm && requestSubmit()
       },
       { throttleMs: 500, blur: true }
     ],
