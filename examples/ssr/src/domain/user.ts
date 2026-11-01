@@ -20,7 +20,7 @@ export const validateName = (value: string): string | null =>
 
 export const validateEmail = (value: string): string | null => {
   if (value.trim() === '') return 'Enter an email.'
-  if (normalizeEmail(value) === null) return 'Enter a complete email, like sample@example.com.'
+  if (normalizeEmail(value) === null) return "Enter a complete email, like 'sample@example.com'."
 
   return null
 }
