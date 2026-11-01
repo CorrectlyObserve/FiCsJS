@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flexCenter } from 'ficsjs/style'
+import { cssVar, fill, flex, radius, size, space } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Textarea from '@/components/Textarea'
 import type { Message } from '@/domain/message'
@@ -33,87 +33,69 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { button },
-  data: { comment },
-  props: { messages },
-  template
-}) => {
-  const currentUserName = $userName.get()
+  children: { textarea, button },
+  props: { userName: currentUserName, messages },
+  template,
+  attributes: {
+    a11y: { liveLog, srOnly }
+  }
+}) => template`
+  <section>
+    <h3>Chat</h3>
+    <div ${liveLog}>
+      ${messages.map(({ userName, comment }, index) => {
+        const isMine = userName === currentUserName
 
-  return template`
-    <h2 class="text-lg text-white text-center mb-6">Chat</h2>
-    <div
-      class="w-full block mx-auto overflow-y-auto"
-      role="log"
-      aria-live="polite"
-      aria-relevant="additions"
-    >
-      ${messages.map(
-        ({ userName, comment }, index) => template`
-          <div class="w-full mb-4 ${userName === currentUserName ? 'flex justify-end' : ''}" key="${index}">
-            <div ${userName === currentUserName ? 'aria-label="Your message"' : ''}>
-              <p class="text-white mb-2">${userName}</p>
-              <p class="text-white px-3 py-2 rounded-lg whitespace-pre-line">${comment}</p>
-            </div>
+        return template`
+          <div key="${index}" style="align-self: flex-${isMine ? 'end' : 'start'}">
+            ${isMine && template`<span ${srOnly}>Your message</span>`}
+            <p>${userName}</p><p>${comment}</p>
           </div>
         `
-      )}
+      })}
     </div>
-    <div class="input-field gap-4 w-full bg-dark px-4 mt-6">
-      <label class="sr-only" for="message">Message</label>
-      <div class="w-full max-w-xl gap-4">
-        <textarea
-          id="message"
-          aria-describedby="message-help"
-          class="w-full text-white p-3 border rounded-lg resize-none transition duration-200 ease-out cursor-text outline-none"
-          placeholder="Please enter your message"
-          rows="3"
-        >${comment}</textarea>
-        ${button}
-      </div>
-      <p id="message-help" class="text-sm text-white">Press the Shift + Enter keys to send.</p>
-    </div>
-  `
-}
+    <form novalidate>${textarea}${button}</form>
+  </section>
+`
 
-const css: FiCs.Css<Data, Props> = {
-  ':host': {
-    ...flexCenter('y', { direction: 'column' }),
-    flexGrow: 1,
-    minHeight: 0
-  },
-  div: {
-    '&[role="log"]': {
-      flexGrow: 1,
-      width: '100%',
-      maxWidth: cssVar('chat-width'),
-      minHeight: 0,
-      'div[key]': {
-        '&:last-child': { marginBlockEnd: '0' },
-        div: { width: '20rem', 'p:last-child': { background: white(0.1) } }
-      }
-    },
-    '&.input-field': {
-      ...flexCenter('y', { direction: 'column' }),
-      div: {
-        ...flexCenter('y'),
-        textarea: {
-          '&:hover': { background: white(0.1) },
-          '&:focus-visible': { outline: `${cssVar('outline')} solid ${cssVar('color-pink')}` }
+const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
+  :host {
+    ${flex()}; flex-grow: 1;
+
+    section {
+      ${flex({ gap: space('md') })}; flex-grow: 1;
+
+      div${liveLog}, form { width: min(100%, ${cssVar('max-width')}); }
+
+      div${liveLog} {
+        ${flex({ direction: 'column', gap: space('md') })}
+        flex-grow: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+
+        > div {
+          ${flex({ direction: 'column', gap: space('sm') })};
+          width: ${size(80)};
+
+          > p:last-child {
+            ${fill('bg-raised')};
+            ${radius('sm')};
+            padding-block: ${space('sm')};
+            padding-inline: ${space('md')};
+            white-space: pre-line;
+          }
         }
+      }
+
+      form {
+        ${flex({ direction: 'row', gap: space('md') })};
+
+        > :first-child { flex: 999 1 0; }
       }
     }
   }
-}
-
-const hooks: FiCs.Hooks<Data, Props> = {
-  created: () => {
-    if ($userName.get() !== '') return
-
-    const newUserName = prompt('Please enter your name.')
-    newUserName ? $userName.set(newUserName) : (window.location.href = '/')
-  }
-}
+`
 
 const actions: FiCs.Actions<Data, Props> = {
   form: {
@@ -135,5 +117,5 @@ export default fics<Data, Props>({
   html,
   css,
   actions,
-  options: { form: { value: () => null } }
+  options: { ssr: false, form: { value: () => null } }
 })
