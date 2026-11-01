@@ -33,7 +33,7 @@ const alertError = (error: unknown): void => {
 
 const editUser = async ({ id }: User): Promise<void> => {
   try {
-    await api.user(String(id)).authorizeUpdate()
+    await api.user(String(id)).checkUpdateAccess()
     goto(getUserPath(id))
   } catch (error) {
     alertError(error)
@@ -42,7 +42,7 @@ const editUser = async ({ id }: User): Promise<void> => {
 
 const removeUser = async (data: Data, { id, name }: User): Promise<void> => {
   try {
-    await api.user(String(id)).authorizeRemove(undefined, { method: 'DELETE' })
+    await api.user(String(id)).checkRemoveAccess(undefined, { method: 'DELETE' })
     if (!confirm(`Delete ${name}?`)) return
 
     await api.user(String(id)).remove(undefined, { method: 'DELETE' })
