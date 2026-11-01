@@ -1,7 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { goto, RpcError } from 'ficsjs/router'
 import { api } from '@fics/routing/client'
-import { color, flex, space, stroke, textSize } from 'ficsjs/style'
+import { color, cssVar, flex, space, stroke, textSize } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import { getUserPath, pages, paths } from '@/domain/path'
@@ -104,7 +104,7 @@ const css: FiCs.Css<Data, {}> = `
     width: 100%; overflow-x: auto;
 
     table {
-      width: min(100%, var(--chat-width));
+      width: min(100%, ${cssVar('max-width')});
       border-collapse: collapse;
       margin-block-end: ${space('md')};
       margin-inline: auto;
