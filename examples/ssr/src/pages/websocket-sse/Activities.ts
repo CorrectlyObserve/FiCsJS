@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, flex, space } from 'ficsjs/style'
+import { flex, space } from 'ficsjs/style'
 
 interface Props {
   activities: readonly string[]
