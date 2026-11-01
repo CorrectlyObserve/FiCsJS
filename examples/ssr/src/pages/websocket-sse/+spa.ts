@@ -2,6 +2,7 @@ import type { FiCsRouter } from 'ficsjs/router'
 import { flex, space } from 'ficsjs/style'
 import Link from '@/components/Link'
 import type { Message } from '@/domain/message'
+import Activities from '@/pages/websocket-sse/Activities'
 import Chat from '@/pages/websocket-sse/Chat'
 import Stream from '@/pages/websocket-sse/Stream'
 import { toActivity } from '@/domain/activity'
@@ -13,14 +14,20 @@ export interface Data {
   activities: readonly string[]
 }
 
-const props: FiCsRouter.Props<Data> = {
-  descendants: ({ children: { chat } }) => chat,
-  values: ({ data: { userName, messages }, sendToWebsocket }) => ({
-    userName,
-    messages,
-    sendMessage: (message: Message) => sendToWebsocket(JSON.stringify(message))
-  })
-}
+const props: FiCsRouter.Props<Data> = [
+  {
+    descendants: ({ children: { chat } }) => chat,
+    values: ({ data: { userName, messages }, sendToWebsocket }) => ({
+      userName,
+      messages,
+      sendMessage: (message: Message) => sendToWebsocket(JSON.stringify(message))
+    })
+  },
+  {
+    descendants: ({ children: { activities } }) => activities,
+    values: ({ data: { activities } }) => ({ activities })
+  }
+]
 
 const css: FiCsRouter.Css<Data> = `
   nav {
@@ -61,7 +68,7 @@ const options: FiCsRouter.Options<Data> = {
 
 const spa: FiCsRouter.Spa<Data> = {
   pathname: paths.WS_SSE,
-  children: [Link(), Chat, Stream],
+  children: [Link(), Chat, Activities, Stream],
   data: () => ({ userName: '', messages: [], activities: [] }),
   className: ({ data: { pathname } }) => (pathname === paths.WS_SSE ? 'chat' : ''),
   props,
