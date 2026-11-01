@@ -10,11 +10,12 @@ import {
   radius,
   interactive
 } from 'ficsjs/style'
+import { toValue } from './Input'
 import { ChevronDown } from 'lucide-static'
 
 interface Data {
   readonly describedBy: string
-  value: string
+  value: string | null
 }
 
 export interface Props {
@@ -22,20 +23,22 @@ export interface Props {
   label: string
   placeholder: string
   options: readonly { value: string; text: string }[]
+  value?: string
   hint?: string
   isRequired?: boolean
-  change: (value: string) => void
+  change?: (value: string) => void
 }
 
 const html: FiCs.Html<Data, Props> = ({
   data: { describedBy, value },
-  props: { id, label, options, placeholder, hint, isRequired },
+  props: { id, label, options, value: propsValue, placeholder, hint, isRequired },
   form: { isDisabled },
   template,
   attributes: {
     a11y: { ariaHidden },
     disabled,
-    required
+    required,
+    show
   }
 }) => template`
   <div>
@@ -50,9 +53,12 @@ const html: FiCs.Html<Data, Props> = ({
         ${[{ value: '' as const, text: placeholder }, ...options].map(
           ({ value: v, text }) =>
             template`
-              <option value="${v}" key="${v}" ${v === '' && 'disabled hidden'} ${v === value && 'selected'}>
-                ${text}
-              </option>
+              <option
+                value="${v}"
+                key="${v}"
+                ${v === '' && `disabled ${show(true)}`}
+                ${v === toValue(value, propsValue) && 'selected'}
+              >${text}</option>
             `
         )}
       </select>
@@ -110,24 +116,27 @@ const actions: FiCs.Actions<Data, Props> = {
   select: {
     change: ({ data, props: { change }, value }) => {
       data.value = value ?? ''
-      change(data.value)
+      change?.(data.value)
     }
   }
 }
 
 const options: FiCs.Options<Data, Props> = {
   form: {
-    value: ({ data }) => data.value,
-    validate: ({ data, props: { placeholder, isRequired } }) =>
-      isRequired && data.value === '' ? placeholder : null,
-    reset: ({ data }) => (data.value = '')
+    value: ({ data: { value }, props: { value: propsValue } }) => toValue(value, propsValue),
+    validate: ({ data: { value }, props: { placeholder, value: propsValue, isRequired } }) =>
+      isRequired && toValue(value, propsValue) === '' ? placeholder : null,
+    reset: ({ data, props: { value, change } }) => {
+      data.value = null
+      change?.(toValue(data.value, value))
+    }
   }
 }
 
 export default () =>
   fics<Data, Props>({
     name: 'select',
-    data: () => ({ describedBy: 'hint', value: '' }),
+    data: () => ({ describedBy: 'hint', value: null }),
     attributes: ({ props: { id } }) => ({ name: id }),
     html,
     css,
