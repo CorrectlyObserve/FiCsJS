@@ -60,10 +60,12 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
   :host {
-    ${flex()}; flex-grow: 1;
+    ${flex()}; flex-grow: 1; min-height: 0;
 
     section {
-      ${flex({ gap: space('md') })}; flex-grow: 1;
+      ${flex({ direction: 'column', gap: space('md') })};
+      flex-grow: 1;
+      min-height: 0;
 
       div${liveLog}, form { width: min(100%, ${cssVar('max-width')}); }
 
@@ -90,6 +92,7 @@ const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
 
       form {
         ${flex({ direction: 'row', gap: space('md') })};
+        margin-top: ${space('md')};
 
         > :first-child { flex: 999 1 0; }
       }
