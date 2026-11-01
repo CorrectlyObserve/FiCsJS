@@ -12,12 +12,17 @@ interface Data {
 
 const props: FiCs.Props<Data, {}> = {
   descendants: ({ children: { icon } }) => icon,
-  values: ({ data }) => ({
-    svg: RefreshCcw,
-    ariaLabel: `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`,
-    isBottomFixed: true,
-    click: () => (data.isAccumulated = !data.isAccumulated)
-  })
+  values: ({ data }) => {
+    const label = `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`
+    return {
+      svg: RefreshCcw,
+      ariaLabel: label,
+      isBottomFixed: true,
+      tooltip: label,
+      tooltipPlacement: 'left',
+      click: () => (data.isAccumulated = !data.isAccumulated)
+    }
+  }
 }
 
 const html: FiCs.Html<Data, {}> = ({
