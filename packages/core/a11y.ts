@@ -31,6 +31,6 @@ export const a11yAttrs = Object.fromEntries(
 export const a11ySelectors = Object.fromEntries(
   Object.entries(baseA11y).map(([key, entries]) => [
     key,
-    entries.map(([key, value]) => (value === '' ? `[${key}]` : `[${key}="${value}"]`)).join(' ')
+    entries.map(([key, value]) => (value === '' ? `[${key}]` : `[${key}="${value}"]`)).join('')
   ])
 ) as { [K in keyof BaseA11y]: string }
