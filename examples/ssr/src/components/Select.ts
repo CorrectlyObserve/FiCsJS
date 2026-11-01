@@ -67,7 +67,7 @@ const html: FiCs.Html<Data, Props> = ({
   </div>
 `
 
-const css: FiCs.Css<Data, Props> = `
+const css: FiCs.Css<Data, Props> = ({ form: { isDisabled } }) => `
   :host { 
     width: min(100%, ${size(80)});
     
@@ -103,8 +103,8 @@ const css: FiCs.Css<Data, Props> = `
 
         select {
           appearance: none;
+          ${(!isDisabled && interactive({ hover: base => `${base} cursor: pointer;`, active: false })) || ''}
 
-          &:not(:disabled) { ${interactive({ hover: base => `${base} cursor: pointer;`, active: false })} }
           &:has(option[value='']:checked) { color: ${color('text-muted')}; }
         }
       }
