@@ -47,3 +47,21 @@ export const update = mutationOnly(
     }
   })
 )
+
+export const remove = mutationOnly(
+  defineProcedure({
+    handler: async (_, ctx): Promise<void> => {
+      assertDelete(ctx)
+
+      const userId: number = parseIdParam(ctx.dynamicParams.id)
+
+      if ((await requireUser(ctx)).id === userId)
+        throw rpcError({
+          code: 'BAD_REQUEST',
+          message: 'The account you are logged in as cannot be deleted.'
+        })
+
+      if (!removeUser(userId)) throw nonExistentUserError(userId)
+    }
+  })
+)
