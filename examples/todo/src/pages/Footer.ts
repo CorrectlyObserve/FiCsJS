@@ -8,7 +8,7 @@ const css: FiCs.Css<{}, {}> = `
   footer {
     padding-block-end: ${space('md')};
 
-    p {${textSize('sm')}}
+    p { ${textSize('sm')} }
   }
 `
 
