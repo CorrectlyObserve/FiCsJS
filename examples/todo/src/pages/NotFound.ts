@@ -65,13 +65,11 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = `
-  p {
-    &[aria-hidden="true"] {
-      margin-block-end: ${space('lg')};
+const css: FiCs.Css<Data, Props> = ({ a11y: { ariaHidden } }) => ` 
+  p${ariaHidden} {
+    margin-block-end: ${space('lg')};
 
-      @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
-    }
+    @container not ${layout('expanded')} { margin-block-end: ${space('md+')}; }
   }
 
   div { ${flex({ direction: 'column', gap: space('md') })} }
