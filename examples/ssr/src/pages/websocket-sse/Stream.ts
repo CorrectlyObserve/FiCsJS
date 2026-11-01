@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { flex, space } from 'ficsjs/style'
+import { cssVar, flex, space } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { paths } from '@/domain/path'
 import { RefreshCcw } from 'lucide-static'
@@ -49,7 +49,7 @@ const html: FiCs.Html<Data, {}> = ({
 
 const css: FiCs.Css<Data, {}> = ` 
   p.accumulated {
-    max-width: var(--chat-width);
+    max-width: ${cssVar('max-width')};
     line-height: 2;
     overflow-wrap: break-word;
   }
