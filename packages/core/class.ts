@@ -1,4 +1,4 @@
-import { a11y, a11yAttrs } from './a11y'
+import { a11y, a11yAttrs, a11ySelectors } from './a11y'
 import {
   ANNOUNCING_ROLES,
   attrs,
@@ -1315,9 +1315,15 @@ export class FiCsElement<D extends object, P extends object> {
   #cssToString(css: Css.StringOrFn<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
+    const { element, ...form }: Form.Association = this.#formAssociation
     return toComponentCss({
       css: css.reduce<string>(
-        (acc, cur) => `${acc}${typeof cur === 'function' ? cur(this.#getDataProps()) : cur}`,
+        (acc, cur) =>
+          `${acc}${
+            typeof cur === 'function'
+              ? cur({ ...this.#getDataProps(), a11y: a11ySelectors, form })
+              : cur
+          }`,
         ''
       ),
       host: (isSsr && `[slot="${this.#instanceId}"]`) || undefined,

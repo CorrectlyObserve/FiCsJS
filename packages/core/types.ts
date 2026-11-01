@@ -98,7 +98,14 @@ export declare namespace Css {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type StringOrFn<D extends object, P> = string | ((ctx: DataProps.Payload<D, P>) => string)
+  type StringOrFn<D extends object, P> =
+    | string
+    | ((
+        ctx: DataProps.Payload<D, P> & {
+          a11y: typeof a11ySelectors
+          form: Omit<Form.Association, 'element'>
+        }
+      ) => string)
 }
 
 export declare namespace DataProps {
