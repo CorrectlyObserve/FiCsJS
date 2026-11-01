@@ -99,12 +99,12 @@ const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
 
 const actions: FiCs.Actions<Data, Props> = {
   form: {
-    submit: ({ event, props: { userName, sendMessage }, submitForm }) => {
+    submit: ({ event: { currentTarget }, props: { userName, sendMessage }, submitForm }) => {
       const value: { message: string } | null | void = submitForm({ shouldReportValidity: false })
       if (!value || userName === '' || value.message.trim() === '') return
 
       sendMessage({ userName, comment: value.message })
-      ;(event.currentTarget as HTMLFormElement).reset()
+      ;(currentTarget as HTMLFormElement).reset()
     }
   }
 }
