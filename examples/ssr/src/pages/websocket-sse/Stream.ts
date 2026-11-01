@@ -47,14 +47,14 @@ const html: FiCs.Html<Data, {}> = ({
   ${icon}
 `
 
-const css: FiCs.Css<Data, {}> = `
+const css: FiCs.Css<Data, {}> = ` 
   p.accumulated {
     max-width: var(--chat-width);
     line-height: 2;
     overflow-wrap: break-word;
   }
 
-  div[role='log'] { ${flex({ direction: 'column', gap: space('md') })} }
+  div { ${flex({ direction: 'column', gap: space('md') })} }
 `
 
 let controller: AbortController | null = null
