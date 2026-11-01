@@ -1,6 +1,8 @@
 import { SR_ONLY_ATTR } from './css'
 import type { Attr } from './types'
 
+type BaseA11y = typeof baseA11y
+
 const baseA11y = {
   ariaHidden: [['aria-hidden', 'true']],
   liveLog: [
@@ -20,12 +22,8 @@ export const a11y = Object.fromEntries(
     attrKey,
     entries.map(([key, value]) => (value === '' ? key : `${key}="${value}"`)).join(' ')
   ])
-) as {
-  [K in keyof typeof baseA11y]: Attr.Stringified<(typeof baseA11y)[K]>
-}
+) as { [K in keyof BaseA11y]: Attr.Stringified<BaseA11y[K]> }
 
 export const a11yAttrs = Object.fromEntries(
   Object.entries(baseA11y).map(([key, entries]) => [key, Object.fromEntries(entries)])
-) as {
-  [K in keyof typeof baseA11y]: { [E in (typeof baseA11y)[K][number] as E[0]]: E[1] }
-}
+) as { [K in keyof BaseA11y]: { [E in BaseA11y[K][number] as E[0]]: E[1] } }
