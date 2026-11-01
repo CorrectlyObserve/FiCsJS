@@ -10,7 +10,17 @@ import {
   parseRole,
   rpcError
 } from '@/server/rpc'
-import { emailTakenError, findUser, nonExistentUserError, updateUser } from '@/server/users'
+import {
+  emailTakenError,
+  findUser,
+  nonExistentUserError,
+  removeUser,
+  updateUser
+} from '@/server/users'
+
+export const checkUpdateAccess = mutationOnly(
+  defineProcedure({ handler: async (): Promise<void> => {} })
+)
 
 export const update = mutationOnly(
   defineProcedure({
@@ -46,6 +56,18 @@ export const update = mutationOnly(
       return user
     }
   })
+)
+
+const assertDelete = ({ req: { method } }: { req: Request }): void => {
+  if (method !== 'DELETE')
+    throw rpcError({
+      code: 'METHOD_NOT_ALLOWED',
+      message: 'Use the DELETE method for this procedure.'
+    })
+}
+
+export const checkRemoveAccess = mutationOnly(
+  defineProcedure({ handler: async (_, ctx): Promise<void> => assertDelete(ctx) })
 )
 
 export const remove = mutationOnly(
