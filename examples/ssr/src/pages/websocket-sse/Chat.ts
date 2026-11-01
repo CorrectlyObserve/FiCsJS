@@ -17,24 +17,13 @@ interface Props {
 const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { textarea } }) => textarea,
-    values: ({ data, props: { userName, sendMessage } }) => ({
-      id: 'chat-message',
+    values: ({ data }) => ({
+      id: 'message',
       label: 'Message',
       placeholder: 'Please enter your message',
-      value: data.comment,
-      isSrOnly: true,
       hint: 'Press the Shift + Enter keys to send.',
-      input: (value: string) => (data.comment = value),
-      keydown: (event: KeyboardEvent) => {
-        if (event.key !== 'Enter' || !event.shiftKey) return
-        if (window.matchMedia('(pointer: coarse)').matches) return
-
-        event.preventDefault()
-        if (userName === '' || data.comment.trim() === '') return
-
-        sendMessage({ userName, comment: data.comment })
-        data.comment = ''
-      }
+      isSrOnly: true,
+      input: (value: string) => (data.comment = value)
     })
   },
   {
@@ -127,22 +116,13 @@ const hooks: FiCs.Hooks<Data, Props> = {
 }
 
 const actions: FiCs.Actions<Data, Props> = {
-  textarea: {
-    input: ({ data, event: { currentTarget } }) =>
-      (data.comment = (currentTarget as HTMLTextAreaElement).value),
-    keydown: ({ data, props: { sendMessage }, event }) => {
-      if (window.matchMedia('(pointer: coarse)').matches) return
+  form: {
+    submit: ({ event, props: { userName, sendMessage }, submitForm }) => {
+      const value: { message: string } | null | void = submitForm({ shouldReportValidity: false })
+      if (!value || userName === '' || value.message.trim() === '') return
 
-      const userName = $userName.get()
-      const { comment } = data,
-        keyboardEvent = event as KeyboardEvent,
-        isEnterKey = keyboardEvent.key === 'Enter'
-
-      if (userName === '' || comment.trim() === '' || !isEnterKey || !keyboardEvent.shiftKey) return
-
-      keyboardEvent.preventDefault()
-      sendMessage({ userName, comment })
-      data.comment = ''
+      sendMessage({ userName, comment: value.message })
+      ;(event.currentTarget as HTMLFormElement).reset()
     }
   }
 }
@@ -154,6 +134,6 @@ export default fics<Data, Props>({
   props,
   html,
   css,
-  hooks,
-  actions
+  actions,
+  options: { form: { value: () => null } }
 })
