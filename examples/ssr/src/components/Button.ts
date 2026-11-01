@@ -28,7 +28,7 @@ const html: FiCs.Html<{}, Props> = ({
 }) => template`
   <button
     type="${isNotInForm ? 'button' : 'submit'}"
-    data-variant="${isNotInForm ? 'neutral' : variant}"
+    data-variant="${isNotInForm ? variant : 'neutral'}"
     ${disabled(!isBrowser || isDisabled || form.isDisabled)}
     ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
   >${text}${tooltipMarkup(template, tooltip)}</button>
