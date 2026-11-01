@@ -1,27 +1,31 @@
 import { fics, type FiCs } from 'ficsjs'
 import { calc, flex, size, space, stroke, tapSize } from 'ficsjs/style'
+import { toValue } from './Input'
 
-export interface Data {
+interface Data {
   readonly describedBy: string
+  value: string | null
 }
 
-export interface Props {
+interface Props {
   id: string
   label: string
   placeholder: string
-  value: string
-  isSrOnly?: boolean
+  value?: string
   hint?: string
-  input: (value: string) => void
-  keydown?: (event: KeyboardEvent) => void
+  isSrOnly?: boolean
+  input?: (value: string) => void
 }
 
 const html: FiCs.Html<Data, Props> = ({
-  data: { describedBy },
-  props: { id, label, placeholder, isSrOnly, hint, value },
+  data: { describedBy, value },
+  props: { id, label, placeholder, value: propsValue, isSrOnly, hint },
+  form: { isDisabled },
   template,
   attributes: {
-    a11y: { srOnly }
+    a11y: { srOnly },
+    disabled,
+    formAnchor
   }
 }) => template`
   <div>
@@ -30,13 +34,15 @@ const html: FiCs.Html<Data, Props> = ({
       id="${id}"
       placeholder="${placeholder}"
       ${hint && `aria-describedby="${id}-${describedBy}"`}
-    >${value}</textarea>
+      ${disabled(isDisabled)}
+      ${formAnchor}
+    >${toValue(value, propsValue)}</textarea>
     ${hint && template`<small id="${id}-${describedBy}">${hint}</small>`}
   </div>
 `
 
 const css: FiCs.Css<Data, Props> = `
-  :host { 
+  :host {
     width: min(100%, ${size(80)});
 
     div {
@@ -53,17 +59,37 @@ const css: FiCs.Css<Data, Props> = `
 
 const actions: FiCs.Actions<Data, Props> = {
   textarea: {
-    input: ({ props: { input }, value }) => input(value ?? ''),
-    keydown: ({ props: { keydown }, event }) => keydown?.(event as KeyboardEvent)
+    input: ({ data, props: { input }, value }) => {
+      data.value = value ?? ''
+      input?.(data.value)
+    },
+    keydown: ({ event, requestSubmit }) => {
+      const { key, shiftKey }: KeyboardEvent = event as KeyboardEvent
+      if (key !== 'Enter' || !shiftKey || window.matchMedia('(pointer: coarse)').matches) return
+
+      event.preventDefault()
+      requestSubmit()
+    }
+  }
+}
+
+const options: FiCs.Options<Data, Props> = {
+  form: {
+    value: ({ data: { value }, props: { value: propsValue } }) => toValue(value, propsValue),
+    reset: ({ data, props: { value, input } }) => {
+      data.value = null
+      input?.(toValue(data.value, value))
+    }
   }
 }
 
 export default () =>
   fics<Data, Props>({
     name: 'textarea',
-    data: () => ({ describedBy: 'hint' }),
+    data: () => ({ describedBy: 'hint', value: null }),
     attributes: ({ props: { id } }) => ({ name: id }),
     html,
     css,
-    actions
+    actions,
+    options
   })
