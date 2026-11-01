@@ -12,7 +12,7 @@ const props: FiCs.Props<Data, {}> = [
   {
     descendants: ({ children: { select } }) => select,
     values: ({ data }) => ({
-      id: 'role', 
+      id: 'role',
       label: 'Log in as',
       placeholder: 'Choose a role',
       options: ROLES.map(value => ({ value, text: value === 'admin' ? 'an admin' : 'a member' })),
