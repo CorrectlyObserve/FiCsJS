@@ -1,5 +1,4 @@
 import type { ServerWebSocket } from 'bun'
-import { toActivity } from '@/domain/activity'
 import type { Message } from '@/domain/message'
 
 export type SocketData = { userName: Message['userName'] }
@@ -29,16 +28,5 @@ export const broadcastMessage = (message: string | Message): void => {
       )
     } catch {
       wsClients.delete(client)
-    }
-}
-
-export const sseClients: Set<SseSender> = new Set()
-
-export const broadcastSseMessage = (message: string): void => {
-  for (const send of sseClients)
-    try {
-      send('log', toActivity(message))
-    } catch {
-      sseClients.delete(send)
     }
 }
