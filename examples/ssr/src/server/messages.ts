@@ -2,7 +2,7 @@ import type { ServerWebSocket } from 'bun'
 import { toActivity } from '@/domain/activity'
 import type { Message } from '@/domain/message'
 
-export type SocketData = Message['userName']
+export type SocketData = { userName: Message['userName'] }
 export type SseSender = (event: string, data: string) => void
 
 const messages: Message[] = []
