@@ -1,56 +1,69 @@
-import { Hono } from 'hono'
-import { streamSSE } from 'hono/streaming'
-import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
-import type { ServerWebSocket } from 'bun'
 import { createQueryCache } from 'ficsjs'
-import { createPageHandler, createRpcHandler, type FiCsRouter } from 'ficsjs/router/server-only'
 import { pages, rpcRouter } from '@fics/routing/server'
-import type { Message } from '@/pages/websocket-sse/Chat'
-import { API_PATHS, getTimestamp } from '@/utils'
+import { createPageHandler, createRpcHandler } from 'ficsjs/router/server-only'
+import { type Message, parseMessage } from '@/domain/message'
+import { getUserPath, paths } from '@/domain/path'
+import { viaLogin } from '@/domain/redirect'
+import type { User } from '@/domain/user'
+import { authRoutes, redirect } from '@/server/auth'
+import {
+  type SocketData,
+  addMessage,
+  broadcastMessage,
+  createServerMessage,
+  pickMessage,
+  wsClients
+} from '@/server/messages'
+import { render } from '@/server/render'
+import { getSessionUser } from '@/server/session'
+import { broadcastSseMessage, openLogStream, openTextStream } from '@/server/stream'
+import type { ServerWebSocket } from 'bun'
 
-interface SSEMessage {
-  event: 'log'
-  data: string
-}
+const PORT: number = Number(Bun.env.PORT) || 5174
 
-const app = new Hono()
+const page: (req: Request) => Promise<Response> = createPageHandler(pages, {
+  render,
+  createContext: () => ({ queryCache: createQueryCache() }),
+  viewTransition: true
+})
+const rpc: (req: Request) => Promise<Response> = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
 
-// ── Static assets ──
-app.get('/dist/*', serveStatic({ root: './' }))
+Bun.serve<SocketData>({
+  port: PORT,
+  async fetch(req: Request, server): Promise<Response | undefined> {
+    const { pathname }: URL = new URL(req.url)
 
-// ── Realtime demo: WebSocket / SSE / streaming ──
-const createServerMessage = (comment: string): string =>
-  JSON.stringify({ userName: 'Server', comment })
+    if (pathname === paths.api.WS)
+      return server.upgrade(req, { data: { userName: '' } })
+        ? undefined
+        : new Response('This endpoint expects a WebSocket upgrade.', { status: 426 })
 
-const messages: Message[] = []
-const wsClients = new Set<ServerWebSocket>()
-const wsClientUsernames = new Map<ServerWebSocket, string>()
-
-const broadcastMessage = (message: string | Message): void => {
-  for (const client of wsClients)
-    try {
-      client.send(
-        typeof message === 'string' ? createServerMessage(message) : JSON.stringify(message)
-      )
-    } catch {
-      wsClients.delete(client)
+    if (pathname.startsWith('/assets/')) {
+      const file = Bun.file(`./dist${pathname}`)
+      return (await file.exists()) ? new Response(file) : new Response(null, { status: 404 })
     }
-}
-const sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>()
-const broadcastSseMessage = (message: string): void => {
-  for (const sender of sseClients)
-    try {
-      void sender({ event: 'log', data: `${getTimestamp()}: ${message}` })
-    } catch {
-      sseClients.delete(sender)
-    }
-}
 
-app.get(
-  API_PATHS.ws,
-  upgradeWebSocket(() => ({
-    onOpen(_event, { raw }): void {
-      if (raw) wsClients.add(raw)
+    if (req.method === 'POST') {
+      const authRoute = authRoutes.get(pathname)
+      if (authRoute) return authRoute(req)
+    }
+
+    if (pathname === paths.api.LOG) return openLogStream(req)
+    if (pathname === paths.api.STREAM) return openTextStream(req)
+    if (pathname.startsWith(rpcRouter.basePath)) return rpc(req)
+
+    if (pathname === paths.ACCOUNT) {
+      const user: User | null = getSessionUser(req)
+      return redirect(user ? getUserPath(user.id) : viaLogin(paths.ACCOUNT))
+    }
+
+    const res: Response = await page(req)
+    res.headers.set('cache-control', 'no-store')
+    return res
+  },
+  websocket: {
+    open(ws: ServerWebSocket<SocketData>): void {
+      wsClients.add(ws)
     },
     onMessage({ data }, ws): void {
       if (typeof data !== 'string') {
