@@ -65,21 +65,20 @@ Bun.serve<SocketData>({
     open(ws: ServerWebSocket<SocketData>): void {
       wsClients.add(ws)
     },
-    onMessage({ data }, ws): void {
+    message(ws: ServerWebSocket<SocketData>, data: string | Buffer): void {
       if (typeof data !== 'string') {
         ws.send(createServerMessage('The data must be a string.'))
         return
       }
 
-      let message: Message
-      try {
-        message = JSON.parse(data) as Message
-      } catch {
-        ws.send(createServerMessage('This is an invalid JSON.'))
+      const message: Partial<Message> | undefined = parseMessage(data)
+
+      if (!message) {
+        ws.send(createServerMessage('This is an invalid message.'))
         return
       }
 
-      const { userName, comment } = message
+      const { userName, comment }: Partial<Message> = message
 
       if (!userName || userName.trim() === '') {
         ws.send(createServerMessage('The userName is required.'))
@@ -87,10 +86,8 @@ Bun.serve<SocketData>({
       }
 
       if (!comment) {
-        const { raw } = ws
-
-        if (raw && !wsClientUsernames.has(raw)) {
-          wsClientUsernames.set(raw, userName)
+        if (ws.data.userName === '') {
+          ws.data.userName = userName
           ws.send(createServerMessage(`Hello, ${userName}!`))
         } else ws.send(createServerMessage('The comment is required.'))
 
@@ -102,129 +99,27 @@ Bun.serve<SocketData>({
         return
       }
 
-      broadcastMessage(message)
+      broadcastMessage({ userName, comment })
       broadcastSseMessage(`${userName} sent a message.`)
 
-      messages.push(message)
-      const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
+      addMessage({ userName, comment })
+      const picked: Message | undefined = pickMessage()
 
       setTimeout(() => {
-        broadcastMessage(pickedMessage.comment)
-        broadcastSseMessage(`The server sent a message.`)
+        if (picked) broadcastMessage(picked.comment)
+        broadcastSseMessage('The server sent a message.')
       }, 1000)
     },
-    onClose(_event, { raw }): void {
-      if (raw) {
-        const userName = wsClientUsernames.get(raw)
+    close(ws: ServerWebSocket<SocketData>): void {
+      wsClients.delete(ws)
 
-        wsClients.delete(raw)
-        wsClientUsernames.delete(raw)
+      const { userName }: SocketData = ws.data
+      if (userName === '') return
 
-        if (userName) {
-          broadcastMessage(`See you later, ${userName}.`)
-          broadcastSseMessage(`The ${userName}'s connection was closed.`)
-        }
-      }
+      broadcastMessage(`See you later, ${userName}.`)
+      broadcastSseMessage(`The ${userName}'s connection was closed.`)
     }
-  }))
-)
-
-app.get(API_PATHS.log, c =>
-  streamSSE(c, async stream => {
-    const sender = (sseMessage: SSEMessage) => stream.writeSSE(sseMessage),
-      abortSignal: AbortSignal | undefined = c.req.raw?.signal
-
-    sseClients.add(sender)
-    void stream.writeSSE({ event: 'ping', data: 'ping' })
-
-    const checkConnection = setInterval(() => {
-      void stream.writeSSE({ event: 'ping', data: 'ping' })
-    }, 30_000)
-
-    try {
-      await new Promise<void>(resolve => {
-        if (!abortSignal || abortSignal.aborted) return resolve()
-        abortSignal.addEventListener?.('abort', () => resolve(), { once: true })
-      })
-    } finally {
-      sseClients.delete(sender)
-      clearInterval(checkConnection)
-    }
-  })
-)
-
-app.get(API_PATHS.stream, c => {
-  const RANDOM_LENGTH = 1000,
-    CHUNK_SIZE = 10,
-    signal: AbortSignal | undefined = c.req.raw?.signal,
-    encoder = new TextEncoder(),
-    stream = new ReadableStream({
-      async start(controller) {
-        const chars = [...Array(36)].map((_, i) => i.toString(36)).join(''),
-          random: string[] = []
-
-        for (let i = 0; i < RANDOM_LENGTH; i++) {
-          const char = chars.charAt(Math.floor(Math.random() * chars.length))
-          random.push(Math.random() < 0.5 ? char.toUpperCase() : char)
-        }
-
-        const fullText = random.join('')
-
-        for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
-          if (signal?.aborted) {
-            controller.close()
-            return
-          }
-          const index = Math.floor(i / CHUNK_SIZE),
-            chunk = fullText.slice(i, i + CHUNK_SIZE),
-            eventData = `data: ${JSON.stringify({ chunk, index })}\n\n`
-
-          controller.enqueue(encoder.encode(eventData))
-          await new Promise(resolve => setTimeout(resolve, 100))
-        }
-
-        controller.enqueue(encoder.encode(`event: complete\ndata: \n\n`))
-        controller.close()
-      }
-    })
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no'
-    }
-  })
+  }
 })
 
-// ── FiCsJS: SSR pages + RPC ──
-const pageHandler = createPageHandler(pages, {
-  render: ({ meta, content, script }: FiCsRouter.Render): string => `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="/dist/global.css" />
-      </head>
-      <body class="bg-dark px-4">
-        <header class="flex justify-center flex-row py-2">
-          <h1 class="text-xl text-center font-semibold">${meta.title ?? ''}</h1>
-        </header>
-        <main class="pb-8">${content}</main>
-        <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="${script}"></script>
-      </body>
-    </html>
-  `,
-  createContext: () => ({ queryCache: createQueryCache() })
-})
-
-// SSR catch-all: registered last so the specific routes above (WS/SSE/stream, RPC) match first.
-app.get('*', ({ req: { raw } }) => pageHandler(raw))
-
-const rpcHandler = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
-app.all(`${rpcRouter.basePath}/*`, ({ req: { raw } }) => rpcHandler(raw))
-
-export default { port: 5174, host: '0.0.0.0', fetch: app.fetch, websocket }
+console.log(`ssr example \u2192 http://localhost:${PORT}`)
