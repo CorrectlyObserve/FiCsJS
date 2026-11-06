@@ -1,4 +1,3 @@
-import { normalizeEmail } from '@/domain/email'
 import type { Role } from '@/domain/role'
 
 export interface User {
@@ -8,7 +7,20 @@ export interface User {
   role: Role
 }
 
+const RFC5321_MAILBOX_LIMIT = 254 as const
+const EMAIL_REGEX = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/
+
+const isValidEmail = (email: string): boolean =>
+  email.length <= RFC5321_MAILBOX_LIMIT && EMAIL_REGEX.test(email)
+
 export const FAIL_USER = 'failUser' as const
+
+export const normalizeEmail = (email: unknown): string | null => {
+  if (typeof email !== 'string') return null
+
+  const normalized: string = email.trim().toLowerCase()
+  return isValidEmail(normalized) ? normalized : null
+}
 
 export const toUserId = (value: unknown): number | null => {
   if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : null
