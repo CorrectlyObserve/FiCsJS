@@ -4,12 +4,12 @@ import {
   cssVar,
   fill,
   flex,
+  interactive,
   maskIcon,
-  space,
-  size,
-  textSize,
   radius,
-  interactive
+  size,
+  space,
+  textSize
 } from 'ficsjs/style'
 import { toValue } from './Input'
 import { ChevronDown } from 'lucide-static'
@@ -76,15 +76,13 @@ const css: FiCs.Css<Data, Props> = ({ form: { isDisabled } }) => `
       ${flex({ direction: 'column', gap: space('sm') })}
 
       label { 
-        text-align: start;
+        ${flex({ center: 'y', gap: space('sm') })}
         
         > span {
           ${fill('danger')};
           ${textSize('xs')};
           ${radius('sm')};
-          padding-block: ${space('xs')};
-          padding-inline: ${space('xs')};
-          margin-left: ${space('xs')};
+          padding: ${space('xs')};
         }
       }
 
