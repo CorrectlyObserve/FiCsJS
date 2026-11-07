@@ -1,6 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import {
   color,
+  cssVar,
   fill,
   flex,
   maskIcon,
@@ -69,7 +70,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = ({ form: { isDisabled } }) => `
   :host { 
-    width: min(100%, ${size(80)});
+    width: min(100%, ${cssVar('width')});
     
     div {
       ${flex({ direction: 'column', gap: space('sm') })}
