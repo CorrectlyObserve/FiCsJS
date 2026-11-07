@@ -23,8 +23,9 @@ export const tooltip = ({
       ${fill('inverse')};
       ${textSize('sm')};
       ${radius('sm')};
-      max-width: 13.125rem;
-      padding: ${space('xs')} ${space('sm')};
+      max-width: ${size(48)};
+      padding-block: ${space('xs')};
+      padding-inline: ${space('sm')};
       border: ${stroke('sm')} solid var(${ficsCssVar('fill')});
       opacity: 0;
       visibility: hidden;
@@ -54,8 +55,8 @@ export const tooltip = ({
           &::after {
             ${facingEdge};
             ${isBlock ? 'left' : 'top'}: 50%;
-            width: calc(${size(3)} / ${isBlock ? 1 : 2});
-            height: calc(${size(3)} / ${isBlock ? 2 : 1});
+            width: calc(${size(4)} / ${isBlock ? 1 : 2});
+            height: calc(${size(4)} / ${isBlock ? 2 : 1});
             background: inherit;
             translate: ${isBlock ? '-50% 0' : '0 -50%'};
             clip-path: ${shape};
