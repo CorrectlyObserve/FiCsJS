@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, color, fill, flex, oklch, radius, size, space, stroke } from 'ficsjs/style'
+import { calc, color, cssVar, fill, flex, oklch, radius, size, space, stroke } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { X } from 'lucide-static'
 
@@ -38,7 +38,7 @@ const css: FiCs.Css<Data, Props> = `
   dialog {
     ${fill('bg-raised')};
     ${radius('lg')};
-    width: ${size(80)};
+    width: ${cssVar('width')};
     padding: ${space('md')};
     margin: auto;
     border: ${stroke('sm')} solid ${color('border')};
