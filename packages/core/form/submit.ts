@@ -3,15 +3,18 @@ import { focusFirstInvalidControl } from './validation'
 
 export const submitForm =
   (event: Event): Form.Submit.Fn =>
-  <T extends Form.Values>({ shouldReportValidity = true }: Form.Submit.Options = {}): T | null => {
+  <T extends Form.Values>(
+    action: (values: T) => void | Promise<void>,
+    { shouldReportValidity = true }: Form.Submit.Options = {}
+  ): void => {
     event.preventDefault()
 
     const { currentTarget }: Event = event
-    if (!(currentTarget instanceof HTMLFormElement)) return null
+    if (!(currentTarget instanceof HTMLFormElement)) return
 
     if (!currentTarget[shouldReportValidity ? 'reportValidity' : 'checkValidity']()) {
       if (!shouldReportValidity) focusFirstInvalidControl(currentTarget)
-      return null
+      return
     }
 
     const values: Form.Values = {}
@@ -24,5 +27,5 @@ export const submitForm =
       else values[key] = [current, value]
     }
 
-    return values as T
+    action(values as T)
   }
