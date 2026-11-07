@@ -103,11 +103,15 @@ const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
 const actions: FiCs.Actions<Data, Props> = {
   form: {
     submit: ({ event: { currentTarget }, props: { userName, sendMessage }, submitForm }) => {
-      const value: { message: string } | null | void = submitForm({ shouldReportValidity: false })
-      if (!value || userName === '' || value.message.trim() === '') return
+      submitForm(
+        async ({ message }: { message: string }) => {
+          if (userName === '' || message.trim() === '') return
 
-      sendMessage({ userName, comment: value.message })
-      ;(currentTarget as HTMLFormElement).reset()
+          sendMessage({ userName, comment: message })
+          ;(currentTarget as HTMLFormElement).reset()
+        },
+        { shouldReportValidity: false }
+      )
     }
   }
 }
