@@ -1,5 +1,6 @@
 import {
   color,
+  cssVar,
   fill,
   flex,
   interactive,
@@ -85,7 +86,11 @@ export default `
 
   form, section { ${flex({ center: 'y', direction: 'column', gap: space('md') })} }
 
-  fieldset { border: 0; }
+  fieldset {
+    ${flex({ direction: 'column', gap: space('md') })};
+    width: min(100%, ${cssVar('width')});
+    border: 0;
+  }
 
   input, textarea, select {
     ${fill('bg-sunken')};
