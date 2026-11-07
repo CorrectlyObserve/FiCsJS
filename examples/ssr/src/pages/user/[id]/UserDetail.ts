@@ -1,6 +1,6 @@
 import { fics, type FiCs, type QueryCache } from 'ficsjs'
 import { goto, RpcError } from 'ficsjs/router'
-import { color, flex, space } from 'ficsjs/style'
+import { color } from 'ficsjs/style'
 import { api } from '@fics/routing/client'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
@@ -98,7 +98,7 @@ const html: FiCs.Html<Data, {}> = ({
             })
           )}
         </div>
-        ${notice !== '' && template`<p key="status" role="status">${notice}</p>`}
+        ${notice !== '' && template`<p role="status">${notice}</p>`}
       </fieldset>
       ${button.setIndividualProps('delete', {
         text: 'Delete this user',
@@ -115,15 +115,7 @@ const css: FiCs.Css<Data, {}> = ({
   data: {
     status: { phase }
   }
-}) => `
-  form fieldset {
-    margin-block-end: ${space('md')};
-
-    div { ${flex({ center: 'x', direction: 'row', gap: space('md') })}; }
-
-    p { text-align: center; ${(phase === 'error' && `color: ${color('danger')}`) || ''}; }
-  }
-`
+}) => `p { text-align: center; ${(phase === 'error' && `color: ${color('danger')}`) || ''}; }`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {

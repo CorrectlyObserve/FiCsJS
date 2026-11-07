@@ -89,7 +89,10 @@ export default `
   fieldset {
     ${flex({ direction: 'column', gap: space('md') })};
     width: min(100%, ${cssVar('width')});
+    margin-block-end: ${space('md')};
     border: 0;
+
+    > div { ${flex({ center: 'x', direction: 'row', gap: space('md') })}; }
   }
 
   input, textarea, select {
