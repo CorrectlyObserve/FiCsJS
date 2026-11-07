@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, flex, size, space, stroke, tapSize } from 'ficsjs/style'
+import { calc, cssVar, flex, space, stroke, tapSize } from 'ficsjs/style'
 import { toValue } from './Input'
 
 interface Data {
@@ -43,7 +43,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   :host {
-    width: min(100%, ${size(80)});
+    width: min(100%, ${cssVar('width')});
 
     div {
       ${flex({ direction: 'column', gap: space('sm') })}
