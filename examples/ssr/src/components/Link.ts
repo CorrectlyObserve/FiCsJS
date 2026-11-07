@@ -1,23 +1,16 @@
 import { type FiCs } from 'ficsjs'
 import { ficsLink } from 'ficsjs/router'
 import { color, flex, interactive, radius, space, stroke, tapSize } from 'ficsjs/style'
-import {
-  type Placement,
-  TOOLTIP_ID,
-  tooltipCss,
-  tooltipHandlers,
-  tooltipMarkup
-} from '@/components/Tooltip'
+import { TOOLTIP_ID, tooltipCss, tooltipHandlers, tooltipMarkup } from '@/components/Tooltip'
 
 interface Props {
   href: string
   text: string
   isCurrent?: boolean
   tooltip?: string
-  tooltipPlacement?: Placement
 }
 
-const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement } }) => `
+const css: FiCs.Css<{}, Props> = () => `
   :host {
     width: auto;
 
@@ -25,7 +18,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement } }) => `
       ${flex({ inline: true, center: 'xy' })}
       ${radius('sm')};
       ${interactive()}
-      ${tooltipCss(tooltipPlacement)}
+      ${tooltipCss()}
       width: 100%;
       min-height: ${tapSize()};
       color: ${color('text')};
