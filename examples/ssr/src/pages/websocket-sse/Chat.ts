@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { cssVar, fill, flex, radius, size, space } from 'ficsjs/style'
+import { cssVar, fill, flex, radius, space } from 'ficsjs/style'
 import Button from '@/components/Button'
 import Textarea from '@/components/Textarea'
 import type { Message } from '@/domain/message'
@@ -78,7 +78,7 @@ const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
 
         > div {
           ${flex({ direction: 'column', gap: space('sm') })};
-          width: ${size(80)};
+          width: ${cssVar('width')};
 
           > p:last-child {
             ${fill('bg-raised')};
