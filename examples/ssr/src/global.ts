@@ -18,6 +18,7 @@ export default `
     &[data-theme='light'] { color-scheme: light; }
     &[data-theme='dark'] { color-scheme: dark; }
     
+    --width: ${size(80)};
     --max-width: ${size(160)};
     scroll-padding-bottom: calc(${space('xl')} + ${tapSize()} + ${space('sm')});
   }
