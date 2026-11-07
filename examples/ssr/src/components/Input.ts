@@ -13,6 +13,8 @@ interface Props {
   placeholder: string
   value?: string
   type?: string
+  hint?: string
+  isRequired?: boolean
   input?: (value: string) => void
   validate?: (value: string) => string | null
 }
@@ -22,17 +24,18 @@ export const toValue = (value: Data['value'], propsValue: Props['value']): strin
 
 const html: FiCs.Html<Data, Props> = ({
   data: { describedBy, value, error },
-  props: { id, label, value: propsValue, type, placeholder },
+  props: { id, label, placeholder, value: propsValue, type, hint, isRequired },
   form: { isDisabled, isUserInvalid },
   template,
+  unsafeHtml,
   attributes: {
-    a11y: { invalid },
+    a11y: { ariaHidden, invalid },
     disabled,
     formAnchor
   }
 }) => template`
   <div>
-    <label for="${id}">${label}</label>
+    <label for="${id}">${label}${isRequired && template`<span ${ariaHidden}>Required</span>`}</label>
     <input
       id="${id}"
       placeholder="${placeholder}"
@@ -43,7 +46,12 @@ const html: FiCs.Html<Data, Props> = ({
       ${invalid(isUserInvalid)}
       ${formAnchor}
     />
-    ${isUserInvalid && template`<small id="${id}-${describedBy}" role="alert">${error}</small>`}
+    ${
+      (hint || isUserInvalid) &&
+      template`
+        <small id="${id}-${describedBy}">${error ?? unsafeHtml(hint ?? '')}</small>
+      `
+    }
   </div>
 `
 
@@ -52,7 +60,19 @@ const css: FiCs.Css<Data, Props> = ({ form: { isUserInvalid } }) => `
     width: min(100%, ${cssVar('width')});
     
     div { 
-      ${flex({ direction: 'column' })}
+      ${flex({ direction: 'column', gap: space('sm') })}
+
+      label {
+        ${flex({ center: 'y', gap: space('sm') })}
+        
+        > span {
+          ${fill('danger')};
+          ${textSize('xs')};
+          ${radius('sm')};
+          padding: ${space('xs')};
+        }
+      }
+
       ${
         (isUserInvalid &&
           `
