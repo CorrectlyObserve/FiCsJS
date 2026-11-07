@@ -258,7 +258,10 @@ export declare namespace Form {
   type RequestSubmit = HTMLFormElement['requestSubmit']
 
   namespace Submit {
-    type Fn = <T extends Values>(options?: Options) => T | null | void
+    type Fn = <T extends Form.Values>(
+      action: (values: T) => void | Promise<void>,
+      options?: Options
+    ) => void
 
     interface Options {
       shouldReportValidity?: boolean
