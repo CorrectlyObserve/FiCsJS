@@ -44,10 +44,7 @@ export default `
 
       &:has(> .chat) { min-height: 0; }
 
-      > p {
-        margin-block-end: ${space('md')};
-        text-align: center;
-      }
+      > p { margin-block-end: ${space('md')}; text-align: center; }
     }
 
     & > footer {
