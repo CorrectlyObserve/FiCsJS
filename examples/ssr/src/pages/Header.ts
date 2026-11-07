@@ -88,9 +88,13 @@ const html: FiCs.Html<Data, {}> = ({
             </ul>
             <hr />
             ${FORMS.map(
-              ({ id, action, text, description }) => template`
+              ({ id, action, text, description }, index) => template`
                 <form method="post" action="${action}" key="${id}">
-                  ${button.setIndividualProps(id, { text, tooltip: description })}
+                  ${button.setIndividualProps(id, {
+                    text,
+                    tooltip: description,
+                    tooltipPlacement: index === 0 ? 'top' : 'bottom'
+                  })}
                 </form>
               `
             )}
