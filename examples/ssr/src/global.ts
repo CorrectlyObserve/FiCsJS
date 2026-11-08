@@ -28,9 +28,9 @@ export default `
 
   body {
     ${flex({ direction: 'column' })}
-    height: 100dvh;
-    ${fill('bg')}
+    ${fill('bg')};
     ${textSize('md')};
+    height: 100dvh;
     font-family: 'Times New Roman', serif;
     padding-inline: ${space('lg')};
     overscroll-behavior-x: none;
