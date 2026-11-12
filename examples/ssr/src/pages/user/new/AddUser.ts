@@ -99,8 +99,6 @@ const actions: FiCs.Actions<Data, {}> = {
               notice: error instanceof RpcError ? error.message : 'The user could not be added.',
               phase: 'error'
             }
-          } finally {
-            data.status = { notice: '', phase: 'idle' }
           }
         },
         { shouldReportValidity: false }
