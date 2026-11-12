@@ -20,7 +20,9 @@ export default `
     &[data-theme='dark'] { color-scheme: dark; }
     
     --width: ${size(80)};
+    --min-width: min(100%, ${cssVar('width')});
     --max-width: ${size(160)};
+
     scroll-padding-bottom: calc(${space('xl')} + ${tapSize()} + ${space('sm')});
   }
 
