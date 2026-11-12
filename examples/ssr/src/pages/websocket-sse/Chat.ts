@@ -78,7 +78,7 @@ const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
 
         > div {
           ${flex({ direction: 'column', gap: space('sm') })};
-          width: ${cssVar('width')};
+          width: ${cssVar('min-width')};
 
           > p:last-child {
             ${fill('bg-raised')};
