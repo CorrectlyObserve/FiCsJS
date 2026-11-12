@@ -70,7 +70,6 @@ const spa: FiCsRouter.Spa<Data> = {
   pathname: paths.WS_SSE,
   children: [Link(), Chat, Activities, Stream],
   data: () => ({ userName: '', messages: [], activities: [] }),
-  className: ({ data: { pathname } }) => (pathname === paths.WS_SSE ? 'chat' : ''),
   props,
   css,
   options
