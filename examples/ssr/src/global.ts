@@ -46,8 +46,6 @@ export default `
 
       @container ${layout('compact')} { padding-block: ${space('md')}; }
 
-      &:has(> .chat) { min-height: 0; }
-
       > p { margin-block-end: ${space('md')}; text-align: center; }
     }
 
