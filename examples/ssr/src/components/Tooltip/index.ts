@@ -16,6 +16,8 @@ export const tooltipMarkup = <D extends object, P extends object>(
 export const tooltipCss = (placement: Placement = 'top'): string => `
   ${tooltipAnchor()}
 
+  &:has(> #${TOOLTIP_ID}):active { scale: none; }
+
   > #${TOOLTIP_ID} { ${tooltip({ placement })}; white-space: normal; }
 
   &:is(:hover, :focus-visible) > #${TOOLTIP_ID} { opacity: 1; visibility: visible; }
