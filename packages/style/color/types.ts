@@ -48,6 +48,8 @@ export declare namespace Color {
 
   type RgbArray = [r: number, g: number, b: number]
 
+  type Role = 'text' | 'border'
+
   type Theme = Neutral | BgFill | 'text-muted'
 
   type Tone = 'light' | 'dark'
