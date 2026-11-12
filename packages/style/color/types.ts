@@ -26,6 +26,8 @@ export declare namespace Color {
 
   type Main = (typeof MAIN_COLOR_TOKENS)[number]
 
+  type Neutral = (typeof NEUTRAL_COLOR_TOKENS)[number]
+
   interface Oklab {
     l: number
     a: number
