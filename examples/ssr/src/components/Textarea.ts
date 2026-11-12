@@ -43,7 +43,7 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = `
   :host {
-    width: min(100%, ${cssVar('width')});
+    width: ${cssVar('min-width')};
 
     div {
       ${flex({ direction: 'column', gap: space('sm') })}
