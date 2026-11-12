@@ -48,11 +48,7 @@ export declare namespace Color {
 
   type RgbArray = [r: number, g: number, b: number]
 
-  type Theme =
-    | (typeof COLOR_TOKENS)[number]
-    | `${(typeof MAIN_COLOR_TOKENS)[number]}-text`
-    | Exclude<BgFill, 'bg'>
-    | 'text-muted'
+  type Theme = Neutral | BgFill | 'text-muted'
 
   type Tone = 'light' | 'dark'
 }
