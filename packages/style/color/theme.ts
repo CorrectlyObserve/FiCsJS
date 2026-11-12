@@ -4,7 +4,14 @@ import { colorMix, cssVar, toVar } from '../others'
 import { BG_FILLS, BLENDS, COLOR_TOKENS, DESCENDANTS_SELECTOR, MUTE_RATIO_VAR } from './constants'
 import { toTextColor } from './math'
 import { adjustLightness, clampLightness, fadeRatio, mixTowardFill } from './modifier'
-import { BACKGROUND_DELTAS, BASE_COLORS, RATIOS, LIGHTNESS_CLAMP, TEXTS } from './tokens'
+import {
+  BACKGROUND_DELTAS,
+  BASE_COLORS,
+  LIGHTNESS_CLAMP,
+  MAIN_RATIOS,
+  RATIOS,
+  TEXTS
+} from './tokens'
 import type { Color } from './types'
 
 const toColor = (token: keyof typeof BASE_COLORS): string =>
