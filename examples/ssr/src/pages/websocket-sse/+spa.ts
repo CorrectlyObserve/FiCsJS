@@ -1,12 +1,12 @@
 import type { FiCsRouter } from 'ficsjs/router'
 import { flex, space } from 'ficsjs/style'
 import Link from '@/components/Link'
+import { toActivity } from '@/domain/activity'
 import type { Message } from '@/domain/message'
+import { paths } from '@/domain/path'
 import Activities from '@/pages/websocket-sse/Activities'
 import Chat from '@/pages/websocket-sse/Chat'
 import Stream from '@/pages/websocket-sse/Stream'
-import { toActivity } from '@/domain/activity'
-import { paths } from '@/domain/path'
 
 export interface Data {
   readonly userName: string
