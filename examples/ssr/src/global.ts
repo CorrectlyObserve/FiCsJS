@@ -26,7 +26,7 @@ export default `
     scroll-padding-bottom: calc(${space('xl')} + ${tapSize()} + ${space('sm')});
   }
 
-  *, *::before, *::after { padding: 0; margin: 0; box-sizing: border-box; }
+  *, *::before, *::after { margin: 0; box-sizing: border-box; }
 
   body {
     ${flex({ direction: 'column' })}
@@ -66,6 +66,8 @@ export default `
   }
 
   h3 { ${textSize('lg')}; }
+
+  button, input, textarea, select, ul, fieldset { padding: 0; }
 
   button {
     ${flex({ inline: true, center: 'xy' })};
