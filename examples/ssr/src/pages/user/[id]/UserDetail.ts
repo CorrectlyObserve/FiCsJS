@@ -15,6 +15,7 @@ interface Status {
 
 interface Data {
   readonly user: User | null
+  readonly isSelf: boolean
   draft: User | null
   status: Status
   method: 'PUT' | 'PATCH'
@@ -63,6 +64,7 @@ const html: FiCs.Html<Data, {}> = ({
 }) => {
   const {
     user,
+    isSelf,
     draft,
     status: { notice, phase }
   } = data
@@ -78,6 +80,7 @@ const html: FiCs.Html<Data, {}> = ({
           placeholder: 'Sample Name',
           value: resolvedUser.name,
           hint: 'Enter <strong>`expose test`</strong> to simulate a secure internal server error.',
+          autocomplete: isSelf ? 'name' : 'off',
           validate: validateName
         })}
         ${input.setIndividualProps('email', {
@@ -86,6 +89,7 @@ const html: FiCs.Html<Data, {}> = ({
           placeholder: 'sample@example.com',
           type: 'email',
           value: resolvedUser.email,
+          autocomplete: isSelf ? 'email' : 'off',
           validate: validateEmail
         })}
         <div>
@@ -183,7 +187,13 @@ const actions: FiCs.Actions<Data, {}> = {
 export default fics<Data, {}>({
   name: 'user-detail',
   children: [Input(), Button(), Link()],
-  data: () => ({ user: null, draft: null, status: { notice: '', phase: 'idle' }, method: 'PUT' }),
+  data: () => ({
+    user: null,
+    isSelf: false,
+    draft: null,
+    status: { notice: '', phase: 'idle' },
+    method: 'PUT'
+  }),
   props,
   html,
   css,
