@@ -30,7 +30,8 @@ const BG_BASE: readonly [string, string] = [toColor('bg-light'), toColor('bg-dar
     [MUTE_RATIO_VAR]: '100%'
   }
 
-const COLORS = {} as Record<Color.Theme, string>
+const COLORS = {} as Record<Color.Fill | Color.Theme, string>,
+  MAIN_COLORS = {} as Record<Color.Main, Record<Color.Role, string>>
 
 /** @remarks `light` fades like a border, as a thin border reads weaker on a light page. */
 const fadeText = (colors: [string, string]): string =>
