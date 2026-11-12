@@ -1,4 +1,4 @@
-import { COLOR_TOKENS, MAIN_COLOR_TOKENS } from './constants'
+import { COLOR_TOKENS, MAIN_COLOR_TOKENS, NEUTRAL_COLOR_TOKENS } from './constants'
 
 export declare namespace Color {
   type BgFill = 'bg' | 'bg-sunken' | 'bg-raised'
