@@ -90,7 +90,7 @@ export default `
 
   fieldset {
     ${flex({ direction: 'column', gap: space('md') })};
-    width: min(100%, ${cssVar('width')});
+    width: ${cssVar('min-width')};
     margin-block-end: ${space('md')};
     border: 0;
 
