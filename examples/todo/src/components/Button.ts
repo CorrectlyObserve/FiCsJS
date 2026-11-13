@@ -59,12 +59,12 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, fixedUnit } }) => `
       &[data-type="selected"], &[data-type="delete"] { text-underline-offset: ${stroke('md')}; }
 
       &[data-type="selected"] {
-        color: ${color('primary-text')};
+        color: ${color('text', 'primary')};
         font-weight: ${fontWeight('bold')};
         text-decoration: underline;
       }
 
-      &[data-type="delete"] { color: ${color('danger-text')}; }
+      &[data-type="delete"] { color: ${color('text', 'danger')}; }
 
       &:has(span) {
         ${flex({ inline: true, center: 'y', gap: space('sm') })}
