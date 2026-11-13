@@ -48,7 +48,10 @@ const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement, isFull } }) => {
         border: ${stroke('sm')} solid ${color('border')};
         white-space: nowrap;
 
-        &[data-variant='danger'] { color: ${color('danger-text')}; border-color: ${color('danger')}; }
+        &[data-variant='danger'] {
+          color: ${color('text', 'danger')};
+          border-color: ${color('border', 'danger')};
+        }
       }
     }
   `
