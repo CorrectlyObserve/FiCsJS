@@ -135,7 +135,7 @@ export const fill = (paint: Color.Fill | Color.Gradient): string => {
       `${FILL_VAR}: ${
         isGradient(paint)
           ? TEXTS[convertStr(`on-${paint.text}`, 'camel') as keyof typeof TEXTS]
-          : color(paint)
+          : COLORS[paint]
       };`,
       /** @remarks Preserves the default hover for bg fills, as inverted colors are hard to see. */
       Object.keys(FILL_VARS)
