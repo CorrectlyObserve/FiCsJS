@@ -90,17 +90,10 @@ for (const token of COLOR_TOKENS)
 
     case 'border':
     case 'divider':
-      COLORS[token] = colorMix({
-        colors: [
-          mixTowardFill({
-            text: TEXT,
-            fill: FILL,
-            ratio: RATIOS[token],
-            isUnmutedOnFill: token === 'border'
-          }),
-          FILL
-        ],
-        ratio: fadeRatio()
+      COLORS[token] = fadeBorder({
+        text: TEXT,
+        ratio: RATIOS[token],
+        isUnmutedOnFill: token === 'border'
       })
       break
 
