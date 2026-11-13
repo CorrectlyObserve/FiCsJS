@@ -40,7 +40,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
     min-height: ${tapSize()};
     color: ${color ?? colorOf('text')};
     
-    &[aria-pressed="true"], &[aria-expanded="true"] { color: ${colorOf('primary-text')}; }
+    &[aria-pressed="true"], &[aria-expanded="true"] { color: ${colorOf('text', 'primary')}; }
     &[draggable="true"] { ${interactive({ hover: 'cursor: grab;', active: 'cursor: grabbing;' })} }
 
     > span { ${rect(8, 8)}; ${maskIcon(svg)}; }
