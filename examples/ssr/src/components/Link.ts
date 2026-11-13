@@ -26,7 +26,7 @@ const css: FiCs.Css<{}, Props> = () => `
       border: ${stroke('sm')} solid ${color('border')};
       text-decoration: none;
 
-      &[aria-current='page'] { opacity: 0.5; }
+      &[aria-current='page'] { color: ${color('text-muted')}; }
     }
   }
 `
