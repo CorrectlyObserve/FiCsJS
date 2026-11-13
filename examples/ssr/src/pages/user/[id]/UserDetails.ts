@@ -185,7 +185,7 @@ const actions: FiCs.Actions<Data, {}> = {
 }
 
 export default fics<Data, {}>({
-  name: 'user-detail',
+  name: 'user-details',
   children: [Input(), Button(), Link()],
   data: () => ({
     user: null,
