@@ -3,7 +3,7 @@ import { calc, color, flex, layout, size, space } from 'ficsjs/style'
 import { $lang, type Lang } from '@/domain/lang'
 import { parseTaskPath, type TaskPath } from '@/domain/path'
 import TaskList from '@/pages/_task/List'
-import TaskDetail from '@/pages/_task/Details'
+import TaskDetails from '@/pages/_task/Details'
 import NotFound from '@/pages/NotFound'
 import { getAllTasks, getTask, type Task as TaskType } from '@/domain/task'
 
@@ -114,7 +114,7 @@ const hooks: FiCsRouter.Hooks<Data> = {
 }
 
 const spa: FiCsRouter.Spa<Data> = {
-  children: [TaskList, TaskDetail, NotFound],
+  children: [TaskList, TaskDetails, NotFound],
   data: () => ({ lang: $lang.get(), tasks: [], draft: undefined }),
   props,
   css,
