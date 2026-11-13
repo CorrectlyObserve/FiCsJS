@@ -77,9 +77,9 @@ const css: FiCs.Css<Data, Props> = ({ form: { isUserInvalid } }) => `
         (isUserInvalid &&
           `
             input { 
-              border-color: ${color('danger')};
+              border-color: ${color('border', 'danger')};
 
-              + small { color: ${color('danger-text')}; }
+              + small { color: ${color('text', 'danger')}; }
             }
           `) ||
         ''
