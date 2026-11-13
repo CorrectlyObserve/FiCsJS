@@ -55,7 +55,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixe
       ''
     }
 
-    &[data-variant='danger'] { color: ${color('danger-text')}; }
+    &[data-variant='danger'] { color: ${color('text', 'danger')}; }
 
     > span.icon { ${rect(8, 8)}; ${maskIcon(svg)}; }
   }
