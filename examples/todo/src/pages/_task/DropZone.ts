@@ -23,7 +23,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { height } }) => `
       ${fill('bg-raised')};
       height: ${height}px;
       margin-block: ${space('sm')};
-      border: ${stroke('md')} dashed ${color('primary-text')};
+      border: ${stroke('md')} dashed ${color('border', 'primary')};
     }
   }
 `
