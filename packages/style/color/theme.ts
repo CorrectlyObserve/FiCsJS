@@ -108,15 +108,24 @@ for (const token of COLOR_TOKENS)
       break
     }
 
-    default:
+    default: {
+      const mainText: string = clampLightness(toColor(token), LIGHTNESS_CLAMP.text)
+
       COLORS[token] = colorMix({ colors: [toColor(token)], ratio: fadeRatio() })
-      COLORS[`${token}-text`] = fadeText([
-        clampLightness(toColor(token), LIGHTNESS_CLAMP.text),
-        FILL
-      ])
+      MAIN_COLORS[token] = {
+        text: fadeText([mainText, FILL]),
+        border: fadeBorder({ text: mainText, ratio: MAIN_RATIOS.border, isUnmutedOnFill: true })
+      }
+    }
   }
 
-export const color = (token: Color.Theme | 'focus'): string => {
+/** @remarks Pairs a main color with text or border, as only those have a checked contrast. */
+export const color: {
+  (token: Color.Theme | 'focus'): string
+  (role: Color.Role, main: Color.Main): string
+} = (token: Color.Theme | 'focus', main?: Color.Main): string => {
+  if (main) return MAIN_COLORS[main][token as Color.Role]
+
   if (token === 'focus')
     return toVar({
       name: 'color',
