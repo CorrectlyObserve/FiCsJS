@@ -1,3 +1,3 @@
-import UserDetail from '@/pages/user/[id]/UserDetail'
+import UserDetails from '@/pages/user/[id]/UserDetails'
 
-UserDetail.describe()
+UserDetails.describe()
