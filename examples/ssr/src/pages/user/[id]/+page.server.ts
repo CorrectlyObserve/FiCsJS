@@ -1,7 +1,7 @@
 import type { FiCsRouter } from 'ficsjs/router/server-only'
 import { toUserId, type User } from '@/domain/user'
 import { NOT_FOUND_STATUS } from '@/domain/status'
-import UserDetail from '@/pages/user/[id]/UserDetail'
+import UserDetails from '@/pages/user/[id]/UserDetails'
 import { requireUser } from '@/server/guards'
 import { findUser } from '@/server/users'
 
@@ -14,5 +14,5 @@ export default async (ctx: FiCsRouter.MiddlewareCtx): Promise<string | FiCsRoute
 
   if (!user) return ctx.deny({ code: NOT_FOUND_STATUS })
 
-  return UserDetail.toString({ data: { user, isSelf: user.id === selfId } })
+  return UserDetails.toString({ data: { user, isSelf: user.id === selfId } })
 }
