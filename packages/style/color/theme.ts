@@ -120,10 +120,9 @@ for (const token of COLOR_TOKENS)
   }
 
 /** @remarks Pairs a main color with text or border, as only those have a checked contrast. */
-export const color: {
-  (token: Color.Theme | 'focus'): string
-  (role: Color.Role, main: Color.Main): string
-} = (token: Color.Theme | 'focus', main?: Color.Main): string => {
+export function color(token: Color.Theme | 'focus'): string
+export function color(role: Color.Role, main: Color.Main): string
+export function color(token: Color.Theme | 'focus', main?: Color.Main): string {
   if (main) return MAIN_COLORS[main][token as Color.Role]
 
   if (token === 'focus')
