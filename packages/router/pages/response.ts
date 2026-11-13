@@ -4,9 +4,9 @@ import { statusCodes, VIEW_TRANSITION_STYLE } from '../constants'
 import { injectMeta, renderMeta, resolveMeta } from '../meta'
 import type { Routing } from '../types'
 
-export function respond(
+export const respond = (
   arg: { html: string; status: Routing.Status.Code; noStore?: boolean } | string
-): Response {
+): Response => {
   if (typeof arg === 'string')
     return new Response(null, { status: statusCodes.REDIRECT, headers: { location: arg } })
 
