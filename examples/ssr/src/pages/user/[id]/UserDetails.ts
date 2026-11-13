@@ -119,7 +119,7 @@ const css: FiCs.Css<Data, {}> = ({
   data: {
     status: { phase }
   }
-}) => `p { text-align: center; ${(phase === 'error' && `color: ${color('danger')}`) || ''}; }`
+}) => `p { text-align: center; ${(phase === 'error' && `color: ${color('text', 'danger')}`) || ''}; }`
 
 const hooks: FiCs.Hooks<Data, {}> = {
   created: ({ data, queryCache, signal }) => {
