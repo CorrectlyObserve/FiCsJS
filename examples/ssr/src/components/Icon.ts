@@ -13,6 +13,7 @@ export interface Props {
   ariaLabel: string
   variant?: 'neutral' | 'danger'
   isDisabled?: boolean
+  isExpanded?: boolean
   tooltip?: string
   tooltipPlacement?: Placement
   isBottomFixed?: boolean
@@ -20,16 +21,20 @@ export interface Props {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { ariaLabel, variant = 'neutral', isDisabled, tooltip },
+  props: { ariaLabel, variant = 'neutral', isDisabled, isExpanded, tooltip },
   template,
   isBrowser,
-  attributes: { disabled }
+  attributes: {
+    a11y: { expanded },
+    disabled
+  }
 }) => template`
   <button
     type="button"
     aria-label="${ariaLabel}"
     data-variant="${variant}"
     ${disabled(!isBrowser || isDisabled)}
+    ${expanded(isExpanded)}
     ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
   >
     <span class="icon"></span>
