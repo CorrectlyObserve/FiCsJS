@@ -55,7 +55,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
     p {
       &:first-of-type {
         ${textSize('sm')}
-        color: ${color('danger-text')};
+        color: ${color('text', 'danger')};
         text-align: start;
 
         &:not(:empty) { margin-block-end: ${space('sm')}; }
@@ -64,7 +64,7 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
 
     input { height: ${tapSize()}; }
 
-    ${isError && error ? `input { border-color: ${color('danger')}; }` : ''}
+    ${isError && error ? `input { border-color: ${color('border', 'danger')}; }` : ''}
   }
 `
 
