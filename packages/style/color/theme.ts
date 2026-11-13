@@ -37,6 +37,21 @@ const COLORS = {} as Record<Color.Fill | Color.Theme, string>,
 const fadeText = (colors: [string, string]): string =>
   `light-dark(${[1, 0.6].map(ratio => colorMix({ colors, ratio: fadeRatio(ratio) })).join(', ')})`
 
+/** @remarks Mixes a text color into the fill and fades it out when disabled. */
+const fadeBorder = ({
+  text,
+  ratio,
+  isUnmutedOnFill
+}: {
+  text: string
+  ratio: number
+  isUnmutedOnFill: boolean
+}): string =>
+  colorMix({
+    colors: [mixTowardFill({ text, fill: FILL, ratio, isUnmutedOnFill }), FILL],
+    ratio: fadeRatio()
+  })
+
 for (const token of COLOR_TOKENS)
   switch (token) {
     case 'bg':
