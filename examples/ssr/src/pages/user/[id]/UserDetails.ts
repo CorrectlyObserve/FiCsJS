@@ -96,7 +96,7 @@ const html: FiCs.Html<Data, {}> = ({
           ${(['PUT', 'PATCH'] as Data['method'][]).map(method =>
             Button.setIndividualProps(method.toLowerCase(), {
               text: `Save (${method})`,
-              tooltip: method === 'PUT' ? 'Save all changes' : 'Save the name only',
+              tooltip: method === 'PUT' ? 'Save all changes.' : 'Save the name only.',
               isFull: true,
               click: () => (data.method = method)
             })
