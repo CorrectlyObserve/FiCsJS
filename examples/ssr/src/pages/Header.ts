@@ -30,7 +30,7 @@ interface Data {
 }
 
 const props: FiCs.Props<Data, {}> = {
-  descendants: ({ children: { button } }) => button,
+  descendants: ({ children: { Button } }) => Button,
   values: () => ({ isFull: true })
 }
 

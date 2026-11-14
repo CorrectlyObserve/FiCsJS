@@ -16,7 +16,7 @@ interface Props {
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendants: ({ children: { textarea } }) => textarea,
+    descendants: ({ children: { Textarea } }) => Textarea,
     values: ({ data }) => ({
       id: 'message',
       label: 'Message',
@@ -27,7 +27,7 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendants: ({ children: { button } }) => button,
+    descendants: ({ children: { Button } }) => Button,
     values: ({ data: { comment } }) => ({ text: 'Send', isDisabled: comment.trim() === '' })
   }
 ]
