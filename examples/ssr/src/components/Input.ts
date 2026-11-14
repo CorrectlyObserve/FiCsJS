@@ -13,6 +13,7 @@ interface Props {
   placeholder: string
   value?: string
   type?: string
+  autocomplete?: string
   hint?: string
   isRequired?: boolean
   input?: (value: string) => void
@@ -24,14 +25,15 @@ export const toValue = (value: Data['value'], propsValue: Props['value']): strin
 
 const html: FiCs.Html<Data, Props> = ({
   data: { describedBy, value, error },
-  props: { id, label, placeholder, value: propsValue, type, hint, isRequired },
+  props: { id, label, placeholder, value: propsValue, type, hint, autocomplete, isRequired },
   form: { isDisabled, isUserInvalid },
   template,
   unsafeHtml,
   attributes: {
     a11y: { ariaHidden, invalid },
     disabled,
-    formAnchor
+    formAnchor,
+    required
   }
 }) => template`
   <div>
@@ -41,15 +43,17 @@ const html: FiCs.Html<Data, Props> = ({
       placeholder="${placeholder}"
       value="${toValue(value, propsValue)}"
       type="${type ?? 'text'}"
-      ${isUserInvalid && `aria-describedby="${id}-${describedBy}"`}
+      ${autocomplete && `autocomplete="${autocomplete}"`}
+      ${(hint || isUserInvalid) && `aria-describedby="${id}-${describedBy}"`}
       ${disabled(isDisabled)}
+      ${required(isRequired)}
       ${invalid(isUserInvalid)}
       ${formAnchor}
     />
     ${
       (hint || isUserInvalid) &&
       template`
-        <small id="${id}-${describedBy}">${error ?? unsafeHtml(hint ?? '')}</small>
+        <small id="${id}-${describedBy}">${isUserInvalid ? error : unsafeHtml(hint ?? '')}</small>
       `
     }
   </div>
