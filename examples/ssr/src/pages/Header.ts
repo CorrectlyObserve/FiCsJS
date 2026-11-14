@@ -72,33 +72,36 @@ const html: FiCs.Html<Data, {}> = ({
       ${
         data.hasLoggedIn &&
         template`
-          ${icon.setIndividualProps('menu', {
-            svg: Menu,
-            ariaLabel: 'Menu',
-            click: () => (data.isMenuOpened = !data.isMenuOpened)
-          })}
-          <div ${show(data.isMenuOpened)}></div>
-          <nav ${show(data.isMenuOpened)} aria-label="Pages">
-            <ul role="list">
-              ${MENU.map(
-                ({ href, name }) => template`
-                  <li key="${href}">${link.setIndividualProps(href, { href, text: name })}</li>
+          <div class="menu">
+            ${Icon.setIndividualProps('menu', {
+              svg: Menu,
+              ariaLabel: 'Menu',
+              isExpanded: data.isMenuOpened,
+              click: () => (data.isMenuOpened = !data.isMenuOpened)
+            })}
+            <div ${show(data.isMenuOpened)}></div>
+            <nav ${show(data.isMenuOpened)} aria-label="Pages">
+              <ul role="list">
+                ${MENU.map(
+                  ({ href, name }) => template`
+                    <li key="${href}">${Link.setIndividualProps(href, { href, text: name })}</li>
+                  `
+                )}
+              </ul>
+              <hr />
+              ${FORMS.map(
+                ({ id, action, text, description }, index) => template`
+                  <form method="post" action="${action}" key="${id}">
+                    ${Button.setIndividualProps(id, {
+                      text,
+                      tooltip: description,
+                      tooltipPlacement: index === 0 ? 'top' : 'bottom'
+                    })}
+                  </form>
                 `
               )}
-            </ul>
-            <hr />
-            ${FORMS.map(
-              ({ id, action, text, description }, index) => template`
-                <form method="post" action="${action}" key="${id}">
-                  ${button.setIndividualProps(id, {
-                    text,
-                    tooltip: description,
-                    tooltipPlacement: index === 0 ? 'top' : 'bottom'
-                  })}
-                </form>
-              `
-            )}
-          </nav>
+            </nav>
+          </div>
         `
       }
     </header>
@@ -128,48 +131,46 @@ const css: FiCs.Css<Data, {}> = `
       + * { justify-self: end; }
     }
 
-    div {
-      position: fixed;
-      inset: 0;
-      z-index: 10;
-    }
+    .menu {
+      > div { position: fixed; inset: 0; z-index: 10; }
 
-    nav {
-      ${fade(motion())};
-      ${fill('bg-raised')};
-      ${radius('lg')};
-      position: absolute;
-      top: calc(${tapSize()} + ${space('sm')} * 2);
-      right: ${space('lg')};
-      padding: ${space('md')};
-      border: ${stroke('sm')} solid ${color('border')};
-      box-shadow: ${size(1)} ${size(1)} ${size(3)} ${color('shadow')};
-      z-index: 20;
+      > nav {
+        ${fade(motion())};
+        ${fill('bg-raised')};
+        ${radius('lg')};
+        position: absolute;
+        top: calc(${tapSize()} + ${space('sm')} * 2);
+        right: ${space('lg')};
+        padding: ${space('md')};
+        border: ${stroke('sm')} solid ${color('border')};
+        box-shadow: ${size(1)} ${size(1)} ${size(3)} ${color('shadow')};
+        z-index: 20;
 
-      @container ${layout('compact')} { right: ${space('md')}; }
+        @container ${layout('compact')} { right: ${space('md')}; }
 
-      > ul {
-        list-style: none;
+        > ul {
+          list-style: none;
 
-        li {
-          ${textSize('md', true)};
+          li {
+            ${textSize('md', true)};
+            margin-block-end: ${space('sm')};
+
+            &:last-child { margin-block-end: 0; }
+          }
+        }
+
+        hr {
+          width: 100%; 
+          border: none;
+          border-top: ${stroke('sm')} solid ${color('divider')};
+          margin-block: ${space('md')};
+        }
+
+        form {
           margin-block-end: ${space('sm')};
 
           &:last-child { margin-block-end: 0; }
         }
-      }
-
-      hr {
-        width: 100%; 
-        border: none;
-        border-top: ${stroke('sm')} solid ${color('divider')};
-        margin-block: ${space('md')};
-      }
-
-      form {
-        margin-block-end: ${space('sm')};
-
-        &:last-child { margin-block-end: 0; }
       }
     }
   }
