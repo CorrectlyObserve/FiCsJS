@@ -1,8 +1,8 @@
-import { normalizePath, toLowerFirst } from '../../../core/helpers'
+import { convertStr, normalizePath, toLowerFirst } from '../../../core/helpers'
 import { isDynamicPath } from '../../helpers'
 import type { Routing } from '../../types'
 import { fileNames } from '../constants'
-import { buildRoute, cleanPath, isValidFileType, toPascal } from '../helpers'
+import { buildRoute, cleanPath, isValidFileType } from '../helpers'
 
 const rankOf = (route: string): number => (route.includes('*') ? 2 : isDynamicPath(route) ? 1 : 0)
 
@@ -41,4 +41,4 @@ export const toRoute = (filePath: string, extensions: Routing.Extensions): strin
 }
 
 export const toSpaAlias = (dir: string, role: 'Spa' | 'SpaServer'): string =>
-  `__${toLowerFirst(`${toPascal(dir)}${role}`)}`
+  `__${toLowerFirst(`${convertStr(dir, 'pascal')}${role}`)}`
