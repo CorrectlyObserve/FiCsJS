@@ -20,7 +20,7 @@ const props: FiCs.Props<Data, Props> = [
     values: ({ data }) => ({
       id: 'message',
       label: 'Message',
-      placeholder: 'Please enter your message',
+      placeholder: 'Message',
       hint: 'Press the Shift + Enter keys to send.',
       isSrOnly: true,
       input: (value: string) => (data.comment = value)
@@ -42,7 +42,7 @@ const html: FiCs.Html<Data, Props> = ({
 }) => template`
   <section>
     <h3>Chat</h3>
-    <div ${liveLog}>
+    <div ${liveLog} tabindex="0" aria-label="Messages">
       ${messages.map(({ userName, comment }, index) => {
         const isMine = userName === currentUserName
 
@@ -60,19 +60,23 @@ const html: FiCs.Html<Data, Props> = ({
 
 const css: FiCs.Css<Data, Props> = ({ a11y: { liveLog } }) => `
   :host {
-    ${flex()}; flex-grow: 1; min-height: 0;
+    ${flex()}; flex-grow: 1;
 
     section {
       ${flex({ direction: 'column', gap: space('md') })};
       flex-grow: 1;
-      min-height: 0;
 
       div${liveLog}, form { width: min(100%, ${cssVar('max-width')}); }
 
       div${liveLog} {
+        --name-height-with-gap: calc(1lh + ${space('sm')});
+        --one-line-message-height: calc(1lh + ${space('sm')} * 2);
+        
         ${flex({ direction: 'column', gap: space('md') })}
+        position: relative;
+        contain: size;
         flex-grow: 1;
-        min-height: 0;
+        min-height: calc(${cssVar('name-height-with-gap')} + ${cssVar('one-line-message-height')});
         overflow-y: auto;
         overscroll-behavior: contain;
 
