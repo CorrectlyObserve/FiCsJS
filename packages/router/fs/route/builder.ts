@@ -4,7 +4,7 @@ import { prependSlash } from '../../helpers'
 import type { Routing } from '../../types'
 import { fileNames, prefixes } from '../constants'
 import { getAllMiddlewares } from '../middleware'
-import { cleanPath, getDirName, getFiles, isValidFileType, toPascal, toSpecifier } from '../helpers'
+import { cleanPath, getDirName, getFiles, isValidFileType, toSpecifier } from '../helpers'
 import { findClosestDir, findFileSrc } from './finder'
 import { compareRoutes, toRoute } from './path'
 
@@ -178,7 +178,7 @@ export const buildSpa = ({
       )
 
   for (const dir of dirs) {
-    spaAlias.set(dir, `${toPascal(dir)}Router`)
+    spaAlias.set(dir, `${convertStr(dir, 'pascal')}Router`)
 
     const error: string = `The nested SPA "${dir}/${fileNames.SPA}" is not supported...`
     let parent: string = dir
