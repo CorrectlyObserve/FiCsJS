@@ -1,6 +1,5 @@
 import type { FiCs } from 'ficsjs'
 import {
-  calc,
   color,
   fill,
   flex,
@@ -17,7 +16,7 @@ import { columnWidth } from '@/styles/theme'
 export const globalCss: FiCs.GlobalCss = `
   :root {
     color-scheme: dark;
-    scroll-padding-block-start: ${calc(`${size(8 + 10)} + ${space('sm')}`)};
+    scroll-padding-block-start: calc(${size(8 + 10)} + ${space('sm')});
   }
 
   body {

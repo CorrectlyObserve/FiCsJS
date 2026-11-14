@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, flex, space, stroke, tapSize } from 'ficsjs/style'
+import { flex, space, stroke, tapSize } from 'ficsjs/style'
 
 interface Props {
   id: string
@@ -33,8 +33,8 @@ const css: FiCs.Css<{}, Props> = `
     label { padding-block-end: ${space('sm')}; }
 
     textarea {
-      height: ${calc(`${tapSize()} + 5lh`)};
-      padding-block: ${calc(`(${tapSize()} - 2 * ${stroke('sm')} - 1lh) / 2`)};
+      height: calc(${tapSize()} + 5lh);
+      padding-block: calc((${tapSize()} - 2 * ${stroke('sm')} - 1lh) / 2);
       resize: none;
     }
   }

@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, color, cssVar, fill, flex, oklch, radius, size, space, stroke } from 'ficsjs/style'
+import { color, cssVar, fill, flex, oklch, radius, size, space, stroke } from 'ficsjs/style'
 import Icon from '@/components/Icon'
 import { X } from 'lucide-static'
 
@@ -55,8 +55,8 @@ const css: FiCs.Css<Data, Props> = `
 
       > div {
         position: absolute;
-        top: ${calc(`${space('sm')} * -1`)};
-        right: ${calc(`${space('sm')} * -1`)};
+        top: calc(${space('sm')} * -1);
+        right: calc(${space('sm')} * -1);
       }
     }
 

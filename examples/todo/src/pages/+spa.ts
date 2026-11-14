@@ -1,5 +1,5 @@
 import type { FiCsRouter } from 'ficsjs/router'
-import { calc, color, flex, layout, size, space } from 'ficsjs/style'
+import { color, flex, layout, size, space } from 'ficsjs/style'
 import { $lang, type Lang } from '@/domain/lang'
 import { parseTaskPath, type TaskPath } from '@/domain/path'
 import TaskList from '@/pages/_task/List'
@@ -81,7 +81,7 @@ const css: FiCsRouter.Css<Data> = `
     flex-grow: 1;
     container-type: inline-size;
     width: 100%;
-    padding-block: ${calc(`${space('lg')} - ${space('sm')}`)} ${space('lg')};
+    padding-block: calc(${space('lg')} - ${space('sm')}) ${space('lg')};
 
     @container ${layout('expanded')} {
       .task-list + .task-details {

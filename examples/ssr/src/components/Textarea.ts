@@ -1,5 +1,5 @@
 import { fics, type FiCs } from 'ficsjs'
-import { calc, cssVar, flex, space, stroke, tapSize } from 'ficsjs/style'
+import { cssVar, flex, space, stroke, tapSize } from 'ficsjs/style'
 import { toValue } from './Input'
 
 interface Data {
@@ -49,8 +49,8 @@ const css: FiCs.Css<Data, Props> = `
       ${flex({ direction: 'column', gap: space('sm') })}
 
       textarea {
-        height: ${calc(`${tapSize()} + 3lh`)};
-        padding-block: ${calc(`(${tapSize()} - 2 * ${stroke('sm')} - 1lh) / 2`)};
+        height: calc(${tapSize()} + 3lh);
+        padding-block: calc((${tapSize()} - 2 * ${stroke('sm')} - 1lh) / 2);
         resize: none;
       }
     }
