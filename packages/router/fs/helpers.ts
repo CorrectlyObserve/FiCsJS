@@ -169,11 +169,6 @@ export const toAbsolute = <T extends Record<string, string | undefined>>(
   return result
 }
 
-export const toPascal = (path: string): string =>
-  path
-    .split(/[-_/]/)
-    .reduce((acc, cur) => `${acc}${cur === '' ? '' : cur[0].toUpperCase() + cur.slice(1)}`, '')
-
 /** @remarks Portable Operating System Interface. */
 export const toPosix = (path: string): string => path.replace(/\\/g, '/')
 

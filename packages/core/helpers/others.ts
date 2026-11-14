@@ -20,9 +20,17 @@ const TEXT_ESCAPE_MAP: Record<string, string> = {
     [c.SINGLE_QUOTE]: '&apos;'
   }
 
-export const convertStr = (str: string, type: 'kebab' | 'camel'): string => {
+export const convertStr = (str: string, type: 'kebab' | 'camel' | 'pascal'): string => {
   if (type === 'kebab') return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-  return str.toLowerCase().replace(/[-_]([a-z])/g, (_, char) => char.toUpperCase())
+
+  const pascal: string = str
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(word => word !== '')
+    .map(word => word[0].toUpperCase() + word.slice(1))
+    .join('')
+
+  return type === 'pascal' ? pascal : toLowerFirst(pascal)
 }
 
 export const escape = (str: string, context: 'attr' | 'text-content' | 'xml' = 'attr'): string => {
