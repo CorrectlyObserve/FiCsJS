@@ -179,7 +179,15 @@ const css: FiCs.Css<Data, {}> = `
 const hooks: FiCs.Hooks<Data, {}> = { created: ({ data }) => (data.theme = getTheme()) }
 
 const actions: FiCs.Actions<Data, {}> = {
-  div: { click: ({ data }) => (data.isMenuOpened = false) }
+  '.menu': {
+    focusout: ({ data, event }) => {
+      const { currentTarget, relatedTarget }: FocusEvent = event as FocusEvent
+
+      if (relatedTarget instanceof Node && !(currentTarget as Node).contains(relatedTarget))
+        data.isMenuOpened = false
+    }
+  },
+  '.menu > div': { click: ({ data }) => (data.isMenuOpened = false) }
 }
 
 export default fics<Data, {}>({
