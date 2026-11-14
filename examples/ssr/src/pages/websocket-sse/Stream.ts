@@ -49,7 +49,7 @@ const html: FiCs.Html<Data, {}> = ({
 
 const css: FiCs.Css<Data, {}> = ` 
   p.accumulated {
-    max-width: ${cssVar('max-width')};
+    width: min(100%, ${cssVar('max-width')});
     line-height: 2;
     overflow-wrap: break-word;
   }
