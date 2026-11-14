@@ -15,20 +15,20 @@ interface Props {
 }
 
 const props: FiCs.Props<Data, Props> = {
-  descendants: ({ children: { icon } }) => icon,
+  descendants: ({ children: { Icon } }) => Icon,
   values: ({ data }) => ({ svg: X, ariaLabel: 'Close', click: () => (data.isClosing = true) })
 }
 
 const html: FiCs.Html<Data, Props> = ({
   data: { id },
   props: { author },
-  children: { icon },
+  children: { Icon },
   template
 }) => template`
   <dialog aria-labelledby="${id}">
     <header>
       <h3 id="${id}">Photo details</h3>
-      <div>${icon}</div>
+      <div>${Icon}</div>
     </header>
     <p>Created by ${author}</p>
   </dialog>

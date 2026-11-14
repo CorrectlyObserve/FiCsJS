@@ -27,18 +27,14 @@ const props: FiCs.Props<Data, {}> = [
   }
 ]
 
-const html: FiCs.Html<Data, {}> = ({
-  children: { select, button },
-  template,
-  isBrowser
-}) => template`
+const html: FiCs.Html<{}, {}> = ({ children: { Select, Button }, template, isBrowser }) => template`
   <form
     method="post"
     novalidate
     action="${viaLogin(isBrowser ? readRedirect(window.location.href) : null)}"
   >
-    ${select}
-    ${button}
+    ${Select}
+    ${Button}
   </form>
 `
 

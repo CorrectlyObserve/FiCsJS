@@ -14,14 +14,14 @@ interface Props {
 
 const SVGS = { copy: CopyPlus, up: ArrowUpFromLine, down: ArrowDownFromLine } as const
 const html: FiCs.Html<{}, Props> = ({
-  children: { icon },
+  children: { Icon },
   props: { labels, isCopyMode, buttonStates, switchCopyMode, move },
   template
 }) => template`
   ${(Object.keys(SVGS) as (keyof typeof SVGS)[]).map(button => {
     const isCopyButton = button === 'copy'
     return template`
-      ${icon.setIndividualProps(button, {
+      ${Icon.setIndividualProps(button, {
         svg: SVGS[button],
         ariaLabel: labels[button],
         isDisabled: buttonStates[button] === 'disabled',

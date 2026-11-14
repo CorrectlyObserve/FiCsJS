@@ -38,20 +38,20 @@ const syncDraft = async (
 
 const props: FiCsRouter.Props<Data> = [
   {
-    descendants: ({ children: { taskList, taskDetails, notFound } }) => [
-      taskList,
-      taskDetails,
-      notFound
+    descendants: ({ children: { TaskList, TaskDetails, NotFound } }) => [
+      TaskList,
+      TaskDetails,
+      NotFound
     ],
     values: ({ data: { lang } }) => ({ lang })
   },
   {
-    descendants: ({ children: { taskList, taskDetails, notFound } }) =>
-      [taskList, taskDetails, notFound].map(child => child.getChildren().loadState),
+    descendants: ({ children: { TaskList, TaskDetails, NotFound } }) =>
+      [TaskList, TaskDetails, NotFound].map(child => child.getChildren().LoadState),
     values: ({ data: { lang } }) => ({ texts: texts[lang] })
   },
   {
-    descendants: ({ children: { taskList } }) => taskList,
+    descendants: ({ children: { TaskList } }) => TaskList,
     values: ({ data }) => ({
       tasks: data.tasks,
       taskId:
@@ -60,7 +60,7 @@ const props: FiCsRouter.Props<Data> = [
     })
   },
   {
-    descendants: ({ children: { taskDetails } }) => taskDetails,
+    descendants: ({ children: { TaskDetails } }) => TaskDetails,
     values: ({ data }) => ({
       draft: data.draft,
       isQueryParam:

@@ -46,11 +46,11 @@ const deferredData: FiCs.DeferredData<Data, {}> = {
 
 const props: FiCs.Props<Data, {}> = [
   {
-    descendants: ({ children: { skeleton } }) => skeleton,
+    descendants: ({ children: { Skeleton } }) => Skeleton,
     values: () => ({ size: PHOTO_SIZE, radius: 'sm' })
   },
   {
-    descendants: ({ children: { icon } }) => icon,
+    descendants: ({ children: { Icon } }) => Icon,
     values: ({ data }) => {
       const nextAxis = data.axis === 'horizontal' ? 'vertical' : 'horizontal'
       return {
@@ -62,7 +62,7 @@ const props: FiCs.Props<Data, {}> = [
     }
   },
   {
-    descendants: ({ children: { dialog } }) => dialog,
+    descendants: ({ children: { Dialog } }) => Dialog,
     values: ({ data }) => ({
       author: data.photos.find(({ id }) => id === data.photoId)?.author ?? '',
       isOpen: data.isOpen,
@@ -72,7 +72,7 @@ const props: FiCs.Props<Data, {}> = [
 ]
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { skeleton, icon, dialog },
+  children: { Skeleton, Icon, Dialog },
   data: { axis, photos },
   template,
   activeApis: { isLoading },
@@ -83,20 +83,20 @@ const html: FiCs.Html<Data, {}> = ({
   scroll
 }) => {
   const skeletons = [...Array(UNIT_LENGTH)].map(
-    (_, index) => template`<div class="photo" key="skeleton-${index}">${skeleton}</div>`
+    (_, index) => template`<div class="photo" key="skeleton-${index}">${Skeleton}</div>`
   )
 
   if (photos.length === 0) return template`${skeletons}`
 
   return template`
-    ${icon}
+    ${Icon}
     <p ${liveStatus} ${srOnly}>The current scroll axis is ${axis}.</p>
     <div class="scroller">
       ${scroll(
         photos,
         ({ id, author, isLoaded }) => template`
           <div class="photo" key="${id}-container">
-            ${!isLoaded && skeleton}
+            ${!isLoaded && Skeleton}
             <button type="button" key="${id}" aria-haspopup="dialog" ${show(isLoaded)}>
               <img src="${photoUrl(id)}" alt="Image created by ${author}" key="${id}" />
             </button>
@@ -105,7 +105,7 @@ const html: FiCs.Html<Data, {}> = ({
       )}
       ${isLoading && skeletons}
     </div>
-    ${dialog}
+    ${Dialog}
   `
 }
 

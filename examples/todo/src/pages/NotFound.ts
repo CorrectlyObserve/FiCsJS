@@ -24,17 +24,17 @@ const MAX = 20 as const
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendants: ({ children: { loadState } }) => loadState,
+    descendants: ({ children: { LoadState } }) => LoadState,
     values: ({ deferredStates, reloadDeferredData }) => ({
       isError: deferredStates.texts.status === 'error',
       retry: () => reloadDeferredData()
     })
   },
-  { descendants: ({ children: { button } }) => button, values: () => ({ fixedUnit: 48 }) }
+  { descendants: ({ children: { Button } }) => Button, values: () => ({ fixedUnit: 48 }) }
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { button, loadState },
+  children: { Button, LoadState },
   data,
   deferredStates: {
     texts: { status }
@@ -44,7 +44,7 @@ const html: FiCs.Html<Data, Props> = ({
     a11y: { ariaHidden, liveStatus, srOnly }
   }
 }) => {
-  if (status !== 'done') return template`<p key="status" ${liveStatus} ${srOnly}></p>${loadState}`
+  if (status !== 'done') return template`<p key="status" ${liveStatus} ${srOnly}></p>${LoadState}`
 
   const { seconds, heading, countdown, pause, restart, buttonText, isCounting } = data
   return template`
@@ -52,12 +52,12 @@ const html: FiCs.Html<Data, Props> = ({
     <p key="status" ${liveStatus} ${srOnly}>${[5, 10, MAX].includes(seconds) && countdown(seconds)}</p>
     <p ${ariaHidden}>${countdown(seconds)}</p>
     <div>
-      ${button.setIndividualProps('back', {
+      ${Button.setIndividualProps('back', {
         type: 'gradient',
         buttonText,
         click: () => goto('/', { isWithoutHistory: true })
       })}
-      ${button.setIndividualProps('count', {
+      ${Button.setIndividualProps('count', {
         buttonText: isCounting ? pause : restart,
         click: () => (data.isCounting = !data.isCounting)
       })}

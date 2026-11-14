@@ -14,12 +14,12 @@ interface Data {
 }
 
 const props: FiCs.Props<Data, {}> = {
-  descendants: ({ children: { link } }) => link,
+  descendants: ({ children: { Link } }) => Link,
   values: () => ({ href: '/', text: 'FiCs ToDo' })
 }
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { link, button },
+  children: { Link, Button },
   data,
   template,
   attributes: {
@@ -31,9 +31,9 @@ const html: FiCs.Html<Data, {}> = ({
 
   return template`
     <header>
-      <h1>${link}</h1>
+      <h1>${Link}</h1>
       <div class="container">
-        ${button.setIndividualProps('toggle', {
+        ${Button.setIndividualProps('toggle', {
           isExpanded: isShown,
           buttonText: lang.toUpperCase(),
           click: () => (data.isShown = !data.isShown)
@@ -41,7 +41,7 @@ const html: FiCs.Html<Data, {}> = ({
         <div class="langs" role="group" ${ariaLabel(label)} ${show(isShown)}>
           ${langs.map(
             _lang => template`
-              ${button.setIndividualProps(_lang, {
+              ${Button.setIndividualProps(_lang, {
                 state: lang === _lang ? 'pressed' : undefined,
                 type: lang === _lang ? 'selected' : undefined,
                 buttonText: _lang.toUpperCase(),

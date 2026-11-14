@@ -11,7 +11,7 @@ interface Props {
 }
 
 const props: FiCs.Props<{}, Props> = {
-  descendants: ({ children: { button } }) => button,
+  descendants: ({ children: { Button } }) => Button,
   values: ({ props: { texts, retry } }) => ({
     type: 'gradient',
     fixedUnit: 32,
@@ -21,7 +21,7 @@ const props: FiCs.Props<{}, Props> = {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  children: { button },
+  children: { Button },
   props: { isError, texts },
   template,
   attributes: {
@@ -32,7 +32,7 @@ const html: FiCs.Html<{}, Props> = ({
   return template`
     <div class="${state}">
       <p ${isError ? liveStatus : 'role="alert"'} ${!isError && srOnly}>${texts[state]}</p>
-      ${isError ? template`${button}` : template`<div ${ariaHidden}></div>`}
+      ${isError ? template`${Button}` : template`<div ${ariaHidden}></div>`}
     </div>
   `
 }

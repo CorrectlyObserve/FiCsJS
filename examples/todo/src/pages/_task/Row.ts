@@ -16,7 +16,7 @@ interface Props {
 }
 
 const props: FiCs.Props<{}, Props> = {
-  descendants: ({ children: { link } }) => link,
+  descendants: ({ children: { Link } }) => Link,
   values: ({ props: { task, statuses, isQueryParam } }) => ({
     href: createTaskPath({ id: task.id, isQueryParam }),
     text: task.title,
@@ -26,17 +26,17 @@ const props: FiCs.Props<{}, Props> = {
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  children: { icon, link },
+  children: { Icon, Link },
   props: { task, texts, switchStatus, remove },
   template
 }) => template`
-  ${icon.setIndividualProps('status', {
+  ${Icon.setIndividualProps('status', {
     svg: task.completedAt ? CircleCheckBig : Circle,
     ariaLabel: texts[task.completedAt ? 'revert' : 'complete'],
     click: switchStatus
   })}
-  ${link}
-  ${icon.setIndividualProps('delete', {
+  ${Link}
+  ${Icon.setIndividualProps('delete', {
     svg: Trash2,
     ariaLabel: texts.remove,
     color: color('text', 'danger'),

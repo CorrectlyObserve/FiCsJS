@@ -33,7 +33,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { textarea, button },
+  children: { Textarea, Button },
   props: { userName: currentUserName, messages },
   template,
   attributes: {
@@ -54,7 +54,7 @@ const html: FiCs.Html<Data, Props> = ({
         `
       })}
     </div>
-    <form novalidate>${textarea}${button}</form>
+    <form novalidate>${Textarea}${Button}</form>
   </section>
 `
 

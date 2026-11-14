@@ -69,7 +69,7 @@ const placeTask = ({
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendants: ({ children: { icon } }) => icon,
+    descendants: ({ children: { Icon } }) => Icon,
     values: ({
       props: {
         labels: { handle }
@@ -77,11 +77,11 @@ const props: FiCs.Props<Data, Props> = [
     }) => ({ svg: GripVertical, ariaLabel: handle, isDraggable: true, color: color('text-muted') })
   },
   {
-    descendants: ({ children: { dropZone } }) => dropZone,
+    descendants: ({ children: { DropZone } }) => DropZone,
     values: ({ data: { height } }) => ({ height })
   },
   {
-    descendants: ({ children: { dragMenu } }) => dragMenu,
+    descendants: ({ children: { DragMenu } }) => DragMenu,
     values: ({ data, props: { tasks, labels, onMove, onCopy } }) => {
       const { menuIndex: fromIndex, isCopyMode } = data
       const toIndex = (direction: Direction) =>
@@ -129,7 +129,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { icon, dropZone, dragMenu },
+  children: { Icon, DropZone, DragMenu },
   data,
   props: { tasks, slot, labels, onMove, onCopy },
   template,
@@ -141,7 +141,7 @@ const html: FiCs.Html<Data, Props> = ({
   const zone = (zoneIndex: number) => {
     const isActive = activeZoneIndex === zoneIndex
 
-    return dropZone.setIndividualProps(zoneIndex, {
+    return DropZone.setIndividualProps(zoneIndex, {
       isActive,
       isValidIndex: (isCopyMode: boolean) =>
         isValidIndex({
@@ -174,14 +174,14 @@ const html: FiCs.Html<Data, Props> = ({
 
   return template`
     <p ${liveStatus} ${srOnly}>${status}</p>
-    <div popover id="${MENU_ID}">${dragMenu}</div>
+    <div popover id="${MENU_ID}">${DragMenu}</div>
     <div role="list">
       ${zone(-1)}
       ${tasks.map(
         (task, index) => template`
           <div class="row" role="listitem" key="${index}-row">
             <div class="handle" key="${index}-handle">
-              ${icon.setIndividualProps(index, {
+              ${Icon.setIndividualProps(index, {
                 state: menuIndex === index ? 'expanded' : undefined,
                 click: (event: MouseEvent) => {
                   if ((event as PointerEvent).pointerType === 'mouse') return

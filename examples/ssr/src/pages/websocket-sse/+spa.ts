@@ -16,7 +16,7 @@ export interface Data {
 
 const props: FiCsRouter.Props<Data> = [
   {
-    descendants: ({ children: { chat } }) => chat,
+    descendants: ({ children: { Chat } }) => Chat,
     values: ({ data: { userName, messages }, sendToWebsocket }) => ({
       userName,
       messages,
@@ -24,7 +24,7 @@ const props: FiCsRouter.Props<Data> = [
     })
   },
   {
-    descendants: ({ children: { activities } }) => activities,
+    descendants: ({ children: { Activities } }) => Activities,
     values: ({ data: { activities } }) => ({ activities })
   }
 ]

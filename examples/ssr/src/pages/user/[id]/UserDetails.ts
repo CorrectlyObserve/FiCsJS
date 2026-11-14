@@ -28,9 +28,9 @@ const {
 } = pages
 
 const props: FiCs.Props<Data, {}> = [
-  { descendants: ({ children: { input } }) => input, values: () => ({ isRequired: true }) },
+  { descendants: ({ children: { Input } }) => Input, values: () => ({ isRequired: true }) },
   {
-    descendants: ({ children: { link } }) => link,
+    descendants: ({ children: { Link } }) => Link,
     values: () => ({ href, text: `\u2190 Back to ${name}` })
   }
 ]
@@ -58,7 +58,7 @@ const removeUser = async (user: User, queryCache: Pick<QueryCache, 'set'>): Prom
 
 const html: FiCs.Html<Data, {}> = ({
   data,
-  children: { input, link, button },
+  children: { Input, Link, Button },
   queryCache,
   template
 }) => {
@@ -74,7 +74,7 @@ const html: FiCs.Html<Data, {}> = ({
   return template`
     <form novalidate>
       <fieldset ${phase === 'submitting' && 'disabled'}>
-        ${input.setIndividualProps('name', {
+        ${Input.setIndividualProps('name', {
           id: 'name',
           label: 'Name',
           placeholder: 'Sample Name',
@@ -83,7 +83,7 @@ const html: FiCs.Html<Data, {}> = ({
           autocomplete: isSelf ? 'name' : 'off',
           validate: validateName
         })}
-        ${input.setIndividualProps('email', {
+        ${Input.setIndividualProps('email', {
           id: 'email',
           label: 'Email',
           placeholder: 'sample@example.com',
@@ -94,7 +94,7 @@ const html: FiCs.Html<Data, {}> = ({
         })}
         <div>
           ${(['PUT', 'PATCH'] as Data['method'][]).map(method =>
-            button.setIndividualProps(method.toLowerCase(), {
+            Button.setIndividualProps(method.toLowerCase(), {
               text: `Save (${method})`,
               tooltip: method === 'PUT' ? 'Save all changes' : 'Save the name only',
               isFull: true,
@@ -104,13 +104,13 @@ const html: FiCs.Html<Data, {}> = ({
         </div>
         ${notice !== '' && template`<p role="status">${notice}</p>`}
       </fieldset>
-      ${button.setIndividualProps('delete', {
+      ${Button.setIndividualProps('delete', {
         text: 'Delete this user',
         isNotInForm: true,
         variant: 'danger',
         click: () => void removeUser(resolvedUser, queryCache)
       })}
-      ${link}
+      ${Link}
     </form>
   `
 }

@@ -19,9 +19,9 @@ const {
 } = pages
 
 const props: FiCs.Props<Data, {}> = [
-  { descendants: ({ children: { input } }) => input, values: () => ({ isRequired: true }) },
+  { descendants: ({ children: { Input } }) => Input, values: () => ({ isRequired: true }) },
   {
-    descendants: ({ children: { select } }) => select,
+    descendants: ({ children: { Select } }) => Select,
     values: () => ({
       id: 'role',
       label: 'Role',
@@ -30,9 +30,9 @@ const props: FiCs.Props<Data, {}> = [
       isRequired: true
     })
   },
-  { descendants: ({ children: { button } }) => button, values: () => ({ text: 'Add user' }) },
+  { descendants: ({ children: { Button } }) => Button, values: () => ({ text: 'Add user' }) },
   {
-    descendants: ({ children: { link } }) => link,
+    descendants: ({ children: { Link } }) => Link,
     values: () => ({ href, text: `\u2190 Back to ${name}` })
   }
 ]
@@ -42,19 +42,19 @@ const html: FiCs.Html<Data, {}> = ({
     status: { notice, phase },
     takenEmail
   },
-  children: { input, select, link, button },
+  children: { Input, Select, Link, Button },
   template,
   attributes: { disabled }
 }) => template`
   <form novalidate>
     <fieldset ${disabled(phase === 'submitting')}>
-      ${input.setIndividualProps('name', {
+      ${Input.setIndividualProps('name', {
         id: 'name',
         label: 'Name',
         placeholder: 'Sample Name',
         validate: validateName
       })}
-      ${input.setIndividualProps('email', {
+      ${Input.setIndividualProps('email', {
         id: 'email',
         label: 'Email',
         type: 'email',
@@ -65,11 +65,11 @@ const html: FiCs.Html<Data, {}> = ({
             ? 'That email address already belongs to someone.'
             : null)
       })}
-      ${select}
-      <div>${button}</div>  
+      ${Select}
+      <div>${Button}</div>  
       ${notice !== '' && template`<p role="status">${notice}</p>`}
     </fieldset>
-    ${link}
+    ${Link}
   </form>
 `
 

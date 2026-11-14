@@ -57,14 +57,14 @@ const submitTask = async (data: Data, setTasks: Props['setTasks']) => {
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendants: ({ children: { loadState } }) => loadState,
+    descendants: ({ children: { LoadState } }) => LoadState,
     values: ({ deferredStates, reloadDeferredData }) => ({
       isError: deferredStates.texts.status === 'error',
       retry: () => reloadDeferredData()
     })
   },
   {
-    descendants: ({ children: { input } }) => input,
+    descendants: ({ children: { Input } }) => Input,
     values: ({ data, props: { setTasks } }) => {
       const { value, description, placeholder } = data
 
@@ -81,7 +81,7 @@ const props: FiCs.Props<Data, Props> = [
     }
   },
   {
-    descendants: ({ children: { icon } }) => icon,
+    descendants: ({ children: { Icon } }) => Icon,
     values: ({ data, props: { setTasks } }) => ({
       svg: Plus,
       ariaLabel: data.placeholder,
@@ -89,7 +89,7 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendants: ({ children: { button } }) => button,
+    descendants: ({ children: { Button } }) => Button,
     values: ({ data }) => ({
       state: data.isShown ? 'pressed' : undefined,
       svg: data.isShown ? SquareCheck : Square,
@@ -98,7 +98,7 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendants: ({ children: { draggable } }) => draggable,
+    descendants: ({ children: { Draggable } }) => Draggable,
     values: ({
       data: {
         getTasks,
@@ -110,13 +110,13 @@ const props: FiCs.Props<Data, Props> = [
         uncompleted,
         confirmation
       },
-      children: { row },
+      children: { Row },
       props: { tasks, taskId, setTasks }
     }) => ({
       tasks: getTasks(tasks, !isShown),
       labels: reorder,
       slot: (task: Task, index: number) =>
-        row.setIndividualProps(index, {
+        Row.setIndividualProps(index, {
           task,
           texts,
           statuses: { completed, uncompleted },
@@ -139,7 +139,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { loadState, icon, input, button, draggable },
+  children: { LoadState, Icon, Input, Button, Draggable },
   data: { heading, isShown, unapplicable, getTasks },
   props: { tasks },
   template,
@@ -147,17 +147,17 @@ const html: FiCs.Html<Data, Props> = ({
     texts: { status }
   }
 }) => {
-  if (status !== 'done') return template`${loadState}`
+  if (status !== 'done') return template`${LoadState}`
 
   return template`
     <h2>${heading}</h2>
     <div>
-      <div>${input}${icon}</div>
-      ${button}
+      <div>${Input}${Icon}</div>
+      ${Button}
     </div>
     ${
       getTasks(tasks, !isShown).length > 0
-        ? template`${draggable}`
+        ? template`${Draggable}`
         : template`<p>${unapplicable}</p>`
     }
   `

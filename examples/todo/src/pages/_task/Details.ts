@@ -39,14 +39,14 @@ interface Props {
 
 const props: FiCs.Props<Data, Props> = [
   {
-    descendants: ({ children: { loadState } }) => loadState,
+    descendants: ({ children: { LoadState } }) => LoadState,
     values: ({ deferredStates, reloadDeferredData }) => ({
       isError: deferredStates.texts.status === 'error',
       retry: () => reloadDeferredData()
     })
   },
   {
-    descendants: ({ children: { input } }) => input,
+    descendants: ({ children: { Input } }) => Input,
     values: ({
       data: { labels, isError, error, descriptions, placeholders },
       props: { draft, editTask }
@@ -62,7 +62,7 @@ const props: FiCs.Props<Data, Props> = [
     })
   },
   {
-    descendants: ({ children: { textarea } }) => textarea,
+    descendants: ({ children: { Textarea } }) => Textarea,
     values: ({ data: { labels, descriptions, placeholders }, props: { draft, editTask } }) => ({
       id: 'description',
       label: labels[1],
@@ -75,7 +75,7 @@ const props: FiCs.Props<Data, Props> = [
 ]
 
 const html: FiCs.Html<Data, Props> = ({
-  children: { loadState, input, textarea, button },
+  children: { LoadState, Input, Textarea, Button },
   data: {
     heading,
     status,
@@ -88,7 +88,7 @@ const html: FiCs.Html<Data, Props> = ({
   template,
   deferredStates: { texts }
 }) => {
-  if (texts.status !== 'done' || !draft) return template`${loadState}`
+  if (texts.status !== 'done' || !draft) return template`${LoadState}`
 
   const label = draft?.completedAt ? revert : complete
   return template`
@@ -97,20 +97,20 @@ const html: FiCs.Html<Data, Props> = ({
       <fieldset>
         <legend>${status}</legend>
         <div>
-          ${button.setIndividualProps('status', {
+          ${Button.setIndividualProps('status', {
             svg: draft?.completedAt ? CircleCheckBig : Circle,
             buttonText: label,
             click: () => editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
           })}
         </div>
       </fieldset>
-      <fieldset>${input}</fieldset>
-      <fieldset>${textarea}</fieldset>
+      <fieldset>${Input}</fieldset>
+      <fieldset>${Textarea}</fieldset>
       ${Object.entries(datetimes).map(
         ([key, value]) => template`<p>${value}${convertTimestamp(draft?.[key as Datetime])}</p>`
       )}
       <div>
-        ${button.setIndividualProps('save', {
+        ${Button.setIndividualProps('save', {
           isDisabled: draft?.title === '',
           type: 'gradient',
           fixedUnit: 32,
@@ -129,7 +129,7 @@ const html: FiCs.Html<Data, Props> = ({
         })}
         ${[remove, isQueryParam ? close : back].map(
           (buttonText, index) =>
-            template`${button.setIndividualProps(index, {
+            template`${Button.setIndividualProps(index, {
               type: index === 0 ? 'delete' : undefined,
               fixedUnit: 32,
               buttonText,

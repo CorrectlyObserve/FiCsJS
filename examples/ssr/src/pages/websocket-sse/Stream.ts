@@ -11,7 +11,7 @@ interface Data {
 }
 
 const props: FiCs.Props<Data, {}> = {
-  descendants: ({ children: { icon } }) => icon,
+  descendants: ({ children: { Icon } }) => Icon,
   values: ({ data }) => {
     const label = `Switch the stream to ${data.isAccumulated ? 'a chunked' : 'an accumulated'} type`
     return {
@@ -26,7 +26,7 @@ const props: FiCs.Props<Data, {}> = {
 }
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { icon },
+  children: { Icon },
   data: { isAccumulated, accumulatedChunk, chunks },
   template,
   attributes: {
@@ -44,7 +44,7 @@ const html: FiCs.Html<Data, {}> = ({
         : template`<div ${liveLog}>${chunks.map((chunk, index) => template`<p key="${index}">${chunk}</p>`)}</div>`
     }
   </section>
-  ${icon}
+  ${Icon}
 `
 
 const css: FiCs.Css<Data, {}> = ` 

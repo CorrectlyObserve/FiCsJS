@@ -6,6 +6,6 @@ export const meta = {
   description: 'This is an example of a WebSocket and a SSE with FiCsJS.'
 }
 
-const page: FiCsRouter.Page<Data> = ({ children: { chat } }) => chat
+const page: FiCsRouter.Page<Data> = ({ children: { Chat } }) => Chat
 
 export default page

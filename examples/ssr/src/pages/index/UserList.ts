@@ -54,7 +54,7 @@ const removeUser = async (data: Data, { id, name }: User): Promise<void> => {
 
 const html: FiCs.Html<Data, {}> = ({
   data,
-  children: { link, icon },
+  children: { Link, Icon },
   template,
   attributes: {
     a11y: { srOnly }
@@ -76,12 +76,12 @@ const html: FiCs.Html<Data, {}> = ({
                 ${ITEMS.map(item => template`<td>${user[item]}</td>`)}
                 <td>
                   <div>
-                    ${icon.setIndividualProps(`edit-${user.id}`, {
+                    ${Icon.setIndividualProps(`edit-${user.id}`, {
                       svg: SquarePen,
                       ariaLabel: `Edit ${user.name}`,
                       click: () => void editUser(user)
                     })}
-                    ${icon.setIndividualProps(`delete-${user.id}`, {
+                    ${Icon.setIndividualProps(`delete-${user.id}`, {
                       svg: Trash2,
                       ariaLabel: `Delete ${user.name}`,
                       variant: 'danger',
@@ -95,7 +95,7 @@ const html: FiCs.Html<Data, {}> = ({
         </tbody>
       </table>
     </div>
-    ${LINKS.map((linkItem, index) => link.setIndividualProps(`link${index}`, linkItem))}
+    ${LINKS.map((linkItem, index) => Link.setIndividualProps(`link${index}`, linkItem))}
   </section>
 `
 

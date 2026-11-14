@@ -9,7 +9,7 @@ interface Data {
 }
 
 const props: FiCs.Props<Data, {}> = {
-  descendants: ({ children: { link } }) => link,
+  descendants: ({ children: { Link } }) => Link,
   values: ({ data: { status } }) => {
     const { href, text }: StatusPage = getStatusPage(status)
     return { href, text }
@@ -17,7 +17,7 @@ const props: FiCs.Props<Data, {}> = {
 }
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { link },
+  children: { Link },
   data: { status, message },
   template
 }) => template`
@@ -26,7 +26,7 @@ const html: FiCs.Html<Data, {}> = ({
       <p>${getStatusPage(status).description}</p>
       ${message !== '' && template`<p>${message}</p>`}
     </div>
-    ${link}
+    ${Link}
   </section>
 `
 

@@ -52,7 +52,7 @@ const FORMS = [
 
 const html: FiCs.Html<Data, {}> = ({
   data,
-  children: { link, icon, button },
+  children: { Link, Icon, Button },
   template,
   attributes: { show }
 }) => {
@@ -60,7 +60,7 @@ const html: FiCs.Html<Data, {}> = ({
 
   return template`
     <header>
-      ${icon.setIndividualProps('theme', {
+      ${Icon.setIndividualProps('theme', {
         svg: data.theme === null ? SunMoon : isDark ? Sun : Moon,
         ariaLabel: `Switch to ${isDark ? 'light' : 'dark'} mode`,
         click: () => {
