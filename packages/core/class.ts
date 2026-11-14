@@ -173,7 +173,7 @@ export class FiCsElement<D extends object, P extends object> {
       const registered: Map<string, string> = new Map()
 
       for (const child of children) {
-        const key: string = convertStr(child.#nameKey.replace(/^_/, ''), 'camel')
+        const key: string = convertStr(child.#nameKey, 'pascal')
 
         if (isCloned) {
           this.#children[key] = child
