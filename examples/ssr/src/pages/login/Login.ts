@@ -10,8 +10,8 @@ interface Data {
 
 const props: FiCs.Props<Data, {}> = [
   {
-    descendants: ({ children: { select } }) => select,
-    values: ({ data }) => ({
+    descendants: ({ children: { Select } }) => Select,
+    values: () => ({
       id: 'role',
       label: 'Log in as',
       placeholder: 'Choose a role',
@@ -21,10 +21,7 @@ const props: FiCs.Props<Data, {}> = [
       change: (value: string) => (data.role = isRole(value) ? value : '')
     })
   },
-  {
-    descendants: ({ children: { button } }) => button,
-    values: ({ data: { role } }) => ({ text: 'Log in', isDisabled: role === '' })
-  }
+  { descendants: ({ children: { Button } }) => Button, values: () => ({ text: 'Log in' }) }
 ]
 
 const html: FiCs.Html<{}, {}> = ({ children: { Select, Button }, template, isBrowser }) => template`
