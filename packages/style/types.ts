@@ -7,8 +7,6 @@ export interface Center {
 
 export type Interactive = string | false | ((base: string) => string)
 
-export type Operator = '+' | '-' | '*' | '/'
-
 export type Position = 'absolute' | 'fixed'
 
 export type Rect =
