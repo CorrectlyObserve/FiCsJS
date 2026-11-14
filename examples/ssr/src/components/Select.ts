@@ -17,6 +17,7 @@ import { ChevronDown } from 'lucide-static'
 interface Data {
   readonly describedBy: string
   value: string | null
+  error: string | null
 }
 
 export interface Props {
@@ -31,13 +32,14 @@ export interface Props {
 }
 
 const html: FiCs.Html<Data, Props> = ({
-  data: { describedBy, value },
+  data: { describedBy, value, error },
   props: { id, label, options, value: propsValue, placeholder, hint, isRequired },
-  form: { isDisabled },
+  form: { isDisabled, isUserInvalid },
   template,
   attributes: {
-    a11y: { ariaHidden },
+    a11y: { ariaHidden, invalid },
     disabled,
+    formAnchor,
     required,
     show
   }
@@ -47,9 +49,11 @@ const html: FiCs.Html<Data, Props> = ({
     <span>
       <select
         id="${id}"
-        ${hint && `aria-describedby="${id}-${describedBy}"`}
+        ${(hint || isUserInvalid) && `aria-describedby="${id}-${describedBy}"`}
         ${disabled(isDisabled)}
         ${required(isRequired)}
+        ${invalid(isUserInvalid)}
+        ${formAnchor}
       >
         ${[{ value: '' as const, text: placeholder }, ...options].map(
           ({ value: v, text }) =>
@@ -64,11 +68,14 @@ const html: FiCs.Html<Data, Props> = ({
         )}
       </select>
     </span>
-    ${hint && template`<small id="${id}-${describedBy}">${hint}</small>`}
+    ${
+      (hint || isUserInvalid) &&
+      template`<small id="${id}-${describedBy}">${isUserInvalid ? error : hint}</small>`
+    }
   </div>
 `
 
-const css: FiCs.Css<Data, Props> = ({ form: { isDisabled } }) => `
+const css: FiCs.Css<Data, Props> = ({ form: { isDisabled, isUserInvalid } }) => `
   :host { 
     width: ${cssVar('min-width')};
     
@@ -103,10 +110,13 @@ const css: FiCs.Css<Data, Props> = ({ form: { isDisabled } }) => `
         select {
           appearance: none;
           ${(!isDisabled && interactive({ hover: base => `${base} cursor: pointer;`, active: false })) || ''}
+          ${(isUserInvalid && `border-color: ${color('border', 'danger')};`) || ''}
 
           &:has(option[value='']:checked) { color: ${color('text-muted')}; }
         }
       }
+
+      ${(isUserInvalid && `small { color: ${color('text', 'danger')}; }`) || ''}
     }
   }  
 `
@@ -123,10 +133,13 @@ const actions: FiCs.Actions<Data, Props> = {
 const options: FiCs.Options<Data, Props> = {
   form: {
     value: ({ data: { value }, props: { value: propsValue } }) => toValue(value, propsValue),
-    validate: ({ data: { value }, props: { placeholder, value: propsValue, isRequired } }) =>
-      isRequired && toValue(value, propsValue) === '' ? placeholder : null,
+    validate: ({ data, props: { placeholder, value, isRequired } }) => {
+      data.error = isRequired && toValue(data.value, value) === '' ? `${placeholder}.` : null
+      return data.error
+    },
     reset: ({ data, props: { value, change } }) => {
       data.value = null
+      data.error = null
       change?.(toValue(data.value, value))
     }
   }
@@ -135,7 +148,7 @@ const options: FiCs.Options<Data, Props> = {
 export default () =>
   fics<Data, Props>({
     name: 'select',
-    data: () => ({ describedBy: 'hint', value: null }),
+    data: () => ({ describedBy: 'hint', value: null, error: null }),
     attributes: ({ props: { id } }) => ({ name: id }),
     html,
     css,
