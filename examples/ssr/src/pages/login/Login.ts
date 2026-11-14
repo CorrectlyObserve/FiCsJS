@@ -2,13 +2,9 @@ import { fics, type FiCs } from 'ficsjs'
 import Button from '@/components/Button'
 import Select from '@/components/Select'
 import { readRedirect, viaLogin } from '@/domain/redirect'
-import { isRole, ROLES, type Role } from '@/domain/role'
+import { ROLES } from '@/domain/role'
 
-interface Data {
-  role: Role | ''
-}
-
-const props: FiCs.Props<Data, {}> = [
+const props: FiCs.Props<{}, {}> = [
   {
     descendants: ({ children: { Select } }) => Select,
     values: () => ({
@@ -17,8 +13,7 @@ const props: FiCs.Props<Data, {}> = [
       placeholder: 'Choose a role',
       options: ROLES.map(value => ({ value, text: value === 'admin' ? 'an admin' : 'a member' })),
       hint: 'An admin can add and delete users; a member has read-only access.',
-      isRequired: true,
-      change: (value: string) => (data.role = isRole(value) ? value : '')
+      isRequired: true
     })
   },
   { descendants: ({ children: { Button } }) => Button, values: () => ({ text: 'Log in' }) }
@@ -35,11 +30,18 @@ const html: FiCs.Html<{}, {}> = ({ children: { Select, Button }, template, isBro
   </form>
 `
 
-export default fics<Data, {}>({
+const actions: FiCs.Actions<{}, {}> = {
+  form: {
+    submit: ({ event: { currentTarget }, submitForm }) =>
+      submitForm(() => (currentTarget as HTMLFormElement).submit(), { shouldReportValidity: false })
+  }
+}
+
+export default fics<{}, {}>({
   name: 'login',
   children: [Select(), Button()],
-  data: () => ({ role: '' }),
   props,
   html,
-  options: { ssr: false }
+  actions,
+  options: { ssr: false, form: { value: () => null } }
 })
