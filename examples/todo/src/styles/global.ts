@@ -23,6 +23,7 @@ export const globalCss: FiCs.GlobalCss = `
     ${flex({ direction: 'column' })}
     ${fill('bg')}
     min-height: 100dvh;
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
   }
 
   * { padding: 0; margin: 0; box-sizing: border-box; }
@@ -44,6 +45,7 @@ export const globalCss: FiCs.GlobalCss = `
     ${radius('sm')};
     background: none;
     color: ${color('text')};
+    font-family: inherit;
 
     &:focus-visible { outline-color: ${color('text')}; }
   }
