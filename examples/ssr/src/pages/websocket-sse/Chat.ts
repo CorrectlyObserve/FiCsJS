@@ -17,14 +17,18 @@ interface Props {
 const props: FiCs.Props<Data, Props> = [
   {
     descendants: ({ children: { Textarea } }) => Textarea,
-    values: ({ data }) => ({
-      id: 'message',
-      label: 'Message',
-      placeholder: 'Message',
-      hint: 'Press the Shift + Enter keys to send.',
-      isSrOnly: true,
-      input: (value: string) => (data.comment = value)
-    })
+    values: ({ data }) => {
+      const isPointerCoarse = globalThis.matchMedia?.('(pointer: coarse)').matches
+      return {
+        id: 'message',
+        label: 'Message',
+        placeholder: 'Message',
+        hint: isPointerCoarse ? undefined : 'Press the Shift + Enter keys to send.',
+        isSrOnly: true,
+        isPointerCoarse,
+        input: (value: string) => (data.comment = value)
+      }
+    }
   },
   {
     descendants: ({ children: { Button } }) => Button,

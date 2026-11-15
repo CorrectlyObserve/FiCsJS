@@ -14,12 +14,13 @@ interface Props {
   value?: string
   hint?: string
   isSrOnly?: boolean
+  isPointerCoarse?: boolean
   input?: (value: string) => void
 }
 
 const html: FiCs.Html<Data, Props> = ({
   data: { describedBy, value },
-  props: { id, label, placeholder, value: propsValue, isSrOnly, hint },
+  props: { id, label, placeholder, value: propsValue, hint, isSrOnly },
   form: { isDisabled },
   template,
   attributes: {
@@ -63,9 +64,9 @@ const actions: FiCs.Actions<Data, Props> = {
       data.value = value ?? ''
       input?.(data.value)
     },
-    keydown: ({ event, requestSubmit }) => {
+    keydown: ({ props: { isPointerCoarse }, event, requestSubmit }) => {
       const { key, shiftKey }: KeyboardEvent = event as KeyboardEvent
-      if (key !== 'Enter' || !shiftKey || window.matchMedia('(pointer: coarse)').matches) return
+      if (key !== 'Enter' || !shiftKey || isPointerCoarse) return
 
       event.preventDefault()
       requestSubmit()
