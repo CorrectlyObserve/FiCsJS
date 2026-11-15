@@ -1,6 +1,7 @@
 import { fics, type FiCs } from 'ficsjs'
 import { queries } from 'ficsjs/router'
 import { flex, hideScrollbar, interactive, radius, space, stroke } from 'ficsjs/style'
+import Button from '@/components/Button'
 import Icon from '@/components/Icon'
 import {
   type Photo,
@@ -31,20 +32,35 @@ const deferredData: FiCs.DeferredData<Data, {}> = {
     const nextPage: number = data.page + 1,
       key = ['photos', nextPage] as const
 
-    await queryCache.prefetch<Photo[]>(key, ({ signal }) =>
-      fetch(photoListUrl(nextPage), { signal }).then(res => res.json())
+    await queryCache.prefetch<Photo[]>(
+      key,
+      ({ signal }) =>
+        fetch(photoListUrl(nextPage), {
+          signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)])
+        }).then(res => res.json()),
+      { maxRetries: 1 }
     )
 
-    const photos: Photo[] = queryCache.get<Photo[]>(key) ?? []
+    const photos: Photo[] | undefined = queryCache.get<Photo[]>(key)
+    if (photos === undefined) throw new Error('Photos could not be loaded.')
 
     queryCache.set<Photo[]>(PHOTOS_KEY, photos)
     queryCache.set<number>(PAGE_KEY, nextPage)
 
     return { page: nextPage, photos }
-  }
+  },
+  stateKey: 'photos'
 }
 
 const props: FiCs.Props<Data, {}> = [
+  {
+    descendants: ({ children: { Button } }) => Button,
+    values: ({ reloadDeferredData }) => ({
+      text: 'Retry',
+      isNotInForm: true,
+      click: () => reloadDeferredData('photos')
+    })
+  },
   {
     descendants: ({ children: { Skeleton } }) => Skeleton,
     values: () => ({ size: PHOTO_SIZE, radius: 'sm' })
@@ -72,8 +88,9 @@ const props: FiCs.Props<Data, {}> = [
 ]
 
 const html: FiCs.Html<Data, {}> = ({
-  children: { Skeleton, Icon, Dialog },
+  children: { Button, Skeleton, Icon, Dialog },
   data: { axis, photos },
+  deferredStates,
   template,
   activeApis: { isLoading },
   attributes: {
@@ -82,42 +99,55 @@ const html: FiCs.Html<Data, {}> = ({
   },
   scroll
 }) => {
+  if (deferredStates.photos?.status === 'error')
+    return template`
+      <div class="error">
+        <p ${liveStatus}>Photos could not be loaded.</p>
+        ${Button}
+      </div>
+    `
+
   const skeletons = [...Array(UNIT_LENGTH)].map(
     (_, index) => template`<div class="photo" key="skeleton-${index}">${Skeleton}</div>`
   )
-
-  if (photos.length === 0) return template`${skeletons}`
 
   return template`
     ${Icon}
     <p ${liveStatus} ${srOnly}>The current scroll axis is ${axis}.</p>
     <div class="scroller">
-      ${scroll(
-        photos,
-        ({ id, author, isLoaded }) => template`
-          <div class="photo" key="${id}-container">
-            ${!isLoaded && Skeleton}
-            <button type="button" key="${id}" aria-haspopup="dialog" ${show(isLoaded)}>
-              <img src="${photoUrl(id)}" alt="Image created by ${author}" key="${id}" />
-            </button>
-          </div>
-        `
-      )}
+      ${
+        photos.length === 0
+          ? skeletons
+          : scroll(
+              photos,
+              ({ id, author, isLoaded }) => template`
+                <div class="photo" key="${id}-container">
+                  ${!isLoaded && Skeleton}
+                  <button type="button" key="${id}" aria-haspopup="dialog" ${show(isLoaded)}>
+                    <img src="${photoUrl(id)}" alt="Image created by ${author}" key="${id}" />
+                  </button>
+                </div>
+              `
+            )
+      }
       ${isLoading && skeletons}
     </div>
     ${Dialog}
   `
 }
 
-const css: FiCs.Css<Data, {}> = ({ data: { axis } }) => {
+const css: FiCs.Css<Data, {}> = ({ data: { axis, photos } }) => {
   const isHorizontal = axis === 'horizontal'
   return `
     :host { 
       ${isHorizontal ? 'overflow-x: hidden;' : `min-height: calc(${PHOTO_SIZE}px * ${UNIT_LENGTH});`}
 
       div {
+        &.error { ${flex({ center: 'xy', direction: 'column', gap: space('md') })} }
+
         &.scroller {
-          ${(isHorizontal && flex({ center: 'x' })) || ''}
+          ${(isHorizontal && `${flex()}; justify-content: safe center;`) || ''}
+          ${(isHorizontal && photos.length === 0 && 'overflow-x: auto;') || ''}
           ${hideScrollbar}
         }
 
@@ -223,7 +253,7 @@ const options: FiCs.Options<Data, {}> = {
 
 export default fics<Data, {}>({
   name: 'photos',
-  children: [Skeleton, Icon(), Dialog],
+  children: [Button(), Skeleton, Icon(), Dialog],
   data: () => ({
     axis: $axis.get(),
     page: 0,
