@@ -1,10 +1,6 @@
 import { fics, type FiCs } from 'ficsjs'
 import { color, flex, space, tapSize, textSize } from 'ficsjs/style'
 
-interface Data {
-  isComposing: boolean
-}
-
 interface Props {
   id: string
   label: string
@@ -19,7 +15,7 @@ interface Props {
   blur?: () => void
 }
 
-const html: FiCs.Html<Data, Props> = ({
+const html: FiCs.Html<{}, Props> = ({
   props: { id, label, isAriaLabel, isError, error, description, value, placeholder },
   template,
   attributes: {
@@ -46,7 +42,7 @@ const html: FiCs.Html<Data, Props> = ({
   `
 }
 
-const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { isError, error } }) => `
   div {
     ${flex({ direction: 'column' })}
 
@@ -68,23 +64,37 @@ const css: FiCs.Css<Data, Props> = ({ props: { isError, error } }) => `
   }
 `
 
-const actions: FiCs.Actions<Data, Props> = {
-  input: {
-    input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
-    compositionstart: ({ data }) => {
-      data.isComposing = true
-    },
-    compositionend: ({ data }) => {
-      data.isComposing = false
-    },
-    keydown: ({ data: { isComposing }, props: { input, enterKey }, event }) => {
-      const { key, currentTarget } = event as KeyboardEvent,
-        { value } = currentTarget as HTMLInputElement
+// Inputs that just confirmed a conversion, as Safari sends that Enter after compositionend.
+const confirmedInputs: WeakSet<EventTarget> = new WeakSet()
 
-      if (key !== 'Enter' || isComposing || value === '' || !enterKey) return
+const actions: FiCs.Actions<{}, Props> = {
+  input: {
+    keydown: ({ props: { input, enterKey }, event }) => {
+      const { key, isComposing, currentTarget } = event as KeyboardEvent
+      const isAfterCompositionEnd: boolean =
+        currentTarget !== null && confirmedInputs.delete(currentTarget)
+
+      if (isComposing || isAfterCompositionEnd || key !== 'Enter') return
+
+      const { value } = currentTarget as HTMLInputElement
+      if (value === '' || !enterKey) return
 
       input(value)
       enterKey()
+    },
+    compositionend: ({ props: { input }, event: { currentTarget }, value }) => {
+      if (currentTarget) confirmedInputs.add(currentTarget)
+      input(value!)
+    },
+    input: [
+      ({ props: { input }, event, value }) => {
+        if (!(event as InputEvent).isComposing) input(value!)
+      },
+      { debounceMs: 200 }
+    ],
+    // Clears the mark, as Chrome and Firefox send that Enter before compositionend.
+    keyup: ({ event: { currentTarget } }) => {
+      if (currentTarget) confirmedInputs.delete(currentTarget)
     },
     blur: ({ props: { input, blur }, event }) => {
       const { value } = event.currentTarget as HTMLInputElement
@@ -95,12 +105,4 @@ const actions: FiCs.Actions<Data, Props> = {
   }
 }
 
-export default () =>
-  fics<Data, Props>({
-    name: 'input',
-    data: () => ({ isComposing: false }),
-    className: 'input',
-    html,
-    css,
-    actions
-  })
+export default () => fics<{}, Props>({ name: 'input', className: 'input', html, css, actions })
