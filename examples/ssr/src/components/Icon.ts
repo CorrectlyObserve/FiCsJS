@@ -17,6 +17,7 @@ export interface Props {
   tooltip?: string
   tooltipPlacement?: Placement
   isBottomFixed?: boolean
+  isLarge?: boolean
   click: () => void
 }
 
@@ -42,7 +43,7 @@ const html: FiCs.Html<{}, Props> = ({
   </button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixed } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixed, isLarge } }) => `
   button {
     ${tooltipCss(tooltipPlacement)}
 
@@ -62,7 +63,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixe
 
     &[data-variant='danger'] { color: ${color('text', 'danger')}; }
 
-    > span.icon { ${rect(8, 8)}; ${maskIcon(svg)}; }
+    > span.icon { ${isLarge ? rect(6, 6) : rect(5, 5)}; ${maskIcon(svg)}; }
   }
 `
 

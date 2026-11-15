@@ -29,10 +29,16 @@ interface Data {
   isMenuOpened: boolean
 }
 
-const props: FiCs.Props<Data, {}> = {
-  descendants: ({ children: { Button } }) => Button,
-  values: () => ({ isFull: true })
-}
+const props: FiCs.Props<Data, {}> = [
+  {
+    descendants: ({ children: { Icon } }) => Icon,
+    values: () => ({ isLarge: true })
+  },
+  {
+    descendants: ({ children: { Button } }) => Button,
+    values: () => ({ isFull: true })
+  }
+]
 
 const MENU = [pages.USERS, pages.ACCOUNT, pages.WS_SSE, pages.SCROLL] as const
 const FORMS = [
