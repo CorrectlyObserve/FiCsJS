@@ -85,6 +85,7 @@ const props: FiCs.Props<Data, Props> = [
     values: ({ data, props: { setTasks } }) => ({
       svg: Plus,
       ariaLabel: data.placeholder,
+      isLarge: true,
       click: () => submitTask(data, setTasks)
     })
   },

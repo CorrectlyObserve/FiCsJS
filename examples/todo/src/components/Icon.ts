@@ -9,6 +9,7 @@ interface Props {
   isPressed?: boolean
   isExpanded?: boolean
   isDraggable?: boolean
+  isLarge?: boolean
   isFocused?: boolean
   color?: string
   click?: (event: MouseEvent) => void
@@ -32,7 +33,7 @@ const html: FiCs.Html<{}, Props> = ({
   ><span></span></button>
 `
 
-const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { color, svg, isLarge } }) => `
   button {
     ${flex({ center: 'xy' })};
     ${interactive({ focusVisible: 'outline-color: currentColor;' })}
@@ -43,7 +44,7 @@ const css: FiCs.Css<{}, Props> = ({ props: { color, svg } }) => `
     &[aria-pressed="true"], &[aria-expanded="true"] { color: ${colorOf('text', 'primary')}; }
     &[draggable="true"] { ${interactive({ hover: 'cursor: grab;', active: 'cursor: grabbing;' })} }
 
-    > span { ${rect(8, 8)}; ${maskIcon(svg)}; }
+    > span { ${isLarge ? rect(8, 8) : rect(5, 5)}; ${maskIcon(svg)}; }
   }
 `
 
