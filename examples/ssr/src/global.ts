@@ -33,8 +33,8 @@ export default `
     ${fill('bg')};
     ${textSize('md')};
     height: 100dvh;
-    font-family: 'Times New Roman', serif;
     padding-inline: ${space('lg')};
+    font-family: 'Inter', sans-serif;
     overscroll-behavior-x: none;
 
     @container not ${layout('expanded')} { padding-inline: ${space('md-')}; }
