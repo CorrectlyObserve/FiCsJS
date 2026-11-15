@@ -73,6 +73,7 @@ const props: FiCs.Props<Data, {}> = [
         svg: data.axis === 'horizontal' ? MoveVertical : MoveHorizontal,
         ariaLabel: `Switch axis direction to ${nextAxis}`,
         isBottomFixed: true,
+        isLarge: true,
         click: () => $axis.set(nextAxis)
       }
     }
