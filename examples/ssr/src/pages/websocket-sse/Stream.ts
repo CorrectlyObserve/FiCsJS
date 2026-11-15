@@ -17,9 +17,10 @@ const props: FiCs.Props<Data, {}> = {
     return {
       svg: RefreshCcw,
       ariaLabel: label,
-      isBottomFixed: true,
       tooltip: label,
       tooltipPlacement: 'left',
+      isBottomFixed: true,
+      isLarge: true,
       click: () => (data.isAccumulated = !data.isAccumulated)
     }
   }
