@@ -42,7 +42,13 @@ const css: FiCs.Css<{}, Props> = `
 
 const actions: FiCs.Actions<{}, Props> = {
   textarea: {
-    input: [({ props: { input }, value }) => input(value!), { debounceMs: 200 }],
+    compositionend: ({ props: { input }, value }) => input(value!),
+    input: [
+      ({ props: { input }, event, value }) => {
+        if (!(event as InputEvent).isComposing) input(value!)
+      },
+      { debounceMs: 200 }
+    ],
     blur: ({ props: { value, blur } }) => {
       if (value !== '' && blur) blur()
     }
