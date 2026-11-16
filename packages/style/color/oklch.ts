@@ -5,7 +5,7 @@ import type { Color } from './types'
 
 const cache: Map<string, Color.Oklch> = new Map(),
   parseOklch = (literal: string): Color.Oklch & { a: number } => {
-    const match: RegExpMatchArray | null = literal.trim().match(/^oklch\(\s*(.+)\s*\)$/i),
+    const match: RegExpMatchArray | null = literal.trim().match(/^oklch\((.+)\)$/i),
       OKLCH_LITERAL = '"oklch(<lightness> <chroma> <hue>[/ <alpha>])"' as const
 
     if (!match)

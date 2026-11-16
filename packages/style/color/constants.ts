@@ -35,7 +35,7 @@ export const MAIN_COLOR_TOKENS = ['primary', 'success', 'warning', 'danger'] as 
 export const MUTE_RATIO_VAR = ficsCssVar('mute-ratio')
 
 export const oklch = {
-  CSS_VAR: /^var\(\s*--([\w-]+)\s*(?:,\s*([^)]*))?\s*\)$/,
+  CSS_VAR: /^var\(\s*--[\w-]+\s*(?:,[^)]*)?\)$/,
   MATRIX_OF_RGB_TO_LMS: {
     L: { R: 0.4122214708, G: 0.5363325363, B: 0.0514459929 },
     M: { R: 0.2119034982, G: 0.6806995451, B: 0.1073969566 },
