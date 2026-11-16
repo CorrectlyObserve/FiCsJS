@@ -1,0 +1,115 @@
+import {
+  color,
+  cssVar,
+  fill,
+  flex,
+  interactive,
+  layout,
+  radius,
+  size,
+  space,
+  stroke,
+  tapSize,
+  textSize
+} from 'ficsjs/style'
+
+export default `
+  :root {
+    color-scheme: light dark;
+    &[data-theme='light'] { color-scheme: light; }
+    &[data-theme='dark'] { color-scheme: dark; }
+    
+    --width: ${size(80)};
+    --min-width: min(100%, ${cssVar('width')});
+    --max-width: ${size(160)};
+
+    scroll-padding-bottom: calc(${space('xl')} + ${tapSize()} + ${space('sm')});
+  }
+
+  *, *::before, *::after { margin: 0; box-sizing: border-box; }
+
+  body {
+    ${flex({ direction: 'column' })}
+    ${fill('bg')};
+    ${textSize('md')};
+    height: 100dvh;
+    padding-inline: ${space('lg')};
+    font-family: 'Inter', sans-serif;
+    overscroll-behavior-x: none;
+
+    @container not ${layout('expanded')} { padding-inline: ${space('md-')}; }
+
+    & > main {
+      ${flex({ direction: 'column' })}
+      flex-grow: 1;
+      padding-block: ${space('lg')};
+
+      @container ${layout('compact')} { padding-block: ${space('md')}; }
+
+      > p { margin-block-end: ${space('md')}; text-align: center; }
+    }
+
+    & > footer {
+      ${textSize('sm')}
+      text-align: center;
+      padding-block-end: ${space('md')};
+    }
+  }
+
+  h2, h3 { text-align: center; }
+
+  h2 {
+    ${textSize('xl')}
+    margin-block-end: ${space('lg')};
+
+    @container not ${layout('expanded')} { margin-block-end: ${space('md')}; }
+  }
+
+  h3 { ${textSize('lg')}; }
+
+  button, input, textarea, select, ul, fieldset { padding: 0; }
+
+  button {
+    ${flex({ inline: true, center: 'xy' })};
+    ${textSize('md', true)};
+    ${radius('sm')};
+    ${interactive()};
+    min-width: ${tapSize()};
+    min-height: ${tapSize()};
+    background: transparent;
+    color: ${color('text')};
+    font: inherit;
+    border: none;
+  }
+
+  p, label, textarea { ${textSize('md')} }
+
+  small { ${textSize('sm')} }
+
+  form, section { ${flex({ center: 'y', direction: 'column', gap: space('md') })} }
+
+  fieldset {
+    ${flex({ direction: 'column', gap: space('md') })};
+    width: ${cssVar('min-width')};
+    margin-block-end: ${space('md')};
+    border: 0;
+
+    > div { ${flex({ center: 'x', direction: 'row', gap: space('md') })}; }
+  }
+
+  input, textarea, select {
+    ${fill('bg-sunken')};
+    ${radius('sm')};
+    width: 100%;
+    min-height: ${tapSize()};
+    padding-inline: ${space('md')};
+    border: ${stroke('sm')} solid ${color('border')};
+    font: inherit;
+
+    &::placeholder { color: ${color('text-muted')}; }
+  }
+
+  input, textarea { ${interactive({ hover: base => `${base} cursor: text;`, active: false })} }
+
+  input, select { ${textSize('md', true)} }
+`

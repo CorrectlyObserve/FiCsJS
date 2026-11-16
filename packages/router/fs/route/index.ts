@@ -1,0 +1,51 @@
+import type { Routing, Rpc } from '../../types'
+import { resolveOptions } from '../helpers'
+import { assembleClient, assembleServer } from './assembler'
+import { buildEntries, buildLayout, buildMiddleware, buildSpa, buildSpecial } from './builder'
+import { findAncestorDirs, findClientEntries, findClosestDir } from './finder'
+import { generateRpcs } from './rpcGenerator'
+
+export { findAncestorDirs, findClosestDir }
+
+export const generateRoutes = ({
+  filePaths,
+  options,
+  basePath
+}: Routing.Options.Generate): ReturnType<typeof findClientEntries> & {
+  clientCode: string
+  serverCode: string | null
+} => {
+  const { baseDir, extensions }: ReturnType<typeof resolveOptions> = resolveOptions(options),
+    routes: Routing.RouteEntry[] = buildEntries({ filePaths, extensions, baseDir }),
+    spa: Routing.Build.Spa = buildSpa({ routes, filePaths, extensions }),
+    layout: Routing.Build.Layout = buildLayout({
+      routes,
+      filePaths,
+      extensions,
+      spaDirs: spa.dirs
+    }),
+    mw: Routing.Build.Middleware = buildMiddleware({
+      routes,
+      filePaths,
+      extensions,
+      spaOwners: spa.spaOwners,
+      files: spa.files
+    }),
+    special: Routing.Build.Special = buildSpecial({ dirs: spa.dirs, filePaths, extensions }),
+    ctx: Routing.Build.Ctx = { routes, ...layout, ...spa, ...mw, ...special },
+    rpc: Rpc.Generated | null = generateRpcs({
+      filePaths,
+      options,
+      basePath,
+      middlewareAlias: ctx.middlewareAlias
+    }),
+    hasMpaRoute: boolean = ctx.spaOwners.some(owner => owner === null),
+    hasMiddleware: boolean = ctx.uniqueMiddlewares.length > 0
+
+  return {
+    clientCode: assembleClient({ ctx, baseDir, rpc }),
+    serverCode:
+      hasMpaRoute || hasMiddleware || rpc !== null ? assembleServer({ ctx, baseDir, rpc }) : null,
+    ...findClientEntries(ctx)
+  }
+}

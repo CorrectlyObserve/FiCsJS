@@ -1,0 +1,84 @@
+import { getGlobalCss, GLOBAL_STYLE_ATTR } from '../../core/css'
+import { CONTENT_TYPE } from '../../core/helpers'
+import { statusCodes, VIEW_TRANSITION_STYLE } from '../constants'
+import { injectMeta, renderMeta, resolveMeta } from '../meta'
+import type { Routing } from '../types'
+
+export const respond = (
+  arg: { html: string; status: Routing.Status.Code; noStore?: boolean } | string
+): Response => {
+  if (typeof arg === 'string')
+    return new Response(null, { status: statusCodes.REDIRECT, headers: { location: arg } })
+
+  return new Response(arg.html, {
+    status: arg.status,
+    headers: {
+      [CONTENT_TYPE]: 'text/html; charset=utf-8',
+      ...(arg.noStore && { 'cache-control': 'no-store' })
+    }
+  })
+}
+
+export const respondPage = async <C extends Record<string, unknown>>({
+  page,
+  status,
+  render,
+  scriptBase,
+  meta: defaultMeta,
+  viewTransition,
+  ctx,
+  path,
+  handleDenial
+}: Routing.Options.InternalPageHost<C> & {
+  page: { module: Routing.ServerModule<C>; entry?: string }
+  status: Routing.Status.Resolved
+  ctx: Routing.MiddlewareCtx<C>
+  path: string
+  handleDenial?: (denial: Routing.Denial) => Promise<Response>
+}): Promise<Response> => {
+  const {
+      module: { meta = {}, default: def, noScript, noStore },
+      entry
+    } = page,
+    content: string | Routing.Denial = def ? await def({ ...ctx, status }) : ''
+
+  if (typeof content !== 'string') {
+    /** @remarks Prevents an infinite loop, as a status page already answers a denial. */
+    if (!handleDenial) throw new Error('Return a string from a status page, as it cannot deny...')
+    return handleDenial(content)
+  }
+
+  const resolvedMeta: Record<string, string> = resolveMeta({ defaultMeta, meta, status }),
+    html: string = render({
+      ctx,
+      meta: resolvedMeta,
+      content,
+      path,
+      script: (!noScript && entry !== undefined && `${scriptBase}/${entry}.js`) || ''
+    })
+
+  return respond({
+    html: injectMeta({
+      html,
+      metaTags: `
+        ${renderMeta(resolvedMeta)}${viewTransition ? VIEW_TRANSITION_STYLE : ''}
+        <style ${GLOBAL_STYLE_ATTR}>${getGlobalCss()}</style>
+      `
+    }),
+    status,
+    noStore
+  })
+}
+
+export const respondStatus = async <C extends Record<string, unknown>>({
+  statusPages,
+  status,
+  statusFallback,
+  ...args
+}: Omit<Parameters<typeof respondPage<C>>[0], 'page' | 'status' | 'handleDenial'> &
+  Routing.Status.Manifest<C> & { status: Routing.Status.PageCode }): Promise<Response> => {
+  const page: Routing.Status.Page<C> | undefined = statusPages[status] ?? statusFallback
+  return page
+    ? respondPage({ page, status, ...args })
+    : respond({ html: `<h1>${status}</h1>`, status })
+}

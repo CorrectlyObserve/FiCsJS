@@ -1,42 +1,70 @@
-import { browserError } from '../core/helpers'
+import { escapeRegExp } from '../core/helpers'
+import { prependSlash } from './helpers'
 
-export const dynamicPathToRegex = (path: string): RegExp => {
-  if (!path.startsWith('/')) path = `/${path}`
+export const dynamicPathToRegex = (pattern: string): RegExp => {
+  pattern = prependSlash(pattern)
 
-  const escapeRegex = (param: string): string => param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    common = '/([^/]+?)' as const
+  const required = '/([^/]+?)' as const,
+    segments: Readonly<Record<string, string>> = {
+      '*': '/(.*?)',
+      '?': `(?:${required})?`,
+      '': required
+    }
 
-  let match: RegExpExecArray | null,
-    pattern: string = '',
+  let source: string = '',
     lastIndex: number = 0
 
-  dynamicRegex.lastIndex = 0
-
-  while ((match = dynamicRegex.exec(path))) {
-    const staticPart: string = path.slice(lastIndex, match.index)
-    pattern += `${escapeRegex(staticPart)}${match[2] ? `(?:${common})?` : common}`
-
-    lastIndex = match.index + match[0].length
+  for (const { 0: fullMatched, 2: flag = '', index } of pattern.matchAll(dynamicRegex)) {
+    source += `${escapeRegExp(pattern.slice(lastIndex, index))}${segments[flag]}`
+    lastIndex = index + fullMatched.length
   }
-  pattern += escapeRegex(path.slice(lastIndex))
+  source += escapeRegExp(pattern.slice(lastIndex))
 
-  return new RegExp(`^${pattern}/?$`)
+  return new RegExp(`^${source}/?$`)
 }
 
-export const dynamicRegex: RegExp = /\/:([^\/?]+)(\?)?/g
+export const dynamicRegex: RegExp = /\/:([^\/?*]+)(\?|\*)?/g
 
-export const getDynamicPaths = (path: string, pathname?: string): Record<string, string> => {
-  if (pathname === undefined) browserError()
+export const fillDynamicPath = (pattern: string, params: Record<string, string>): string | null => {
+  let filled: string = '',
+    lastIndex: number = 0
 
-  const regexes: RegExpExecArray | null = dynamicPathToRegex(path).exec(
-      pathname ?? window.location.pathname
-    ),
+  for (const { 0: fullMatched, 1: paramName, 2: flag, index } of pattern.matchAll(dynamicRegex)) {
+    const staticPart: string = pattern.slice(lastIndex, index),
+      value: string | undefined = params[paramName],
+      isOptional: boolean = flag === '?',
+      isCatchAll: boolean = flag === '*'
+
+    lastIndex = index + fullMatched.length
+
+    if (isOptional && !value) {
+      filled += staticPart
+      continue
+    }
+
+    const isMissing: boolean = value === undefined || (value === '' && !isCatchAll)
+
+    if (isMissing) return null
+
+    /** @remarks Preserves slashes, as a catch-all ('*') may contain them (e.g., "foo/bar"). */
+    const encoded: string = isCatchAll
+      ? value.split('/').map(encodeURIComponent).join('/')
+      : encodeURIComponent(value)
+
+    filled += `${staticPart}/${encoded}`
+  }
+
+  /** @remarks Returns the filled path or the root ("/") if nothing is filled. */
+  return `${filled}${pattern.slice(lastIndex)}` || '/'
+}
+
+export const getDynamicParams = (pattern: string, pathname: string): Record<string, string> => {
+  pattern = prependSlash(pattern)
+  pathname = prependSlash(pathname)
+
+  const regexes: RegExpExecArray | null = dynamicPathToRegex(pattern).exec(pathname),
     paths: Record<string, string> = {},
-    names: string[] = []
-  let match: RegExpExecArray | null
-
-  dynamicRegex.lastIndex = 0
-  while ((match = dynamicRegex.exec(path))) names.push(match[1])
+    names: string[] = [...pattern.matchAll(dynamicRegex)].map(({ 1: paramName }) => paramName)
 
   if (regexes && regexes.length > 0)
     for (const [index, value] of regexes.slice(1).entries()) {

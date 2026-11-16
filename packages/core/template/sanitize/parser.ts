@@ -1,5 +1,5 @@
 import type { Template } from '../../types'
-import { constants } from '../constants'
+import { char as c } from '../constants'
 import { error } from './error'
 import { isQuote, isSpace, isValidAttrName } from './validator'
 
@@ -25,9 +25,9 @@ export const getTemplateContexts = (strings: TemplateStringsArray): Template.Con
 
     for (let charIndex = 0; charIndex < part.length; charIndex++) {
       if (isInComment) {
-        if (part.startsWith(COMMENT_CLOSE_TAG, charIndex)) {
+        if (part.startsWith(c.COMMENT_CLOSE_TAG, charIndex)) {
           isInComment = false
-          charIndex += COMMENT_CLOSE_TAG.length - 1
+          charIndex += c.COMMENT_CLOSE_TAG.length - 1
         }
 
         continue
@@ -42,15 +42,15 @@ export const getTemplateContexts = (strings: TemplateStringsArray): Template.Con
 
       if (isInTag) {
         if (isQuote(char)) quote = char
-        else if (char === RIGHT_ANGLE_BRACKET) isInTag = false
+        else if (char === c.RIGHT_ANGLE_BRACKET) isInTag = false
 
         continue
       }
 
-      if (char === LEFT_ANGLE_BRACKET)
-        if (part.startsWith(COMMENT_OPEN_TAG, charIndex)) {
+      if (char === c.LEFT_ANGLE_BRACKET)
+        if (part.startsWith(c.COMMENT_OPEN_TAG, charIndex)) {
           isInComment = true
-          charIndex += COMMENT_OPEN_TAG.length - 1
+          charIndex += c.COMMENT_OPEN_TAG.length - 1
         } else isInTag = true
     }
 

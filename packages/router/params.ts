@@ -4,7 +4,7 @@ import type { ParamType } from './types'
 
 class Params {
   #isBrowser: boolean = isBrowser()
-  #dynamicPaths: Record<string, string> = {}
+  #dynamicParams: Record<string, string> = {}
   #queries: Record<string, string> = {}
 
   constructor() {
@@ -20,17 +20,15 @@ class Params {
   }
 
   set(type: ParamType, value: Record<string, string>): void {
-    if (!this.#isBrowser)
-      throw new Error('Params can only be accessed in the browser environment...')
+    /** @remarks Don't throw an error as SSR calls this. */
+    if (!this.#isBrowser) return
 
-    type === 'dynamicPaths' ? (this.#dynamicPaths = { ...value }) : (this.#queries = { ...value })
+    type === 'dynamicParams' ? (this.#dynamicParams = { ...value }) : (this.#queries = { ...value })
   }
 
   get(type: ParamType): Record<string, string> {
-    if (!this.#isBrowser)
-      throw new Error('Params can only be accessed in the browser environment...')
-
-    return type === 'dynamicPaths' ? { ...this.#dynamicPaths } : { ...this.#queries }
+    if (!this.#isBrowser) return {}
+    return type === 'dynamicParams' ? { ...this.#dynamicParams } : { ...this.#queries }
   }
 }
 
@@ -39,5 +37,5 @@ export const getQueries = (): Record<string, string> =>
 
 export const params: Params = new Params()
 
-export const dynamicPaths = (): Record<string, string> => params.get('dynamicPaths')
+export const dynamicParams = (): Record<string, string> => params.get('dynamicParams')
 export const queries = (): Record<string, string> => params.get('queries')

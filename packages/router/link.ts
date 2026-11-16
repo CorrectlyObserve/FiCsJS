@@ -1,59 +1,86 @@
+import { a11yAttrs } from '../core/a11y'
 import { FiCsElement } from '../core/class'
-import { isBlankString } from '../core/helpers'
+import { CSS_LAYER, escape, HOST_SELECTOR, isBlankString, typedEntries } from '../core/helpers'
+import type { FiCs } from '../core/namespaces'
+import { LINK_COMPONENT_NAME } from './constants'
 import { goto } from './goto'
 import type { FiCsLink, Returned } from './types'
 
 export const ficsLink = <P extends object>({
+  name = LINK_COMPONENT_NAME,
   children,
   href,
   props,
   className,
   attributes,
+  anchorAttributes,
   content,
-  css,
-  actions
-}: FiCsLink<P>): FiCsElement<{}, P> =>
-  new FiCsElement<{}, P>({
-    name: 'link',
-    isExceptional: true,
-    children,
-    props,
-    className,
-    attributes,
-    html: ({ props, template, ...args }) => {
-      const _href: string = (typeof href === 'function' ? href({ props }) : href).trim()
-      if (isBlankString(_href)) throw new Error('The "href" must be a non-empty string...')
+  css: _css,
+  actions: _actions
+}: FiCsLink<P>): FiCsElement<{}, P> => {
+  const html: FiCs.Html<{}, P> = ({ data, props, deferredStates, template, ...args }) => {
+      const resolvedHref: unknown = typeof href === 'function' ? href({ props }) : href
 
-      const _content: Returned<{}, P> = content({ props, template, ...args })
+      if (typeof resolvedHref !== 'string' || isBlankString(resolvedHref))
+        throw new Error('The "href" must be a non-empty string...')
+
+      let anchorAttrsStr: string = ''
+
+      if (anchorAttributes !== undefined) {
+        const entries = typedEntries(
+            typeof anchorAttributes === 'function'
+              ? anchorAttributes({ data, props, deferredStates, a11y: a11yAttrs })
+              : anchorAttributes
+          ),
+          attrs: string[] = []
+
+        for (const [key, value] of entries) {
+          if (key === 'href')
+            throw new Error(
+              'Pass the "href" option as a top-level option, not inside "anchorAttributes"...'
+            )
+          attrs.push(`${key}="${escape(String(value))}"`)
+        }
+
+        anchorAttrsStr = attrs.join(' ')
+      }
+
+      const _content: Returned<{}, P> = content({ data, props, deferredStates, template, ...args })
       return template`
-        <a href="${_href}">
+        <a ${[`href="${resolvedHref.trim()}"`, anchorAttrsStr].filter(Boolean).join(' ')}>
           ${template`${_content instanceof FiCsElement ? template`${_content}` : _content}`}
         </a>
       `
     },
-    css: [
+    css: FiCs.Css<{}, P> = [
       `
-        :host {
-          display: block;
-          width: 100%;
+        ${CSS_LAYER} {
+          ${HOST_SELECTOR} {
+            width: 100%;
 
-          a {
-            display: block;
-            text-decoration: none;
-            line-height: inherit;
+            a {
+              display: block;
+              text-decoration: none;
+              line-height: inherit;
 
-            &:visited { color: inherit; }
+              &:visited { color: inherit; }
+            }
           }
         }
       `,
-      ...(css ? (Array.isArray(css) ? css : [css]) : [])
+      ...(_css ? (Array.isArray(_css) ? _css : [_css]) : [])
     ],
-    actions: {
-      ':host > a[href]': {
+    actions: FiCs.Actions<{}, P> = {
+      [`${HOST_SELECTOR} > a[href]`]: {
         click: [
-          ({ event, attributes: { href } }) => {
+          ({ event, attributes: { href, download, target } }) => {
             href = href.trim()
-            if (isBlankString(href)) return
+            if (
+              isBlankString(href) ||
+              download !== undefined ||
+              (target !== undefined && target !== '_self')
+            )
+              return
 
             const { defaultPrevented, button, metaKey, ctrlKey, shiftKey, altKey }: MouseEvent =
               event as MouseEvent
@@ -75,7 +102,17 @@ export const ficsLink = <P extends object>({
           },
           { blur: true }
         ]
-      },
-      ...actions
+      }
     }
+
+  return new FiCsElement<{}, P>({
+    name,
+    children,
+    props,
+    className,
+    attributes,
+    html,
+    css,
+    actions: { ...actions, ..._actions }
   })
+}

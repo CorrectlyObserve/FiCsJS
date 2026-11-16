@@ -1,6 +1,6 @@
 {
   "head": {
-    "title": "ToDo App created with FiCsJS",
+    "title": "{page} | ToDo App created with FiCsJS",
     "description": "This is a ToDo app developed with FiCsJS. All processing is completed using FiCsJS without any other JavaScript frameworks."
   },
   "lang": "Language options",
@@ -8,17 +8,31 @@
     "heading": "Task list",
     "description": "You can add a new task by pressing the Enter key.",
     "placeholder": "Add a new task",
-    "show": "Show completed tasks",
-    "hide": "Hide completed tasks",
+    "check": "Show completed tasks",
     "completed": "(Completed)",
     "uncompleted": "(Uncompleted)",
     "confirmation": "Are you sure you'd like to delete this task?\nOnce deleted, it cannot be undone.",
-    "unapplicable": "There are no tasks..."
+    "unapplicable": "There are no tasks...",
+    "copiedTitle": "Copy of {title}",
+    "reorder": {
+      "handle": "Reorder this task",
+      "up": "Move up",
+      "down": "Move down",
+      "copy": "Duplicate",
+      "moved": "The task was moved.",
+      "cloned": "The task was cloned."
+    }
   },
   "task": {
     "heading": "Task details",
     "status": "Status",
-    "texts": ["Complete", "Revert", "Delete", "Back", "Close"],
+    "texts": {
+      "complete": "Complete",
+      "revert": "Revert",
+      "remove": "Delete",
+      "back": "Back",
+      "close": "Close"
+    },
     "labels": ["Title", "Description"],
     "error": "Please enter at least 1 character",
     "descriptions": [
@@ -31,7 +45,9 @@
   },
   "notFound": {
     "heading": "Not Found...",
-    "descriptions": ["You will be redirected to the top page in ", " seconds.", "Pause", "Restart"],
+    "countdown": "You will be redirected to the top page in {seconds} seconds.",
+    "pause": "Pause",
+    "restart": "Restart",
     "buttonText": "Back"
   }
 }

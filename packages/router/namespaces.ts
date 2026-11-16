@@ -1,6 +1,7 @@
 import type {
   Action,
-  Attrs,
+  Attr,
+  Awaitable,
   ClassName as _ClassName,
   Css,
   Descendant,
@@ -9,12 +10,22 @@ import type {
   Options,
   SingleOrArray
 } from '../core/types'
-import type { Content as _Content, Page, PageContent, RouterData } from './types'
+import type {
+  Content as _Content,
+  FiCsRouter as _FiCsRouter,
+  Returned,
+  RouterData,
+  Routing,
+  Rpc,
+  WithoutHref
+} from './types'
 
 export declare namespace FiCsLink {
+  type AnchorAttributes<P> = WithoutHref<Attr.Input<{}, P>> | undefined
+
   type Actions<P> = Action.Handlers<{}, P> | undefined
 
-  type Attributes<P> = Attrs<{}, P> | undefined
+  type Attributes<P> = Attr.Input<{}, P> | undefined
 
   type Children = Descendant[] | undefined
 
@@ -22,7 +33,7 @@ export declare namespace FiCsLink {
 
   type Content<P extends object> = _Content<{}, P>
 
-  type Css<P> = Css.Ctx<{}, P> | undefined
+  type Css<P> = Css.Input<{}, P> | undefined
 
   type Href<P> = (({ props }: { props: P }) => string) | string
 
@@ -30,21 +41,67 @@ export declare namespace FiCsLink {
 }
 
 export declare namespace FiCsRouter {
-  type Attributes<D extends object> = Attrs<RouterData<D>, {}> | undefined
-
-  type ClassName<D extends object> = _ClassName<RouterData<D>, {}> | undefined
+  type Attributes<D extends object> = Attr.Input<RouterData<D>, {}> | undefined
 
   type Children = Descendant[] | undefined
 
-  type Css<D extends object> = Css.Ctx<RouterData<D>, {}> | undefined
+  type ClassName<D extends object> = _ClassName<RouterData<D>, {}> | undefined
+
+  type Css<D extends object> = Css.Input<RouterData<D>, {}> | undefined
+
+  type DefaultData = RouterData<{}>
 
   type Hooks<D extends object> = Hook.Lifecycle<RouterData<D>, {}> | undefined
 
-  type NotFound<D extends object> = PageContent<D> | undefined
+  type Layout<D extends object> = _Content<RouterData<D>, {}, { slot: Returned<D, {}> }>
 
-  type Options<D extends object> = Options.Ctx<RouterData<D>, {}> | undefined
+  type Options<D extends object> = Options.Input<RouterData<D>, {}> | undefined
 
-  type Pages<D extends object> = Page<D>[]
+  type Page<D extends object> = _Content<RouterData<D>, {}>
 
   type Props<D extends object> = SingleOrArray<_Props<RouterData<D>, {}>> | undefined
+
+  type Spa<D extends object> = _FiCsRouter<D>
+
+  type SsrLayout<T extends object> = (ctx: { slot: string } & T) => Awaitable<string>
+}
+
+export declare namespace FiCsRpc {
+  type CallOptions = Rpc.Options.Call
+
+  type Client<R> = Rpc.Client<R>
+
+  type ClientOptions = Rpc.Options.Client<MetricEvent>
+
+  type ErrorInit = Rpc.ErrorInit
+
+  type MetricEvent = Extract<Rpc.Metric.Event, { type: `request:${string}` }>
+}
+
+export declare namespace FiCsServerRouter {
+  type Denial = Routing.Denial
+
+  type Middleware<C = Record<string, unknown>> = Routing.Middleware<C>
+
+  type MiddlewareCtx<C = Record<string, unknown>> = Routing.MiddlewareCtx<C>
+
+  type Options<C = Record<string, unknown>> = Routing.Options.PageHost<C>
+
+  type PrerenderOptions<C = Record<string, unknown>> = Routing.Options.Prerender<C>
+
+  type Render = Routing.Render
+
+  type SpaInitialData<D extends object, C = Record<string, unknown>> = Routing.SpaInitialData<D, C>
+
+  type Status = Routing.Status.Resolved
+}
+
+export declare namespace FiCsServerRpc {
+  type Ctx<C = unknown> = Rpc.Ctx<C>
+
+  type ErrorInit = Rpc.ErrorInit
+
+  type MetricEvent = Exclude<Rpc.Metric.Event, { type: `request:${string}` }>
+
+  type Options<C = unknown> = Rpc.Options.Handler<C, MetricEvent>
 }

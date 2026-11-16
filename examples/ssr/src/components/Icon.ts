@@ -1,42 +1,69 @@
 import { fics, type FiCs } from 'ficsjs'
-import { white } from '@/utils'
+import { color, fill, layout, maskIcon, radius, rect, space } from 'ficsjs/style'
+import {
+  type Placement,
+  TOOLTIP_ID,
+  tooltipCss,
+  tooltipHandlers,
+  tooltipMarkup
+} from '@/components/Tooltip'
 
-interface Props {
+export interface Props {
   svg: string
   ariaLabel: string
+  variant?: 'neutral' | 'danger'
   isDisabled?: boolean
-  isActive?: boolean
+  isExpanded?: boolean
+  tooltip?: string
+  tooltipPlacement?: Placement
+  isBottomFixed?: boolean
   isLarge?: boolean
-  isPressed?: boolean
   click: () => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { svg, ariaLabel, isDisabled, isActive, isLarge, isPressed },
+  props: { ariaLabel, variant = 'neutral', isDisabled, isExpanded, tooltip },
   template,
-  attributes: { boolean },
-  unsafeHtml,
-  isBrowser
-}) => {
-  const _isDisabled = !isBrowser || isDisabled,
-    textColor = !_isDisabled && isActive ? 'text-pink' : 'text-white'
+  isBrowser,
+  attributes: {
+    a11y: { expanded },
+    disabled
+  }
+}) => template`
+  <button
+    type="button"
+    aria-label="${ariaLabel}"
+    data-variant="${variant}"
+    ${disabled(!isBrowser || isDisabled)}
+    ${expanded(isExpanded)}
+    ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
+  >
+    <span class="icon"></span>
+    ${tooltipMarkup(template, tooltip)}
+  </button>
+`
 
-  return template`
-    <button
-      class="clickable flex ${textColor} ${isLarge ? 'p-4' : 'p-3'} rounded-lg"
-      ${_isDisabled ? 'disabled' : ''}
-      aria-disabled="${boolean(_isDisabled)}"
-      aria-label="${ariaLabel}"
-      ${isPressed === undefined ? '' : `aria-pressed="${boolean(isPressed)}"`}
-      type="button"
-    >${unsafeHtml(svg)}</button>
-  `
-}
-
-const css: FiCs.Css<{}, Props> = ({ props: { isLarge } }) => `
+const css: FiCs.Css<{}, Props> = ({ props: { svg, tooltipPlacement, isBottomFixed, isLarge } }) => `
   button {
-    &:hover { background: ${white(0.1)}; }
-    svg { width: ${isLarge ? '2.5' : '1.25'}rem; height: auto; stroke: currentColor; }
+    ${tooltipCss(tooltipPlacement)}
+
+    ${
+      (isBottomFixed &&
+        `
+      ${fill('bg')};
+      ${radius('sm')};
+      position: fixed;
+      bottom: ${space('xl')};
+      right: ${space('lg')};
+      z-index: 1;
+  
+      @container ${layout('compact')} { bottom: ${space('lg')}; right: ${space('md')}; }`) ||
+      ''
+    }
+
+    &[data-variant='danger'] { color: ${color('text', 'danger')}; }
+
+    > span.icon { ${isLarge ? rect(6, 6) : rect(5, 5)}; ${maskIcon(svg)}; }
   }
 `
 
@@ -45,8 +72,9 @@ const actions: FiCs.Actions<{}, Props> = {
     click: [
       ({ props: { isDisabled, click } }) => !isDisabled && click(),
       { throttleMs: 500, blur: true }
-    ]
+    ],
+    ...tooltipHandlers<{}, Props>()
   }
 }
 
-export default () => fics<{}, Props>({ name: 'icon', className: 'icon', html, css, actions })
+export default () => fics<{}, Props>({ name: 'icon', html, css, actions })

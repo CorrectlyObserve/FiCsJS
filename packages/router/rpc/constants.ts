@@ -1,0 +1,25 @@
+import { PROTO } from '../../core/helpers'
+import type { Routing, Rpc } from '../types'
+
+export const CONTENT_LENGTH = 'content-length' as const
+
+export const DEFAULT_ERRORS: Partial<Record<Routing.Status.Name, string>> = {
+  BAD_REQUEST: 'The request is invalid or malformed...',
+  CONFLICT: 'The request conflicts with the current state...',
+  PAYLOAD_TOO_LARGE: 'The request body is too large...',
+  INTERNAL_SERVER_ERROR: 'The server encountered an unexpected error...'
+} as const
+
+export const DENIED_HEADER = 'fics-denied' as const
+
+export const metricReasons = {
+  NOT_FOUND: 'not-found',
+  BAD_REQUEST: 'bad-request',
+  PAYLOAD_TOO_LARGE: 'payload-too-large'
+} as const satisfies Record<string, Extract<Rpc.Metric.Payload, { type: 'reject' }>['reason']>
+
+export const REDIRECT_HEADER = 'fics-redirect' as const
+
+export const RESERVED_KEYS: ReadonlySet<string> = new Set([PROTO, 'prototype', 'constructor'])
+
+export const RPC_INPUT_PARAM = 'input' as const

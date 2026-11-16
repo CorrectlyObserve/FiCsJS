@@ -1,0 +1,163 @@
+import { escapeRegExp } from '../../../core/helpers'
+import { joinLines } from '../../helpers'
+import type { Routing } from '../../types'
+import { COMMENT, exportedNames, prefixes } from '../constants'
+import { getOrThrow, joinAndWrap, routerImport, toSpecifier } from '../helpers'
+import { generateEntries, generatePages, generateSpaRouters } from './generator'
+import { toSpaAlias } from './path'
+
+const uses = (code: string, id: string): boolean =>
+    new RegExp(`\\b${escapeRegExp(id)}\\b`).test(code),
+  emitModuleImports = ({
+    routes,
+    uniqueLayouts,
+    layoutAlias,
+    dirs,
+    files,
+    serverFiles,
+    spaOwners,
+    statusFiles,
+    aliases,
+    rootStatusFiles,
+    statusFallback,
+    redirect,
+    baseDir,
+    code
+  }: Routing.Build.Ctx & { baseDir: string; code: string }): string[] => {
+    const spec = (src: string): string => `'${toSpecifier(src, baseDir)}'`,
+      candidates: { id: string; import: string }[] = []
+
+    for (const layout of uniqueLayouts) {
+      const id: string = getOrThrow(layoutAlias, layout)
+      candidates.push({ id, import: `import * as ${id} from ${spec(layout)}` })
+    }
+
+    for (let index = 0; index < routes.length; index++) {
+      const { serverSpecifier, specifier }: Routing.RouteEntry = routes[index]
+
+      if (serverSpecifier !== null) {
+        candidates.push({
+          id: `server${index}`,
+          import: `import * as server${index} from '${serverSpecifier}'`
+        })
+      }
+
+      if (spaOwners[index] !== null) {
+        candidates.push({
+          id: `client${index}`,
+          import: `import * as client${index} from '${specifier}'`
+        })
+      }
+    }
+
+    for (const dir of dirs) {
+      const spaId: string = toSpaAlias(dir, 'Spa')
+      candidates.push({ id: spaId, import: `import ${spaId} from ${spec(getOrThrow(files, dir))}` })
+
+      const serverSrc: string | undefined = serverFiles.get(dir)
+      if (serverSrc !== undefined) {
+        const spaServerId: string = toSpaAlias(dir, 'SpaServer')
+        candidates.push({
+          id: spaServerId,
+          import: `import ${spaServerId} from ${spec(serverSrc)}`
+        })
+      }
+
+      for (const [key, src] of getOrThrow(statusFiles, dir)) {
+        const id: string = getOrThrow(getOrThrow(aliases, dir), key)
+        candidates.push({ id, import: `import * as ${id} from ${spec(src)}` })
+      }
+    }
+
+    for (const { prop, serverSrc } of rootStatusFiles)
+      if (serverSrc !== null)
+        candidates.push({
+          id: `__${prop}`,
+          import: `import * as __${prop} from ${spec(serverSrc)}`
+        })
+
+    if (statusFallback?.serverSrc)
+      candidates.push({
+        id: prefixes.ERROR,
+        import: `import * as ${prefixes.ERROR} from ${spec(statusFallback.serverSrc)}`
+      })
+
+    if (redirect)
+      candidates.push({
+        id: prefixes.REDIRECT,
+        import: `import ${prefixes.REDIRECT} from ${spec(redirect)}`
+      })
+
+    const seen: Set<string> = new Set(),
+      imports: string[] = []
+
+    for (const { id, import: imported } of candidates) {
+      if (!uses(code, id) || seen.has(id)) continue
+
+      seen.add(id)
+      imports.push(imported)
+    }
+
+    return imports
+  }
+
+export const assembleClient = ({ ctx, baseDir, rpc }: Routing.Options.Assemble): string => {
+  const { routes, rootStatusFiles, redirect }: Routing.Build.Ctx = ctx,
+    uniquePaths: string[] = Array.from(
+      new Set([...routes, ...rootStatusFiles].map(({ path }) => path))
+    ),
+    code: string = joinLines(
+      [
+        generateSpaRouters(ctx),
+        rpc?.client.code ?? '',
+        `export const redirects = ${redirect ? prefixes.REDIRECT : 'undefined'}`,
+        `export type FiCsRoutingPath = ${uniquePaths.length === 0 ? 'never' : uniquePaths.map(path => `'${path}'`).join(' | ')}`
+      ],
+      { filter: true }
+    )
+
+  const imports: string[] = emitModuleImports({ ...ctx, baseDir, code })
+
+  for (const { id, path } of [
+    { id: 'createRpcClient' },
+    { id: exportedNames.router, path: 'internal' }
+  ])
+    if (uses(code, id)) imports.unshift(`import { ${id} } from ${routerImport(path)}`)
+
+  if (rpc && (rpc.client.imports ?? []).length > 0) imports.push(...rpc.client.imports)
+
+  return joinLines([COMMENT, joinLines(imports), '', code, ''])
+}
+
+export const assembleServer = ({ ctx, baseDir, rpc }: Routing.Options.Assemble): string => {
+  const code: string = joinLines(
+      [joinLines(generateEntries(ctx)), generatePages(ctx), rpc?.server.code ?? ''],
+      { filter: true }
+    ),
+    imports: string[] = []
+
+  for (const [src, id] of ctx.middlewareAlias)
+    if (uses(code, id)) imports.push(`import ${id} from '${toSpecifier(src, baseDir)}'`)
+
+  imports.push(...emitModuleImports({ ...ctx, baseDir, code }))
+  if (rpc && rpc.server.imports.length > 0) imports.push(...rpc.server.imports)
+
+  const usedClientExports: string[] = []
+
+  for (const name of [...ctx.spaAlias.values(), 'redirects'])
+    if (uses(code, name)) usedClientExports.push(name)
+
+  if (usedClientExports.length > 0)
+    imports.push(`import ${joinAndWrap(usedClientExports)} from './client'`)
+
+  const { spaPage } = exportedNames
+
+  return joinLines([
+    COMMENT,
+    `import ${uses(code, spaPage) ? `{ ${spaPage} } from ` : ''}${routerImport('server-only')}`,
+    joinLines(imports, { filter: true }),
+    '',
+    code,
+    ''
+  ])
+}

@@ -1,23 +1,38 @@
-import { browserError, numberError } from '../core/helpers'
-import type { Operator } from './types'
+import { browserError, cssObject, ficsCssVar, numberError } from '../core/helpers'
 
-export function calc(expression: string): Readonly<string>
-export function calc(operator: Operator, ...remaining: (string | number)[]): Readonly<string>
-export function calc(arg: string | Operator, ...remaining: (string | number)[]): Readonly<string> {
-  arg = arg.trim()
-  return `calc(${typeof arg === 'string' && remaining.length === 0 ? arg : remaining.join(` ${arg} `)})`
+/**
+ * @param space
+ * -
+ * - `oklab`: perceptually uniform color space
+ * - `srgb`: standard RGB color space
+ */
+export const colorMix = ({
+  colors: [first, second = 'transparent'] = ['currentColor'],
+  ratio,
+  space = 'oklab'
+}: {
+  colors?: [string, string?]
+  ratio: number | string
+  space?: 'oklab' | 'srgb'
+}): string => {
+  if (typeof ratio === 'number') numberError({ ratio }, 'ratio')
+  return `color-mix(in ${space}, ${first} ${typeof ratio === 'number' ? `${ratio * 100}%` : ratio}, ${second})`
 }
 
-export const cssVar = (variable: string): Readonly<string> => {
+export const cssVar = (variable: string, fallback?: string): string => {
   variable = variable.trim()
-  return `var(--${variable.startsWith('--') ? variable.slice(2) : variable})` as const
+
+  const PREFIX = '--' as const,
+    name = variable.startsWith(PREFIX) ? variable.slice(PREFIX.length) : variable
+
+  return `var(${PREFIX}${name}${fallback === undefined ? '' : `, ${fallback}`})` as const
 }
 
-export const hideScrollbar = {
+export const hideScrollbar = cssObject({
   '::-webkit-scrollbar': { display: 'none' },
   'scrollbar-width': 'none',
   '-ms-overflow-style': 'none'
-} as const
+} as const)
 
 /** @param rem Must be a non-negative number if it is a number. */
 export const remToPx = (rem: number | string): Readonly<number> => {
@@ -28,3 +43,15 @@ export const remToPx = (rem: number | string): Readonly<number> => {
   numberError({ rem }, 'non-negative')
   return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
+
+export const toRem = (unit: number) => `${unit * 0.25}rem` as const
+
+export const toVar = ({
+  name,
+  value,
+  token
+}: {
+  name: string
+  value: string
+  token?: string
+}): string => cssVar(ficsCssVar(`${name}${token === undefined ? '' : `-${token}`}`), value)

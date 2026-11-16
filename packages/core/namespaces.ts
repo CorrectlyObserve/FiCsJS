@@ -1,38 +1,49 @@
 import type {
-  Action,
-  Attrs,
+  Action as _Action,
+  Attr,
   ClassName as _ClassName,
   Css,
-  DataProps,
+  DeferredData as _DeferredData,
   Descendant,
+  Form,
   Hook,
   Html,
   I18n,
+  MutableData as _MutableData,
   Props as _Props,
   Options,
   SingleOrArray
 } from './types'
 
 export declare namespace FiCs {
-  type Actions<D extends object, P> = Action.Handlers<D, P> | undefined
+  type Action<D extends object, P> = _Action.Entry<D, P>
 
-  type Attributes<D extends object, P> = Attrs<D, P> | undefined
+  type Actions<D extends object, P> = _Action.Handlers<D, P> | undefined
+
+  type Attributes<D extends object, P> = Attr.Input<D, P> | undefined
 
   type Children = Descendant[] | undefined
 
   type ClassName<D extends object, P> = _ClassName<D, P> | undefined
 
-  type Css<D extends object, P> = Css.Ctx<D, P> | undefined
+  /** @remarks Requires a ternary (not `&&`) for conditions, as it's a plain template literal. */
+  type Css<D extends object, P> = Css.Input<D, P> | undefined
 
-  type DeferredContext<D extends object, P> = DataProps.Payload<D, P, true>
+  type DeferredData<D extends object, P> = SingleOrArray<_DeferredData.Entry<D, P>> | undefined
 
-  type Html<D extends object, P extends object> = Html.Core<D, P>
+  type FormAssociation = Form.Association
+
+  type GlobalCss = string
+
+  type Html<D extends object, P extends object> = Html.Fn<D, P>
 
   type Hooks<D extends object, P> = Hook.Lifecycle<D, P> | undefined
 
-  type I18nContext<D extends object, P> = DataProps.Payload<D, P> & I18n
+  type Interpolate = I18n.Interpolate
 
-  type Options<D extends object, P> = Options.Ctx<D, P> | undefined
+  type MutableData<D extends object> = _MutableData<D>
+
+  type Options<D extends object, P> = Options.Input<D, P> | undefined
 
   type Props<D extends object, P> = SingleOrArray<_Props<D, P>> | undefined
 }

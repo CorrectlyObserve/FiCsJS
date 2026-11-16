@@ -1,0 +1,62 @@
+import { typedEntries } from '../core/helpers'
+import { STATUS_FALLBACK } from './constants'
+import { applyLayout } from './layout'
+import type { Page, PageContent, Routing } from './types'
+
+const resolveModule = ({
+  default: def,
+  redirect,
+  meta
+}: Routing.Module): PageContent | undefined => {
+  if (typeof redirect === 'string') return { redirect }
+  if (def === undefined) return undefined
+
+  return {
+    content: (typeof def === 'function' ? def : () => def) as PageContent['content'],
+    meta
+  }
+}
+
+export const resolveSpec = (spec: Routing.Spec): Readonly<Routing.ResolvedSpec> => {
+  const {
+      routes,
+      statusLayout,
+      statusModules,
+      statusFallback,
+      inheritedStatusKeys = []
+    }: Routing.Spec = spec,
+    pages: Page[] = [],
+    modules: Routing.ResolvedSpec['statusModules'] = {}
+
+  for (const { path, page, layout } of routes) {
+    const content: PageContent | undefined = resolveModule(applyLayout({ layout, page }))
+
+    if (!content)
+      throw new Error(
+        `The module with path "${path}" must export default content or a "redirect"...`
+      )
+
+    pages.push({ path, ...content })
+  }
+
+  const resolveStatus = (module: Routing.Module, key: string): PageContent | undefined => {
+    const content: PageContent | undefined = resolveModule(
+      applyLayout({ layout: statusLayout, page: module })
+    )
+
+    if (!content && !inheritedStatusKeys.includes(key))
+      throw new Error(`The status module "${key}" must export default content or a "redirect"...`)
+
+    return content
+  }
+
+  if (statusModules)
+    for (const [key, module] of typedEntries(statusModules))
+      modules[key] = resolveStatus(module, key)
+
+  return {
+    pages,
+    statusModules: modules,
+    statusFallback: statusFallback ? resolveStatus(statusFallback, STATUS_FALLBACK) : undefined
+  }
+}

@@ -7,17 +7,15 @@ import {
   numberError
 } from '../core/helpers'
 import type { SingleOrArray } from '../core/types'
-import { constants } from './constants'
-import type { Ctx, Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
-
-const {
+import {
   COMPOSITE_ID_INDEX,
   SNAPSHOT_ID_INDEX,
   SNAPSHOT_STORE,
   STATE_ID_INDEX,
   STATE_STORE,
   VERSION
-} = constants
+} from './constants'
+import type { Ctx, Metric, Options, QueryOptions, Snapshot, State, SyncPayload } from './types'
 
 export class PersistentState<S> {
   static #stateIdUsageCounts: Map<string, number> = new Map()
@@ -230,7 +228,7 @@ export class PersistentState<S> {
             req.onsuccess = () => resolve(req.result)
             req.onerror = () => reject(req.error)
             req.onblocked = () =>
-              console.warn('Please close other tabs to complete the IndexedDB upgrade...')
+              console.warn('Close other tabs to complete the IndexedDB upgrade...')
           })
 
           db.onversionchange = () => {

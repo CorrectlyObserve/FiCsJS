@@ -1,16 +1,20 @@
-import { numberError } from '../core/helpers'
+import { cssObject, numberError } from '../core/helpers'
 
-/** @param maxLines Must be a positive integer. Default is `1`. */
+/** @param maxLines Must be a positive integer. Defaults to `1`. */
 export const truncate = (maxLines: number = 1) => {
   numberError({ maxLines }, 'positive-int')
 
   if (maxLines === 1)
-    return { overflow: 'hidden', 'white-space': 'nowrap', 'text-overflow': 'ellipsis' } as const
+    return cssObject({
+      overflow: 'hidden',
+      'white-space': 'nowrap',
+      'text-overflow': 'ellipsis'
+    } as const)
 
-  return {
+  return cssObject({
     display: '-webkit-box',
     overflow: 'hidden',
     '-webkit-box-orient': 'vertical',
     '-webkit-line-clamp': maxLines
-  } as const
+  } as const)
 }

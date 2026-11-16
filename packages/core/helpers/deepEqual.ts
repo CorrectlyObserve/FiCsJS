@@ -4,7 +4,7 @@ import { isObject } from './typeCheck'
  * @remarks
  * - **Map**: Keys are compared by reference. Values are deeply compared.
  * - **Set**: Values are compared deeply and order-independently (Complexity: O(N^2)).
- * - **Error**: Compared by `name` and `message`. The `stack` trace is ignored as it is environment-specific.
+ * - **Error**: Compared by `name` and `message`. The `stack` trace is ignored, as it is environment-specific.
  * - **Opaque Objects**: `WeakMap`, `WeakSet`, and `Promise` always return `false` unless they share the same reference.
  *
  * @remarks

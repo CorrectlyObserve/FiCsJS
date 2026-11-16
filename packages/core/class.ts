@@ -1,36 +1,48 @@
-import { constants } from './constants'
+import { a11y, a11yAttrs, a11ySelectors } from './a11y'
+import {
+  ANNOUNCING_ROLES,
+  attrs,
+  BOOLEAN_ATTRS,
+  CLONED_SELVES_LENGTH,
+  MAX_LOOP_LENGTH,
+  symbols,
+  VAR_TAG_NAME
+} from './constants'
 import { crud } from './crud'
+import { getGlobalStyleSheet, toComponentCss } from './css'
+import { DeferredData } from './deferredData'
+import { defineFormSurface, formInternals, submitForm, syncForm, touchedControls } from './form'
 import {
   browserError,
   convertStr,
   deepEqual,
+  escape,
+  HOST_SELECTOR,
   isBlankString,
   isBrowser,
   isEmptyObject,
   isObject,
-  joinArray,
   normalizeRootMargin,
   numberError,
+  setOwnKey,
   toArray,
   typedEntries,
   uid
 } from './helpers'
-import { i18n } from './i18n'
 import { optimisticUpdate } from './optimisticUpdate'
 import { enqueue } from './queue'
-import { constants as scrollConstants } from './scroll/constants'
+import { CACHE_LENGTH } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import { runInfiniteVirtualScroll } from './scroll/runtime'
 import { scrollTemplate } from './scroll/template'
 import { createQueryCache, getQueryCache, lockQueryCache, type QueryCache } from './query'
 import { openEventSource } from './sse'
-import { escape } from './template/escape'
 import { applyShowAttr } from './template/forSsr'
 import { sanitize } from './template/sanitize'
 import type {
   Action,
-  Attrs,
-  AwaitableVoid,
+  Attr,
+  Awaitable,
   Children,
   ClassName,
   Crud,
@@ -38,61 +50,73 @@ import type {
   DataProps,
   Descendant,
   FiCs,
+  Form,
   Html,
   Hook,
-  I18n,
   Optimistic,
   Options,
   Props,
   Scroll,
   SetTimeout,
-  SingleOrArray,
   SSE,
   Task,
   Telemetry,
-  WebSocket as WebSocketNS
+  WebSocket as WebSocketNS,
+  WritableDataKeys
 } from './types'
 import { openWebSocket } from './websocket'
 
 export class FiCsElement<D extends object, P extends object> {
   static #generator: Generator<number> = uid()
   static #nameGenerators: Map<string, Generator<number>> = new Map()
-  static #activeEffect: { instance: Descendant; run: () => void } | null = null
-  static globalCss: Css.Global[] = []
+  static #activeEffect: { instance: Descendant; sync: () => void } | null = null
+  static #childOwners: WeakMap<Descendant, string> = new WeakMap()
+  static #warnedMisuses: Set<string> = new Set()
+  static #clonedNames: Map<string, string> = new Map()
   readonly #nameKey: string
   readonly #instanceId: string
   readonly #name: string
-  readonly #children: Children = {}
+  readonly #children: Children
   readonly #isBrowser: boolean
   readonly #rawData: D = {} as D
   readonly #data: D = {} as D
+  readonly #immutableDataKeys: Set<keyof D> = new Set()
   readonly #subscribers: {
     data: Map<keyof D, Set<() => void>>
     props: Map<keyof P, Set<() => void>>
   } = { data: new Map(), props: new Map() }
+  readonly #changedKeys: { data: Set<keyof D>; props: Set<keyof P> } = {
+    data: new Set(),
+    props: new Set()
+  }
+  readonly #deferredData: DeferredData<D, P>
   readonly #cache: {
     boundFunctions: WeakMap<Function, D[keyof D] | P[keyof P]>
     component?: HTMLElement
   } = { boundFunctions: new WeakMap() }
-  readonly #deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
-  readonly #i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
   readonly #propsSources: Props<D, P>[] = []
   readonly #rawProps: P = {} as P
   readonly #props: P = {} as P
   readonly #classNames?: ClassName<D, P>
-  readonly #attrs?: Attrs<D, P>
-  readonly #html: Html.Core<D, P>
-  readonly #css: Css.Sheet<D, P>[] = []
+  readonly #attrs?: Attr.Input<D, P>
+  readonly #html: Html.Fn<D, P>
+  readonly #css: Css.StringOrFn<D, P>[] = []
+  readonly #isStaticCss: boolean
   readonly #hooks: Hook.Lifecycle<D, P> = {}
   readonly #actions: Action.Handlers<D, P> = {}
-  readonly #options: Options.Resolved<D, P> = { ssr: true, lazyLoad: false, rootMargin: '0px' }
+  readonly #options: Options.Resolved<D, P> = {
+    ssr: true,
+    maxLoopLength: MAX_LOOP_LENGTH,
+    lazyLoad: false,
+    rootMargin: '0px'
+  }
+  readonly #isFormAssociated: boolean = false
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #activeApis: Map<string, boolean> = new Map()
   readonly #optimisticUpdateFn: ReturnType<typeof optimisticUpdate>
   readonly #childrenStore: Record<string, FiCsElement<D, P>> = {}
   readonly #newElements: Set<Element> = new Set()
-  #isDeferred: boolean = true
-  #isInRerendering: boolean = false
+  #rerenderPhase: 'idle' | 'rendering' | 'post-rerendering' = 'idle'
   #isInitialized: boolean = false
   #styleSheet?: CSSStyleSheet
   #lastCssText?: string
@@ -105,12 +129,13 @@ export class FiCsElement<D extends object, P extends object> {
 
   constructor({
     name,
-    isExceptional,
+    clonedName,
+    isCloned,
     instanceId,
     children,
     data,
+    immutableDataKeys,
     deferredData,
-    i18nData,
     props,
     className,
     attributes,
@@ -121,36 +146,63 @@ export class FiCsElement<D extends object, P extends object> {
     actions,
     options
   }: FiCs<D, P>) {
-    name = name.trim()
-    if (isBlankString(name)) throw new Error('The FiCsElement name must be a non-empty string...')
+    this.#nameKey = name
+    this.#instanceId = instanceId ?? `${attrs.FICS_ID}${FiCsElement.#generator.next().value}`
 
-    name = convertStr(name, 'kebab')
-    if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(name))
-      throw new Error(
-        'The FiCsElement name must contain only lowercase letters, numbers, and single hyphens...'
-      )
+    if (clonedName === undefined) {
+      let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(this.#nameKey)
+      if (!generator) {
+        generator = uid()
+        FiCsElement.#nameGenerators.set(this.#nameKey, generator)
+      }
 
-    this.#nameKey = convertStr(name, 'camel')
+      const count: number = generator.next().value
+      this.#name = `f-${this.#nameKey}${count > 1 ? `-${count}` : ''}`
+    } else this.#name = clonedName
 
-    if (!isExceptional && { var: true, router: true, link: true }[name])
-      throw new Error(`The "${name}" is a reserved word in FiCsJS...`)
+    this.#children = new Proxy({} as Children, {
+      get: (target: Children, key: string | symbol): unknown => {
+        if (typeof key === 'string' && !(key in target))
+          throw new Error(`The child component "${key}" is not registered in ${this.#name}...`)
 
-    this.#instanceId =
-      instanceId ?? `${constants.attrs.FICS_ID}${FiCsElement.#generator.next().value}`
+        return Reflect.get(target, key)
+      }
+    })
 
-    let generator: Generator<number> | undefined = FiCsElement.#nameGenerators.get(name)
-    if (!generator) {
-      generator = uid()
-      FiCsElement.#nameGenerators.set(name, generator)
+    if (children) {
+      const registered: Map<string, string> = new Map()
+
+      for (const child of children) {
+        const key: string = convertStr(child.#nameKey, 'pascal')
+
+        if (isCloned) {
+          this.#children[key] = child
+          continue
+        }
+
+        const owner: string | undefined = FiCsElement.#childOwners.get(child)
+
+        if (owner === undefined) FiCsElement.#childOwners.set(child, this.#name)
+        else if (owner !== this.#name)
+          FiCsElement.#warnMisuse(
+            `${child.#name}>${owner}>${this.#name}`,
+            `Create a new instance of ${child.#name}, as ${owner} and ${this.#name} cannot share it...`
+          )
+
+        const existing: string | undefined = registered.get(key)
+        if (existing !== undefined)
+          throw new Error(
+            `Rename ${existing} or ${child.#name}, as both share the key "${key}" in ${this.#name}...`
+          )
+
+        registered.set(key, child.#name)
+        setOwnKey(
+          this.#children,
+          key,
+          child.#name === `f-${child.#nameKey}` ? child.#clone() : child
+        )
+      }
     }
-
-    const count: number = generator.next().value
-    this.#name = `f-${name}${count > 1 ? `${isBrowser() ? '' : '-server'}-${count}` : ''}`
-
-    if (children)
-      for (const child of children)
-        this.#children[child.#nameKey] =
-          convertStr(child.#nameKey, 'kebab') === child.#name.slice(2) ? child.#clone() : child
 
     this.#isBrowser = isBrowser()
 
@@ -165,16 +217,8 @@ export class FiCsElement<D extends object, P extends object> {
         }
       }
 
-      for (let [key, value] of typedEntries({ ...data(), ...attrData } as D)) {
-        this.#rawData[key] = value
-
-        if ((deferredData || i18nData) && this.#isBrowser) {
-          this.#isDeferred = false
-
-          if (deferredData) this.#deferredData = deferredData
-          if (i18nData) this.#i18nData = i18nData
-        }
-      }
+      for (let [key, value] of typedEntries({ ...data(), ...attrData }))
+        setOwnKey(this.#rawData, key, value)
 
       this.#data = new Proxy(this.#rawData, {
         get: (target, prop, receiver): D[keyof D] => {
@@ -182,7 +226,7 @@ export class FiCsElement<D extends object, P extends object> {
             const key: keyof D = prop as keyof D
 
             if (!this.#subscribers.data.has(key)) this.#subscribers.data.set(key, new Set())
-            this.#subscribers.data.get(key)!.add(FiCsElement.#activeEffect.run)
+            this.#subscribers.data.get(key)!.add(FiCsElement.#activeEffect.sync)
           }
 
           return this.#bindFunction(Reflect.get(target, prop, receiver)) as D[keyof D]
@@ -190,45 +234,53 @@ export class FiCsElement<D extends object, P extends object> {
         set: (_, prop, value): boolean => {
           const dataKey: keyof D = prop as keyof D
 
+          if (FiCsElement.#activeEffect)
+            throw new Error(
+              `The data of ${this.#name} is read-only in the props of fics function, as it would cause an infinite loop...`
+            )
+
           if (deepEqual(this.#rawData[dataKey], value)) return true
 
-          this.#rawData[dataKey] = value
+          setOwnKey(this.#rawData, dataKey, value)
+          if (this.#hooks.rerendered) this.#changedKeys.data.add(dataKey)
 
           const subscribers: Set<() => void> | undefined = this.#subscribers.data.get(dataKey)
-          if (subscribers) for (const run of subscribers) run()
+          if (subscribers) for (const sync of subscribers) sync()
 
-          const KEY = 'updated' as const,
-            updated: Hook.Lifecycle<D, P>[typeof KEY] | undefined = this.#hooks.updated
+          const UPDATED_KEY = 'updated' as const,
+            updated: Hook.Lifecycle<D, P>[typeof UPDATED_KEY] | undefined = this.#hooks.updated
 
           if (updated && dataKey in updated) {
             const startedAt: number = Date.now()
-            this.#emitMetric({ key: KEY, details: { dataKey } })
+            this.#emitMetric({ key: UPDATED_KEY, details: { dataKey } })
 
             try {
-              updated[dataKey]!({
-                ...this.#getDataProps(true),
-                ref: (selector: string) => this.#queryDeeply(selector),
-                debounce: this.#debounce.bind(this),
-                throttle: this.#throttle.bind(this),
-                signal: this.#abortController.signal
-              })
-              this.#emitMetric({ key: KEY, startedAt, details: { dataKey } })
+              updated[dataKey]!(this.#getHookCtx())
+              this.#emitMetric({ key: UPDATED_KEY, startedAt, details: { dataKey } })
             } catch (error) {
-              this.#emitMetric({ key: KEY, error, startedAt, details: { dataKey } })
+              this.#emitMetric({
+                key: UPDATED_KEY,
+                error,
+                isError: true,
+                startedAt,
+                details: { dataKey }
+              })
               if (!this.#options.telemetry?.onError)
                 console.error(
-                  `The updated hook of "${String(dataKey)}" failed in the ${this.#name}...`,
+                  `The updated hook of "${String(dataKey)}" failed in ${this.#name}...`,
                   error
                 )
             }
           }
 
-          if (!this.#isInRerendering && this.#isBrowser && this.#cache.component)
-            this.#enqueue(this.#reRender.bind(this), 're-render')
+          this.#deferredData.queueLoads({ dataKey })
+          if (this.#rerenderPhase !== 'rendering') this.#enqueueReRender()
 
           return true
         }
       })
+
+      this.#immutableDataKeys = new Set(immutableDataKeys)
     }
 
     if (props) {
@@ -242,36 +294,63 @@ export class FiCsElement<D extends object, P extends object> {
           const key: keyof P = prop as keyof P
 
           if (!this.#subscribers.props.has(key)) this.#subscribers.props.set(key, new Set())
-          this.#subscribers.props.get(key)!.add(FiCsElement.#activeEffect.run)
+          this.#subscribers.props.get(key)!.add(FiCsElement.#activeEffect.sync)
         }
 
         return this.#bindFunction(Reflect.get(target, prop, receiver)) as P[keyof P]
       },
       set: (_, prop, value): true => {
-        const key: keyof P = prop as keyof P
+        const propsKey: keyof P = prop as keyof P
 
-        if (deepEqual(this.#rawProps[key], value)) return true
+        if (deepEqual(this.#rawProps[propsKey], value)) return true
 
-        this.#rawProps[key] = value
+        setOwnKey(this.#rawProps, propsKey, value)
+        if (this.#hooks.rerendered) this.#changedKeys.props.add(propsKey)
 
-        const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(key)
-        if (subscribers) for (const run of subscribers) run()
+        const subscribers: Set<() => void> | undefined = this.#subscribers.props.get(propsKey)
+        if (subscribers) for (const sync of subscribers) sync()
 
         if (this.#clonedSelves.size > 0)
-          for (const clone of this.#clonedSelves.values()) clone.#props[key] = value
+          for (const clone of this.#clonedSelves.values()) clone.#props[propsKey] = value
 
-        if (this.#isBrowser && this.#cache.component)
-          this.#enqueue(() => this.#reRender(), 're-render')
+        this.#deferredData.queueLoads({ propsKey })
+        this.#enqueueReRender()
 
         return true
       }
     })
 
-    if (options) {
-      const { ssr, telemetry, lazyLoad, rootMargin, websocket, sse, scroll }: Options.Ctx<D, P> =
-        options
+    /** @remarks Builds before the options, as options.scroll reads deferredStates through `this.#getDataProps`. */
+    this.#deferredData = new DeferredData(deferredData, {
+      name: this.#name,
+      rawData: this.#rawData,
+      rawProps: this.#rawProps,
+      getDataProps: this.#getDataProps.bind(this),
+      getOptions: () => this.#options,
+      getSignal: (): AbortSignal => this.#abortController.signal,
+      getActiveSync: (): (() => void) | null => FiCsElement.#activeEffect?.sync ?? null,
+      isPostRerendering: (): boolean => this.#rerenderPhase === 'post-rerendering',
+      enqueueReRender: this.#enqueueReRender.bind(this),
+      emitMetric: (ctx: Telemetry.Ctx<D, P>): void => this.#emitMetric(ctx)
+    })
 
-      if (name === 'router' || ssr === false || lazyLoad) this.#options.ssr = false
+    if (options) {
+      const {
+        ssr,
+        maxLoopLength,
+        telemetry,
+        lazyLoad,
+        rootMargin,
+        websocket,
+        sse,
+        form,
+        scroll
+      }: Options.Input<D, P> = options
+
+      if (ssr === false || lazyLoad) this.#options.ssr = false
+
+      numberError({ maxLoopLength }, 'positive-int')
+      if (maxLoopLength !== undefined) this.#options.maxLoopLength = maxLoopLength
 
       if (telemetry && !isEmptyObject(telemetry)) this.#options.telemetry = telemetry
 
@@ -286,7 +365,9 @@ export class FiCsElement<D extends object, P extends object> {
         this.#options.rootMargin = normalizeRootMargin(rootMargin)
       }
 
-      for (const [key, value] of typedEntries({ websocket, sse, scroll } as const)) {
+      if (form && !isEmptyObject(form)) this.#isFormAssociated = true
+
+      for (const [key, value] of typedEntries({ websocket, sse, scroll, form })) {
         if (!value || isEmptyObject(value) || !this.#isBrowser) continue
 
         switch (key) {
@@ -298,12 +379,15 @@ export class FiCsElement<D extends object, P extends object> {
             this.#options[key] = { ...value } as SSE.Options<D, P>
             break
 
+          case 'form':
+            this.#options[key] = { ...value } as Form.Options<D, P>
+            break
+
           case 'scroll':
             const options = value as (ctx: DataProps.Payload<D, P, true>) => Scroll.Options,
               { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
                 this.#getDataProps(true)
-              ),
-              { CACHE_LENGTH }: { CACHE_LENGTH: number } = scrollConstants
+              )
 
             numberError({ unit }, 'positive-int')
             numberError({ itemMinSize }, 'positive')
@@ -358,6 +442,9 @@ export class FiCsElement<D extends object, P extends object> {
 
     if (css) this.#css = toArray(css)
     if (clonedCss) this.#css = [...clonedCss]
+    this.#isStaticCss = this.#css.every(
+      (value: Css.StringOrFn<D, P>): value is string => typeof value === 'string'
+    )
 
     if (hooks && !isEmptyObject(hooks) && this.#isBrowser) this.#hooks = { ...hooks }
     if (actions && !isEmptyObject(actions) && this.#isBrowser) this.#actions = { ...actions }
@@ -365,16 +452,24 @@ export class FiCsElement<D extends object, P extends object> {
     this.#optimisticUpdateFn = optimisticUpdate()
   }
 
-  #clone(instanceId?: string): FiCsElement<D, P> {
+  static #warnMisuse(id: string, message: string): void {
+    if (FiCsElement.#warnedMisuses.has(id)) return
+
+    FiCsElement.#warnedMisuses.add(id)
+    console.warn(message)
+  }
+
+  #clone({ instanceId, name }: { instanceId?: string; name?: string } = {}): FiCsElement<D, P> {
     const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
       cloned: FiCsElement<D, P> = new FiCsElement({
         name: this.#nameKey,
-        isExceptional: true,
         instanceId: instanceId ?? this.#instanceId,
+        clonedName: name,
+        isCloned: true,
         data: () => this.#data as Partial<D>,
+        immutableDataKeys: [...this.#immutableDataKeys],
         children: Object.values(this.#children),
-        deferredData: this.#deferredData,
-        i18nData: this.#i18nData,
+        deferredData: this.#deferredData.entries,
         props: this.#propsSources,
         className: this.#classNames,
         attributes: this.#attrs,
@@ -385,7 +480,7 @@ export class FiCsElement<D extends object, P extends object> {
         options: { ...args, scroll: scroll?.options }
       })
 
-    for (const [key, value] of typedEntries(this.#rawProps)) cloned.#rawProps[key] = value
+    for (const [key, value] of typedEntries(this.#rawProps)) setOwnKey(cloned.#rawProps, key, value)
     return cloned
   }
 
@@ -401,9 +496,8 @@ export class FiCsElement<D extends object, P extends object> {
     return value
   }
 
-  #emitMetric({ key, error, startedAt, details }: Telemetry.Ctx<D, P>): void {
-    const isError: boolean = error !== undefined,
-      type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric',
+  #emitMetric({ key, error, isError, isAborted, startedAt, details }: Telemetry.Ctx<D, P>): void {
+    const type: 'onError' | 'onMetric' = isError ? 'onError' : 'onMetric',
       hasNotStarted = startedAt === undefined
 
     try {
@@ -412,7 +506,7 @@ export class FiCsElement<D extends object, P extends object> {
         key,
         name: this.#name,
         instanceId: this.#instanceId,
-        status: hasNotStarted ? 'starting' : isError ? 'error' : 'success',
+        status: hasNotStarted ? 'starting' : isAborted ? 'aborted' : isError ? 'error' : 'success',
         error,
         details: { ...(details ?? {}), durationMs: hasNotStarted ? 0 : timestamp - startedAt },
         timestamp
@@ -422,22 +516,12 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #getDataProps(): DataProps.Payload<D, P, false>
-  #getDataProps(hasMethods: true): DataProps.Payload<D, P, true>
-  #getDataProps(hasMethods?: boolean): DataProps.Payload<D, P, boolean> {
-    return {
-      data: this.#data,
-      props: this.#props,
-      crud: hasMethods ? this.#crud.bind(this) : undefined,
-      queryCache: hasMethods ? (this.#ssrQueryCache ?? getQueryCache()).api : undefined,
-      optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined
-    } as DataProps.Payload<D, P, boolean>
-  }
-
-  #enqueue(func: () => AwaitableVoid, key: Task['key']): void {
+  #enqueue(func: () => Awaitable, key: Task['key']): void {
     enqueue({
+      name: this.#name,
       instanceId: this.#instanceId,
       key,
+      maxLoopLength: this.#options.maxLoopLength,
       func: async (): Promise<void> => {
         const startedAt: number = Date.now()
         this.#emitMetric({ key })
@@ -446,11 +530,43 @@ export class FiCsElement<D extends object, P extends object> {
           await func()
           this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({ key, error, startedAt })
+          this.#emitMetric({ key, error, isError: true, startedAt })
           if (!this.#options.telemetry?.onError) throw error
         }
       }
     })
+  }
+
+  #enqueueReRender(): void {
+    if (this.#isBrowser && this.#cache.component)
+      this.#enqueue(this.#reRender.bind(this), 're-render')
+  }
+
+  get #queryCache(): QueryCache {
+    if (this.#ssrQueryCache) return this.#ssrQueryCache
+
+    if (!this.#isBrowser)
+      throw new Error(
+        `Pass a queryCache via toString({ queryCache }) in ${this.#name}, as it is required in non-browser environments...`
+      )
+
+    return getQueryCache()
+  }
+
+  #getDataProps(): DataProps.Payload<D, P, false>
+  #getDataProps(hasMethods: true): DataProps.Payload<D, P, true>
+  #getDataProps(hasMethods?: boolean): DataProps.Payload<D, P, boolean> {
+    return {
+      data: this.#data,
+      props: this.#props,
+      deferredStates: this.#deferredData.states,
+      crud: hasMethods ? this.#crud.bind(this) : undefined,
+      queryCache: hasMethods ? this.#queryCache.api : undefined,
+      optimisticUpdate: hasMethods ? this.#optimisticUpdate.bind(this) : undefined,
+      reloadDeferredData: hasMethods
+        ? (key?: string): void => this.#deferredData.reload(key)
+        : undefined
+    } as DataProps.Payload<D, P, boolean>
   }
 
   #crud<T>(endpoint: string, options?: Crud.Options): Promise<T>
@@ -479,18 +595,17 @@ export class FiCsElement<D extends object, P extends object> {
       this.#emitMetric({ key: 'crud', startedAt, details })
       return result
     } catch (error) {
-      this.#emitMetric({ key: 'crud', error, startedAt, details })
+      this.#emitMetric({ key: 'crud', error, isError: true, startedAt, details })
       throw error
     }
   }
 
   async #optimisticUpdate<T>(config: Optimistic.Config<D, T>): Promise<T> {
     const startedAt: number = Date.now(),
-      KEY = 'optimistic' as const,
-      { statusKey, dataKeys } = config,
-      details: Telemetry.Details<D, P>[typeof KEY] = { statusKey, dataKeys }
+      OPTIMISTIC_KEY = 'optimistic' as const,
+      details: Telemetry.Details<D, P>[typeof OPTIMISTIC_KEY] = config
 
-    this.#emitMetric({ key: KEY, details })
+    this.#emitMetric({ key: OPTIMISTIC_KEY, details })
 
     try {
       const optimisticUpdated: T = await this.#optimisticUpdateFn({
@@ -502,15 +617,25 @@ export class FiCsElement<D extends object, P extends object> {
           enqueue: this.#enqueue.bind(this),
           reRender: this.#reRender.bind(this),
           signal: this.#abortController.signal,
-          guardKey: (k: keyof D) => this.#guardRouterKey(k)
+          guardKey: (key: keyof D) => this.#guardImmutableData(key)
         },
         config
       })
 
-      this.#emitMetric({ key: KEY, startedAt, details: { ...details, result: 'success' } })
+      this.#emitMetric({
+        key: OPTIMISTIC_KEY,
+        startedAt,
+        details: { ...details, result: 'success' }
+      })
       return optimisticUpdated
     } catch (error) {
-      this.#emitMetric({ key: KEY, error, startedAt, details: { ...details, result: 'reverted' } })
+      this.#emitMetric({
+        key: OPTIMISTIC_KEY,
+        error,
+        isError: true,
+        startedAt,
+        details: { ...details, result: 'reverted' }
+      })
       throw error
     }
   }
@@ -544,14 +669,16 @@ export class FiCsElement<D extends object, P extends object> {
               if (!(key in props)) descendant.#props[key] = value
 
             for (const [key, value] of typedEntries({ ...props })) descendant.#props[key] = value
-
             return descendant
           }
 
         if (clonedSelf) return cloneProps(clonedSelf)
 
         const cloneRecursively = (child: Descendant, instanceId: string): Descendant => {
-          const cloned: Descendant = cloneProps(child.#clone(instanceId))
+          const name: string | undefined = FiCsElement.#clonedNames.get(instanceId),
+            cloned: Descendant = cloneProps(child.#clone({ instanceId, name }))
+
+          if (name === undefined) FiCsElement.#clonedNames.set(instanceId, cloned.#name)
 
           for (const [key, _child] of typedEntries(cloned.#children))
             cloned.#children[key] = cloneRecursively(
@@ -560,7 +687,7 @@ export class FiCsElement<D extends object, P extends object> {
             )
 
           child.#clonedSelves.set(instanceId, cloned)
-          if (child.#clonedSelves.size > constants.CLONED_SELVES_LENGTH) {
+          if (child.#clonedSelves.size > CLONED_SELVES_LENGTH) {
             const oldestKey: string | undefined = child.#clonedSelves.keys().next().value
             if (oldestKey) child.#clonedSelves.delete(oldestKey)
           }
@@ -581,37 +708,39 @@ export class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    for (const { descendant, values } of this.#propsSources) {
+    for (const { descendants, values } of this.#propsSources) {
       addGetChildren()
 
-      const descendants: Descendant[] = toArray(descendant({ children: this.#children })).filter(
+      const _descendants: Descendant[] = toArray(descendants({ children: this.#children })).filter(
         (descendant: Descendant): descendant is Descendant => descendant !== undefined
       )
 
       this.#removePublicMethod({ method: 'getChildren' })
 
-      if (descendants.length === 0) continue
+      if (_descendants.length === 0) continue
 
-      const run = (): void => {
-        FiCsElement.#activeEffect = { instance: this, run }
+      const stashedActiveEffects: ({ instance: Descendant; sync: () => void } | null)[] = [],
+        sync = (): void => {
+          stashedActiveEffects.push(FiCsElement.#activeEffect)
+          FiCsElement.#activeEffect = { instance: this, sync }
 
-        try {
-          for (const _descendant of descendants)
-            for (const [key, value] of typedEntries(
-              values({
-                ...this.#getDataProps(true),
-                children: this.#children,
-                sendToWebsocket: (value: WebSocketNS.Value) =>
-                  this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
-              })
-            ))
-              _descendant.#props[key] = value
-        } finally {
-          FiCsElement.#activeEffect = null
+          try {
+            for (const descendant of _descendants)
+              for (const [key, value] of typedEntries(
+                values({
+                  ...this.#getDataProps(true),
+                  children: this.#children,
+                  sendToWebsocket: (value: WebSocketNS.Value) =>
+                    this.#webSocketProp?.isOpened() && this.#webSocketProp.send(value)
+                })
+              ))
+                descendant.#props[key] = value
+          } finally {
+            FiCsElement.#activeEffect = stashedActiveEffects.pop() ?? null
+          }
         }
-      }
 
-      run()
+      sync()
     }
 
     this.#addSetIndividualProps()
@@ -645,12 +774,14 @@ export class FiCsElement<D extends object, P extends object> {
     if (component.classList.length === 0) component.removeAttribute('class')
   }
 
-  get #computedAttrs(): [string, string][] {
+  get #computedAttrs(): Attr.Entry[] {
     if (!this.#attrs) return []
 
-    const attrs: [string, string][] = []
+    const attrs: Attr.Entry[] = []
     for (const [key, value] of typedEntries(
-      typeof this.#attrs === 'function' ? this.#attrs(this.#getDataProps()) : this.#attrs
+      typeof this.#attrs === 'function'
+        ? this.#attrs({ ...this.#getDataProps(), a11y: a11yAttrs })
+        : this.#attrs
     ))
       attrs.push([key.trim(), value.trim()])
 
@@ -658,7 +789,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #isBooleanAttr(attr: string): boolean {
-    return constants.BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
+    return BOOLEAN_ATTRS.has(attr.trim().toLowerCase())
   }
 
   #isBooleanAttrEnabled(attr: string, value: string): boolean {
@@ -676,7 +807,7 @@ export class FiCsElement<D extends object, P extends object> {
 
     for (let index = 0; index < attributes.length; index++) {
       const { name, value }: { name: string; value: string } = attributes[index]
-      oldAttrs[name] = value
+      setOwnKey(oldAttrs, name, value)
     }
 
     for (let [key, value] of this.#computedAttrs) {
@@ -715,66 +846,101 @@ export class FiCsElement<D extends object, P extends object> {
   get #template(): string {
     this.#addSetIndividualProps()
 
-    const {
-        a11y: { STATUS_LIVE_REGION },
-        attrs: { FICS_ID, SHOW },
-        symbols: { SANITIZED, UNSAFE_HTML },
-        VAR_TAG_NAME
-      } = constants,
-      template: Html.Template<D, P> = (
+    const template: Html.Template<D, P> = (
         strings: TemplateStringsArray,
         ...variables: (Html.Content<D, P> | unknown)[]
       ): Html.Sanitized<D, P> => ({
-        [SANITIZED]: sanitize<Exclude<Html.Content<D, P>, string>>({
+        [symbols.SANITIZED]: sanitize<Exclude<Html.Content<D, P>, string>>({
           strings,
           variables,
           name: this.#name,
           isFiCsElement: (variable: unknown): variable is Exclude<Html.Content<D, P>, string> =>
             variable instanceof FiCsElement
         }) as Html.Content<D, P>[]
-      })
+      }),
+      contents: Html.Content<D, P>[] = this.#html({
+        ...this.#getDataProps(true),
+        children: this.#children,
+        template: (
+          strings: TemplateStringsArray,
+          ...variables: (Html.Content<D, P> | unknown)[]
+        ): Html.Sanitized<D, P> => template(strings, ...variables),
+        unsafeHtml: (str: string): Record<symbol, string> => ({ [symbols.UNSAFE_HTML]: str }),
+        activeApis: Object.fromEntries(this.#activeApis),
+        attributes: {
+          a11y: {
+            ...a11y,
+            ariaLabel: (label: string): string => label && `aria-label="${label}"`,
+            ariaState: <T extends Attr.AriaState>({
+              state,
+              isActive,
+              isMixed,
+              options
+            }: {
+              state: T
+              isActive?: boolean
+              isMixed?: T extends 'checked' | 'pressed' ? boolean : never
+              options?: T extends 'checked'
+                ? { invalid?: boolean; required?: boolean }
+                : T extends 'selected'
+                  ? { expanded?: boolean }
+                  : never
+            }) => {
+              if (isActive === undefined && !isMixed) return ''
 
-    const contents: Html.Content<D, P>[] = this.#html({
-      ...this.#getDataProps(true),
-      children: this.#children,
-      template: (
-        strings: TemplateStringsArray,
-        ...variables: (Html.Content<D, P> | unknown)[]
-      ): Html.Sanitized<D, P> => template(strings, ...variables),
-      unsafeHtml: (str: string): Record<symbol, string> => ({ [UNSAFE_HTML]: str }),
-      show: (condition: boolean): string => (condition ? '' : SHOW),
-      activeApis: Object.fromEntries(this.#activeApis),
-      attributes: {
-        boolean: (condition: boolean | undefined): 'true' | 'false' =>
-          condition ? 'true' : 'false',
-        statusLiveRegion: STATUS_LIVE_REGION
-      },
-      isBrowser: this.#isBrowser,
-      isDeferred: this.#isDeferred,
-      scroll: <T>(
-        array: ReadonlyArray<T> | null | undefined,
-        callback: (item: T, index: number) => Html.Sanitized<D, P>
-      ): Html.Sanitized<D, P> =>
-        scrollTemplate({
-          instanceId: this.#instanceId,
-          getDataProps: this.#getDataProps.bind(this),
-          template,
-          scrollOptions: this.#options.scroll,
-          array,
-          callback
-        })
-    })[SANITIZED]
+              let attr: string = `aria-${state}="${isMixed ? 'mixed' : isActive}"`
 
-    return contents.reduce((prev, curr) => {
-      if (isObject(curr) && curr instanceof FiCsElement) {
-        const instanceId: string = curr.#instanceId
+              for (const [key, value] of typedEntries(options ?? {}))
+                if (typeof key === 'string' && value !== undefined)
+                  attr += ` aria-${key}="${value}"`
 
-        this.#childrenStore[instanceId] ??= curr
-        curr = `<${VAR_TAG_NAME} ${FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
+              return attr
+            },
+            current: ({
+              type,
+              isCurrent
+            }: {
+              type?: Attr.AriaCurrent
+              isCurrent?: boolean
+            }): string => (isCurrent && `aria-current="${type ?? isCurrent}"`) || '',
+            expanded: (isExpanded?: boolean): string =>
+              (isExpanded !== undefined && `aria-expanded="${isExpanded}"`) || '',
+            invalid: (isInvalid?: boolean): string =>
+              (isInvalid !== undefined && `aria-invalid="${isInvalid}"`) || '',
+            required: (isRequired?: boolean): string =>
+              (isRequired !== undefined && `aria-required="${isRequired}"`) || ''
+          },
+          disabled: (isDisabled?: boolean): string => (isDisabled && 'disabled') || '',
+          required: (isRequired?: boolean): string => (isRequired && 'required') || '',
+          formAnchor: attrs.FORM_ANCHOR,
+          show: (isShown: boolean): string => (!isShown && attrs.HIDDEN) || ''
+        },
+        isBrowser: this.#isBrowser,
+        form: this.#formAssociation,
+        scroll: <T>(
+          array: ReadonlyArray<T> | null | undefined,
+          callback: (item: T, index: number) => Html.Sanitized<D, P>
+        ): Html.Sanitized<D, P> =>
+          scrollTemplate({
+            instanceId: this.#instanceId,
+            getDataProps: this.#getDataProps.bind(this),
+            template,
+            scrollOptions: this.#options.scroll,
+            array,
+            callback
+          })
+      })[symbols.SANITIZED]
+
+    return contents.reduce<string>((acc, cur) => {
+      if (isObject(cur) && cur instanceof FiCsElement) {
+        const instanceId: string = cur.#instanceId
+
+        this.#childrenStore[instanceId] ??= cur
+        cur = `<${VAR_TAG_NAME} ${attrs.FICS_ID}="${instanceId}"></${VAR_TAG_NAME}>`
       }
 
-      return `${prev}${curr}`
-    }, '') as string
+      return `${acc}${cur}`
+    }, '')
   }
 
   #removeChildNodes(target: HTMLElement | ChildNode[]): void {
@@ -792,11 +958,7 @@ export class FiCsElement<D extends object, P extends object> {
       isHTMLElement = (childNode: ChildNode | ParentNode): childNode is HTMLElement =>
         childNode instanceof HTMLElement,
       isTextarea = (childNode: ChildNode | ParentNode): childNode is HTMLTextAreaElement =>
-        isHTMLElement(childNode) && childNode.localName === 'textarea',
-      {
-        attrs: { FICS_ID, SHOW },
-        VAR_TAG_NAME
-      } = constants
+        isHTMLElement(childNode) && childNode.localName === 'textarea'
 
     const convertChildNodes = (childNodes: ChildNode[]): void => {
       for (let index = 0; index < childNodes.length; index++) {
@@ -816,7 +978,7 @@ export class FiCsElement<D extends object, P extends object> {
 
         if (isElement(childNode)) {
           if (childNode.localName === VAR_TAG_NAME) {
-            const instanceId: string | null = childNode.getAttribute(FICS_ID)
+            const instanceId: string | null = childNode.getAttribute(attrs.FICS_ID)
 
             if (!instanceId || !(instanceId in this.#childrenStore))
               throw new Error(
@@ -840,9 +1002,20 @@ export class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(SHOW)) {
+          if (childNode.hasAttribute(attrs.HIDDEN)) {
+            const ariaLive: string = childNode.getAttribute('aria-live') ?? '',
+              role: string = childNode.getAttribute('role') ?? '',
+              announcingAttr: string =
+                ariaLive === '' ? `role="${role}"` : `aria-live="${ariaLive}"`
+
+            if (ariaLive === '' ? ANNOUNCING_ROLES.has(role) : ariaLive !== 'off')
+              FiCsElement.#warnMisuse(
+                `${this.#name}>${announcingAttr}`,
+                `Do not hide the ${announcingAttr} element in ${this.#name}, as a hidden one never announces...`
+              )
+
             ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(SHOW)
+            childNode.removeAttribute(attrs.HIDDEN)
           }
         }
 
@@ -883,17 +1056,16 @@ export class FiCsElement<D extends object, P extends object> {
             oldAttrList: Record<string, Omit<Html.PickedAttr, 'name'>> = {}
 
           for (let i = 0; i < oldAttrs.length; i++) {
-            const { name, value, namespaceURI, localName }: Html.PickedAttr = oldAttrs[i]
-            oldAttrList[name] = { value, namespaceURI, localName }
+            const { name, ...args }: Html.PickedAttr = oldAttrs[i]
+            setOwnKey(oldAttrList, name, args)
           }
 
-          const isOldChildNodeHTMLElement: boolean = isHTMLElement(oldChildNode)
           for (let i = 0; i < newAttrs.length; i++) {
             const { name, value, namespaceURI }: Html.PickedAttr = newAttrs[i],
               oldAttr: Omit<Html.PickedAttr, 'name'> | undefined = oldAttrList[name],
               isDiffAttr: boolean = oldAttr?.value !== value
 
-            if (isOldChildNodeHTMLElement) {
+            if (isHTMLElement(oldChildNode)) {
               const isBoolean: boolean = that.#isBooleanAttr(name),
                 prop: string = convertStr(name, 'camel'),
                 hasProp: boolean = prop in oldChildNode,
@@ -906,7 +1078,7 @@ export class FiCsElement<D extends object, P extends object> {
                   : that.#isBooleanAttrEnabled(name, oldAttr?.value ?? '')
 
               if (wasEnabled !== isEnabled || isDiffAttr) {
-                if (name !== FICS_ID && hasProp)
+                if (name !== attrs.FICS_ID && hasProp)
                   Reflect.set(oldChildNode, prop, isBoolean ? isEnabled : value)
 
                 if (!isBoolean) oldChildNode.setAttribute(name, value)
@@ -922,7 +1094,7 @@ export class FiCsElement<D extends object, P extends object> {
           }
 
           for (const name in oldAttrList)
-            if (isOldChildNodeHTMLElement) {
+            if (isHTMLElement(oldChildNode)) {
               if (that.#isBooleanAttr(name)) {
                 const prop: string = convertStr(name, 'camel')
                 if (prop in oldChildNode) Reflect.set(oldChildNode, prop, false)
@@ -941,7 +1113,7 @@ export class FiCsElement<D extends object, P extends object> {
             return
           }
 
-          if (!!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))) return
+          if (!!Reflect.get(oldChildNode, convertStr(attrs.FICS_ID, 'camel'))) return
 
           updateChildNodes(
             oldChildNode,
@@ -984,22 +1156,26 @@ export class FiCsElement<D extends object, P extends object> {
           newStartNode: ChildNode = newChildNodes[newStartIndex],
           newEndNode: ChildNode = newChildNodes[newEndIndex]
 
-        const keys: Record<string, true> = {}
+        const keys: Set<string> = new Set(),
+          isSameShape: boolean =
+            oldChildNodes.length === newChildNodes.length &&
+            newChildNodes.every(({ nodeName }, index) => nodeName === oldChildNodes[index].nodeName)
 
         for (const newChildNode of newChildNodes) {
           if (!isElement(newChildNode)) continue
 
           const { localName }: { localName: string } = newChildNode,
-            key: string = getKey(newChildNode) ?? localName
+            key: string = getKey(newChildNode) ?? localName,
+            hasKey: boolean = newChildNode.hasAttribute('key')
 
-          if (keys[key])
+          if (!keys.has(key)) keys.add(key)
+          else if (hasKey || !isSameShape)
             console.warn(
-              (newChildNode.hasAttribute('key')
+              (hasKey
                 ? `The key "${key}" in multiple ${localName} elements are duplicated.`
                 : `There are multiple ${localName} elements that don't have keys.`) +
                 ' therefore, the difference detection might not be working correctly...'
             )
-          else keys[key] = true
         }
 
         const dom: Map<string, ChildNode[]> = new Map(),
@@ -1076,7 +1252,7 @@ export class FiCsElement<D extends object, P extends object> {
               for (const oldChildNode of oldChildNodes) {
                 if (
                   isElement(oldChildNode) &&
-                  !!Reflect.get(oldChildNode, convertStr(FICS_ID, 'camel'))
+                  !!Reflect.get(oldChildNode, convertStr(attrs.FICS_ID, 'camel'))
                 )
                   continue
 
@@ -1136,86 +1312,42 @@ export class FiCsElement<D extends object, P extends object> {
     }
   }
 
-  #cssToString(css: Css.Sheet<D, P>[], isSsr?: boolean): string {
+  #cssToString(css: Css.StringOrFn<D, P>[], isSsr?: boolean): string {
     if (css.length === 0) return ''
 
-    const normalizeProperty = (key: string | number): string => {
-        if (typeof key === 'number') return key.toString()
-        /** @remarks CSS custom properties */
-        if (key.startsWith('--')) return key
-
-        key = convertStr(key, 'kebab')
-        if (key.startsWith('webkit')) key = `-${key}`
-        return key
-      },
-      normalizeHost = (selector: string | number): string => {
-        if (!isSsr || typeof selector === 'number') return selector.toString()
-
-        const ssrHost: string = `div#${this.#name}`
-        return selector
-          .replace(new RegExp(`${constants.hostSelector.GROUP}`, 'g'), `${ssrHost}$1`)
-          .replace(new RegExp(`${constants.hostSelector.STRICT}`, 'g'), ssrHost)
-      },
-      convertCss = (style: Css.Value<D, P> | Css.Declarations, topLevelCss: string[]): string =>
-        typedEntries(typeof style === 'function' ? style(this.#getDataProps()) : style).reduce(
-          (prev, [key, value]) => {
-            if (typeof key === 'number') numberError({ key }, 'finite')
-
-            if (value === undefined || isBlankString(value) || isEmptyObject(value)) return prev
-
-            if (typeof key === 'string' && key.startsWith('@keyframes')) {
-              topLevelCss.push(`${key}{${convertCss(value as Css.Value<D, P>, topLevelCss)}}`)
-              return prev
-            }
-
-            if (typeof value === 'string' || typeof value === 'number')
-              return `${prev}${normalizeProperty(key)}:${value};`
-
-            return `${prev}${normalizeHost(key)}{${convertCss(value as Css.Declarations, topLevelCss)}}`
-          },
-          ''
+    const { element, ...form }: Form.Association = this.#formAssociation
+    return toComponentCss({
+      css: css.reduce<string>(
+        (acc, cur) =>
+          `${acc}${
+            typeof cur === 'function'
+              ? cur({ ...this.#getDataProps(), a11y: a11ySelectors, form })
+              : cur
+          }`,
+        ''
+      ),
+      host: (isSsr && `[slot="${this.#instanceId}"]`) || undefined,
+      warnMisuse: (text: string): void =>
+        FiCsElement.#warnMisuse(
+          `${this.#name}:${text}`,
+          `The declaration "${text}" in ${this.#name} is ignored, as it lacks a selector...`
         )
-
-    return css.reduce((prev, curr) => {
-      if (typeof curr === 'string') return `${prev}${normalizeHost(curr)}`
-
-      const topLevelCss: string[] = [],
-        joinCss = (cssTexts: string[]): string =>
-          joinArray([prev, ...cssTexts, ...topLevelCss], false)
-
-      if (typeof curr === 'function')
-        return joinCss([
-          normalizeHost(
-            curr({
-              ...this.#getDataProps(),
-              cssToString: (declarations: Css.Declarations) => convertCss(declarations, topLevelCss)
-            })
-          )
-        ])
-
-      return joinCss(
-        typedEntries(curr).map(
-          ([selector, style]) => `${normalizeHost(selector)}{${convertCss(style, topLevelCss)}}`
-        )
-      )
-    }, '') as string
+    })
   }
 
   #buildCss(shadowRoot: ShadowRoot): void {
-    const css: Css.Sheet<D, P>[] = [...FiCsElement.globalCss, ...this.#css]
-    if (css.length === 0) return
-
     this.#styleSheet ??= new CSSStyleSheet()
-    const cssText: string = this.#cssToString([
-      `${constants.hostSelector.ITSELF}{display:block}`,
-      ...css
-    ])
 
-    if (this.#lastCssText !== cssText) {
-      this.#styleSheet.replaceSync(cssText)
-      this.#lastCssText = cssText
+    if (!this.#isStaticCss || this.#lastCssText === undefined) {
+      const componentCss: string = this.#cssToString(this.#css)
+
+      if (this.#lastCssText !== componentCss) {
+        this.#styleSheet.replaceSync(componentCss)
+        this.#lastCssText = componentCss
+      }
     }
-    shadowRoot.adoptedStyleSheets = [this.#styleSheet]
+
+    shadowRoot.adoptedStyleSheets = [getGlobalStyleSheet(), this.#styleSheet]
   }
 
   #getShadowRoot(component: HTMLElement): ShadowRoot {
@@ -1225,23 +1357,13 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #getElements(component: HTMLElement, selector: string): Element[] {
-    let trimmedSelector: string = selector.trim()
-    const {
-      hostSelector: { ITSELF }
-    } = constants
+    selector = selector.trim()
 
-    if (trimmedSelector === ITSELF) return [component]
+    if (selector === HOST_SELECTOR) return [component]
 
-    const isDirectChild: boolean = trimmedSelector.startsWith(`${ITSELF} >`)
-    if (isDirectChild || trimmedSelector.startsWith(`${ITSELF} `)) {
-      const sliced: string = trimmedSelector.slice(ITSELF.length)
-      trimmedSelector = isDirectChild ? `:scope ${sliced}` : sliced.trimStart()
-    }
-
-    const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
     try {
-      return Array.from(shadowRoot.querySelectorAll(trimmedSelector))
-    } catch (error) {
+      return Array.from(this.#getShadowRoot(component).querySelectorAll(selector))
+    } catch {
       throw new Error(`The selector "${selector}" in ${this.#name} is invalid...`)
     }
   }
@@ -1283,6 +1405,11 @@ export class FiCsElement<D extends object, P extends object> {
       }
 
     return searchShadowRootRecursively(shadowRoot ?? this.#getShadowRoot(this.#cache.component!))
+  }
+
+  get #internals(): ElementInternals | undefined {
+    const { component }: { component?: HTMLElement } = this.#cache
+    return component ? formInternals.get(component) : undefined
   }
 
   #debounce<T extends (...args: Parameters<T>) => void>(
@@ -1329,7 +1456,7 @@ export class FiCsElement<D extends object, P extends object> {
       const { debounceMs, throttleMs, blur, once }: Action.Options = options ?? {}
       if (debounceMs && throttleMs)
         throw new Error(
-          'Both "debounceMs" and "throttleMs" options cannot be used at the same time...'
+          'Pass either "debounceMs" or "throttleMs", as they cannot be used together...'
         )
 
       const callback = (event: Event): void => {
@@ -1337,17 +1464,29 @@ export class FiCsElement<D extends object, P extends object> {
 
         for (let index = 0; index < element.attributes.length; index++) {
           const { name, value }: { name: string; value: string } = element.attributes[index]
-          attrs[name] = value
+          setOwnKey(attrs, name, value)
         }
+
+        const formError =
+          (method: string): (() => never) =>
+          (): never => {
+            throw new Error(`Add "options.form" to ${this.#name} to use the "${method}" method...`)
+          }
 
         method({
           ...this.#getDataProps(true),
-          event,
           ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
+          event,
           attributes: attrs,
+          requestSubmit: this.#isFormAssociated
+            ? (...args: Parameters<Form.RequestSubmit>): void =>
+                this.#internals?.form?.requestSubmit(...args)
+            : formError('requestSubmit'),
+          submitForm: this.#isFormAssociated ? submitForm(event) : formError('submitForm'),
           value:
             element instanceof HTMLInputElement ||
             element instanceof HTMLTextAreaElement ||
+            element instanceof HTMLSelectElement ||
             element instanceof HTMLOptionElement ||
             element instanceof HTMLProgressElement ||
             element instanceof HTMLMeterElement
@@ -1397,16 +1536,43 @@ export class FiCsElement<D extends object, P extends object> {
     })
   }
 
-  #callback(key: Exclude<Hook.Key<D, P>, 'updated'>, shadowRoot?: ShadowRoot): void {
+  /** @remarks Reads lazily, as hooks retain this object after initialization. */
+  get #formAssociation(): Form.Association {
+    const that: FiCsElement<D, P> = this
+
+    return {
+      get element(): HTMLFormElement | null {
+        return that.#internals?.form ?? null
+      },
+      /** @remarks Evaluates :disabled to catch states inherited from parent fieldsets. */
+      get isDisabled(): boolean {
+        return that.#cache.component?.matches(':disabled') ?? false
+      },
+      get isUserInvalid(): boolean {
+        const { component }: { component?: HTMLElement } = that.#cache
+
+        return (
+          !!component && touchedControls.has(component) && that.#internals?.validity.valid === false
+        )
+      }
+    }
+  }
+
+  #getHookCtx(shadowRoot?: ShadowRoot): Hook.Ctx<D, P> {
+    return {
+      ...this.#getDataProps(true),
+      ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
+      debounce: this.#debounce.bind(this),
+      throttle: this.#throttle.bind(this),
+      signal: this.#abortController.signal,
+      form: this.#formAssociation
+    }
+  }
+
+  #callback(key: Exclude<Hook.Key<D, P>, 'updated' | 'rerendered'>, shadowRoot?: ShadowRoot): void {
     if (this.#hooks?.[key] === undefined) return
 
-    const ctx: Hook.Ctx<D, P> = {
-        ...this.#getDataProps(true),
-        ref: (selector: string) => this.#queryDeeply(selector, shadowRoot),
-        debounce: this.#debounce.bind(this),
-        throttle: this.#throttle.bind(this),
-        signal: this.#abortController.signal
-      },
+    const ctx: Hook.Ctx<D, P> = this.#getHookCtx(shadowRoot),
       executeHook = (callback: () => void): void => {
         const startedAt: number = Date.now()
         this.#emitMetric({ key })
@@ -1415,7 +1581,7 @@ export class FiCsElement<D extends object, P extends object> {
           callback()
           this.#emitMetric({ key, startedAt })
         } catch (error) {
-          this.#emitMetric({ key, error, startedAt })
+          this.#emitMetric({ key, error, isError: true, startedAt })
           if (!this.#options.telemetry?.onError) throw error
         }
       }
@@ -1447,24 +1613,57 @@ export class FiCsElement<D extends object, P extends object> {
     } else executeHook(() => this.#hooks[key]!(ctx))
   }
 
+  #syncForm(): void {
+    const { component }: { component?: HTMLElement } = this.#cache,
+      { form }: Options.Resolved<D, P> = this.#options
+
+    if (!component || !form || !this.#internals) return
+
+    syncForm({
+      element: component,
+      anchor: this.#queryDeeply(`[${attrs.FORM_ANCHOR}]`),
+      options: form,
+      dataProps: this.#getDataProps(true),
+      internals: this.#internals
+    })
+  }
+
   #define(): void {
     browserError()
 
     const that: FiCsElement<D, P> = this,
-      { lazyLoad, rootMargin }: Options.Resolved<D, P> = that.#options
-
-    window.customElements.define(
-      that.#name,
-      class extends HTMLElement {
+      { lazyLoad, rootMargin }: Options.Resolved<D, P> = that.#options,
+      FiCsCustomElement = class extends HTMLElement {
+        static formAssociated: boolean = that.#isFormAssociated
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
         #websocket?: WebSocketNS.Runtime
         #eventSource?: EventSource
+        #form: HTMLFormElement | null = null
+
         #removeEventListeners?: () => void
+        #markTouched = (): void => {
+          if (touchedControls.has(this)) return
+
+          touchedControls.add(this)
+          that.#enqueue(that.#reRender.bind(that), 're-render')
+        }
 
         constructor() {
           super()
-          this.#shadowRoot = this.attachShadow({ mode: 'open' })
+
+          /** @remarks Allows external labels to focus the control inside the Shadow DOM. */
+          this.#shadowRoot = this.attachShadow({
+            mode: 'open',
+            delegatesFocus: that.#isFormAssociated
+          })
+
+          if (that.#isFormAssociated) {
+            formInternals.set(this, this.attachInternals())
+
+            this.#shadowRoot.addEventListener('focusout', this.#markTouched)
+            this.addEventListener('invalid', this.#markTouched)
+          }
         }
 
         #activateRuntime(): void {
@@ -1504,27 +1703,6 @@ export class FiCsElement<D extends object, P extends object> {
         }
 
         #init() {
-          if (that.#deferredData || that.#i18nData)
-            that.#enqueue(async () => {
-              if (that.#deferredData)
-                for (const [key, value] of typedEntries(
-                  (await that.#deferredData(that.#getDataProps(true))) as D
-                ))
-                  that.#data[key] = value
-
-              if (that.#i18nData)
-                for (const [key, value] of typedEntries(
-                  await that.#i18nData({
-                    ...that.#getDataProps(),
-                    i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-                      i18n<T>({ lang, key })
-                  })
-                ))
-                  that.#data[key as keyof D] = value as D[keyof D]
-
-              that.#isDeferred = true
-            }, 'fetch')
-
           that.#setClassNames(this)
           that.#setAttrs(this)
           that.#buildHtml(this.#shadowRoot, true)
@@ -1539,20 +1717,25 @@ export class FiCsElement<D extends object, P extends object> {
               })
 
           that.#removeChildNodes(this)
-          Reflect.set(this, convertStr(constants.attrs.FICS_ID, 'camel'), that.#instanceId)
+          Reflect.set(this, convertStr(attrs.FICS_ID, 'camel'), that.#instanceId)
 
           that.#cache.component = this
           this.#activateRuntime()
+          that.#deferredData.mount()
         }
 
         async connectedCallback(): Promise<void> {
           if (that.#abortController.signal.aborted) that.#abortController = new AbortController()
 
-          if (this.#isRendered) this.#activateRuntime()
-          else {
+          if (this.#isRendered) {
+            this.#activateRuntime()
+            that.#deferredData.reconnect()
+          } else {
             const mount = (): void => {
               this.#init()
               that.#callback('mounted', this.#shadowRoot)
+              /** @remarks Performs the initial form sync, which is the only update for components never re-render. */
+              that.#syncForm()
               this.#isRendered = true
             }
 
@@ -1584,7 +1767,7 @@ export class FiCsElement<D extends object, P extends object> {
 
           if (that.#scrollObservers) {
             for (const observer of ['intersection', 'mutation', 'resize'] as const)
-              that.#scrollObservers[observer].disconnect()
+              that.#scrollObservers[observer]?.disconnect()
 
             that.#scrollObservers = undefined
           }
@@ -1600,40 +1783,79 @@ export class FiCsElement<D extends object, P extends object> {
         adoptedCallback(): void {
           that.#callback('adopted', this.#shadowRoot)
         }
+
+        formAssociatedCallback(form: HTMLFormElement | null): void {
+          this.#form?.removeEventListener('submit', this.#markTouched)
+          this.#form = form
+          this.#form?.addEventListener('submit', this.#markTouched)
+        }
+
+        formResetCallback(): void {
+          touchedControls.delete(this)
+          that.#options.form?.reset?.(that.#getDataProps(true))
+          that.#syncForm()
+          that.#enqueue(that.#reRender.bind(that), 're-render')
+        }
+
+        formDisabledCallback(): void {
+          /** @remarks Triggers a re-render to propagate the native disabled state into the Shadow DOM. */
+          that.#enqueue(that.#reRender.bind(that), 're-render')
+        }
       }
-    )
+
+    /** @remarks Injects standard form APIs into the prototype for form-associated components. */
+    if (that.#isFormAssociated) defineFormSurface(FiCsCustomElement.prototype)
+
+    window.customElements.define(that.#name, FiCsCustomElement)
   }
 
-  async #reRender(isOnlyHtml?: boolean): Promise<void> {
-    this.#isInRerendering = true
+  #callRerenderedHook(shadowRoot: ShadowRoot): void {
+    if (!this.#hooks.rerendered) return
+
+    const changedKeys: Hook.ChangedKeys<D, P> = {
+        data: [...this.#changedKeys.data],
+        deferredData: this.#deferredData.takeChangedKeys(),
+        props: [...this.#changedKeys.props]
+      },
+      startedAt: number = Date.now()
+
+    for (const keys of Object.values(this.#changedKeys)) keys.clear()
+
+    const RERENDERED_KEY = 'rerendered' as const,
+      { crud, optimisticUpdate, queryCache, ...ctx }: Hook.Ctx<D, P> = this.#getHookCtx(shadowRoot)
+
+    this.#emitMetric({ key: RERENDERED_KEY })
+    this.#rerenderPhase = 'post-rerendering'
+
+    try {
+      this.#hooks.rerendered({ ...ctx, changedKeys })
+      this.#emitMetric({ key: RERENDERED_KEY, startedAt })
+    } catch (error) {
+      this.#emitMetric({ key: RERENDERED_KEY, error, isError: true, startedAt })
+      if (!this.#options.telemetry?.onError)
+        console.error(`The rerendered hook failed in ${this.#name}...`, error)
+    } finally {
+      this.#rerenderPhase = 'idle'
+    }
+  }
+
+  async #reRender(): Promise<void> {
+    this.#rerenderPhase = 'rendering'
+    let shadowRoot: ShadowRoot
 
     try {
       const { component }: { component?: HTMLElement } = this.#cache
       if (!component) return
 
-      if (this.#i18nData)
-        for (const [key, value] of typedEntries(
-          await this.#i18nData({
-            ...this.#getDataProps(),
-            i18n: async <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) =>
-              i18n<T>({ lang, key })
-          })
-        )) {
-          const _key: keyof D = key as keyof D
-          if (!deepEqual(this.#data[_key], value)) this.#data[_key] = value as D[keyof D]
-        }
+      /** @remarks Syncs the final state to the form, allowing custom validation to append data before rendering. */
+      this.#syncForm()
+      this.#setClassNames(component)
+      this.#setAttrs(component)
 
-      if (!isOnlyHtml) {
-        this.#setClassNames(component)
-        this.#setAttrs(component)
-      }
-
-      const shadowRoot: ShadowRoot = this.#getShadowRoot(component)
-
+      shadowRoot = this.#getShadowRoot(component)
       this.#buildHtml(shadowRoot)
+      this.#buildCss(shadowRoot)
       this.#infiniteVirtualScroll(shadowRoot)
-
-      if (!isOnlyHtml) this.#buildCss(shadowRoot)
 
       const addAllElements = (elements: Element[] | Set<Element>): void => {
         for (const element of elements) {
@@ -1653,8 +1875,19 @@ export class FiCsElement<D extends object, P extends object> {
 
       this.#newElements.clear()
     } finally {
-      this.#isInRerendering = false
+      this.#rerenderPhase = 'idle'
     }
+
+    this.#callRerenderedHook(shadowRoot)
+  }
+
+  #cloneDeeply(): FiCsElement<D, P> {
+    const cloned: FiCsElement<D, P> = this.#clone({ name: this.#name })
+
+    for (const [key, child] of typedEntries(this.#children))
+      cloned.#children[key] = child.#cloneDeeply()
+
+    return cloned
   }
 
   #assertDescribed(methodName: string): void {
@@ -1664,17 +1897,17 @@ export class FiCsElement<D extends object, P extends object> {
       )
   }
 
-  #guardRouterKey(key: keyof D): void {
-    if (this.#nameKey === 'router' && (key === 'pathname' || key === 'queries'))
-      throw new Error(`The "${String(key)}" cannot be modified in the router component...`)
+  #guardImmutableData(key: keyof D): void {
+    if (this.#immutableDataKeys.has(key))
+      throw new Error(`The "${String(key)}" is read-only in ${this.#name}...`)
   }
 
   getChildren(): Children {
-    throw new Error(`The getChildren method is not implemented in the ${this.#name}...`)
+    throw new Error(`The getChildren method is not implemented in ${this.#name}...`)
   }
 
   setIndividualProps(_1: string | number, _2: P): FiCsElement<D, P> {
-    throw new Error(`The setIndividualProps method is not implemented in the ${this.#name}...`)
+    throw new Error(`The setIndividualProps method is not implemented in ${this.#name}...`)
   }
 
   toString({ data, queryCache }: { data?: Partial<D>; queryCache?: QueryCache } = {}): string {
@@ -1689,7 +1922,13 @@ export class FiCsElement<D extends object, P extends object> {
       try {
         that.#initProps()
 
-        if (!that.#options.ssr) return `<${that.#name}></${that.#name}>`
+        if (!that.#options.ssr) {
+          if (data)
+            throw new Error(
+              `The "data" never reaches ${that.#name}, as it has "options.ssr: false"...`
+            )
+          return `<${that.#name}></${that.#name}>`
+        }
 
         const attrs: string[] = []
         if (that.#classNames && !isBlankString(that.#computedClassName))
@@ -1700,11 +1939,13 @@ export class FiCsElement<D extends object, P extends object> {
             if (that.#isBooleanAttrEnabled(key, value)) attrs.push(escape(key))
             else if (!that.#isBooleanAttr(key)) attrs.push(`${escape(key)}="${escape(value)}"`)
 
-        const slotAttrs: string = joinArray([
+        const slotAttrs: string = [
             `id="${that.#name}"`,
             `slot="${that.#instanceId}"`,
-            `${data ? `data-${that.#name}="${escape(JSON.stringify(data))}"` : ''}`
-          ]),
+            data && `data-${that.#name}="${escape(JSON.stringify(data))}"`
+          ]
+            .filter(Boolean)
+            .join(' '),
           html: string = applyShowAttr({
             html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
             resolveInstanceId: (instanceId: string): string => {
@@ -1713,14 +1954,16 @@ export class FiCsElement<D extends object, P extends object> {
 
               return render(that.#childrenStore[instanceId])
             }
-          }),
-          css = (_css: Css.Sheet<D, P>[]): string =>
-            _css.length > 0 ? `<style>${that.#cssToString(_css, true)}</style>` : ''
+          })
 
         return `
-          <${joinArray([that.#name, ...(attrs.length > 0 ? attrs : [])])}>
-            <template shadowrootmode="open"><slot name="${that.#instanceId}"></slot></template>
-            <div ${slotAttrs}>${html}${css([...FiCsElement.globalCss, ...that.#css])}</div>
+          <${[that.#name, ...attrs].join(' ')}>
+            <template shadowrootmode="open"${that.#isFormAssociated ? ' shadowrootdelegatesfocus' : ''}>
+              <slot name="${that.#instanceId}"></slot>
+            </template>
+            <div ${slotAttrs}>
+              ${html}${that.#css.length > 0 ? `<style>${that.#cssToString(that.#css, true)}</style>` : ''}
+            </div>
           </${that.#name}>
         `
       } finally {
@@ -1728,12 +1971,16 @@ export class FiCsElement<D extends object, P extends object> {
       }
     }
 
-    if (data) for (const [key, value] of typedEntries(data as D)) this.#rawData[key] = value
-    return render(this, data)
+    const rendered: FiCsElement<D, P> = this.#cloneDeeply()
+    if (data) for (const [key, value] of typedEntries(data as D)) rendered.#rawData[key] = value
+
+    return render(rendered, data)
   }
 
   describe(parent?: HTMLElement): void {
-    if (this.#isBrowser) lockQueryCache()
+    if (!this.#isBrowser) return
+
+    lockQueryCache()
     this.#initProps()
     this.#hasDescribed = true
     this.#callback('created')
@@ -1741,9 +1988,9 @@ export class FiCsElement<D extends object, P extends object> {
     if (parent) parent.append(document.createElement(this.#name))
   }
 
-  setData<K extends keyof D>(key: K, value: D[K]): void {
+  setData<K extends WritableDataKeys<D>>(key: K, value: D[K]): void {
     this.#assertDescribed('setData')
-    this.#guardRouterKey(key)
+    this.#guardImmutableData(key)
     this.#data[key as keyof D] = value as D[keyof D]
   }
 

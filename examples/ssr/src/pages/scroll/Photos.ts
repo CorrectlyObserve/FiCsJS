@@ -1,0 +1,272 @@
+import { fics, type FiCs } from 'ficsjs'
+import { queries } from 'ficsjs/router'
+import { flex, hideScrollbar, interactive, radius, space, stroke } from 'ficsjs/style'
+import Button from '@/components/Button'
+import Icon from '@/components/Icon'
+import {
+  type Photo,
+  PHOTO_SIZE,
+  photoListUrl,
+  photoUrl,
+  toLoadedPhotos,
+  UNIT_LENGTH
+} from '@/pages/scroll/photo'
+import Dialog from '@/pages/scroll/Dialog'
+import Skeleton from '@/pages/scroll/Skeleton'
+import { $axis, type Axis } from '@/pages/scroll/store'
+import { MoveHorizontal, MoveVertical } from 'lucide-static'
+
+interface Data {
+  axis: Axis
+  page: number
+  photos: readonly Photo[]
+  photoId: string
+  isOpen: boolean
+}
+
+const PAGE_KEY = ['page'] as const,
+  PHOTOS_KEY = ['photos'] as const
+
+const deferredData: FiCs.DeferredData<Data, {}> = {
+  load: async ({ data, queryCache }) => {
+    const nextPage: number = data.page + 1,
+      key = ['photos', nextPage] as const
+
+    await queryCache.prefetch<Photo[]>(
+      key,
+      ({ signal }) =>
+        fetch(photoListUrl(nextPage), {
+          signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)])
+        }).then(res => res.json()),
+      { maxRetries: 1 }
+    )
+
+    const photos: Photo[] | undefined = queryCache.get<Photo[]>(key)
+    if (photos === undefined) throw new Error('Photos could not be loaded.')
+
+    queryCache.set<Photo[]>(PHOTOS_KEY, photos)
+    queryCache.set<number>(PAGE_KEY, nextPage)
+
+    return { page: nextPage, photos }
+  },
+  stateKey: 'photos'
+}
+
+const props: FiCs.Props<Data, {}> = [
+  {
+    descendants: ({ children: { Button } }) => Button,
+    values: ({ reloadDeferredData }) => ({
+      text: 'Retry',
+      isNotInForm: true,
+      click: () => reloadDeferredData('photos')
+    })
+  },
+  {
+    descendants: ({ children: { Skeleton } }) => Skeleton,
+    values: () => ({ size: PHOTO_SIZE, radius: 'sm' })
+  },
+  {
+    descendants: ({ children: { Icon } }) => Icon,
+    values: ({ data }) => {
+      const nextAxis = data.axis === 'horizontal' ? 'vertical' : 'horizontal'
+      return {
+        svg: data.axis === 'horizontal' ? MoveVertical : MoveHorizontal,
+        ariaLabel: `Switch axis direction to ${nextAxis}`,
+        isBottomFixed: true,
+        isLarge: true,
+        click: () => $axis.set(nextAxis)
+      }
+    }
+  },
+  {
+    descendants: ({ children: { Dialog } }) => Dialog,
+    values: ({ data }) => ({
+      author: data.photos.find(({ id }) => id === data.photoId)?.author ?? '',
+      isOpen: data.isOpen,
+      close: () => (data.isOpen = false)
+    })
+  }
+]
+
+const html: FiCs.Html<Data, {}> = ({
+  children: { Button, Skeleton, Icon, Dialog },
+  data: { axis, photos },
+  deferredStates,
+  template,
+  activeApis: { isLoading },
+  attributes: {
+    a11y: { liveStatus, srOnly },
+    show
+  },
+  scroll
+}) => {
+  if (deferredStates.photos?.status === 'error')
+    return template`
+      <div class="error">
+        <p ${liveStatus}>Photos could not be loaded.</p>
+        ${Button}
+      </div>
+    `
+
+  const skeletons = [...Array(UNIT_LENGTH)].map(
+    (_, index) => template`<div class="photo" key="skeleton-${index}">${Skeleton}</div>`
+  )
+
+  return template`
+    ${Icon}
+    <p ${liveStatus} ${srOnly}>The current scroll axis is ${axis}.</p>
+    <div class="scroller">
+      ${
+        photos.length === 0
+          ? skeletons
+          : scroll(
+              photos,
+              ({ id, author, isLoaded }) => template`
+                <div class="photo" key="${id}-container">
+                  ${!isLoaded && Skeleton}
+                  <button type="button" key="${id}" aria-haspopup="dialog" ${show(isLoaded)}>
+                    <img src="${photoUrl(id)}" alt="Image created by ${author}" key="${id}" />
+                  </button>
+                </div>
+              `
+            )
+      }
+      ${isLoading && skeletons}
+    </div>
+    ${Dialog}
+  `
+}
+
+const css: FiCs.Css<Data, {}> = ({ data: { axis, photos } }) => {
+  const isHorizontal = axis === 'horizontal'
+  return `
+    :host { 
+      ${isHorizontal ? 'overflow-x: hidden;' : `min-height: calc(${PHOTO_SIZE}px * ${UNIT_LENGTH});`}
+
+      div {
+        &.error { ${flex({ center: 'xy', direction: 'column', gap: space('md') })} }
+
+        &.scroller {
+          ${(isHorizontal && `${flex()}; justify-content: safe center;`) || ''}
+          ${(isHorizontal && photos.length === 0 && 'overflow-x: auto;') || ''}
+          ${hideScrollbar}
+        }
+
+        &.photo {
+          ${flex({ center: 'x' })}
+          margin-${isHorizontal ? 'inline' : 'block'}-end: ${space('sm')};
+
+          &:last-child { margin-${isHorizontal ? 'inline' : 'block'}-end: 0; }
+
+          > button {
+            ${interactive({ focusVisible: base => `${base}; outline-offset: calc(${stroke('md')} * -1);` })}
+
+            > img { ${radius('sm')} }
+          }
+        }
+      }
+    }
+  `
+}
+
+const hooks: FiCs.Hooks<Data, {}> = {
+  created: ({ data, queryCache, signal }) => {
+    const initialPage = Number(queries().page)
+
+    // Uses the value before "?page=" (default 1) as "page" tracks the last loaded page.
+    data.page = (Number.isInteger(initialPage) && initialPage > 0 ? initialPage : 1) - 1
+
+    const params = { data, signal, shouldInitCache: false }
+
+    queryCache.bindTo({ ...params, key: PHOTOS_KEY, dataKey: 'photos' })
+    queryCache.bindTo({ ...params, key: PAGE_KEY, dataKey: 'page' })
+  },
+  mounted: () => {
+    window.history.scrollRestoration = 'manual'
+  },
+  rerendered: ({ data: { isOpen, photoId }, changedKeys, ref }) => {
+    if (changedKeys.data.includes('isOpen') && !isOpen)
+      (ref(`.photo > button[key="${photoId}"]`) as HTMLElement | null)?.focus()
+  }
+}
+
+const markLoaded: FiCs.Action<Data, {}> = [
+  ({ data, queryCache, attributes: { key } }) => {
+    const loadedPhotos = toLoadedPhotos(data.photos, key)
+    if (loadedPhotos) queryCache.set<Photo[]>(PHOTOS_KEY, loadedPhotos)
+  },
+  { once: true }
+]
+
+const actions: FiCs.Actions<Data, {}> = {
+  img: { load: markLoaded, error: markLoaded },
+  '.photo > button': {
+    click: [
+      ({ data, attributes: { key } }) => {
+        data.photoId = key
+        data.isOpen = true
+      },
+      { throttleMs: 500 }
+    ]
+  }
+}
+
+const options: FiCs.Options<Data, {}> = {
+  scroll: ({ data, crud, queryCache }) => ({
+    unit: UNIT_LENGTH,
+    itemMinSize: PHOTO_SIZE,
+    axis: data.axis,
+    trigger: data.photos.length > 0,
+    parameter: 'page',
+    rootMargin: PHOTO_SIZE,
+    bufferLength: 2,
+    throttleMs: 200,
+    method: async () => {
+      if (data.page < 1) return
+
+      const nextPage = data.page + 1,
+        key = ['photos', nextPage] as const,
+        cachedPhotos: Photo[] | undefined = queryCache.get<Photo[]>(key)
+
+      if (cachedPhotos !== undefined) {
+        queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...cachedPhotos])
+        queryCache.set<number>(PAGE_KEY, nextPage)
+        return
+      }
+
+      await queryCache.optimisticUpdate<number>({
+        key: PAGE_KEY,
+        newQuery: nextPage,
+        mutator: async () => {
+          const photos: Photo[] = await crud<Photo[]>(photoListUrl(nextPage), { key: 'isLoading' })
+
+          if (data.page !== nextPage) return data.page
+
+          queryCache.set<Photo[]>(PHOTOS_KEY, current => [...(current ?? []), ...photos])
+          queryCache.set<Photo[]>(key, photos)
+
+          return nextPage
+        }
+      })
+    }
+  })
+}
+
+export default fics<Data, {}>({
+  name: 'photos',
+  children: [Button(), Skeleton, Icon(), Dialog],
+  data: () => ({
+    axis: $axis.get(),
+    page: 0,
+    photos: [] as Photo[],
+    photoId: '',
+    isOpen: false
+  }),
+  deferredData,
+  props,
+  html,
+  css,
+  hooks,
+  actions,
+  options
+})

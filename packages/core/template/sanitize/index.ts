@@ -1,7 +1,6 @@
-import { constants } from '../../constants'
-import { isBlankString } from '../../helpers'
+import { symbols } from '../../constants'
+import { escape, isBlankString } from '../../helpers'
 import type { Template } from '../../types'
-import { escape } from '../escape'
 import { error } from './error'
 import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
@@ -10,6 +9,24 @@ import { hasSymbol, isQuote } from './validator'
 const {
   symbols: { SANITIZED, UNSAFE_HTML }
 } = constants
+
+const isSpaceNeeded = <T>(converted: (T | string)[], firstInsertedIndex: number): boolean => {
+  const isNonEmptyString = (value: T | string | undefined): value is string =>
+    typeof value === 'string' && value !== ''
+
+  if (!isNonEmptyString(converted[firstInsertedIndex])) return false
+
+  for (let index = firstInsertedIndex - 1; index >= 0; index--) {
+    const prev: T | string = converted[index]
+
+    if (!isNonEmptyString(prev)) continue
+
+    /** @remarks ignores `=` and `-`. */
+    return !/[\s<=-]$/.test(prev)
+  }
+
+  return false
+}
 
 export const sanitize = <T>({
   strings,
@@ -21,10 +38,10 @@ export const sanitize = <T>({
     processValue = (variable: unknown, context: Template.Context): void => {
       if (variable === null || variable === undefined) return
 
-      if (hasSymbol(variable, SANITIZED)) {
+      if (hasSymbol(variable, symbols.SANITIZED)) {
         if (context !== 'text') throw error(name, context)
 
-        const sanitized: Template.Variable<T> = variable[SANITIZED] as Template.Variable<T>
+        const sanitized: Template.Variable<T> = variable[symbols.SANITIZED] as Template.Variable<T>
 
         if (Array.isArray(sanitized) && sanitized.length > 0) converted.push(...sanitized)
         else if (typeof sanitized === 'string' && sanitized !== '') converted.push(sanitized)
@@ -32,10 +49,10 @@ export const sanitize = <T>({
         return
       }
 
-      if (hasSymbol(variable, UNSAFE_HTML)) {
+      if (hasSymbol(variable, symbols.UNSAFE_HTML)) {
         if (context !== 'text') throw error(name, context)
 
-        const unsafeHtml: string = variable[UNSAFE_HTML] as string
+        const unsafeHtml: string = variable[symbols.UNSAFE_HTML] as string
         if (unsafeHtml !== '') converted.push(unsafeHtml)
 
         return
@@ -72,9 +89,9 @@ export const sanitize = <T>({
             : escape(stringified, context === 'text' ? 'text-content' : 'attr')
 
       if (!isBlankString(fragment)) converted.push(fragment)
-    }
+    },
+    contexts: Template.Context[] = getTemplateContexts(strings)
 
-  const contexts: Template.Context[] = getTemplateContexts(strings)
   for (let index = 0; index < variables.length; index++) {
     const context: Template.Context = contexts[index],
       template: string = strings[index]
@@ -86,13 +103,22 @@ export const sanitize = <T>({
       const processedTemplate: string = converted.length === length ? template.trimEnd() : template
       if (processedTemplate !== '') converted.splice(length, 0, processedTemplate)
     } else {
-      if (template !== '') converted.push(template)
+      let _index: number = converted.length
+
+      if (template !== '') {
+        converted.push(template)
+        _index++
+      }
+
       processValue(variables[index], context)
+
+      if (context === 'tag' && isSpaceNeeded(converted, _index))
+        converted[_index] = ` ${converted[_index]}`
     }
   }
 
-  const trailing: string = strings[strings.length - 1]
-  if (trailing !== '') converted.push(trailing)
+  const trailing: string | undefined = strings.at(-1)
+  if (trailing !== undefined && trailing !== '') converted.push(trailing)
 
   return converted
 }

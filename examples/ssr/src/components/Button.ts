@@ -1,42 +1,76 @@
 import { fics, type FiCs } from 'ficsjs'
-import { white } from '@/utils'
+import { color, space, stroke } from 'ficsjs/style'
+import {
+  type Placement,
+  TOOLTIP_ID,
+  tooltipCss,
+  tooltipHandlers,
+  tooltipMarkup
+} from '@/components/Tooltip'
 
-interface Props {
-  isDisabled: boolean
-  isCurrent?: boolean
-  buttonText: string
-  click: () => void
+export interface Props {
+  text: string
+  isNotInForm?: boolean
+  variant?: 'neutral' | 'danger'
+  isDisabled?: boolean
+  tooltip?: string
+  tooltipPlacement?: Placement
+  isFull?: boolean
+  click?: () => void
 }
 
 const html: FiCs.Html<{}, Props> = ({
-  props: { isDisabled, isCurrent, buttonText },
+  props: { text, isNotInForm, variant = 'neutral', isDisabled, tooltip },
   template,
-  attributes: { boolean },
-  isBrowser
+  isBrowser,
+  form,
+  attributes: { disabled }
 }) => template`
   <button
-    class="clickable w-24 text-white border border-white p-3 rounded-lg"
-    ${!isBrowser || isDisabled ? 'disabled' : ''}
-    aria-disabled="${boolean(!isBrowser || isDisabled)}"
-    ${isCurrent ? 'aria-current="page"' : ''}
-    type="button"
-  >${buttonText}</button>
+    type="${isNotInForm ? 'button' : 'submit'}"
+    data-variant="${isNotInForm ? variant : 'neutral'}"
+    ${disabled(!isBrowser || isDisabled || form.isDisabled)}
+    ${tooltip && `aria-describedby="${TOOLTIP_ID}"`}
+  >${text}${tooltipMarkup(template, tooltip)}</button>
 `
 
-const css: FiCs.Css<{}, Props> = `
-  button {
-    &:not([disabled]):hover { background: ${white(0.1)}; }
-    &[aria-current="page"] { color: ${white(0.5)}; border-color: ${white(0.5)}; }
-  }
-`
+const css: FiCs.Css<{}, Props> = ({ props: { tooltipPlacement, isFull } }) => {
+  const width = (isFull && `width: 100%;`) || ''
+
+  return `
+    :host { 
+      display: inline-block; ${width} 
+
+      button {
+        ${width}
+        ${tooltipCss(tooltipPlacement)}
+        padding-inline: ${space('md')};
+        border: ${stroke('sm')} solid ${color('border')};
+        white-space: nowrap;
+
+        &[data-variant='danger'] {
+          color: ${color('text', 'danger')};
+          border-color: ${color('border', 'danger')};
+        }
+      }
+    }
+  `
+}
 
 const actions: FiCs.Actions<{}, Props> = {
   button: {
     click: [
-      ({ props: { isDisabled, click } }) => !isDisabled && click(),
+      ({ props: { isNotInForm, isDisabled, click }, requestSubmit }) => {
+        if (isDisabled) return
+
+        click?.()
+        !isNotInForm && requestSubmit()
+      },
       { throttleMs: 500, blur: true }
-    ]
+    ],
+    ...tooltipHandlers<{}, Props>()
   }
 }
 
-export default () => fics<{}, Props>({ name: 'button', html, css, actions })
+export default () =>
+  fics<{}, Props>({ name: 'button', html, css, actions, options: { form: { value: () => null } } })

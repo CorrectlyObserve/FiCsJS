@@ -37,7 +37,7 @@ export const openEventSource = <D extends object, P>({
 
     if (debounceMs && throttleMs)
       throw new Error(
-        'Both "debounceMs" and "throttleMs" options cannot be used at the same time...'
+        'Pass either "debounceMs" or "throttleMs", as they cannot be used together...'
       )
 
     let callback: (event: MessageEvent) => void = (event: MessageEvent): void =>

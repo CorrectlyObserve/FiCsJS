@@ -1,24 +1,45 @@
-import { fics, type FiCs } from 'ficsjs'
-import { white } from '@/utils'
+import { type FiCs } from 'ficsjs'
+import { ficsLink } from 'ficsjs/router'
+import { color, flex, interactive, radius, space, stroke, tapSize } from 'ficsjs/style'
+import { TOOLTIP_ID, tooltipCss, tooltipHandlers, tooltipMarkup } from '@/components/Tooltip'
 
-interface Data {
+interface Props {
   href: string
   text: string
+  isCurrent?: boolean
+  tooltip?: string
 }
 
-const html: FiCs.Html<Data, {}> = ({ data: { href, text }, template }) => {
-  href = href.trim()
+const css: FiCs.Css<{}, Props> = () => `
+  :host {
+    width: auto;
 
-  if (href === '') throw new Error('The "href" must be a non-empty string...')
+    a {
+      ${flex({ inline: true, center: 'xy' })}
+      ${radius('sm')};
+      ${interactive()}
+      ${tooltipCss()}
+      width: 100%;
+      min-height: ${tapSize()};
+      color: ${color('text')};
+      padding-inline: ${space('md')};
+      border: ${stroke('sm')} solid ${color('border')};
+      text-decoration: none;
 
-  return template`
-    <p class="text-base text-white text-center leading-none">
-      <a class="clickable inline-block p-4 mb-3 rounded-lg" href="${href}">
-        <span class="border-b">${text}</span>
-      </a>
-    </p>
-  `
-}
-const css: FiCs.Css<Data, {}> = `a:hover { background: ${white(0.1)}; }`
+      &[aria-current='page'] { color: ${color('text-muted')}; }
+    }
+  }
+`
 
-export default () => fics({ name: 'back-link', data: () => ({ href: '', text: '' }), html, css })
+export default () =>
+  ficsLink<Props>({
+    href: ({ props }) => props.href,
+    anchorAttributes: ({ props: { isCurrent, tooltip } }) => ({
+      ...(isCurrent && { 'aria-current': 'page' }),
+      ...(tooltip && { 'aria-describedby': TOOLTIP_ID })
+    }),
+    content: ({ props: { text, tooltip }, template }) =>
+      template`${text}${tooltipMarkup(template, tooltip)}`,
+    css,
+    actions: { a: tooltipHandlers<{}, Props>() }
+  })

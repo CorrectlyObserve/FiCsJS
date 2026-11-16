@@ -1,0 +1,34 @@
+import { configGlobalCss, configI18n, i18n } from 'ficsjs'
+import { applyMeta, type FiCsRouter } from 'ficsjs/router'
+import { $lang, type Lang } from '@/domain/lang'
+import Footer from '@/pages/Footer'
+import Header from '@/pages/Header'
+import type { Data } from '@/pages/+spa'
+import { globalCss } from '@/styles/global'
+
+configGlobalCss(globalCss)
+configI18n('/i18n')
+
+const syncLang = async (lang: Lang): Promise<void> => {
+  document.documentElement.lang = lang
+
+  try {
+    const description = await i18n<string>({ lang, key: ['head', 'description'] })
+
+    // A later call can finish before an earlier one, as i18n caches each language.
+    if ($lang.get() !== lang) return
+
+    applyMeta({ description }, { merge: true })
+  } catch (error) {
+    // A failure here is not fatal, as the page renders without head translations.
+    console.warn(error)
+  }
+}
+
+void syncLang($lang.get())
+$lang.subscribe('lang', lang => void syncLang(lang))
+
+const layout: FiCsRouter.Layout<Data> = ({ slot, template }) =>
+  template`${Header}<main>${slot}</main>${Footer}`
+
+export default layout

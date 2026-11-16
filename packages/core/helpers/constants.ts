@@ -1,12 +1,27 @@
-export const constants = {
-  INTERVAL_MS: 1_000,
-  JITTER_RATIO: 0.3,
-  MAX_DELAY_MS: 30_000,
-  MAX_RETRIES: 3,
-  statusCode: {
-    CLIENT_ERROR: 400,
-    REQUEST_TIMEOUT: 408,
-    SERVER_ERROR: 500,
-    TOO_MANY_REQUESTS: 429
-  }
+export const APPLICATION_JSON = 'application/json' as const
+
+export const char = { DOUBLE_QUOTE: '"', SINGLE_QUOTE: "'" } as const
+
+export const CONTENT_TYPE = 'content-type' as const,
+  CSS_LAYER = '@layer fics' as const,
+  DISABLED_SELECTOR = ':disabled, [aria-disabled="true"]' as const,
+  EVENT_STREAM = 'text/event-stream' as const,
+  HOST_SELECTOR = ':host' as const,
+  INTERVAL_MS = 1_000 as const,
+  JITTER_RATIO = 0.3 as const,
+  MAX_DELAY_MS = 30_000 as const,
+  MAX_RETRIES = 3 as const
+
+export const NOOP: () => void = () => {}
+
+export const PROTO = '__proto__' as const
+
+export const SPECIAL_CHAR: RegExp = /[.*+?^${}()|[\]\\]/g
+
+export const statusCodes = {
+  BAD_REQUEST: 400,
+  INTERNAL_SERVER_ERROR: 500,
+  NO_CONTENT: 204,
+  REQUEST_TIMEOUT: 408,
+  TOO_MANY_REQUESTS: 429
 } as const

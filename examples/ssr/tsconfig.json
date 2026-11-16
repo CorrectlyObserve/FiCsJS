@@ -5,12 +5,8 @@
     "module": "ESNext",
     "lib": ["ESNext", "DOM"],
     "moduleResolution": "bundler",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
     "skipLibCheck": true,
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"], "@fics/*": ["./.fics/*"] }
   },
-  "include": ["src/**/*"]
+  "include": ["app.ts", "scripts/**/*", "src/**/*", ".fics/routing/*.ts"]
 }

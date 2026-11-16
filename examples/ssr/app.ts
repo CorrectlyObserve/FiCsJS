@@ -1,153 +1,84 @@
-import { Hono } from 'hono'
-import { streamSSE } from 'hono/streaming'
-import { serveStatic, upgradeWebSocket, websocket } from 'hono/bun'
-import type { ServerWebSocket } from 'bun'
 import { createQueryCache } from 'ficsjs'
-import Link from './src/components/Link'
-import Users from './src/pages/_components/Users'
-import ChatButton from './src/components/ChatButton'
-import Photos from './src/pages/scroll/_components/Photos'
-import Tab from './src/pages/websocket-sse/_components/Tab'
-import Router from './src/pages/websocket-sse/_components/Router'
-import { fetchUsers, USERS_KEY } from './src/data/users'
-import { Message, SSEMessage, User } from './src/types'
-import { API_PATHS, CHAT_PAGE, getTimestamp } from './src/utils'
+import { pages, rpcRouter } from '@fics/routing/server'
+import { createPageHandler, createRpcHandler } from 'ficsjs/router/server-only'
+import { type Message, parseMessage } from '@/domain/message'
+import { getUserPath, paths } from '@/domain/path'
+import { viaLogin } from '@/domain/redirect'
+import type { User } from '@/domain/user'
+import { authRoutes, redirect } from '@/server/auth'
+import {
+  type SocketData,
+  addMessage,
+  broadcastMessage,
+  createServerMessage,
+  pickMessage,
+  wsClients
+} from '@/server/messages'
+import { render } from '@/server/render'
+import { getSessionUser } from '@/server/session'
+import { broadcastSseMessage, openLogStream, openTextStream } from '@/server/stream'
+import type { ServerWebSocket } from 'bun'
 
-const app = new Hono()
+const PORT: number = Number(Bun.env.PORT) || 5174
 
-app.get('/dist/*', serveStatic({ root: './' }))
-
-const template = ({
-    title,
-    description,
-    content,
-    path
-  }: {
-    title: string
-    description: string
-    content: string
-    path: string
-  }): string =>
-    `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title}</title>
-        <meta name="description" content="${description}" />
-        <link rel="stylesheet" type="text/css" href="/dist/global.css" />
-      </head>
-      <body class="bg-dark px-4">
-        <header class="flex justify-center flex-row py-2">
-          <h1 class="text-xl text-center font-semibold">${title}</h1>
-        </header>
-        <main class="pb-8">${content}</main>
-        <footer class="text-sm text-white text-center pb-4"><p>&copy; 2025 Masami Ogasawara</p></footer>
-        <script type="module" src="/dist/${path.replace(/^\/+/, '')}.js"></script>
-      </body>
-    </html>
-  `,
-  link = Link(),
-  chatButton = ChatButton()
-
-app.get('/', async c => {
-  const queryCache = createQueryCache()
-
-  await queryCache.prefetch(USERS_KEY, fetchUsers)
-  const users = queryCache.get<User[]>(USERS_KEY) ?? []
-
-  return c.html(
-    template({
-      title: 'FiCsJS with Hono',
-      description: 'This is a simple example of FiCsJS with Hono in SSR.',
-      content: `
-        ${link.toString({ data: { href: '/scroll', text: 'Go to the scroll page' } })}
-        ${Users.toString({ data: { users } })}
-        ${chatButton.toString()}
-      `,
-      path: '/index'
-    })
-  )
+const page: (req: Request) => Promise<Response> = createPageHandler(pages, {
+  render,
+  createContext: () => ({ queryCache: createQueryCache() }),
+  viewTransition: true
 })
+const rpc: (req: Request) => Promise<Response> = createRpcHandler(rpcRouter, { maxBodyBytes: 1024 })
 
-app.get('/scroll', c =>
-  c.html(
-    template({
-      title: 'Infinite and virtual scroll',
-      description:
-        'This is a simple example of an infinite scroll and a virtual scroll with FiCsJS.',
-      content: `
-        ${link.toString({ data: { href: '/', text: 'Back to the top page' } })}
-        ${Photos.toString()}
-        ${chatButton.toString()}
-      `,
-      path: '/scroll'
-    })
-  )
-)
+Bun.serve<SocketData>({
+  port: PORT,
+  async fetch(req: Request, server): Promise<Response | undefined> {
+    const { pathname }: URL = new URL(req.url)
 
-app.get(CHAT_PAGE, c =>
-  c.html(
-    template({
-      title: 'WebSocket and SSE',
-      description: 'This is a simple example of a WebSocket and an SSE with FiCsJS.',
-      content: `
-        ${link.toString({ data: { href: '/', text: 'Back to the top page' } })}
-        ${Tab.toString()}
-        ${Router.toString()}
-      `,
-      path: CHAT_PAGE
-    })
-  )
-)
+    if (pathname === paths.api.WS)
+      return server.upgrade(req, { data: { userName: '' } })
+        ? undefined
+        : new Response('This endpoint expects a WebSocket upgrade.', { status: 426 })
 
-const createServerMessage = (comment: string): string =>
-    JSON.stringify({ userName: 'Server', comment }),
-  messages: Message[] = [],
-  wsClients = new Set<ServerWebSocket>(),
-  wsClientUsernames = new Map<ServerWebSocket, string>(),
-  broadcastMessage = (message: string | Message): void => {
-    for (const client of wsClients)
-      try {
-        client.send(
-          typeof message === 'string' ? createServerMessage(message) : JSON.stringify(message)
-        )
-      } catch {
-        wsClients.delete(client)
-      }
+    if (pathname.startsWith('/assets/')) {
+      const file = Bun.file(`./dist${pathname}`)
+      return (await file.exists()) ? new Response(file) : new Response(null, { status: 404 })
+    }
+
+    if (req.method === 'POST') {
+      const authRoute = authRoutes.get(pathname)
+      if (authRoute) return authRoute(req)
+    }
+
+    if (pathname === paths.api.LOG) return openLogStream(req)
+    if (pathname === paths.api.STREAM) return openTextStream(req)
+    if (pathname.startsWith(rpcRouter.basePath)) return rpc(req)
+
+    if (pathname === paths.ACCOUNT) {
+      const user: User | null = getSessionUser(req)
+      return redirect(user ? getUserPath(user.id) : viaLogin(paths.ACCOUNT))
+    }
+
+    const res: Response = await page(req)
+    res.headers.set('cache-control', 'no-store')
+    return res
   },
-  sseClients = new Set<(sseMessage: SSEMessage) => Promise<void>>(),
-  broadcastSseMessage = (message: string): void => {
-    for (const sender of sseClients)
-      try {
-        void sender({ event: 'log', data: `${getTimestamp()}: ${message}` })
-      } catch {
-        sseClients.delete(sender)
-      }
-  }
-
-app.get(
-  API_PATHS.ws,
-  upgradeWebSocket(() => ({
-    onOpen(_event, { raw }): void {
-      if (raw) wsClients.add(raw)
+  websocket: {
+    open(ws: ServerWebSocket<SocketData>): void {
+      wsClients.add(ws)
     },
-    onMessage({ data }, ws): void {
+    message(ws: ServerWebSocket<SocketData>, data: string | Buffer): void {
       if (typeof data !== 'string') {
         ws.send(createServerMessage('The data must be a string.'))
         return
       }
 
-      let message: Message
-      try {
-        message = JSON.parse(data) as Message
-      } catch {
-        ws.send(createServerMessage('This is an invalid JSON.'))
+      const message: Partial<Message> | undefined = parseMessage(data)
+
+      if (!message) {
+        ws.send(createServerMessage('This is an invalid message.'))
         return
       }
 
-      const { userName, comment } = message
+      const { userName, comment }: Partial<Message> = message
 
       if (!userName || userName.trim() === '') {
         ws.send(createServerMessage('The userName is required.'))
@@ -155,10 +86,8 @@ app.get(
       }
 
       if (!comment) {
-        const { raw } = ws
-
-        if (raw && !wsClientUsernames.has(raw)) {
-          wsClientUsernames.set(raw, userName)
+        if (ws.data.userName === '') {
+          ws.data.userName = userName
           ws.send(createServerMessage(`Hello, ${userName}!`))
         } else ws.send(createServerMessage('The comment is required.'))
 
@@ -170,102 +99,27 @@ app.get(
         return
       }
 
-      broadcastMessage(message)
+      broadcastMessage({ userName, comment })
       broadcastSseMessage(`${userName} sent a message.`)
 
-      messages.push(message)
-      const pickedMessage: Message = messages[Math.floor(Math.random() * messages.length)]
+      addMessage({ userName, comment })
+      const picked: Message | undefined = pickMessage()
 
       setTimeout(() => {
-        broadcastMessage(pickedMessage.comment)
-        broadcastSseMessage(`The server sent a message.`)
+        if (picked) broadcastMessage(picked.comment)
+        broadcastSseMessage('The server sent a message.')
       }, 1000)
     },
-    onClose(_event, { raw }): void {
-      if (raw) {
-        const userName = wsClientUsernames.get(raw)
+    close(ws: ServerWebSocket<SocketData>): void {
+      wsClients.delete(ws)
 
-        wsClients.delete(raw)
-        wsClientUsernames.delete(raw)
+      const { userName }: SocketData = ws.data
+      if (userName === '') return
 
-        if (userName) {
-          broadcastMessage(`See you later, ${userName}.`)
-          broadcastSseMessage(`The ${userName}'s connection was closed.`)
-        }
-      }
+      broadcastMessage(`See you later, ${userName}.`)
+      broadcastSseMessage(`The ${userName}'s connection was closed.`)
     }
-  }))
-)
-
-app.get(API_PATHS.log, c =>
-  streamSSE(c, async stream => {
-    const sender = (sseMessage: SSEMessage) => stream.writeSSE(sseMessage),
-      abortSignal: AbortSignal | undefined = c.req.raw?.signal
-
-    sseClients.add(sender)
-    void stream.writeSSE({ event: 'ping', data: 'ping' })
-
-    const checkConnection = setInterval(() => {
-      void stream.writeSSE({ event: 'ping', data: 'ping' })
-    }, 30_000)
-
-    try {
-      await new Promise<void>(resolve => {
-        if (!abortSignal || abortSignal.aborted) return resolve()
-        abortSignal.addEventListener?.('abort', () => resolve(), { once: true })
-      })
-    } finally {
-      sseClients.delete(sender)
-      clearInterval(checkConnection)
-    }
-  })
-)
-
-app.get(API_PATHS.stream, c => {
-  const RANDOM_LENGTH = 1000,
-    CHUNK_SIZE = 10,
-    signal: AbortSignal | undefined = c.req.raw?.signal,
-    encoder = new TextEncoder(),
-    stream = new ReadableStream({
-      async start(controller) {
-        const chars = [...Array(36)].map((_, i) => i.toString(36)).join(''),
-          random: string[] = []
-
-        for (let i = 0; i < RANDOM_LENGTH; i++) {
-          const char = chars.charAt(Math.floor(Math.random() * chars.length))
-          random.push(Math.random() < 0.5 ? char.toUpperCase() : char)
-        }
-
-        const fullText = random.join('')
-
-        for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
-          if (signal?.aborted) {
-            controller.close()
-            return
-          }
-          const index = Math.floor(i / CHUNK_SIZE),
-            chunk = fullText.slice(i, i + CHUNK_SIZE),
-            eventData = `data: ${JSON.stringify({ chunk, index })}\n\n`
-
-          controller.enqueue(encoder.encode(eventData))
-          await new Promise(resolve => setTimeout(resolve, 100))
-        }
-
-        controller.enqueue(encoder.encode(`event: complete\ndata: \n\n`))
-        controller.close()
-      }
-    })
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no'
-    }
-  })
+  }
 })
 
-app.notFound(c => c.redirect(c.req.path.startsWith(`${CHAT_PAGE}/`) ? CHAT_PAGE : '/'))
-
-export default { port: 5174, host: '0.0.0.0', fetch: app.fetch, websocket }
+console.log(`ssr example \u2192 http://localhost:${PORT}`)

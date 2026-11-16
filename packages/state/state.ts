@@ -1,4 +1,11 @@
-import { deepEqual, isBlankString, isBrowser, isPlainObject, numberError } from '../core/helpers'
+import {
+  deepEqual,
+  isBlankString,
+  isBrowser,
+  isPlainObject,
+  numberError,
+  toLowerFirst
+} from '../core/helpers'
 import type { Options } from './types'
 
 export class State<S> {
@@ -73,18 +80,17 @@ export class State<S> {
           if (stored === null) this.#setToSessionStorage(this.#state)
           else
             try {
-              const customizedSubject = `The stored state with ${subject.charAt(0).toLowerCase() + subject.slice(1)}`,
+              const sbj = `The stored state with ${toLowerFirst(subject)}`,
                 parsed: unknown = JSON.parse(stored)
 
-              if (!isPlainObject(parsed)) throw new Error(`${customizedSubject} is invalid...`)
+              if (!isPlainObject(parsed)) throw new Error(`${sbj} is invalid...`)
 
               const { version, data }: { version?: unknown; data?: S } = parsed
 
               if (version !== this.#options.version)
-                throw new Error(`${customizedSubject} has a version mismatch...`)
+                throw new Error(`${sbj} has a version mismatch...`)
 
-              if (validate?.(data) === false)
-                throw new Error(`${customizedSubject} failed validation...`)
+              if (validate?.(data) === false) throw new Error(`${sbj} failed validation...`)
 
               this.#state = data
             } catch (error) {

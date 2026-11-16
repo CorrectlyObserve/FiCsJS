@@ -1,5 +1,18 @@
-import { delay, getDelayMs, MAX_RETRIES, numberError, shouldRetry } from './helpers'
-import type { Crud, SetTimeout } from './types'
+import {
+  APPLICATION_JSON,
+  CONTENT_TYPE,
+  delay,
+  EVENT_STREAM,
+  forwardAbort,
+  getDelayMs,
+  isIdempotentMethod,
+  MAX_RETRIES,
+  numberError,
+  scheduleAbort,
+  shouldRetry,
+  statusCodes
+} from './helpers'
+import type { Crud } from './types'
 
 /**
  * @param options.timeoutMs Must be a non-negative integer if it is a number.
@@ -19,6 +32,7 @@ export const crud = async <T>({
       timeoutMs,
       intervalMs,
       maxRetries = MAX_RETRIES,
+      idempotent,
       signal,
       ...args
     }: Crud.Options = options ?? {},
@@ -33,34 +47,20 @@ export const crud = async <T>({
 
   if (method === 'HEAD') throw new Error('The HEAD method is not supported in the crud function...')
 
-  const handleRes = async (): Promise<T | void> => {
+  const execute = async (): Promise<T | void> => {
     let attempt: number = 0
 
     const fetchOnce = async (): Promise<Response> => {
       const controller: AbortController = new AbortController(),
         cleanups: (() => void)[] = []
 
-      if (signal)
-        if (signal.aborted) controller.abort(signal.reason)
-        else {
-          const onAbort = (): void => controller.abort(signal.reason)
+      if (signal) cleanups.push(forwardAbort(controller, signal))
 
-          signal.addEventListener('abort', onAbort, { once: true })
-          cleanups.push(() => signal.removeEventListener('abort', onAbort))
-        }
-
-      let timer: SetTimeout | undefined
-      if (timeoutMs && timeoutMs > 0)
-        timer = setTimeout(
-          () =>
-            controller.abort(
-              new DOMException(
-                `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in the ${name}...`,
-                'AbortError'
-              )
-            ),
-          timeoutMs
-        )
+      const clearTimer: () => void = scheduleAbort({
+        controller,
+        timeoutMs,
+        message: `The ${method} request to "${endpoint}" timed out after ${timeoutMs}ms in ${name}...`
+      })
 
       try {
         const res: Response = await fetch(endpoint, { ...args, signal: controller.signal })
@@ -69,7 +69,7 @@ export const crud = async <T>({
 
         return res
       } finally {
-        if (timer) clearTimeout(timer)
+        clearTimer()
         for (const cleanup of cleanups) cleanup()
       }
     }
@@ -80,8 +80,16 @@ export const crud = async <T>({
         } catch (error) {
           attempt++
 
-          if (!shouldRetry({ error, attempt, maxRetries, signal }))
-            throw new Error(`The ${method} request to "${endpoint}" failed in the ${name}...`, {
+          if (
+            !shouldRetry({
+              error,
+              attempt,
+              maxRetries,
+              isIdempotent: isIdempotentMethod(method) || idempotent === true,
+              signal
+            })
+          )
+            throw new Error(`The ${method} request to "${endpoint}" failed in ${name}...`, {
               cause: error
             })
 
@@ -95,11 +103,9 @@ export const crud = async <T>({
       }
     })()
 
-    if (res.status === 204) return
+    if (res.status === statusCodes.NO_CONTENT) return
 
-    const contentType: string = res.headers.get('content-type')?.toLowerCase() ?? '',
-      isJson: boolean = contentType.startsWith('application/json'),
-      isEventStream: boolean = contentType.startsWith('text/event-stream'),
+    const contentType: string = res.headers.get(CONTENT_TYPE)?.toLowerCase() ?? '',
       readStream = async (): Promise<void> => {
         const reader: ReadableStreamDefaultReader | undefined = res.body?.getReader()
         if (!reader) throw new Error('The Streams option is not available in this environment...')
@@ -121,19 +127,21 @@ export const crud = async <T>({
       }
 
     if (onChunk) {
-      if (!isEventStream)
-        throw new Error('The Stream API can only be used for text/event-stream responses...')
+      if (!contentType.startsWith(EVENT_STREAM))
+        throw new Error(`The Stream API can only be used for ${EVENT_STREAM} responses...`)
 
       return await readStream()
     }
 
-    if (!isJson)
-      throw new Error('The response is required to have a content-type of application/json...')
+    if (!contentType.startsWith(APPLICATION_JSON))
+      throw new Error(
+        `The response is required to have a ${CONTENT_TYPE} of ${APPLICATION_JSON}...`
+      )
 
     return (await res.json()) as T
   }
 
-  if (!key) return await handleRes()
+  if (!key) return await execute()
 
   if (activeApis.get(key))
     console.warn(`The internal API status key "${key}" is already in progress...`)
@@ -142,7 +150,7 @@ export const crud = async <T>({
   enqueue(() => reRender(true), 're-render')
 
   try {
-    return await handleRes()
+    return await execute()
   } finally {
     activeApis.set(key, false)
     enqueue(() => reRender(true), 're-render')

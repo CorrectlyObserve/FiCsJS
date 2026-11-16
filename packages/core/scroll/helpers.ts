@@ -21,7 +21,7 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
  * ```
  * 1. i      : 0000 1100
  * 2. ~i     : 1111 0011 (Inverted)
- * 3. -i     : 1111 0100 (Flips bits until the first original '1')
+ * 3. -i     : 1111 0100 (Flipped bits until the first original '1')
  * 4. i & -i : 0000 0100 (Result: 4 (binary: 100). Index 12 manages a range of 4: 9~12)
  * ```
  */
@@ -101,5 +101,7 @@ export const getProperty = ({
   return prefix ? `${prefix}${property[0].toUpperCase()}${property.slice(1)}` : property
 }
 
-export const isValidNumber = (value: number, isPositiveRequired: boolean = true): boolean =>
-  Number.isFinite(value) && (!isPositiveRequired || value > 0)
+export const isValidNumber = (
+  value: number,
+  { positive = true }: { positive?: boolean } = {}
+): boolean => Number.isFinite(value) && (!positive || value > 0)

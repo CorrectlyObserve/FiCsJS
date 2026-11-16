@@ -1,7 +1,6 @@
-import { isBlankString, joinArray } from '../../helpers'
+import { escape } from '../../helpers'
 import type { Template } from '../../types'
-import { constants } from '../constants'
-import { escape } from '../escape'
+import { char as c } from '../constants'
 import { error } from './error'
 import { parseQuotedAttr } from './parser'
 import { isQuote, isValidAttrName, isSpace } from './validator'
@@ -80,5 +79,5 @@ export const normalizeAttrFragment = (fragment: string, name: string): string =>
     attrs.push(`${value}="${escape(valueToken.value)}"`)
   }
 
-  return joinArray(attrs)
+  return attrs.join(' ')
 }

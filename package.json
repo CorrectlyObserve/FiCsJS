@@ -6,11 +6,11 @@
   ],
   "dependencies": {
     "ficsjs": "workspace:*",
-    "fics-todo": "workspace:*",
-    "fics-ssr": "workspace:*"
+    "fics-ssr": "workspace:*",
+    "fics-todo": "workspace:*"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15",
-    "typescript": "^5.9.3"
+    "@biomejs/biome": "2.5.5",
+    "typescript": "7.0.2"
   }
 }

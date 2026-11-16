@@ -1,89 +1,137 @@
 import { isBrowser } from './helpers'
-import type { Task } from './types'
+import type { Awaitable, Task, TaskEntry } from './types'
 
-let isProcessing: boolean = false,
-  isReRendering: boolean = false
+let isDraining: boolean = false,
+  isDrainingReRenders: boolean = false,
+  isBatchOpen: boolean = false,
+  processingLoops: Map<string, number> | undefined
 
-const ids: Set<string> = new Set(),
+const tasks: Map<string, TaskEntry> = new Map(),
   queue: Task[] = [],
   reRenderQueue: Task[] = [],
   getQueueId = ({ instanceId, key }: Task): string => `${instanceId}-${key}`,
-  dequeue = async (task: Task): Promise<void> => {
+  mergeLoops = ({
+    target,
+    src
+  }: {
+    target: Map<string, number>
+    src: Map<string, number>
+  }): void => {
+    for (const [id, count] of src) target.set(id, Math.max(target.get(id) ?? 0, count))
+  },
+  processTask = async (task: Task): Promise<void> => {
+    const id: string = getQueueId(task),
+      entry: TaskEntry | undefined = tasks.get(id)
+    if (!entry) return
+
+    /** @remarks Sets the state before processing to avoid ignoring a request made during it. */
+    entry.state = (task.key === 'define' ? 'defined' : 'processing') as TaskEntry['state']
+
     try {
-      await task.func()
+      /** @remarks Tracks only requests made before the first await, as await breaks the trace. */
+      processingLoops = entry.loops
+      const processing: Awaitable = task.func()
+      processingLoops = undefined
+
+      await processing
+    } catch (error) {
+      console.error(`The task "${id}" failed in ${task.name}...`, error)
     } finally {
-      if (task.key !== 'define') ids.delete(getQueueId(task))
+      /** @remarks Clears it in case func throws synchronously, which skips the reset above. */
+      processingLoops = undefined
+
+      const shouldProcessAgain: boolean = entry.state === 'processing-requeued'
+
+      if (shouldProcessAgain) entry.state = 'queued'
+      else if (entry.state === 'processing') tasks.delete(id)
+
+      if (entry.state === 'defined') entry.loops.clear()
     }
   },
   drainQueue = async (): Promise<void> => {
-    if (isProcessing || queue.length === 0) return
+    if (isDraining || queue.length === 0) return
 
-    isProcessing = true
+    isDraining = true
 
     try {
       while (true) {
         const batch: Task[] = queue.splice(0)
         if (batch.length === 0) break
 
-        for (const task of batch)
-          if (task.key === 're-render') reRenderQueue.push(task)
-          else
-            try {
-              await dequeue(task)
-            } catch (error) {
-              const { instanceId, key }: Task = task
-              console.error(
-                `The task has instanceId ${instanceId} and key "${key}" failed to process...`,
-                error
-              )
-            }
+        for (const task of batch) {
+          if (task.key === 're-render') {
+            reRenderQueue.push(task)
+            continue
+          }
+
+          await processTask(task)
+        }
       }
 
       await drainReRendersQueue()
     } finally {
-      isProcessing = false
+      isDraining = false
 
       if (queue.length > 0) void drainQueue()
       else if (reRenderQueue.length > 0) void drainReRendersQueue()
     }
   },
   drainReRendersQueue = async (): Promise<void> => {
-    if (isReRendering || reRenderQueue.length === 0) return
+    if (isDrainingReRenders || reRenderQueue.length === 0) return
 
-    isReRendering = true
+    isDrainingReRenders = true
+    isBatchOpen = true
 
     await new Promise<void>(resolve => {
-      const run = (): void => {
-        const batch: Promise<void>[] = reRenderQueue.splice(0).map(async task => {
-          try {
-            await dequeue(task)
-          } catch (error) {
-            console.error(
-              `The task has instanceId ${task.instanceId} and key "re-render" failed to process...`,
-              error
-            )
-          }
-        })
+      const processBatch = (): void => {
+        isBatchOpen = false
 
-        void Promise.allSettled(batch).finally(() => {
-          isReRendering = false
+        void Promise.all(reRenderQueue.splice(0).map(processTask)).finally(() => {
+          isDrainingReRenders = false
           resolve()
         })
       }
 
-      if (!isBrowser() || document.visibilityState === 'hidden') setTimeout(run)
-      else requestAnimationFrame(run)
+      if (document.visibilityState === 'hidden') setTimeout(processBatch)
+      else requestAnimationFrame(processBatch)
     })
   }
 
 export const enqueue = (task: Task): void => {
   if (!isBrowser()) return
 
-  const queueId: string = getQueueId(task)
+  const id: string = getQueueId(task),
+    entry: TaskEntry | undefined = tasks.get(id),
+    loops: Map<string, number> = new Map(processingLoops)
 
-  if (!ids.has(queueId)) {
-    ids.add(queueId)
-    queue.push(task)
-    void drainQueue()
+  /** @remarks Keeps counting a self-request made after await, which processingLoops misses. */
+  if (entry?.state === 'processing') mergeLoops({ target: loops, src: entry.loops })
+
+  const loopLength: number = (loops.get(id) ?? 0) + 1
+  loops.set(id, loopLength)
+
+  if (entry && entry.state !== 'processing') {
+    if (entry.state !== 'defined') mergeLoops({ target: entry.loops, src: loops })
+    return
   }
+
+  if (loopLength > task.maxLoopLength) {
+    console.error(
+      `Increase options.maxLoopLength or suspect an infinite loop, as the task "${id}" exceeded the limit in ${task.name}...`
+    )
+    return
+  }
+
+  if (entry) {
+    entry.state = 'processing-requeued'
+    entry.loops = loops
+  } else tasks.set(id, { state: 'queued', loops })
+
+  if (task.key === 're-render' && isBatchOpen) {
+    reRenderQueue.push(task)
+    return
+  }
+
+  queue.push(task)
+  void drainQueue()
 }

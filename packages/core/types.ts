@@ -1,24 +1,27 @@
 import { FiCsElement } from './class'
-import { constants } from './constants'
+import { a11y, a11yAttrs } from './a11y'
+import { attrs, DEFERRED_DATA_LOAD_KEY } from './constants'
+import { char as c } from './helpers'
 import type { QueryCache } from './query'
 
 export declare namespace Action {
   interface Ctx<D extends object, P> {
     element: Element
     shadowRoot: ShadowRoot
-    entries: [string, Action.Method<D, P> | [Action.Method<D, P>, Action.Options]][]
+    entries: [string, Entry<D, P>][]
   }
 
-  type Handlers<D extends object, P> = Record<
-    string,
-    Record<string, Method<D, P> | [Method<D, P>, Options]>
-  >
+  type Entry<D extends object, P> = Method<D, P> | [Method<D, P>, Options]
+
+  type Handlers<D extends object, P> = Record<string, Record<string, Entry<D, P>>>
 
   type Method<D extends object, P> = (
     ctx: DataProps.Payload<D, P, true> & {
-      event: Event
       ref: (selector: string) => Element | null
+      event: Event
       attributes: Record<string, string>
+      requestSubmit: Form.RequestSubmit
+      submitForm: Form.Submit.Fn
       value?: string
     }
   ) => void
@@ -31,20 +34,39 @@ export declare namespace Action {
   }
 }
 
-export type Attrs<D extends object, P> = ValueOrFn<D, P, Record<string, string>>
+export declare namespace Attr {
+  type AriaCurrent = 'page' | 'step' | 'location' | 'date' | 'time'
 
-export type AwaitableVoid = void | Promise<void>
+  type AriaState = 'checked' | 'pressed' | 'selected'
+
+  type Entry = readonly [string, string]
+
+  type Input<D extends object, P> =
+    | Record<string, string>
+    | ((ctx: DataProps.Payload<D, P> & { a11y: typeof a11yAttrs }) => Record<string, string>)
+
+  type Stringified<T extends readonly Entry[]> = T extends readonly [
+    infer H extends Entry,
+    ...infer R extends readonly Entry[]
+  ]
+    ? R extends []
+      ? `${H[0]}="${H[1]}"`
+      : `${H[0]}="${H[1]}" ${Stringified<R>}`
+    : ''
+}
+
+export type Awaitable<T = void> = T | Promise<T>
 
 export type Children = Record<string, Descendant>
 
-export type ClassName<D extends object, P> = ValueOrFn<D, P, string>
+export type ClassName<D extends object, P> = string | ((ctx: DataProps.Payload<D, P>) => string)
 
 export declare namespace Crud {
   interface Ctx {
     endpoint: string
     name: string
     activeApis: Map<string, boolean>
-    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
+    enqueue: (func: () => Awaitable, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     options?: Options | StreamOptions
   }
@@ -59,6 +81,7 @@ export declare namespace Crud {
     timeoutMs?: number
     intervalMs?: number
     maxRetries?: number
+    idempotent?: boolean
     signal?: AbortSignal
   }
 
@@ -69,35 +92,36 @@ export declare namespace Crud {
 }
 
 export declare namespace Css {
-  type Ctx<D extends object, P> = SingleOrArray<StringOrFn<D, P> | Css.Rules<D, P>>
+  type Input<D extends object, P> = SingleOrArray<StringOrFn<D, P>>
 
   interface Declarations {
     [key: string]: string | number | undefined | Declarations
   }
 
-  type Global = StringOrFn<any, any> | Record<string, Declarations>
-
-  type Rules<D extends object, P> = Record<string, Value<D, P>>
-
-  type Sheet<D extends object, P> = Rules<D, P> | Global
-
   type StringOrFn<D extends object, P> =
     | string
     | ((
-        ctx: DataProps.Payload<D, P> & { cssToString: (declarations: Declarations) => string }
+        ctx: DataProps.Payload<D, P> & {
+          a11y: typeof a11ySelectors
+          form: Omit<Form.Association, 'element'>
+        }
       ) => string)
-
-  type Value<D extends object, P> = ValueOrFn<D, P, Declarations>
 }
 
 export declare namespace DataProps {
   type Getter<D extends object, P> = <B extends boolean = false>(hasMethods?: B) => Payload<D, P, B>
 
   type Payload<D extends object, P, B extends boolean = false> = {
-    data: B extends true ? ProxyMutable<D> : DeepReadonly.Core<D>
+    data: B extends true ? MutableData<D> : DeepReadonly.Core<D>
     props: Readonly<P>
+    deferredStates: DeferredData.States
   } & (B extends true
-    ? { crud: Crud.Fetcher; queryCache: Query.Api; optimisticUpdate: Optimistic.Fn<D> }
+    ? {
+        crud: Crud.Fetcher
+        queryCache: Query.Api
+        optimisticUpdate: Optimistic.Fn<D>
+        reloadDeferredData: (key?: string) => void
+      }
     : {})
 }
 
@@ -128,25 +152,125 @@ export declare namespace DeepReadonly {
     | EventTarget
 }
 
+export declare namespace DeferredData {
+  interface Attempt<D extends object, P> {
+    signal: AbortSignal
+    /** @remarks The chain passed to loads triggered by this run. */
+    nextChain: string[]
+    /** @remarks Returns whether the result may be used, and stops watching the abort when it may. */
+    settle: () => boolean
+    isLatest: () => boolean
+    loadedValues: (D[keyof D] | P[keyof P])[]
+    isStale: boolean
+    startedAt: number
+    details: Telemetry.Details<D, P>[typeof DEFERRED_DATA_LOAD_KEY]
+  }
+
+  interface Ctx<D extends object, P> extends Pick<Attempt<D, P>, 'isStale' | 'details'> {
+    load: Load<D, P>
+  }
+
+  interface Entry<D extends object, P> {
+    load: (
+      ctx: Omit<DataProps.Payload<D, P, true>, 'reloadDeferredData'> & {
+        i18n: I18n.Fn
+        signal: AbortSignal
+      }
+    ) => Promise<Partial<D> | void>
+    stateKey?: keyof States
+    dataKey?: SingleOrArray<keyof D>
+    propsKey?: SingleOrArray<keyof P>
+    allowStale?: boolean
+  }
+
+  interface Load<D extends object, P> {
+    id: string
+    entry: Entry<D, P>
+    needsLoad: boolean
+    chain: string[]
+    hasReportedLoop: boolean
+    version: number
+    abort?: () => void
+    hasLoadedOnce: boolean
+    loadedValues: (D[keyof D] | P[keyof P])[]
+  }
+
+  interface Runtime<D extends object, P> {
+    name: string
+    /** @remarks Not proxied data for reading values without triggering subscriptions. */
+    rawData: D
+    /** @remarks Not proxied props for reading values without triggering subscriptions. */
+    rawProps: P
+    getDataProps: DataProps.Getter<D, P>
+    getOptions: () => Options.Resolved<D, P> & { maxLoopLength: number }
+    getSignal: () => AbortSignal
+    getActiveSync: () => (() => void) | null
+    isPostRerendering: () => boolean
+    enqueueReRender: () => void
+    emitMetric: (ctx: Telemetry.Ctx<D, P>) => void
+  }
+
+  type State =
+    | { status: 'loading' }
+    | { status: 'error'; error: unknown }
+    | { status: 'done'; error?: unknown }
+
+  type States = Readonly<Record<string, State>>
+}
+
 export type Descendant = FiCsElement<any, any>
 
 export interface FiCs<D extends object, P extends object> {
   name: string
-  isExceptional?: boolean
   instanceId?: string
+  clonedName?: string
+  isCloned?: boolean
   children?: Descendant[]
   data?: () => Partial<D>
-  deferredData?: (ctx: DataProps.Payload<D, P, true>) => Promise<Partial<D>>
-  i18nData?: (ctx: DataProps.Payload<D, P> & I18n) => Promise<Partial<D>>
+  deferredData?: SingleOrArray<DeferredData.Entry<D, P>>
+  immutableDataKeys?: (keyof D)[]
   props?: SingleOrArray<Props<D, P>>
   className?: ClassName<D, P>
-  attributes?: Attrs<D, P>
-  html: Html.Core<D, P>
-  css?: Css.Ctx<D, P>
-  clonedCss?: Css.Sheet<D, P>[]
+  attributes?: Attr.Input<D, P>
+  html: Html.Fn<D, P>
+  css?: Css.Input<D, P>
+  clonedCss?: Css.StringOrFn<D, P>[]
   hooks?: Hook.Lifecycle<D, P>
   actions?: Action.Handlers<D, P>
-  options?: Options.Ctx<D, P>
+  options?: Options.Input<D, P>
+}
+
+export declare namespace Form {
+  interface Association {
+    element: HTMLFormElement | null
+    isDisabled: boolean
+    isUserInvalid: boolean
+  }
+
+  type Methods = Pick<ElementInternals, 'checkValidity' | 'reportValidity'>
+
+  interface Options<D extends object, P> {
+    value: (ctx: DataProps.Payload<D, P, true>) => Parameters<ElementInternals['setFormValue']>[0]
+    validate?: (ctx: DataProps.Payload<D, P, true>) => string | null
+    reset?: (ctx: DataProps.Payload<D, P, true>) => void
+  }
+
+  type RequestSubmit = HTMLFormElement['requestSubmit']
+
+  namespace Submit {
+    type Fn = <T extends Form.Values>(
+      action: (values: T) => void | Promise<void>,
+      options?: Options
+    ) => void
+
+    interface Options {
+      shouldReportValidity?: boolean
+    }
+  }
+
+  type Surface = Pick<ElementInternals, 'form' | 'validity' | 'validationMessage' | 'willValidate'>
+
+  type Values = Record<string, SingleOrArray<string | File>>
 }
 
 export declare namespace Html {
@@ -154,17 +278,17 @@ export declare namespace Html {
     | ([D, P] extends [object, object] ? Descendant : FiCsElement<D, P>)
     | string
 
-  type Core<D extends object, P extends object> = (
-    ctx: Omit<DataProps.Payload<D, P, true>, 'props'> &
-      Syntaxes<D, P> & {
-        isBrowser: boolean
-        isDeferred: boolean
-        scroll: <T>(
-          array: ReadonlyArray<T> | null | undefined,
-          callback: (item: T, index: number) => Sanitized<D, P>
-        ) => Sanitized<D, P>
-      }
-  ) => Sanitized<D, P>
+  type Ctx<D extends object, P extends object> = Omit<DataProps.Payload<D, P, true>, 'props'> &
+    Syntaxes<D, P> & {
+      isBrowser: boolean
+      form: Form.Association
+      scroll: <T>(
+        array: ReadonlyArray<T> | null | undefined,
+        callback: (item: T, index: number) => Sanitized<D, P>
+      ) => Sanitized<D, P>
+    }
+
+  type Fn<D extends object, P extends object> = (ctx: Ctx<D, P>) => Sanitized<D, P>
 
   type PickedAttr = Pick<Attr, 'name' | 'value' | 'namespaceURI' | 'localName'>
 
@@ -175,11 +299,29 @@ export declare namespace Html {
     props: Readonly<P>
     template: Template<D, P>
     unsafeHtml: (str: string) => Record<symbol, string>
-    show: (condition: boolean) => string
     activeApis: Record<string, boolean>
     attributes: {
-      boolean: (condition: boolean | undefined) => 'true' | 'false'
-      statusLiveRegion: typeof constants.a11y.STATUS_LIVE_REGION
+      a11y: typeof a11y & {
+        ariaLabel: (label: string) => string
+        ariaState: <T extends Attr.AriaState>(ctx: {
+          state: T
+          isActive?: boolean
+          isMixed?: T extends 'checked' | 'pressed' ? boolean : never
+          options?: T extends 'checked'
+            ? { invalid?: boolean; required?: boolean }
+            : T extends 'selected'
+              ? { expanded?: boolean }
+              : never
+        }) => string
+        current: (ctx: { type?: Attr.AriaCurrent; isCurrent?: boolean }) => string
+        expanded: (isExpanded?: boolean) => string
+        invalid: (isInvalid?: boolean) => string
+        required: (isRequired?: boolean) => string
+      }
+      disabled: (isDisabled?: boolean) => string
+      required: (isRequired?: boolean) => string
+      formAnchor: typeof attrs.FORM_ANCHOR
+      show: (isShown: boolean) => string
     }
   }
 
@@ -195,6 +337,13 @@ export declare namespace Hook {
     debounce: RateLimitFn
     throttle: RateLimitFn
     signal: AbortSignal
+    form: Form.Association
+  }
+
+  interface ChangedKeys<D extends object, P> {
+    data: (keyof D)[]
+    deferredData: (keyof DeferredData.States)[]
+    props: (keyof P)[]
   }
 
   type Key<D extends object, P> = keyof Lifecycle<D, P>
@@ -207,6 +356,11 @@ export declare namespace Hook {
       }
     ) => void
     updated?: { [K in keyof D]?: (ctx: Ctx<D, P>) => void }
+    rerendered?: (
+      ctx: Omit<Ctx<D, P>, 'crud' | 'optimisticUpdate' | 'queryCache'> & {
+        changedKeys: ChangedKeys<D, P>
+      }
+    ) => void
     destroyed?: (ctx: Ctx<D, P>) => void
     adopted?: (ctx: Ctx<D, P>) => void
   }
@@ -218,25 +372,37 @@ export declare namespace Hook {
   }
 }
 
-export interface I18n {
-  i18n: <T>({ lang, key }: { lang: string; key: SingleOrArray<string> }) => Promise<T>
+export declare namespace I18n {
+  interface Args {
+    lang: string
+    key: SingleOrArray<string>
+    signal?: AbortSignal
+  }
+
+  type Interpolate = (values: Record<string, string | number>) => string
+
+  interface Fn {
+    <T>(args: Args & { interpolate?: false }): Promise<T>
+    (args: Args & { interpolate: true }): Promise<Interpolate>
+  }
 }
 
 export declare namespace Optimistic {
   interface Backup<D extends object> {
-    backedUpData: ProxyMutable<D>
+    backedUpData: MutableData<D>
     rollback: () => void
     touchedKeys: Set<keyof D>
   }
 
   interface Config<D extends object, T> {
-    updateData: (ctx: { data: ProxyMutable<D> }) => AwaitableVoid
+    updateData: (ctx: { data: MutableData<D> }) => Awaitable
     mutate: (ctx: { signal: AbortSignal; attempt: number }) => Promise<T>
     dataKeys?: DataKeys<D>
     statusKey?: string
     timeoutMs?: number
     intervalMs?: number
     maxRetries?: number
+    idempotent?: boolean
     externalSignal?: AbortSignal
   }
 
@@ -256,7 +422,7 @@ export declare namespace Optimistic {
     rawData: D
     data: D
     activeApis: Map<string, boolean>
-    enqueue: (func: () => AwaitableVoid, key: Task['key']) => void
+    enqueue: (func: () => Awaitable, key: Task['key']) => void
     reRender: (isOnlyHtml?: boolean) => Promise<void>
     signal: AbortSignal
     guardKey?: (key: keyof D) => void
@@ -264,8 +430,11 @@ export declare namespace Optimistic {
 }
 
 export declare namespace Options {
-  interface Ctx<D extends object, P> extends Omit<Resolved<D, P>, 'ssr' | 'rootMargin' | 'scroll'> {
+  interface Input<D extends object, P>
+    extends Omit<Resolved<D, P>, 'ssr' | 'maxLoopLength' | 'rootMargin' | 'scroll'> {
     ssr?: boolean
+    /** @param maxLoopLength Must be a positive integer if it is a number. */
+    maxLoopLength?: number
     /** @param rootMargin Must be an integer if it is a number. */
     rootMargin?: string | number
     scroll?: (ctx: DataProps.Payload<D, P, true>) => Scroll.Options
@@ -273,17 +442,20 @@ export declare namespace Options {
 
   interface Resolved<D extends object, P> {
     ssr: boolean
+    /** @param maxLoopLength Must be a positive integer. */
+    maxLoopLength: number
     telemetry?: Telemetry.Options<D, P>
     lazyLoad?: boolean
     rootMargin?: string
     websocket?: WebSocket.Options<D, P>
     sse?: SSE.Options<D, P>
+    form?: Form.Options<D, P>
     scroll?: Scroll.Resolved<D, P>
   }
 }
 
 export interface Props<D extends object, P> {
-  descendant: (ctx: { children: Children }) => SingleOrArray<Descendant>
+  descendants: (ctx: { children: Children }) => SingleOrArray<Descendant>
   values: (
     ctx: DataProps.Payload<D, P, true> & { children: Children } & {
       sendToWebsocket: (value: WebSocket.Value) => void
@@ -306,7 +478,7 @@ export interface Props<D extends object, P> {
     | Record<string, unknown>
 }
 
-export type ProxyMutable<T> = { [K in keyof T]: DeepReadonly.Core<T[K]> }
+export type MutableData<T> = { [K in keyof T]: DeepReadonly.Core<T[K]> }
 
 export declare namespace Query {
   type Api = Pick<
@@ -317,7 +489,7 @@ export declare namespace Query {
   interface Binding<D extends object, T = unknown> {
     key: Key
     data: D
-    dataKey: keyof D
+    dataKey: WritableDataKeys<D>
     signal?: AbortSignal
     shouldInitCache?: boolean
     select?: (state: State<T>, current: D[keyof D]) => D[keyof D]
@@ -368,7 +540,7 @@ export declare namespace Query {
     inflight: Promise<void> | null
     abort: AbortController | null
     isOptimistic: boolean
-    fetchId: number
+    version: number
     gcTimer?: SetTimeout
     refetchTimer?: ReturnType<typeof setInterval>
     lastOptimisticTask?: Promise<void>
@@ -421,6 +593,7 @@ export declare namespace Query {
     /** @remarks Returns the final authoritative value from the server on success. */
     mutator: () => Promise<T>
     maxRetries?: number
+    idempotent?: boolean
     signal?: AbortSignal
   }
 
@@ -582,21 +755,32 @@ export declare namespace SSE {
 }
 
 export interface Task {
+  name: string
   instanceId: string
-  func: () => AwaitableVoid
-  key: 'define' | 're-render' | 'fetch'
+  key: 'define' | 're-render'
+  maxLoopLength: number
+  func: () => Awaitable
+}
+
+export type TaskEntry = {
+  state: 'queued' | 'processing' | 'processing-requeued' | 'defined'
+  loops: Map<string, number>
 }
 
 export declare namespace Telemetry {
   interface Ctx<D extends object, P> {
     key: keyof Details<D, P>
+    /** @remarks Raw thrown error. Use `isError` for checks, as it can be `undefined`. */
     error?: unknown
+    isError?: boolean
+    isAborted?: boolean
     startedAt?: number
     details?: Details<D, P>[Ctx<D, P>['key']]
   }
 
   type Details<D extends object, P> = {
     crud: { key: string; endpoint: string; method: string; isStream: boolean }
+    deferredDataLoad: { key?: string; abortReason?: 'outdated' | 'disconnected' }
     optimistic: {
       statusKey?: string
       dataKeys?: Optimistic.DataKeys<D>
@@ -605,10 +789,11 @@ export declare namespace Telemetry {
     updated: { dataKey: keyof D }
   } & { [K in Exclude<Hook.Key<D, P>, 'updated'> | Task['key']]: {} }
 
-  interface Metric<D extends object, P> extends Omit<Ctx<D, P>, 'details'> {
+  interface Metric<D extends object, P>
+    extends Omit<Ctx<D, P>, 'details' | 'isError' | 'isAborted'> {
     name: string
     instanceId: string
-    status: 'starting' | 'success' | 'error'
+    status: 'starting' | 'success' | 'error' | 'aborted'
     details: Details<D, P>[Ctx<D, P>['key']] & { durationMs: number }
     timestamp: number
   }
@@ -645,13 +830,11 @@ export declare namespace Template {
   }
 
   type Context = Quote | 'text' | 'tag'
-  type Quote = '"' | "'"
+  type Quote = typeof c.SINGLE_QUOTE | typeof c.DOUBLE_QUOTE
   type Variable<T> = (T | string)[] | string
 }
 
 export type Translations = Record<string, unknown>
-
-type ValueOrFn<D extends object, P, T> = T | ((ctx: DataProps.Payload<D, P>) => T)
 
 export declare namespace WebSocket {
   namespace Ctx {
@@ -699,3 +882,13 @@ export declare namespace WebSocket {
 
   type Value = string | Blob | BufferSource
 }
+
+export type WritableDataKeys<D> = {
+  [K in keyof D]-?: (<U>() => U extends { [Q in K]: D[K] } ? 1 : 2) extends <U>() => U extends {
+    -readonly [Q in K]: D[K]
+  }
+    ? 1
+    : 2
+    ? K
+    : never
+}[keyof D]

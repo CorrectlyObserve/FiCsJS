@@ -5,10 +5,15 @@
   "trailing-spaces.trimOnSave": false,
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": [
+    "apos",
+    "fieldsets",
     "formnovalidate",
     "itemscope",
+    "LUMA",
     "novalidate",
     "playsinline",
+    "prerender",
+    "prerendered",
     "shadowrootclonable",
     "shadowrootdelegatesfocus",
     "shadowrootserializable"

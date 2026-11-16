@@ -1,0 +1,297 @@
+import { convertStr, typedEntries } from '../../../core/helpers'
+import { STATUS_FALLBACK, statusCodes } from '../../constants'
+import { prependSlash } from '../../helpers'
+import type { Routing } from '../../types'
+import { fileNames, prefixes } from '../constants'
+import { getAllMiddlewares } from '../middleware'
+import { cleanPath, getDirName, getFiles, isValidFileType, toSpecifier } from '../helpers'
+import { findClosestDir, findFileSrc } from './finder'
+import { compareRoutes, toRoute } from './path'
+
+export const buildEntries = ({
+  filePaths,
+  extensions,
+  baseDir
+}: Omit<Routing.Build.Query, 'routes'> & { baseDir: string }): Routing.RouteEntry[] => {
+  const routes: Routing.RouteEntry[] = [],
+    seen: Map<string, string> = new Map()
+
+  for (const filePath of filePaths) {
+    const path: string | null = toRoute(filePath, extensions)
+    if (path === null) continue
+
+    const dir: string = getDirName(filePath),
+      clientSrc: string | null = findFileSrc({
+        filePaths,
+        extensions,
+        target: fileNames.PAGE,
+        dir
+      }),
+      isServerFile: boolean = isValidFileType({
+        file: cleanPath(filePath).split('/').at(-1) ?? '',
+        expectedType: fileNames.PAGE_SERVER,
+        extensions
+      })
+
+    /** @remarks Skips this "+page.server", as the "+page" beside it registers the route with both files. */
+    if (isServerFile && clientSrc !== null) continue
+
+    const existing: string | undefined = seen.get(path)
+    if (existing)
+      throw new Error(
+        `The duplicated route "${path}" is defined in both "${existing}" and "${filePath}"...`
+      )
+    seen.set(path, filePath)
+
+    const serverSrc: string | null = findFileSrc({
+      filePaths,
+      extensions,
+      target: fileNames.PAGE_SERVER,
+      dir
+    })
+
+    routes.push({
+      path,
+      specifier: toSpecifier(filePath, baseDir),
+      src: filePath,
+      serverSpecifier: serverSrc === null ? null : toSpecifier(serverSrc, baseDir),
+      isServerOnly: isServerFile
+    })
+  }
+
+  return routes.sort(compareRoutes)
+}
+
+export const buildLayout = ({
+  routes,
+  filePaths,
+  extensions,
+  spaDirs
+}: Routing.Build.Query & { spaDirs: string[] }): Routing.Build.Layout => {
+  const files: Record<'client' | 'server', Map<string, string>> = {
+      client: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT }),
+      server: getFiles({ filePaths, extensions, expectedType: fileNames.LAYOUT_SERVER })
+    },
+    layouts: Omit<Routing.Build.Layout, 'layoutAlias'> = {
+      rootLayout: files.client.get('') ?? null,
+      clientLayouts: [],
+      serverLayouts: [],
+      spaLayouts: new Map(),
+      uniqueLayouts: []
+    },
+    uniqueSet: Set<string> = new Set()
+
+  for (const { src } of routes)
+    for (const type of ['client', 'server'] as const) {
+      const dir: string | null = findClosestDir(src, files[type])?.value ?? null
+
+      layouts[`${type}Layouts`].push(dir)
+      if (dir) uniqueSet.add(dir)
+    }
+
+  for (const dir of spaDirs) {
+    const spaSrc: string | undefined = files.client.get(dir)
+    if (spaSrc === undefined) continue
+
+    layouts.spaLayouts.set(dir, spaSrc)
+    uniqueSet.add(spaSrc)
+  }
+
+  layouts.uniqueLayouts = Array.from(uniqueSet)
+
+  return {
+    ...layouts,
+    layoutAlias: new Map(
+      layouts.uniqueLayouts.map((layout, index) => [layout, `${prefixes.LAYOUT}${index}`])
+    )
+  }
+}
+
+export const buildMiddleware = ({
+  routes,
+  filePaths,
+  extensions,
+  spaOwners,
+  files
+}: Routing.Build.Query &
+  Pick<Routing.Build.Spa, 'spaOwners' | 'files'>): Routing.Build.Middleware => {
+  const middlewareFiles: Map<string, string> = getFiles({
+      filePaths,
+      extensions,
+      expectedType: fileNames.MIDDLEWARE
+    }),
+    middlewares: string[][] = routes.map(({ src }, index) =>
+      getAllMiddlewares(
+        (spaOwners[index] ?? getDirName(src)).split('/').filter(Boolean),
+        middlewareFiles
+      )
+    ),
+    uniqueMiddlewares: string[] = [...new Set(middlewares.flat())]
+
+  for (const [dir, src] of middlewareFiles) {
+    const spaOwner: string | null = findClosestDir(src, files)?.key ?? null,
+      isMpa: boolean = spaOwner === null,
+      isSpaRoot: boolean = spaOwner === dir
+
+    /** @remarks These protect HTML loads, not just RPC calls. */
+    if (isMpa || isSpaRoot) continue
+
+    const hasRpc: boolean = filePaths.some(path => {
+      const cleaned: string = cleanPath(path),
+        file: string = cleaned.split('/').at(-1) ?? ''
+
+      return (
+        cleaned.startsWith(`${dir}/`) &&
+        isValidFileType({ file, expectedType: fileNames.RPC, extensions })
+      )
+    })
+
+    if (!hasRpc)
+      throw new Error(
+        `The middleware "${src}" has no descendant RPC procedures in "${prependSlash(dir)}"...`
+      )
+  }
+
+  return {
+    middlewares,
+    uniqueMiddlewares,
+    middlewareAlias: new Map(
+      uniqueMiddlewares.map((src, index) => [src, `${prefixes.MIDDLEWARE}${index}`])
+    )
+  }
+}
+
+export const buildSpa = ({
+  routes,
+  filePaths,
+  extensions
+}: Routing.Build.Query): Routing.Build.Spa => {
+  const files = getFiles({ filePaths, extensions, expectedType: fileNames.SPA }),
+    serverFiles = getFiles({ filePaths, extensions, expectedType: fileNames.SPA_SERVER }),
+    dirs: string[] = Array.from(files.keys()).sort(),
+    spaAlias: Map<string, string> = new Map<string, string>()
+
+  for (const [dir, src] of serverFiles)
+    if (!files.has(dir))
+      throw new Error(
+        `The file "${src}" requires a "${fileNames.SPA}" alongside it in the "${dir}" directory to load its data...`
+      )
+
+  for (const dir of dirs) {
+    spaAlias.set(dir, `${convertStr(dir, 'pascal')}Router`)
+
+    const error: string = `The nested SPA "${dir}/${fileNames.SPA}" is not supported...`
+    let parent: string = dir
+    while (parent.includes('/')) {
+      parent = parent.slice(0, parent.lastIndexOf('/'))
+      if (files.has(parent)) throw new Error(error)
+    }
+
+    if (files.has('') && dir !== '') throw new Error(error)
+  }
+
+  const spaOwners: (string | null)[] = routes.map(
+      ({ src }) => findClosestDir(src, files)?.key ?? null
+    ),
+    areSpaEntry: boolean[] = []
+
+  for (let i = 0; i < routes.length; i++) {
+    const spaOwner: string | null = spaOwners[i],
+      isSpa: boolean = spaOwner !== null,
+      { src, serverSpecifier }: Routing.RouteEntry = routes[i]
+
+    if (isSpa && serverSpecifier !== null)
+      throw new Error(
+        `A "${fileNames.PAGE_SERVER}" next to "${src}" cannot live inside the SPA "${prependSlash(spaOwner ?? '')}"...`
+      )
+
+    areSpaEntry.push(isSpa && spaOwner === getDirName(src))
+  }
+
+  for (const dir of dirs)
+    if (!spaOwners.includes(dir))
+      throw new Error(
+        `Add at least a "${fileNames.PAGE}" file, as the SPA "${prependSlash(dir)}" currently has no page...`
+      )
+
+  return { dirs, files, serverFiles, spaAlias, spaOwners, areSpaEntry }
+}
+
+export const buildSpecial = ({
+  dirs,
+  filePaths,
+  extensions
+}: Omit<Routing.Build.Query, 'routes'> & { dirs: string[] }): Routing.Build.Special => {
+  const statusEntries: readonly (readonly [string, string])[] = [
+      ...typedEntries(fileNames.statuses).map(
+        ([name, file]) => [String(statusCodes[name]), file] as const
+      ),
+      [STATUS_FALLBACK, fileNames.ERROR]
+    ],
+    inheritedStatusKeys: Map<string, Set<string>> = new Map<string, Set<string>>(),
+    statusFiles: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
+    aliases: Map<string, Map<string, string>> = new Map<string, Map<string, string>>(),
+    /** @remarks Prevents same root file imports with different keys from multiple SPAs. */
+    aliasBySrc: Map<string, string> = new Map<string, string>()
+
+  for (const dir of dirs) {
+    const dirStatusFiles: Map<string, string> = new Map<string, string>(),
+      alias: Map<string, string> = new Map<string, string>(),
+      dirInheritedKeys: Set<string> = new Set<string>()
+
+    for (const [key, target] of statusEntries) {
+      const ownStatusFile: string | null = findFileSrc({ filePaths, extensions, target, dir }),
+        src: string | null =
+          ownStatusFile ?? (dir === '' ? null : findFileSrc({ filePaths, extensions, target }))
+
+      if (src !== null) {
+        if (!aliasBySrc.has(src)) aliasBySrc.set(src, `${prefixes.STATUS}${aliasBySrc.size}`)
+
+        dirStatusFiles.set(key, src)
+        alias.set(key, aliasBySrc.get(src)!)
+        if (ownStatusFile === null) dirInheritedKeys.add(key)
+      }
+    }
+
+    inheritedStatusKeys.set(dir, dirInheritedKeys)
+    statusFiles.set(dir, dirStatusFiles)
+    aliases.set(dir, alias)
+  }
+
+  const toStatusFile = (target: string): Routing.Status.StatusFile | null => {
+      const clientSrc: string | null = findFileSrc({ filePaths, extensions, target }),
+        serverSrc: string | null = findFileSrc({
+          filePaths,
+          extensions,
+          target: `${target}.server`
+        }),
+        src: string | null = clientSrc ?? serverSrc
+
+      if (src === null) return null
+
+      return { src, serverSrc, isServerOnly: clientSrc === null }
+    },
+    rootStatusFiles: Routing.Status.RootFiles = typedEntries(
+      fileNames.statuses
+    ).reduce<Routing.Status.RootFiles>((entries, [key, target]) => {
+      const file: Routing.Status.StatusFile | null = toStatusFile(target)
+
+      if (file !== null)
+        entries.push({
+          ...file,
+          prop: convertStr(key, 'camel'),
+          path: prependSlash(target.slice(1))
+        })
+
+      return entries
+    }, [])
+
+  return {
+    rootStatusFiles,
+    inheritedStatusKeys,
+    statusFallback: toStatusFile(fileNames.ERROR),
+    redirect: findFileSrc({ filePaths, extensions, target: fileNames.REDIRECT }),
+    statusFiles,
+    aliases
+  }
+}

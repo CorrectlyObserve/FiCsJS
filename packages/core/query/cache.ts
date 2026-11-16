@@ -5,13 +5,15 @@ import {
   isObject,
   MAX_DELAY_MS,
   MAX_RETRIES,
+  NOOP,
   numberError,
+  onAbort,
   shouldRetry,
   typedEntries,
   watch
 } from '../helpers'
-import type { Query } from '../types'
-import { constants } from './constants'
+import type { Query, WritableDataKeys } from '../types'
+import { GC_LIMIT_MS, STALE_MS } from './constants'
 import { hash } from './hash'
 
 export class QueryCache {
@@ -25,8 +27,8 @@ export class QueryCache {
 
   constructor(config?: Partial<Query.Config.Global>) {
     this.#config = {
-      staleMs: constants.STALE_MS,
-      gcLimitMs: constants.GC_LIMIT_MS,
+      staleMs: STALE_MS,
+      gcLimitMs: GC_LIMIT_MS,
       maxDelayMs: MAX_DELAY_MS,
       maxRetries: MAX_RETRIES,
       refetchIntervalMs: 0,
@@ -453,7 +455,7 @@ export class QueryCache {
       key: Query.Key,
       listener: (state: Query.State<T>) => void
     ): (() => void) => {
-      if (this.#isDestroyed) return () => {}
+      if (this.#isDestroyed) return NOOP
 
       const entry: Query.Entry = this.#getEntry(key),
         _listener: Query.Listener = (_: string, state: Query.State<unknown>) =>
@@ -468,17 +470,10 @@ export class QueryCache {
     const unsubscribe = subscribeQuery(key, state => {
       data[dataKey] = (
         select ? select(state, data[dataKey]) : (state.value ?? data[dataKey])
-      ) as D[keyof D]
+      ) as D[WritableDataKeys<D>]
     })
 
-    if (!signal) return
-
-    if (signal.aborted) {
-      unsubscribe()
-      return
-    }
-
-    signal.addEventListener('abort', unsubscribe, { once: true })
+    if (signal) onAbort(signal, unsubscribe)
   }
 
   async optimisticUpdate<T = unknown>({
@@ -500,10 +495,7 @@ export class QueryCache {
       this.#emitMetric({ type: 'optimistic:enqueue', key })
 
       try {
-        await watch(
-          lastOptimisticTask.catch(() => {}),
-          signal
-        )
+        await watch(lastOptimisticTask.catch(NOOP), signal)
       } catch (error) {
         resolve()
         if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined

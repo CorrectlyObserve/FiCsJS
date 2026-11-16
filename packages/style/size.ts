@@ -1,28 +1,29 @@
-import { numberError } from '../core/helpers'
+import { cssObject, numberError, typedEntries, typedFromEntries } from '../core/helpers'
+import { toRem } from './others'
 import type { Rect } from './types'
 
 /** @param diameter Must be a positive integer. */
 export const circle = (diameter: number) =>
-  ({ ...rect(diameter, diameter), borderRadius: '50%', overflow: 'hidden' }) as const
+  cssObject({ ...rect(diameter, diameter), borderRadius: '50%', overflow: 'hidden' } as const)
 
 /**
  * @param width Must be a positive integer.
- * @param height Must be a positive integer. Default is same as `auto`.
+ * @param height Must be a positive integer. Defaults to same as `auto`.
  */
-export const rect = (width: Rect, height: Rect = 'auto') => {
-  const isNumber = (size: Rect): size is number => typeof size === 'number'
+export const rect = (width: Rect, height: Rect = 'auto') =>
+  cssObject(
+    typedFromEntries(
+      typedEntries({ width, height }).map(([key, value]): readonly [typeof key, string] => {
+        if (typeof value !== 'number') return [key, value]
 
-  if (isNumber(width)) numberError({ width }, 'positive-int')
-  if (isNumber(height)) numberError({ height }, 'positive-int')
+        numberError({ [key]: value }, 'positive-int')
+        return [key, toRem(value)]
+      })
+    )
+  )
 
-  return {
-    width: isNumber(width) ? `${width * 0.25}rem` : width,
-    height: isNumber(height) ? `${height * 0.25}rem` : height
-  } as const
-}
-
-/** @param unit Must be an integer. */
+/** @param unit Must be an integer. It is multiplied by 0.25rem. */
 export const size = (unit: number) => {
   numberError({ unit }, 'int')
-  return `${unit * 0.25}rem` as const
+  return toRem(unit)
 }

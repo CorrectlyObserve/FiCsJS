@@ -1,3 +1,4 @@
+import { cssObject } from '../core/helpers'
 import type { Direction, TransitionMode } from './types'
 
 const style = (
@@ -5,19 +6,14 @@ const style = (
     mode: TransitionMode,
     options?: { prop: string; shown: string | number; hidden: string | number }
   ) => {
-    const { prop, shown, hidden } = options ?? {}
-
-    return {
+    const applyStyle = (type: 'shown' | 'hidden') => options && { [options.prop]: options[type] }
+    return cssObject({
       opacity: 1,
       transition: `${transition.trim()} allow-discrete`,
-      ...(prop && { [prop]: shown }),
-      ...(mode.startsWith('in') && prop
-        ? { '@starting-style': { opacity: 0, [prop]: hidden } as const }
-        : {}),
-      ...(mode.endsWith('out') && prop
-        ? { '&[style*="display: none"]': { opacity: 0, [prop]: hidden } as const }
-        : {})
-    } as const
+      ...applyStyle('shown'),
+      ...(mode.startsWith('in') && { '@starting-style': applyStyle('hidden') }),
+      ...(mode.endsWith('out') && { '&[style*="display: none"]': applyStyle('hidden') })
+    })
   },
   hiddenStyle = (distance: string) =>
     ({

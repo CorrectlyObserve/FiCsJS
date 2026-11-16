@@ -1,0 +1,110 @@
+import { writeIfChanged } from '../file'
+import { joinLines } from '../helpers'
+import type { Routing } from '../types'
+import {
+  excludePrivateDirs,
+  getFiles,
+  routerImport,
+  toAbsolute,
+  toPosix,
+  toRelative
+} from './helpers'
+import { COMMENT, config as c, EXTENSIONS, fileNames, metaExports } from './constants'
+import { findAncestorDirs, generateRoutes } from './route'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { extname, join, relative } from 'node:path'
+
+const emitClientEntry = ({
+  layoutSpecifiers,
+  pageSpecifier,
+  spaRouter,
+  code
+}: {
+  layoutSpecifiers: string[]
+  pageSpecifier: string | null
+  spaRouter: { name: string; specifier: string } | null
+  code: string
+}): string => {
+  const arr: string[] = [COMMENT, ...layoutSpecifiers.map(specifier => `import '${specifier}'`)]
+
+  if (pageSpecifier !== null)
+    if (spaRouter)
+      arr.push(
+        `import { ${spaRouter.name} } from '${spaRouter.specifier}'`,
+        '',
+        `${spaRouter.name}.describe()`
+      )
+    else if (metaExports.INLINE.test(code) || metaExports.BLOCK.test(code))
+      arr.push(
+        `import { applyMeta } from ${routerImport()}`,
+        `import * as page from '${pageSpecifier}'`,
+        '',
+        'applyMeta((page as { meta?: Record<string, string> }).meta)'
+      )
+    else arr.push(`import '${pageSpecifier}'`)
+
+  return joinLines([...arr, ''])
+}
+
+export const configRoutes = (config: Routing.Config = {}): void => {
+  const { dir, output, pageFile, extensions, basePath, entries }: Routing.Config = config,
+    { dir: d, output: o }: { dir: string; output: string } = toAbsolute({ dir, output })
+
+  if (!existsSync(d)) throw new Error(`The directory "${d}" does not exist...`)
+
+  const scannedPaths: string[] = [],
+    scan = (current: string): void => {
+      for (const entry of readdirSync(current, { withFileTypes: true })) {
+        const joined: string = join(current, entry.name)
+
+        if (entry.isDirectory()) scan(joined)
+        else if (entry.isFile()) scannedPaths.push(toPosix(relative(d, joined)))
+      }
+    }
+
+  scan(d)
+
+  const filePaths: string[] = excludePrivateDirs(scannedPaths),
+    clientPath: string = join(o, c.CLIENT),
+    serverPath: string = join(o, c.SERVER),
+    { clientCode, serverCode, clientEntries }: ReturnType<typeof generateRoutes> = generateRoutes({
+      filePaths,
+      options: { baseDir: toRelative(clientPath, d), pageFile, extensions },
+      basePath
+    })
+
+  writeIfChanged({ path: clientPath, content: clientCode })
+
+  if (serverCode !== null) writeIfChanged({ path: serverPath, content: serverCode })
+  else if (existsSync(serverPath)) rmSync(serverPath)
+
+  if (entries) {
+    const entriesDir: string = join(o, c.ENTRIES)
+    rmSync(entriesDir, { force: true, recursive: true })
+    mkdirSync(entriesDir, { recursive: true })
+
+    const clientLayoutFiles: Map<string, string> = getFiles({
+      filePaths,
+      expectedType: fileNames.LAYOUT,
+      extensions: extensions ?? EXTENSIONS
+    })
+
+    for (const { name, src, spaRouterName, isServerOnly } of clientEntries) {
+      const entryPath: string = join(entriesDir, `${name}${extname(src)}`)
+
+      writeFileSync(
+        entryPath,
+        emitClientEntry({
+          layoutSpecifiers: findAncestorDirs(src, clientLayoutFiles).map(({ value }) =>
+            toRelative(entryPath, join(d, value))
+          ),
+          pageSpecifier: isServerOnly ? null : toRelative(entryPath, join(d, src)),
+          spaRouter: spaRouterName
+            ? { name: spaRouterName, specifier: toRelative(entryPath, clientPath) }
+            : null,
+          code: isServerOnly ? '' : readFileSync(join(d, src), 'utf8')
+        })
+      )
+    }
+  }
+}

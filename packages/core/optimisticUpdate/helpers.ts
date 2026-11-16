@@ -1,4 +1,4 @@
-import type { Optimistic, ProxyMutable } from '../types'
+import type { MutableData, Optimistic } from '../types'
 
 export const createBackup = <D extends object>({
   rawData,
@@ -31,7 +31,7 @@ export const createBackup = <D extends object>({
 
       touchedKeys.add(prop)
     },
-    backedUpData: ProxyMutable<D> = new Proxy(data, {
+    backedUpData: MutableData<D> = new Proxy(data, {
       set(target, prop, value, receiver): boolean {
         backup(prop as keyof D)
         return Reflect.set(target, prop, value, receiver)
@@ -40,7 +40,7 @@ export const createBackup = <D extends object>({
         backup(prop as keyof D)
         return Reflect.deleteProperty(target, prop)
       }
-    }) as ProxyMutable<D>,
+    }) as MutableData<D>,
     rollback = (): void => {
       /** @remarks Cleans up newly added keys to ensure a complete rollback to the original state. */
       for (const touchedKey of touchedKeys)

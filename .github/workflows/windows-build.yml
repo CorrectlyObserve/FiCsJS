@@ -1,0 +1,30 @@
+name: Build on Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build package
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+        working-directory: packages
+
+      - name: Verify the fics-routes CLI runs
+        run: node dist/router/fs/cli.js --help
+        working-directory: packages

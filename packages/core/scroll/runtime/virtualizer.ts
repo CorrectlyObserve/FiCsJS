@@ -1,8 +1,7 @@
 import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
 import { getOffsetBeforeIndex, rebuildFenwickTrees } from '../cache'
-import { constants } from '../constants'
-import { fenwickTree, getAveSize, getScrollMetrics, isValidNumber } from '../helpers'
+import { SMOOTHING_FACTOR, SIZE_DELTA_TOLERANCE_PX } from '../constants'
 
 export const updateAveSize = <D extends object, P>({
   scrollOptions,
@@ -33,7 +32,7 @@ export const updateAveSize = <D extends object, P>({
 
   if (Math.abs(delta) < threshold) return false
 
-  scrollOptions.aveSize = prevAveSize + delta * constants.SMOOTHING_FACTOR
+  scrollOptions.aveSize = prevAveSize + delta * SMOOTHING_FACTOR
   return true
 }
 
@@ -126,7 +125,7 @@ export const updateRange = <D extends object, P>({
 
   const hasRangeChanged: boolean = nextStartIndex !== startIndex || nextEndIndex !== endIndex,
     hasSizeChanged: boolean =
-      Math.abs(totalSize - nextTotalSize) >= constants.SIZE_DELTA_TOLERANCE_PX
+      Math.abs(totalSize - nextTotalSize) >= SIZE_DELTA_TOLERANCE_PX
 
   if (hasRangeChanged || hasSizeChanged) {
     scrollOptions.startIndex = nextStartIndex

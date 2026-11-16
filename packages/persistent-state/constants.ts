@@ -1,8 +1,6 @@
-export const constants = {
-  COMPOSITE_ID_INDEX: 'compositeId',
-  SNAPSHOT_ID_INDEX: 'snapshotId',
-  SNAPSHOT_STORE: 'snapshots',
-  STATE_ID_INDEX: 'stateId',
-  STATE_STORE: 'states',
-  VERSION: 1
-} as const
+export const COMPOSITE_ID_INDEX = 'compositeId' as const,
+  SNAPSHOT_ID_INDEX = 'snapshotId' as const,
+  SNAPSHOT_STORE = 'snapshots' as const,
+  STATE_ID_INDEX = 'stateId' as const,
+  STATE_STORE = 'states' as const,
+  VERSION = 1 as const

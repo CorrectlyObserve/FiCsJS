@@ -1,5 +1,13 @@
-import { delay, getDelayMs, MAX_RETRIES, numberError, shouldRetry } from '../helpers'
-import type { Optimistic, SetTimeout } from '../types'
+import {
+  delay,
+  forwardAbort,
+  getDelayMs,
+  MAX_RETRIES,
+  numberError,
+  scheduleAbort,
+  shouldRetry
+} from '../helpers'
+import type { Optimistic } from '../types'
 import { createBackup, getDataKeys, hasDataKeys } from './helpers'
 
 /**
@@ -21,6 +29,7 @@ export const optimisticUpdate = () => {
       timeoutMs,
       intervalMs,
       maxRetries = MAX_RETRIES,
+      idempotent,
       externalSignal
     }
   }: Optimistic.Ctx<D, T>): Promise<T> => {
@@ -36,7 +45,7 @@ export const optimisticUpdate = () => {
     for (const targetKey of targetKeys)
       if (lockedKeys.has(targetKey))
         throw new Error(
-          `The target key "${targetKey}" is currently in use by optimistic update in the ${name}...`
+          `The target key "${targetKey}" is currently in use by optimistic update in ${name}...`
         )
 
     const awaitingTasks: Promise<void>[] = [],
@@ -58,7 +67,7 @@ export const optimisticUpdate = () => {
 
       if (signal.aborted)
         throw new DOMException(
-          `Optimistic update disconnected before applying in the ${name}...`,
+          `Optimistic update disconnected before applying in ${name}...`,
           'AbortError'
         )
 
@@ -67,24 +76,13 @@ export const optimisticUpdate = () => {
       try {
         const controller: AbortController = new AbortController()
 
-        const registerAbort = (source: AbortSignal): (() => void) => {
-          if (source.aborted) {
-            controller.abort(source.reason)
-            return () => {}
-          }
-          const listener = (): void => controller.abort(source.reason)
-
-          source.addEventListener('abort', listener, { once: true })
-          return () => source.removeEventListener('abort', listener)
-        }
-
-        const signals: (() => void)[] = [registerAbort(signal)]
-        if (externalSignal) signals.push(registerAbort(externalSignal))
+        const signals: (() => void)[] = [forwardAbort(controller, signal)]
+        if (externalSignal) signals.push(forwardAbort(controller, externalSignal))
 
         try {
           if (controller.signal.aborted)
             throw new DOMException(
-              `Optimistic update aborted before applying in the ${name}...`,
+              `Optimistic update aborted before applying in ${name}...`,
               'AbortError'
             )
 
@@ -106,14 +104,14 @@ export const optimisticUpdate = () => {
             for (const touchedKey of touchedKeys)
               if (!declaredDataKeys.has(touchedKey))
                 console.warn(
-                  `The undeclared key '${String(touchedKey)}' was modified. Please add it to 'dataKeys' for concurrent safety...`
+                  `Add the modified undeclared key "${String(touchedKey)}" to 'dataKeys' for concurrent safety...`
                 )
           }
 
           if (controller.signal.aborted) {
             rollback()
             throw new DOMException(
-              `Optimistic update aborted after applying in the ${name}...`,
+              `Optimistic update aborted after applying in ${name}...`,
               'AbortError'
             )
           }
@@ -133,23 +131,16 @@ export const optimisticUpdate = () => {
               let error: unknown
 
               try {
-                let timer: SetTimeout | undefined
-                if (timeoutMs && timeoutMs > 0)
-                  timer = setTimeout(
-                    () =>
-                      controller.abort(
-                        new DOMException(
-                          `Optimistic update timed out in the ${name}...`,
-                          'AbortError'
-                        )
-                      ),
-                    timeoutMs
-                  )
+                const clearTimer: () => void = scheduleAbort({
+                  controller,
+                  timeoutMs,
+                  message: `Optimistic update timed out in ${name}...`
+                })
 
                 try {
                   return await mutate({ signal: controller.signal, attempt })
                 } finally {
-                  if (timer) clearTimeout(timer)
+                  clearTimer()
                 }
               } catch (_error) {
                 error = _error
@@ -157,7 +148,15 @@ export const optimisticUpdate = () => {
 
               attempt++
 
-              if (!shouldRetry({ error, attempt, maxRetries, signal: controller.signal })) {
+              if (
+                !shouldRetry({
+                  error,
+                  attempt,
+                  maxRetries,
+                  isIdempotent: idempotent === true,
+                  signal: controller.signal
+                })
+              ) {
                 rollback()
                 throw error
               }

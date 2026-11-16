@@ -1,13 +1,7 @@
 import type { SetTimeout } from '../types'
-import { constants } from './constants'
+import { isClientTermination } from './abort'
+import { INTERVAL_MS, JITTER_RATIO, MAX_DELAY_MS, statusCodes as c } from './constants'
 import { numberError } from './numberError'
-
-const {
-  INTERVAL_MS,
-  JITTER_RATIO,
-  MAX_DELAY_MS,
-  statusCode: { CLIENT_ERROR, REQUEST_TIMEOUT, SERVER_ERROR, TOO_MANY_REQUESTS }
-} = constants
 
 /** @param ms Must be a non-negative integer. */
 export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
@@ -33,6 +27,7 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
     signal?.addEventListener('abort', onAbort, { once: true })
   })
 }
+
 /**
  * @param attempt Must be a positive integer.
  * @param intervalMs Must be a non-negative integer if it is a number.
@@ -61,11 +56,14 @@ export const getDelayMs = ({
 
   const baseMs: number = Math.min(intervalMs * 2 ** (attempt - 1), maxDelayMs)
 
-  /** @remarks Prevents DDoS by adding jitterRatio to the retry delay. */
+  /** @remarks Prevents synchronized retries by adding jitterRatio to the retry delay. */
   const fractionalMs: number = baseMs + Math.random() * baseMs * jitterRatio
 
   return Math.floor(fractionalMs)
 }
+
+export const isIdempotentMethod = (method: string): boolean =>
+  new Set(['GET', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']).has(method.trim().toUpperCase())
 
 const parseRetryAfter = (error: Response | unknown): number | null => {
   if (!(error instanceof Response)) return null
@@ -96,29 +94,35 @@ export const shouldRetry = ({
   error,
   attempt,
   maxRetries,
+  isIdempotent,
   signal
 }: {
   error: unknown
   attempt: number
   maxRetries: number
+  isIdempotent?: boolean
   signal?: AbortSignal
 }): boolean => {
   numberError({ attempt }, 'positive-int')
   numberError({ maxRetries }, 'non-negative-int')
 
-  const isIntentional: boolean = error instanceof DOMException && error.name === 'AbortError'
-  if (isIntentional || signal?.aborted || attempt > maxRetries) return false
+  if (isClientTermination(error) || signal?.aborted || attempt > maxRetries) return false
 
   if (error instanceof Response) {
     const { status }: { status: number } = error
 
-    if (status === REQUEST_TIMEOUT || status === TOO_MANY_REQUESTS) return true
-    if (status >= CLIENT_ERROR && status < SERVER_ERROR) return false
-    return status >= SERVER_ERROR
+    if (status === c.TOO_MANY_REQUESTS) return true
+
+    /** @remarks Only retries 408/5xx for idempotent requests, as execution status is ambiguous. */
+    if (!isIdempotent) return false
+
+    if (status === c.REQUEST_TIMEOUT) return true
+    if (status >= c.BAD_REQUEST && status < c.INTERNAL_SERVER_ERROR) return false
+    return status >= c.INTERNAL_SERVER_ERROR
   }
 
-  const isNetworkError: boolean = error instanceof TypeError
-  return isNetworkError
+  /** @remarks Only idempotent requests should be retried on network error, as it can't be proven pre-send. */
+  return !!isIdempotent && error instanceof TypeError
 }
 
 export const watch = <T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> =>

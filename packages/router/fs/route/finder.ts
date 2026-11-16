@@ -1,0 +1,160 @@
+import type { Routing } from '../../types'
+import { ERROR_PATH } from '../constants'
+import { cleanPath, getDirName, getExt, getOrThrow, removeExt } from '../helpers'
+import { toEntry } from './path'
+
+export const findAncestorDirs = (
+  src: string,
+  map: Map<string, string>
+): { key: string; value: string }[] => {
+  const found: { key: string; value: string }[] = []
+  let dir: string = getDirName(src)
+
+  while (true) {
+    if (map.has(dir)) found.unshift({ key: dir, value: map.get(dir)! })
+    if (dir === '') return found
+
+    const index: number = dir.lastIndexOf('/')
+    dir = index === -1 ? '' : dir.slice(0, index)
+  }
+}
+
+export const findClientEntries = ({
+  routes,
+  rootLayout,
+  clientLayouts,
+  files,
+  spaAlias,
+  spaOwners,
+  areSpaEntry,
+  rootStatusFiles,
+  statusFallback
+}: Routing.RouteManifest &
+  Pick<Routing.Build.Layout, 'rootLayout' | 'clientLayouts'> &
+  Pick<Routing.Build.Spa, 'files' | 'spaAlias' | 'spaOwners' | 'areSpaEntry'> &
+  Pick<Routing.Build.Special, 'rootStatusFiles' | 'statusFallback'>): {
+  clientEntries: Routing.ClientEntries
+} => {
+  const clientEntries: Routing.ClientEntries = [],
+    seen: Set<string> = new Set(),
+    push = ({
+      name,
+      src,
+      spaRouterName,
+      isServerOnly
+    }: {
+      name: string
+      src: string | null
+      spaRouterName?: string
+      isServerOnly?: boolean
+    }): void => {
+      if (src === null || seen.has(name)) return
+
+      seen.add(name)
+      clientEntries.push({
+        name,
+        src,
+        ...(spaRouterName && { spaRouterName }),
+        ...(isServerOnly && { isServerOnly })
+      })
+    }
+
+  for (let i = 0; i < routes.length; i++) {
+    const { path, src, isServerOnly }: Routing.RouteEntry = routes[i],
+      spaOwner: string | null = spaOwners[i],
+      isSpa: boolean = spaOwner !== null,
+      name: string = toEntry(path)
+
+    if (isSpa) {
+      /** @remarks Child pages of an SPA reuse the main SPA entry. */
+      if (!areSpaEntry[i]) continue
+
+      /**
+       * @remarks
+       * Passed ONLY to resolve the extension and the nearest `+layout`, as the router is imported from `client.ts`.
+       */
+      push({ name, src: getOrThrow(files, spaOwner!), spaRouterName: spaAlias.get(spaOwner!) })
+      continue
+    }
+
+    if (!hasClientEntry({ isServerOnly, layout: clientLayouts[i] })) continue
+
+    push({ name, src, isServerOnly })
+  }
+
+  const isOutsideSpa = (src: string): boolean => findClosestDir(src, files) === null
+
+  for (const { path, src, isServerOnly } of rootStatusFiles)
+    if (hasClientEntry({ isServerOnly, layout: rootLayout }) && isOutsideSpa(src))
+      push({ name: toEntry(path), src, isServerOnly })
+
+  if (
+    statusFallback &&
+    hasClientEntry({ isServerOnly: statusFallback.isServerOnly, layout: rootLayout }) &&
+    isOutsideSpa(statusFallback.src)
+  )
+    push({
+      name: toEntry(ERROR_PATH),
+      src: statusFallback.src,
+      isServerOnly: statusFallback.isServerOnly
+    })
+
+  return { clientEntries }
+}
+
+export const findClosestDir = (
+  src: string,
+  map: Map<string, string>
+): { key: string; value: string } | null => findAncestorDirs(src, map).at(-1) ?? null
+
+export const findFileSrc = ({
+  filePaths,
+  extensions,
+  target,
+  dir
+}: {
+  filePaths: string[]
+  extensions: Routing.Extensions
+  target: string
+  dir?: string
+}): string | null => {
+  const prefix: string = dir ? `${dir}/` : ''
+
+  for (const filePath of filePaths) {
+    const posix: string = cleanPath(filePath)
+    if (!posix.startsWith(prefix)) continue
+
+    const relative: string = posix.slice(prefix.length),
+      isSubdir: boolean = relative.includes('/')
+    if (isSubdir) continue
+
+    const ext: string = getExt(relative)
+    if (!extensions.includes(ext)) continue
+    if (removeExt(relative) === target) return filePath
+  }
+
+  return null
+}
+
+export const findStatusEntry = ({
+  routes,
+  spaOwners,
+  areSpaEntry,
+  path
+}: Routing.RouteManifest &
+  Pick<Routing.Build.Spa, 'spaOwners' | 'areSpaEntry'> & { path: string }): string => {
+  for (let i = 0; i < routes.length; i++) {
+    const isIndexSpaEntry: boolean = spaOwners[i] === '' && areSpaEntry[i]
+    if (isIndexSpaEntry) return toEntry(routes[i].path)
+  }
+
+  return toEntry(path)
+}
+
+export const hasClientEntry = ({
+  isServerOnly,
+  layout
+}: {
+  isServerOnly: boolean
+  layout: string | null
+}): boolean => !isServerOnly || layout !== null

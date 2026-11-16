@@ -1,0 +1,134 @@
+import { normalizePath } from '../../core/helpers'
+import { statusCodes } from '../constants'
+import { decodeStatusCookie } from '../cookie'
+import { getDynamicParams } from '../dynamicPaths'
+import { findRedirect, isBodiless, prependSlash } from '../helpers'
+import { deny, resolveMiddlewares } from '../middleware'
+import type { Routing } from '../types'
+import { respond, respondPage, respondStatus } from './response'
+
+export const dispatch = async <C extends Record<string, unknown>>({
+  req,
+  statics,
+  dynamics,
+  redirects,
+  prefixes = [],
+  statusPages = {},
+  statusFallback,
+  render,
+  createContext,
+  scriptBase,
+  meta,
+  viewTransition
+}: Routing.Options.InternalPageHost<C> &
+  Routing.Status.Manifest<C> & {
+    req: Request
+    statics: Map<string, Routing.ResolvedRoute<C>>
+    dynamics: ({ regex: RegExp } & Routing.ResolvedRoute<C>)[]
+    redirects?: Routing.Redirects
+    prefixes?: readonly (readonly [prefix: string, to: string])[]
+  }): Promise<Response> => {
+  const { pathname }: URL = new URL(req.url),
+    path: string = normalizePath(pathname)
+
+  if (typeof redirects === 'function') {
+    const to: string | null = redirects(pathname)
+    if (typeof to === 'string') return respond(to)
+  } else if (redirects instanceof Map) {
+    const to: string | undefined = redirects.get(path)
+    if (to !== undefined) return respond(to)
+  }
+
+  let resolvedRoute: Routing.ResolvedRoute<C> | undefined
+  const _isBodiless: boolean = isBodiless(req.method)
+
+  if (_isBodiless) resolvedRoute = statics.get(path)
+
+  let dynamicParams: Record<string, string> = {}
+
+  if (!resolvedRoute && _isBodiless) {
+    const _path: string = prependSlash(path)
+    for (const { regex, ...args } of dynamics)
+      if (regex.test(_path)) {
+        resolvedRoute = args
+        dynamicParams = getDynamicParams(resolvedRoute.path, _path)
+        break
+      }
+
+    /** @remarks Final fallback to prevent POST requests from wrongly redirecting. */
+    if (!resolvedRoute) {
+      const redirectTarget: string | null = findRedirect(path, prefixes)
+      if (redirectTarget !== null) return respond(redirectTarget)
+    }
+  }
+
+  const createCtx = <T>(ctx: T): Routing.MiddlewareCtx<C> =>
+    ({
+      ...(ctx ?? {}),
+      req,
+      route: resolvedRoute?.path ?? null,
+      dynamicParams,
+      deny,
+      signal: req.signal
+    }) as Routing.MiddlewareCtx<C>
+
+  const args: Omit<Parameters<typeof respondStatus<C>>[0], 'status' | 'ctx'> = {
+    render,
+    scriptBase,
+    meta,
+    viewTransition,
+    path,
+    statusPages,
+    statusFallback
+  }
+
+  try {
+    const ctx: Routing.MiddlewareCtx<C> = createCtx((await createContext?.(req)) ?? {})
+
+    if (!resolvedRoute) return await respondStatus({ status: statusCodes.NOT_FOUND, ctx, ...args })
+
+    const handleDenial = (denial: Routing.Denial): Promise<Response> =>
+        denial.redirect
+          ? Promise.resolve(respond(denial.redirect))
+          : respondStatus({ status: denial.code, ctx, ...args }),
+      denial: Routing.Denial | undefined = await resolveMiddlewares(resolvedRoute.middlewares, ctx)
+
+    if (denial) return await handleDenial(denial)
+
+    /** 
+     * @remarks 
+     * Intercepts bodiless requests to draw the status page,
+     * as POST mutations must not be hijacked by visual errors.
+     */
+    if (_isBodiless) {
+      const status: Routing.Status.PageCode | null = decodeStatusCookie(
+        req.headers.get('cookie') ?? ''
+      )
+
+      if (status !== null) return await respondStatus({ status, ctx, ...args })
+    }
+
+    /** @remarks ⚠️ Ensures rendering errors are caught by the catch block below to show a 500 page. */
+    return await respondPage({
+      page: resolvedRoute,
+      status: statusCodes.OK,
+      ctx,
+      handleDenial,
+      ...args
+    })
+  } catch (error) {
+    console.error(
+      `The dispatch function failed to process the request for the path "${path}"...`,
+      error
+    )
+
+    if (statusCodes.INTERNAL_SERVER_ERROR in statusPages || statusFallback)
+      return respondStatus({
+        status: statusCodes.INTERNAL_SERVER_ERROR,
+        ctx: createCtx({ error }),
+        ...args
+      })
+
+    throw error
+  }
+}

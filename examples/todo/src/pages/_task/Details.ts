@@ -1,0 +1,213 @@
+import { fics, type FiCs } from 'ficsjs'
+import { applyMeta, goto } from 'ficsjs/router'
+import { flex, space } from 'ficsjs/style'
+import LoadState from '@/components/LoadState'
+import Input from '@/components/Input'
+import Textarea from '@/components/Textarea'
+import Button from '@/components/Button'
+import { deleteTask, getAllTasks, getTask, type Task, updateTask } from '@/domain/task'
+import type { Lang } from '@/domain/lang'
+import { getTimestamp } from '@/domain/timestamp'
+import { columnWidth } from '@/styles/theme'
+import { convertTimestamp } from '@/utils/timestamp'
+import { Circle, CircleCheckBig } from 'lucide-static'
+
+type Datetime = 'createdAt' | 'updatedAt'
+
+interface Data {
+  readonly heading: string
+  readonly pageTitle: FiCs.Interpolate
+  readonly status: string
+  readonly texts: Readonly<Record<string, string>>
+  readonly labels: readonly string[]
+  readonly isError: (task?: Task) => boolean
+  readonly error: string
+  readonly descriptions: readonly string[]
+  readonly placeholders: readonly string[]
+  readonly datetimes: Readonly<Record<Datetime, string>>
+  readonly buttonText: string
+  readonly confirmation: string
+}
+
+interface Props {
+  lang: Lang
+  draft?: Task
+  isQueryParam: boolean
+  editTask: (newValue: Partial<Task>) => void
+  updateTasks: (tasks: readonly Task[]) => void
+}
+
+const props: FiCs.Props<Data, Props> = [
+  {
+    descendants: ({ children: { LoadState } }) => LoadState,
+    values: ({ deferredStates, reloadDeferredData }) => ({
+      isError: deferredStates.texts.status === 'error',
+      retry: () => reloadDeferredData()
+    })
+  },
+  {
+    descendants: ({ children: { Input } }) => Input,
+    values: ({
+      data: { labels, isError, error, descriptions, placeholders },
+      props: { draft, editTask }
+    }) => ({
+      id: 'title',
+      label: labels[0],
+      isError: isError(draft),
+      error,
+      description: descriptions[0],
+      placeholder: placeholders[0],
+      value: draft?.title,
+      input: (title: string) => editTask({ title })
+    })
+  },
+  {
+    descendants: ({ children: { Textarea } }) => Textarea,
+    values: ({ data: { labels, descriptions, placeholders }, props: { draft, editTask } }) => ({
+      id: 'description',
+      label: labels[1],
+      description: descriptions[1],
+      placeholder: placeholders[1],
+      value: draft?.description,
+      input: (description: string) => editTask({ description })
+    })
+  }
+]
+
+const html: FiCs.Html<Data, Props> = ({
+  children: { LoadState, Input, Textarea, Button },
+  data: {
+    heading,
+    status,
+    texts: { complete, revert, remove, back, close },
+    datetimes,
+    buttonText,
+    confirmation
+  },
+  props: { draft, isQueryParam, editTask, updateTasks },
+  template,
+  deferredStates: { texts }
+}) => {
+  if (texts.status !== 'done' || !draft) return template`${LoadState}`
+
+  const label = draft?.completedAt ? revert : complete
+  return template`
+    <h2>${heading}</h2>
+    <div>
+      <fieldset>
+        <legend>${status}</legend>
+        <div>
+          ${Button.setIndividualProps('status', {
+            svg: draft?.completedAt ? CircleCheckBig : Circle,
+            buttonText: label,
+            click: () => editTask({ completedAt: draft?.completedAt ? undefined : getTimestamp() })
+          })}
+        </div>
+      </fieldset>
+      <fieldset>${Input}</fieldset>
+      <fieldset>${Textarea}</fieldset>
+      ${Object.entries(datetimes).map(
+        ([key, value]) => template`<p>${value}${convertTimestamp(draft?.[key as Datetime])}</p>`
+      )}
+      <div>
+        ${Button.setIndividualProps('save', {
+          isDisabled: draft?.title === '',
+          type: 'gradient',
+          fixedUnit: 32,
+          buttonText,
+          click: async () => {
+            const { id, title, description, completedAt }: Task = draft
+            const tasks: Task[] = await updateTask({ id, title, description, completedAt })
+
+            const task: Task | undefined = getTask(tasks, id)
+            if (!task) return
+
+            editTask(task)
+            updateTasks(tasks)
+            goto('/')
+          }
+        })}
+        ${[remove, isQueryParam ? close : back].map(
+          (buttonText, index) =>
+            template`${Button.setIndividualProps(index, {
+              type: index === 0 ? 'delete' : undefined,
+              fixedUnit: 32,
+              buttonText,
+              click: async () => {
+                if (index === 0) {
+                  if (window.confirm(confirmation)) {
+                    await deleteTask(draft?.id)
+                    updateTasks(await getAllTasks())
+                    goto('/')
+                  }
+                } else goto('/')
+              }
+            })}`
+        )}
+      </div>
+    </div>
+  `
+}
+
+const css: FiCs.Css<Data, Props> = `
+  :host > div {
+    width: ${columnWidth};
+    max-width: calc(100cqi - ${space('lg')});
+    margin-inline: auto;
+
+    fieldset {
+      ${flex({ direction: 'column' })}
+      margin-block-end: ${space('md')};
+      border: 0;
+
+      legend { padding-block-end: ${space('sm')}; }
+      div { ${flex({ center: 'y' })} }
+    }
+
+    p {
+      margin-block-end: ${space('sm')};
+      text-align: start;
+
+      &:last-of-type { margin-block-end: ${space('lg')}; }
+    }
+
+    > div { ${flex({ direction: 'column', gap: space('sm') })} }
+  }
+`
+
+const hooks: FiCs.Hooks<Data, Props> = {
+  rerendered: ({ data: { heading, pageTitle }, props: { draft }, changedKeys }) => {
+    const isChanged = changedKeys.data.includes('pageTitle') || changedKeys.props.includes('draft')
+
+    if (isChanged && draft) applyMeta({ title: pageTitle({ page: heading }) }, { merge: true })
+  }
+}
+
+export default fics<Data, Props>({
+  name: 'task-details',
+  children: [LoadState(), Input(), Textarea(), Button()],
+  data: () => ({
+    labels: [],
+    descriptions: [],
+    isError: (task?: Task) => task?.title === '',
+    placeholders: [],
+    texts: {},
+    datetimes: {} as Record<Datetime, string>
+  }),
+  deferredData: {
+    load: async ({ props: { lang }, i18n }) => ({
+      ...(await i18n<Data>({ lang, key: 'task' })),
+      pageTitle: await i18n({ lang, key: ['head', 'title'], interpolate: true }),
+      confirmation: (await i18n({ lang, key: ['tasks', 'confirmation'] })) as string
+    }),
+    stateKey: 'texts',
+    propsKey: 'lang',
+    allowStale: true
+  },
+  props,
+  className: 'task-details',
+  html,
+  css,
+  hooks,
+  options: { lazyLoad: true }
+})
