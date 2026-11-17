@@ -52,7 +52,8 @@ export const getDelayMs = ({
   numberError({ jitterRatio }, 'ratio')
 
   const retryAfterMs: number | null = parseRetryAfter(error)
-  if (retryAfterMs !== null) return retryAfterMs
+  /** @remarks Rounds up, as delay takes whole milliseconds and Retry-After may have fractions. */
+  if (retryAfterMs !== null) return Math.ceil(retryAfterMs)
 
   const baseMs: number = Math.min(intervalMs * 2 ** (attempt - 1), maxDelayMs)
 
