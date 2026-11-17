@@ -75,10 +75,8 @@ export const parseQuotedAttr = ({
     if (index >= length) return true
 
     let endIndex: number = index
-    while (endIndex < length && !isSpace(fragment[endIndex]) && fragment[endIndex] !== EQUAL_SIGN) {
-      if (INVALID_ATTR_FRAGMENT.test(fragment[endIndex])) return false
+    while (endIndex < length && !isSpace(fragment[endIndex]) && fragment[endIndex] !== c.EQUAL_SIGN)
       endIndex++
-    }
 
     return isValidAttrName(fragment.slice(index, endIndex))
   }
