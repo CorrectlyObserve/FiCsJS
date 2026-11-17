@@ -3,18 +3,14 @@ import { char as c } from '../constants'
 import { error } from './error'
 import { isQuote, isSpace, isValidAttrName } from './validator'
 
-const {
-  char: {
-    COMMENT_CLOSE_TAG,
-    COMMENT_OPEN_TAG,
-    LEFT_ANGLE_BRACKET,
-    RIGHT_ANGLE_BRACKET,
-    EQUAL_SIGN
-  },
-  regExp: { INVALID_ATTR_FRAGMENT }
-} = constants
+/** @remarks Keys on the strings array, which tagged templates reuse per call site. */
+const contextCache: WeakMap<TemplateStringsArray, readonly Template.Context[]> =
+  new WeakMap()
 
-export const getTemplateContexts = (strings: TemplateStringsArray): Template.Context[] => {
+export const getTemplateContexts = (strings: TemplateStringsArray): readonly Template.Context[] => {
+  const cachedContexts: readonly Template.Context[] | undefined = contextCache.get(strings)
+  if (cachedContexts) return cachedContexts
+
   const contexts: Template.Context[] = new Array(Math.max(strings.length - 1, 0))
   let isInComment: boolean = false,
     quote: Template.Quote | null = null,
@@ -57,6 +53,7 @@ export const getTemplateContexts = (strings: TemplateStringsArray): Template.Con
     contexts[i] = quote ?? (isInTag ? 'tag' : 'text')
   }
 
+  contextCache.set(strings, contexts)
   return contexts
 }
 
