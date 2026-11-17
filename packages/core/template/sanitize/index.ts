@@ -6,14 +6,10 @@ import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
 import { hasSymbol, isQuote } from './validator'
 
-const {
-  symbols: { SANITIZED, UNSAFE_HTML }
-} = constants
+const isNonEmptyString = <T>(value: T | string | undefined): value is string =>
+  typeof value === 'string' && value !== ''
 
 const isSpaceNeeded = <T>(converted: (T | string)[], firstInsertedIndex: number): boolean => {
-  const isNonEmptyString = (value: T | string | undefined): value is string =>
-    typeof value === 'string' && value !== ''
-
   if (!isNonEmptyString(converted[firstInsertedIndex])) return false
 
   for (let index = firstInsertedIndex - 1; index >= 0; index--) {
