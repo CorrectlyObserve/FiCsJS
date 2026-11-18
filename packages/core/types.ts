@@ -795,15 +795,7 @@ export declare namespace Telemetry {
 }
 
 export declare namespace Template {
-  type AttrToken =
-    | { type: 'name'; value: string }
-    | { type: 'equal-sign'; value: '=' }
-    | { type: 'value'; value: string }
-
-  interface ForSsr {
-    html: string
-    resolveInstanceId: (instanceId: string) => string
-  }
+  type Context = Quote | 'text' | 'tag'
 
   interface Parsed {
     name: string
@@ -812,6 +804,8 @@ export declare namespace Template {
     quote: Template.Quote
   }
 
+  type Quote = typeof c.SINGLE_QUOTE | typeof c.DOUBLE_QUOTE
+
   interface Sanitized<T> {
     strings: TemplateStringsArray
     variables: unknown[]
@@ -819,8 +813,6 @@ export declare namespace Template {
     isFiCsElement: (variable: unknown) => variable is T
   }
 
-  type Context = Quote | 'text' | 'tag'
-  type Quote = typeof c.SINGLE_QUOTE | typeof c.DOUBLE_QUOTE
   type Variable<T> = (T | string)[] | string
 }
 
