@@ -13,7 +13,6 @@ export const BOOLEAN_ATTRS: ReadonlySet<string> = new Set([
   'defer',
   'disabled',
   'formnovalidate',
-  'hidden',
   'inert',
   'ismap',
   'itemscope',
