@@ -37,8 +37,7 @@ import { runInfiniteVirtualScroll } from './scroll/runtime'
 import { scrollTemplate } from './scroll/template'
 import { createQueryCache, getQueryCache, lockQueryCache, type QueryCache } from './query'
 import { openEventSource } from './sse'
-import { applyShowAttr } from './template/forSsr'
-import { sanitize } from './template/sanitize'
+import { resolveDescendants, sanitize } from './template'
 import type {
   Action,
   Attr,
