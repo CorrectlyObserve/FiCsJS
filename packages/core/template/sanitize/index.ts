@@ -1,13 +1,16 @@
 import { symbols } from '../../constants'
 import { escape, isBlankString } from '../../helpers'
 import type { Template } from '../../types'
+import { char } from '../constants'
 import { error } from './error'
 import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
-import { hasSymbol, isQuote } from './validator'
+import { hasSymbol, isQuote, isSpace } from './validator'
 
-const isNonEmptyString = <T>(value: T | string | undefined): value is string =>
-  typeof value === 'string' && value !== ''
+const { EQUAL_SIGN, HYPHEN, LEFT_ANGLE_BRACKET } = char,
+  separators: readonly string[] = [LEFT_ANGLE_BRACKET, EQUAL_SIGN, HYPHEN],
+  isNonEmptyString = <T>(value: T | string | undefined): value is string =>
+    typeof value === 'string' && value !== ''
 
 const isSpaceNeeded = <T>(converted: (T | string)[], firstInsertedIndex: number): boolean => {
   if (!isNonEmptyString(converted[firstInsertedIndex])) return false
@@ -17,8 +20,8 @@ const isSpaceNeeded = <T>(converted: (T | string)[], firstInsertedIndex: number)
 
     if (!isNonEmptyString(prev)) continue
 
-    /** @remarks ignores `=` and `-`. */
-    return !/[\s<=-]$/.test(prev)
+    const lastChar: string = prev.at(-1) ?? ''
+    return !(isSpace(lastChar) || separators.includes(lastChar))
   }
 
   return false
