@@ -1,9 +1,9 @@
 import { escape } from '../../helpers'
 import type { Template } from '../../types'
 import { char as c } from '../constants'
-import { error } from './error'
-import { parseQuotedAttr } from './parser'
-import { isQuote, isValidAttrName, isSpace } from './validator'
+import { error } from '../error'
+import { parseQuotedAttr } from '../parser'
+import { isQuote, isValidAttrName, isSpace } from '../validator'
 
 const {
   char: { EQUAL_SIGN },
