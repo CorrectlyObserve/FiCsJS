@@ -68,7 +68,7 @@ export const sanitize = <T>({
         return
       }
 
-      /** @remarks Prohibits other invalid types */
+      /** @remarks Prohibits other invalid types. */
       if (
         typeof variable === 'object' ||
         typeof variable === 'function' ||
