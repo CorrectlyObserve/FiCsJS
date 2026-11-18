@@ -5,6 +5,7 @@ export const char = {
   COMMENT_OPEN_TAG: '<!--',
   COMMENT_CLOSE_TAG: '-->',
   EQUAL_SIGN: '=',
+  HYPHEN: '-',
   LEFT_ANGLE_BRACKET: '<',
   RIGHT_ANGLE_BRACKET: '>'
 } as const
