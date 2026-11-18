@@ -10,15 +10,8 @@ export const char = {
   RIGHT_ANGLE_BRACKET: '>'
 } as const
 
-export const DISPLAY_NONE = 'display:none;' as const
-
 export const regExp = {
-  ATTR: (attr: string) => new RegExp(`(?:\\s+)${attr}(?=(\\s|>|/))`, 'g'),
   CONTROL_CHAR: /[\u0000-\u001F\u007F-\u009F]/u,
-  DISPLAY: /(^|;)(\s*)display\s*:[^;]*(?=;|$)/i,
-
   INVALID_ATTR_FRAGMENT: /["'<>\/=`]/,
-  INVALID_UNQUOTED_ATTR_VALUE: /["'<>`]/,
-  STYLE: /\sstyle\s*=\s*(["'])([\s\S]*?)\1/i,
-  TAG_END: /(\s*\/?>)$/
+  INVALID_UNQUOTED_ATTR_VALUE: /["'<>`]/
 } as const
