@@ -6,8 +6,6 @@ export const AT_RULE = '@' as const,
 export const BRACKET_PAIRS = { '(': ')', '{': '}' } as const,
   COMMENT_TOKEN = { open: '/*', close: '*/' } as const
 
-export const COMPACT_SIZE = '40rem' as const
-
 export const DISABLED_CSS =
   `:is(${DISABLED_SELECTOR}){${ficsCssVar('disabled')}:70%;cursor:not-allowed}` as const
 
@@ -19,6 +17,8 @@ export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 export const IGNORE_TOKENS = [COMMENT_TOKEN, { open: 'url(', close: ')' }] as const
 
 export const SCOPE_SELECTOR = ':scope' as const
+
+export const sizes = { COMPACT: '40rem', EXPANDED: '64rem' } as const
 
 export const SR_ONLY = cssObject({
   position: 'absolute',

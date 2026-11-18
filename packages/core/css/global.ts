@@ -1,18 +1,17 @@
 import { CSS_LAYER, ficsCssVar, HOST_SELECTOR, isBrowser } from '../helpers'
 import {
-  COMPACT_SIZE,
   DISABLED_CSS,
-  EXPANDED_SIZE,
   GLOBAL_STYLE_ATTR,
+  sizes as s,
   SR_ONLY_CSS
 } from './constants'
 
 const addedCss: Set<string> = new Set(),
   layoutCss = (selector: string): string =>
     [
-      [`width < ${COMPACT_SIZE}`, 'compact'],
-      [`${COMPACT_SIZE} <= width < ${EXPANDED_SIZE}`, 'regular'],
-      [`width >= ${EXPANDED_SIZE}`, 'expanded']
+      [`width < ${s.COMPACT}`, 'compact'],
+      [`${s.COMPACT} <= width < ${s.EXPANDED}`, 'regular'],
+      [`width >= ${s.EXPANDED}`, 'expanded']
     ]
       .map(([query, scale]) => `@media (${query}){${selector}{${ficsCssVar('layout')}:${scale}}}`)
       .join(''),
