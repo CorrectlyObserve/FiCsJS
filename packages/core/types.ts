@@ -310,8 +310,8 @@ export declare namespace Html {
       }
       disabled: (isDisabled?: boolean) => string
       required: (isRequired?: boolean) => string
+      hidden: (isHidden?: boolean) => string
       formAnchor: typeof attrs.FORM_ANCHOR
-      show: (isShown: boolean) => string
     }
   }
 

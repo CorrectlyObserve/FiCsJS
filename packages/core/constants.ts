@@ -1,10 +1,6 @@
 export const ANNOUNCING_ROLES: ReadonlySet<string> = new Set(['alert', 'log', 'status'])
 
-export const attrs = {
-  FICS_ID: 'fics-id',
-  FORM_ANCHOR: 'fics-form-anchor',
-  HIDDEN: 'fics-hidden-syntax'
-} as const
+export const attrs = { FICS_ID: 'fics-id', FORM_ANCHOR: 'fics-form-anchor' } as const
 
 export const BOOLEAN_ATTRS: ReadonlySet<string> = new Set([
   'allowfullscreen',

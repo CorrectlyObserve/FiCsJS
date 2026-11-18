@@ -912,8 +912,8 @@ export class FiCsElement<D extends object, P extends object> {
           },
           disabled: (isDisabled?: boolean): string => (isDisabled && 'disabled') || '',
           required: (isRequired?: boolean): string => (isRequired && 'required') || '',
-          formAnchor: attrs.FORM_ANCHOR,
-          show: (isShown: boolean): string => (!isShown && attrs.HIDDEN) || ''
+          hidden: (isHidden?: boolean): string => (isHidden && 'hidden') || '',
+          formAnchor: attrs.FORM_ANCHOR
         },
         isBrowser: this.#isBrowser,
         form: this.#formAssociation,
@@ -1002,7 +1002,7 @@ export class FiCsElement<D extends object, P extends object> {
             continue
           }
 
-          if (childNode.hasAttribute(attrs.HIDDEN)) {
+          if (childNode.hasAttribute('hidden')) {
             const ariaLive: string = childNode.getAttribute('aria-live') ?? '',
               role: string = childNode.getAttribute('role') ?? '',
               announcingAttr: string =
@@ -1013,9 +1013,6 @@ export class FiCsElement<D extends object, P extends object> {
                 `${this.#name}>${announcingAttr}`,
                 `Do not hide the ${announcingAttr} element in ${this.#name}, as a hidden one never announces...`
               )
-
-            ;(childNode as HTMLElement).style.display = 'none'
-            childNode.removeAttribute(attrs.HIDDEN)
           }
         }
 
@@ -1940,7 +1937,7 @@ export class FiCsElement<D extends object, P extends object> {
           ]
             .filter(Boolean)
             .join(' '),
-          html: string = applyShowAttr({
+          html: string = resolveDescendants({
             html: that.#template.replace(/>\s+</g, '><').replace(/\n\s/g, ''),
             resolveInstanceId: (instanceId: string): string => {
               if (isBlankString(instanceId) || !(instanceId in that.#childrenStore))
