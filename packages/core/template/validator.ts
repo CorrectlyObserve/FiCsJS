@@ -1,6 +1,6 @@
-import { isPlainObject } from '../../helpers'
-import type { Template } from '../../types'
-import { char as c, regExp as r } from '../constants'
+import { isPlainObject } from '../helpers'
+import type { Template } from '../types'
+import { char as c, regExp as r } from './constants'
 
 export const hasSymbol = <T, S extends symbol>(
   variable: unknown,

@@ -1,5 +1,5 @@
-import type { Template } from '../../types'
-import { char } from '../constants'
+import type { Template } from '../types'
+import { char } from './constants'
 
 export const error = (name: string, type: 'name' | 'unquoted' | Template.Context | unknown) => {
   switch (type) {

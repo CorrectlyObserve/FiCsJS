@@ -1,11 +1,10 @@
-import type { Template } from '../../types'
-import { char as c } from '../constants'
+import type { Template } from '../types'
+import { char as c } from './constants'
 import { error } from './error'
 import { isQuote, isSpace, isValidAttrName } from './validator'
 
 /** @remarks Keys on the strings array, which tagged templates reuse per call site. */
-const contextCache: WeakMap<TemplateStringsArray, readonly Template.Context[]> =
-  new WeakMap()
+const contextCache: WeakMap<TemplateStringsArray, readonly Template.Context[]> = new WeakMap()
 
 export const getTemplateContexts = (strings: TemplateStringsArray): readonly Template.Context[] => {
   const cachedContexts: readonly Template.Context[] | undefined = contextCache.get(strings)
