@@ -76,9 +76,10 @@ export const sanitize = <T>({
       )
         throw error(name, variable)
 
-      if (typeof variable === 'boolean' && context === 'tag') {
-        if (!variable) return
-        throw error(name, variable)
+      if (typeof variable === 'boolean') {
+        /** @remarks Drops false outside quotes only, as aria-* attribute values need "false". */
+        if (!variable && !isQuote(context)) return
+        if (variable && context === 'tag') throw error(name, variable)
       }
 
       const stringified: string = variable.toString(),
