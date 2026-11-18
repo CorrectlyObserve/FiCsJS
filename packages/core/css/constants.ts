@@ -9,8 +9,8 @@ export const BRACKET_PAIRS = { '(': ')', '{': '}' } as const,
 export const DISABLED_CSS =
   `:is(${DISABLED_SELECTOR}){${ficsCssVar('disabled')}:70%;cursor:not-allowed}` as const
 
-export const EXPANDED_SIZE = '64rem' as const,
-  GLOBAL_STYLE_ATTR = 'data-fics-global' as const
+export const GLOBAL_STYLE_ATTR = 'data-fics-global' as const,
+  HIDDEN_CSS = '[hidden]:not([hidden="until-found"]){display:none !important}' as const
 
 export const HOST_CONTEXT_SELECTOR = ':host-context' as const
 
