@@ -6,9 +6,12 @@ export const hash = {
   FALSE: 'F',
   MAP: 'M',
   NULL: 'N',
+  REGEXP: 'R',
   SET: 'S',
   TRUE: 'T',
   UNDEFINED: 'U'
 } as const
+
+export const NEEDS_ESCAPE: RegExp = /["\\]/
 
 export const STALE_MS = 60_000 as const
