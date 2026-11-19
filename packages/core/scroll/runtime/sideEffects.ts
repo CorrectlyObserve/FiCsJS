@@ -22,17 +22,24 @@ export const fetchWithinThreshold = <D extends object, P>({
   const {
     aveSize,
     totalCount,
-    flags: { isFetchLocked, hasScrolled },
+    flags: { isJustReset, hasScrolled },
     fetch: { isFetching, lastTriggeredCount }
   }: Scroll.Resolved<D, P> = scrollOptions
 
-  if (isFetchLocked || isFetching || totalCount <= lastTriggeredCount) return
+  if (isFetching || totalCount <= lastTriggeredCount) return
 
   const { scrollOffset, scrollAmount, clientSize }: Scroll.Metrics = getScrollMetrics(
     root,
     isVertical
   )
+
+  /** @remarks Skips the check while hidden, as scroll distance cannot be measured with zero size. */
+  if (clientSize === 0) return
+
   if (scrollAmount > clientSize) {
+    /** @remarks Ignores `isJustReset` on a short list, as only a scroll clears it and this list cannot scroll. */
+    if (isJustReset) return
+
     if (!hasScrolled && scrollOffset === 0) return
 
     /** @remarks The remaining distance in pixels to the end of the scrollable content. */
@@ -45,8 +52,9 @@ export const fetchWithinThreshold = <D extends object, P>({
   Promise.resolve()
     .then(method)
     .catch(error => {
-      /** @remarks Resets `lastTriggeredCount` on failure to allow retries. */
-      scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
+      /** @remarks Rolls back only if no reset changed the count meanwhile, as it would bring back the old count. */
+      const isUnchanged: boolean = scrollOptions.fetch.lastTriggeredCount === totalCount
+      if (isUnchanged) scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
 
       try {
         onError?.(error)
