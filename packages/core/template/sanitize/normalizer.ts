@@ -46,32 +46,17 @@ const tokenizeAttrs = (fragment: string, name: string): Template.AttrToken[] => 
     const attrName: string = fragment.slice(startIndex, index)
     if (!isValidAttrName(attrName)) throw error(name, 'name')
 
-    tokens.push({ type: 'name', value: attrName })
-  }
-
-  return tokens
-}
-
-export const normalizeAttrFragment = (fragment: string, name: string): string => {
-  if (isBlankString(fragment)) return ''
-
-  const tokens: Template.AttrToken[] = tokenizeAttrs(fragment.trim(), name),
-    attrs: string[] = []
-  let index = 0
-
-  while (index < tokens.length) {
-    const { type, value }: Template.AttrToken = tokens[index++]
-    if (type !== 'name') throw error(name, 'name')
-
-    const nextToken: Template.AttrToken | undefined = tokens[index]
-    if (nextToken?.type !== 'equal-sign') {
-      attrs.push(value)
+    while (index < length && isSpace(fragment[index])) index++
+    if (index >= length || fragment[index] !== c.EQUAL_SIGN) {
+      attrs.push(attrName)
       continue
     }
-    index++ /* @remarks skip '=' token */
 
-    const valueToken: Template.AttrToken = tokens[index++]
-    if (valueToken?.type !== 'value') throw error(name, 'name')
+    index++
+    while (index < length && isSpace(fragment[index])) index++
+
+    const quote: string | undefined = fragment[index]
+    if (!quote || !isQuote(quote)) throw error(name, 'name')
 
     const [value, nextIndex]: [string, number] = parseQuotedAttr({
       name,
