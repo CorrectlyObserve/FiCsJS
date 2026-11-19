@@ -5,13 +5,11 @@ import { error } from '../error'
 import { parseQuotedAttr } from '../parser'
 import { isQuote, isValidAttrName, isSpace } from '../validator'
 
-const {
-  char: { EQUAL_SIGN },
-  regExp: { INVALID_ATTR_FRAGMENT }
-} = constants
+export const normalizeAttrFragment = (fragment: string, name: string): string => {
+  fragment = fragment.trim()
+  if (fragment === '') return ''
 
-const tokenizeAttrs = (fragment: string, name: string): Template.AttrToken[] => {
-  const tokens: Template.AttrToken[] = [],
+  const attrs: string[] = [],
     { length }: { length: number } = fragment
   let index: number = 0
 
