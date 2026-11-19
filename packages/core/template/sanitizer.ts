@@ -3,7 +3,7 @@ import { escape, isBlankString } from '../helpers'
 import type { Template } from '../types'
 import { char } from './constants'
 import { error } from './error'
-import { normalizeAttrFragment } from './sanitize/normalizer'
+import { normalizeAttrFragment } from './normalizer'
 import { getTemplateContexts } from './parser'
 import { hasSymbol, isQuote, isSpace } from './validator'
 
