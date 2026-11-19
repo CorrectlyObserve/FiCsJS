@@ -73,7 +73,15 @@ export const normalizeAttrFragment = (fragment: string, name: string): string =>
     const valueToken: Template.AttrToken = tokens[index++]
     if (valueToken?.type !== 'value') throw error(name, 'name')
 
-    attrs.push(`${value}="${escape(valueToken.value)}"`)
+    const [value, nextIndex]: [string, number] = parseQuotedAttr({
+      name,
+      fragment,
+      index: index + 1,
+      quote: quote as Template.Quote
+    })
+
+    attrs.push(`${attrName}="${escape(value)}"`)
+    index = nextIndex
   }
 
   return attrs.join(' ')
