@@ -41,10 +41,7 @@ const tokenizeAttrs = (fragment: string, name: string): Template.AttrToken[] => 
     }
 
     const startIndex: number = index
-    while (index < length && !isSpace(fragment[index]) && fragment[index] !== EQUAL_SIGN) {
-      if (INVALID_ATTR_FRAGMENT.test(fragment[index])) throw error(name, 'name')
-      index++
-    }
+    while (index < length && !isSpace(fragment[index]) && fragment[index] !== c.EQUAL_SIGN) index++
 
     const attrName: string = fragment.slice(startIndex, index)
     if (!isValidAttrName(attrName)) throw error(name, 'name')
