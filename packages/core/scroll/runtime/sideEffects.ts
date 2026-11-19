@@ -113,9 +113,10 @@ export const updatePageParam = <D extends object, P>({
 
   const {
       startIndex,
-      firstVisible: { index }
+      firstVisible: { index, isOffscreen }
     }: Scroll.Resolved<D, P> = scrollOptions,
-    nextStartIndex = index ?? startIndex
+    /** @remarks Uses startIndex if no item was measured or it is offscreen, as an offscreen item is from the old position. */
+    nextStartIndex: number = index === undefined || isOffscreen ? startIndex : index
 
   scrollOptions.urlSync.index ??= nextStartIndex
   scrollOptions.urlSync.pageParam ??= pageParam
