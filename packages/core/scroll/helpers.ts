@@ -91,25 +91,15 @@ export const getProperty = ({
   prefix
 }: {
   isVertical: boolean
-  type: 'size' | 'start' | 'end'
+  type: 'size' | 'start'
   prefix?: string
 }): string => {
   let property: string = ''
-  switch (type) {
-    case 'size':
-      property = isVertical ? 'height' : 'width'
-      break
 
-    case 'start':
-      property = isVertical ? 'top' : 'left'
-      break
+  if (type === 'size') property = isVertical ? 'Height' : 'Width'
+  else property = isVertical ? 'Top' : 'Left'
 
-    case 'end':
-      property = isVertical ? 'bottom' : 'right'
-      break
-  }
-
-  return prefix ? `${prefix}${property[0].toUpperCase()}${property.slice(1)}` : property
+  return prefix ? `${prefix}${property}` : property.toLowerCase()
 }
 
 export const isValidNumber = (
