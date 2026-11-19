@@ -1,4 +1,3 @@
-import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
 import { getAveSize, getScrollMetrics } from '../helpers'
 
@@ -72,9 +71,9 @@ export const readPageParam = (parameter?: string): number => {
 
   if (rawParam === null) return 1
 
+  /** @remarks Falls back to page 1, as anyone can type a bad value into the URL. */
   const param: number = Number(rawParam)
-  numberError({ param }, 'positive-int')
-  return param
+  return Number.isInteger(param) && param > 0 ? param : 1
 }
 
 export const rebaseUrlSync = <D extends object, P>({
