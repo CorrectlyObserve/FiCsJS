@@ -14,29 +14,7 @@ export const normalizeAttrFragment = (fragment: string, name: string): string =>
   let index: number = 0
 
   while (index < length) {
-    const char: string = fragment[index]
-    if (isSpace(char)) {
-      index++
-      continue
-    }
-
-    if (char === EQUAL_SIGN) {
-      tokens.push({ type: 'equal-sign', value: EQUAL_SIGN })
-      index++
-      continue
-    }
-
-    if (isQuote(char)) {
-      const [value, nextIndex]: [string, number] = parseQuotedAttr({
-        name,
-        fragment,
-        index: index + 1,
-        quote: char as Template.Quote
-      })
-      tokens.push({ type: 'value', value })
-      index = nextIndex
-      continue
-    }
+    while (index < length && isSpace(fragment[index])) index++
 
     const startIndex: number = index
     while (index < length && !isSpace(fragment[index]) && fragment[index] !== c.EQUAL_SIGN) index++
