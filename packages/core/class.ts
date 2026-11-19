@@ -319,7 +319,7 @@ export class FiCsElement<D extends object, P extends object> {
       }
     })
 
-    /** 
+    /**
      * @remarks
      * Builds before the options, as options.scroll reads deferredStates through `this.#getDataProps`.
      */
