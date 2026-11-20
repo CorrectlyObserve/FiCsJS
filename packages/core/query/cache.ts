@@ -87,8 +87,27 @@ export class QueryCache {
       }
   }
 
-  #getEntry(key: Query.Key): Query.Entry {
-    return this.#entries.get(hash(key)) ?? this.ensure({ key })
+  #getEntry(key: Query.Key, hashed: string = hash(key)): Query.Entry {
+    return this.#entries.get(hashed) ?? this.ensure({ key })
+  }
+
+  #abortEntry(entry: Query.Entry): void {
+    if (!entry.abort) return
+
+    entry.abort.abort()
+    entry.version++
+    entry.inflight = null
+
+    if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
+  }
+
+  #isEntryStale(entry?: Query.Entry): boolean {
+    if (!entry) return true
+
+    const { state, staleMs }: Query.Entry = entry
+
+    if (state.updatedAt === 0) return true
+    return Date.now() - state.updatedAt > staleMs
   }
 
   #unscheduleGc(entry: Query.Entry): void {
@@ -231,13 +250,7 @@ export class QueryCache {
   }
 
   isStale(key: Query.Key): boolean {
-    const entry: Query.Entry | undefined = this.#entries.get(hash(key))
-    if (!entry) return true
-
-    const { state, staleMs }: Query.Entry = entry
-
-    if (state.updatedAt === 0) return true
-    return Date.now() - state.updatedAt > staleMs
+    return this.#isEntryStale(this.#entries.get(hash(key)))
   }
 
   async fetch(key: Query.Key): Promise<void> {
@@ -568,15 +581,7 @@ export class QueryCache {
   }
 
   abort(filter?: Query.Filter): void {
-    for (const entry of this.#match(filter as Query.Filter | undefined)) {
-      if (!entry.abort) continue
-
-      entry.abort.abort()
-      entry.fetchId++
-      entry.inflight = null
-
-      if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
-    }
+    for (const entry of this.#match(filter as Query.Filter | undefined)) this.#abortEntry(entry)
   }
 
   destroy(): void {
