@@ -2,11 +2,14 @@ import { numberError } from '../helpers'
 import type { Scroll, SetTimeout } from '../types'
 
 export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<D, P>): void => {
-  for (const key of ['resize', 'idle'] as const) {
+  for (const key of ['resize', 'idle', 'scroll', 'reRender', 'settle'] as const) {
     const timer: SetTimeout | undefined = scrollOptions.timers[key]
     if (timer) clearTimeout(timer)
     scrollOptions.timers[key] = undefined
   }
+
+  /** @remarks Sets `isScrolling` to false directly, as its timer was canceled and will no longer fire. */
+  scrollOptions.isScrolling = false
 }
 
 /**
