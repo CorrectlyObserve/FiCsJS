@@ -106,3 +106,10 @@ export const isValidNumber = (
   value: number,
   { positive = true }: { positive?: boolean } = {}
 ): boolean => Number.isFinite(value) && (!positive || value > 0)
+
+/**
+ * @remarks
+ * Rounds a measured size to the 1/64 px grid, ensuring the Fenwick tree stores an exact binary integer.
+ */
+export const roundSize = (size: number): number =>
+  Math.round(size * FIXED_POINT_SCALE) / FIXED_POINT_SCALE
