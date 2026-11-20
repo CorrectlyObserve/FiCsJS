@@ -1,5 +1,6 @@
 import { numberError } from '../helpers'
 import type { Scroll, SetTimeout } from '../types'
+import { FIXED_POINT_SCALE } from './constants'
 
 export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<D, P>): void => {
   for (const key of ['resize', 'idle', 'scroll', 'reRender', 'settle'] as const) {
@@ -14,6 +15,7 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
 
 /**
  * @remarks
+ * - The tree stores 1/64 px units as integers, so repeated adds and removals never drift.
  * - `-i` is mathematically equivalent to `(~i + 1)` in two's complement.
  * - The `~` operator (Bitwise NOT) flips all bits (0 to 1, 1 to 0).
  * - The `&` operator (Bitwise AND) keeps only the bits that are 1 in both operands.
@@ -29,14 +31,13 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
  * ```
  */
 export const fenwickTree = {
-  /**
-   * @param index Must be a positive integer.
-   * @param diff Must be an integer.
-   */
+  /**　@param index Must be a positive integer. */
   add: (tree: number[], index: number, diff: number): void => {
     numberError({ index }, 'positive-int')
-    numberError({ diff }, 'int')
-    for (let i = index; i < tree.length; i += i & -i) tree[i] += diff
+
+    const steps: number = diff * FIXED_POINT_SCALE
+    numberError({ steps }, 'int')
+    for (let i = index; i < tree.length; i += i & -i) tree[i] += steps
   },
   /** @param index Must be a non-negative integer. */
   sum: (tree: number[], index: number): number => {
@@ -44,7 +45,7 @@ export const fenwickTree = {
 
     let sum: number = 0
     for (let i = index; i > 0; i -= i & -i) sum += tree[i]
-    return sum
+    return sum / FIXED_POINT_SCALE
   },
   /** @remarks The fenwick tree is 1-indexed. */
   reset: (length: number): number[] => new Array(length + 1).fill(0)
