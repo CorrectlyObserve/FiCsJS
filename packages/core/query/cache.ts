@@ -56,21 +56,6 @@ export class QueryCache {
     }
   }
 
-  #subscriberCount(hashed: string): number {
-    return this.#listeners.get(hashed)?.size ?? 0
-  }
-
-  #isRefetchable(entry: Query.Entry): boolean {
-    return this.#subscriberCount(entry.hashed) > 0 && !entry.isOptimistic
-  }
-
-  #refresh(isEnabled: boolean): void {
-    if (!isEnabled) return
-
-    for (const entry of this.#entries.values())
-      if (this.#isRefetchable(entry) && this.#isStale(entry)) void this.#refetch(entry)
-  }
-
   #emitError(key: Query.Key, error: unknown): void {
     if (!this.#config.onError) return
 
@@ -78,6 +63,19 @@ export class QueryCache {
       this.#config.onError(key, error)
     } catch (onErrorError) {
       console.error('The onError callback in QueryCache failed...', onErrorError)
+    }
+  }
+
+  #emitMetric(event: Query.Metric.Payload): void {
+    if (!this.#config.onMetric) return
+
+    try {
+      this.#config.onMetric({ module: 'query-cache', ...event })
+    } catch (error) {
+      console.error(
+        `The onMetric callback in QueryCache failed during the '${event.type}' event...`,
+        error
+      )
     }
   }
 
@@ -101,14 +99,8 @@ export class QueryCache {
     return this.#entries.get(hash(key)) ?? this.ensure({ key })
   }
 
-  #abortEntry(entry: Query.Entry): void {
-    if (!entry.abort) return
-
-    entry.abort.abort()
-    entry.version++
-    entry.inflight = null
-
-    if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
+  #subscriberCount(hashed: string): number {
+    return this.#listeners.get(hashed)?.size ?? 0
   }
 
   #isStale(entry: Query.Entry): boolean {
@@ -121,155 +113,18 @@ export class QueryCache {
     return Date.now() - updatedAt > staleMs
   }
 
-  #unscheduleGc(entry: Query.Entry): void {
-    if (entry.gcTimer) {
-      clearTimeout(entry.gcTimer)
-      entry.gcTimer = undefined
-    }
+  #isRefetchable(entry: Query.Entry): boolean {
+    return this.#subscriberCount(entry.hashed) > 0 && !entry.isOptimistic
   }
 
-  #emitMetric(event: Query.Metric.Payload): void {
-    if (!this.#config.onMetric) return
+  #abortEntry(entry: Query.Entry): void {
+    if (!entry.abort) return
 
-    try {
-      this.#config.onMetric({ module: 'query-cache', ...event })
-    } catch (error) {
-      console.error(
-        `The onMetric callback in QueryCache failed during the '${event.type}' event...`,
-        error
-      )
-    }
-  }
+    entry.abort.abort()
+    entry.version++
+    entry.inflight = null
 
-  #scheduleGc(entry: Query.Entry): void {
-    this.#unscheduleGc(entry)
-
-    /** @remarks Skips after destroy and on a server, as the cache is thrown away anyway. */
-    if (this.#isDestroyed || !isBrowser()) return
-
-    entry.gcTimer = setTimeout(() => {
-      if (this.#subscriberCount(entry.hashed) === 0 && !entry.isOptimistic) {
-        this.#abortEntry(entry)
-
-        if (entry.refetchTimer) clearInterval(entry.refetchTimer)
-
-        this.#entries.delete(entry.hashed)
-        this.#listeners.delete(entry.hashed)
-
-        this.#emitMetric({ type: 'cache:evict', key: entry.key, reason: 'gc' })
-      }
-    }, this.#config.gcLimitMs)
-  }
-
-  #applyRefetchTimer(entry: Query.Entry): void {
-    if (entry.refetchTimer) {
-      clearInterval(entry.refetchTimer)
-      entry.refetchTimer = undefined
-    }
-
-    /** @remarks Skips on a server, as the unsubscribe method never runs there and the interval would never stop. */
-    if (!isBrowser()) return
-
-    if (entry.refetchIntervalMs > 0 && this.#subscriberCount(entry.hashed) > 0)
-      entry.refetchTimer = setInterval(() => {
-        if (this.#isRefetchable(entry)) void this.#refetch(entry)
-      }, entry.refetchIntervalMs)
-  }
-
-  #exactMatcher(key: Query.Key): (entry: Query.Entry) => boolean {
-    const hashed: string = hash(key)
-    return (entry: Query.Entry): boolean => entry.hashed === hashed
-  }
-
-  #partialMatcher(key: Query.Key): (entry: Query.Entry) => boolean {
-    const { length }: { length: number } = key,
-      hashes: (string | undefined)[] = key.map(value => (isObject(value) ? hash(value) : undefined))
-
-    return (entry: Query.Entry): boolean => {
-      if (length > entry.key.length) return false
-
-      for (let i = 0; i < length; i++) {
-        const entryPart: unknown = entry.key[i],
-          part: unknown = key[i]
-
-        /** @remarks Matches 0 with -0 and NaN with NaN, the same as an exact match. */
-        if (entryPart === part || Object.is(entryPart, part)) continue
-
-        if (!isObject(entryPart) || !isObject(part) || hash(entryPart) !== hashes[i]) return false
-      }
-
-      return true
-    }
-  }
-
-  #match(filter?: Query.Filter): Query.Entry[] {
-    const entries: Query.Entry[] = [...this.#entries.values()]
-    if (!filter) return entries
-
-    const { key, isExactlyMatched, predicate }: Query.Filter = filter,
-      /** @remarks Treats a missing key as `[]`, as it matches every entry. */
-      isKeyMatch: (entry: Query.Entry) => boolean =
-        key && isExactlyMatched ? this.#exactMatcher(key) : this.#partialMatcher(key ?? [])
-
-    return entries.filter(entry => isKeyMatch(entry) && (predicate?.(entry) ?? true))
-  }
-
-  #endOptimisticUpdate({ entry, result, attempt, startedAt }: Query.EndOptimisticUpdate): void {
-    entry.isOptimistic = false
-    this.#emitMetric({
-      type: 'optimistic:end',
-      key: entry.key,
-      result,
-      attempt,
-      durationMs: performance.now() - startedAt
-    })
-
-    /** @remarks Schedules GC, as nothing else does for an entry made only by an update. */
-    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
-
-    const isFetchable: boolean = this.#subscriberCount(entry.hashed) > 0 && !!entry.fetcher,
-      isRefetchNeeded: boolean = result === 'reverted' || entry.state.updatedAt === 0
-
-    if (isFetchable && isRefetchNeeded) void this.#refetch(entry)
-  }
-
-  /** @param config Must be non-negative integers. */
-  ensure({ key, fetcher, config }: Query.Ensure): Query.Entry {
-    const hashed: string = hash(key),
-      existing: Query.Entry | undefined = this.#entries.get(hashed)
-
-    numberError({ ...config }, 'non-negative-int')
-
-    if (existing) {
-      if (fetcher) existing.fetcher = fetcher
-
-      const prevIntervalMs: number = existing.refetchIntervalMs
-
-      for (const [name, value] of typedEntries({ ...config }))
-        if (value !== undefined) existing[name] = value
-
-      if (existing.refetchIntervalMs !== prevIntervalMs) this.#applyRefetchTimer(existing)
-      return existing
-    }
-
-    const { staleMs, maxRetries, refetchIntervalMs }: Query.Config.Entry = config ?? {},
-      entry: Query.Entry = {
-        key,
-        hashed,
-        state: { isFetching: false, updatedAt: 0 },
-        fetcher: fetcher ?? null,
-        staleMs: staleMs ?? this.#config.staleMs,
-        maxDelayMs: this.#config.maxDelayMs,
-        maxRetries: maxRetries ?? this.#config.maxRetries,
-        refetchIntervalMs: refetchIntervalMs ?? this.#config.refetchIntervalMs,
-        inflight: null,
-        abort: null,
-        isOptimistic: false,
-        version: 0
-      }
-
-    this.#entries.set(hashed, entry)
-    return entry
+    if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
   }
 
   async #refetch(entry: Query.Entry): Promise<void> {
@@ -366,6 +221,151 @@ export class QueryCache {
         entry.abort = null
       }
     }
+  }
+
+  #refresh(isEnabled: boolean): void {
+    if (!isEnabled) return
+
+    for (const entry of this.#entries.values())
+      if (this.#isRefetchable(entry) && this.#isStale(entry)) void this.#refetch(entry)
+  }
+
+  #unscheduleGc(entry: Query.Entry): void {
+    if (entry.gcTimer) {
+      clearTimeout(entry.gcTimer)
+      entry.gcTimer = undefined
+    }
+  }
+
+  #scheduleGc(entry: Query.Entry): void {
+    this.#unscheduleGc(entry)
+
+    /** @remarks Skips after destroy and on a server, as the cache is thrown away anyway. */
+    if (this.#isDestroyed || !isBrowser()) return
+
+    entry.gcTimer = setTimeout(() => {
+      if (this.#subscriberCount(entry.hashed) === 0 && !entry.isOptimistic) {
+        this.#abortEntry(entry)
+
+        if (entry.refetchTimer) clearInterval(entry.refetchTimer)
+
+        this.#entries.delete(entry.hashed)
+        this.#listeners.delete(entry.hashed)
+
+        this.#emitMetric({ type: 'cache:evict', key: entry.key, reason: 'gc' })
+      }
+    }, this.#config.gcLimitMs)
+  }
+
+  #applyRefetchTimer(entry: Query.Entry): void {
+    if (entry.refetchTimer) {
+      clearInterval(entry.refetchTimer)
+      entry.refetchTimer = undefined
+    }
+
+    /** @remarks Skips on a server, as the unsubscribe method never runs there and the interval would never stop. */
+    if (!isBrowser()) return
+
+    if (entry.refetchIntervalMs > 0 && this.#subscriberCount(entry.hashed) > 0)
+      entry.refetchTimer = setInterval(() => {
+        if (this.#isRefetchable(entry)) void this.#refetch(entry)
+      }, entry.refetchIntervalMs)
+  }
+
+  #endOptimisticUpdate({ entry, result, attempt, startedAt }: Query.EndOptimisticUpdate): void {
+    entry.isOptimistic = false
+    this.#emitMetric({
+      type: 'optimistic:end',
+      key: entry.key,
+      result,
+      attempt,
+      durationMs: performance.now() - startedAt
+    })
+
+    /** @remarks Schedules GC, as nothing else does for an entry made only by an update. */
+    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
+
+    const isFetchable: boolean = this.#subscriberCount(entry.hashed) > 0 && !!entry.fetcher,
+      isRefetchNeeded: boolean = result === 'reverted' || entry.state.updatedAt === 0
+
+    if (isFetchable && isRefetchNeeded) void this.#refetch(entry)
+  }
+
+  #exactMatcher(key: Query.Key): (entry: Query.Entry) => boolean {
+    const hashed: string = hash(key)
+    return (entry: Query.Entry): boolean => entry.hashed === hashed
+  }
+
+  #partialMatcher(key: Query.Key): (entry: Query.Entry) => boolean {
+    const { length }: { length: number } = key,
+      hashes: (string | undefined)[] = key.map(value => (isObject(value) ? hash(value) : undefined))
+
+    return (entry: Query.Entry): boolean => {
+      if (length > entry.key.length) return false
+
+      for (let i = 0; i < length; i++) {
+        const entryPart: unknown = entry.key[i],
+          part: unknown = key[i]
+
+        /** @remarks Matches 0 with -0 and NaN with NaN, the same as an exact match. */
+        if (entryPart === part || Object.is(entryPart, part)) continue
+
+        if (!isObject(entryPart) || !isObject(part) || hash(entryPart) !== hashes[i]) return false
+      }
+
+      return true
+    }
+  }
+
+  #match(filter?: Query.Filter): Query.Entry[] {
+    const entries: Query.Entry[] = [...this.#entries.values()]
+    if (!filter) return entries
+
+    const { key, isExactlyMatched, predicate }: Query.Filter = filter,
+      /** @remarks Treats a missing key as `[]`, as it matches every entry. */
+      isKeyMatch: (entry: Query.Entry) => boolean =
+        key && isExactlyMatched ? this.#exactMatcher(key) : this.#partialMatcher(key ?? [])
+
+    return entries.filter(entry => isKeyMatch(entry) && (predicate?.(entry) ?? true))
+  }
+
+  /** @param config Must be non-negative integers. */
+  ensure({ key, fetcher, config }: Query.Ensure): Query.Entry {
+    const hashed: string = hash(key),
+      existing: Query.Entry | undefined = this.#entries.get(hashed)
+
+    numberError({ ...config }, 'non-negative-int')
+
+    if (existing) {
+      if (fetcher) existing.fetcher = fetcher
+
+      const prevIntervalMs: number = existing.refetchIntervalMs
+
+      for (const [name, value] of typedEntries({ ...config }))
+        if (value !== undefined) existing[name] = value
+
+      if (existing.refetchIntervalMs !== prevIntervalMs) this.#applyRefetchTimer(existing)
+      return existing
+    }
+
+    const { staleMs, maxRetries, refetchIntervalMs }: Query.Config.Entry = config ?? {},
+      entry: Query.Entry = {
+        key,
+        hashed,
+        state: { isFetching: false, updatedAt: 0 },
+        fetcher: fetcher ?? null,
+        staleMs: staleMs ?? this.#config.staleMs,
+        maxDelayMs: this.#config.maxDelayMs,
+        maxRetries: maxRetries ?? this.#config.maxRetries,
+        refetchIntervalMs: refetchIntervalMs ?? this.#config.refetchIntervalMs,
+        inflight: null,
+        abort: null,
+        isOptimistic: false,
+        version: 0
+      }
+
+    this.#entries.set(hashed, entry)
+    return entry
   }
 
   /** @param configOrStaleMs Must be non-negative integers when numeric values are provided. */
