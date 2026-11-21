@@ -170,23 +170,26 @@ export class QueryCache {
       }, entry.refetchIntervalMs)
   }
 
-  #partialMatcher(partialKey: Query.Key): (key: Query.Key) => boolean {
-    const { length }: { length: number } = partialKey,
-      hashes: (string | undefined)[] = partialKey.map(value =>
-        isObject(value) ? hash(value) : undefined
-      )
+  #exactMatcher(key: Query.Key): (entry: Query.Entry) => boolean {
+    const hashed: string = hash(key)
+    return (entry: Query.Entry): boolean => entry.hashed === hashed
+  }
 
-    return (key: Query.Key): boolean => {
-      if (length > key.length) return false
+  #partialMatcher(key: Query.Key): (entry: Query.Entry) => boolean {
+    const { length }: { length: number } = key,
+      hashes: (string | undefined)[] = key.map(value => (isObject(value) ? hash(value) : undefined))
+
+    return (entry: Query.Entry): boolean => {
+      if (length > entry.key.length) return false
 
       for (let i = 0; i < length; i++) {
-        const k: unknown = key[i],
-          pk: unknown = partialKey[i]
+        const entryPart: unknown = entry.key[i],
+          part: unknown = key[i]
 
         /** @remarks Matches 0 with -0 and NaN with NaN, the same as an exact match. */
-        if (k === pk || Object.is(k, pk)) continue
+        if (entryPart === part || Object.is(entryPart, part)) continue
 
-        if (!isObject(k) || !isObject(pk) || hash(k) !== hashes[i]) return false
+        if (!isObject(entryPart) || !isObject(part) || hash(entryPart) !== hashes[i]) return false
       }
 
       return true
@@ -195,20 +198,14 @@ export class QueryCache {
 
   #match(filter?: Query.Filter): Query.Entry[] {
     const entries: Query.Entry[] = [...this.#entries.values()]
-
     if (!filter) return entries
 
-    return entries.filter(entry => {
-      const isKeyMatch: boolean = filter.key
-        ? filter.isExactlyMatched
-          ? hash(entry.key) === hash(filter.key)
-          : this.#partialMatch(entry.key, filter.key)
-        : true
+    const { key, isExactlyMatched, predicate }: Query.Filter = filter,
+      /** @remarks Treats a missing key as [], as [] matches every entry. */
+      isKeyMatch: (entry: Query.Entry) => boolean =
+        key && isExactlyMatched ? this.#exactMatcher(key) : this.#partialMatcher(key ?? [])
 
-      if (!isKeyMatch || (filter.predicate && !filter.predicate(entry))) return false
-
-      return true
-    })
+    return entries.filter(entry => isKeyMatch(entry) && (predicate?.(entry) ?? true))
   }
 
   #endOptimisticUpdate({ entry, result, attempt, startedAt }: Query.EndOptimisticUpdate): void {
