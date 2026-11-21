@@ -101,13 +101,14 @@ export class QueryCache {
     if (entry.state.isFetching) this.#dispatchState(entry, { isFetching: false })
   }
 
-  #isEntryStale(entry?: Query.Entry): boolean {
-    if (!entry) return true
+  #isStale(entry: Query.Entry): boolean {
+    const {
+      state: { updatedAt },
+      staleMs
+    }: Query.Entry = entry
 
-    const { state, staleMs }: Query.Entry = entry
-
-    if (state.updatedAt === 0) return true
-    return Date.now() - state.updatedAt > staleMs
+    if (updatedAt === 0) return true
+    return Date.now() - updatedAt > staleMs
   }
 
   #unscheduleGc(entry: Query.Entry): void {
