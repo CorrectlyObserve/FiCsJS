@@ -485,36 +485,34 @@ export class QueryCache {
   }: Query.Binding<D, T>): void {
     if (this.#isDestroyed) return
 
-    const hashed: string = hash(key)
+    const entry: Query.Entry = this.#getEntry(key),
+      initialData: D[WritableDataKeys<D>] = data[dataKey]
 
-    if (shouldInitCache && data[dataKey] !== undefined) {
-      const entry: Query.Entry = this.#getEntry(key, hashed)
-      if (entry.state.value === undefined) this.#dispatchState(entry, { value: data[dataKey] })
+    let { value: prevValue }: Query.State = entry.state
+
+    if (shouldInitCache && initialData !== undefined && prevValue === undefined)
+      this.#dispatchState(entry, { value: initialData })
+
+    const listener: Query.Listener = (_: string, state: Query.State): void => {
+      const { value }: Query.State = state,
+        isRolledBack: boolean = value === undefined && prevValue !== undefined
+
+      prevValue = value
+
+      if (select) {
+        data[dataKey] = select(state as Query.State<T>, data[dataKey]) as D[WritableDataKeys<D>]
+        return
+      }
+
+      if (value !== undefined) data[dataKey] = value as D[WritableDataKeys<D>]
+
+      if (isRolledBack) data[dataKey] = initialData
     }
 
-    const subscribeQuery = (
-      key: Query.Key,
-      listener: (state: Query.State<T>) => void
-    ): (() => void) => {
-      if (this.#isDestroyed) return NOOP
+    this.subscribe({ hashed: entry.hashed, listener })
+    listener(entry.hashed, entry.state)
 
-      const entry: Query.Entry = this.#getEntry(key),
-        _listener: Query.Listener = (_: string, state: Query.State<unknown>) =>
-          listener(state as Query.State<T>)
-
-      this.subscribe({ hashed: entry.hashed, listener: _listener })
-      listener(entry.state as Query.State<T>)
-
-      return () => this.unsubscribe({ hashed: entry.hashed, listener: _listener })
-    }
-
-    const unsubscribe = subscribeQuery(key, state => {
-      data[dataKey] = (
-        select ? select(state, data[dataKey]) : (state.value ?? data[dataKey])
-      ) as D[WritableDataKeys<D>]
-    })
-
-    if (signal) onAbort(signal, unsubscribe)
+    if (signal) onAbort(signal, () => this.unsubscribe({ hashed: entry.hashed, listener }))
   }
 
   async optimisticUpdate<T = unknown>({
