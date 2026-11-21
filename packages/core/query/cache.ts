@@ -164,6 +164,9 @@ export class QueryCache {
       entry.refetchTimer = undefined
     }
 
+    /** @remarks Skips on a server, as the unsubscribe method never runs there and the interval would never stop. */
+    if (!isBrowser()) return
+
     if (entry.refetchIntervalMs > 0 && this.#subscriberCount(entry.hashed) > 0)
       entry.refetchTimer = setInterval(() => {
         if (this.#isRefetchable(entry)) void this.#refetch(entry)
