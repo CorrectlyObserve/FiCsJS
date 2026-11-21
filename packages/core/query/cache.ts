@@ -253,7 +253,7 @@ export class QueryCache {
         inflight: null,
         abort: null,
         isOptimistic: false,
-        fetchId: 0
+        version: 0
       }
 
     this.#entries.set(hashed, entry)
