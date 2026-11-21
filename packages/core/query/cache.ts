@@ -144,8 +144,8 @@ export class QueryCache {
   #scheduleGc(entry: Query.Entry): void {
     this.#unscheduleGc(entry)
 
-    /** @remarks Skips on a server, as the cache is thrown away after each request anyway. */
-    if (!isBrowser()) return
+    /** @remarks Skips after destroy and on a server, as the cache is thrown away anyway. */
+    if (this.#isDestroyed || !isBrowser()) return
 
     entry.gcTimer = setTimeout(() => {
       if (this.#subscriberCount(entry.hashed) === 0 && !entry.isOptimistic) {
