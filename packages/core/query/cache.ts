@@ -170,21 +170,27 @@ export class QueryCache {
       }, entry.refetchIntervalMs)
   }
 
-  #partialMatch(key: Query.Key, partial: Query.Key): boolean {
-    const { length }: { length: number } = partial
-    if (length === 0) return true
+  #partialMatcher(partialKey: Query.Key): (key: Query.Key) => boolean {
+    const { length }: { length: number } = partialKey,
+      hashes: (string | undefined)[] = partialKey.map(value =>
+        isObject(value) ? hash(value) : undefined
+      )
 
-    if (length > key.length) return false
+    return (key: Query.Key): boolean => {
+      if (length > key.length) return false
 
-    for (let i = 0; i < length; i++) {
-      const k: unknown = key[i],
-        p: unknown = partial[i]
+      for (let i = 0; i < length; i++) {
+        const k: unknown = key[i],
+          pk: unknown = partialKey[i]
 
-      if (k === p) continue
-      if (!isObject(k) || !isObject(p) || hash([k]) !== hash([p])) return false
+        /** @remarks Matches 0 with -0 and NaN with NaN, the same as an exact match. */
+        if (k === pk || Object.is(k, pk)) continue
+
+        if (!isObject(k) || !isObject(pk) || hash(k) !== hashes[i]) return false
+      }
+
+      return true
     }
-
-    return true
   }
 
   #match(filter?: Query.Filter): Query.Entry[] {
