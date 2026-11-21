@@ -485,7 +485,12 @@ export class QueryCache {
   }: Query.Binding<D, T>): void {
     if (this.#isDestroyed) return
 
-    if (shouldInitCache && this.get<T>(key) === undefined) this.set<D[keyof D]>(key, data[dataKey])
+    const hashed: string = hash(key)
+
+    if (shouldInitCache && data[dataKey] !== undefined) {
+      const entry: Query.Entry = this.#getEntry(key, hashed)
+      if (entry.state.value === undefined) this.#dispatchState(entry, { value: data[dataKey] })
+    }
 
     const subscribeQuery = (
       key: Query.Key,
