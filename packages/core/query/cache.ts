@@ -391,15 +391,6 @@ export class QueryCache {
         ? { staleMs: configOrStaleMs }
         : configOrStaleMs
 
-    numberError(
-      {
-        staleMs: config?.staleMs,
-        maxRetries: config?.maxRetries,
-        refetchIntervalMs: config?.refetchIntervalMs
-      },
-      'non-negative-int'
-    )
-
     const entry: Query.Entry = this.ensure({
       key,
       fetcher: fetcher as Query.Fetcher<unknown>,
