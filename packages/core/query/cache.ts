@@ -201,7 +201,7 @@ export class QueryCache {
     if (!filter) return entries
 
     const { key, isExactlyMatched, predicate }: Query.Filter = filter,
-      /** @remarks Treats a missing key as [], as [] matches every entry. */
+      /** @remarks Treats a missing key as `[]`, as it matches every entry. */
       isKeyMatch: (entry: Query.Entry) => boolean =
         key && isExactlyMatched ? this.#exactMatcher(key) : this.#partialMatcher(key ?? [])
 
