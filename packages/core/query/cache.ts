@@ -149,7 +149,7 @@ export class QueryCache {
 
     entry.gcTimer = setTimeout(() => {
       if (this.#subscriberCount(entry.hashed) === 0 && !entry.isOptimistic) {
-        entry.abort?.abort()
+        this.#abortEntry(entry)
 
         if (entry.refetchTimer) clearInterval(entry.refetchTimer)
 
@@ -641,7 +641,7 @@ export class QueryCache {
     this.#isDestroyed = true
 
     for (const entry of this.#entries.values()) {
-      entry.abort?.abort()
+      this.#abortEntry(entry)
       this.#unscheduleGc(entry)
       if (entry.refetchTimer) clearInterval(entry.refetchTimer)
 
