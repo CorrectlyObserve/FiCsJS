@@ -166,7 +166,7 @@ export class QueryCache {
 
     if (entry.refetchIntervalMs > 0 && this.#subscriberCount(entry.hashed) > 0)
       entry.refetchTimer = setInterval(() => {
-        if (this.#isRefetchable(entry)) void this.fetch(entry.key)
+        if (this.#isRefetchable(entry)) void this.#refetch(entry)
       }, entry.refetchIntervalMs)
   }
 
@@ -218,7 +218,7 @@ export class QueryCache {
     const isFetchable: boolean = this.#subscriberCount(entry.hashed) > 0 && !!entry.fetcher,
       isRefetchNeeded: boolean = result === 'reverted' || entry.state.updatedAt === 0
 
-    if (isFetchable && isRefetchNeeded) void this.fetch(entry.key)
+    if (isFetchable && isRefetchNeeded) void this.#refetch(entry)
   }
 
   /** @param config Must be non-negative integers. */
@@ -584,7 +584,7 @@ export class QueryCache {
     for (const entry of this.#match(filter as Query.Filter | undefined)) {
       this.#dispatchState(entry, { updatedAt: 0 })
 
-      if (this.#isRefetchable(entry)) void this.fetch(entry.key)
+      if (this.#isRefetchable(entry)) void this.#refetch(entry)
     }
   }
 
