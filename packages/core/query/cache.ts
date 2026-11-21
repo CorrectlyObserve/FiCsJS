@@ -412,6 +412,9 @@ export class QueryCache {
 
     const entry: Query.Entry = this.#getEntry(key)
 
+    /** @remarks Stops a running fetch, as its old data would overwrite this value. */
+    this.#abortEntry(entry)
+
     this.#dispatchState(entry, {
       value:
         newQuery instanceof Function
