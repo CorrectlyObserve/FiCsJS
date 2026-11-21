@@ -403,7 +403,10 @@ export class QueryCache {
       config
     })
 
-    if (this.isStale(key)) await this.fetch(key)
+    /** @remarks Stops the GC timer, as this prefetch is about to use the entry. */
+    this.#unscheduleGc(entry)
+
+    if (this.#isStale(entry)) await this.#refetch(entry)
     if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
   }
 
