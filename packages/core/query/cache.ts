@@ -68,7 +68,17 @@ export class QueryCache {
     if (!isEnabled) return
 
     for (const entry of this.#entries.values())
-      if (this.#isRefetchable(entry) && this.isStale(entry.key)) void this.fetch(entry.key)
+      if (this.#isRefetchable(entry) && this.#isStale(entry)) void this.#refetch(entry)
+  }
+
+  #emitError(key: Query.Key, error: unknown): void {
+    if (!this.#config.onError) return
+
+    try {
+      this.#config.onError(key, error)
+    } catch (onErrorError) {
+      console.error('The onError callback in QueryCache failed...', onErrorError)
+    }
   }
 
   #dispatchState(entry: Query.Entry, partial: Partial<Query.State>): void {
