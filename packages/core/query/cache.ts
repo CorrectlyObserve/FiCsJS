@@ -520,9 +520,12 @@ export class QueryCache {
     newQuery,
     mutator,
     maxRetries,
+    idempotent,
     signal
   }: Query.OptimisticUpdate<T>): Promise<void> {
     if (this.#isDestroyed) return
+
+    signal?.throwIfAborted()
 
     const entry: Query.Entry = this.#getEntry(key),
       { lastOptimisticTask }: Query.Entry = entry,
@@ -536,28 +539,38 @@ export class QueryCache {
       try {
         await watch(lastOptimisticTask.catch(NOOP), signal)
       } catch (error) {
-        resolve()
-        if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined
+        /** @remarks Waits for the earlier task to fully end, as the next task would otherwise run alongside it. */
+        void lastOptimisticTask.catch(NOOP).finally(() => {
+          resolve()
+          if (entry.lastOptimisticTask === promise) entry.lastOptimisticTask = undefined
+        })
         throw error
       }
     }
 
-    this.abort({ key, isExactlyMatched: true })
+    this.#abortEntry(entry)
 
     entry.isOptimistic = true
     this.#emitMetric({ type: 'optimistic:start', key })
 
-    const { value }: { value?: T } = entry.state as Query.State<T>
-    this.#dispatchState(entry, {
-      value: newQuery instanceof Function ? newQuery(value) : newQuery,
-      updatedAt: Date.now()
-    })
-    this.#emitMetric({ type: 'cache:update', key, source: 'optimistic' })
+    const { value, updatedAt }: Query.State<T> = entry.state as Query.State<T>,
+      startedAt: number = performance.now()
 
-    const startedAt: number = performance.now()
-    let attempt: number = 0
+    let attempt: number = 0,
+      optimisticValue: T | undefined
 
     try {
+      /** @remarks Runs inside try, so a throwing newQuery still ends the update and frees the queue. */
+      try {
+        optimisticValue = newQuery instanceof Function ? newQuery(value) : newQuery
+        this.#dispatchState(entry, { value: optimisticValue, updatedAt: Date.now() })
+      } catch (error) {
+        this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
+        throw error
+      }
+
+      this.#emitMetric({ type: 'cache:update', key, source: 'optimistic' })
+
       while (true) {
         attempt++
 
@@ -573,10 +586,13 @@ export class QueryCache {
               error,
               attempt,
               maxRetries: maxRetries ?? this.#config.maxRetries,
+              isIdempotent: idempotent === true,
               signal
             })
           ) {
-            this.#dispatchState(entry, { value, updatedAt: Date.now() })
+            if (entry.state.value === optimisticValue)
+              this.#dispatchState(entry, { value, updatedAt })
+
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
             throw error
           }
@@ -584,7 +600,9 @@ export class QueryCache {
           try {
             await delay(getDelayMs({ error, attempt, maxDelayMs: this.#config.maxDelayMs }), signal)
           } catch {
-            this.#dispatchState(entry, { value, updatedAt: Date.now() })
+            if (entry.state.value === optimisticValue)
+              this.#dispatchState(entry, { value, updatedAt })
+
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
 
             /** @remarks Rethrows mutator()'s original error, not delay()'s AbortError. */
