@@ -245,8 +245,8 @@ export class QueryCache {
 
       const prevIntervalMs: number = existing.refetchIntervalMs
 
-      for (const [key, value] of typedEntries({ ...config }))
-        if (value !== undefined) existing[key] = value
+      for (const [name, value] of typedEntries({ ...config }))
+        if (value !== undefined) existing[name] = value
 
       if (existing.refetchIntervalMs !== prevIntervalMs) this.#applyRefetchTimer(existing)
       return existing
@@ -621,7 +621,7 @@ export class QueryCache {
   }
 
   expire(filter?: Query.Filter): void {
-    for (const entry of this.#match(filter as Query.Filter | undefined)) {
+    for (const entry of this.#match(filter)) {
       /** @remarks Stops a running fetch, as it would bring back old data. */
       this.#abortEntry(entry)
 
@@ -632,7 +632,7 @@ export class QueryCache {
   }
 
   abort(filter?: Query.Filter): void {
-    for (const entry of this.#match(filter as Query.Filter | undefined)) this.#abortEntry(entry)
+    for (const entry of this.#match(filter)) this.#abortEntry(entry)
   }
 
   destroy(): void {
