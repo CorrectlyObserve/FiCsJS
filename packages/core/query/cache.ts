@@ -97,8 +97,8 @@ export class QueryCache {
       }
   }
 
-  #getEntry(key: Query.Key, hashed: string = hash(key)): Query.Entry {
-    return this.#entries.get(hashed) ?? this.ensure({ key })
+  #getEntry(key: Query.Key): Query.Entry {
+    return this.#entries.get(hash(key)) ?? this.ensure({ key })
   }
 
   #abortEntry(entry: Query.Entry): void {
