@@ -93,7 +93,7 @@ export class QueryCache {
       try {
         listener(hashed, state)
       } catch (error) {
-        this.#config.onError?.(key, error)
+        this.#emitError(key, error)
       }
   }
 
@@ -330,9 +330,8 @@ export class QueryCache {
           })
 
           if (!willRetry) {
-            if (!isCurrentFetch()) return
             this.#dispatchState(entry, { error, isFetching: false })
-            this.#config.onError?.(entry.key, error)
+            this.#emitError(entry.key, error)
             return
           }
 
