@@ -224,6 +224,9 @@ export class QueryCache {
       durationMs: performance.now() - startedAt
     })
 
+    /** @remarks Schedules GC, as nothing else does for an entry made only by an update. */
+    if (this.#subscriberCount(entry.hashed) === 0) this.#scheduleGc(entry)
+
     const isFetchable: boolean = this.#subscriberCount(entry.hashed) > 0 && !!entry.fetcher,
       isRefetchNeeded: boolean = result === 'reverted' || entry.state.updatedAt === 0
 
@@ -554,7 +557,8 @@ export class QueryCache {
     this.#emitMetric({ type: 'optimistic:start', key })
 
     const { value, updatedAt }: Query.State<T> = entry.state as Query.State<T>,
-      startedAt: number = performance.now()
+      startedAt: number = performance.now(),
+      toUpdatedAt = (at: number): number => (entry.state.updatedAt === 0 ? 0 : at)
 
     let attempt: number = 0,
       optimisticValue: T | undefined
@@ -575,7 +579,7 @@ export class QueryCache {
         attempt++
 
         try {
-          this.#dispatchState(entry, { value: await mutator(), updatedAt: Date.now() })
+          this.#dispatchState(entry, { value: await mutator(), updatedAt: toUpdatedAt(Date.now()) })
           this.#emitMetric({ type: 'cache:update', key: entry.key, source: 'optimistic' })
           this.#endOptimisticUpdate({ entry, result: 'success', attempt, startedAt })
 
@@ -591,7 +595,7 @@ export class QueryCache {
             })
           ) {
             if (entry.state.value === optimisticValue)
-              this.#dispatchState(entry, { value, updatedAt })
+              this.#dispatchState(entry, { value, updatedAt: toUpdatedAt(updatedAt) })
 
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
             throw error
@@ -601,7 +605,7 @@ export class QueryCache {
             await delay(getDelayMs({ error, attempt, maxDelayMs: this.#config.maxDelayMs }), signal)
           } catch {
             if (entry.state.value === optimisticValue)
-              this.#dispatchState(entry, { value, updatedAt })
+              this.#dispatchState(entry, { value, updatedAt: toUpdatedAt(updatedAt) })
 
             this.#endOptimisticUpdate({ entry, result: 'reverted', attempt, startedAt })
 
