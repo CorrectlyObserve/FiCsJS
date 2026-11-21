@@ -260,13 +260,8 @@ export class QueryCache {
     return entry
   }
 
-  isStale(key: Query.Key): boolean {
-    return this.#isEntryStale(this.#entries.get(hash(key)))
-  }
-
-  async fetch(key: Query.Key): Promise<void> {
-    const entry: Query.Entry | undefined = this.#entries.get(hash(key))
-    if (!entry || !entry.fetcher || entry.isOptimistic) return
+  async #refetch(entry: Query.Entry): Promise<void> {
+    if (!entry.fetcher || entry.isOptimistic) return
 
     if (entry.inflight) return entry.inflight
 
@@ -274,13 +269,16 @@ export class QueryCache {
     entry.abort = new AbortController()
 
     const { signal }: { signal: AbortSignal } = entry.abort,
-      fetchId: number = ++entry.fetchId,
-      isCurrentFetch = (): boolean => entry.fetchId === fetchId
+      version: number = ++entry.version,
+      { promise, resolve, reject }: PromiseWithResolvers<void> = Promise.withResolvers<void>(),
+      isCurrentFetch = (): boolean => entry.version === version
 
-    if (!isCurrentFetch()) return
+    /** @remarks Sets `inflight` before notifying, as a listener may start a refetch right away. */
+    entry.inflight = promise
     this.#dispatchState(entry, { isFetching: true })
 
-    const promise: Promise<void> = (async () => {
+    /** @remarks Resolves `promise` after the loop, as every await on it would wait forever otherwise. */
+    void (async () => {
       let attempt: number = 1
 
       while (true) {
@@ -317,6 +315,8 @@ export class QueryCache {
             error,
             attempt,
             maxRetries: entry.maxRetries,
+            /** @remarks Retries 408, 5xx and network errors, as a query fetch only reads. */
+            isIdempotent: true,
             signal
           })
 
@@ -344,9 +344,7 @@ export class QueryCache {
           }
         }
       }
-    })()
-
-    entry.inflight = promise
+    })().then(resolve, reject)
 
     try {
       await promise
