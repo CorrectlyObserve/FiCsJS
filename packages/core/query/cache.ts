@@ -597,6 +597,9 @@ export class QueryCache {
 
   expire(filter?: Query.Filter): void {
     for (const entry of this.#match(filter as Query.Filter | undefined)) {
+      /** @remarks Stops a running fetch, as it would bring back old data. */
+      this.#abortEntry(entry)
+
       this.#dispatchState(entry, { updatedAt: 0 })
 
       if (this.#isRefetchable(entry)) void this.#refetch(entry)
