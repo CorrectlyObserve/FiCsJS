@@ -139,32 +139,55 @@ export const updateFirstVisible = <D extends object, P>({
     return
   }
 
-  const _getProperty = (element: HTMLElement): Record<'start' | 'end', number> => {
-      const rect: DOMRectReadOnly = element.getBoundingClientRect()
+  const isRtl: boolean = getIsRtl(root, isVertical),
+    { start: viewStart, end: viewEnd }: Record<'start' | 'end', number> = measurePosition({
+      element: root,
+      isVertical,
+      isRtl
+    }),
+    visibleRest: { key: string; offset: number }[] = []
 
-      return (['start', 'end'] as const).reduce(
-        (prev, curr) => {
-          prev[curr] = (rect as any)[getProperty({ isVertical, type: curr })]
-          return prev
-        },
-        {} as Record<'start' | 'end', number>
-      )
-    },
-    { start: viewStart, end: viewEnd }: Record<'start' | 'end', number> = _getProperty(root)
+  /** @remarks Uses the nearest item if none is visible, such as in a fast scroll. */
+  let firstVisible:
+    | { index: number; item: HTMLElement; start: number; distance: number; isVisible: boolean }
+    | undefined
 
   for (const [index, item] of items.entries()) {
-    const { start, end }: Record<'start' | 'end', number> = _getProperty(item)
+    const { start, end }: Record<'start' | 'end', number> = measurePosition({
+        element: item,
+        isVertical,
+        isRtl
+      }),
+      isVisible: boolean = end > viewStart && start < viewEnd,
+      distance: number = isVisible ? -1 : Math.max(viewStart - end, start - viewEnd)
 
-    if (end <= viewStart || start >= viewEnd) continue
+    if (!firstVisible || distance < firstVisible.distance)
+      firstVisible = { index, item, start, distance, isVisible }
 
-    const keyAttr: string | null = item.getAttribute('key')
-    if (!keyAttr) throw new Error('Virtual scroll items must have a unique "key" attribute...')
-
-    scrollOptions.firstVisible.index = scrollOptions.startIndex + index
-    scrollOptions.firstVisible.key = keyAttr
-    scrollOptions.firstVisible.offset = start - viewStart
-    return
+    if (isVisible) break
   }
 
-  scrollOptions.firstVisible = {}
+  if (!firstVisible) return
+
+  if (firstVisible.isVisible)
+    for (const item of items.slice(firstVisible.index + 1)) {
+      const { start }: Record<'start' | 'end', number> = measurePosition({
+        element: item,
+        isVertical,
+        isRtl
+      })
+      if (start >= viewEnd) break
+
+      visibleRest.push({ key: item.getAttribute('key') ?? '', offset: start - viewStart })
+    }
+
+  const key: string | null = firstVisible.item.getAttribute('key')
+  if (!key) throw new Error('Virtual scroll items must have a unique "key" attribute...')
+
+  scrollOptions.firstVisible.index = scrollOptions.rendered.startIndex + firstVisible.index
+  scrollOptions.firstVisible.key = key
+  scrollOptions.firstVisible.offset = firstVisible.start - viewStart
+  scrollOptions.firstVisible.scrollOffset = scrollOffset
+  scrollOptions.firstVisible.isOffscreen = !firstVisible.isVisible
+  scrollOptions.firstVisible.visibleRest = visibleRest
 }
