@@ -27,13 +27,10 @@ export const fetchWithinThreshold = <D extends object, P>({
 
   if (isFetching || totalCount <= lastTriggeredCount) return
 
-  const { scrollOffset, scrollAmount, clientSize }: Scroll.Metrics = getScrollMetrics(
-    root,
-    isVertical
-  )
+  const { scrollOffset, scrollAmount, clientSize, isUnmeasurable }: Scroll.Metrics =
+    getScrollMetrics(root, isVertical)
 
-  /** @remarks Skips the check while hidden, as scroll distance cannot be measured with zero size. */
-  if (clientSize === 0) return
+  if (isUnmeasurable) return
 
   if (scrollAmount > clientSize) {
     /** @remarks Ignores `isJustReset` on a short list, as only a scroll clears it and this list cannot scroll. */
