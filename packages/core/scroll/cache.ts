@@ -59,6 +59,15 @@ export const estimateOffsetBeforeIndex = ({
   return measuredSize + (clampedIndex - measuredCount) * aveSize
 }
 
+export const removeSize = (cache: Scroll.Cache, index: number): void => {
+  const size: number = cache.measuredSizes[index]
+  if (!Number.isFinite(size)) return
+
+  cache.measuredSizes[index] = Number.NaN
+  fenwickTree.add(cache.trees.sizes, index + 1, -size)
+  fenwickTree.add(cache.trees.counts, index + 1, -1)
+}
+
 /** @param cache.maxLength Must be a positive integer. */
 export const rebuildFenwickTrees = (cache: Scroll.Cache, mode: 'force' | 'if-needed'): void => {
   const { maxLength }: Scroll.Cache = cache
