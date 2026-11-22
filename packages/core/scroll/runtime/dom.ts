@@ -39,6 +39,21 @@ export const getSentinel = ({
 }): Element | null =>
   root.querySelector(`[${getScrollAttr({ instanceId, type: 'sentinel', hasValue: true })}]`)
 
+export const measurePosition = ({
+  element,
+  isVertical,
+  isRtl
+}: {
+  element: Element
+  isVertical: boolean
+  isRtl: boolean
+}): Record<'start' | 'end', number> => {
+  const { top, bottom, left, right }: DOMRect = element.getBoundingClientRect()
+
+  if (isVertical) return { start: top, end: bottom }
+  return isRtl ? { start: -right, end: -left } : { start: left, end: right }
+}
+
 export const restoreAxisOffset = <D extends object, P>({
   scrollOptions,
   root,
