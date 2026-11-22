@@ -602,6 +602,13 @@ type RateLimitFn = <T extends unknown[]>(
 ) => (...args: T) => void
 
 export declare namespace Scroll {
+  interface Anchor {
+    key: string
+    offset: number
+    scrollOffset: number
+    visibleRest?: { key: string; offset: number }[]
+  }
+
   type Axis = 'vertical' | 'horizontal'
 
   interface Cache {
