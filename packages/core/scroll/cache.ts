@@ -37,53 +37,6 @@ const rebuildTrees = (cache: Scroll.Cache): void => {
 }
 
 /**
- * @param cache Must be a positive integer.
- * @param index Must be a non-negative integer.
- */
-export const evictCache = <D extends object, P>({
-  cache,
-  index
-}: {
-  cache: Scroll.Cache
-  index: number
-}): void => {
-  const { indexKeys, startIndex, maxLength, sizeFenwickTree, countFenwickTree }: Scroll.Cache =
-    cache
-
-  numberError({ maxLength }, 'positive-int')
-  numberError({ index }, 'non-negative-int')
-
-  /** @remarks Resets the cache when scrolling moves toward earlier indexes. */
-  if (index < startIndex) {
-    cache.startIndex = index
-    cache.evictedSize = 0
-    cache.evictedCount = 0
-    rebuildFenwickTrees(cache, 'force')
-    return
-  }
-  if (index === startIndex) return
-
-  rebuildFenwickTrees(cache, 'if-needed')
-
-  let evictedCount: number = index - startIndex
-  if (evictedCount > maxLength) evictedCount = maxLength
-
-  cache.evictedSize += fenwickTree.sum(sizeFenwickTree, evictedCount)
-  cache.evictedCount += fenwickTree.sum(countFenwickTree, evictedCount)
-
-  for (const [_index, key] of indexKeys) {
-    if (_index >= index) continue
-
-    cache.indexSizes.delete(_index)
-    cache.indexKeys.delete(_index)
-    if (key) cache.elementSizes.delete(key)
-  }
-
-  cache.startIndex = index
-  rebuildFenwickTrees(cache, 'force')
-}
-
-/**
  * @param totalCount Must be a non-negative integer.
  * @param index Must be a non-negative integer.
  * @param aveSize Must be a positive number.
@@ -147,3 +100,27 @@ export const resetCache = (cache: Scroll.Cache): void => {
   cache.elementIndexes = new WeakMap()
   rebuildTrees(cache)
 }
+
+export const setSize = ({
+  cache,
+  index,
+  size
+}: {
+  cache: Scroll.Cache
+  index: number
+  size: number
+}): number | undefined => {
+  const prevSize: number = cache.measuredSizes[index]
+  if (prevSize === size) return prevSize
+
+  cache.measuredSizes[index] = size
+
+  const isMeasured: boolean = Number.isFinite(prevSize)
+  fenwickTree.add(cache.trees.sizes, index + 1, size - (isMeasured ? prevSize : 0))
+
+  if (isMeasured) return prevSize
+
+  fenwickTree.add(cache.trees.counts, index + 1, 1)
+  return undefined
+}
+
