@@ -53,10 +53,10 @@ export const fenwickTree = {
 
 /** @remarks Returns the first visible item as an anchor, or `undefined` when no item has been measured yet. */
 export const getAnchor = <D extends object, P>({
-  firstVisible: { key, offset, scrollOffset, rest }
+  firstVisible: { key, offset, scrollOffset, visibleRest }
 }: Scroll.Resolved<D, P>): Scroll.Anchor | undefined =>
   key !== undefined && offset !== undefined && scrollOffset !== undefined
-    ? { key, offset, scrollOffset, rest }
+    ? { key, offset, scrollOffset, visibleRest }
     : undefined
 
 export const getAveSize = <D extends object, P>({
