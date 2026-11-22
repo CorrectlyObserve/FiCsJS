@@ -31,27 +31,6 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
  * ```
  */
 export const fenwickTree = {
-  build: (values: number[]): number[] => {
-    const tree: number[] = fenwickTree.reset(values.length)
-
-    for (const [index, value] of values.entries()) {
-      const steps: number = value * FIXED_POINT_SCALE
-
-      /** @remarks Calls the numberError function only on a bad value, as calling it every time is too slow. */
-      if (!Number.isInteger(steps)) numberError({ steps }, 'int')
-
-      /** @remarks The fenwick tree is 1-indexed. */
-      const treeIndex: number = index + 1
-
-      /** @remarks Adds the lowest 1 bit, which gives the larger subtotal that contains this one. */
-      const containingIndex: number = treeIndex + (treeIndex & -treeIndex)
-
-      tree[treeIndex] += steps
-      if (containingIndex < tree.length) tree[containingIndex] += tree[treeIndex]
-    }
-
-    return tree
-  },
   /** @param index Must be a positive integer. */
   add: (tree: number[], index: number, diff: number): void => {
     numberError({ index }, 'positive-int')

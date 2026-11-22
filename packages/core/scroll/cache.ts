@@ -1,6 +1,40 @@
 import { numberError } from '../helpers'
 import type { Scroll } from '../types'
+import { FIXED_POINT_SCALE } from './constants'
 import { fenwickTree } from './helpers'
+
+const rebuildTrees = (cache: Scroll.Cache): void => {
+  const { measuredSizes }: Scroll.Cache = cache,
+    trees = {} as Scroll.Cache['trees']
+
+  for (const tree of ['sizes', 'counts'] as (keyof Scroll.Cache['trees'])[])
+    trees[tree] = fenwickTree.reset(measuredSizes.length)
+
+  for (const [index, size] of measuredSizes.entries()) {
+    /** @remarks The fenwick tree is 1-indexed. */
+    const treeIndex: number = index + 1
+
+    /** @remarks Adds the lowest 1 bit, which gives the larger subtotal that contains this one. */
+    const containingIndex: number = treeIndex + (treeIndex & -treeIndex)
+
+    if (!Number.isNaN(size)) {
+      const steps: number = size * FIXED_POINT_SCALE
+
+      /** @remarks Calls the numberError function only on a bad value, as calling it every time is too slow. */
+      if (!Number.isInteger(steps)) numberError({ steps }, 'int')
+
+      trees.sizes[treeIndex] += steps
+      /** @remarks Adds 64 for one item, as the sum function divides every tree by `FIXED_POINT_SCALE`. */
+      trees.counts[treeIndex] += FIXED_POINT_SCALE
+    }
+
+    if (containingIndex < trees.sizes.length)
+      for (const tree of ['sizes', 'counts'] as (keyof Scroll.Cache['trees'])[])
+        trees[tree][containingIndex] += trees[tree][treeIndex]
+  }
+
+  cache.trees = trees
+}
 
 /**
  * @param cache Must be a positive integer.
