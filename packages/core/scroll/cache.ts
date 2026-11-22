@@ -68,39 +68,30 @@ export const removeSize = (cache: Scroll.Cache, index: number): void => {
   fenwickTree.add(cache.trees.counts, index + 1, -1)
 }
 
-/** @param cache.maxLength Must be a positive integer. */
-export const rebuildFenwickTrees = (cache: Scroll.Cache, mode: 'force' | 'if-needed'): void => {
-  const { maxLength }: Scroll.Cache = cache
-  numberError({ maxLength }, 'positive-int')
+/** @param totalCount Must be a non-negative integer. */
+export const resizeCache = (cache: Scroll.Cache, totalCount: number): void => {
+  numberError({ totalCount }, 'non-negative-int')
 
-  if (mode === 'if-needed') {
-    const { sizeFenwickTree, countFenwickTree }: Scroll.Cache = cache
+  const { measuredSizes }: Scroll.Cache = cache
 
-    /**
-     * @remarks
-     * Converts the 0-based relative index to 1-based, as required by the Fenwick Tree.
-     */
-    const cacheLength: number = maxLength + 1
-    if (sizeFenwickTree.length === cacheLength && countFenwickTree.length === cacheLength) return
+  if (totalCount > measuredSizes.length) {
+    /** @remarks Grows by at least 2x to amortize tree rebuilds to O(1) per item. */
+    const nextLength: number = Math.max(totalCount, measuredSizes.length * 2)
+
+    while (measuredSizes.length < nextLength) measuredSizes.push(Number.NaN)
+    rebuildTrees(cache)
+    return
   }
 
-  cache.sizeFenwickTree = fenwickTree.reset(maxLength)
-  cache.countFenwickTree = fenwickTree.reset(maxLength)
+  /** @remarks Forgets the sizes after the last item, as an item added there later would get an old size. */
+  let hasForgottenSize: boolean = false
+  for (let index = totalCount; index < measuredSizes.length; index++)
+    if (!Number.isNaN(measuredSizes[index])) {
+      measuredSizes[index] = Number.NaN
+      hasForgottenSize = true
+    }
 
-  const { indexSizes, startIndex, sizeFenwickTree, countFenwickTree }: Scroll.Cache = cache
-
-  for (const [index, size] of indexSizes) {
-    /**
-     * @remarks
-     * Converts the 0-based relative index to 1-based, as required by the Fenwick Tree.
-     */
-    const treeIndex: number = index - startIndex + 1
-
-    if (treeIndex < 1 || treeIndex > maxLength) continue
-
-    fenwickTree.add(sizeFenwickTree, treeIndex, size)
-    fenwickTree.add(countFenwickTree, treeIndex, 1)
-  }
+  if (hasForgottenSize) rebuildTrees(cache)
 }
 
 export const resetCache = (cache: Scroll.Cache): void => {
