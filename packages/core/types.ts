@@ -612,16 +612,10 @@ export declare namespace Scroll {
   type Axis = 'vertical' | 'horizontal'
 
   interface Cache {
-    elementSizes: Map<string, number>
-    indexSizes: Map<number, number>
-    indexKeys: Map<number, string>
+    measuredSizes: number[]
+    renderedKeys: Map<number, string>
     elementIndexes: WeakMap<Element, number>
-    maxLength: number
-    startIndex: number
-    evictedSize: number
-    evictedCount: number
-    sizeFenwickTree: number[]
-    countFenwickTree: number[]
+    trees: { sizes: number[]; counts: number[] }
   }
 
   interface Clamped extends Omit<Options, 'bufferLength' | 'throttleMs' | 'thresholdRatio'> {
