@@ -103,13 +103,16 @@ export const restoreAxisOffset = <D extends object, P>({
 
   root.scrollTop = 0
   root.scrollLeft = 0
+  /** @remarks Flips the sign in RTL, as `scrollLeft` starts at 0 on the right and goes negative to the left. */
   ;(root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })] =
-    getOffsetBeforeIndex({
+    (getOffsetBeforeIndex({
       cache,
       totalCount,
       index: index ?? startIndex,
       aveSize: getAveSize({ aveSize, itemMinSize })
-    }) + offset
+    }) +
+      offset) *
+    (getIsRtl(root, isVertical) ? -1 : 1)
 
   scrollOptions.flags.shouldRestoreAxisOffset = false
   scrollOptions.flags.isRangeLocked = false
