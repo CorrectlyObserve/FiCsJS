@@ -84,84 +84,26 @@ export const evictCache = <D extends object, P>({
 }
 
 /**
- * @param cache.maxLength Must be a positive integer.
- * @param cache.evictedSize Must be a non-negative number.
- * @param cache.evictedCount Must be a non-negative integer.
  * @param totalCount Must be a non-negative integer.
  * @param index Must be a non-negative integer.
  * @param aveSize Must be a positive number.
  */
-export const getOffsetBeforeIndex = <D extends object, P>({
-  cache,
+export const estimateOffsetBeforeIndex = ({
+  cache: {
+    trees: { sizes, counts }
+  },
   totalCount,
   index,
   aveSize
 }: Scroll.Ctx.OffsetBeforeIndex): number => {
-  numberError({ index }, 'non-negative-int')
+  numberError({ totalCount, index }, 'non-negative-int')
   numberError({ aveSize }, 'positive')
 
-  if (!cache) return index * aveSize
+  const clampedIndex: number = Math.min(index, totalCount),
+    measuredSize: number = fenwickTree.sum(sizes, clampedIndex),
+    measuredCount: number = fenwickTree.sum(counts, clampedIndex)
 
-  rebuildFenwickTrees(cache, 'if-needed')
-
-  const {
-    startIndex,
-    maxLength,
-    evictedSize,
-    evictedCount,
-    sizeFenwickTree,
-    countFenwickTree
-  }: Scroll.Cache = cache
-
-  numberError({ evictedSize }, 'non-negative')
-  numberError({ evictedCount }, 'non-negative-int')
-
-  /**
-   * @remarks
-   * The estimated cumulative size before the current index.
-   * Starts with the evicted measured total size and adds an average-size fallback
-   * for evicted items without measured sizes.
-   */
-  let estimatedSize: number = evictedSize + (startIndex - evictedCount) * aveSize,
-    estimatedAveSize: number = startIndex > 0 ? estimatedSize / startIndex : aveSize
-
-  if (index <= startIndex) return estimatedAveSize * index
-
-  numberError({ maxLength }, 'positive-int')
-  numberError({ totalCount }, 'non-negative-int')
-
-  const endIndex: number = Math.min(startIndex + maxLength, totalCount),
-    clampedIndex: number = Math.min(index, totalCount),
-    measurableEndIndex: number = Math.min(clampedIndex, endIndex)
-
-  /**
-   * @remarks
-   * The relative index within the cache window.
-   * Converts the global list index into a relative cache position (0 to maxLength).
-   */
-  let relativeIndex = measurableEndIndex - startIndex
-
-  numberError({ relativeIndex }, 'positive-int')
-
-  if (relativeIndex > 0) {
-    const measuredSize: number = fenwickTree.sum(sizeFenwickTree, relativeIndex),
-      measuredCount: number = fenwickTree.sum(countFenwickTree, relativeIndex)
-
-    estimatedSize += measuredSize + (relativeIndex - measuredCount) * aveSize
-  } else estimatedSize += relativeIndex * aveSize
-
-  /**
-   * @remarks
-   * Adds the estimated size for items located beyond the current cache window by using the average.
-   *
-   * @example
-   * `endIndex` = 100, `clampedIndex` = 150, `aveSize` = 50
-   * Added size: (150 - 100) * 50 = 2500
-   */
-  if (clampedIndex > endIndex) estimatedSize += (clampedIndex - endIndex) * aveSize
-
-  numberError({ estimatedSize }, 'positive')
-  return estimatedSize
+  return measuredSize + (clampedIndex - measuredCount) * aveSize
 }
 
 /** @param cache.maxLength Must be a positive integer. */
