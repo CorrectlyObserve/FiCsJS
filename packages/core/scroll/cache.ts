@@ -199,11 +199,9 @@ export const rebuildFenwickTrees = (cache: Scroll.Cache, mode: 'force' | 'if-nee
   }
 }
 
-export const resetCache = <D extends object, P>(cache: Scroll.Cache): void => {
-  for (const map of ['elementSizes', 'indexSizes', 'indexKeys'] as const) cache[map].clear()
-
-  for (const number of ['startIndex', 'evictedSize', 'evictedCount'] as const) cache[number] = 0
-
+export const resetCache = (cache: Scroll.Cache): void => {
+  cache.measuredSizes.fill(Number.NaN)
+  cache.renderedKeys.clear()
   cache.elementIndexes = new WeakMap()
-  rebuildFenwickTrees(cache, 'force')
+  rebuildTrees(cache)
 }
