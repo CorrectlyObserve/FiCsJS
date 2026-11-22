@@ -1,5 +1,5 @@
 import type { Scroll } from '../../types'
-import { getOffsetBeforeIndex } from '../cache'
+import { estimateOffsetBeforeIndex } from '../cache'
 import { getAveSize, getScrollAttr, getProperty, getScrollMetrics } from '../helpers'
 
 export const getIsRtl = (root: HTMLElement, isVertical: boolean): boolean =>
@@ -105,7 +105,7 @@ export const restoreAxisOffset = <D extends object, P>({
   root.scrollLeft = 0
   /** @remarks Flips the sign in RTL, as `scrollLeft` starts at 0 on the right and goes negative to the left. */
   ;(root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })] =
-    (getOffsetBeforeIndex({
+    (estimateOffsetBeforeIndex({
       cache,
       totalCount,
       index: index ?? startIndex,
