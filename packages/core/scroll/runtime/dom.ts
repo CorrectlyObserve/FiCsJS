@@ -130,6 +130,9 @@ export const updateFirstVisible = <D extends object, P>({
   instanceId: string
   isVertical: boolean
 }): void => {
+  const { isUnmeasurable, scrollOffset }: Scroll.Metrics = getScrollMetrics(root, isVertical)
+  if (isUnmeasurable) return
+
   const items: HTMLElement[] = getItemsInScrollArea({ root, instanceId })
   if (items.length === 0) {
     scrollOptions.firstVisible = {}
