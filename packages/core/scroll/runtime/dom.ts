@@ -39,6 +39,32 @@ export const getSentinel = ({
 }): Element | null =>
   root.querySelector(`[${getScrollAttr({ instanceId, type: 'sentinel', hasValue: true })}]`)
 
+export const measureItemSize = ({
+  item,
+  nextItem,
+  isVertical,
+  isRtl
+}: {
+  item: HTMLElement
+  nextItem: Element | null | undefined
+  isVertical: boolean
+  isRtl: boolean
+}): number => {
+  const { start, end }: Record<'start' | 'end', number> = measurePosition({
+    element: item,
+    isVertical,
+    isRtl
+  })
+
+  if (nextItem) return measurePosition({ element: nextItem, isVertical, isRtl }).start - start
+
+  return (
+    end -
+    start +
+    (parseFloat(getComputedStyle(item)[`margin${isVertical ? 'Block' : 'Inline'}End`]) || 0)
+  )
+}
+
 export const measurePosition = ({
   element,
   isVertical,
