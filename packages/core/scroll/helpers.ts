@@ -101,14 +101,21 @@ export const getScrollAttr = ({
   hasValue: boolean
 }): string => `${instanceId}-${type}${hasValue ? '="true"' : ''}`
 
-export const getScrollMetrics = (root: HTMLElement, isVertical: boolean): Scroll.Metrics => ({
-  /** @remarks Takes the absolute value, as scrollLeft counts down from 0 in RTL. */
-  scrollOffset: Math.abs(
-    (root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })]
-  ),
-  scrollAmount: (root as any)[getProperty({ isVertical, type: 'size', prefix: 'scroll' })],
-  clientSize: (root as any)[getProperty({ isVertical, type: 'size', prefix: 'client' })]
-})
+export const getScrollMetrics = (root: HTMLElement, isVertical: boolean): Scroll.Metrics => {
+  const clientSize: number = (root as any)[
+    getProperty({ isVertical, type: 'size', prefix: 'client' })
+  ]
+
+  return {
+    /** @remarks Takes the absolute value, as scrollLeft counts down from 0 in RTL. */
+    scrollOffset: Math.abs(
+      (root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })]
+    ),
+    scrollAmount: (root as any)[getProperty({ isVertical, type: 'size', prefix: 'scroll' })],
+    clientSize,
+    isUnmeasurable: clientSize === 0
+  }
+}
 
 export const getProperty = ({
   isVertical,
