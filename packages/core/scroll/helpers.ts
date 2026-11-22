@@ -9,8 +9,8 @@ export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<
     scrollOptions.timers[key] = undefined
   }
 
-  /** @remarks Sets `isScrolling` to false directly, as its timer was canceled and will no longer fire. */
-  scrollOptions.isScrolling = false
+  /** @remarks Sets `scrolling.isActive` to false directly, as its timer was canceled and will no longer fire. */
+  scrollOptions.scrolling.isActive = false
 }
 
 /**
