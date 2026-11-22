@@ -1,6 +1,9 @@
 import type { Scroll } from '../../types'
 import { getOffsetBeforeIndex } from '../cache'
-import { getAveSize, getScrollAttr, getProperty } from '../helpers'
+import { getAveSize, getScrollAttr, getProperty, getScrollMetrics } from '../helpers'
+
+export const getIsRtl = (root: HTMLElement, isVertical: boolean): boolean =>
+  !isVertical && getComputedStyle(root).direction === 'rtl'
 
 export const getItemsInScrollArea = ({
   root,
