@@ -104,12 +104,16 @@ export const resetCache = (cache: Scroll.Cache): void => {
 export const setSize = ({
   cache,
   index,
+  key,
   size
 }: {
   cache: Scroll.Cache
   index: number
+  key: Scroll.Key
   size: number
 }): number | undefined => {
+  cache.sizesByKey.set(key, size)
+
   const prevSize: number = cache.measuredSizes[index]
   if (prevSize === size) return prevSize
 
