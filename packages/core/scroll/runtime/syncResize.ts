@@ -5,40 +5,6 @@ import { fenwickTree, getProperty, isValidNumber } from '../helpers'
 import { getItemsInScrollArea, updateFirstVisible } from './dom'
 import { updateAveSize, updateRange } from './virtualizer'
 
-const isKeyChanged = (key: string, prevKey: string | undefined): prevKey is string =>
-    prevKey !== undefined && prevKey !== key,
-  upsertMeasuredSize = ({
-    cache,
-    key,
-    index,
-    size,
-    fenwickTreeIndex,
-    sizeFenwickTree,
-    countFenwickTree
-  }: {
-    cache: Scroll.Cache
-    key: string
-    index: number
-    size: number
-    fenwickTreeIndex: number
-    sizeFenwickTree: number[]
-    countFenwickTree: number[]
-  }): { prevSize: number | undefined; prevIndexSize: number | undefined } => {
-    const prevSize: number | undefined = cache.elementSizes.get(key),
-      prevIndexSize: number | undefined = cache.indexSizes.get(index)
-
-    if (prevIndexSize !== size)
-      fenwickTree.add(sizeFenwickTree, fenwickTreeIndex, size - (prevIndexSize ?? 0))
-
-    if (prevIndexSize === undefined) fenwickTree.add(countFenwickTree, fenwickTreeIndex, 1)
-
-    cache.elementSizes.set(key, size)
-    cache.indexSizes.set(index, size)
-    cache.indexKeys.set(index, key)
-
-    return { prevSize, prevIndexSize }
-  }
-
 export const syncResize = <D extends object, P>({
   getScrollOptions,
   getIsVertical,
