@@ -96,7 +96,7 @@ export const resizeCache = (cache: Scroll.Cache, totalCount: number): void => {
 
 export const resetCache = (cache: Scroll.Cache): void => {
   cache.measuredSizes.fill(Number.NaN)
-  cache.renderedKeys.clear()
+  cache.sizesByKey.clear()
   cache.elementIndexes = new WeakMap()
   rebuildTrees(cache)
 }
