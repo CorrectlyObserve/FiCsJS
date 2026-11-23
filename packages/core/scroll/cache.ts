@@ -123,23 +123,3 @@ export const setSize = ({
   fenwickTree.add(cache.trees.counts, index + 1, 1)
   return undefined
 }
-
-/** @param delta Must be an integer. */
-export const shiftCache = (cache: Scroll.Cache, delta: number): void => {
-  numberError({ delta }, 'int')
-  if (delta === 0) return
-
-  const { measuredSizes, renderedKeys }: Scroll.Cache = cache
-
-  cache.measuredSizes =
-    delta > 0
-      ? new Array(delta).fill(Number.NaN).concat(measuredSizes)
-      : measuredSizes.slice(-delta)
-
-  cache.renderedKeys = new Map()
-  for (const [index, key] of renderedKeys)
-    if (index + delta >= 0) cache.renderedKeys.set(index + delta, key)
-
-  cache.elementIndexes = new WeakMap()
-  rebuildTrees(cache)
-}
