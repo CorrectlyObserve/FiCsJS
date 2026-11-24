@@ -1,6 +1,6 @@
 import { numberError } from '../helpers'
 import type { Scroll } from '../types'
-import { FIXED_POINT_SCALE, KEPT_SIZES_LIMIT } from './constants'
+import { FIXED_POINT_SCALE, SAVED_SIZES_LIMIT } from './constants'
 import { fenwickTree } from './helpers'
 
 const rebuildTrees = (cache: Scroll.Cache): void => {
@@ -143,8 +143,8 @@ export const syncCache = <T>(
     return
   }
 
-  /** @remarks Keeps the sizes of removed items up to a limit, as a cleared filter brings them back. */
-  if (sizesByKey.size > Math.max(keys.length * 2, KEPT_SIZES_LIMIT)) {
+  /** @remarks Saves the sizes of removed items up to a limit, as a cleared filter brings them back. */
+  if (sizesByKey.size > Math.max(keys.length * 2, SAVED_SIZES_LIMIT)) {
     const sizes: Map<Scroll.Key, number> = new Map()
 
     for (const key of keys) {
