@@ -11,24 +11,39 @@ import {
 } from './dom'
 import { updateAveSize, updateRange } from './virtualizer'
 
-export const syncResize = <D extends object, P>({
+const scheduleRangeUpdate = <D extends object, P>({
   getScrollOptions,
   getIsVertical,
-  observers,
   root,
   instanceId,
   getOptions,
   reRender
-}: {
-  getScrollOptions: () => Scroll.Resolved<D, P>
-  getIsVertical: () => boolean
-  observers: Omit<Scroll.Observers, 'root'>
-  root: HTMLElement
-  instanceId: string
-  getOptions: () => Pick<Scroll.Clamped, 'unit' | 'itemMinSize' | 'bufferLength' | 'thresholdRatio'>
-  reRender: Scroll.Ctx.Runtime<D, P>['reRender']
-}): void => {
-  const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
+}: Scroll.Ctx.Resize<D, P>): void => {
+  const { timers }: Scroll.Resolved<D, P> = getScrollOptions()
+
+  if (timers.resize) clearTimeout(timers.resize)
+
+  timers.resize = setTimeout(() => {
+    const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
+      /** @remarks Reads the options again, as the resize observer outlives the call that created it. */
+      options = getOptions()
+
+    updateAveSize({ scrollOptions, ...options })
+    updateRange({
+      scrollOptions,
+      root,
+      instanceId,
+      isVertical: getIsVertical(),
+      reRender,
+      ...options
+    })
+  }, FRAME_INTERVAL_MS)
+}
+
+export const syncResize = <D extends object, P>(ctx: Scroll.Ctx.Resize<D, P>): void => {
+  const { getScrollOptions, getIsVertical, observers, root, instanceId }: Scroll.Ctx.Resize<D, P> =
+      ctx,
+    scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
     { cache, endIndex, startIndex }: Scroll.Resolved<D, P> = scrollOptions,
     { maxLength, indexKeys, sizeFenwickTree, countFenwickTree }: Scroll.Cache = cache
 
@@ -105,31 +120,7 @@ export const syncResize = <D extends object, P>({
       hasSizeChanged = true
   }
 
-  const setResizeTimer = (): void => {
-    const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
-      {
-        timers: { resize }
-      }: Scroll.Resolved<D, P> = scrollOptions
-
-    if (resize) clearTimeout(resize)
-
-    scrollOptions.timers.resize = setTimeout(() => {
-      const _scrollOptions: Scroll.Resolved<D, P> = getScrollOptions()
-
-      updateAveSize({ scrollOptions: _scrollOptions, itemMinSize, thresholdRatio })
-      updateRange({
-        scrollOptions: _scrollOptions,
-        root,
-        isVertical: getIsVertical(),
-        itemMinSize,
-        unit,
-        bufferLength,
-        reRender
-      })
-    }, FRAME_INTERVAL_MS)
-  }
-
-  if (hasSizeChanged) setResizeTimer()
+  if (hasSizeChanged) scheduleRangeUpdate(ctx)
 
   observers.resize ??= new ResizeObserver(entries => {
     const { cache }: { cache: Scroll.Cache } = getScrollOptions(),
@@ -194,7 +185,7 @@ export const syncResize = <D extends object, P>({
     }
 
     if (!_hasSizeChanged) return
-    setResizeTimer()
+    scheduleRangeUpdate(ctx)
   })
 
   observers.resize.disconnect()
