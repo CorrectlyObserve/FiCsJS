@@ -11,6 +11,56 @@ import {
 } from './dom'
 import { updateAveSize, updateRange } from './virtualizer'
 
+const createResizeObserver = <D extends object, P>(
+  ctx: Scroll.Ctx.Resize<D, P>
+): ResizeObserver => {
+  const { getScrollOptions, getIsVertical, root, instanceId }: Scroll.Ctx.Resize<D, P> = ctx
+
+  return new ResizeObserver(entries => {
+    const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
+      { cache }: Scroll.Resolved<D, P> = scrollOptions,
+      { elementIndexes, keys }: Scroll.Cache = cache,
+      isVertical: boolean = getIsVertical(),
+      isRtl: boolean = getIsRtl(root, isVertical)
+
+    let hasSizeChanged: boolean = false
+
+    for (const { target } of entries) {
+      const targetElement: HTMLElement = target as HTMLElement,
+        index: number | undefined = elementIndexes.get(targetElement)
+
+      if (index === undefined) continue
+
+      const key: Scroll.Key | undefined = keys[index]
+      if (key === undefined) continue
+
+      const { nextElementSibling }: Element = targetElement,
+        size: number = roundSize(
+          measureItemSize({
+            item: targetElement,
+            nextItem:
+              nextElementSibling && elementIndexes.has(nextElementSibling)
+                ? nextElementSibling
+                : null,
+            isVertical,
+            isRtl
+          })
+        )
+      if (!isValidNumber(size)) continue
+
+      if (setSize({ cache, index, key, size }) !== size) hasSizeChanged = true
+    }
+
+    if (!hasSizeChanged) return
+
+    scrollOptions.anchors.latest = getAnchor(scrollOptions)
+    restoreAnchor({ scrollOptions, root, instanceId, isVertical })
+    updateFirstVisible({ scrollOptions, root, instanceId, isVertical })
+
+    scheduleRangeUpdate(ctx)
+  })
+}
+
 const scheduleRangeUpdate = <D extends object, P>({
   getScrollOptions,
   getIsVertical,
@@ -122,72 +172,7 @@ export const syncResize = <D extends object, P>(ctx: Scroll.Ctx.Resize<D, P>): v
 
   if (hasSizeChanged) scheduleRangeUpdate(ctx)
 
-  observers.resize ??= new ResizeObserver(entries => {
-    const { cache }: { cache: Scroll.Cache } = getScrollOptions(),
-      {
-        indexSizes,
-        indexKeys,
-        elementIndexes,
-        startIndex,
-        maxLength,
-        sizeFenwickTree,
-        countFenwickTree
-      }: Scroll.Cache = cache
-    let _hasSizeChanged: boolean = false
-
-    for (const { target, contentRect } of entries) {
-      const targetElement: HTMLElement = target as HTMLElement,
-        key: string | null = targetElement.getAttribute('key')
-      if (!key) continue
-
-      const index: number | undefined = elementIndexes.get(targetElement)
-
-      if (index === undefined) continue
-
-      /** @remarks The fenwick tree is 1-indexed. */
-      const fenwickTreeIndex: number = index - startIndex + 1
-
-      /** @remarks Prevents excessive updates during rapid scrolling. */
-      if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
-
-      const prevKey: string | undefined = indexKeys.get(index)
-      if (isKeyChanged(key, prevKey)) {
-        cache.elementSizes.delete(prevKey)
-
-        const removedSize: number | undefined = indexSizes.get(index)
-        if (removedSize !== undefined) {
-          fenwickTree.add(sizeFenwickTree, fenwickTreeIndex, -removedSize)
-          fenwickTree.add(countFenwickTree, fenwickTreeIndex, -1)
-        }
-        cache.indexSizes.delete(index)
-      }
-
-      const size: number = (contentRect as any)[
-        getProperty({ isVertical: getIsVertical(), type: 'size' })
-      ]
-      if (!isValidNumber(size)) continue
-
-      const {
-        prevSize,
-        prevIndexSize
-      }: { prevSize: number | undefined; prevIndexSize: number | undefined } = upsertMeasuredSize({
-        cache,
-        key,
-        index,
-        size,
-        fenwickTreeIndex,
-        sizeFenwickTree,
-        countFenwickTree
-      })
-
-      if (!isKeyChanged(key, prevKey) && prevSize === size && prevIndexSize === size) continue
-      _hasSizeChanged = true
-    }
-
-    if (!_hasSizeChanged) return
-    scheduleRangeUpdate(ctx)
-  })
-
+  observers.resize ??= createResizeObserver(ctx)
   observers.resize.disconnect()
   for (const item of items) observers.resize.observe(item)
   updateFirstVisible({ scrollOptions, root, instanceId, isVertical })
