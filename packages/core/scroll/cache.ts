@@ -1,6 +1,6 @@
 import { numberError } from '../helpers'
 import type { Scroll } from '../types'
-import { FIXED_POINT_SCALE } from './constants'
+import { FIXED_POINT_SCALE, KEPT_SIZES_LIMIT } from './constants'
 import { fenwickTree } from './helpers'
 
 const rebuildTrees = (cache: Scroll.Cache): void => {
@@ -59,39 +59,80 @@ export const estimateOffsetBeforeIndex = ({
   return measuredSize + (clampedIndex - measuredCount) * aveSize
 }
 
-export const removeSize = (cache: Scroll.Cache, index: number): void => {
-  const size: number = cache.measuredSizes[index]
-  if (!Number.isFinite(size)) return
+export const syncCache = <T>(
+  cache: Scroll.Cache,
+  items: readonly T[],
+  getKey: (item: T) => Scroll.Key
+): void => {
+  const { items: prevItems, keys: prevKeys, sizesByKey }: Scroll.Cache = cache,
+    isSameArray: boolean = items === prevItems && items.length === prevKeys.length
 
-  cache.measuredSizes[index] = Number.NaN
-  fenwickTree.add(cache.trees.sizes, index + 1, -size)
-  fenwickTree.add(cache.trees.counts, index + 1, -1)
-}
+  if (isSameArray) return
 
-/** @param totalCount Must be a non-negative integer. */
-export const resizeCache = (cache: Scroll.Cache, totalCount: number): void => {
-  numberError({ totalCount }, 'non-negative-int')
+  const keys: Scroll.Key[] = new Array(items.length)
+  let isAppended: boolean = items.length >= prevKeys.length
 
-  const { measuredSizes }: Scroll.Cache = cache
+  for (let index = 0; index < items.length; index++) {
+    const item: T = items[index]
 
-  if (totalCount > measuredSizes.length) {
-    /** @remarks Grows by at least 2x to amortize tree rebuilds to O(1) per item. */
-    const nextLength: number = Math.max(totalCount, measuredSizes.length * 2)
+    keys[index] =
+      items !== prevItems && item === prevItems?.[index] ? prevKeys[index] : getKey(item)
 
-    while (measuredSizes.length < nextLength) measuredSizes.push(Number.NaN)
-    rebuildTrees(cache)
+    const isReplaced: boolean = index < prevKeys.length && keys[index] !== prevKeys[index]
+    if (isReplaced) isAppended = false
+  }
+
+  cache.items = items
+  cache.keys = keys
+
+  if (isAppended) {
+    const { measuredSizes }: Scroll.Cache = cache
+
+    if (keys.length > measuredSizes.length) {
+      /**
+       * @remarks
+       * Grows by at least 2x to keep tree rebuilds infrequent, as every expansion triggers a rebuild.
+       */
+      const nextLength: number = Math.max(keys.length, measuredSizes.length * 2)
+
+      while (measuredSizes.length < nextLength) measuredSizes.push(Number.NaN)
+      rebuildTrees(cache)
+    }
+
+    for (let index = prevKeys.length; index < keys.length; index++) {
+      const key: Scroll.Key = keys[index],
+        size: number | undefined = sizesByKey.get(key)
+
+      if (size !== undefined) setSize({ cache, index, key, size })
+    }
+
     return
   }
 
-  /** @remarks Forgets the sizes after the last item, as an item added there later would get an old size. */
-  let hasForgottenSize: boolean = false
-  for (let index = totalCount; index < measuredSizes.length; index++)
-    if (!Number.isNaN(measuredSizes[index])) {
-      measuredSizes[index] = Number.NaN
-      hasForgottenSize = true
+  /** @remarks Keeps the sizes of removed items up to a limit, as a cleared filter brings them back. */
+  if (sizesByKey.size > Math.max(keys.length * 2, KEPT_SIZES_LIMIT)) {
+    const sizes: Map<Scroll.Key, number> = new Map()
+
+    for (const key of keys) {
+      const size: number | undefined = sizesByKey.get(key)
+      if (size !== undefined) sizes.set(key, size)
     }
 
-  if (hasForgottenSize) rebuildTrees(cache)
+    cache.sizesByKey = sizes
+  }
+
+  const measuredSizes: number[] = new Array(Math.max(keys.length, cache.measuredSizes.length)).fill(
+    Number.NaN
+  )
+
+  for (let index = 0; index < keys.length; index++) {
+    const size: number | undefined = cache.sizesByKey.get(keys[index])
+    if (size !== undefined) measuredSizes[index] = size
+  }
+
+  cache.measuredSizes = measuredSizes
+  cache.elementIndexes = new WeakMap()
+  rebuildTrees(cache)
 }
 
 export const resetCache = (cache: Scroll.Cache): void => {
