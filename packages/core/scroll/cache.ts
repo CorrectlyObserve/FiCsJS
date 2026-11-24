@@ -59,6 +59,40 @@ export const estimateOffsetBeforeIndex = ({
   return measuredSize + (clampedIndex - measuredCount) * aveSize
 }
 
+export const resetCache = (cache: Scroll.Cache): void => {
+  cache.measuredSizes.fill(Number.NaN)
+  cache.sizesByKey.clear()
+  cache.elementIndexes = new WeakMap()
+  rebuildTrees(cache)
+}
+
+export const setSize = ({
+  cache,
+  index,
+  key,
+  size
+}: {
+  cache: Scroll.Cache
+  index: number
+  key: Scroll.Key
+  size: number
+}): number | undefined => {
+  cache.sizesByKey.set(key, size)
+
+  const prevSize: number = cache.measuredSizes[index]
+  if (prevSize === size) return prevSize
+
+  cache.measuredSizes[index] = size
+
+  const isMeasured: boolean = Number.isFinite(prevSize)
+  fenwickTree.add(cache.trees.sizes, index + 1, size - (isMeasured ? prevSize : 0))
+
+  if (isMeasured) return prevSize
+
+  fenwickTree.add(cache.trees.counts, index + 1, 1)
+  return undefined
+}
+
 export const syncCache = <T>(
   cache: Scroll.Cache,
   items: readonly T[],
@@ -133,38 +167,4 @@ export const syncCache = <T>(
   cache.measuredSizes = measuredSizes
   cache.elementIndexes = new WeakMap()
   rebuildTrees(cache)
-}
-
-export const resetCache = (cache: Scroll.Cache): void => {
-  cache.measuredSizes.fill(Number.NaN)
-  cache.sizesByKey.clear()
-  cache.elementIndexes = new WeakMap()
-  rebuildTrees(cache)
-}
-
-export const setSize = ({
-  cache,
-  index,
-  key,
-  size
-}: {
-  cache: Scroll.Cache
-  index: number
-  key: Scroll.Key
-  size: number
-}): number | undefined => {
-  cache.sizesByKey.set(key, size)
-
-  const prevSize: number = cache.measuredSizes[index]
-  if (prevSize === size) return prevSize
-
-  cache.measuredSizes[index] = size
-
-  const isMeasured: boolean = Number.isFinite(prevSize)
-  fenwickTree.add(cache.trees.sizes, index + 1, size - (isMeasured ? prevSize : 0))
-
-  if (isMeasured) return prevSize
-
-  fenwickTree.add(cache.trees.counts, index + 1, 1)
-  return undefined
 }
