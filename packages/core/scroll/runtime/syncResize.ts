@@ -17,10 +17,7 @@ export const syncResize = <D extends object, P>({
   observers,
   root,
   instanceId,
-  unit,
-  itemMinSize,
-  bufferLength,
-  thresholdRatio,
+  getOptions,
   reRender
 }: {
   getScrollOptions: () => Scroll.Resolved<D, P>
@@ -28,10 +25,7 @@ export const syncResize = <D extends object, P>({
   observers: Omit<Scroll.Observers, 'root'>
   root: HTMLElement
   instanceId: string
-  unit: number
-  itemMinSize: number
-  bufferLength: number
-  thresholdRatio: number
+  getOptions: () => Pick<Scroll.Clamped, 'unit' | 'itemMinSize' | 'bufferLength' | 'thresholdRatio'>
   reRender: Scroll.Ctx.Runtime<D, P>['reRender']
 }): void => {
   const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
