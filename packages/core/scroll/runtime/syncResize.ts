@@ -75,7 +75,7 @@ const scheduleRangeUpdate = <D extends object, P>({
 
   timers.resize = setTimeout(() => {
     const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
-      /** @remarks Reads the options again, as the resize observer outlives the call that created it. */
+      /** @remarks Reads the options again, as they may change after the resize observer is created. */
       options = getOptions()
 
     updateAveSize({ scrollOptions, ...options })
@@ -94,86 +94,64 @@ export const syncResize = <D extends object, P>(ctx: Scroll.Ctx.Resize<D, P>): v
   const { getScrollOptions, getIsVertical, observers, root, instanceId }: Scroll.Ctx.Resize<D, P> =
       ctx,
     scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
-    { cache, endIndex, startIndex }: Scroll.Resolved<D, P> = scrollOptions,
-    { maxLength, indexKeys, sizeFenwickTree, countFenwickTree }: Scroll.Cache = cache
-
-  evictCache({ cache, index: Math.max(0, endIndex - maxLength) })
-
-  const items: HTMLElement[] = getItemsInScrollArea({ root, instanceId })
-
-  let isReordered: boolean = false
-
-  for (const [index, item] of items.entries()) {
-    const key: string | null = item.getAttribute('key')
-    if (!key) throw new Error('Virtual scroll items must have a unique "key" attribute...')
-
-    const absoluteIndex: number = startIndex + index,
-      prevKey: string | undefined = indexKeys.get(absoluteIndex)
-
-    if (isKeyChanged(key, prevKey)) {
-      isReordered = true
-      break
-    }
-  }
-
-  if (isReordered) {
-    cache.elementSizes.clear()
-    cache.indexSizes.clear()
-    cache.indexKeys.clear()
-  }
-  rebuildFenwickTrees(cache, isReordered ? 'force' : 'if-needed')
+    {
+      cache,
+      rendered: { startIndex }
+    }: Scroll.Resolved<D, P> = scrollOptions,
+    items: HTMLElement[] = getItemsInScrollArea({ root, instanceId }),
+    isVertical: boolean = getIsVertical(),
+    isRtl: boolean = getIsRtl(root, isVertical)
 
   cache.elementIndexes = new WeakMap()
 
-  const isVertical: boolean = getIsVertical()
-  let hasSizeChanged: boolean = false
+  let hasSizeChanged: boolean = false,
+    firstResizedIndex: number | undefined
 
   for (const [index, item] of items.entries()) {
     const absoluteIndex: number = startIndex + index,
-      /** @remarks The fenwick tree is 1-indexed. */
-      fenwickTreeIndex: number = absoluteIndex - cache.startIndex + 1,
-      key: string | null = item.getAttribute('key')
+      key: Scroll.Key | undefined = cache.keys[absoluteIndex],
+      keyAttr: string | null = item.getAttribute('key')
 
-    if (!key) continue
+    if (!keyAttr) throw new Error('Virtual scroll items must have a unique "key" attribute...')
 
-    /** @remarks Prevents excessive updates during rapid scrolling. */
-    if (fenwickTreeIndex < 1 || fenwickTreeIndex > maxLength) continue
+    if (keyAttr !== String(key) && !scrollOptions.flags.hasKeyWarned) {
+      scrollOptions.flags.hasKeyWarned = true
+      console.warn(
+        `The key attribute "${keyAttr}" differs from the getKey value "${key}", which it must match...`
+      )
+    }
+
+    if (key === undefined) continue
 
     /** @remarks Prepares element-to-index mapping before measurement. */
     cache.elementIndexes.set(item, absoluteIndex)
 
-    const prevKey: string | undefined = indexKeys.get(absoluteIndex)
-    if (!isReordered && isKeyChanged(key, prevKey)) {
-      cache.elementSizes.delete(prevKey)
-      cache.indexSizes.delete(absoluteIndex)
-    }
-
-    const size: number = (item.getBoundingClientRect() as any)[
-      getProperty({ isVertical, type: 'size' })
-    ]
+    const size: number = roundSize(
+      measureItemSize({ item, nextItem: items[index + 1], isVertical, isRtl })
+    )
     if (!isValidNumber(size)) continue
 
-    const {
-      prevSize,
-      prevIndexSize
-    }: { prevSize: number | undefined; prevIndexSize: number | undefined } = upsertMeasuredSize({
-      cache,
-      key,
-      index: absoluteIndex,
-      size,
-      fenwickTreeIndex,
-      sizeFenwickTree,
-      countFenwickTree
-    })
+    const prevSize: number | undefined = setSize({ cache, index: absoluteIndex, key, size })
+    if (prevSize === size) continue
 
-    if (isKeyChanged(key, prevKey) || prevSize !== size || prevIndexSize !== size)
-      hasSizeChanged = true
+    hasSizeChanged = true
+    if (prevSize !== undefined) firstResizedIndex ??= absoluteIndex
   }
+
+  /** @remarks Keeps the first visible item in place, as earlier items changed size. */
+  if (
+    firstResizedIndex !== undefined &&
+    firstResizedIndex < (scrollOptions.firstVisible.index ?? 0)
+  ) {
+    scrollOptions.anchors.latest = getAnchor(scrollOptions)
+    restoreAnchor({ scrollOptions, root, instanceId, isVertical })
+  }
+
+  updateFirstVisible({ scrollOptions, root, instanceId, isVertical })
 
   if (hasSizeChanged) scheduleRangeUpdate(ctx)
 
   observers.resize ??= createResizeObserver(ctx)
   observers.resize.disconnect()
   for (const item of items) observers.resize.observe(item)
-  updateFirstVisible({ scrollOptions, root, instanceId, isVertical })
 }
