@@ -3,6 +3,32 @@ import type { Html, Scroll } from '../types'
 import { getOffsetBeforeIndex, resetCache } from './cache'
 import { clearTimers, getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
 
+const compareRenderedItems = <D extends object, P>(
+  keys: readonly Scroll.Key[],
+  { rendered: { items, startIndex } }: Scroll.Resolved<D, P>
+): { isChanged: boolean; delta: number } => {
+  if (!items) return { isChanged: false, delta: 0 }
+
+  const { first, last, length } = items
+  if (keys[startIndex] === first && keys[startIndex + length - 1] === last)
+    return { isChanged: false, delta: 0 }
+
+  const nextStart: number = keys.indexOf(first)
+
+  if (nextStart >= 0)
+    return {
+      isChanged: true,
+      delta: keys[nextStart + length - 1] === last ? nextStart - startIndex : 0
+    }
+
+  const nextLast: number = keys.indexOf(last)
+  return {
+    isChanged: true,
+    /** @remarks Keeps startIndex + delta at 0 or more, as the caller adds delta to startIndex. */
+    delta: nextLast >= 0 ? Math.max(nextLast - (startIndex + length - 1), -startIndex) : 0
+  }
+}
+
 /**
  * @param scrollOptions.options.unit Must be a positive integer.
  * @param scrollOptions.options.itemMinSize Must be a positive number.
