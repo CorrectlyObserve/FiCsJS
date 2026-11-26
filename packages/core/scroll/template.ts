@@ -165,16 +165,11 @@ export const scrollTemplate = <D extends object, P extends object, T>({
    * @remarks
    * Simulates the height of unrendered items to keep the current scroll position.
    */
-  const offsetPadding: number = Math.min(
-      getOffsetBeforeIndex({ cache, totalCount, index: startIndex, aveSize: resolvedAveSize }),
-      nextTotalSize
-    ),
-    isVertical: boolean = axis === 'vertical',
+  const isVertical: boolean = axis === 'vertical',
     sizeProp: string = getProperty({ isVertical, type: 'size' }),
-    startProp: string = getProperty({ isVertical, type: 'start' }),
     styles = {
       container: [
-        'position:relative;overscroll-behavior:contain;',
+        'position:relative;overscroll-behavior:contain;overflow-anchor:none;',
         `${sizeProp}:${itemMinSize * unit}px;`,
         `overflow-${isVertical ? 'y' : 'x'}:auto;overflow-${isVertical ? 'x' : 'y'}:hidden;`,
         isVertical ? '' : 'margin-inline:auto;'
@@ -183,12 +178,12 @@ export const scrollTemplate = <D extends object, P extends object, T>({
         'box-sizing:border-box;position:relative;',
         `min-${sizeProp}:${nextTotalSize}px;`,
         isVertical ? 'display:block;' : 'display:flex;flex-wrap:nowrap;align-items:flex-start;',
-        `padding-${startProp}:${offsetPadding}px;`
+        `padding-${isVertical ? 'block' : 'inline'}-start:${estimatedPadding + scrollOptions.padding.shift}px;`
       ].join(''),
       sentinel: [
         'position:absolute;height:1px;width:1px;',
         `${isVertical ? 'left' : 'top'}:0;`,
-        `${startProp}:${Math.max(nextTotalSize - 1, 0)}px;`
+        `${isVertical ? 'top' : 'inset-inline-start'}:${Math.max(nextTotalSize - 1, 0)}px;`
       ].join('')
     } as const,
     div = (type: Scroll.Div, contents?: Html.Sanitized<D, P>[]): Html.Sanitized<D, P> => template`
