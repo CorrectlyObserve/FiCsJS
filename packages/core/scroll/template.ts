@@ -70,7 +70,7 @@ export const scrollTemplate = <D extends object, P extends object, T>({
       }
       scrollOptions.fetch.lastTriggeredCount = 0
       scrollOptions.firstVisible = {}
-      scrollOptions.padding.correction = scrollOptions.padding.min = 0
+      scrollOptions.padding.shift = scrollOptions.padding.min = 0
       scrollOptions.padding.isMinOff = false
       /** @remarks Prevents negative index deltas after list reset. */
       scrollOptions.urlSync.index = undefined
@@ -141,7 +141,7 @@ export const scrollTemplate = <D extends object, P extends object, T>({
     scrollOptions.fetch.lastTriggeredCount = 0
     firstVisible.offset = 0
     scrollOptions.anchors.latest = scrollOptions.anchors.pinned = undefined
-    scrollOptions.padding.correction = 0
+    scrollOptions.padding.shift = 0
     clearTimers(scrollOptions)
   }
 
