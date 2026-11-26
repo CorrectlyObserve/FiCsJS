@@ -93,11 +93,15 @@ export const setSize = ({
   return undefined
 }
 
-export const syncCache = <T>(
-  cache: Scroll.Cache,
-  items: readonly T[],
+export const syncCache = <T>({
+  cache,
+  items,
+  getKey
+}: {
+  cache: Scroll.Cache
+  items: readonly T[]
   getKey: (item: T) => Scroll.Key
-): void => {
+}): void => {
   const { items: prevItems, keys: prevKeys, sizesByKey }: Scroll.Cache = cache,
     isSameArray: boolean = items === prevItems && items.length === prevKeys.length
 
