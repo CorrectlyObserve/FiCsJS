@@ -1,7 +1,15 @@
-import { numberError } from '../helpers'
+import { isBrowser, numberError } from '../helpers'
 import type { Html, Scroll } from '../types'
-import { getOffsetBeforeIndex, resetCache } from './cache'
-import { clearTimers, getAveSize, getScrollAttr, getProperty, isValidNumber } from './helpers'
+import { estimateOffsetBeforeIndex, resetCache, syncCache } from './cache'
+import { MAX_ELEMENT_SIZE_PX } from './constants'
+import {
+  clearTimers,
+  getAnchor,
+  getAveSize,
+  getProperty,
+  getScrollAttr,
+  isValidNumber
+} from './helpers'
 
 const compareRenderedItems = <D extends object, P>(
   keys: readonly Scroll.Key[],
@@ -48,19 +56,26 @@ export const scrollTemplate = <D extends object, P extends object, T>({
     if (scrollOptions) {
       scrollOptions.startIndex = 0
       scrollOptions.endIndex = 0
+      scrollOptions.rendered.startIndex = 0
+      scrollOptions.rendered.items = undefined
       scrollOptions.totalSize = NaN
       scrollOptions.totalCount = 0
       scrollOptions.flags = {
         hasScrolled: false,
         isRangeLocked: false,
-        isFetchLocked: true,
-        shouldRestoreAxisOffset: false
+        isJustReset: true,
+        shouldRestoreAxisOffset: false,
+        hasWarnedMaxSize: false,
+        hasKeyWarned: false
       }
-      scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
+      scrollOptions.fetch.lastTriggeredCount = 0
       scrollOptions.firstVisible = {}
+      scrollOptions.padding.correction = scrollOptions.padding.min = 0
+      scrollOptions.padding.isMinOff = false
       /** @remarks Prevents negative index deltas after list reset. */
       scrollOptions.urlSync.index = undefined
 
+      resetCache(scrollOptions.cache)
       clearTimers(scrollOptions)
     }
 
@@ -70,8 +85,32 @@ export const scrollTemplate = <D extends object, P extends object, T>({
   if (!scrollOptions) return template`${array.map((item, index) => callback(item, index))}`
 
   const totalCount: number = array.length,
-    { options, id, aveSize: storedAveSize, lastAxis }: Scroll.Resolved<D, P> = scrollOptions,
-    { unit, itemMinSize, axis, bufferLength }: Scroll.Options = options(getDataProps(true))
+    { cache, options, id, aveSize: storedAveSize, lastAxis }: Scroll.Resolved<D, P> = scrollOptions,
+    { unit, itemMinSize, axis, bufferLength, getKey }: Scroll.Options = options(getDataProps(true))
+
+  syncCache({ cache: cache, items: array, getKey })
+
+  const { keys }: Scroll.Cache = cache,
+    { isChanged, delta }: { isChanged: boolean; delta: number } = compareRenderedItems(
+      keys,
+      scrollOptions
+    )
+
+  if (delta !== 0) {
+    const { startIndex, endIndex, firstVisible, urlSync }: Scroll.Resolved<D, P> = scrollOptions
+
+    scrollOptions.startIndex = Math.max(startIndex + delta, 0)
+    scrollOptions.endIndex = Math.max(endIndex + delta, 0)
+    if (firstVisible.index !== undefined) firstVisible.index += delta
+    if (urlSync.index !== undefined) urlSync.index += delta
+  }
+
+  const anchor: Scroll.Anchor | undefined = getAnchor(scrollOptions)
+  if (isChanged && anchor) scrollOptions.anchors.pinned ??= anchor
+
+  const { pinned }: Scroll.Resolved<D, P>['anchors'] = scrollOptions.anchors
+  scrollOptions.anchors.latest =
+    pinned && anchor ? { ...pinned, scrollOffset: anchor.scrollOffset } : anchor
 
   numberError({ unit }, 'positive-int')
   numberError({ itemMinSize }, 'positive')
@@ -94,11 +133,15 @@ export const scrollTemplate = <D extends object, P extends object, T>({
     scrollOptions.flags = {
       hasScrolled: false,
       isRangeLocked: true,
-      isFetchLocked: true,
-      shouldRestoreAxisOffset: true
+      isJustReset: true,
+      shouldRestoreAxisOffset: true,
+      hasWarnedMaxSize: false,
+      hasKeyWarned: false
     }
-    scrollOptions.fetch = { isFetching: false, lastTriggeredCount: 0 }
+    scrollOptions.fetch.lastTriggeredCount = 0
     firstVisible.offset = 0
+    scrollOptions.anchors.latest = scrollOptions.anchors.pinned = undefined
+    scrollOptions.padding.correction = 0
     clearTimers(scrollOptions)
   }
 
