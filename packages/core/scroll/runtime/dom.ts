@@ -1,5 +1,6 @@
 import type { Scroll } from '../../types'
 import { estimateOffsetBeforeIndex } from '../cache'
+import { OFFSET_TOLERANCE_PX } from '../constants'
 import { getAveSize, getScrollAttr, getProperty, getScrollMetrics } from '../helpers'
 
 export const getIsRtl = (root: HTMLElement, isVertical: boolean): boolean =>
@@ -78,6 +79,103 @@ export const measurePosition = ({
 
   if (isVertical) return { start: top, end: bottom }
   return isRtl ? { start: -right, end: -left } : { start: left, end: right }
+}
+
+export const restoreAnchor = <D extends object, P>({
+  scrollOptions,
+  root,
+  instanceId,
+  isVertical
+}: {
+  scrollOptions: Scroll.Resolved<D, P>
+  root: HTMLElement
+  instanceId: string
+  isVertical: boolean
+}): void => {
+  const { latest }: Scroll.Resolved<D, P>['anchors'] = scrollOptions.anchors
+  if (!latest) return
+
+  scrollOptions.anchors.latest = undefined
+
+  const { isUnmeasurable, scrollOffset }: Scroll.Metrics = getScrollMetrics(root, isVertical)
+  if (isUnmeasurable) return
+
+  const { scrollOffset: latestScrollOffset, visibleRest = [] }: Scroll.Anchor = latest
+
+  /** @remarks Releases the hold if the user scrolls, avoiding fighting user input. */
+  if (Math.abs(scrollOffset - latestScrollOffset) > OFFSET_TOLERANCE_PX) {
+    scrollOptions.anchors.pinned = undefined
+    return
+  }
+
+  const items: Map<string | null, HTMLElement> = new Map(
+      getItemsInScrollArea({ root, instanceId }).map(item => [item.getAttribute('key'), item])
+    ),
+    /** @remarks Falls back to the next visible item when the first one was removed. */
+    saved: { key: string; offset: number } | undefined = [latest, ...visibleRest].find(({ key }) =>
+      items.has(key)
+    ),
+    element: HTMLElement | undefined = saved && items.get(saved.key)
+
+  /** @remarks Releases the hold when no saved items remain, allowing future changes to start a new one. */
+  if (!saved || !element) {
+    scrollOptions.anchors.pinned = undefined
+    return
+  }
+
+  const isRtl: boolean = getIsRtl(root, isVertical),
+    delta: number =
+      measurePosition({ element, isVertical, isRtl }).start -
+      measurePosition({ element: root, isVertical, isRtl }).start -
+      saved.offset
+
+  if (Math.abs(delta) < OFFSET_TOLERANCE_PX) return
+
+  const {
+    scrolling: { isPointerHeld },
+    anchors: { pinned }
+  }: Scroll.Resolved<D, P> = scrollOptions
+
+  /**
+   * @remarks
+   * Adjusts padding instead of `scrollTop` while scrolling or dragging the thumb:
+   * - Writing `scrollTop` interrupts smooth scrolling in Firefox.
+   * - Browsers override `scrollTop` while the user holds the scrollbar thumb.
+   * - As an exception, data changes during a scroll still update `scrollTop`,
+   *   as the offset jump can exceed available padding.
+   */
+  if (isPointerHeld || (scrollOptions.scrolling.isActive && !pinned)) {
+    if (scrollOptions.rendered.startIndex === 0) return
+
+    const wrap: HTMLElement = getRootElement({ root, instanceId }),
+      paddingProp: string = `padding-${isVertical ? 'block' : 'inline'}-start`,
+      padding: number = Number.parseFloat(getComputedStyle(wrap).getPropertyValue(paddingProp)),
+      /** @remarks Clamps the shift amount to the available padding to prevent large visual jumps. */
+      shift: number = Math.min(delta, Math.max(padding - (scrollOptions.padding.reserve ?? 0), 0))
+
+    wrap.style.setProperty(paddingProp, `${padding - shift}px`)
+    scrollOptions.padding.shift = (scrollOptions.padding.shift ?? 0) - shift
+    if (pinned) scrollOptions.padding.isReserveOff = true
+    return
+  }
+
+  if (isVertical) root.scrollTop += delta
+  else root.scrollLeft += isRtl ? -delta : delta
+
+  /** @remarks Reads the offset again, as the browser may clamp the write. */
+  const { scrollOffset: writtenOffset }: Scroll.Metrics = getScrollMetrics(root, isVertical)
+
+  scrollOptions.scrolling.ownWrittenOffset = writtenOffset
+  /**
+   * @remarks Updates the held offset on each write, as `onScroll` clears the hold after the view leaves it.
+   */
+  if (pinned) pinned.scrollOffset = writtenOffset
+
+  /**
+   * @remarks Updates the range offset on each write, as the virtualizer treats any mismatch as a user scroll.
+   */
+  if (scrollOptions.scrolling.offsetAtRangeUpdate !== undefined)
+    scrollOptions.scrolling.offsetAtRangeUpdate += writtenOffset - latestScrollOffset
 }
 
 export const restoreAxisOffset = <D extends object, P>({
