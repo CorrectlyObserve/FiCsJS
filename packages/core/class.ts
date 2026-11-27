@@ -386,52 +386,12 @@ export class FiCsElement<D extends object, P extends object> {
             break
 
           case 'scroll':
-            const options = value as (ctx: DataProps.Payload<D, P, true>) => Scroll.Options,
-              { unit, itemMinSize, bufferLength, cacheLength }: Scroll.Options = options(
-                this.#getDataProps(true)
-              )
-
-            numberError({ unit }, 'positive-int')
-            numberError({ itemMinSize }, 'positive')
-            numberError({ bufferLength, cacheLength, CACHE_LENGTH }, 'non-negative-int')
-
-            const normalizedLength: number = Math.max(
-              Math.floor(Math.max(cacheLength ?? CACHE_LENGTH, unit + (bufferLength ?? 0))),
-              1
-            )
-            this.#options[key] = {
-              cache: {
-                elementSizes: new Map(),
-                indexSizes: new Map(),
-                indexKeys: new Map(),
-                elementIndexes: new WeakMap(),
-                maxLength: normalizedLength,
-                startIndex: 0,
-                evictedSize: 0,
-                evictedCount: 0,
-                sizeFenwickTree: fenwickTree.reset(normalizedLength),
-                countFenwickTree: fenwickTree.reset(normalizedLength)
-              },
-              options,
-              id: `${this.#instanceId}-scroll`,
-              isEnabled: false,
-              startIndex: 0,
-              endIndex: unit,
-              aveSize: itemMinSize,
-              totalSize: NaN,
-              totalCount: 0,
-              prevTotalCount: 0,
-              flags: {
-                hasScrolled: false,
-                isRangeLocked: false,
-                isFetchLocked: false,
-                shouldRestoreAxisOffset: false
-              },
-              fetch: { isFetching: false, lastTriggeredCount: 0 },
-              firstVisible: {},
-              timers: {},
-              urlSync: {}
-            }
+            this.#scrollInput = value as NonNullable<Options.Input<D, P>['scroll']>
+            /**
+             * @remarks Resolves in the browser only, as `options.scroll` takes a queryCache,
+             * which the server has only inside `toString` method.
+             */
+            if (this.#isBrowser) this.#options[key] = this.#resolveScrollOptions(this.#scrollInput)
             break
         }
       }
