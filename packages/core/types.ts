@@ -685,25 +685,24 @@ export declare namespace Scroll {
   }
 
   interface Options {
+    axis: Axis
     /** @param unit Must be a positive integer. */
     unit: number
     /** @param itemMinSize Must be a positive number. */
     itemMinSize: number
-    axis: Axis
-    trigger?: boolean
-    parameter?: string
-    /** @param rootMargin Must be an integer if it is a number. */
-    rootMargin?: string | number
+    getKey: (item: any) => Key
     /** @param bufferLength Must be a non-negative integer. */
     bufferLength?: number
-    /** @param cacheLength Must be a non-negative integer. */
-    cacheLength?: number
     /** @param throttleMs Must be a non-negative integer. */
     throttleMs?: number
     /** @param thresholdRatio Must be a number between 0 and 1. */
     thresholdRatio?: number
     method: () => void
     onError?: (error: unknown) => void
+    trigger?: boolean
+    /** @param rootMargin Must be an integer if it is a number. */
+    rootMargin?: string | number
+    pageParamName?: string
   }
 
   interface Resolved<D extends object, P> extends Runtime {
