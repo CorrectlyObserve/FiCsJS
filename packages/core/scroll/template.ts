@@ -1,7 +1,7 @@
 import { isBrowser, numberError } from '../helpers'
 import type { Html, Scroll } from '../types'
 import { estimateOffsetBeforeIndex, resetCache, syncCache } from './cache'
-import { MAX_ELEMENT_SIZE_PX } from './constants'
+import { MAX_ELEMENT_SIZE_PX, PADDING_RESERVE_RATIO } from './constants'
 import {
   clearTimers,
   getAnchor,
@@ -54,28 +54,29 @@ export const scrollTemplate = <D extends object, P extends object, T>({
 }: Scroll.Ctx.Template<D, P, T>): Html.Sanitized<D, P> => {
   if (!array || array.length === 0) {
     if (scrollOptions) {
+      resetCache(scrollOptions.cache)
+
+      scrollOptions.listLength = 0
+      scrollOptions.listSize = NaN
       scrollOptions.startIndex = 0
       scrollOptions.endIndex = 0
       scrollOptions.rendered.startIndex = 0
       scrollOptions.rendered.items = undefined
-      scrollOptions.totalSize = NaN
-      scrollOptions.totalCount = 0
-      scrollOptions.flags = {
-        hasScrolled: false,
-        isRangeLocked: false,
-        isJustReset: true,
-        shouldRestoreAxisOffset: false,
-        hasWarnedMaxSize: false,
-        hasKeyWarned: false
-      }
-      scrollOptions.fetch.lastTriggeredCount = 0
       scrollOptions.firstVisible = {}
-      scrollOptions.padding.shift = scrollOptions.padding.min = 0
-      scrollOptions.padding.isMinOff = false
+      scrollOptions.padding.shift = scrollOptions.padding.reserve = 0
+      scrollOptions.padding.isReserveOff = false
+      scrollOptions.fetch.lastTriggeredCount = 0
       /** @remarks Prevents negative index deltas after list reset. */
       scrollOptions.urlSync.index = undefined
+      scrollOptions.flags = {
+        isRangeLocked: false,
+        shouldRestoreAxisOffset: false,
+        hasScrolled: false,
+        isJustReset: true,
+        hasMaxSizeWarned: false,
+        hasKeyWarned: false
+      }
 
-      resetCache(scrollOptions.cache)
       clearTimers(scrollOptions)
     }
 
@@ -84,9 +85,9 @@ export const scrollTemplate = <D extends object, P extends object, T>({
 
   if (!scrollOptions) return template`${array.map((item, index) => callback(item, index))}`
 
-  const totalCount: number = array.length,
-    { cache, options, id, aveSize: storedAveSize, lastAxis }: Scroll.Resolved<D, P> = scrollOptions,
-    { unit, itemMinSize, axis, bufferLength, getKey }: Scroll.Options = options(getDataProps(true))
+  const listLength: number = array.length,
+    { cache, options, id, lastAxis, aveSize: prevAveSize }: Scroll.Resolved<D, P> = scrollOptions,
+    { axis, unit, itemMinSize, getKey, bufferLength }: Scroll.Options = options(getDataProps(true))
 
   syncCache({ cache: cache, items: array, getKey })
 
@@ -98,6 +99,7 @@ export const scrollTemplate = <D extends object, P extends object, T>({
 
   if (delta !== 0) {
     const { startIndex, endIndex, firstVisible, urlSync }: Scroll.Resolved<D, P> = scrollOptions
+    numberError({ startIndex, endIndex }, 'non-negative-int')
 
     scrollOptions.startIndex = Math.max(startIndex + delta, 0)
     scrollOptions.endIndex = Math.max(endIndex + delta, 0)
@@ -117,31 +119,30 @@ export const scrollTemplate = <D extends object, P extends object, T>({
   numberError({ bufferLength }, 'non-negative-int')
 
   /** @remarks Resets the item min size. */
-  if (!isValidNumber(storedAveSize) || storedAveSize < itemMinSize)
-    scrollOptions.aveSize = itemMinSize
+  if (!isValidNumber(prevAveSize) || prevAveSize < itemMinSize) scrollOptions.aveSize = itemMinSize
 
   if (lastAxis !== undefined && lastAxis !== axis) {
     const { cache, startIndex, firstVisible }: Scroll.Resolved<D, P> = scrollOptions
     numberError({ startIndex }, 'non-negative-int')
 
     resetCache(cache)
-    const clampedIndex: number = Math.min(startIndex, totalCount - 1)
-    scrollOptions.startIndex = clampedIndex
-    scrollOptions.endIndex = Math.min(totalCount, clampedIndex + unit + (bufferLength ?? 0))
+    scrollOptions.listSize = NaN
     scrollOptions.aveSize = itemMinSize
-    scrollOptions.totalSize = NaN
-    scrollOptions.flags = {
-      hasScrolled: false,
-      isRangeLocked: true,
-      isJustReset: true,
-      shouldRestoreAxisOffset: true,
-      hasWarnedMaxSize: false,
-      hasKeyWarned: false
-    }
-    scrollOptions.fetch.lastTriggeredCount = 0
+    const clampedIndex: number = Math.min(startIndex, listLength - 1)
+    scrollOptions.startIndex = clampedIndex
+    scrollOptions.endIndex = Math.min(listLength, clampedIndex + unit + (bufferLength ?? 0))
     firstVisible.offset = 0
     scrollOptions.anchors.latest = scrollOptions.anchors.pinned = undefined
     scrollOptions.padding.shift = 0
+    scrollOptions.fetch.lastTriggeredCount = 0
+    scrollOptions.flags = {
+      isRangeLocked: true,
+      shouldRestoreAxisOffset: true,
+      hasScrolled: false,
+      isJustReset: true,
+      hasMaxSizeWarned: false,
+      hasKeyWarned: false
+    }
     clearTimers(scrollOptions)
   }
 
@@ -149,11 +150,10 @@ export const scrollTemplate = <D extends object, P extends object, T>({
   numberError({ startIndex, endIndex }, 'non-negative-int')
 
   /**
-   * @remarks
-   * Recalculates the `end` index to handle operations such as sorting or data updates.
+   * @remarks Recalculates the `end` index to handle operations such as sorting or data updates.
    */
   if (endIndex <= startIndex)
-    scrollOptions.endIndex = Math.min(totalCount, startIndex + unit + (bufferLength ?? 0))
+    scrollOptions.endIndex = Math.min(listLength, startIndex + unit + (bufferLength ?? 0))
 
   const resolvedAveSize: number = getAveSize({ aveSize, itemMinSize }),
     estimatedTotalSize: number = resolvedAveSize * totalCount
@@ -176,14 +176,14 @@ export const scrollTemplate = <D extends object, P extends object, T>({
       ].join(''),
       wrap: [
         'box-sizing:border-box;position:relative;',
-        `min-${sizeProp}:${nextTotalSize}px;`,
+        `min-${sizeProp}:${resolvedListSize}px;`,
         isVertical ? 'display:block;' : 'display:flex;flex-wrap:nowrap;align-items:flex-start;',
-        `padding-${isVertical ? 'block' : 'inline'}-start:${estimatedPadding + scrollOptions.padding.shift}px;`
+        `padding-${isVertical ? 'block' : 'inline'}-start:${resolvedPadding}px;`
       ].join(''),
       sentinel: [
         'position:absolute;height:1px;width:1px;',
         `${isVertical ? 'left' : 'top'}:0;`,
-        `${isVertical ? 'top' : 'inset-inline-start'}:${Math.max(nextTotalSize - 1, 0)}px;`
+        `${isVertical ? 'top' : 'inset-inline-start'}:${Math.max(resolvedListSize - 1, 0)}px;`
       ].join('')
     } as const,
     div = (type: Scroll.Div, contents?: Html.Sanitized<D, P>[]): Html.Sanitized<D, P> => template`
