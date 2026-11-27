@@ -1782,7 +1782,10 @@ export class FiCsElement<D extends object, P extends object> {
             const mount = (): void => {
               this.#init()
               that.#callback('mounted', this.#shadowRoot)
-              /** @remarks Performs the initial form sync, which is the only update for components never re-render. */
+              /** 
+               * @remarks 
+               * Performs the initial form sync, which is the only update for components never re-render.
+               */
               that.#syncForm()
               this.#isRendered = true
             }
