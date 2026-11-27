@@ -1,7 +1,15 @@
 import { numberError } from '../../helpers'
 import type { Scroll } from '../../types'
-import { getOffsetBeforeIndex, rebuildFenwickTrees } from '../cache'
-import { SMOOTHING_FACTOR, SIZE_DELTA_TOLERANCE_PX } from '../constants'
+import { estimateOffsetBeforeIndex } from '../cache'
+import { OFFSET_TOLERANCE_PX, SIZE_DELTA_TOLERANCE_PX } from '../constants'
+import { fenwickTree, getAveSize, getScrollMetrics, isValidNumber } from '../helpers'
+import {
+  measurePosition,
+  getIsRtl,
+  getItemsInScrollArea,
+  getRootElement,
+  measureItemSize
+} from './dom'
 
 export const updateAveSize = <D extends object, P>({
   scrollOptions,
@@ -11,29 +19,38 @@ export const updateAveSize = <D extends object, P>({
   scrollOptions: Scroll.Resolved<D, P>
   itemMinSize: number
   thresholdRatio: number
-}): boolean => {
-  const { cache, aveSize, totalCount }: Scroll.Resolved<D, P> = scrollOptions,
-    { startIndex, maxLength, sizeFenwickTree, countFenwickTree } = cache,
-    prevAveSize: number = getAveSize({ aveSize: aveSize, itemMinSize })
+}): void => {
+  const {
+      cache: {
+        measuredSizes: { length },
+        trees: { sizes, counts }
+      },
+      rendered: { items, startIndex },
+      scrolling: { isActive },
+      aveSize,
+      listLength
+    }: Scroll.Resolved<D, P> = scrollOptions,
+    shouldWaitForSettle: boolean = !!isActive && aveSize !== itemMinSize,
+    isAtListEnd: boolean = items !== undefined && startIndex + items.length >= listLength
 
-  rebuildFenwickTrees(cache, 'if-needed')
-  const cacheLength: number = Math.max(Math.min(maxLength, totalCount - startIndex), 0),
-    measuredSize: number = fenwickTree.sum(sizeFenwickTree, cacheLength),
-    measuredCount: number = fenwickTree.sum(countFenwickTree, cacheLength)
+  if (shouldWaitForSettle || isAtListEnd) return
+
+  const prevAveSize: number = getAveSize({ aveSize, itemMinSize }),
+    measuredSize: number = fenwickTree.sum(sizes, length),
+    measuredCount: number = fenwickTree.sum(counts, length)
 
   if (measuredCount === 0) {
     scrollOptions.aveSize = prevAveSize
-    return false
+    return
   }
 
   const measuredAve: number = Math.max(itemMinSize, measuredSize / measuredCount),
     delta: number = measuredAve - prevAveSize,
     threshold: number = prevAveSize * thresholdRatio
 
-  if (Math.abs(delta) < threshold) return false
+  if (Math.abs(delta) < threshold) return
 
-  scrollOptions.aveSize = prevAveSize + delta * SMOOTHING_FACTOR
-  return true
+  scrollOptions.aveSize = measuredAve
 }
 
 /** @param scrollOptions.totalCount Must be a non-negative integer. */
