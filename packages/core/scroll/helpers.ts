@@ -3,7 +3,7 @@ import type { Scroll, SetTimeout } from '../types'
 import { FIXED_POINT_SCALE } from './constants'
 
 export const clearTimers = <D extends object, P>(scrollOptions: Scroll.Resolved<D, P>): void => {
-  for (const key of ['resize', 'idle', 'scroll', 'reRender', 'settle'] as const) {
+  for (const key of ['scroll', 'settle', 'idle', 'resize', 'reRender'] as const) {
     const timer: SetTimeout | undefined = scrollOptions.timers[key]
     if (timer) clearTimeout(timer)
     scrollOptions.timers[key] = undefined
