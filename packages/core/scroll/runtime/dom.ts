@@ -166,16 +166,17 @@ export const restoreAnchor = <D extends object, P>({
   const { scrollOffset: writtenOffset }: Scroll.Metrics = getScrollMetrics(root, isVertical)
 
   scrollOptions.scrolling.ownWrittenOffset = writtenOffset
-  /**
-   * @remarks Updates the held offset on each write, as `onScroll` clears the hold after the view leaves it.
-   */
-  if (pinned) pinned.scrollOffset = writtenOffset
 
   /**
    * @remarks Updates the range offset on each write, as the virtualizer treats any mismatch as a user scroll.
    */
   if (scrollOptions.scrolling.offsetAtRangeUpdate !== undefined)
     scrollOptions.scrolling.offsetAtRangeUpdate += writtenOffset - latestScrollOffset
+
+  /**
+   * @remarks Updates the held offset on each write, as `onScroll` clears the hold after the view leaves it.
+   */
+  if (pinned) pinned.scrollOffset = writtenOffset
 }
 
 export const restoreAxisOffset = <D extends object, P>({
@@ -193,9 +194,9 @@ export const restoreAxisOffset = <D extends object, P>({
 
   const {
     cache,
-    startIndex,
-    aveSize,
     listLength,
+    aveSize,
+    startIndex,
     firstVisible: { index, offset = 0 }
   }: Scroll.Resolved<D, P> = scrollOptions
 
@@ -212,8 +213,8 @@ export const restoreAxisOffset = <D extends object, P>({
       offset) *
     (getIsRtl(root, isVertical) ? -1 : 1)
 
-  scrollOptions.flags.shouldRestoreAxisOffset = false
   scrollOptions.flags.isRangeLocked = false
+  scrollOptions.flags.shouldRestoreAxisOffset = false
 }
 
 export const updateFirstVisible = <D extends object, P>({
