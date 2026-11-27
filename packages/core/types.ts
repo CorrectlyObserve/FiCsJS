@@ -626,8 +626,8 @@ export declare namespace Scroll {
 
   namespace Ctx {
     interface OffsetBeforeIndex {
-      cache?: Scroll.Cache
-      totalCount: number
+      cache: Scroll.Cache
+      listLength: number
       index: number
       aveSize: number
     }
