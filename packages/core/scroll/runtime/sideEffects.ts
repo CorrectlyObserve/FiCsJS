@@ -19,10 +19,10 @@ export const fetchWithinThreshold = <D extends object, P>({
   onError?: (error: unknown) => void
 }): void => {
   const {
-    aveSize,
     listLength,
-    flags: { isJustReset, hasScrolled },
-    fetch: { isFetching, lastTriggeredCount }
+    aveSize,
+    fetch: { isFetching, lastTriggeredCount },
+    flags: { hasScrolled, isJustReset }
   }: Scroll.Resolved<D, P> = scrollOptions
 
   if (isFetching || listLength <= lastTriggeredCount) return
@@ -61,9 +61,9 @@ export const fetchWithinThreshold = <D extends object, P>({
     .finally(() => (scrollOptions.fetch.isFetching = false))
 }
 
-export const readPageParam = (parameter?: string): number => {
-  const rawParam: string | null = parameter
-    ? new URL(window.location.href).searchParams.get(parameter)
+export const readPageParam = (pageParamName?: string): number => {
+  const rawParam: string | null = pageParamName
+    ? new URL(window.location.href).searchParams.get(pageParamName)
     : null
 
   if (rawParam === null) return 1
@@ -75,38 +75,38 @@ export const readPageParam = (parameter?: string): number => {
 
 export const rebaseUrlSync = <D extends object, P>({
   scrollOptions,
-  parameter,
-  unit
+  unit,
+  pageParamName
 }: {
   scrollOptions: Scroll.Resolved<D, P>
-  parameter: string | undefined
   unit: number
+  pageParamName: string | undefined
 }): boolean => {
   const {
-    urlSync: { parameter: urlParameter, unit: urlUnit }
+    urlSync: { pageParamName: urlPageParamName, unit: urlUnit }
   }: Scroll.Resolved<D, P> = scrollOptions
 
-  if (urlParameter === parameter && urlUnit === unit) return false
+  if (urlPageParamName === pageParamName && urlUnit === unit) return false
 
   scrollOptions.urlSync.index = undefined
   scrollOptions.urlSync.pageParam = undefined
-  scrollOptions.urlSync.parameter = parameter
+  scrollOptions.urlSync.pageParamName = pageParamName
   scrollOptions.urlSync.unit = unit
   return true
 }
 
 export const updatePageParam = <D extends object, P>({
   scrollOptions,
-  parameter,
-  pageParam,
-  unit
+  unit,
+  pageParamName,
+  pageParam
 }: {
   scrollOptions: Scroll.Resolved<D, P>
-  parameter: string | undefined
-  pageParam: number
   unit: number
+  pageParamName: string | undefined
+  pageParam: number
 }): number => {
-  if (!parameter || !scrollOptions.flags.hasScrolled) return pageParam
+  if (!pageParamName || !scrollOptions.flags.hasScrolled) return pageParam
 
   const {
       startIndex,
@@ -127,8 +127,8 @@ export const updatePageParam = <D extends object, P>({
   if (pageParam === nextPage) return pageParam
 
   const url: URL = new URL(window.location.href)
-  if (nextPage <= 1) url.searchParams.delete(parameter)
-  else url.searchParams.set(parameter, nextPage.toString())
+  if (nextPage <= 1) url.searchParams.delete(pageParamName)
+  else url.searchParams.set(pageParamName, nextPage.toString())
 
   window.history.replaceState(null, '', url.toString())
   return nextPage
