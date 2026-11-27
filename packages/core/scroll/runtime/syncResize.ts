@@ -14,12 +14,12 @@ import { updateAveSize, updateRange } from './virtualizer'
 const createResizeObserver = <D extends object, P>(
   ctx: Scroll.Ctx.Resize<D, P>
 ): ResizeObserver => {
-  const { getScrollOptions, getIsVertical, root, instanceId }: Scroll.Ctx.Resize<D, P> = ctx
+  const { getScrollOptions, root, instanceId, getIsVertical }: Scroll.Ctx.Resize<D, P> = ctx
 
   return new ResizeObserver(entries => {
     const scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
       { cache }: Scroll.Resolved<D, P> = scrollOptions,
-      { elementIndexes, keys }: Scroll.Cache = cache,
+      { keys, elementIndexes }: Scroll.Cache = cache,
       isVertical: boolean = getIsVertical(),
       isRtl: boolean = getIsRtl(root, isVertical)
 
@@ -63,9 +63,9 @@ const createResizeObserver = <D extends object, P>(
 
 const scheduleRangeUpdate = <D extends object, P>({
   getScrollOptions,
-  getIsVertical,
   root,
   instanceId,
+  getIsVertical,
   getOptions,
   reRender
 }: Scroll.Ctx.Resize<D, P>): void => {
@@ -91,7 +91,7 @@ const scheduleRangeUpdate = <D extends object, P>({
 }
 
 export const syncResize = <D extends object, P>(ctx: Scroll.Ctx.Resize<D, P>): void => {
-  const { getScrollOptions, getIsVertical, observers, root, instanceId }: Scroll.Ctx.Resize<D, P> =
+  const { getScrollOptions, root, instanceId, getIsVertical, observers }: Scroll.Ctx.Resize<D, P> =
       ctx,
     scrollOptions: Scroll.Resolved<D, P> = getScrollOptions(),
     {
