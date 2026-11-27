@@ -20,12 +20,12 @@ export const fetchWithinThreshold = <D extends object, P>({
 }): void => {
   const {
     aveSize,
-    totalCount,
+    listLength,
     flags: { isJustReset, hasScrolled },
     fetch: { isFetching, lastTriggeredCount }
   }: Scroll.Resolved<D, P> = scrollOptions
 
-  if (isFetching || totalCount <= lastTriggeredCount) return
+  if (isFetching || listLength <= lastTriggeredCount) return
 
   const { scrollOffset, scrollAmount, clientSize, isUnmeasurable }: Scroll.Metrics =
     getScrollMetrics(root, isVertical)
@@ -44,12 +44,12 @@ export const fetchWithinThreshold = <D extends object, P>({
     if (distance > threshold) return
   }
 
-  scrollOptions.fetch = { isFetching: true, lastTriggeredCount: totalCount }
+  scrollOptions.fetch = { isFetching: true, lastTriggeredCount: listLength }
   Promise.resolve()
     .then(method)
     .catch(error => {
       /** @remarks Rolls back only if no reset changed the count meanwhile, as it would bring back the old count. */
-      const isUnchanged: boolean = scrollOptions.fetch.lastTriggeredCount === totalCount
+      const isUnchanged: boolean = scrollOptions.fetch.lastTriggeredCount === listLength
       if (isUnchanged) scrollOptions.fetch.lastTriggeredCount = lastTriggeredCount
 
       try {
