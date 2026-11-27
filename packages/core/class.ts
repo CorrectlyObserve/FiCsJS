@@ -1645,6 +1645,7 @@ export class FiCsElement<D extends object, P extends object> {
         static formAssociated: boolean = that.#isFormAssociated
         readonly #shadowRoot: ShadowRoot
         #isRendered: boolean = false
+        #lazyLoadObserver?: IntersectionObserver
         #websocket?: WebSocketNS.Runtime
         #eventSource?: EventSource
         #form: HTMLFormElement | null = null
@@ -1741,32 +1742,45 @@ export class FiCsElement<D extends object, P extends object> {
           } else {
             const mount = (): void => {
               this.#init()
+              this.#isRendered = true
               that.#callback('mounted', this.#shadowRoot)
-              /** 
-               * @remarks 
+              /**
+               * @remarks
                * Performs the initial form sync, which is the only update for components never re-render.
                */
               that.#syncForm()
-              this.#isRendered = true
             }
 
             if (lazyLoad) {
+              this.#lazyLoadObserver?.disconnect()
+
               const observer: IntersectionObserver = new IntersectionObserver(
-                async ([{ isIntersecting, target }]) => {
-                  if (isIntersecting) {
-                    mount()
-                    observer.unobserve(target)
-                  }
+                ([{ isIntersecting }]) => {
+                  if (!isIntersecting) return
+
+                  observer.disconnect()
+                  if (this.#lazyLoadObserver === observer) this.#lazyLoadObserver = undefined
+                  mount()
                 },
                 { rootMargin }
               )
 
-              setTimeout(() => observer.observe(this))
+              this.#lazyLoadObserver = observer
+              setTimeout(() => {
+                if (this.#lazyLoadObserver === observer && this.isConnected) observer.observe(this)
+              })
             } else mount()
           }
         }
 
         disconnectedCallback(): void {
+          /**
+           * @remarks Must stay first,
+           * as the abort and the destroyed hook may add the element back and start a new wait.
+           */
+          this.#lazyLoadObserver?.disconnect()
+          this.#lazyLoadObserver = undefined
+
           if (that.#poll) {
             clearTimeout(that.#poll)
             that.#poll = undefined
