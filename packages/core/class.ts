@@ -845,6 +845,11 @@ export class FiCsElement<D extends object, P extends object> {
     return Array.from(parent.childNodes)
   }
 
+  get #scrollOptions(): Scroll.Resolved<D, P> | undefined {
+    return (this.#options.scroll ??=
+      this.#scrollInput && this.#resolveScrollOptions(this.#scrollInput))
+  }
+
   get #template(): string {
     this.#addSetIndividualProps()
 
