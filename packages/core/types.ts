@@ -713,23 +713,53 @@ export declare namespace Scroll {
   interface Runtime {
     id: string
     isEnabled: boolean
+    /** @remarks The root that already has a scroll listener, as listeners survive a reconnect. */
+    listenedRoot?: HTMLElement
+    lastAxis?: Axis
+    listLength: number
+    prevListLength: number
+    listSize: number
+    aveSize: number
     startIndex: number
     endIndex: number
-    aveSize: number
-    totalSize: number
-    totalCount: number
-    prevTotalCount: number
-    flags: {
-      hasScrolled: boolean
-      isRangeLocked: boolean
-      isFetchLocked: boolean
-      shouldRestoreAxisOffset: boolean
+    rendered: {
+      startIndex: number
+      items?: { first: Key; last: Key; length: number }
+      aveSize?: number
     }
+    scrolling: {
+      isActive?: boolean
+      isPointerHeld?: boolean
+      ownWrittenOffset?: number
+      offsetAtRangeUpdate?: number
+    }
+    firstVisible: {
+      index?: number
+      key?: string
+      offset?: number
+      scrollOffset?: number
+      isOffscreen?: boolean
+      visibleRest?: Anchor['visibleRest']
+    }
+    anchors: { latest?: Anchor; pinned?: Anchor }
+    padding: { shift?: number; reserve?: number; isReserveOff?: boolean }
     fetch: { isFetching: boolean; lastTriggeredCount: number }
-    firstVisible: { index?: number; key?: string; offset?: number }
-    timers: { resize?: SetTimeout; idle?: SetTimeout }
-    urlSync: { index?: number; pageParam?: number; parameter?: string; unit?: number }
-    lastAxis?: Axis
+    urlSync: { index?: number; pageParam?: number; pageParamName?: string; unit?: number }
+    flags: {
+      isRangeLocked: boolean
+      shouldRestoreAxisOffset: boolean
+      hasScrolled: boolean
+      isJustReset: boolean
+      hasMaxSizeWarned: boolean
+      hasKeyWarned: boolean
+    }
+    timers: {
+      scroll?: SetTimeout
+      settle?: SetTimeout
+      idle?: SetTimeout
+      resize?: SetTimeout
+      reRender?: SetTimeout
+    }
   }
 }
 
