@@ -25,10 +25,10 @@ export const updateAveSize = <D extends object, P>({
         measuredSizes: { length },
         trees: { sizes, counts }
       },
-      rendered: { items, startIndex },
-      scrolling: { isActive },
+      listLength,
       aveSize,
-      listLength
+      rendered: { startIndex, items },
+      scrolling: { isActive }
     }: Scroll.Resolved<D, P> = scrollOptions,
     shouldWaitForSettle: boolean = !!isActive && aveSize !== itemMinSize,
     isAtListEnd: boolean = items !== undefined && startIndex + items.length >= listLength
