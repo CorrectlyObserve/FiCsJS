@@ -109,6 +109,7 @@ export class FiCsElement<D extends object, P extends object> {
     lazyLoad: false,
     rootMargin: '0px'
   }
+  readonly #scrollInput?: NonNullable<Options.Input<D, P>['scroll']>
   readonly #isFormAssociated: boolean = false
   readonly #clonedSelves: Map<string, Descendant> = new Map()
   readonly #activeApis: Map<string, boolean> = new Map()
