@@ -37,7 +37,7 @@ const rebuildTrees = (cache: Scroll.Cache): void => {
 }
 
 /**
- * @param totalCount Must be a non-negative integer.
+ * @param listLength Must be a non-negative integer.
  * @param index Must be a non-negative integer.
  * @param aveSize Must be a positive number.
  */
@@ -45,14 +45,14 @@ export const estimateOffsetBeforeIndex = ({
   cache: {
     trees: { sizes, counts }
   },
-  totalCount,
+  listLength,
   index,
   aveSize
 }: Scroll.Ctx.OffsetBeforeIndex): number => {
-  numberError({ totalCount, index }, 'non-negative-int')
+  numberError({ listLength, index }, 'non-negative-int')
   numberError({ aveSize }, 'positive')
 
-  const clampedIndex: number = Math.min(index, totalCount),
+  const clampedIndex: number = Math.min(index, listLength),
     measuredSize: number = fenwickTree.sum(sizes, clampedIndex),
     measuredCount: number = fenwickTree.sum(counts, clampedIndex)
 
