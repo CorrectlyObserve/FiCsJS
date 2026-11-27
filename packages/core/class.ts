@@ -463,7 +463,7 @@ export class FiCsElement<D extends object, P extends object> {
   }
 
   #clone({ instanceId, name }: { instanceId?: string; name?: string } = {}): FiCsElement<D, P> {
-    const { scroll, ...args }: Options.Resolved<D, P> = this.#options,
+    const { scroll: _, ...args }: Options.Resolved<D, P> = this.#options,
       cloned: FiCsElement<D, P> = new FiCsElement({
         name: this.#nameKey,
         instanceId: instanceId ?? this.#instanceId,
@@ -480,7 +480,7 @@ export class FiCsElement<D extends object, P extends object> {
         clonedCss: this.#css,
         actions: this.#actions,
         hooks: this.#hooks,
-        options: { ...args, scroll: scroll?.options }
+        options: { ...args, scroll: this.#scrollInput }
       })
 
     for (const [key, value] of typedEntries(this.#rawProps)) setOwnKey(cloned.#rawProps, key, value)
