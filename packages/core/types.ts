@@ -674,6 +674,7 @@ export declare namespace Scroll {
     scrollOffset: number
     scrollAmount: number
     clientSize: number
+    isUnmeasurable: boolean
   }
 
   interface Observers {
