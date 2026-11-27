@@ -462,6 +462,56 @@ export class FiCsElement<D extends object, P extends object> {
     console.warn(message)
   }
 
+  #resolveScrollOptions(
+    options: NonNullable<Options.Input<D, P>['scroll']>
+  ): Scroll.Resolved<D, P> {
+    const { unit, itemMinSize, getKey, bufferLength }: Scroll.Options = options(
+      this.#getDataProps(true)
+    )
+
+    if (typeof getKey !== 'function')
+      throw new TypeError('The scroll option needs `getKey`, such as item => item.id...')
+
+    numberError({ unit }, 'positive-int')
+    numberError({ itemMinSize }, 'positive')
+    numberError({ bufferLength }, 'non-negative-int')
+
+    return {
+      cache: {
+        keys: [],
+        measuredSizes: [],
+        trees: { sizes: fenwickTree.reset(0), counts: fenwickTree.reset(0) },
+        sizesByKey: new Map(),
+        elementIndexes: new WeakMap()
+      },
+      options,
+      id: `${this.#instanceId}-scroll`,
+      isEnabled: false,
+      listLength: 0,
+      prevListLength: 0,
+      listSize: NaN,
+      aveSize: itemMinSize,
+      startIndex: 0,
+      endIndex: unit,
+      rendered: { startIndex: 0 },
+      scrolling: {},
+      firstVisible: {},
+      anchors: {},
+      padding: {},
+      fetch: { isFetching: false, lastTriggeredCount: 0 },
+      urlSync: {},
+      flags: {
+        isRangeLocked: false,
+        shouldRestoreAxisOffset: false,
+        hasScrolled: false,
+        isJustReset: false,
+        hasMaxSizeWarned: false,
+        hasKeyWarned: false
+      },
+      timers: {}
+    }
+  }
+
   #clone({ instanceId, name }: { instanceId?: string; name?: string } = {}): FiCsElement<D, P> {
     const { scroll: _, ...args }: Options.Resolved<D, P> = this.#options,
       cloned: FiCsElement<D, P> = new FiCsElement({
