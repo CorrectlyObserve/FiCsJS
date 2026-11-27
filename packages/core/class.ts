@@ -370,7 +370,7 @@ export class FiCsElement<D extends object, P extends object> {
       if (form && !isEmptyObject(form)) this.#isFormAssociated = true
 
       for (const [key, value] of typedEntries({ websocket, sse, scroll, form })) {
-        if (!value || isEmptyObject(value) || !this.#isBrowser) continue
+        if (!value || isEmptyObject(value) || (!this.#isBrowser && key !== 'scroll')) continue
 
         switch (key) {
           case 'websocket':
