@@ -668,6 +668,8 @@ export declare namespace Scroll {
 
   type Div = 'wrap' | 'sentinel'
 
+  type Key = string | number
+
   interface Metrics {
     scrollOffset: number
     scrollAmount: number
