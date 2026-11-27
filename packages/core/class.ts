@@ -932,7 +932,7 @@ export class FiCsElement<D extends object, P extends object> {
             instanceId: this.#instanceId,
             getDataProps: this.#getDataProps.bind(this),
             template,
-            scrollOptions: this.#options.scroll,
+            scrollOptions: this.#scrollOptions,
             array,
             callback
           })
