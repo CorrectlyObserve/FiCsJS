@@ -61,9 +61,9 @@ export const estimateOffsetBeforeIndex = ({
 
 export const resetCache = (cache: Scroll.Cache): void => {
   cache.measuredSizes.fill(Number.NaN)
+  rebuildTrees(cache)
   cache.sizesByKey.clear()
   cache.elementIndexes = new WeakMap()
-  rebuildTrees(cache)
 }
 
 export const setSize = ({
@@ -169,6 +169,6 @@ export const syncCache = <T>({
   }
 
   cache.measuredSizes = measuredSizes
-  cache.elementIndexes = new WeakMap()
   rebuildTrees(cache)
+  cache.elementIndexes = new WeakMap()
 }
