@@ -632,6 +632,16 @@ export declare namespace Scroll {
       aveSize: number
     }
 
+    interface Resize<D extends object, P> {
+      getScrollOptions: () => Resolved<D, P>
+      root: HTMLElement
+      instanceId: string
+      getIsVertical: () => boolean
+      observers: Omit<Observers, 'root'>
+      getOptions: () => Pick<Clamped, 'unit' | 'itemMinSize' | 'bufferLength' | 'thresholdRatio'>
+      reRender: Runtime<D, P>['reRender']
+    }
+
     interface Runtime<D extends object, P> {
       name: string
       instanceId: string
