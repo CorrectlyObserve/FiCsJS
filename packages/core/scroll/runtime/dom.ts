@@ -188,14 +188,14 @@ export const restoreAxisOffset = <D extends object, P>({
   root: HTMLElement
   isVertical: boolean
   itemMinSize: number
-}): boolean => {
-  if (!scrollOptions.flags.shouldRestoreAxisOffset) return false
+}): void => {
+  if (!scrollOptions.flags.shouldRestoreAxisOffset) return
 
   const {
     cache,
     startIndex,
     aveSize,
-    totalCount,
+    listLength,
     firstVisible: { index, offset = 0 }
   }: Scroll.Resolved<D, P> = scrollOptions
 
@@ -205,7 +205,7 @@ export const restoreAxisOffset = <D extends object, P>({
   ;(root as any)[getProperty({ isVertical, type: 'start', prefix: 'scroll' })] =
     (estimateOffsetBeforeIndex({
       cache,
-      totalCount,
+      listLength,
       index: index ?? startIndex,
       aveSize: getAveSize({ aveSize, itemMinSize })
     }) +
@@ -214,7 +214,6 @@ export const restoreAxisOffset = <D extends object, P>({
 
   scrollOptions.flags.shouldRestoreAxisOffset = false
   scrollOptions.flags.isRangeLocked = false
-  return true
 }
 
 export const updateFirstVisible = <D extends object, P>({
