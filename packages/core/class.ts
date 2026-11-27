@@ -31,7 +31,6 @@ import {
 } from './helpers'
 import { optimisticUpdate } from './optimisticUpdate'
 import { enqueue } from './queue'
-import { CACHE_LENGTH } from './scroll/constants'
 import { clearTimers, fenwickTree, getScrollAttr } from './scroll/helpers'
 import { runInfiniteVirtualScroll } from './scroll/runtime'
 import { scrollTemplate } from './scroll/template'
